@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12.8, <3.13.0"
 
 [[package]]
@@ -217,7 +217,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.38,<2" },
     { name = "chevron", specifier = ">=0.14.0,<0.15" },
     { name = "clerk-backend-api", specifier = ">=3.0.3,<3.1" },
-    { name = "core", specifier = "==0.2.31", index = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" },
+    { name = "core", specifier = "==0.2.32", index = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" },
     { name = "cryptography", specifier = ">=44,<45" },
     { name = "dataclasses-json", specifier = ">=0.6.7" },
     { name = "deprecated", specifier = ">=1.2.14,<2" },
@@ -563,7 +563,7 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.2.31"
+version = "0.2.32"
 source = { registry = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" }
 dependencies = [
     { name = "dotenv" },
@@ -575,9 +575,9 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "sqlalchemy-utils" },
 ]
-sdist = { url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/core/0.2.31/core-0.2.31.tar.gz", hash = "sha256:521cf87f0ca87ce03e9170dc90e76b4616ba689e919a3859564e1c27e4dcc91e" }
+sdist = { url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/core/0.2.32/core-0.2.32.tar.gz", hash = "sha256:692fa1d8dcb04542e84736c6b58cc3c886f9d61e790dba7b9293b8e22314dd45" }
 wheels = [
-    { url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/core/0.2.31/core-0.2.31-py3-none-any.whl", hash = "sha256:e821c1dcd83737ef3202b21256ae1fb871bd05c149baddb05ebe9024fbe3c2d4" },
+    { url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/core/0.2.32/core-0.2.32-py3-none-any.whl", hash = "sha256:0589a10ffc99280679f0ed2ade410451cce33c4056415ec517f2872d3cefdcbe" },
 ]
 
 [[package]]
