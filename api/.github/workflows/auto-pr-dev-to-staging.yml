@@ -1,0 +1,51 @@
+name: Auto PR Dev to Staging
+
+on:
+  schedule:
+    # This is 12:00 UTC (fixed) - converts to 5:00 AM MST (UTC-7) and 6:00 AM MDT (UTC-6)
+    - cron: "0 12 * * 2,4,5" # For MST (UTC-7) - Tuesday, Thursday, Friday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create pull request from dev to staging
+        run: |
+          # Use `set +e` to prevent the script from exiting if the command fails
+          set +e
+
+          echo "Creating pull request from 'dev' to 'staging'..."
+          echo `gh --version`
+
+          # Attempt to create PR
+          ERROR_OUTPUT=$(gh pr create -B staging -H dev --title '[Automated] Merge dev into staging' --body 'Created by Github action. Please review and merge manually.' --reviewer marcus-maro --reviewer hunter-proximal 2>&1)
+          EXIT_CODE=$?
+
+          # Now that the exit code has been captured, re-enable exit on error behavior
+          set -e
+
+          echo "ERROR_OUTPUT: $ERROR_OUTPUT"
+          echo "EXIT_CODE: $EXIT_CODE"
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "✅ Pull request created successfully."
+          else
+            if echo "$ERROR_OUTPUT" | grep -q "No commits between"; then
+              echo "ℹ️ No commits between branches. No pull request needed."
+              exit 0
+            else
+              echo "❌ Unexpected error occurred."
+              exit 1
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

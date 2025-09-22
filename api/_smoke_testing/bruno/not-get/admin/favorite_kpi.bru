@@ -1,0 +1,30 @@
+meta {
+  name: Favorite KPI
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{baseURL}}/v1/admin/user-kpi-types/favorite
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "user_id": "user_2nkkFjLt6G6h64OaPOyBexJIAju",
+    "kpi_type_id": 2,
+    "is_favorited": true
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has is_favorited set to true", function () {
+    expect(res.getBody()).to.have.property('is_favorited');
+    expect(res.getBody().is_favorited).to.equal(true);
+  });
+}

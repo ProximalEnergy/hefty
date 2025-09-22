@@ -1,0 +1,8 @@
+---
+description: Best practices for real-time applications using FastAPI and Socket.IO
+globs: **/*.py
+---
+- Use async handlers for better performance
+- Implement proper error handling and logging
+- Use namespaces to organize different types of real-time communication
+- Secure your Socket.IO connections with authentication

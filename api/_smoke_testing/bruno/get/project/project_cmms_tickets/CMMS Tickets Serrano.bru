@@ -1,0 +1,15 @@
+meta {
+  name: CMMS Tickets Serrano
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseURL}}/v1/operational/projects/:project-id/cmms-tickets/
+  body: none
+  auth: inherit
+}
+
+params:path {
+  project-id: 6970fba7-6462-475f-805a-2357ee4ababb
+}

@@ -1,0 +1,8 @@
+---
+description: Guidelines for working with PostgreSQL databases using psycopg2
+globs: **/*.py
+---
+- Use connection pooling for better performance in multi-threaded applications
+- Implement proper transaction management
+- Use parameterized queries to prevent SQL injection
+- Handle database errors and implement retry mechanisms when appropriate

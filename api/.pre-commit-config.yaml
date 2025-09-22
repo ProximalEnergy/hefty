@@ -1,0 +1,35 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.11.12
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args: [--fix]
+      # Run the formatter.
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: star-syntax-check
+        name: Star Syntax Check
+        description: Ensures functions have keyword-only arguments unless decorated with @router
+        entry: _pr_checks/star_syntax_check.py
+        language: script
+        types: [python]
+        pass_filenames: true
+
+      - id: deprecation-check
+        name: Check File Additions In Deprecated Files
+        entry: _pr_checks/deprecator.sh
+        language: script
+        files: "" # Run on all files
+        types: [python]
+        pass_filenames: false # Don't pass filenames to the script
+
+
+    # - id: mypy
+    #   name: mypy
+    #   entry: uv run mypy .
+    #   language: system
+    #   types: [python]

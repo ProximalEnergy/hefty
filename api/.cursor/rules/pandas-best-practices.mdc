@@ -1,0 +1,8 @@
+---
+description: Best practices for data manipulation and analysis with pandas
+globs: **/*.py
+---
+- Use vectorized operations for better performance
+- Implement proper data cleaning and preprocessing steps
+- Use appropriate data types to optimize memory usage
+- Leverage pandas' built-in functions for common data operations

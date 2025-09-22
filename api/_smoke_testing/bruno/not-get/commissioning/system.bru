@@ -1,0 +1,15 @@
+meta {
+  name: system
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseURL}}/v1/commissioning/projects/:project_id/system/import
+  body: none
+  auth: inherit
+}
+
+params:path {
+  project_id: 83e51c6e-22ff-4ea2-8b3b-5bf89185409d
+}

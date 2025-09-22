@@ -1,0 +1,135 @@
+meta {
+  name: deep-delete
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseURL}}/v1/protected/deletions/:test_project_id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  test_project_id: 
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  test_project_id: dc7a3b73-500e-4fba-972d-cab377b46753
+}
+
+script:pre-request {
+  // Safety check - require manual confirmation
+  console.warn("⚠️  DANGER: About to perform IRREVERSIBLE deep delete of project!");
+  console.warn("⚠️  Project ID: " + bru.getVar('test_project_id'));
+  console.warn("⚠️  This will permanently delete ALL data associated with this project!");
+  console.warn("⚠️  Make sure this is a test project that can be safely deleted!");
+  
+  // Uncomment the line below to prevent accidental execution
+  // throw new Error("Safety check: Remove this line only after verifying the project ID is safe to delete");
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    console.log("✅ Project successfully deleted");
+    console.warn("⚠️  Deletion was permanent and irreversible");
+  } else if (res.getStatus() === 404) {
+    console.log("ℹ️  Project not found - may have already been deleted");
+  } else {
+    console.error("❌ Deletion failed with status: " + res.getStatus());
+  }
+}
+
+tests {
+  test("Status should be 200 or 404", function() {
+    expect([200, 404]).to.include(res.getStatus());
+  });
+  
+  test("Response should have expected structure", function() {
+    const body = res.getBody();
+  
+    if (res.getStatus() === 200) {
+      expect(body).to.have.property('success', true);
+      expect(body).to.have.property('message');
+      expect(body).to.have.property('project_id');
+      expect(body).to.have.property('warning');
+    } else if (res.getStatus() === 404) {
+      expect(body).to.have.property('error', 'Project not found');
+      expect(body).to.have.property('message');
+      expect(body).to.have.property('project_id');
+    }
+  });
+  
+  test("Project ID should match requested ID", function() {
+    const body = res.getBody();
+    expect(body.project_id).to.equal(bru.getVar('test_project_id'));
+  });
+}
+
+docs {
+  # Deep Delete Project Test
+  
+  ## ⚠️ DANGER - IRREVERSIBLE OPERATION ⚠️
+  
+  This test performs a DEEP DELETE of a project and ALL related data.
+  
+  **DO NOT RUN THIS TEST unless you are absolutely certain:**
+  - The project ID is for a test project that can be safely deleted
+  - You understand this will permanently delete ALL data associated with the project
+  - You have verified the project ID multiple times
+  
+  ## What gets deleted:
+  - The project itself
+  - All user assignments to the project
+  - All user subscriptions for the project
+  - All company associations with the project
+  - All permissions related to the project
+  - All documents associated with the project
+  - All contracts for the project
+  - All KPI alerts, instances, and data
+  - All timeseries data
+  - All report instances
+  - Project metadata and last updated records
+  
+  ## Requirements:
+  - Must be authenticated as a superadmin user
+  - The `confirm=true` query parameter is required
+  
+  ## Test Setup:
+  1. Ensure you have a test project that can be safely deleted
+  2. Update the `test_project_id` variable above with the correct UUID
+  3. Verify you are authenticated as a superadmin
+  4. Double-check the project ID before running
+  
+  ## Expected Response (Success):
+  ```json
+  {
+    "success": true,
+    "message": "Project {project_id} and all related data have been permanently deleted",
+    "project_id": "043fecf7-6cce-4228-acda-b1f23fd6d5f5",
+    "warning": "This operation was irreversible"
+  }
+  ```
+  
+  ## Expected Response (Project Not Found):
+  ```json
+  {
+    "error": "Project not found",
+    "message": "Project with ID {project_id} does not exist",
+    "project_id": "043fecf7-6cce-4228-acda-b1f23fd6d5f5"
+  }
+  ```
+  
+  ## Expected Response (Missing Confirmation):
+  ```json
+  {
+    "error": "Confirmation required",
+    "message": "Deep deletion requires explicit confirmation. Set confirm=true to proceed.",
+    "project_id": "043fecf7-6cce-4228-acda-b1f23fd6d5f5"
+  }
+  ```
+}

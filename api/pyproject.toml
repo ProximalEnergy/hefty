@@ -1,0 +1,226 @@
+[project]
+name = "api"
+version = "0.9.0"
+description = "Main API for the Proximal Platform"
+readme = "README.md"
+requires-python = ">=3.12.8,<3.13.0"
+dependencies = [
+    "aiofiles >=24.1.0,<25",
+    "aiohappyeyeballs >=2.4.3,<3",
+    "aiohttp >=3.12,<4",
+    "async-timeout >=4.0.3,<5",
+    "asyncer >=0.0.8,<0.1",
+    "asyncpg >=0.29.0,<0.30",
+    "attrs >=25.2.0,<26",
+    "bidict >=0.23.1,<0.24",
+    "boto3 >=1.38,<2",
+    "chevron >=0.14.0,<0.15",
+    "clerk-backend-api >=3.0.3,<3.1",
+    "core==0.2.31",
+    "cryptography >=44,<45",
+    "deprecated >=1.2.14,<2",
+    "dnspython >=2.7.0,<3",
+    "email-validator >=2.2.0,<3",
+    "et-xmlfile >=1.1.0,<2",
+    "fastapi >=0.116,<0.117",
+    "fastapi-cli >=0.0.7,<0.1",
+    "fastapi-mcp>=0.3.6",
+    "fastapi-socketio >=0.0.10,<0.1",
+    "filetype >=1.2.0,<2",
+    "frozenlist >=1.5.0,<2",
+    "geoalchemy2 >=0.18,<0.19",
+    "google-api-python-client >=2.166.0,<3",
+    "google-auth-httplib2 >=0.2.0,<0.3",
+    "google-auth-oauthlib >=1.2.1,<2",
+    "googleapis-common-protos >=1.69.2,<2",
+    "greenlet",
+    "grpcio >=1.67.0,<2",
+    "httptools >=0.6.4,<0.7",
+    "httpx >=0.28,<0.29",
+    "importlib-metadata >=8.4.0,<9",
+    "jinja2 >=3.1.5,<4",
+    "kaleido==0.2.1",
+    "lazify >=0.4.0,<0.5",
+    "literalai >=0.1,<0.2",
+    "markdown-it-py >=3.0.0,<4",
+    "mdurl >=0.1.2,<0.2",
+    "multidict >=6.1.0,<7",
+    "natsort >=8.4.0,<9",
+    "nest-asyncio >=1.6.0,<2",
+    "openai>=1.86.0",
+    "openpyxl >=3.1.5,<4",
+    "orjson >=3.10.9,<4",
+    "pandas >=2.2.3,<3",
+    "pillow >=11.1.0,<12",
+    "plotly >=6,<7",
+    "polars>=1.29.0",
+    "psycopg2-binary==2.9.10",
+    "pvlib>=0.13,<0.14",
+    "pyarrow>=20.0.0",
+    "pyjwt >=2.9.0,<3",
+    "python-dotenv >=1.0.1,<2",
+    "python-graphql-client >=0.4.3,<0.5",
+    "python-multipart >=0.0.19,<0.1",
+    "requests>=2.32.4",
+    "s3fs>=0.4.2,<0.5",
+    "sentry-sdk >=2.17.0,<3",
+    "shapely >=2.1.1,<3",
+    "sqlalchemy >=2.0.43,<3",
+    "timezonefinder>=6.2.0",
+    "syncer >=2.0.3,<3",
+    "tenacity >=9.0.0,<10",
+    "uptrace >=1.31,<2",
+    "urllib3>=2.5.0",
+    "uvicorn >=0.35,<0.36",
+    "xlsxwriter >=3.2.5,<4",
+    "dataclasses-json>=0.6.7",
+    "starlette>=0.47.2", # delete this once fastapi includes >= 0.47.2
+]
+
+[dependency-groups]
+dev = [
+    "boto3-stubs>=1.37.36",
+    "botocore-stubs>=1.37.36",
+    "ipykernel>=6.29.5",
+    "mypy>=1.15.0",
+    "pandas-stubs>=2.2.2.240807",
+    "poethepoet>=0.34.0",
+    "pre-commit>=4.2.0",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=1.1.0",
+    "pytest-mock>=3.14.0",
+    "ruff==0.12.2",
+    "tomli>=2.0.2",
+    "types-psycopg2>=2.9.21.20250318",
+    "types-requests>=2.31.0.6",
+    "typing-extensions>=4.12.2",
+]
+[tool.uv]
+
+[[tool.uv.index]]
+name = "proximal"
+url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"
+explicit = true
+
+[tool.uv.sources]
+# core = { path = "../core", editable = true }
+core = { index = "proximal" }
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+aws-core = "_scripts.aws_core_wrapper:main"
+uv-auth = "_scripts.uv_auth_wrapper:main"
+
+# --- POE TASKS ---
+# Shell typoe tasks
+[tool.poe.tasks.aws_core]
+cmd = "./_scripts/update_core.sh"
+executor = { type = "simple" }
+
+[tool.poe.tasks.uv]
+cmd = "./_scripts/uv_wrapper.sh"
+executor = { type = "simple" }
+
+# Standard CLI tasks
+[tool.poe.tasks]
+# QC
+check = ["types", "star_syntax", "ruff", "format", "pytest", "hurl"]
+ruff = "ruff check"
+format = "ruff format"
+types = "mypy --config-file pyproject.toml -p app"
+pytest = "pytest"
+star_syntax = "uv run -m _pr_checks.star_syntax_check"
+hurl = "hurl --location --variable baseURL=http://127.0.0.1:8000 --variables-file .env --test ./_smoke_testing/hurl/get/*"
+
+# CORE
+e_core = ["editable_core", "freeze"]
+core = ["aws_core", "freeze"]
+editable_core = "bash -c 'source .env && uv add --editable ${CORE_PATH}'"
+
+run = "uv run uvicorn app.main:app --reload --timeout-graceful-shutdown 0"
+freeze = "uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes --quiet" # META
+get_env = "uv run _scripts/generate_env_from_secrets.py"
+
+# Insert scripts
+insert_devices = "python3 -m _data_insert.project.1_devices"
+insert_tags = "python3 -m _data_insert.project.2_tags"
+insert_pv_dc_combiners = "python3 -m _data_insert.project.3_pv_dc_combiners"
+insert_kpi_types = "python3 -m _data_insert.operational.5_kpi_types"
+insert_kpi_instances = "python3 -m _data_insert.operational.11_kpi_instances"
+
+# --- ruff configuration ---
+[tool.ruff]
+line-length = 88 # or your preferred line length
+src = ["app"]    # adjust to your source folder
+fix = true
+
+[tool.ruff.lint]
+select = [
+    "ANN002",  # checks that *args are typed
+    "ASYNC",   # async python checks
+    "COM",     # Ending commas
+    "EXE",     # Executables
+    "FA",      # Future Annotations
+    "F401",    # Remove unused imports
+    "FAST001", # FastAPI
+    "FAST003", # FastAPI
+    "FURB",    # Code modernization
+    "I",       # isort:  Sort all imports
+    "INT",     # Gettext formatting
+    "ISC",     # Implicit string concat
+    "ICN",     # Import alias
+    "PD002",   # Pandas inplace
+    "PIE",     # Code simplification
+    "S101",    # Look for assert
+    "S102",    # Look for exec
+    "S103",    # Look for os.chmod
+    "S104",    # harcoded bind all interfaces
+    "S105",    # hardcoded password string
+    "S106",    # hardcoded password func arg
+    "S107",    # hardcoded password defaults
+    "S108",    # hardcoded temp files
+    "S110",    # try-except-pass
+    "T",       # debugger checks
+    "T20",     # Lint print and pprint Statements
+    "UP",      # pyupgrade
+]
+fixable = ["ALL"]
+unfixable = []
+ignore = [
+    "COM812",
+    "COM819",
+    "FAST002",
+    "FURB162",
+    "UP038",   # https://github.com/astral-sh/ruff/issues/7871
+    "E501",    # E501 line too long
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"_tests/**/*.py" = [
+    # at least this three should be fine in tests:
+    "S101", # asserts allowed in tests...
+    "ARG",  # Unused function args -> fixtures nevertheless are functionally relevant...
+    "FBT",  # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
+]
+
+
+# --- mypy ---
+[tool.mypy]
+disable_error_code = ["import-untyped"]
+exclude = ["^app.crud.py$", "^app.utils.py$"]
+
+[[tool.mypy.overrides]]
+module = ["_alembic_migrations.versions.*", "crud.py$"]
+ignore_errors = true
+
+
+# --- pyright ---
+[tool.pyright]
+venv = ".venv"
+venvPath = "."
+
+[tool.setuptools]
+packages = ["app", "_scripts"]

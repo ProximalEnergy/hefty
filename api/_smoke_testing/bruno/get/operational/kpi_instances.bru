@@ -1,0 +1,31 @@
+meta {
+  name: kpi_instances
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/operational/kpi-instances/
+  auth: inherit
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an('array');
+  });
+
+  test("Response contains expected kpi instance fields", function() {
+    const body = res.getBody();
+    if (body.length > 0) {
+      const kpi_instance = body[0];
+      expect(kpi_instance).to.have.property('kpi_instance_id');
+      expect(kpi_instance).to.have.property('project_id');
+      expect(kpi_instance).to.have.property('kpi_type_id');
+      expect(kpi_instance).to.have.property('is_visible');
+    }
+  });
+}

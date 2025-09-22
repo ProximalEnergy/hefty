@@ -1,0 +1,15 @@
+meta {
+  name: CMMS Tickets Continental v2
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/v1/operational/projects/:project-id/cmms-tickets/
+  body: none
+  auth: inherit
+}
+
+params:path {
+  project-id: 7988693d-5fbe-491f-90ed-fb48b9e1d099
+}

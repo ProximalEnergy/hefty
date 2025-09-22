@@ -1,0 +1,9 @@
+---
+description: Best practices for SQLAlchemy ORM usage
+globs: **/*.{py}
+---
+- Use declarative base for defining models to simplify schema management.
+- Implement proper transaction management with `session.begin()`.
+- Use eager loading with `joinedload` or `subqueryload` to reduce N+1 queries.
+- Leverage bulk operations for improved performance on large datasets.
+- Use `indexes` and `constraints` to optimize database queries and ensure data integrity.

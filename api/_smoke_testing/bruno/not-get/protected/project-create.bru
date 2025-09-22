@@ -1,0 +1,28 @@
+meta {
+  name: project-creation-notification
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}v1/protected/internal-comms/project-creation-notification
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "project_name": "Test Solar Project",
+    "created_by": "John Doe",
+    "created_by_company": "Acme Solar Inc",
+    "channel": "google_chat"
+  }
+}
+
+tests {
+  test("should return success message", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody().message).to.equal('Success');
+  });
+}

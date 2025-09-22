@@ -1,0 +1,24 @@
+meta {
+  name: ond_sandia_params
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseURL}}/v1/operational/pv-inverters/calculate-sandia?inverter_id=2
+  body: multipartForm
+  auth: inherit
+}
+
+params:query {
+  inverter_id: 2
+}
+
+body:file {
+  file: @file(/Users/kurt/Programs/pv-expected-energy/commissioning/inverter/_ond/Sungrow_SG3600UD_20201225_PVsyst.6.8.6.ond)
+}
+
+assert {
+  res.status: eq 200
+  res.body.inverter_data.c1: isNumber
+}
