@@ -1,0 +1,50 @@
+meta {
+  name: create_project
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseURL}}/v1/operational/projects/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "project_type_id": 3,
+    "name_long": "Test Solar Project Bruno",
+    "address": "123 Test Street, Phoenix, AZ",
+    "latitude": 33.2,
+    "longitude": -117.35,
+    "elevation": 335.0,
+    "time_zone": "America/Phoenix",
+    "poi": 100.0,
+    "capacity_dc": 150.5,
+    "capacity_ac": 125.0,
+    "capacity_bess_power_ac": 50.0,
+    "capacity_bess_energy_bol_dc": 200.0,
+    "cod": "2024-12-31"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has project data", function () {
+    expect(res.getBody()).to.have.property('project_id');
+    expect(res.getBody()).to.have.property('name_long');
+    expect(res.getBody().name_long).to.equal('Test Solar Project Bruno');
+  });
+  
+  test("Response has required fields", function () {
+    const body = res.getBody();
+    expect(body).to.have.property('project_type_id');
+    expect(body).to.have.property('point');
+    expect(body).to.have.property('elevation');
+    expect(body).to.have.property('time_zone');
+    expect(body).to.have.property('poi');
+  });
+}

@@ -1,0 +1,11 @@
+meta {
+  name: get_tickets_assembly1
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/operational/projects/b102379c-eadb-4cc4-808b-a3d4b3f3ea5a/cmms-tickets/
+  body: none
+  auth: inherit
+}

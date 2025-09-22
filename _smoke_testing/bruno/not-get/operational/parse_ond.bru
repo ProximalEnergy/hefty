@@ -1,0 +1,24 @@
+meta {
+  name: parse_ond
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseURL}}/v1/operational/pv-inverters/parse-ond
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file()
+}
+
+body:file {
+  file: @file(/Users/kurt/Programs/pv-expected-energy/commissioning/inverter/_ond/Sungrow_SG3600UD_20201225_PVsyst.6.8.6.ond)
+}
+
+assert {
+  res.status: eq 200
+  res.body.inverter_data.c1: isNumber
+}

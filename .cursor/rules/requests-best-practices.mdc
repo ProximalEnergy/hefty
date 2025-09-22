@@ -1,0 +1,8 @@
+---
+description: Best practices for making HTTP requests with the Requests library
+globs: **/*.py
+---
+- Use sessions for multiple requests to the same host
+- Implement proper timeout settings to prevent hanging requests
+- Use SSL verification for secure connections
+- Handle different types of HTTP errors appropriately

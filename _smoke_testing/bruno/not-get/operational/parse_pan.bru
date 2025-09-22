@@ -1,0 +1,24 @@
+meta {
+  name: parse_pan
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/v1/operational/pv-modules/parse-pan
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(/Users/kurt/Programs/api/LONGI_LR6_72HBD_375M_RETC_200424_PV6-79.PAN)
+}
+
+body:file {
+  file: @file(/Users/kurt/Programs/pv-expected-energy/commissioning/inverter/_ond/Sungrow_SG3600UD_20201225_PVsyst.6.8.6.ond)
+}
+
+assert {
+  res.status: eq 200
+  res.body.inverter_data.c1: isNumber
+}

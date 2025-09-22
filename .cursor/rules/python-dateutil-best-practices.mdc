@@ -1,0 +1,8 @@
+---
+description: Guidelines for working with dates and times using python-dateutil
+globs: **/*.py
+---
+- Use dateutil.parser for flexible date parsing
+- Implement proper timezone handling with dateutil.tz
+- Use dateutil.relativedelta for complex date arithmetic
+- Be aware of potential performance impacts when using dateutil functions

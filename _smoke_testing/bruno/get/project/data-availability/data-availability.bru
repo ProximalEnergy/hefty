@@ -1,0 +1,48 @@
+meta {
+  name: data-availability
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/protected/web-application/projects/3b63ea38-cf28-4880-810e-41a81209d640/device-details/data-availability?device_type_ids=1&device_type_ids=13&device_type_ids=17&device_type_ids=25&device_type_ids=27&device_type_ids=31&device_type_ids=32&device_type_ids=33&device_type_ids=34
+  body: none
+  auth: inherit
+}
+
+params:query {
+  device_type_ids: 1
+  device_type_ids: 13
+  device_type_ids: 17
+  device_type_ids: 25
+  device_type_ids: 27
+  device_type_ids: 31
+  device_type_ids: 32
+  device_type_ids: 33
+  device_type_ids: 34
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an('array');
+  });
+  
+  test("Response contains expected fields", function() {
+    const body = res.getBody();
+    if (body.length > 0) {
+      expect(body[0]).to.have.property('tag_id');
+      expect(body[0]).to.have.property('time');
+      expect(body[0]).to.have.property('age');
+      expect(body[0]).to.have.property('sensor_type_id');
+      expect(body[0]).to.have.property('device_id');
+      expect(body[0]).to.have.property('device_type_id');
+      expect(body[0]).to.have.property('device_name');
+      expect(body[0]).to.have.property('stale');
+      expect(body[0]).to.have.property('age_pct');
+    }
+  });
+}

@@ -1,0 +1,15 @@
+meta {
+  name: CMMS Tickets DBD
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseURL}}/v1/operational/projects/:project-id/cmms-tickets/
+  body: none
+  auth: inherit
+}
+
+params:path {
+  project-id: 679f8f19-af11-43e0-9a60-64fc706f92a4
+}

@@ -1,0 +1,26 @@
+name: 'Install Hurl'
+description: 'Install Hurl HTTP testing tool'
+inputs:
+  version:
+    description: 'Hurl version to install'
+    required: false
+    default: '6.1.1'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Hurl
+      shell: bash
+      run: |
+        echo "Installing Hurl version ${{ inputs.version }}"
+        curl --location --remote-name --fail --show-error --silent \
+          https://github.com/Orange-OpenSource/hurl/releases/download/${{ inputs.version }}/hurl_${{ inputs.version }}_amd64.deb
+        sudo dpkg -i hurl_${{ inputs.version }}_amd64.deb || {
+          echo "Failed to install Hurl via dpkg, trying apt-get fix"
+          sudo apt-get update
+          sudo apt-get install -f -y
+          sudo dpkg -i hurl_${{ inputs.version }}_amd64.deb
+        }
+        
+        # Verify installation
+        hurl --version
+        echo "Hurl installation completed successfully"

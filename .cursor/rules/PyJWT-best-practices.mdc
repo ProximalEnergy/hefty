@@ -1,0 +1,8 @@
+---
+description: Best practices for working with JSON Web Tokens using PyJWT
+globs: **/*.py
+---
+- Use strong, secure secret keys
+- Implement proper token expiration and refresh mechanisms
+- Validate token signatures and claims on every request
+- Use the HS256 algorithm for symmetric key signing

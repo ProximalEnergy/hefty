@@ -1,0 +1,27 @@
+meta {
+  name: create_racking
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/v1/operational/pv-rackings
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "racking_id": 999,
+    "racking_type_id": 2,
+    "manufacturer": "GenericTrackerCorp",
+    "model": "ModelXYZ789",
+    "max_rotation_angle": 70.0,
+    "min_rotation_angle": -70.0,
+    "wind_stow_angle": 2.5,
+    "wind_stow_threshold": 13.8,
+    "hail_stow_angle": 60.0,
+    "snow_stow_angle": 18.0
+  }
+  
+}

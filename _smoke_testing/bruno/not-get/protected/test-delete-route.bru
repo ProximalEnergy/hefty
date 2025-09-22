@@ -1,0 +1,61 @@
+meta {
+  name: test-delete-route
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/protected/deletions/{{test_project_id}}/test
+  body: none
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  test_project_id: a77e2871-44a7-4be1-8fbb-6f370c595945
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response should have expected structure", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('message', 'Delete route is reachable');
+    expect(body).to.have.property('project_id');
+    expect(body).to.have.property('route');
+  });
+  
+  test("Project ID should match requested ID", function() {
+    const body = res.getBody();
+    expect(body.project_id).to.equal(bru.getVar('test_project_id'));
+  });
+  
+  test("Route should be correct", function() {
+    const body = res.getBody();
+    const expectedRoute = `/v1/protected/deletions/${bru.getVar('test_project_id')}`;
+    expect(body.route).to.equal(expectedRoute);
+  });
+}
+
+docs {
+  # Test Delete Route Accessibility
+  
+  This is a simple test to verify that the deletion route structure is working correctly.
+  
+  It tests the GET endpoint `/v1/protected/deletions/{project_id}/test` which should return:
+  
+  ```json
+  {
+    "message": "Delete route is reachable",
+    "project_id": "a77e2871-44a7-4be1-8fbb-6f370c595945",
+    "route": "/v1/protected/deletions/a77e2871-44a7-4be1-8fbb-6f370c595945"
+  }
+  ```
+  
+  If this test passes, it confirms the route structure is correct and the actual DELETE endpoint should be accessible.
+}

@@ -1,0 +1,61 @@
+import uuid
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app import dependencies, interfaces
+from app._crud.admin.user_projects import update_user_project_favorite
+from app._crud.admin.user_projects import (
+    update_user_projects as update_user_projects_crud,
+)
+from core import models
+
+router = APIRouter(prefix="/user-projects", tags=["user-projects"])
+
+
+# TODO:  Make this route more secure
+@router.post("/update-user-projects")
+async def update_user_projects(
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user_ids: list[str],
+    operational_project_ids: list[list[uuid.UUID]],
+):
+    await update_user_projects_crud(
+        db=db,
+        user_ids=user_ids,
+        operational_project_ids=operational_project_ids,
+    )
+
+
+# TODO:  Make this route more secure
+@router.get("/{user_id}")
+async def get_user_projects(
+    *,
+    user_id: str,
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+):
+    """Get all user projects with favorited status for a user"""
+    query = select(models.UserProject).where(models.UserProject.user_id == user_id)
+    result = await db.execute(query)
+    user_projects = result.scalars().all()
+    return user_projects
+
+
+# TODO:  Make this route more secure
+@router.patch("/{user_id}/projects/{project_id}/favorite")
+async def update_project_favorite(
+    *,
+    user_id: str,
+    project_id: uuid.UUID,
+    favorite_update: interfaces.UserProjectFavoriteUpdate,
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+):
+    """Update the is_favorited field for a user's project"""
+    return await update_user_project_favorite(
+        db=db,
+        user_id=user_id,
+        project_id=project_id,
+        is_favorited=favorite_update.is_favorited,
+    )

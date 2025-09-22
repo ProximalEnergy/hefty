@@ -1,0 +1,27 @@
+meta {
+  name: backfill
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseURL}}v1/protected/backfill/expected_energy_model?energy_model_version=0.9.3&project_name_short=double_black_diamond&simulation_start=2025-04-08 00:00:00&simulation_end=2025-04-08 23:55:55
+  body: json
+  auth: inherit
+}
+
+params:query {
+  energy_model_version: 0.9.3
+  project_name_short: double_black_diamond
+  simulation_start: 2025-04-08 00:00:00
+  simulation_end: 2025-04-08 23:55:55
+}
+
+body:json {
+  {
+    "soiling": "measured",
+    "degradation": "none",
+    "dc_wiring_to_combiner": "target_stc",
+    "dc_wiring_to_inverter": "target_stc"
+  }
+}

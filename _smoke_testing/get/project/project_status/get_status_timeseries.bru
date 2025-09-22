@@ -1,0 +1,22 @@
+meta {
+  name: get_status_timeseries
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/operational/projects/:projectId/status/timeseries?start=2025-06-11 08:00:00&end=2025-06-11 12:00:00&device_ids=221&device_ids=221
+  body: none
+  auth: inherit
+}
+
+params:query {
+  start: 2025-06-11 08:00:00
+  end: 2025-06-11 12:00:00
+  device_ids: 221
+  device_ids: 221
+}
+
+params:path {
+  projectId: 3e3a98c1-3172-407e-b730-827f389c294d
+}

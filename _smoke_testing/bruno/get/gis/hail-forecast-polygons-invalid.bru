@@ -1,0 +1,33 @@
+meta {
+  name: hail-forecast-polygons-invalid
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/v1/gis/hail-forecast-polygons
+  body: none
+  auth: inherit
+}
+
+params:query {
+  days: 5
+}
+
+tests {
+  test("Status is 422 for invalid days parameter", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+
+  test("Response contains error details", function() {
+    const body = res.getBody();
+    expect(body).to.be.an('object');
+    expect(body).to.have.property('detail');
+    expect(body.detail).to.be.a('string');
+  });
+
+  test("Error message mentions parameter validation", function() {
+    const body = res.getBody();
+    expect(body.detail.toLowerCase()).to.include('ensure this value is less than or equal to 2');
+  });
+}

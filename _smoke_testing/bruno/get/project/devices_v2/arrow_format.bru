@@ -1,0 +1,55 @@
+meta {
+  name: arrow_format
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/v1/operational/projects/3b63ea38-cf28-4880-810e-41a81209d640/devices/v2
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "device_ids": [],
+    "device_type_ids": [1,13,17,25,27,31,32,33,34],
+    "parent_device_ids": [],
+    "name_short": "",
+    "name_long": "",
+    "device_id_descendent_of": null,
+    "deep": false,
+    "with_tags": false,
+    "limit": 1000,
+    "offset": 0,
+    "format": "arrow"
+  }
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Content-Type is Arrow format", function() {
+    expect(res.getHeader('Content-Type')).to.equal('application/vnd.apache.arrow.file');
+  });
+  
+  test("Content-Disposition header is present", function() {
+    expect(res.getHeader('Content-Disposition')).to.contain('attachment; filename=devices.arrow');
+  });
+  
+  test("X-Total-Records header is present", function() {
+    expect(res.getHeader('X-Total-Records')).to.exist;
+    const totalRecords = parseInt(res.getHeader('X-Total-Records'));
+    expect(totalRecords).to.be.a('number');
+    expect(totalRecords).to.be.at.least(0);
+  });
+  
+  test("Response body is binary data", function() {
+    const body = res.getBody();
+    expect(body).to.exist;
+    // Arrow files start with specific magic bytes
+    expect(body).to.be.instanceOf(ArrayBuffer);
+  });
+}

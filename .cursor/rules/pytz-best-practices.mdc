@@ -1,0 +1,8 @@
+---
+description: Guidelines for working with time zones using pytz
+globs: **/*.py
+---
+- Always use timezone-aware datetime objects
+- Localize datetime objects when working with user input
+- Use pytz.utc for UTC time operations
+- Be aware of daylight saving time transitions

@@ -1,0 +1,74 @@
+meta {
+  name: hail-forecast-polygons
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/gis/hail-forecast-polygons
+  body: none
+  auth: inherit
+}
+
+params:query {
+  days: 1
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has correct structure", function() {
+    const body = res.getBody();
+    expect(body).to.be.an('object');
+    expect(body).to.have.property('type');
+    expect(body).to.have.property('time_span_days');
+    expect(body).to.have.property('polygon_count');
+    expect(body).to.have.property('total_area');
+    expect(body).to.have.property('polygons');
+  });
+
+  test("Type is correct", function() {
+    const body = res.getBody();
+    expect(body.type).to.equal('hail_forecast_polygon');
+  });
+
+  test("Time span matches request", function() {
+    const body = res.getBody();
+    expect(body.time_span_days).to.equal(1);
+  });
+
+  test("Polygons is an array", function() {
+    const body = res.getBody();
+    expect(body.polygons).to.be.an('array');
+  });
+
+  test("Polygon count matches array length", function() {
+    const body = res.getBody();
+    expect(body.polygon_count).to.equal(body.polygons.length);
+  });
+
+  test("If polygons exist, they have correct structure", function() {
+    const body = res.getBody();
+    if (body.polygons.length > 0) {
+      const polygon = body.polygons[0];
+      expect(polygon).to.have.property('id');
+      expect(polygon).to.have.property('area');
+      expect(polygon).to.have.property('bounds');
+      expect(polygon).to.have.property('centroid');
+      expect(polygon).to.have.property('geometry');
+
+      expect(polygon.geometry).to.have.property('type');
+      expect(polygon.geometry).to.have.property('coordinates');
+      expect(polygon.geometry.type).to.equal('Polygon');
+      expect(polygon.bounds).to.be.an('array').with.lengthOf(4);
+      expect(polygon.centroid).to.be.an('array').with.lengthOf(2);
+    }
+  });
+
+  test("Total area is non-negative", function() {
+    const body = res.getBody();
+    expect(body.total_area).to.be.at.least(0);
+  });
+}

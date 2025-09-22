@@ -1,0 +1,83 @@
+meta {
+  name: hail-forecast-polygons-2day
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/v1/gis/hail-forecast-polygons
+  body: none
+  auth: inherit
+}
+
+params:query {
+  days: 2
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has correct structure", function() {
+    const body = res.getBody();
+    expect(body).to.be.an('object');
+    expect(body).to.have.property('type');
+    expect(body).to.have.property('time_span_days');
+    expect(body).to.have.property('polygon_count');
+    expect(body).to.have.property('total_area');
+    expect(body).to.have.property('polygons');
+  });
+
+  test("Type is correct", function() {
+    const body = res.getBody();
+    expect(body.type).to.equal('hail_forecast_polygon');
+  });
+
+  test("Time span matches request for 2-day forecast", function() {
+    const body = res.getBody();
+    expect(body.time_span_days).to.equal(2);
+  });
+
+  test("Polygons is an array", function() {
+    const body = res.getBody();
+    expect(body.polygons).to.be.an('array');
+  });
+
+  test("Polygon count matches array length", function() {
+    const body = res.getBody();
+    expect(body.polygon_count).to.equal(body.polygons.length);
+  });
+
+  test("If polygons exist, they have correct structure", function() {
+    const body = res.getBody();
+    if (body.polygons.length > 0) {
+      const polygon = body.polygons[0];
+      expect(polygon).to.have.property('id');
+      expect(polygon).to.have.property('area');
+      expect(polygon).to.have.property('bounds');
+      expect(polygon).to.have.property('centroid');
+      expect(polygon).to.have.property('geometry');
+
+      expect(polygon.geometry).to.have.property('type');
+      expect(polygon.geometry).to.have.property('coordinates');
+      expect(polygon.geometry.type).to.equal('Polygon');
+      expect(polygon.bounds).to.be.an('array').with.lengthOf(4);
+      expect(polygon.centroid).to.be.an('array').with.lengthOf(2);
+      expect(polygon.geometry.coordinates).to.be.an('array');
+      expect(polygon.geometry.coordinates[0]).to.be.an('array');
+    }
+  });
+
+  test("Total area is non-negative", function() {
+    const body = res.getBody();
+    expect(body.total_area).to.be.at.least(0);
+  });
+
+  test("2-day forecast may have different data than 1-day", function() {
+    const body = res.getBody();
+    // This test just ensures the endpoint works for 2-day forecasts
+    // Data differences would be validated by comparing with 1-day results
+    expect(body).to.be.an('object');
+  });
+}
