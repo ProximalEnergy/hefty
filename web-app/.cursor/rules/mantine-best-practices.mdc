@@ -1,0 +1,10 @@
+---
+description: Best practices for using Mantine UI components and styling
+globs: **/*.{ts,tsx,js,jsx,css}
+---
+- Use Mantine's theme system for consistent styling
+- Implement form validation with `@mantine/form`
+- Utilize `@mantine/hooks` for custom hooks and state management
+- Use `@mantine/notifications` for user feedback
+- Implement date pickers with `@mantine/dates`
+- Use `@mantine/dropzone` for file uploads

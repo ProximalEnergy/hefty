@@ -1,0 +1,936 @@
+import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
+import { useGetProject } from '@/api/v1/operational/projects'
+import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
+import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
+import CustomCard from '@/components/CustomCard'
+import { PageLoader } from '@/components/Loading'
+import { PageTitle } from '@/components/PageTitle'
+import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { useProjectFilter } from '@/hooks/custom'
+import {
+  Button,
+  Group,
+  HoverCard,
+  List,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+} from '@mantine/core'
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
+  IconDatabaseX,
+  IconInfoCircle,
+} from '@tabler/icons-react'
+import { Data, Layout, PlotMouseEvent } from 'plotly.js'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+// Constants
+const IS_LARGE_THRESHOLD = 200
+const GROUP_BUTTON_PX = 0
+const GROUP_BUTTON_VARIANT = 'default'
+
+const Page = () => {
+  useProjectFilter({
+    hasRealTimeData: true,
+  })
+
+  const navigate = useNavigate()
+  const possibleDeviceTypes: {
+    label: string
+    deviceId: string
+    sensorTypeIds: string[]
+  }[] = [
+    {
+      label: 'PV PCS',
+      deviceId: '2',
+      sensorTypeIds: ['2', '9'],
+    },
+    {
+      label: 'PV PCS Module',
+      deviceId: '3',
+      sensorTypeIds: ['3'],
+    },
+    {
+      label: 'PV DC Combiner',
+      deviceId: '9',
+      sensorTypeIds: ['27'],
+    },
+    {
+      label: 'Tracker',
+      deviceId: '29',
+      sensorTypeIds: ['24', '25'],
+    },
+    {
+      label: 'BESS PCS',
+      deviceId: '13',
+      sensorTypeIds: ['31'],
+    },
+    {
+      label: 'BESS PCS Module Group',
+      deviceId: '32',
+      sensorTypeIds: ['121'],
+    },
+    {
+      label: 'BESS PCS Module',
+      deviceId: '33',
+      sensorTypeIds: ['106'],
+    },
+    {
+      label: 'BESS String',
+      deviceId: '27',
+      sensorTypeIds: ['45'],
+    },
+    // {
+    //   label: 'BESS Cell',
+    //   deviceId: '31',
+    //   sensorTypeIds: ['82'],
+    // },
+  ]
+
+  // deviceTypeId will keep track of which device type is selected
+  const [deviceTypeId, setDeviceTypeId] = useState<number>()
+
+  // traceName will keep track of which trace is selected
+  // In the future this will include 'Setpoint' and 'Expected'
+  // NOTE: This will need to be dynamically updated based on the device type
+  // (some device types may not have all 3 options)
+  const [traceName, setTraceName] = useState<string>('Actual')
+
+  // groupBy will keep track of which group to display
+  // An example of a group is a PV Block's worth of trackers
+  const [groupBy, setGroupBy] = useState<string | null>(null)
+
+  const { projectId } = useParams()
+
+  const projectData = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+    queryOptions: { enabled: !!projectId },
+  })
+
+  useEffect(() => {
+    if (projectData.data) {
+      setDeviceTypeId(projectData.data.project_type_id == 1 ? 2 : 13)
+    }
+  }, [projectData.data])
+
+  const usedDeviceIds = (
+    projectData.data?.spec?.used_device_type_ids ?? []
+  ).map(String)
+
+  const usedSensorIds = (
+    projectData.data?.spec?.used_sensor_type_ids ?? []
+  ).map(String)
+
+  const projectDeviceTypes = possibleDeviceTypes
+    .filter((dt) => usedDeviceIds.includes(dt.deviceId))
+    .map((dt) => ({
+      ...dt,
+      sensorTypeIds: dt.sensorTypeIds.filter((id) =>
+        usedSensorIds.includes(id),
+      ),
+    }))
+    .filter((dt) => dt.sensorTypeIds.length > 0)
+
+  const sensorTypeIds = projectDeviceTypes
+    .filter((dt) => dt.deviceId === deviceTypeId?.toString())[0]
+    ?.sensorTypeIds.map((id) => Number(id))
+
+  // Query latest data
+  const data = useGetRealTimeByDeviceTypeID({
+    pathParams: {
+      projectId: projectId || '-1',
+      deviceTypeId: deviceTypeId || -1,
+    },
+    queryParams: {
+      sensor_type_ids: sensorTypeIds,
+    },
+    queryOptions: { enabled: !!projectId && !!sensorTypeIds && !!deviceTypeId },
+  })
+
+  // Query device types
+  const deviceTypes = useGetDeviceTypes({
+    queryOptions: { enabled: !!projectId },
+  })
+
+  const sensorTypes = useGetSensorTypes({
+    queryParams: {
+      sensor_type_ids: usedSensorIds,
+    },
+    queryOptions: { enabled: !!projectId && !!usedSensorIds },
+  })
+
+  // Get the device type name_long for the selected device type
+  const deviceTypeName = deviceTypes.data?.find(
+    (deviceType) => deviceType.device_type_id === deviceTypeId,
+  )?.name_long
+
+  const latestData = data.data
+  const realTimeData = groupBy
+    ? {
+        ...latestData,
+        device_names: latestData?.device_names?.filter(
+          (_, idx) => latestData?.device_names_y?.[idx] === groupBy,
+        ),
+        device_names_y: latestData?.device_names_y?.filter(
+          (name) => name === groupBy,
+        ),
+        device_ids: latestData?.device_ids?.filter(
+          (_, idx) => latestData?.device_names_y?.[idx] === groupBy,
+        ),
+        traces: latestData?.traces?.map((trace) => ({
+          ...trace,
+          values: trace.values?.filter(
+            (_, idx) => latestData?.device_names_y?.[idx] === groupBy,
+          ),
+        })),
+      }
+    : latestData
+
+  const availableGroups = new Set(latestData?.device_names_y)
+  const canGroup = availableGroups.size > 1
+
+  const handleClick = (event: Readonly<PlotMouseEvent>) => {
+    if (!event.points?.[0]) {
+      return
+    }
+    const point = event.points[0]
+    const customPointData = point.customdata as unknown as Plotly.Datum[]
+
+    navigate(
+      `/projects/${projectId}/device-details/single/${customPointData[0]}`,
+    )
+  }
+
+  // Get the unit for the currently selected trace
+  // For heatmaps, we need to find the sensor type that matches the current trace name
+  const unit = (() => {
+    if (!sensorTypes?.data || !traceName) return undefined
+
+    // First, try to find by sensor type name matching the trace name
+    let sensorType = sensorTypes.data.find(
+      (st) =>
+        st.name_long === traceName ||
+        st.name_metric === traceName ||
+        st.name_short === traceName,
+    )
+
+    // If not found by name, fall back to the first sensor type for this device type
+    if (!sensorType) {
+      sensorType = sensorTypes.data.find((st) =>
+        projectDeviceTypes
+          .find((dt) => dt.deviceId === deviceTypeId?.toString())
+          ?.sensorTypeIds.includes(st.sensor_type_id.toString()),
+      )
+    }
+
+    if (!sensorType?.unit) return undefined
+
+    // For percentage units, combine name_metric with unit, removing "Percent" from name_metric
+    if (sensorType.unit === '%') {
+      const cleanNameMetric = sensorType.name_metric
+        ?.replace(/\bPercent\b/gi, '')
+        .trim()
+      return cleanNameMetric
+        ? `${cleanNameMetric} ${sensorType.unit}`
+        : sensorType.unit
+    }
+
+    return sensorType.unit
+  })()
+
+  useEffect(() => {
+    if (realTimeData?.traces?.length) {
+      setTraceName(realTimeData?.traces[0].name)
+    }
+  }, [realTimeData?.traces])
+
+  let trace: Partial<Data>[]
+
+  // If there are more than IS_LARGE_THRESHOLD devices, we use a heatmap
+  // Else, we use a bar chart
+  const isLarge = (realTimeData?.device_ids?.length || 0) > IS_LARGE_THRESHOLD
+  let xvals: string[] = []
+  let yvals: string[] = []
+  if (isLarge) {
+    const selectedTrace = realTimeData?.traces?.find(
+      (t) => t.name === traceName,
+    )
+
+    const indexByLabel: Record<string, number[]> = {}
+    ;(realTimeData?.device_names_y ?? []).forEach((label, idx) => {
+      if (!indexByLabel[label]) indexByLabel[label] = []
+      indexByLabel[label].push(idx)
+    })
+
+    xvals = realTimeData?.device_names_x ?? []
+    yvals = realTimeData?.device_names_y ?? []
+    const zvals = selectedTrace?.values ?? []
+    const zmin = deviceTypeId === 29 ? -60 : 0
+    const zmax =
+      deviceTypeId === 29
+        ? 60
+        : Math.max(
+            ...(latestData?.traces
+              .find((t) => t.name === traceName)
+              ?.values.filter((v): v is number => v !== null) ?? []),
+          )
+    trace = [
+      {
+        x: xvals,
+        y: yvals,
+        z: zvals,
+        zmin: zmin,
+        zmax: zmax,
+        type: 'heatmap',
+        showlegend: false,
+        customdata: (realTimeData?.device_ids ?? []).map((id) => [
+          id as Plotly.Datum,
+          deviceTypeName as Plotly.Datum,
+        ]),
+        xgap: xvals.length < 20_000 ? 1 : 0.2,
+        ygap: yvals.length < 20_000 ? 1 : 0.2,
+        hovertemplate: '%{customdata[1]} %{y}.%{x}<br>%{z:.2f}<extra></extra>',
+        hoverongaps: false,
+        colorbar: {
+          title: {
+            text:
+              deviceTypeId === 9
+                ? 'Current (A)'
+                : deviceTypeId === 29
+                  ? 'Angle (degrees)'
+                  : unit || '',
+          },
+        },
+      },
+    ]
+  } else {
+    const xvals = realTimeData?.device_names ?? []
+
+    trace =
+      realTimeData?.traces?.map((t, index) => ({
+        x: xvals,
+        y: t.values ?? [], // <- each trace draws its own data
+        type: 'bar',
+        name: t.name,
+        showlegend: true,
+        // make successive overlays a bit narrower so they're visible
+        width: 0.8 - index * 0.1, // tweak or drop if you like
+        opacity: 0.7, // helps see overlaps
+        customdata: (realTimeData?.device_ids ?? []).map((id) => [
+          id as Plotly.Datum,
+          deviceTypeName as Plotly.Datum,
+        ]),
+        hoverlabel: { namelength: -1 },
+      })) ?? []
+  }
+
+  const largeYAxisTitle = (() => {
+    switch (deviceTypeId) {
+      case 3:
+        return 'PV PCS'
+      case 9:
+        return 'PV PCS'
+      case 27:
+        return 'BESS PCS'
+      case 29:
+        return 'Tracker Zone'
+      case 31:
+        return 'BESS Module'
+      case 32:
+        return 'BESS PCS'
+      case 33:
+        return 'BESS PCS'
+      default:
+        return undefined
+    }
+  })()
+
+  const getChartDescription = () => {
+    switch (deviceTypeId) {
+      case 2: // PV PCS
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding PV PCS Power Output</Text>
+            <Text size="sm">
+              This chart displays the real-time power output of each PV
+              Inverter.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500} c="red">
+                Red bars:
+              </Text>{' '}
+              Actual power output of the inverter. Useful for comparing
+              inverters to identify outliers.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500} c="blue">
+                Blue bars:
+              </Text>{' '}
+              Set-point of the inverter. Typically set to nameplate when there
+              are no curtailment events. Shows if power is being constrained by
+              the plant controller.
+            </Text>
+            <List size="sm" spacing="xs">
+              <List.Item>
+                <Text component="span" fw={500} c="red">
+                  Uniform red bars:
+                </Text>{' '}
+                Normal operation
+              </List.Item>
+              <List.Item>
+                <Text component="span" fw={500} c="blue">
+                  Full blue bars:
+                </Text>{' '}
+                Normal operation (near nameplate power)
+              </List.Item>
+              <List.Item>
+                <Text component="span" fw={500} c="red">
+                  Low red bars:
+                </Text>{' '}
+                Potential inverter issues or low sunlight conditions
+              </List.Item>
+            </List>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that device.
+            </Text>
+          </Stack>
+        )
+      case 3: // PV PCS Module
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding PV PCS Module Performance</Text>
+            <Text size="sm">
+              This chart shows the power output of individual PV PCS modules.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Lower values:
+              </Text>{' '}
+              Modules are performing below expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Higher values:
+              </Text>{' '}
+              Modules are performing at or above expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that module.
+            </Text>
+          </Stack>
+        )
+      case 9: // PV DC Combiner
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding PV DC Combiner Current</Text>
+            <Text size="sm">
+              This chart shows the DC current from each combiner box at each
+              inverter.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Y-axis:
+              </Text>{' '}
+              Indicates which inverter the combiner box is attached to
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                X-axis:
+              </Text>{' '}
+              Indicates which combiner is reporting current data
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Colors:
+              </Text>{' '}
+              <Text component="span" c="green">
+                Green
+              </Text>{' '}
+              indicates more current,{' '}
+              <Text component="span" c="red">
+                red
+              </Text>{' '}
+              indicates less current
+            </Text>
+            <List size="sm" spacing="xs">
+              <List.Item>
+                <Text component="span" fw={500}>
+                  Similar colors:
+                </Text>{' '}
+                Normal operation across combiners
+              </List.Item>
+              <List.Item>
+                <Text component="span" fw={500} c="red">
+                  Redder colors:
+                </Text>{' '}
+                Potential combiner performance issues
+              </List.Item>
+              <List.Item>
+                <Text component="span" fw={500}>
+                  Blank colors:
+                </Text>{' '}
+                Data loss or missing combiners
+              </List.Item>
+            </List>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any box to navigate to device details for that combiner.
+            </Text>
+          </Stack>
+        )
+      case 29: // Tracker
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding Tracker Angle Visualization</Text>
+            <Text size="sm">
+              This heatmap visualizes the real-time tracking angle or set-point
+              of each tracker row.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Y-axis:
+              </Text>{' '}
+              Tracker zone
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                X-axis:
+              </Text>{' '}
+              Tracker row
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Colors:
+              </Text>{' '}
+              Each cell represents the tracker's angle with a legend provided.
+              Colors range from{' '}
+              <Text component="span" c="#b5d6e0">
+                blue
+              </Text>{' '}
+              (sunrise) to{' '}
+              <Text component="span" c="#ffef7a">
+                yellow
+              </Text>{' '}
+              (mid-morning) to{' '}
+              <Text component="span" c="#f7c16a">
+                orange
+              </Text>{' '}
+              (noon) to{' '}
+              <Text component="span" c="#ff6b3e">
+                red
+              </Text>{' '}
+              (mid-afternoon) to{' '}
+              <Text component="span" c="#27214e">
+                purple
+              </Text>{' '}
+              (sunset).
+            </Text>
+            <List size="sm" spacing="xs">
+              <List.Item>
+                <Text component="span" fw={500}>
+                  Uniform color:
+                </Text>{' '}
+                All trackers are aligned (normal operation)
+              </List.Item>
+              <List.Item>
+                <Text component="span" fw={500}>
+                  Different colors:
+                </Text>{' '}
+                Individual trackers or controllers may have issues
+              </List.Item>
+            </List>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Use the toggle button to switch between tracker angle and setpoint
+              views.
+            </Text>
+          </Stack>
+        )
+      case 13: // BESS PCS
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding BESS PCS Power Output</Text>
+            <Text size="sm">
+              This chart displays the real-time power output of each BESS PCS
+              (Power Conversion System).
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Lower values:
+              </Text>{' '}
+              PCS units are operating at lower power levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Higher values:
+              </Text>{' '}
+              PCS units are operating at higher power levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that PCS.
+            </Text>
+          </Stack>
+        )
+      case 32: // BESS PCS Module Group
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>
+              Understanding BESS PCS Module Group Performance
+            </Text>
+            <Text size="sm">
+              This chart shows the performance of BESS PCS module groups.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Lower values:
+              </Text>{' '}
+              Module groups are performing below expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Higher values:
+              </Text>{' '}
+              Module groups are performing at or above expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that module
+              group.
+            </Text>
+          </Stack>
+        )
+      case 33: // BESS PCS Module
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding BESS PCS Module Performance</Text>
+            <Text size="sm">
+              This chart shows the performance of individual BESS PCS modules.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Lower values:
+              </Text>{' '}
+              Modules are performing below expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Higher values:
+              </Text>{' '}
+              Modules are performing at or above expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that module.
+            </Text>
+          </Stack>
+        )
+      case 27: // BESS String
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding BESS String Performance</Text>
+            <Text size="sm">
+              This chart shows the performance of BESS strings.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Lower values:
+              </Text>{' '}
+              Strings are performing below expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Higher values:
+              </Text>{' '}
+              Strings are performing at or above expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that string.
+            </Text>
+          </Stack>
+        )
+      case 31: // BESS Cell
+        return (
+          <Stack gap="xs">
+            <Text fw={600}>Understanding BESS Cell Performance</Text>
+            <Text size="sm">
+              This chart shows the performance of individual BESS cells.
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Lower values:
+              </Text>{' '}
+              Cells are performing below expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Higher values:
+              </Text>{' '}
+              Cells are performing at or above expected levels
+            </Text>
+            <Text size="sm">
+              <Text component="span" fw={500}>
+                Note:
+              </Text>{' '}
+              Click any bar to explore detailed information about that cell.
+            </Text>
+          </Stack>
+        )
+      default:
+        return null
+    }
+  }
+
+  const layout: Partial<Layout> = {
+    barmode: 'overlay',
+    plot_bgcolor: 'transparent',
+    xaxis: {
+      showgrid: false,
+      type: isLarge ? 'category' : undefined,
+      categoryorder: 'array',
+      categoryarray: naturalSort(xvals),
+      title: deviceTypeName ? `${deviceTypeName} Device Name` : 'Device Name',
+    },
+    yaxis: {
+      type: isLarge ? 'category' : undefined,
+      categoryorder: 'array',
+      categoryarray: naturalSort(yvals),
+      showgrid: isLarge ? false : true,
+      range: isLarge ? undefined : ['data', 'data'],
+      title: isLarge ? largeYAxisTitle : (unit ?? ''),
+      tickformat: unit?.includes('%') ? ',.0%' : undefined,
+    },
+  }
+
+  useEffect(() => {
+    if (!canGroup) {
+      setGroupBy(null)
+    }
+  }, [canGroup])
+
+  useEffect(() => {
+    setGroupBy(null)
+  }, [deviceTypeId])
+
+  if (projectData.isLoading) {
+    return <PageLoader />
+  }
+
+  const title = (
+    <PageTitle>
+      <Group>
+        Real Time
+        {getChartDescription() && (
+          <HoverCard shadow="md">
+            <HoverCard.Target>
+              <IconInfoCircle size={20} stroke={1.5} />
+            </HoverCard.Target>
+            <HoverCard.Dropdown maw="50%">
+              {getChartDescription()}
+            </HoverCard.Dropdown>
+          </HoverCard>
+        )}
+      </Group>
+    </PageTitle>
+  )
+
+  if (!projectData.data?.has_real_time_data) {
+    return (
+      <Stack h="100%" p="md">
+        {title}
+        <Text>
+          Real time data is not available for this project yet. Check back soon!
+        </Text>
+      </Stack>
+    )
+  }
+
+  return (
+    <Stack h="100%" p="md">
+      {title}
+      <Group>
+        <SegmentedControl
+          value={deviceTypeId?.toString() ?? ''}
+          onChange={(value) => setDeviceTypeId(Number(value))}
+          data={projectDeviceTypes.map((type) => ({
+            label: type.label,
+            value: type.deviceId,
+          }))}
+        />
+        {canGroup && (isLarge || !!groupBy) && (
+          <GroupNavigation
+            availableGroups={availableGroups}
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
+          />
+        )}
+        {isLarge && (
+          <>
+            <SegmentedControl
+              value={traceName}
+              onChange={setTraceName}
+              data={
+                realTimeData?.traces?.map((trace) => ({
+                  label: trace.name,
+                  value: trace.name,
+                })) || []
+              }
+            />
+          </>
+        )}
+      </Group>
+      <CustomCard style={{ flex: 1, height: '100%' }}>
+        {!data.isLoading && realTimeData?.traces?.length === 0 ? (
+          <Stack align="center" justify="center" h="100%">
+            <IconDatabaseX size={48} strokeWidth={2} />
+            <Text>Data not available for this request.</Text>
+          </Stack>
+        ) : (
+          <PlotlyPlot
+            data={trace}
+            layout={layout}
+            onClick={handleClick}
+            isLoading={data.isLoading}
+            error={data.error}
+            colorscale={deviceTypeId === 29 ? 'tracker' : 'good-bad'}
+          />
+        )}
+      </CustomCard>
+    </Stack>
+  )
+}
+
+interface GroupNavigationProps {
+  availableGroups: Set<string>
+  groupBy: string | null
+  setGroupBy: (value: string | null) => void
+}
+
+const GroupNavigation = ({
+  availableGroups,
+  groupBy,
+  setGroupBy,
+}: GroupNavigationProps) => {
+  const handleFirst = () => {
+    const groups = Array.from(availableGroups)
+    if (groups.length > 0) {
+      setGroupBy(groups[0])
+    }
+  }
+
+  const handleLast = () => {
+    const groups = Array.from(availableGroups)
+    if (groups.length > 0) {
+      setGroupBy(groups[groups.length - 1])
+    }
+  }
+
+  const handlePrevious = () => {
+    const groups = Array.from(availableGroups)
+    const currentIndex = groups.indexOf(groupBy || '')
+    if (currentIndex > 0) {
+      setGroupBy(groups[currentIndex - 1])
+    }
+  }
+
+  const handleNext = () => {
+    const groups = Array.from(availableGroups)
+    const currentIndex = groups.indexOf(groupBy || '')
+    if (currentIndex < groups.length - 1) {
+      setGroupBy(groups[currentIndex + 1])
+    }
+  }
+
+  return (
+    <Button.Group>
+      <Button
+        variant={GROUP_BUTTON_VARIANT}
+        px={GROUP_BUTTON_PX}
+        onClick={handleFirst}
+        disabled={
+          !groupBy || Array.from(availableGroups).indexOf(groupBy) === 0
+        }
+      >
+        <IconChevronsLeft />
+      </Button>
+      <Button
+        variant={GROUP_BUTTON_VARIANT}
+        px={GROUP_BUTTON_PX}
+        onClick={handlePrevious}
+        disabled={
+          !groupBy || Array.from(availableGroups).indexOf(groupBy) === 0
+        }
+      >
+        <IconChevronLeft />
+      </Button>
+      <Select
+        data={Array.from(availableGroups).map((group) => ({
+          label: group,
+          value: group,
+        }))}
+        placeholder="Group data by..."
+        clearable
+        onChange={setGroupBy}
+        value={groupBy}
+        radius={0}
+      />
+      <Button
+        variant={GROUP_BUTTON_VARIANT}
+        px={GROUP_BUTTON_PX}
+        onClick={handleNext}
+        disabled={
+          !groupBy ||
+          Array.from(availableGroups).indexOf(groupBy) ===
+            Array.from(availableGroups).length - 1
+        }
+      >
+        <IconChevronRight />
+      </Button>
+      <Button
+        variant={GROUP_BUTTON_VARIANT}
+        px={GROUP_BUTTON_PX}
+        onClick={handleLast}
+        disabled={
+          !groupBy ||
+          Array.from(availableGroups).indexOf(groupBy) ===
+            Array.from(availableGroups).length - 1
+        }
+      >
+        <IconChevronsRight />
+      </Button>
+    </Button.Group>
+  )
+}
+
+const naturalSort = (array: string[]) => {
+  return Array.from(new Set(array)).sort(
+    new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
+      .compare,
+  )
+}
+
+export default Page
