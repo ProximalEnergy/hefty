@@ -1,0 +1,143 @@
+import Timeline from '@/components/gis/Timeline'
+import { GISContext } from '@/contexts/GISContext'
+import {
+  ActionIcon,
+  Paper,
+  Popover,
+  Stack,
+  Switch,
+  Text,
+  rem,
+} from '@mantine/core'
+import { IconSettings } from '@tabler/icons-react'
+import { useContext } from 'react'
+
+export function ColorBar({
+  gradient,
+  lowLabel,
+  middleLabel,
+  highLabel,
+}: {
+  gradient: string
+  highLabel: string | number
+  middleLabel?: string | number
+  lowLabel: string | number
+}) {
+  const textColor = 'black'
+  const textSize = 'md'
+  const textWeight = 500
+  const writingMode = 'vertical-rl'
+
+  return (
+    <Paper h="100%" p={0} bg={gradient} withBorder>
+      <Stack
+        h="100%"
+        p={8}
+        align="center"
+        justify="space-between"
+        ff="monospace"
+        pos="relative"
+      >
+        <Text
+          size={textSize}
+          fw={textWeight}
+          c={textColor}
+          style={{
+            writingMode,
+            textAlign: 'center',
+            borderRadius: '3px',
+          }}
+          bg="rgba(255, 255, 255, 0.75)"
+          py="xs"
+          px={3}
+          lh={0}
+        >
+          {highLabel}
+        </Text>
+        {middleLabel && (
+          <Text
+            size={textSize}
+            c={textColor}
+            style={{
+              writingMode,
+              textAlign: 'center',
+            }}
+          >
+            {middleLabel}
+          </Text>
+        )}
+        <Text
+          size={textSize}
+          fw={textWeight}
+          c={textColor}
+          style={{
+            writingMode,
+            textAlign: 'center',
+            borderRadius: '3px',
+          }}
+          bg="rgba(255, 255, 255, 0.5)"
+          py="xs"
+          px={3}
+          lh={0}
+        >
+          {lowLabel}
+        </Text>
+      </Stack>
+    </Paper>
+  )
+}
+
+export function MapSettings({
+  disableLabels = false,
+  disableSatellite = false,
+}: {
+  disableLabels?: boolean
+  disableSatellite?: boolean
+}) {
+  const context = useContext(GISContext)
+
+  if (!context) {
+    throw new Error('GISContext is not provided')
+  }
+
+  const { showLabels, setShowLabels, showSatellite, setShowSatellite } = context
+
+  // If all settings are disabled, don't render anything
+  if (disableLabels && disableSatellite) {
+    return null
+  }
+
+  const switchSize = 'xs'
+
+  return (
+    <Popover position="top-start">
+      <Popover.Target>
+        <ActionIcon size={30}>
+          <IconSettings style={{ width: rem(18), height: rem(18) }} />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Stack gap="xs">
+          {!disableSatellite && (
+            <Switch
+              label="Satellite"
+              size={switchSize}
+              checked={showSatellite}
+              onChange={() => setShowSatellite((prev) => !prev)}
+            />
+          )}
+          {!disableLabels && (
+            <Switch
+              label="Labels"
+              size={switchSize}
+              checked={showLabels}
+              onChange={() => setShowLabels((prev) => !prev)}
+            />
+          )}
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
+  )
+}
+
+export { Timeline }

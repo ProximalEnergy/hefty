@@ -1,0 +1,8 @@
+---
+description: Best practices for creating interactive maps with React Map GL
+globs: **/*.{ts,tsx,js,jsx}
+---
+- Use React Map GL's viewport for smooth map interactions
+- Implement proper marker and popup management
+- Utilize Mapbox GL's style specification for custom map styles
+- Use React Map GL's event handling for map interactions
