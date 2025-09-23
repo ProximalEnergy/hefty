@@ -60,17 +60,17 @@ jobs:
           echo "Setting environment variables for branch: $BRANCH_NAME"
           if [ "$BRANCH_NAME" = "main" ]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
-            echo "ENV_NAME=${{ secrets.PRODUCTION_EB_ENV_NAME }}" >> $GITHUB_ENV
+            echo "ENV_NAME=${{ vars.PROD_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=production" >> $GITHUB_ENV
             echo "Set production environment variables."
           elif [ "$BRANCH_NAME" = "staging" ]; then
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
-            echo "ENV_NAME=${{ secrets.STAGING_2_EB_ENV_NAME }}" >> $GITHUB_ENV
+            echo "ENV_NAME=${{ vars.STAGING_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=staging" >> $GITHUB_ENV
             echo "Set staging environment variables."
           elif [ "$BRANCH_NAME" = "sandbox" ]; then
             echo "ENVIRONMENT=sandbox" >> $GITHUB_ENV
-            echo "ENV_NAME=${{ secrets.SANDBOX_EB_ENV_NAME }}" >> $GITHUB_ENV
+            echo "ENV_NAME=${{ vars.SANDBOX_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=sandbox" >> $GITHUB_ENV
             echo "Set sandbox environment variables."
           else
@@ -100,6 +100,11 @@ jobs:
           cd api
           zip -r ../deploy.zip ./ -x "*.git*"
 
+      - name: echo
+        run: |
+          "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"
+          echo ${{ secrets.AWS_S3_REGION }}
+
       - name: Deploy to Elastic Beanstalk
         if: env.SKIP_DEPLOYMENT != 'true'
         uses: einaregilsson/beanstalk-deploy@v22
@@ -109,7 +114,7 @@ jobs:
           application_name: ${{ secrets.EB_APP_NAME }}
           environment_name: ${{ env.ENV_NAME }}
           version_label: "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"
-          region: ${{ secrets.STAGING_AWS_REGION }}
+          region: ${{ secrets.AWS_S3_REGION }}
           deployment_package: deploy.zip
           wait_for_deployment: true
 
@@ -129,8 +134,8 @@ jobs:
         run: |
           echo "BRANCH_NAME=${{ needs.deploy.outputs.branch_name }}" >> $GITHUB_ENV
           if [ "${{ needs.deploy.outputs.branch_name }}" = "main" ]; then
-            echo "BASE_URL=${{ secrets.PRODUCTION_BASE_URL }}" >> $GITHUB_ENV
-            echo "API_KEY=${{ secrets.PRODUCTION_API_KEY }}" >> $GITHUB_ENV
+            echo "BASE_URL=${{ secrets.PROD_BASE_URL }}" >> $GITHUB_ENV
+            echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> $GITHUB_ENV
           elif [ "${{ needs.deploy.outputs.branch_name }}" = "staging" ]; then
             echo "BASE_URL=${{ secrets.STAGING_BASE_URL }}" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
