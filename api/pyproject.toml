@@ -135,7 +135,7 @@ pytest = "pytest"
 star_syntax = "uv run -m _pr_checks.star_syntax_check"
 hurl = "hurl --location --variable baseURL=http://127.0.0.1:8000 --variables-file .env --test ./_smoke_testing/hurl/get/*"
 
-# CORE
+# CORhttp://proximal-api-sandbox.us-east-2.elasticbeanstalk.com/
 e_core = ["editable_core", "freeze"]
 core = ["aws_core", "freeze"]
 editable_core = "bash -c 'source .env && uv add --editable ${CORE_PATH}'"

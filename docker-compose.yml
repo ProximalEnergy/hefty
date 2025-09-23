@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: mono-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=development
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount source code for development (hot reload)
+      - ./api:/app
+      # Preserve virtual environment
+      - /app/.venv
+    networks:
+      - mono-network
+    command:
+      [
+        "uv",
+        "run",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+        "--timeout-graceful-shutdown",
+        "0",
+      ]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    develop:
+      # Enable watch mode for development
+      watch:
+        - action: sync
+          path: ./api
+          target: /app
+          ignore:
+            - .venv/
+            - __pycache__/
+            - "*.pyc"
+            - .git/
+            - _tests/
+            - _docs/
+        - action: rebuild
+          path: ./api/pyproject.toml
+        - action: rebuild
+          path: ./api/uv.lock
+
+  web-app:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    container_name: mono-web-app
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      # Mount source code for development (hot reload)
+      - ./web-app:/app
+      # Preserve node_modules
+      - /app/node_modules
+    networks:
+      - mono-network
+    depends_on:
+      - api
+    develop:
+      # Enable watch mode for development
+      watch:
+        - action: sync
+          path: ./web-app
+          target: /app
+          ignore:
+            - node_modules/
+            - dist/
+            - build/
+            - .git/
+            - _tests/
+            - _docs/
+        - action: rebuild
+          path: ./web-app/package.json
+        - action: rebuild
+          path: ./web-app/package-lock.json
+
+networks:
+  mono-network:
+    driver: bridge
+
+volumes:
+  api_venv:
+  web_app_node_modules:
