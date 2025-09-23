@@ -102,7 +102,7 @@ jobs:
 
       - name: echo
         run: |
-          "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"
+          echo "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"
           echo ${{ secrets.AWS_S3_REGION }}
 
       - name: Deploy to Elastic Beanstalk
