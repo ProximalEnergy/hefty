@@ -111,7 +111,7 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: ${{ secrets.ELASTIC_BEANSTALK_APP_NAME }}
+          application_name: api
           environment_name: ${{ env.ENV_NAME }}
           version_label: "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"
           region: ${{ secrets.AWS_S3_REGION }}
