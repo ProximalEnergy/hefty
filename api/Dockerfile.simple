@@ -7,14 +7,14 @@ ARG UV_INDEX_PROXIMAL_USERNAME
 
 # Set environment variables for uv
 ENV UV_COMPILE_BYTECODE=1
+ENV UV_NO_INSTALLER_METADATA=1
 ENV UV_LINK_MODE=copy
 ENV UV_CACHE_DIR=/opt/uv-cache/
-ENV UV_NO_INSTALLER_METADATA=1
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies if needed
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -23,11 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy dependency files first for better caching
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies (without the project itself for better caching)
-# Mount authentication credentials as build secrets for private repository access
+# Install dependencies with authentication to private repository
 RUN --mount=type=cache,target=/opt/uv-cache/ \
-    --mount=type=secret,id=uv_auth,target=/tmp/uv_auth \
-    if [ -f /tmp/uv_auth ]; then source /tmp/uv_auth; fi && \
+    UV_INDEX_PROXIMAL_USERNAME=${UV_INDEX_PROXIMAL_USERNAME} \
+    UV_INDEX_PROXIMAL_PASSWORD=${UV_INDEX_PROXIMAL_PASSWORD} \
     uv sync --locked --no-install-project
 
 # Copy the rest of the application
@@ -35,8 +34,8 @@ COPY . .
 
 # Install the project itself
 RUN --mount=type=cache,target=/opt/uv-cache/ \
-    --mount=type=secret,id=uv_auth,target=/tmp/uv_auth \
-    if [ -f /tmp/uv_auth ]; then source /tmp/uv_auth; fi && \
+    UV_INDEX_PROXIMAL_USERNAME=${UV_INDEX_PROXIMAL_USERNAME} \
+    UV_INDEX_PROXIMAL_PASSWORD=${UV_INDEX_PROXIMAL_PASSWORD} \
     uv sync --locked
 
 # Expose port

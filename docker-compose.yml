@@ -5,6 +5,9 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
+      args:
+        UV_INDEX_PROXIMAL_USERNAME: ${UV_INDEX_PROXIMAL_USERNAME:-aws}
+        UV_INDEX_PROXIMAL_PASSWORD: ${UV_INDEX_PROXIMAL_PASSWORD}
     container_name: mono-api
     ports:
       - "8000:8000"
