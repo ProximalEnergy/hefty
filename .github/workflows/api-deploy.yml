@@ -1,4 +1,4 @@
-name: Deploy to Elastic Beanstalk
+name: Deploy API to Elastic Beanstalk
 
 on:
   push:
@@ -6,7 +6,17 @@ on:
       - staging
       - main
       - sandbox
+    paths:
+      - "api/**"
+      - ".github/workflows/api-deploy.yml"
+      - ".github/actions/install-hurl/**"
   workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Force deploy even without API changes"
+        required: false
+        default: false
+        type: boolean
   workflow_run:
     workflows: ["Auto Merge Staging to Main if All Reviewers Approved"]
     types:
@@ -75,15 +85,20 @@ jobs:
           enable-cache: true
 
       - name: set up python
+        if: env.SKIP_DEPLOYMENT != 'true'
         run: uv python install
+        working-directory: api
 
       - name: Generate requirements.txt
         if: env.SKIP_DEPLOYMENT != 'true'
         run: uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes
+        working-directory: api
 
       - name: Generate deployment package
         if: env.SKIP_DEPLOYMENT != 'true'
-        run: zip -r deploy.zip ./ -x "*.git*"
+        run: |
+          cd api
+          zip -r ../deploy.zip ./ -x "*.git*"
 
       - name: Deploy to Elastic Beanstalk
         if: env.SKIP_DEPLOYMENT != 'true'
@@ -132,3 +147,4 @@ jobs:
 
       - name: Run smoke tests
         run: hurl --location --variable baseURL=${{ env.BASE_URL }} --variable apiKey=${{ env.API_KEY }} --test ./_smoke_testing/hurl/get/*
+        working-directory: api

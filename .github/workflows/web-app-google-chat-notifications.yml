@@ -1,8 +1,11 @@
-name: Notify Google Chat on Key Merges
+name: Web App Google Chat Notifications
 
 on:
   pull_request:
     types: [closed]
+    paths:
+      - 'web-app/**'
+      - '.github/workflows/web-app-google-chat-notifications.yml'
 
 jobs:
   notify:
@@ -30,7 +33,7 @@ jobs:
             curl -X POST "$CHAT_WEBHOOK" \
               -H 'Content-Type: application/json' \
               -d "{
-                \"text\": \"🔀 *PR merged in \`api\`*: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})>\n📍 Merged from *${HEAD_BRANCH}* into *${BASE_BRANCH}* by *${{ github.actor }}*\n🚀 <${DEPLOYMENT_URL}|View Deployment>\"
+                \"text\": \"🔀 *PR merged in \`web-app\`*: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})>\n📍 Merged from *${HEAD_BRANCH}* into *${BASE_BRANCH}* by *${{ github.actor }}*\n🚀 <${DEPLOYMENT_URL}|View Deployment>\"
               }"
           else
             echo "Merge not from dev→staging or staging→main; skipping."

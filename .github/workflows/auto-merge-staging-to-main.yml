@@ -1,8 +1,12 @@
 name: Auto Merge Staging to Main if All Reviewers Approved
 
+permissions:
+  contents: write
+  pull-requests: write
+
 on:
   schedule:
-    - cron: '0 2 * * 2,4' # 02:00 UTC (20:00 MDT) on Tu, Th (M, W)
+    - cron: "0 2 * * 2,4" # 02:00 UTC (20:00 MDT) on Tu, Th (M, W)
   workflow_dispatch: # Allows manual runs for testing
 
 env:

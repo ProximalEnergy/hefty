@@ -1,4 +1,4 @@
-name: Auto Merge Staging to Main if All Reviewers Approved
+name: API Auto Merge Staging to Main if All Reviewers Approved
 
 permissions:
   contents: write
@@ -43,6 +43,22 @@ jobs:
             }
 
             const pr = prs.data[0];
+
+            // Check if PR contains API changes
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            const hasApiChanges = files.some(file => file.filename.startsWith('api/'));
+
+            if (!hasApiChanges) {
+              core.info('PR does not contain API changes, skipping auto-merge');
+              core.setOutput('found', 'false');
+              return;
+            }
+
             core.setOutput('found', 'true');
             core.setOutput('pr_number', pr.number);
             core.info(`Found PR #${pr.number}: ${pr.title}`);

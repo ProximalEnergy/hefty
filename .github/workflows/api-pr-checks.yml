@@ -1,10 +1,12 @@
-name: Pull Request Checks
+name: API Pull Request Checks
 
 on:
-  pull_request: # Run on all pull requests
+  pull_request:
     branches: [dev, staging, main]
-
-
+    paths:
+      - 'api/**'
+      - '.github/workflows/api-pr-checks.yml'
+      - '.github/actions/install-hurl/**'
 
 permissions:
   id-token: write # This is crucial for OIDC authentication
@@ -19,11 +21,14 @@ jobs:
 
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
+        with:
+          working-directory: api
 
       - name: Run Ruff formatter
         uses: astral-sh/ruff-action@v3
         with:
           args: format --check --diff
+          working-directory: api
 
   star_syntax:
     runs-on: ubuntu-latest
@@ -35,6 +40,7 @@ jobs:
 
       - name: set up python
         run: uv python install
+        working-directory: api
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -45,13 +51,16 @@ jobs:
       - name: add core
         run: |
           source ./_scripts/update_core.sh
+        working-directory: api
 
       - name: install project
         run: uv sync
+        working-directory: api
 
       - name: Run star_syntax_check script
         run: |
           python ./_pr_checks/star_syntax_check.py
+        working-directory: api
 
   mypy:
     runs-on: ubuntu-latest
@@ -63,6 +72,7 @@ jobs:
 
       - name: set up python
         run: uv python install
+        working-directory: api
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -73,12 +83,15 @@ jobs:
       - name: add core
         run: |
           source ./_scripts/update_core.sh
+        working-directory: api
 
       - name: install project
         run: uv sync
+        working-directory: api
 
       - name: run mypy
         run: uv run mypy --config-file pyproject.toml -p app # Add -v for verbosity
+        working-directory: api
 
   deprecator:
     runs-on: ubuntu-latest
@@ -86,6 +99,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: run deprecator
         run: ./_pr_checks/deprecator.sh
+        working-directory: api
 
   tests:
     runs-on: ubuntu-latest
@@ -97,6 +111,7 @@ jobs:
 
       - name: set up python
         run: uv python install
+        working-directory: api
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -107,14 +122,17 @@ jobs:
       - name: add core
         run: |
           source ./_scripts/update_core.sh
+        working-directory: api
 
       - name: install project
         run: uv sync
+        working-directory: api
 
       - name: run pytest
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: uv run pytest
+        working-directory: api
 
   smoke_test:
     runs-on: ubuntu-latest
@@ -126,6 +144,7 @@ jobs:
 
       - name: set up python
         run: uv python install
+        working-directory: api
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -136,9 +155,11 @@ jobs:
       - name: add core
         run: |
           source ./_scripts/update_core.sh
+        working-directory: api
 
       - name: install project
         run: uv sync
+        working-directory: api
 
       - name: Install Hurl
         uses: ./.github/actions/install-hurl
@@ -147,6 +168,7 @@ jobs:
         run: |
           uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 10  # Give the server time to start
+        working-directory: api
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ENVIRONMENT: development
@@ -160,3 +182,4 @@ jobs:
 
       - name: Run smoke tests
         run: hurl --location --variable baseURL=http://localhost:8000 --variable apiKey=${{ secrets.STAGING_API_KEY }} --test ./_smoke_testing/hurl/get/*
+        working-directory: api

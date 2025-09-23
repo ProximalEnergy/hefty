@@ -1,0 +1,117 @@
+name: Web App Auto Merge Staging to Main if All Reviewers Approved
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  schedule:
+    - cron: '0 2 * * 2,4' # 02:00 UTC (20:00 MDT) on Tu, Th (M, W)
+  workflow_dispatch: # Allows manual runs for testing
+
+env:
+  BRANCH_FROM: staging
+  BRANCH_TO: main
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log environment info
+        run: |
+          echo "Checking for PR from ${{ env.BRANCH_FROM }} to ${{ env.BRANCH_TO }} at 9PM MT (03:00 UTC)"
+          echo "Triggered by: $GITHUB_EVENT_NAME"
+          echo "Repo: $GITHUB_REPOSITORY"
+
+      - name: Get open PR
+        id: get_pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              base: '${{ env.BRANCH_TO }}',
+              head: '${{ env.BRANCH_FROM }}',
+            });
+
+            if (prs.data.length === 0) {
+              core.setOutput('found', 'false');
+              return;
+            }
+
+            const pr = prs.data[0];
+
+            // Check if PR contains web-app changes
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            const hasWebAppChanges = files.some(file => file.filename.startsWith('web-app/'));
+
+            if (!hasWebAppChanges) {
+              core.info('PR does not contain web-app changes, skipping auto-merge');
+              core.setOutput('found', 'false');
+              return;
+            }
+
+            core.setOutput('found', 'true');
+            core.setOutput('pr_number', pr.number);
+            core.info(`Found PR #${pr.number}: ${pr.title}`);
+
+      - name: Check reviewer approvals
+        if: steps.get_pr.outputs.found == 'true'
+        id: check_approvals
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = Number('${{ steps.get_pr.outputs.pr_number }}');
+
+            const prDetails = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const requestedReviewers = prDetails.data.requested_reviewers.map(r => r.login);
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const approved = new Set(
+              reviews.filter(r => r.state === 'APPROVED').map(r => r.user.login)
+            );
+
+            core.info(`Requested reviewers: ${requestedReviewers.join(', ')}`);
+            core.info(`Approved reviewers: ${Array.from(approved).join(', ')}`);
+
+            const allApproved = requestedReviewers.every(user => approved.has(user));
+
+            if (!allApproved) {
+              core.setFailed('Not all reviewers have approved the PR.');
+            } else {
+              core.setOutput('ready', 'true');
+              core.info('✅ All reviewers have approved the PR.');
+            }
+
+      - name: Merge PR
+        if: steps.check_approvals.outputs.ready == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = Number('${{ steps.get_pr.outputs.pr_number }}');
+
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              merge_method: 'merge', // or "squash" or "rebase"
+            });
+
+            core.info(`✅ PR #${prNumber} has been successfully merged.`);

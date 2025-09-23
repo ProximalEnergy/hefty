@@ -1,9 +1,9 @@
-name: Auto PR Staging to Main
+name: Web App Auto PR Staging to Main
 
 on:
   schedule:
     # This is 9:00 UTC (fixed) - converts to 2:00 AM MST (UTC-7) and 3:00 AM MDT (UTC-6)
-    - cron: '0 9 * * 1,3' # Monday and Wednesday
+    - cron: "0 9 * * 1,3" # Monday and Wednesday
   workflow_dispatch:
 
 permissions:
@@ -30,11 +30,23 @@ jobs:
           git fetch origin main
           COMMITS_AHEAD=$(git rev-list --count origin/main..origin/staging)
           echo "Commits ahead: $COMMITS_AHEAD"
+
           if [ "$COMMITS_AHEAD" -eq 0 ]; then
             echo "✅ No new commits to merge from 'staging' to 'main'. Exiting gracefully."
             echo "no_changes=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if there are web-app changes in the commits
+          WEB_APP_CHANGES=$(git diff --name-only origin/main..origin/staging | grep "^web-app/" || true)
+
+          if [ -z "$WEB_APP_CHANGES" ]; then
+            echo "ℹ️ No web-app changes found between staging and main branches. Skipping PR creation."
+            echo "no_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "🚀 New commits detected. Proceeding to create PR."
+            echo "🚀 Web-app changes detected. Proceeding to create PR."
+            echo "Web-app changes found:"
+            echo "$WEB_APP_CHANGES"
             echo "no_changes=false" >> $GITHUB_OUTPUT
           fi
 
@@ -61,12 +73,18 @@ jobs:
             });
 
             const commits = compare.data.commits;
+
+            // Filter commits that affect the web-app directory
+            const webAppCommits = commits.filter(commit => {
+              return commit.files && commit.files.some(file => file.filename.startsWith('web-app/'));
+            });
+
             const logins = [
-              ...new Set(commits.map(c => c.author?.login).filter(Boolean))
+              ...new Set(webAppCommits.map(c => c.author?.login).filter(Boolean))
             ];
 
-            core.info(`Found ${commits.length} commits.`);
-            core.info(`Contributors (usernames): ${logins.join(', ')}`);
+            core.info(`Found ${commits.length} total commits, ${webAppCommits.length} affecting web-app.`);
+            core.info(`Web-app Contributors (usernames): ${logins.join(', ')}`);
 
             core.setOutput('reviewers', logins.join(','));
 
@@ -82,8 +100,8 @@ jobs:
               repo: context.repo.repo,
               base: process.env.BRANCH_TO,
               head: process.env.BRANCH_FROM,
-              title: `Merge ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
-              body: `This PR merges \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
+              title: `Merge web-app changes from ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
+              body: `This PR merges web-app changes from \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
               draft: false,
             });
 
@@ -117,4 +135,4 @@ jobs:
 
       - name: Log no changes found
         if: steps.diff.outputs.no_changes == 'true'
-        run: echo "No changes to merge. Workflow completed without creating a PR."
+        run: echo "No web-app changes to merge. Workflow completed without creating a PR."

@@ -1,4 +1,4 @@
-name: Auto PR Staging to Main
+name: API Auto PR Staging to Main
 
 on:
   schedule:
@@ -30,11 +30,23 @@ jobs:
           git fetch origin main
           COMMITS_AHEAD=$(git rev-list --count origin/main..origin/staging)
           echo "Commits ahead: $COMMITS_AHEAD"
+
           if [ "$COMMITS_AHEAD" -eq 0 ]; then
             echo "✅ No new commits to merge from 'staging' to 'main'. Exiting gracefully."
             echo "no_changes=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if there are API changes in the commits
+          API_CHANGES=$(git diff --name-only origin/main..origin/staging | grep "^api/" || true)
+
+          if [ -z "$API_CHANGES" ]; then
+            echo "ℹ️ No API changes found between staging and main branches. Skipping PR creation."
+            echo "no_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "🚀 New commits detected. Proceeding to create PR."
+            echo "🚀 API changes detected. Proceeding to create PR."
+            echo "API changes found:"
+            echo "$API_CHANGES"
             echo "no_changes=false" >> $GITHUB_OUTPUT
           fi
 
@@ -61,12 +73,18 @@ jobs:
             });
 
             const commits = compare.data.commits;
+
+            // Filter commits that affect the API directory
+            const apiCommits = commits.filter(commit => {
+              return commit.files && commit.files.some(file => file.filename.startsWith('api/'));
+            });
+
             const logins = [
-              ...new Set(commits.map(c => c.author?.login).filter(Boolean))
+              ...new Set(apiCommits.map(c => c.author?.login).filter(Boolean))
             ];
 
-            core.info(`Found ${commits.length} commits.`);
-            core.info(`Contributors (usernames): ${logins.join(', ')}`);
+            core.info(`Found ${commits.length} total commits, ${apiCommits.length} affecting API.`);
+            core.info(`API Contributors (usernames): ${logins.join(', ')}`);
 
             core.setOutput('reviewers', logins.join(','));
 
@@ -82,8 +100,8 @@ jobs:
               repo: context.repo.repo,
               base: process.env.BRANCH_TO,
               head: process.env.BRANCH_FROM,
-              title: `Merge ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
-              body: `This PR merges \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
+              title: `Merge API changes from ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
+              body: `This PR merges API changes from \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
               draft: false,
             });
 
@@ -117,4 +135,4 @@ jobs:
 
       - name: Log no changes found
         if: steps.diff.outputs.no_changes == 'true'
-        run: echo "No changes to merge. Workflow completed without creating a PR."
+        run: echo "No API changes to merge. Workflow completed without creating a PR."
