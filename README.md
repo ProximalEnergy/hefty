@@ -1,6 +1,8 @@
 # Mono
 Mono-repo containing the api and web-ui, in the future we can add more services/libraries.
 
+Staging
+
 # Useful Commands
 
 ## Git
