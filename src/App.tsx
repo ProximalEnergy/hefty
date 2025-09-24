@@ -75,6 +75,7 @@ import PortfolioSettings from './pages/portfolio/settings/PortfolioSettings'
 import BatteryHealth from './pages/projects/BatteryHealth'
 // Data Browsing
 import DataBrowsing from './pages/projects/DataBrowsing'
+import EnergyWaterfall from './pages/projects/EnergyWaterfall'
 // Project Admin
 import ProjectAdmin from './pages/projects/ProjectAdmin'
 // In Development
@@ -94,8 +95,6 @@ import TicketDisplay from './pages/projects/cmms/TicketDisplay'
 // KPIs
 import ProjectContract from './pages/projects/contracts/ProjectContract'
 import ProjectContracts from './pages/projects/contracts/ProjectContracts'
-import CustomDash from './pages/projects/custom_dash/CustomDash'
-import CustomDashMenu from './pages/projects/custom_dash/CustomDashMenu'
 import DataAvailability from './pages/projects/device_details/DataAvailability'
 import RealTime from './pages/projects/device_details/RealTime'
 import VerticalDeviceDetails from './pages/projects/device_details/VerticalDeviceDetails'
@@ -141,8 +140,6 @@ import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabil
 // Utility
 import Backfill from './pages/projects/utility/Backfill'
 import ExpectedPlotting from './pages/projects/utility/ExpectedPlotting'
-
-// import CustomDash from './pages/projects/custom_dash/CustomDash'
 
 const URL_SIGN_IN = '/sign-in'
 
@@ -313,16 +310,14 @@ const ClerkProviderWithRoutes = () => {
             {/* Project */}
             <Route path="/projects/:projectId">
               <Route index element={<ProjectHome />} />
-              <Route path="custom-dash">
-                <Route index element={<CustomDashMenu />} />
-                <Route path="new" element={<CustomDash />} />
-                <Route path=":dashboardId" element={<CustomDash />} />
-              </Route>
 
               <Route path="real-time" element={<RealTime />} />
 
               {/* Battery Health */}
               <Route path="battery-health" element={<BatteryHealth />} />
+
+              {/* Energy Waterfall */}
+              <Route path="energy-waterfall" element={<EnergyWaterfall />} />
 
               {/* GIS */}
               <Route path="gis">

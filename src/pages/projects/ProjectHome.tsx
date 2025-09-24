@@ -66,11 +66,17 @@ import {
   IconZoomIn,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import classes from './ProjectHome.module.css'
+
+// Extend dayjs with timezone support
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const PowerPlotBESS = () => {
   const { projectId } = useParams()
@@ -143,18 +149,31 @@ const PowerPlotBESS = () => {
     const newEndTime = event['xaxis.range[1]']
 
     if (newStartTime && newEndTime) {
+      // Convert Plotly time values to proper ISO strings
+      // Plotly returns time values as local time strings, but we need to interpret them as project timezone
+      const projectTimezone = project.data?.time_zone || 'UTC'
+
+      const newStartTimeStr =
+        typeof newStartTime === 'number'
+          ? new Date(newStartTime).toISOString()
+          : dayjs.tz(String(newStartTime), projectTimezone).utc().toISOString()
+      const newEndTimeStr =
+        typeof newEndTime === 'number'
+          ? new Date(newEndTime).toISOString()
+          : dayjs.tz(String(newEndTime), projectTimezone).utc().toISOString()
+
       const currentStart = dayjs(startTime)
       const currentEnd = dayjs(endTime)
-      const newStart = dayjs(newStartTime)
-      const newEnd = dayjs(newEndTime)
+      const newStart = dayjs(newStartTimeStr)
+      const newEnd = dayjs(newEndTimeStr)
 
       if (
         Math.abs(currentStart.diff(newStart, 'minute')) > 1 ||
         Math.abs(currentEnd.diff(newEnd, 'minute')) > 1
       ) {
-        setStartTime(newStartTime.toString())
-        setEndTime(newEndTime.toString())
-        setInterval(getInterval(newStartTime.toString(), newEndTime.toString()))
+        setStartTime(newStartTimeStr)
+        setEndTime(newEndTimeStr)
+        setInterval(getInterval(newStartTimeStr, newEndTimeStr))
       }
     }
   }
@@ -262,6 +281,7 @@ const PowerPlotBESS = () => {
               tickformat: '.0%',
             },
             xaxis: {
+              type: 'date',
               fixedrange: false,
               tickangle: 0,
             },

@@ -9,6 +9,7 @@ export interface RealTimeData {
   traces: {
     name: string
     values: (number | null)[]
+    times: string[]
   }[]
 }
 

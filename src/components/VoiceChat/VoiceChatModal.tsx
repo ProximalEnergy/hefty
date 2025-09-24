@@ -64,28 +64,18 @@ const VoiceChatModal = ({
   const [expandedExcerpts, setExpandedExcerpts] = useState<Set<number>>(
     new Set(),
   )
+  const [cachedVectorStoreId, setCachedVectorStoreId] = useState<string | null>(
+    null,
+  )
 
   const transcriptRef = useRef<HTMLDivElement>(null)
   const tokenCacheRef = useRef<{ token: string; expires: number } | null>(null)
 
   const getCachedToken = async (): Promise<string> => {
-    const now = Date.now()
-    const cache = tokenCacheRef.current
-
-    // Use cached token if it exists and hasn't expired (cache for 5 minutes)
-    if (cache && cache.expires > now) {
-      return cache.token
-    }
-
-    // Get new token and cache it
-    const token = await getToken({ template: 'default' })
+    // Always get a fresh token to avoid expiration issues
+    const token = await getToken({ template: 'default', skipCache: true })
     if (!token) {
       throw new Error('Failed to get authentication token')
-    }
-
-    tokenCacheRef.current = {
-      token,
-      expires: now + 5 * 60 * 1000, // 5 minutes
     }
 
     return token
@@ -139,9 +129,11 @@ const VoiceChatModal = ({
       return []
     }
 
-    // Get the vector store ID from contract data or ensure we have one
+    // Get the vector store ID from cache, contract data, or ensure we have one
     let vectorStoreId =
-      contractData?.openai_vector_store_id || contractData?.vector_store_id
+      cachedVectorStoreId ||
+      contractData?.openai_vector_store_id ||
+      contractData?.vector_store_id
 
     // If we don't have a vector store ID, try to ensure one exists
     if (!vectorStoreId && contractData?.openai_file_id) {
@@ -151,6 +143,8 @@ const VoiceChatModal = ({
           name: 'aria-knowledge',
         })
         vectorStoreId = vs.vector_store_id
+        // Cache the vector store ID for future searches
+        setCachedVectorStoreId(vectorStoreId)
       } catch (e) {
         console.error('Failed to ensure vector store:', e)
         return []
@@ -160,6 +154,10 @@ const VoiceChatModal = ({
     if (!vectorStoreId) {
       return []
     }
+
+    // Create an AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
     try {
       const token = await getCachedToken()
@@ -173,7 +171,10 @@ const VoiceChatModal = ({
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       if (response.ok) {
         const data = await response.json()
@@ -188,6 +189,57 @@ const VoiceChatModal = ({
 
         // Handle empty results
         return []
+      } else if (response.status === 401) {
+        // Force a completely fresh token from Clerk
+        const newToken = await getToken({
+          template: 'default',
+          skipCache: true,
+        })
+
+        if (newToken) {
+          // Create a new AbortController for the retry to avoid conflicts
+          const retryController = new AbortController()
+          const retryTimeoutId = setTimeout(
+            () => retryController.abort(),
+            30000,
+          ) // 30 second timeout for retry
+
+          try {
+            const retryResponse = await fetch(url, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${newToken}`,
+              },
+              signal: retryController.signal,
+            })
+
+            clearTimeout(retryTimeoutId)
+
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json()
+              if (
+                Array.isArray(retryData.search_results) &&
+                retryData.search_results.length > 0
+              ) {
+                return retryData.search_results
+              }
+            }
+          } catch (retryError) {
+            clearTimeout(retryTimeoutId)
+            if (
+              retryError instanceof Error &&
+              retryError.name === 'AbortError'
+            ) {
+              console.error(
+                '❌ Contract search retry timed out after 30 seconds:',
+                retryError,
+              )
+            } else {
+              console.error('❌ Failed to retry contract search:', retryError)
+            }
+          }
+        }
+        return []
       } else {
         const errorText = await response.text()
         console.error(
@@ -199,7 +251,14 @@ const VoiceChatModal = ({
         return []
       }
     } catch (error) {
-      console.error('❌ Failed to search contract:', error)
+      // Ensure timeout is cleared in all error paths
+      clearTimeout(timeoutId)
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('❌ Contract search timed out after 30 seconds:', error)
+      } else {
+        console.error('❌ Failed to search contract:', error)
+      }
       return []
     }
   }
@@ -276,21 +335,18 @@ const VoiceChatModal = ({
         - Execution Date: ${contractData.execution_date || 'Unknown'}
         - Contract Summary: ${contractData.contract_summary ? contractData.contract_summary : 'Unknown'}
         
-        IMPORTANT: When you first connect, before the user even says anything,immediately greet them by saying something brief like: "Hi ${user?.firstName || 'there'}, how can I help you with this ${contractData.name_long || 'the counterparty'} contract?".
+        IMPORTANT: Greet the user by saying something like: "Hi ${user?.firstName || 'there'}, how can I help you with this ${contractData.name_long || 'the counterparty'} contract?".
         
         You have access to a search_contract tool that can find relevant information in the contract document. When users ask questions about contract terms, clauses, obligations, or any contract details, you should automatically use the search_contract tool to find the relevant information first, then provide a comprehensive answer based on the search results.
         
         Your role is to:
         1. Greet the user by name and ask about their contract questions
-        2. Automatically search for relevant contract information when users ask questions using the search_contract tool
-        3. Answer questions about contract terms, obligations, and requirements based on the search results
+        2. When a user finishes asking their question, respond immediately by saying that you're searching through the document to help answer their question. While you do that, already initiate your search_contract tool and say that you'll show any related paragraphs where you found the information in the Contract References box.
+        3. Answer questions about contract terms, obligations, and requirements based on the search results. If a one word answer is enough, just answer that immediately and then elaborate briefly.
         4. Explain technical language and legal concepts in simple terms
-        5. Help users understand their rights and responsibilities
-        6. Provide guidance on compliance and performance metrics
-        7. Suggest follow-up questions they should ask about the contract
         
-        Always use the search_contract tool when users ask about specific contract details. Every time when you call the tool, tell the user that you're looking through the document to help answer their question and that you'll show any related paragraphs where you found the information in the Source box. The tool will return the most relevant sections of the contract that address their question.
-        Speak quickly and professionally, like an experienced attorney. But keep your answers short - if someone wants to know a small detail about the contract, just give that answer and then elaborate briefly. 
+        Always use the search_contract tool when users ask about specific contract details. .
+        Speak quickly and professionally, like an experienced attorney. But keep your answers short - if someone wants to know a small detail about the contract, just answer that immediately and then elaborate briefly. 
       `
         : `
         You are Aria, a helpful AI assistant specializing in contract analysis and energy project management.
@@ -423,6 +479,7 @@ const VoiceChatModal = ({
       setContractSearchResults([])
       setShowContractReferences(false)
       setExpandedExcerpts(new Set())
+      setCachedVectorStoreId(null) // Clear cached vector store ID
       tokenCacheRef.current = null // Clear token cache
       // Don't clear the session - keep it for reconnection
     }

@@ -15,6 +15,7 @@ import {
   SegmentedControl,
   Select,
   Stack,
+  Switch,
   Text,
 } from '@mantine/core'
 import {
@@ -33,6 +34,51 @@ import { useNavigate, useParams } from 'react-router-dom'
 const IS_LARGE_THRESHOLD = 200
 const GROUP_BUTTON_PX = 0
 const GROUP_BUTTON_VARIANT = 'default'
+
+// Helper function to convert staleness limit to milliseconds
+const getStalenessLimitMs = (limit: string): number => {
+  switch (limit) {
+    case '5 minutes':
+      return 5 * 60 * 1000
+    case '30 minutes':
+      return 30 * 60 * 1000
+    case '1 hour':
+      return 60 * 60 * 1000
+    case '1 day':
+      return 24 * 60 * 60 * 1000
+    default:
+      return 60 * 60 * 1000 // default to 1 hour
+  }
+}
+
+// Helper function to check if data is stale based on time
+const isDataStale = (timeString: string, stalenessLimitMs: number): boolean => {
+  const dataTime = new Date(timeString).getTime()
+  const currentTime = Date.now()
+  return currentTime - dataTime > stalenessLimitMs
+}
+
+// Helper function to format relative time
+const formatRelativeTime = (timeString: string): string => {
+  const dataTime = new Date(timeString).getTime()
+  const currentTime = Date.now()
+  const diffMs = currentTime - dataTime
+
+  const seconds = Math.floor(diffMs / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (days > 0) {
+    return `${days} day${days > 1 ? 's' : ''} ago`
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  } else if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+  } else {
+    return `${seconds} second${seconds > 1 ? 's' : ''} ago`
+  }
+}
 
 const Page = () => {
   useProjectFilter({
@@ -104,6 +150,12 @@ const Page = () => {
   // groupBy will keep track of which group to display
   // An example of a group is a PV Block's worth of trackers
   const [groupBy, setGroupBy] = useState<string | null>(null)
+
+  // stalenessLimit will keep track of how old data can be before being marked as stale
+  const [stalenessLimit, setStalenessLimit] = useState<string>('1 hour')
+
+  // showStaleWarnings will control whether to display warning symbols
+  const [showStaleWarnings, setShowStaleWarnings] = useState<boolean>(true)
 
   const { projectId } = useParams()
 
@@ -270,6 +322,14 @@ const Page = () => {
     xvals = realTimeData?.device_names_x ?? []
     yvals = realTimeData?.device_names_y ?? []
     const zvals = selectedTrace?.values ?? []
+    const times = selectedTrace?.times ?? []
+    const stalenessLimitMs = getStalenessLimitMs(stalenessLimit)
+
+    // Determine which data points are stale
+    const staleIndices = times.map((time) =>
+      isDataStale(time, stalenessLimitMs),
+    )
+
     const zmin = deviceTypeId === 29 ? -60 : 0
     const zmax =
       deviceTypeId === 29
@@ -288,13 +348,16 @@ const Page = () => {
         zmax: zmax,
         type: 'heatmap',
         showlegend: false,
-        customdata: (realTimeData?.device_ids ?? []).map((id) => [
+        customdata: (realTimeData?.device_ids ?? []).map((id, idx) => [
           id as Plotly.Datum,
           deviceTypeName as Plotly.Datum,
+          formatRelativeTime(times[idx]) as Plotly.Datum,
+          staleIndices[idx] ? 'Stale' : ('Fresh' as Plotly.Datum),
         ]),
         xgap: xvals.length < 20_000 ? 1 : 0.2,
         ygap: yvals.length < 20_000 ? 1 : 0.2,
-        hovertemplate: '%{customdata[1]} %{y}.%{x}<br>%{z:.2f}<extra></extra>',
+        hovertemplate:
+          '%{customdata[1]} %{y}.%{x}<br>%{z:.2f}<br>Received: %{customdata[2]}<extra></extra>',
         hoverongaps: false,
         colorbar: {
           title: {
@@ -306,27 +369,53 @@ const Page = () => {
                   : unit || '',
           },
         },
+        // Add text annotations for stale data points (only if enabled)
+        text: showStaleWarnings
+          ? staleIndices.map((isStale) => (isStale ? '⚠️' : ''))
+          : [],
+        texttemplate: '%{text}',
+        textfont: { size: 12 },
       },
     ]
   } else {
     const xvals = realTimeData?.device_names ?? []
+    const stalenessLimitMs = getStalenessLimitMs(stalenessLimit)
 
     trace =
-      realTimeData?.traces?.map((t, index) => ({
-        x: xvals,
-        y: t.values ?? [], // <- each trace draws its own data
-        type: 'bar',
-        name: t.name,
-        showlegend: true,
-        // make successive overlays a bit narrower so they're visible
-        width: 0.8 - index * 0.1, // tweak or drop if you like
-        opacity: 0.7, // helps see overlaps
-        customdata: (realTimeData?.device_ids ?? []).map((id) => [
-          id as Plotly.Datum,
-          deviceTypeName as Plotly.Datum,
-        ]),
-        hoverlabel: { namelength: -1 },
-      })) ?? []
+      realTimeData?.traces?.map((t, index) => {
+        const values = t.values ?? []
+        const times = t.times ?? []
+
+        // Determine which data points are stale
+        const staleIndices = times.map((time) =>
+          isDataStale(time, stalenessLimitMs),
+        )
+
+        return {
+          x: xvals,
+          y: values,
+          type: 'bar' as const,
+          name: t.name,
+          showlegend: true,
+          width: 0.8 - index * 0.1,
+          opacity: 0.7,
+          customdata: (realTimeData?.device_ids ?? []).map((id, idx) => [
+            id as Plotly.Datum,
+            deviceTypeName as Plotly.Datum,
+            formatRelativeTime(times[idx]) as Plotly.Datum,
+            staleIndices[idx] ? 'Stale' : ('Fresh' as Plotly.Datum),
+          ]),
+          hoverlabel: { namelength: -1 },
+          hovertemplate:
+            '%{customdata[1]} %{x}<br>%{y:.2f}<br>Received: %{customdata[2]}<extra></extra>',
+          // Add text annotations for stale data points (only if enabled)
+          text: showStaleWarnings
+            ? staleIndices.map((isStale) => (isStale ? '⚠️' : ''))
+            : [],
+          textposition: 'inside',
+          textfont: { size: 12 },
+        }
+      }) ?? []
   }
 
   const largeYAxisTitle = (() => {
@@ -802,6 +891,26 @@ const Page = () => {
             />
           </>
         )}
+        <Select
+          value={stalenessLimit}
+          onChange={(value) => setStalenessLimit(value || '1 hour')}
+          data={[
+            { value: '5 minutes', label: '5 minutes' },
+            { value: '30 minutes', label: '30 minutes' },
+            { value: '1 hour', label: '1 hour' },
+            { value: '1 day', label: '1 day' },
+          ]}
+          size="sm"
+          w={150}
+          disabled={!showStaleWarnings}
+        />
+        <Switch
+          label="Show Stale Data Warnings"
+          checked={showStaleWarnings}
+          onChange={(event) =>
+            setShowStaleWarnings(event.currentTarget.checked)
+          }
+        />
       </Group>
       <CustomCard style={{ flex: 1, height: '100%' }}>
         {!data.isLoading && realTimeData?.traces?.length === 0 ? (

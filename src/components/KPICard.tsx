@@ -28,7 +28,6 @@ const KPICard: React.FC<KPISummaryCard> = ({
   // valColor,
   is_visible,
   // ytd_value,
-  onClick,
 }) => {
   // const colorMap = {
   //   good: "green",
@@ -45,7 +44,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
   // };
 
   return (
-    <Paper h="100%" withBorder p="xs" radius="md" onClick={onClick}>
+    <Paper h="100%" withBorder p="xs" radius="md">
       <Stack justify="apart" gap={0}>
         <Group gap="xs" preventGrowOverflow={true}>
           {!is_visible && (

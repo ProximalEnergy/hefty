@@ -485,8 +485,23 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
           let coordinates: number[][]
 
           try {
+            // Parse polygon JSON string if it's a string, otherwise use as-is
+            let polygonData = device.polygon!
+            if (typeof device.polygon === 'string') {
+              try {
+                polygonData = JSON.parse(device.polygon)
+              } catch (parseError) {
+                console.warn(
+                  'Failed to parse polygon JSON:',
+                  parseError,
+                  device.polygon,
+                )
+                return
+              }
+            }
+
             // Check the actual structure at runtime instead of relying on type
-            const coords = device.polygon!.coordinates
+            const coords = polygonData.coordinates
 
             // If it's deeply nested (4 levels), it's MultiPolygon format
             if (
@@ -782,17 +797,35 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
                 type: 'FeatureCollection',
                 features: deviceData.data
                   .filter((device) => device.polygon) // Only devices with polygons
-                  .map((device) => ({
-                    type: 'Feature' as const,
-                    geometry: device.polygon,
-                    properties: {
-                      device_id: device.device_id,
-                      device_type_id: device.device_type_id,
-                      device_type_name:
-                        deviceTypeNames[device.device_type_id] || 'Device',
-                      name: device.name_long,
-                    },
-                  })),
+                  .map((device) => {
+                    // Parse polygon JSON string if it's a string, otherwise use as-is
+                    let polygonGeometry = device.polygon
+                    if (typeof device.polygon === 'string') {
+                      try {
+                        polygonGeometry = JSON.parse(device.polygon)
+                      } catch (error) {
+                        console.warn(
+                          'Failed to parse polygon JSON:',
+                          error,
+                          device.polygon,
+                        )
+                        return null
+                      }
+                    }
+
+                    return {
+                      type: 'Feature' as const,
+                      geometry: polygonGeometry,
+                      properties: {
+                        device_id: device.device_id,
+                        device_type_id: device.device_type_id,
+                        device_type_name:
+                          deviceTypeNames[device.device_type_id] || 'Device',
+                        name: device.name_long,
+                      },
+                    }
+                  })
+                  .filter(Boolean), // Remove any null entries from failed parsing
               }}
             >
               <Layer

@@ -237,7 +237,10 @@ export function PCSGISMap({
               gis.data.data[device.device_id].power_norm_exp,
             red_outline: gis.data.data[device.device_id].red_outline,
           },
-          geometry: device.polygon,
+          geometry:
+            typeof device.polygon === 'string'
+              ? JSON.parse(device.polygon)
+              : device.polygon,
         }
       }),
     } as FeatureCollection)

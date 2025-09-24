@@ -30,7 +30,6 @@ export type DropdownLink = {
   requiresQualityIntegration?: boolean
   requiresRealTimeData?: boolean
   requiresDroneIntegration?: boolean
-  requiresPV?: boolean
   links?: Link[]
   underDevelopment?: boolean
   userTypeRequired?: string
@@ -87,12 +86,6 @@ export const projectLinks: DropdownLink[] = [
   //   underDevelopment: true,
   // },
   {
-    to: (projectId: string) => `/projects/${projectId}/custom-dash`,
-    label: 'Custom Dashboards',
-    icon: icons.IconLayoutDashboard,
-    requiresPV: true,
-  },
-  {
     to: (projectId: string) => `/projects/${projectId}/real-time`,
     label: 'Real Time',
     icon: icons.IconClock,
@@ -133,6 +126,11 @@ export const projectLinks: DropdownLink[] = [
       {
         to: (projectId: string) => `/projects/${projectId}/battery-health`,
         label: 'Battery Health',
+        requiresBESS: true,
+      },
+      {
+        to: (projectId: string) => `/projects/${projectId}/energy-waterfall`,
+        label: 'Energy Waterfall',
         requiresBESS: true,
       },
       {
