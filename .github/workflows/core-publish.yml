@@ -133,7 +133,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Build Wheel
-        run: uv build
+        run: uv build --out-dir dist
         working-directory: core
 
       - name: Publish to AWS CodeArtifact
