@@ -1367,33 +1367,6 @@ export const useGetGISBessEnclosure = ({
   })
 }
 
-export const useGetEquipmentAnalysisPCSv2 = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: object
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/equipment-analysis/pcs`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<types.EquipmentAnalysisPCSv2>({
-    axiosConfig,
-    queryName: 'getEquipmentAnalysisPCS',
-    pathParams,
-    queryParams,
-    queryOptions,
-  })
-}
-
 export const useGetEquipmentAnalysisCombiner = ({
   pathParams,
   queryParams = {},

@@ -865,203 +865,100 @@ const Page = () => {
   }
 
   return (
-    <Group h="100%" w="100%" gap={0}>
-      <Paper
-        p="md"
-        withBorder
-        style={{
-          height: '100%',
-          width: '400px',
-          overflow: 'hidden',
-          resize: 'horizontal',
-          minWidth: '350px',
-          maxWidth: '800px',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: '20px',
-            height: '20px',
-            background:
-              'linear-gradient(-45deg, transparent 30%, #aaa 30%, #aaa 35%, transparent 35%, transparent 65%, #aaa 65%, #aaa 70%, transparent 70%)',
-            cursor: 'nw-resize',
-            zIndex: 10,
-          }}
-        />
-        <Stack h="100%" gap="sm" style={{ overflow: 'hidden' }}>
-          <PageTitle
-            info={
-              <Text>
-                This page allows for detailed exploration of project data.
-                Select tags and time ranges to visualize and download
-                time-series data.
-              </Text>
-            }
-          >
-            Data Browsing
-          </PageTitle>
-          <TextInput
-            label="Search"
-            description="*Supports regular expressions"
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-          <Checkbox
-            label="Show All Tags"
-            checked={showAllTags}
-            onChange={() => setShowAllTags(!showAllTags)}
-          />
-          <SegmentedControl
-            data={[
-              { label: 'Device Name', value: 'device_name' },
-              { label: 'SCADA Name', value: 'scada_name' },
-            ]}
-            value={tagDisplay}
-            onChange={setTagDisplay}
-            disabled={showAllTags}
-          />
-
-          <Group grow>
-            <Select
-              data={filteredDeviceTypes.map((device) => ({
-                label: device.name_long || '',
-                value: device.device_type_id.toString(),
-              }))}
-              placeholder="Select Device Type..."
-              clearable
-              value={selectedDeviceType}
-              onChange={setSelectedDeviceType}
-              searchable
-              disabled={showAllTags}
+    <Stack h="100%">
+      <Group h="100%" w="100%">
+        <Paper withBorder h="100%">
+          <Stack p="md" h="100%">
+            <PageTitle
+              info={
+                <Text>
+                  This page allows for detailed exploration of project data.
+                  Select tags and time ranges to visualize and download
+                  time-series data.
+                </Text>
+              }
+            >
+              Data Browsing
+            </PageTitle>
+            <TextInput
+              label="Search"
+              description="*Supports regular expressions"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            <Checkbox
+              label="Show All Tags"
+              checked={showAllTags}
+              onChange={() => setShowAllTags(!showAllTags)}
             />
             <SegmentedControl
               data={[
-                { label: 'Device', value: 'device' },
-                { label: 'Sensor', value: 'sensor' },
+                { label: 'Device Name', value: 'device_name' },
+                { label: 'SCADA Name', value: 'scada_name' },
               ]}
-              value={parentType}
-              onChange={setParentType}
+              value={tagDisplay}
+              onChange={setTagDisplay}
               disabled={showAllTags}
             />
-          </Group>
-
-          <Paper
-            p="md"
-            withBorder
-            style={{
-              flex: 1,
-              overflow: 'hidden',
-              minHeight: '200px',
-            }}
-          >
-            {isTagsLoading && (selectedDeviceType || showAllTags) ? (
-              <div style={{ width: '100%', height: '100%' }}>
-                <PageLoader />
-              </div>
-            ) : showAllTags ? (
-              <div
-                ref={parentRef}
-                style={{
-                  height: '100%',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    height: `${rawRowVirtualizer.getTotalSize()}px`,
-                    width: '100%',
-                    position: 'relative',
-                  }}
-                >
-                  {rawRowVirtualizer.getVirtualItems().map((virtualRow) => {
-                    const tag = rawTags[virtualRow.index]
-
-                    return (
-                      <div
-                        key={tag.tag_id}
-                        data-index={virtualRow.index}
-                        ref={rawRowVirtualizer.measureElement}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          transform: `translateY(${virtualRow.start}px)`,
-                        }}
-                      >
-                        <Group gap={2} key={tag.tag_id}>
-                          <Checkbox
-                            checked={checkedChildren[tag.tag_id] || false}
-                            onChange={() =>
-                              handleChildCheckboxChange(tag.tag_id)
-                            }
-                          />
-                          <Tooltip
-                            label={
-                              tagDisplay === 'device_name'
-                                ? tag.name_long
-                                : tag.name_scada
-                            }
-                            disabled={
-                              !tag.name_long || tag.name_long.length < 40
-                            }
-                            position="right"
-                          >
-                            <Text
-                              size="sm"
-                              style={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                maxWidth: '100%',
-                              }}
-                            >
-                              {tagDisplay === 'device_name'
-                                ? tag.name_long
-                                : tag.name_scada}
-                            </Text>
-                          </Tooltip>
-                        </Group>
-                      </div>
-                    )
-                  })}
+            <Group grow>
+              <Select
+                data={filteredDeviceTypes.map((device) => ({
+                  label: device.name_long || '',
+                  value: device.device_type_id.toString(),
+                }))}
+                placeholder="Select Device Type..."
+                clearable
+                value={selectedDeviceType}
+                onChange={setSelectedDeviceType}
+                searchable
+                disabled={showAllTags}
+              />
+              <SegmentedControl
+                data={[
+                  { label: 'Device', value: 'device' },
+                  { label: 'Sensor', value: 'sensor' },
+                ]}
+                value={parentType}
+                onChange={setParentType}
+                disabled={showAllTags}
+              />
+            </Group>
+            <Paper
+              p="md"
+              withBorder
+              style={{
+                flex: 1,
+                overflow: 'hidden',
+              }}
+            >
+              {isTagsLoading && (selectedDeviceType || showAllTags) ? (
+                <div style={{ width: '100%', height: '100%' }}>
+                  <PageLoader />
                 </div>
-              </div>
-            ) : (
-              <div
-                ref={parentRef}
-                style={{
-                  height: '100%',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                }}
-              >
+              ) : showAllTags ? (
                 <div
+                  ref={parentRef}
                   style={{
-                    height: `${filteredRowVirtualizer.getTotalSize()}px`,
-                    width: '100%',
-                    position: 'relative',
+                    height: '100%',
+                    overflowY: 'scroll',
+                    overflowX: 'hidden',
                   }}
                 >
-                  {filteredRowVirtualizer
-                    .getVirtualItems()
-                    .map((virtualRow) => {
-                      const parent = filteredParents[virtualRow.index]
-                      if (!parent) return null
-                      const childrenTags = filteredTags.filter(
-                        (tag) => tag.parent_id === parent.id,
-                      )
+                  <div
+                    style={{
+                      height: `${rawRowVirtualizer.getTotalSize()}px`,
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {rawRowVirtualizer.getVirtualItems().map((virtualRow) => {
+                      const tag = rawTags[virtualRow.index]
 
                       return (
                         <div
-                          key={parent.id}
+                          key={tag.tag_id}
                           data-index={virtualRow.index}
-                          ref={filteredRowVirtualizer.measureElement}
+                          ref={rawRowVirtualizer.measureElement}
                           style={{
                             position: 'absolute',
                             top: 0,
@@ -1070,126 +967,199 @@ const Page = () => {
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
                         >
-                          {' '}
-                          <ParentItem
-                            key={parent.id}
-                            parent={parent}
-                            childrenTags={childrenTags}
-                            isExpanded={expandedIds.includes(parent.id)}
-                            onToggleExpand={toggleParentExpansion}
-                            onParentCheck={handleParentCheckboxChange}
-                            onChildCheck={handleChildCheckboxChange}
-                            checkedChildren={checkedChildren}
-                            tagDisplay={tagDisplay}
-                          />
+                          <Group gap={2} key={tag.tag_id}>
+                            <Checkbox
+                              checked={checkedChildren[tag.tag_id] || false}
+                              onChange={() =>
+                                handleChildCheckboxChange(tag.tag_id)
+                              }
+                            />
+                            <Tooltip
+                              label={
+                                tagDisplay === 'device_name'
+                                  ? tag.name_long
+                                  : tag.name_scada
+                              }
+                              disabled={
+                                !tag.name_long || tag.name_long.length < 40
+                              }
+                              position="right"
+                            >
+                              <Text
+                                size="sm"
+                                style={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  maxWidth: '100%',
+                                }}
+                              >
+                                {tagDisplay === 'device_name'
+                                  ? tag.name_long
+                                  : tag.name_scada}
+                              </Text>
+                            </Tooltip>
+                          </Group>
                         </div>
                       )
                     })}
+                  </div>
                 </div>
-              </div>
-            )}
-          </Paper>
+              ) : (
+                <div
+                  ref={parentRef}
+                  style={{
+                    height: '100%',
+                    overflowY: 'scroll',
+                    overflowX: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: `${filteredRowVirtualizer.getTotalSize()}px`,
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {filteredRowVirtualizer
+                      .getVirtualItems()
+                      .map((virtualRow) => {
+                        const parent = filteredParents[virtualRow.index]
+                        if (!parent) return null
+                        const childrenTags = filteredTags.filter(
+                          (tag) => tag.parent_id === parent.id,
+                        )
 
-          <Group gap="sm" grow>
+                        return (
+                          <div
+                            key={parent.id}
+                            data-index={virtualRow.index}
+                            ref={filteredRowVirtualizer.measureElement}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              transform: `translateY(${virtualRow.start}px)`,
+                            }}
+                          >
+                            {' '}
+                            <ParentItem
+                              key={parent.id}
+                              parent={parent}
+                              childrenTags={childrenTags}
+                              isExpanded={expandedIds.includes(parent.id)}
+                              onToggleExpand={toggleParentExpansion}
+                              onParentCheck={handleParentCheckboxChange}
+                              onChildCheck={handleChildCheckboxChange}
+                              checkedChildren={checkedChildren}
+                              tagDisplay={tagDisplay}
+                            />
+                          </div>
+                        )
+                      })}
+                  </div>
+                </div>
+              )}
+            </Paper>
+
+            <Group gap="sm" grow>
+              <Button
+                size="compact-xs"
+                onClick={handleExpandAll}
+                disabled={showAllTags}
+              >
+                Expand All
+              </Button>
+              <Button
+                size="compact-xs"
+                onClick={handleCollapseAll}
+                disabled={showAllTags}
+              >
+                Collapse All
+              </Button>
+            </Group>
             <Button
               size="compact-xs"
-              onClick={handleExpandAll}
-              disabled={showAllTags}
+              onClick={handleSelectAll}
+              disabled={
+                showAllTags ? rawTags.length > 200 : filteredTags.length > 200
+              }
             >
-              Expand All
+              Select All ({showAllTags ? rawTags.length : filteredTags.length}{' '}
+              tags)
             </Button>
+            <Paper
+              p="md"
+              withBorder
+              style={{
+                maxHeight: '25%',
+                minHeight: '10%',
+                overflowY: 'scroll',
+                overflowX: 'hidden',
+              }}
+            >
+              <SelectedTagsList
+                selectedTags={selectedTags}
+                checkedChildren={checkedChildren}
+                onChildCheck={handleChildCheckboxChange}
+                tagDisplay={tagDisplay}
+              />
+            </Paper>
+            <Button size="compact-xs" onClick={handleClearAll}>
+              Clear All
+            </Button>
+            <Group preventGrowOverflow grow>
+              <Text>Data Granularity</Text>
+              <Select
+                data={Object.entries(intervalOptions).map(([key, value]) => ({
+                  label: value,
+                  value: key,
+                }))}
+                value={interval}
+                onChange={(value) => setInterval(value || '5min')}
+              />
+            </Group>
+            <AdvancedDatePicker
+              includeClearButton={false}
+              includeTodayInDateRange
+              disableQuickActions
+              maxDays={7}
+              width="100%"
+            />
             <Button
               size="compact-xs"
-              onClick={handleCollapseAll}
-              disabled={showAllTags}
+              onClick={() => refetch()}
+              disabled={selectedTags.length === 0}
             >
-              Collapse All
+              Fetch Data
             </Button>
-          </Group>
-
+          </Stack>
+        </Paper>
+        <Stack p="md" h="100%" flex={3}>
+          <CustomCard style={{ height: '100%' }}>
+            <PlotlyPlot
+              data={unitGroups.flatMap(
+                (group) =>
+                  group.data?.map((item) => ({
+                    ...item,
+                    name: item.name || 'Unnamed',
+                  })) || [],
+              )}
+              layout={layout}
+              isLoading={timeSeriesIsLoading}
+            />
+          </CustomCard>
           <Button
             size="compact-xs"
-            onClick={handleSelectAll}
-            disabled={
-              showAllTags ? rawTags.length > 200 : filteredTags.length > 200
-            }
+            onClick={() => handleDownload(timeSeriesData || [])}
+            disabled={!timeSeriesData}
           >
-            Select All ({showAllTags ? rawTags.length : filteredTags.length}{' '}
-            tags)
-          </Button>
-
-          <Paper
-            p="md"
-            withBorder
-            style={{
-              flex: '0 0 auto',
-              overflow: 'hidden',
-              minHeight: '150px',
-            }}
-          >
-            <SelectedTagsList
-              selectedTags={selectedTags}
-              checkedChildren={checkedChildren}
-              onChildCheck={handleChildCheckboxChange}
-              tagDisplay={tagDisplay}
-            />
-          </Paper>
-
-          <Button size="compact-xs" onClick={handleClearAll}>
-            Clear All
-          </Button>
-          <Group preventGrowOverflow grow>
-            <Text>Data Granularity</Text>
-            <Select
-              data={Object.entries(intervalOptions).map(([key, value]) => ({
-                label: value,
-                value: key,
-              }))}
-              value={interval}
-              onChange={(value) => setInterval(value || '5min')}
-            />
-          </Group>
-          <AdvancedDatePicker
-            includeClearButton={false}
-            includeTodayInDateRange
-            disableQuickActions
-            maxDays={7}
-            width="100%"
-          />
-
-          <Button
-            size="compact-xs"
-            onClick={() => refetch()}
-            disabled={selectedTags.length === 0}
-          >
-            Fetch Data
+            Download Data
           </Button>
         </Stack>
-      </Paper>
-
-      <Stack p="md" h="100%" flex={3}>
-        <CustomCard style={{ height: '100%' }}>
-          <PlotlyPlot
-            data={unitGroups.flatMap(
-              (group) =>
-                group.data?.map((item) => ({
-                  ...item,
-                  name: item.name || 'Unnamed',
-                })) || [],
-            )}
-            layout={layout}
-            isLoading={timeSeriesIsLoading}
-          />
-        </CustomCard>
-        <Button
-          size="compact-xs"
-          onClick={() => handleDownload(timeSeriesData || [])}
-          disabled={!timeSeriesData}
-        >
-          Download Data
-        </Button>
-      </Stack>
-    </Group>
+      </Group>
+    </Stack>
   )
 }
 

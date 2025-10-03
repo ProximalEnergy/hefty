@@ -6,13 +6,18 @@ import {
 } from '@/api/v1/operational/project_types'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { NoData, PageError } from '@/components/Error'
+import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
+import { GISContext } from '@/contexts/GISContext'
+import * as gisUtils from '@/utils/GIS'
 import { useAuth } from '@clerk/clerk-react'
+import { Accordion } from '@mantine/core'
 import {
   ActionIcon,
   Alert,
   Anchor,
+  Box,
   Card,
   Group,
   HoverCard,
@@ -29,9 +34,11 @@ import {
   IconSolarElectricity,
   IconSolarPanel,
 } from '@tabler/icons-react'
-import { useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 import Map, { Layer, Marker, Source } from 'react-map-gl'
 import { Link } from 'react-router-dom'
+
+import styles from './PortfolioMap.module.css'
 
 const tileUrl = (tile: string): string => {
   const appid = import.meta.env.VITE_OPENWEATHERMAP_APP_ID
@@ -40,6 +47,7 @@ const tileUrl = (tile: string): string => {
 
 const PortfolioMap = () => {
   const computedColorScheme = useComputedColorScheme('dark')
+  const context = useContext(GISContext)
 
   const [showClouds, setShowClouds] = useLocalStorage({
     key: 'show-clouds',
@@ -105,6 +113,10 @@ const PortfolioMap = () => {
     }
   }, [projectTypes, selectedProjectTypes, setSelectedProjectTypes])
 
+  if (!context) {
+    throw new Error('GISContext is not provided')
+  }
+
   if (isLoading || isUserProjectsLoading) {
     return <PageLoader />
   }
@@ -125,6 +137,8 @@ const PortfolioMap = () => {
     height: '25px',
     color: 'var(--mantine-primary-color-filled)',
   }
+
+  const { showSatellite } = context
 
   const filteredProjects = data
     .filter((project) => {
@@ -196,11 +210,11 @@ const PortfolioMap = () => {
           borderBottomLeftRadius: 'inherit',
           borderBottomRightRadius: 'inherit',
         }}
-        mapStyle={
-          computedColorScheme === 'dark'
-            ? 'mapbox://styles/mapbox/dark-v9'
-            : 'mapbox://styles/mapbox/light-v9'
-        }
+        mapStyle={gisUtils.mapStyle({
+          empty: false,
+          satellite: showSatellite,
+          theme: computedColorScheme,
+        })}
         mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
       >
         {showClouds && (
@@ -292,7 +306,7 @@ const PortfolioMap = () => {
             <Link to={`/projects/${project.project_id}`}>
               <HoverCard shadow="md">
                 <HoverCard.Target>
-                  <div style={{ transform: 'translate(-50%, -50%)' }}>
+                  <div>
                     {(() => {
                       switch (project.project_type_id) {
                         case ProjectTypeId.PV:
@@ -317,66 +331,69 @@ const PortfolioMap = () => {
       </Map>
       <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
         <Stack gap="sm">
-          <Card withBorder shadow="sm" radius="md" px="sm">
-            <Card.Section withBorder inheritPadding py="sm">
-              <Stack gap="sm">
-                <Text size="sm" fw={500}>
-                  Environmental
-                </Text>
-                <Switch
-                  checked={showClouds}
-                  onChange={() => setShowClouds((prev) => !prev)}
-                  label="Cloud Overlay"
-                />
-                <Switch
-                  checked={showPrecipitation}
-                  onChange={() => setShowPrecipitation((prev) => !prev)}
-                  label="Precipitation Overlay"
-                />
-                <Switch
-                  checked={showHail}
-                  onChange={() => setShowHail((prev) => !prev)}
-                  label="Hail Forecast (Day 1)"
-                />
-                <Switch
-                  checked={showHailDay2}
-                  onChange={() => setShowHailDay2((prev) => !prev)}
-                  label="Hail Forecast (Day 2)"
-                />
-              </Stack>
-            </Card.Section>
-
-            <Card.Section withBorder inheritPadding py="sm">
-              <Stack gap="sm">
-                <Text size="sm" fw={500}>
-                  Project Type
-                </Text>
-                <Switch
-                  checked={showFavorites}
-                  onChange={() => setShowFavorites((prev) => !prev)}
-                  label="Favorites Only"
-                />
-                {projectTypes?.map((projectType) => (
+          <Accordion
+            variant="contained"
+            radius="md"
+            classNames={{ panel: styles.panel, content: styles.content }}
+          >
+            <Accordion.Item value="photos" bg="var(--mantine-color-body)">
+              <Accordion.Control>Environmental</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="sm">
                   <Switch
-                    key={projectType.project_type_id}
-                    checked={selectedProjectTypes.includes(
-                      projectType.project_type_id,
-                    )}
-                    onChange={() => {
-                      setSelectedProjectTypes((prev) =>
-                        prev.includes(projectType.project_type_id)
-                          ? prev.filter(
-                              (id) => id !== projectType.project_type_id,
-                            )
-                          : [...prev, projectType.project_type_id],
-                      )
-                    }}
-                    label={projectType.name_long}
+                    checked={showClouds}
+                    onChange={() => setShowClouds((prev) => !prev)}
+                    label="Cloud Overlay"
                   />
-                ))}
-              </Stack>
-            </Card.Section>
-          </Card>
+                  <Switch
+                    checked={showPrecipitation}
+                    onChange={() => setShowPrecipitation((prev) => !prev)}
+                    label="Precipitation Overlay"
+                  />
+                  <Switch
+                    checked={showHail}
+                    onChange={() => setShowHail((prev) => !prev)}
+                    label="Hail Forecast (Day 1)"
+                  />
+                  <Switch
+                    checked={showHailDay2}
+                    onChange={() => setShowHailDay2((prev) => !prev)}
+                    label="Hail Forecast (Day 2)"
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value="print" bg="var(--mantine-color-body)">
+              <Accordion.Control>Projects</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="sm">
+                  <Switch
+                    checked={showFavorites}
+                    onChange={() => setShowFavorites((prev) => !prev)}
+                    label="Favorites Only"
+                  />
+                  {projectTypes?.map((projectType) => (
+                    <Switch
+                      key={projectType.project_type_id}
+                      checked={selectedProjectTypes.includes(
+                        projectType.project_type_id,
+                      )}
+                      onChange={() => {
+                        setSelectedProjectTypes((prev) =>
+                          prev.includes(projectType.project_type_id)
+                            ? prev.filter(
+                                (id) => id !== projectType.project_type_id,
+                              )
+                            : [...prev, projectType.project_type_id],
+                        )
+                      }}
+                      label={projectType.name_long}
+                    />
+                  ))}
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
 
           {showHailLegend && (
             <Card withBorder shadow="sm" radius="md" px="sm">
@@ -435,7 +452,13 @@ const PortfolioMap = () => {
           )}
         </Stack>
       </div>
-
+      <Box
+        style={{ position: 'absolute', bottom: 0, left: 0, zIndex: 10 }}
+        px="md"
+        py="md"
+      >
+        <MapSettings disableLabels />
+      </Box>
       <Attribution />
     </div>
   )

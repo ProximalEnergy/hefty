@@ -37,3 +37,31 @@ export const useGetCompanies = ({
     queryOptions: queryOptions,
   })
 }
+
+export const useSearchCompanies = ({
+  queryParams,
+  queryOptions = {},
+}: {
+  queryParams: { q: string; limit?: number }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/admin/companies/search',
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    enabled: queryParams.q.length >= 3,
+    staleTime: 60_000,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<Company[]>({
+    axiosConfig,
+    queryName: 'searchCompanies',
+    pathParams: {},
+    queryParams,
+    queryOptions,
+  })
+}

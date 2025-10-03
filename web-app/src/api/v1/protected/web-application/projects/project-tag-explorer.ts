@@ -8,6 +8,60 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
+export const usePopulateUniqueTagPatterns = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ projectId }: { projectId: string }) => {
+      const token = await getToken()
+      const response = await axios.post(
+        `${baseURL}/v1/protected/web-application/projects/${projectId}/project-tag-explorer/populate-unique-tag-patterns`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      // Invalidate and refetch unique tag types after successful population
+      queryClient.invalidateQueries({
+        queryKey: ['getUniqueTagTypes'],
+      })
+    },
+  })
+}
+
+export const useGetTagsByPattern = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; tagPattern: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/project-tag-explorer/tag-pattern-tags/${encodeURIComponent(pathParams.tagPattern)}`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 300000,
+    enabled: false,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<any[]>({
+    axiosConfig,
+    queryName: 'getTagsByPattern',
+    pathParams,
+    queryOptions: queryOptions,
+  })
+}
+
 export const useGetUniqueTagTypes = ({
   pathParams,
   queryParams = {},

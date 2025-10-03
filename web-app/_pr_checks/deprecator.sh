@@ -7,7 +7,7 @@ FILE1="src/hooks/types.ts"
 LINE_LIMIT1=762
 
 FILE2="src/hooks/api.ts"
-LINE_LIMIT2=2120
+LINE_LIMIT2=1930
 
 # Function to check line count in a file
 check_line_count() {

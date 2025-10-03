@@ -1,4 +1,6 @@
 import { useGetUserType } from '@/api/admin'
+import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
+import { useGetOMContractorScopes } from '@/api/v1/operational/project/om_contractors'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import { Project } from '@/api/v1/operational/projects'
 import RequiresUserType from '@/components/admin/RequiresUserType'
@@ -34,6 +36,10 @@ export default function ProjectInfoModal({
   const { projectId } = useParams()
   const userType = useGetUserType({})
   const { data: projectTypes } = useGetProjectTypes({})
+  const { data: deviceTypes } = useGetDeviceTypes({
+    queryParams: { project_id: projectId },
+    queryOptions: { enabled: !!projectId },
+  })
   const computedColorScheme = useComputedColorScheme()
 
   const isUserAdmin =
@@ -75,6 +81,18 @@ export default function ProjectInfoModal({
   const formatPPARate = (ppa?: { rate?: number; type?: string } | null) => {
     if (!ppa?.rate) return 'Not set'
     return `$${ppa.rate.toFixed(2)}/MWh (${ppa.type || 'flat_rate'})`
+  }
+
+  // Helper to convert device type IDs to names
+  const formatDeviceTypeIds = (deviceTypeIds: number[]) => {
+    if (!deviceTypes || deviceTypeIds.length === 0) return 'None'
+    const names = deviceTypeIds
+      .map((id) => {
+        const deviceType = deviceTypes.find((dt) => dt.device_type_id === id)
+        return deviceType?.name_long || `Device Type ${id}`
+      })
+      .join(', ')
+    return names || 'None'
   }
 
   // Helper to get milestone data with dates for sorting
@@ -206,6 +224,17 @@ export default function ProjectInfoModal({
     },
   }
 
+  // O&M Contractor Scopes
+  const omContractors = useGetOMContractorScopes({
+    pathParams: { projectId: projectId || '-1' },
+    queryOptions: { enabled: !!projectId },
+  })
+
+  const handleManageOM = () => {
+    onClose()
+    navigate(`/projects/${projectId}/settings?tab=om-contractors`)
+  }
+
   return (
     <Modal
       opened={opened}
@@ -219,10 +248,9 @@ export default function ProjectInfoModal({
     >
       <Tabs defaultValue="project">
         <Tabs.List>
-          <Tabs.Tab value="project">Project Summary</Tabs.Tab>
-          {isUserSuperadmin && (
-            <Tabs.Tab value="equipment">Equipment Summary</Tabs.Tab>
-          )}
+          <Tabs.Tab value="project">General</Tabs.Tab>
+          {isUserSuperadmin && <Tabs.Tab value="equipment">Equipment</Tabs.Tab>}
+          <Tabs.Tab value="om-contractors">O&M Contractors</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="project" pt="md">
@@ -757,6 +785,94 @@ export default function ProjectInfoModal({
             </ScrollArea>
           </Tabs.Panel>
         )}
+
+        <Tabs.Panel value="om-contractors" pt="md">
+          <ScrollArea h={600}>
+            <Stack gap="md">
+              <Card withBorder p="md">
+                <Stack gap="lg">
+                  <Group justify="space-between" align="center">
+                    <Title order={3} mb={0}>
+                      O&M Contractor Summary
+                    </Title>
+                    <Button variant="light" size="sm" onClick={handleManageOM}>
+                      Manage
+                    </Button>
+                  </Group>
+
+                  {omContractors.isLoading ? (
+                    <Text size="sm" c="dimmed">
+                      Loading...
+                    </Text>
+                  ) : (omContractors.data || []).length === 0 ? (
+                    <Text size="sm" c="dimmed">
+                      No O&M contractor scopes found.
+                    </Text>
+                  ) : (
+                    <Stack gap="md">
+                      {(omContractors.data || []).map((scope) => (
+                        <Card
+                          key={scope.om_contractor_scope_id}
+                          withBorder
+                          p="md"
+                        >
+                          <Stack gap="sm">
+                            <Group justify="space-between">
+                              <Text size="sm" c="dimmed">
+                                Company:
+                              </Text>
+                              <Text size="sm" fw={500}>
+                                {scope.company_name_long ||
+                                  scope.company_name_short ||
+                                  scope.company_id}
+                              </Text>
+                            </Group>
+                            <Group justify="space-between">
+                              <Text size="sm" c="dimmed">
+                                Addressee:
+                              </Text>
+                              <Text size="sm" fw={500}>
+                                {scope.contractor_addressee || 'Not set'}
+                              </Text>
+                            </Group>
+                            <Group justify="space-between">
+                              <Text size="sm" c="dimmed">
+                                Email:
+                              </Text>
+                              <Text size="sm" fw={500}>
+                                {scope.contractor_email || 'Not set'}
+                              </Text>
+                            </Group>
+                            <Group justify="space-between">
+                              <Text size="sm" c="dimmed">
+                                Phone:
+                              </Text>
+                              <Text size="sm" fw={500}>
+                                {scope.contractor_phone || 'Not set'}
+                              </Text>
+                            </Group>
+                            {scope.scope_json?.device_type_ids && (
+                              <Group justify="space-between">
+                                <Text size="sm" c="dimmed">
+                                  Device Types In Scope:
+                                </Text>
+                                <Text size="sm" fw={500}>
+                                  {formatDeviceTypeIds(
+                                    scope.scope_json.device_type_ids,
+                                  )}
+                                </Text>
+                              </Group>
+                            )}
+                          </Stack>
+                        </Card>
+                      ))}
+                    </Stack>
+                  )}
+                </Stack>
+              </Card>
+            </Stack>
+          </ScrollArea>
+        </Tabs.Panel>
       </Tabs>
     </Modal>
   )

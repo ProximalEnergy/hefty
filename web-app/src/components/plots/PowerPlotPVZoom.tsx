@@ -179,7 +179,7 @@ const PowerPlotPVZoom = () => {
       name: d.name,
       type: 'scatter' as const,
       mode: mode, // Use determined mode
-      connectgaps: true, // Keep this for both
+      connectgaps: isExpectedPower ? false : true,
       hoverlabel: {
         namelength: -1,
       },

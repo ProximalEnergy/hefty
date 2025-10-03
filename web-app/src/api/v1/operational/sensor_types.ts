@@ -1,5 +1,5 @@
 import { useCustomQuery } from '@/hooks/api'
-import * as types from '@/hooks/types'
+import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
 import {
   UseQueryOptions,
@@ -8,7 +8,15 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL
+export interface SensorType {
+  sensor_type_id: number
+  device_type_id: number
+  name_short: string
+  name_long: string
+  name_metric: string
+  unit: string | null
+  description: string | null
+}
 
 export const useGetSensorTypes = ({
   queryParams = {},
@@ -29,7 +37,7 @@ export const useGetSensorTypes = ({
 
   queryOptions = { ...defaultQueryOptions, ...queryOptions }
 
-  return useCustomQuery<types.SensorType[]>({
+  return useCustomQuery<SensorType[]>({
     axiosConfig,
     queryName: 'getSensorTypes',
     pathParams: {},
@@ -42,7 +50,7 @@ export const useCreateSensorTypeMutation = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (sensorType: types.SensorType) => {
+    mutationFn: async (sensorType: SensorType) => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'post',
@@ -68,7 +76,7 @@ export const useUpdateSensorTypeMutation = () => {
       sensorType,
     }: {
       sensorTypeId: number
-      sensorType: types.SensorType
+      sensorType: SensorType
     }) => {
       const token = await getToken({ template: 'default' })
       return axios({

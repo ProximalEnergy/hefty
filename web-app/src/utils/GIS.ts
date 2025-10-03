@@ -224,10 +224,10 @@ export function mapStyle({
   if (empty) {
     return undefined
   } else if (satellite) {
-    return 'mapbox://styles/mapbox/satellite-v9'
+    return 'mapbox://styles/mapbox/satellite-streets-v11'
   } else if (theme === 'light') {
-    return 'mapbox://styles/mapbox/light-v11'
+    return 'mapbox://styles/mapbox/light-v10'
   } else {
-    return 'mapbox://styles/mapbox/dark-v11'
+    return 'mapbox://styles/mapbox/dark-v10'
   }
 }

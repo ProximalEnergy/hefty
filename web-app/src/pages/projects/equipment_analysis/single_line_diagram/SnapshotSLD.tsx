@@ -2,10 +2,10 @@ import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useGetProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import { SensorType } from '@/hooks/types'
 import {
   ActionIcon,
   Tooltip,

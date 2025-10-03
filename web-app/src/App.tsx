@@ -16,6 +16,7 @@ import '@mantine/dropzone/styles.css'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
 import '@mantine/spotlight/styles.css'
+import '@mantine/tiptap/styles.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import 'mantine-react-table/styles.css'
@@ -574,7 +575,14 @@ export default function App() {
       ...themes,
     },
     primaryShade: { light: 7, dark: 7 },
-    breakpoints: { xl: '92em' },
+    // See defaults at
+    breakpoints: {
+      xl: '92em',
+      '2xl': '106em',
+      '3xl': '122em',
+      '4xl': '138em',
+      '5xl': '154em',
+    },
     primaryColor: primaryColor,
     // https://stackoverflow.com/questions/8118741/css-font-helvetica-neue
     fontFamily: 'Helvetica Neue, sans-serif',

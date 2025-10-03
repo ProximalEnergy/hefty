@@ -1,5 +1,6 @@
 import { DeviceType } from '@/api/v1/operational/device_types'
 import { KPIType } from '@/api/v1/operational/kpi_types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import { ReactNode } from 'react'
 
 export const statisticOptions = [
@@ -58,14 +59,6 @@ export interface Point {
 export interface MultiPolygon {
   type: string
   coordinates: number[][][][]
-}
-
-export interface SensorType {
-  sensor_type_id: number
-  name_short: string
-  name_long: string
-  name_metric: string
-  unit: string | null
 }
 
 export interface DataType {

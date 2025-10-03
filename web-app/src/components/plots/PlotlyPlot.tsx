@@ -139,6 +139,7 @@ const PlotlyPlot = ({
           ? theme.colors.dark[7]
           : theme.colors.gray[1],
     },
+    uirevision: 'true',
   }
 
   // https://plotly.com/javascript/reference/layout/
