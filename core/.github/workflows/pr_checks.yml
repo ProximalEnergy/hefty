@@ -1,0 +1,78 @@
+name: Pull Request Checks
+
+on:
+  pull_request: # Run on all pull requests
+    branches: [dev, staging, main]
+
+permissions:
+  id-token: write # This is crucial for OIDC authentication
+  contents: read # You might also need this depending on your workflow
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Ruff linter
+        uses: astral-sh/ruff-action@v3
+
+      - name: Run Ruff formatter
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check --diff
+
+  star_syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+
+      - name: install project
+        run: uv sync
+
+      - name: Run star_syntax_check script
+        run: |
+          python ./_pr_checks/star_syntax_check.py
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+
+      - name: install project
+        run: uv sync
+
+      - name: run mypy
+        run: uv run mypy --config-file pyproject.toml src/ # Add -v for verbosity
+
+  validate-enums:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+
+      - name: install project
+        run: uv sync
+
+      - name: Run enum validation
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: uv run -m src.core.enumerations
