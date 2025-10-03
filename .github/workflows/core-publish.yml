@@ -24,13 +24,40 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check_changes.outputs.has_changes }}
 
-    steps:
+    steps:</parameter>
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Determine release type and version
+      - name: Check for core changes
+        id: check_changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For manual triggers, check if there are changes since the last tag
+            LAST_TAG=$(git describe --tags --match "core-v*" --abbrev=0 2>/dev/null || echo "")
+            if [ -z "$LAST_TAG" ]; then
+              echo "No previous core tags found, proceeding with deployment"
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+            else
+              CHANGES=$(git diff --name-only $LAST_TAG HEAD -- core/src/core core/pyproject.toml .github/workflows/core-publish.yml)
+              if [ -z "$CHANGES" ]; then
+                echo "No changes detected in core since $LAST_TAG"
+                echo "has_changes=false" >> $GITHUB_OUTPUT
+              else
+                echo "Changes detected in core since $LAST_TAG:"
+                echo "$CHANGES"
+                echo "has_changes=true" >> $GITHUB_OUTPUT
+              fi
+            fi
+          else
+            # For push events, the paths filter already ensures we have changes
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine release type and version</parameter>
         id: version
         run: |
           BRANCH="${{ github.event.inputs.branch || github.ref_name }}"
@@ -89,7 +116,8 @@ jobs:
           echo "Final version: $VERSION"
 
       - name: Update version in pyproject.toml
-        run: |
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |</parameter>
           # Update the version in pyproject.toml
           python3 -c "
           import tomllib
@@ -113,13 +141,15 @@ jobs:
           cat core/pyproject.toml | grep "version ="
 
       - name: Configure AWS credentials
+        if: steps.check_changes.outputs.has_changes == 'true'
         uses: aws-actions/configure-aws-credentials@v4
-        with:
+        with:</parameter>
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-2
 
       - name: Authenticate with AWS CodeArtifact
-        run: |
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |</parameter>
           AWS_CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
             --domain proximal-code-artifact-domain \
             --region us-east-2 \
@@ -129,27 +159,37 @@ jobs:
           echo "AWS_CODEARTIFACT_TOKEN=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
 
       - name: Set UV environment variables
-        run: |
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |</parameter>
           echo "UV_INDEX_PROXIMAL_PRIVATE_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
           echo "UV_INDEX_PROXIMAL_PRIVATE_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
           echo "UV_PUBLISH_USERNAME=aws" >> $GITHUB_ENV
           echo "UV_PUBLISH_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
 
       - name: Install uv
+        if: steps.check_changes.outputs.has_changes == 'true'
         uses: astral-sh/setup-uv@v5
 
       - name: Build Wheel
+        if: steps.check_changes.outputs.has_changes == 'true'
         run: uv build
         working-directory: core
 
       - name: Publish to AWS CodeArtifact
+        if: steps.check_changes.outputs.has_changes == 'true'
         run: uv publish --index proximal-package-index
         working-directory: core
+
+      - name: Skip deployment message
+        if: steps.check_changes.outputs.has_changes == 'false'
+        run: |
+          echo "::notice::Skipping core deployment - no changes detected since last release"</parameter>
 
   create_release:
     needs: deploy
     runs-on: ubuntu-latest
-    steps:
+    if: needs.deploy.outputs.has_changes != 'false'
+    steps:</parameter>
       - uses: actions/checkout@v4
 
       - name: Get version info
