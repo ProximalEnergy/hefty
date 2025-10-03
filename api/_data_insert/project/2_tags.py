@@ -9,10 +9,26 @@ import psycopg2
 from .. import utils
 
 project_name_short = "<project_name_short>"
+update_project_spec = True
+update_tags = True
 
-# grab project name from command line
+# grab arguments from command line
 if len(sys.argv) > 1:
     project_name_short = sys.argv[1]
+if len(sys.argv) > 2:
+    if sys.argv[2] == "True":
+        update_project_spec = True
+    elif sys.argv[2] == "False":
+        update_project_spec = False
+    else:
+        raise ValueError(f"Invalid value for update_project_spec: {sys.argv[2]}")
+if len(sys.argv) > 3:
+    if sys.argv[3] == "True":
+        update_tags = True
+    elif sys.argv[3] == "False":
+        update_tags = False
+    else:
+        raise ValueError(f"Invalid value for update_tags: {sys.argv[3]}")
 
 tags = pd.read_excel(
     utils.EXCEL_PATH / f"{project_name_short}.xlsx",
@@ -22,31 +38,32 @@ tags = pd.read_excel(
 
 sensor_type_ids = sorted(tags["sensor_type_id"].dropna().astype(int).unique().tolist())
 
-# Query the project.spec for this project
-with psycopg2.connect(
-    utils.CONNECTION_STRING,
-    application_name=utils.application_name(__file__),
-) as conn:
-    with conn.cursor() as cursor:
-        cursor.execute(
-            f"SELECT spec FROM operational.projects WHERE name_short = '{project_name_short}'",
-        )
-        result = cursor.fetchone()
-        if result is None:
-            raise ValueError(
-                f"No project found with name_short = '{project_name_short}'",
+if update_project_spec:
+    # Query the project.spec for this project
+    with psycopg2.connect(
+        utils.CONNECTION_STRING,
+        application_name=utils.application_name(__file__),
+    ) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"SELECT spec FROM operational.projects WHERE name_short = '{project_name_short}'",
             )
-        project_spec = result[0]
+            result = cursor.fetchone()
+            if result is None:
+                raise ValueError(
+                    f"No project found with name_short = '{project_name_short}'",
+                )
+            project_spec = result[0]
 
-        # Update the project.spec with the new sensor_type_ids
-        project_spec["used_sensor_type_ids"] = sensor_type_ids
+            # Update the project.spec with the new sensor_type_ids
+            project_spec["used_sensor_type_ids"] = sensor_type_ids
 
-        # Update the project.spec in the database
-        cursor.execute(
-            f"UPDATE operational.projects SET spec = '{json.dumps(project_spec)}' WHERE name_short = '{project_name_short}'",
-        )
+            # Update the project.spec in the database
+            cursor.execute(
+                f"UPDATE operational.projects SET spec = '{json.dumps(project_spec)}' WHERE name_short = '{project_name_short}'",
+            )
 
-        conn.commit()
+            conn.commit()
 
 # If "pg_data_type_id" column does not exist, add it and set all values to 0
 # NOTE: This is to handle projects where this column was not created yet in Excel
@@ -132,31 +149,32 @@ def process_tag_chunk(tag_chunk):
                 conn.commit()
 
 
-# Process tags in chunks of CHUNK_SIZE
-for start in range(0, len(tags), CHUNK_SIZE):
-    end = start + CHUNK_SIZE
-    tag_chunk = tags.iloc[start:end]
-    logging.info(
-        f"Processing tag chunk {start // CHUNK_SIZE + 1} of {(len(tags) - 1) // CHUNK_SIZE + 1}"
-    )
-    process_tag_chunk(tag_chunk)
+if update_tags:
+    # Process tags in chunks of CHUNK_SIZE
+    for start in range(0, len(tags), CHUNK_SIZE):
+        end = start + CHUNK_SIZE
+        tag_chunk = tags.iloc[start:end]
+        logging.info(
+            f"Processing tag chunk {start // CHUNK_SIZE + 1} of {(len(tags) - 1) // CHUNK_SIZE + 1}"
+        )
+        process_tag_chunk(tag_chunk)
 
-# Delete tags that are to be deleted, chunked by 1000
-with psycopg2.connect(
-    utils.CONNECTION_STRING,
-    application_name=utils.application_name(__file__),
-) as conn:
-    with conn.cursor() as cursor:
-        for i in range(0, len(tag_ids_to_delete), 1000):
-            logging.info(
-                f"Deleting chunk {(i // 1000) + 1} of {(len(tag_ids_to_delete) // 1000) + 1}",
-            )
-            chunk = tag_ids_to_delete[i : i + 1000]
+    # Delete tags that are to be deleted, chunked by 1000
+    with psycopg2.connect(
+        utils.CONNECTION_STRING,
+        application_name=utils.application_name(__file__),
+    ) as conn:
+        with conn.cursor() as cursor:
+            for i in range(0, len(tag_ids_to_delete), 1000):
+                logging.info(
+                    f"Deleting chunk {(i // 1000) + 1} of {(len(tag_ids_to_delete) // 1000) + 1}",
+                )
+                chunk = tag_ids_to_delete[i : i + 1000]
 
-            cursor.execute(
-                f"""
-                DELETE FROM {project_name_short}.tags WHERE tag_id IN {tuple(chunk)};
-                """,
-            )
+                cursor.execute(
+                    f"""
+                    DELETE FROM {project_name_short}.tags WHERE tag_id IN {tuple(chunk)};
+                    """,
+                )
 
-            conn.commit()
+                conn.commit()
