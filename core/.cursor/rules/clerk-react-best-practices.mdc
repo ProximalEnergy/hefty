@@ -1,0 +1,8 @@
+---
+description: Best practices for user authentication and management with Clerk
+globs: **/*.{ts,tsx,js,jsx}
+---
+- Use Clerk's pre-built UI components for authentication flows
+- Implement proper session management and token handling
+- Utilize Clerk's user metadata for storing additional user information
+- Use Clerk's webhooks for real-time user events

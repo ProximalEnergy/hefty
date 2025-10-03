@@ -1,0 +1,37 @@
+/* Hide sign up link from Clerk sign in form */
+.cl-footer {
+  display: none;
+}
+/*  */
+
+/* Global font size reduction - 80% of original size */
+html {
+  font-size: 80% !important;
+}
+
+/* Plotly font size reduction - 80% of original size */
+.js-plotly-plot .plotly .main-svg text,
+.js-plotly-plot .plotly .main-svg .legend text,
+.js-plotly-plot .plotly .main-svg .axis text,
+.js-plotly-plot .plotly .main-svg .title text,
+.js-plotly-plot .plotly .main-svg .annotation text,
+.js-plotly-plot .plotly .main-svg .colorbar text,
+.js-plotly-plot .plotly .main-svg .infolayer text {
+  font-size: 0.8em !important;
+}
+
+/* Plotly Modebar */
+.modebar-group {
+  padding-left: 0px !important;
+  border-radius: 3px !important;
+}
+/*  */
+
+/* Mapbox Logo */
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}
+/*  */

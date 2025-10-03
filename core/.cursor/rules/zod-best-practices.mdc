@@ -1,0 +1,8 @@
+---
+description: Best practices for schema validation and type inference with Zod
+globs: **/*.{ts,tsx,js,jsx}
+---
+- Use Zod for form validation and API response validation
+- Implement custom error messages for user-friendly feedback
+- Utilize Zod's type inference for TypeScript integration
+- Use Zod's transform method for data transformation

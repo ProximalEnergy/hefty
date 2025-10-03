@@ -1,0 +1,8 @@
+---
+description: Best practices for creating interactive plots with React Plotly
+globs: **/*.{ts,tsx,js,jsx}
+---
+- Use React Plotly's responsive props for mobile-friendly charts
+- Implement proper data formatting for Plotly
+- Utilize Plotly's event handling for interactivity
+- Use Plotly's layout options for customization

@@ -1,0 +1,5 @@
+.track {
+  @mixin light {
+    --slider-track-bg: var(--mantine-color-gray-4);
+  }
+}
