@@ -83,23 +83,21 @@ def get_meter_power_and_expected_power_v2(
 
     if not df_expected_power.empty:
         df_expected_power = pd.DataFrame(df_expected_power["value"])
-        # Shift index forward by 5 minutes to align with meter data reporting convention
-        # df_expected_power.index = df_expected_power.index + pd.Timedelta(minutes=4)
-        df_expected_power["value"] = df_expected_power["value"] / 1_000_000
+        df_expected_power["value"] = (
+            df_expected_power["value"] / 1_000_000
+        )  # Convert from W to MW
         df_expected_power.columns = pd.Index(["Expected Power"])
 
-        # Resample expected power if needed to match the requested interval
-        if interval in ["1min", "15min"] and not df_expected_power.empty:
-            # Ensure index is DatetimeIndex and sorted
-            df_expected_power.index = pd.to_datetime(df_expected_power.index)
-            df_expected_power = df_expected_power.sort_index()
-            # Resample to 1 minute and interpolate
-            df_expected_power = df_expected_power.resample(interval).interpolate(
-                method="linear",
-            )
-            # Trim potentially introduced NaNs at the boundaries after resampling
-            mask = (df_expected_power.index >= start) & (df_expected_power.index <= end)
-            df_expected_power = df_expected_power[mask]
+        # Ensure a full date range is returned from endpoint
+        # NOTE: EEM data is available at 5-minute intervals but start and end might not be aligned with 5-minute interval
+        full_index = pd.date_range(
+            start=start.ceil("5min"),
+            end=end.ceil("5min"),
+            freq="5min",
+            inclusive="left",
+            tz=project.time_zone,
+        )
+        df_expected_power = df_expected_power.reindex(full_index)
 
     # Dynamically build sensor_type_name_shorts
     sensor_type_name_shorts = ["meter_active_power"]
@@ -125,7 +123,7 @@ def get_meter_power_and_expected_power_v2(
 
     df_meter = df_tags.xs("meter_active_power", axis=1, level=1)
     df_meter.columns = pd.Index(["Meter Active Power"])
-    df_list = [df_meter, df_expected_power]
+    df_list = [df_meter]
 
     # Process Setpoint if included
     if (
@@ -246,6 +244,15 @@ def get_meter_power_and_expected_power_v2(
         }
         for col in df.columns
     ]
+
+    data.extend(
+        {
+            "x": df_expected_power.index.tolist(),
+            "y": df_expected_power[col].tolist(),
+            "name": col,
+        }
+        for col in df_expected_power.columns
+    )
 
     return {
         "data": data,

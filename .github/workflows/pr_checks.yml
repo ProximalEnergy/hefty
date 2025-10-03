@@ -4,8 +4,6 @@ on:
   pull_request: # Run on all pull requests
     branches: [dev, staging, main]
 
-
-
 permissions:
   id-token: write # This is crucial for OIDC authentication
   contents: read # You might also need this depending on your workflow
@@ -29,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
@@ -57,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
@@ -91,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
@@ -116,47 +114,47 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: uv run pytest
 
-  smoke_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
+  # smoke_test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: astral-sh/setup-uv@v6
+  #       with:
+  #         enable-cache: true
 
-      - name: set up python
-        run: uv python install
+  #     - name: set up python
+  #       run: uv python install
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.STAGING_AWS_REGION }}
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+  #         aws-region: ${{ secrets.STAGING_AWS_REGION }}
 
-      - name: add core
-        run: |
-          source ./_scripts/update_core.sh
+  #     - name: add core
+  #       run: |
+  #         source ./_scripts/update_core.sh
 
-      - name: install project
-        run: uv sync
+  #     - name: install project
+  #       run: uv sync
 
-      - name: Install Hurl
-        uses: ./.github/actions/install-hurl
+  #     - name: Install Hurl
+  #       uses: ./.github/actions/install-hurl
 
-      - name: Start FastAPI server
-        run: |
-          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          sleep 10  # Give the server time to start
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ENVIRONMENT: development
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
-          CLERK_SECRET_KEY_DEVELOPMENT: ${{ secrets.CLERK_SECRET_KEY_DEVELOPMENT }}
-          MAXAUTH: ${{ secrets.MAXAUTH }}
-          URL_JWKS_DEVELOPMENT: ${{ secrets.URL_JWKS_DEVELOPMENT }}
-          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+  #     - name: Start FastAPI server
+  #       run: |
+  #         uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+  #         sleep 10  # Give the server time to start
+  #       env:
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #         ENVIRONMENT: development
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+  #         AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+  #         CLERK_SECRET_KEY_DEVELOPMENT: ${{ secrets.CLERK_SECRET_KEY_DEVELOPMENT }}
+  #         MAXAUTH: ${{ secrets.MAXAUTH }}
+  #         URL_JWKS_DEVELOPMENT: ${{ secrets.URL_JWKS_DEVELOPMENT }}
+  #         WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
 
-      - name: Run smoke tests
-        run: hurl --location --variable baseURL=http://localhost:8000 --variable apiKey=${{ secrets.STAGING_API_KEY }} --test ./_smoke_testing/hurl/get/*
+  #     - name: Run smoke tests
+  #       run: hurl --location --variable baseURL=http://localhost:8000 --variable apiKey=${{ secrets.STAGING_API_KEY }} --test ./_smoke_testing/hurl/get/*

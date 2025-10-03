@@ -29,7 +29,7 @@ from app.v1.operational import (
     status,
     users,
 )
-from app.v1.operational.project import project, project_calendar
+from app.v1.operational.project import project, project_calendar, project_om_contractors
 
 get_user_data_async = [Depends(dependencies.get_user_data_async)]
 
@@ -51,6 +51,7 @@ router.include_router(project_types.router)
 router.include_router(project_types.deprecated_router)
 router.include_router(project.router)
 router.include_router(project_calendar.router)
+router.include_router(project_om_contractors.router)
 router.include_router(projects.router)
 router.include_router(kpi_data.router)
 router.include_router(kpi_instances.router)

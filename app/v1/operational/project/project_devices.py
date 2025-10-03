@@ -112,7 +112,7 @@ async def get_project_devices_v2(
     )
 
     # Use polars_dataframe method for efficient data processing
-    devices_df = query_obj.polars_dataframe()
+    devices_df = await query_obj.polars_dataframe_async()
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
     def wkb_to_geojson(wkb_bytes):  # skip-star-syntax
@@ -151,6 +151,7 @@ async def get_project_devices_v2(
         devices_df = devices_df.with_columns(
             pl.col("point")
             .map_elements(wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True)
+            .str.json_decode(infer_schema_length=len(devices_df))
             .alias("point")
         )
 
@@ -159,6 +160,7 @@ async def get_project_devices_v2(
         devices_df = devices_df.with_columns(
             pl.col("polygon")
             .map_elements(wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True)
+            .str.json_decode(infer_schema_length=len(devices_df))
             .alias("polygon")
         )
 

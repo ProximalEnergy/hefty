@@ -40,10 +40,12 @@ def get_sensor_types(
 def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
     db_sensor_type = models.SensorType(
         sensor_type_id=sensor_type.sensor_type_id,
+        device_type_id=sensor_type.device_type_id,
         name_short=sensor_type.name_short,
         name_long=sensor_type.name_long,
         name_metric=sensor_type.name_metric,
         unit=sensor_type.unit,
+        description=sensor_type.description,
     )
     db.add(db_sensor_type)
     db.commit()
@@ -63,10 +65,12 @@ def update_sensor_type(
     if not db_sensor_type:
         return None
 
+    db_sensor_type.device_type_id = sensor_type.device_type_id
     db_sensor_type.name_short = sensor_type.name_short
     db_sensor_type.name_long = sensor_type.name_long
     db_sensor_type.name_metric = sensor_type.name_metric
     db_sensor_type.unit = sensor_type.unit
+    db_sensor_type.description = sensor_type.description
 
     db.commit()
     db.refresh(db_sensor_type)
