@@ -1,0 +1,93 @@
+[project]
+name = "mono"
+version = "0.1.0"
+description = "Proximal monorepo workspace"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["core", "api"]
+
+[tool.uv]
+
+[[tool.uv.index]]
+name = "proximal-package-index"
+url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"
+publish-url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# --- ruff configuration ---
+[tool.ruff]
+line-length = 88
+fix = true
+
+[tool.ruff.lint]
+select = [
+    "ANN002",  # checks that *args are typed
+    "ASYNC",   # async python checks
+    "COM",     # Ending commas
+    "EXE",     # Executables
+    "FA",      # Future Annotations
+    "F401",    # Remove unused imports
+    "FAST001", # FastAPI
+    "FAST003", # FastAPI
+    "FURB",    # Code modernization
+    "I",       # isort: Sort all imports
+    "INT",     # Gettext formatting
+    "ISC",     # Implicit string concat
+    "ICN",     # Import alias
+    "PD002",   # Pandas inplace
+    "PIE",     # Code simplification
+    "S101",    # Look for assert
+    "S102",    # Look for exec
+    "S103",    # Look for os.chmod
+    "S104",    # hardcoded bind all interfaces
+    "S105",    # hardcoded password string
+    "S106",    # hardcoded password func arg
+    "S107",    # hardcoded password defaults
+    "S108",    # hardcoded temp files
+    "S110",    # try-except-pass
+    "S608",    # hardcoded-sql-expression
+    "T",       # debugger checks
+    "T20",     # Lint print and pprint Statements
+    "UP",      # pyupgrade
+]
+fixable = ["ALL"]
+unfixable = []
+ignore = [
+    "COM812",
+    "COM819",
+    "E501",    # line too long
+    "FAST002",
+    "FURB162",
+    "UP038",   # https://github.com/astral-sh/ruff/issues/7871
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"_tests/**/*.py" = [
+    "S101",  # asserts allowed in tests
+    "ARG",   # Unused function args -> fixtures nevertheless are functionally relevant
+    "FBT",   # Don't care about booleans as positional arguments in tests
+]
+"tests/**/*.py" = [
+    "S101",  # asserts allowed in tests
+    "ARG",   # Unused function args -> fixtures nevertheless are functionally relevant
+    "FBT",   # Don't care about booleans as positional arguments in tests
+]
+
+# --- mypy configuration ---
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+namespace_packages = true
+explicit_package_bases = true
+disable_error_code = ["import-untyped"]
+
+# --- pyright configuration ---
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

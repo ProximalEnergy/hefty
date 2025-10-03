@@ -70,25 +70,21 @@ jobs:
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.PROD_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=production" >> $GITHUB_ENV
-            echo "CORE_VERSION_TYPE=stable" >> $GITHUB_ENV
             echo "Set production environment variables."
           elif [ "$BRANCH_NAME" = "staging" ]; then
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.STAGING_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=staging" >> $GITHUB_ENV
-            echo "CORE_VERSION_TYPE=rc" >> $GITHUB_ENV
             echo "Set staging environment variables."
           elif [ "$BRANCH_NAME" = "dev" ]; then
             echo "ENVIRONMENT=dev" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.DEV_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=dev" >> $GITHUB_ENV
-            echo "CORE_VERSION_TYPE=beta" >> $GITHUB_ENV
             echo "Set dev environment variables."
           elif [ "$BRANCH_NAME" = "sandbox" ]; then
             echo "ENVIRONMENT=sandbox" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.SANDBOX_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=sandbox" >> $GITHUB_ENV
-            echo "CORE_VERSION_TYPE=stable" >> $GITHUB_ENV
             echo "Set sandbox environment variables."
           else
             echo "Branch '$BRANCH_NAME' is not configured for deployment. Skipping deployment."
@@ -106,30 +102,35 @@ jobs:
         run: uv python install
         working-directory: api
 
-      - name: Configure AWS credentials
-        if: env.SKIP_DEPLOYMENT != 'true'
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-2
-
-      - name: Update core dependency based on environment
+      - name: Copy core library source into API directory
         if: env.SKIP_DEPLOYMENT != 'true'
         run: |
-          chmod +x _scripts/update_core_version.sh
-          ./_scripts/update_core_version.sh ${{ env.CORE_VERSION_TYPE }}
-        working-directory: api
+          # Copy core source code directly into api directory
+          mkdir -p api/core
+          cp -r core/src/core/* api/core/
+          echo "Core library copied to api/core"
+          ls -la api/core
 
-      - name: Generate requirements.txt
+      - name: Generate requirements.txt without core
         if: env.SKIP_DEPLOYMENT != 'true'
-        run: uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes
+        run: |
+          # Generate requirements excluding the workspace core package
+          uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes
+          # Remove core from requirements.txt since we're bundling it directly
+          sed -i '/^core==/d' requirements.txt
+          echo "Generated requirements.txt without core dependency"
         working-directory: api
 
       - name: Generate deployment package
         if: env.SKIP_DEPLOYMENT != 'true'
         run: |
           cd api
-          zip -r ../deploy.zip ./ -x "*.git*"
+          # Create deployment package with bundled core (.ebignore will handle exclusions)
+          zip -r ../deploy.zip . -x "*.git*"
+          echo "Deployment package created"
+          cd ..
+          echo "Package contents (first 50 files):"
+          unzip -l deploy.zip | head -50
 
       - name: echo
         run: |

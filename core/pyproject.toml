@@ -27,11 +27,6 @@ core = "core:main"
 requires = ["uv_build>=0.7.2,<0.8"]
 build-backend = "uv_build"
 
-[[tool.uv.index]]
-name = "proximal-package-index"
-url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"
-publish-url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/"
-
 [dependency-groups]
 dev = [
     "alembic>=1.16.1",
@@ -43,49 +38,18 @@ dev = [
     "ruff>=0.12.1",
 ]
 
-# --- ruff configuration ---
-[tool.ruff]
-line-length = 88 # or your preferred line length
-fix = true
-
-[tool.ruff.lint]
-select = [
-    "ANN002", # checks that *args are typed
-    "ASYNC",  # async python checks
-    "COM",    # Ending commas
-    "EXE",    # Executables
-    "FA",     # Future Annotations
-    "F401",   # Remove unused imports
-    "FURB",   # Code modernization
-    "I",      # isort:  Sort all imports
-    "INT",    # Gettext formatting
-    "ISC",    # Implicit string concat
-    "ICN",    # Import alias
-    "PD002",  # Pandas inplace
-    "PIE",    # Code simplification
-    # "S101",   # Look for assert
-    "S102", # Look for exec
-    "S103", # Look for os.chmod
-    "S104", # harcoded bind all interfaces
-    "S105", # hardcoded password string
-    "S106", # hardcoded password func arg
-    "S107", # hardcoded password defaults
-    "S108", # hardcoded temp files
-    "S110", # try-except-pass
-    "T",    # debugger checks
-    "T20",  # Lint print and pprint Statements
-    "UP",   # Pyupgrade
-    "S608", # hardcoded-sql-expression
-]
-fixable = ["ALL"]
-unfixable = []
-ignore = [
-    "COM812",
-    "COM819",
-    "UP038",  # https://github.com/astral-sh/ruff/issues/7871
-]
-
 [tool.uv]
+
+# --- ruff project-specific configuration ---
+[tool.ruff]
+src = ["src"]
+
+# --- mypy project-specific configuration ---
+[tool.mypy]
+exclude = [
+    "^core/.*", # Exclude installed package
+]
+mypy_path = "src"
 
 # === POE ===
 # --- Complex Tasks ---
@@ -140,19 +104,3 @@ _tag = { "shell" = """
 
 # Validation
 enum = "uv run _scripts/validate_enums.py"
-
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-namespace_packages = true
-explicit_package_bases = true
-exclude = [
-    "^core/.*", # Exclude installed package
-]
-mypy_path = "src"
-
-[tool.pyright]
-venvPath = "."
-venv = ".venv"

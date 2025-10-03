@@ -1,12 +1,36 @@
 # Proximal API
 
-## Core Package Versioning
+## Deployment
 
-The API depends on the `core` package, which is published in different versions based on the environment:
+The API is deployed to AWS Elastic Beanstalk with the `core` library **bundled directly** into the deployment package. This means:
 
-- **Beta** (`0.2.43b1`) - Latest development version from `dev` branch
-- **Release Candidate** (`0.2.43rc1`) - Pre-release version from `staging` branch  
-- **Stable** (`0.2.43`) - Production version from `main` branch
+- ✅ No AWS CodeArtifact authentication needed during deployment
+- ✅ Faster deployments (no external package lookups)
+- ✅ Core library version is always synchronized with API code
+- ✅ Simpler infrastructure
+
+### How Core is Deployed
+
+When deploying to Elastic Beanstalk:
+1. The CI/CD pipeline copies `core/src/core/*` → `api/core/`
+2. The core library is bundled directly into the deployment package
+3. Requirements.txt is generated **without** the core dependency
+4. Everything is zipped and deployed together
+
+**For other services**: The `core` library continues to be published to AWS CodeArtifact for services outside this API.
+
+📖 For complete deployment documentation, see [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+### Test Deployment Package Locally
+
+```bash
+# Test that the deployment package structure is correct
+poe test_deploy
+```
+
+## Local Development with Core
+
+For **local development**, the `core` library is used as a workspace dependency (not bundled):
 
 ### Quick Start: Install Core for Your Branch
 
@@ -31,12 +55,15 @@ poe core_stable
 poe e_core  # requires CORE_PATH in .env
 ```
 
-### How It Works
+### Core Package Versioning
 
-- When you push to `dev`, core is published as beta (e.g., `0.2.43b1`)
-- When you push to `staging`, core is published as RC (e.g., `0.2.43rc1`)
-- When you push to `main`, core is published as stable (e.g., `0.2.43`)
-- API deployments automatically use the matching core version for their branch
+The `core` package is published in different versions based on the environment:
+
+- **Beta** (`0.2.43b1`) - Latest development version from `dev` branch
+- **Release Candidate** (`0.2.43rc1`) - Pre-release version from `staging` branch  
+- **Stable** (`0.2.43`) - Production version from `main` branch
+
+**Note**: These versioning commands are for local development and other services that consume core from CodeArtifact. The API deployment to Elastic Beanstalk uses the bundled approach described above.
 
 📖 For complete versioning documentation, see [VERSIONING.md](../VERSIONING.md)
 
