@@ -1,18 +1,13 @@
+import { DeviceDetailsHorizontalData } from '@/api/v1/protected/web-application/projects/device-details/horizontal/horizontal'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 interface DeviceDetailsHorizontalBESS {
   times: string[]
-  pcs: {
-    values: number[]
-    name: string
-    device_id: number
-  }[]
-  battery: {
-    values: number[]
-    name: string
-    device_id: number
-  }[]
+  meter_power: DeviceDetailsHorizontalData[]
+  meter_soc: DeviceDetailsHorizontalData[]
+  pcs: DeviceDetailsHorizontalData[]
+  battery: DeviceDetailsHorizontalData[]
 }
 
 export const useGetDeviceDetailsHorizontalBESS = ({

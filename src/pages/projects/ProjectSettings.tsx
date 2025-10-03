@@ -2,6 +2,7 @@ import { PageTitle } from '@/components/PageTitle'
 import { Stack, Tabs, Text } from '@mantine/core'
 import { useParams, useSearchParams } from 'react-router-dom'
 
+import OMContractors from './settings/OMContractors'
 import ProjectInfo from './settings/ProjectInfo'
 import Documents from './settings/documents'
 
@@ -26,6 +27,7 @@ const ProjectSettings = () => {
         <Tabs.List>
           <Tabs.Tab value="project-info">Project Info</Tabs.Tab>
           <Tabs.Tab value="documents">Documents</Tabs.Tab>
+          <Tabs.Tab value="om-contractors">O&M Contractors</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="project-info" h="100%">
@@ -34,6 +36,10 @@ const ProjectSettings = () => {
 
         <Tabs.Panel value="documents" h="100%">
           <Documents projectId={projectId || '-1'} />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="om-contractors" h="100%">
+          <OMContractors projectId={projectId || '-1'} />
         </Tabs.Panel>
       </Tabs>
     </Stack>

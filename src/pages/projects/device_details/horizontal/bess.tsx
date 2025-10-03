@@ -9,7 +9,8 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import { Stack } from '@mantine/core'
-import { PlotMouseEvent } from 'plotly.js'
+import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
+import { useCallback, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 const MAX_DAYS = 7
@@ -18,10 +19,15 @@ const Page = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
   })
+  const navigate = useNavigate()
 
   const { projectId } = useParams()
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
+
+  const [sharedXRange, setSharedXRange] = useState<
+    [string, string] | undefined
+  >(undefined)
+
   const project = useGetProject({
     pathParams: { projectId: projectId || '-1' },
   })
@@ -44,6 +50,21 @@ const Page = () => {
     },
     queryOptions: { enabled: !!projectId && !!startRequest && !!endRequest },
   })
+
+  // Handler for plot resizing
+  const handleRelayout = useCallback((event: Partial<PlotRelayoutEvent>) => {
+    if (
+      event['xaxis.range[0]'] !== undefined &&
+      event['xaxis.range[1]'] !== undefined
+    ) {
+      setSharedXRange([
+        event['xaxis.range[0]'].toString(),
+        event['xaxis.range[1]'].toString(),
+      ])
+    } else if (event['xaxis.autorange']) {
+      setSharedXRange(undefined)
+    }
+  }, [])
 
   if (project.isLoading) {
     return <PageLoader />
@@ -76,7 +97,54 @@ const Page = () => {
         includeClearButton={false}
         maxDays={MAX_DAYS}
       />
-      <CustomCard title="PCS" style={{ flex: 1 }}>
+      <CustomCard title="Project" style={{ flex: 2 }}>
+        <PlotlyPlot
+          data={
+            deviceDetails.data
+              ? [
+                  ...deviceDetails.data.meter_power.map((meterPower) => ({
+                    x: deviceDetails.data.times,
+                    y: meterPower.values,
+                    name: 'Power',
+                    customdata: meterPower.device_id,
+                    yaxis: 'y1',
+                    fill: 'tozeroy',
+                  })),
+                  ...deviceDetails.data.meter_soc.map((meterSoc) => ({
+                    x: deviceDetails.data.times,
+                    y: meterSoc.values,
+                    name: 'SOC',
+                    customdata: meterSoc.device_id,
+                    yaxis: 'y2',
+                  })),
+                ]
+              : undefined
+          }
+          layout={{
+            xaxis: {
+              range: sharedXRange,
+              autorange: sharedXRange === undefined ? true : false,
+            },
+            yaxis: {
+              title: 'Power (MW)',
+            },
+            yaxis2: {
+              title: 'State of Charge',
+              overlaying: 'y',
+              side: 'right',
+              tickformat: ',.0%',
+              showgrid: false,
+              zeroline: false,
+            },
+            hovermode: 'closest',
+            showlegend: false,
+          }}
+          onRelayout={handleRelayout}
+          isLoading={deviceDetails.isLoading}
+          error={deviceDetails.error}
+        />
+      </CustomCard>
+      <CustomCard title="PCS" style={{ flex: 3 }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -88,18 +156,23 @@ const Page = () => {
             }))
           }
           layout={{
+            xaxis: {
+              range: sharedXRange,
+              autorange: sharedXRange === undefined ? true : false,
+            },
             yaxis: {
               title: 'Power (MW)',
             },
             hovermode: 'closest',
           }}
+          onRelayout={handleRelayout}
           isLoading={deviceDetails.isLoading}
           error={deviceDetails.error}
           onClick={handlePlotClick}
         />
       </CustomCard>
       {batteryTitle && (
-        <CustomCard title={batteryTitle} style={{ flex: 1 }}>
+        <CustomCard title={batteryTitle} style={{ flex: 3 }}>
           <PlotlyPlot
             data={
               deviceDetails.data &&
@@ -111,12 +184,17 @@ const Page = () => {
               }))
             }
             layout={{
+              xaxis: {
+                range: sharedXRange,
+                autorange: sharedXRange === undefined ? true : false,
+              },
               yaxis: {
                 tickformat: ',.0%',
                 title: 'State of Charge',
               },
               hovermode: 'closest',
             }}
+            onRelayout={handleRelayout}
             isLoading={deviceDetails.isLoading}
             onClick={handlePlotClick}
             error={deviceDetails.error}

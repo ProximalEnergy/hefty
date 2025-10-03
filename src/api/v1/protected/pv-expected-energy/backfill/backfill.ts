@@ -16,6 +16,7 @@ interface BackfillData {
   dc_wiring_to_combiner: string
   dc_wiring_to_inverter: string
   use_poa_only: boolean
+  use_median_irr_sensor: boolean
 }
 
 export const useSubmitBackfill = () => {

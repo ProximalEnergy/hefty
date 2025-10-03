@@ -16,6 +16,7 @@ import '@mantine/dropzone/styles.css'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
 import '@mantine/spotlight/styles.css'
+import '@mantine/tiptap/styles.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import 'mantine-react-table/styles.css'
@@ -95,6 +96,8 @@ import TicketDisplay from './pages/projects/cmms/TicketDisplay'
 // KPIs
 import ProjectContract from './pages/projects/contracts/ProjectContract'
 import ProjectContracts from './pages/projects/contracts/ProjectContracts'
+import CustomDash from './pages/projects/custom_dash/CustomDash'
+import CustomDashMenu from './pages/projects/custom_dash/CustomDashMenu'
 import DataAvailability from './pages/projects/device_details/DataAvailability'
 import RealTime from './pages/projects/device_details/RealTime'
 import VerticalDeviceDetails from './pages/projects/device_details/VerticalDeviceDetails'
@@ -140,6 +143,8 @@ import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabil
 // Utility
 import Backfill from './pages/projects/utility/Backfill'
 import ExpectedPlotting from './pages/projects/utility/ExpectedPlotting'
+
+// import CustomDash from './pages/projects/custom_dash/CustomDash'
 
 const URL_SIGN_IN = '/sign-in'
 
@@ -310,6 +315,11 @@ const ClerkProviderWithRoutes = () => {
             {/* Project */}
             <Route path="/projects/:projectId">
               <Route index element={<ProjectHome />} />
+              <Route path="custom-dash">
+                <Route index element={<CustomDashMenu />} />
+                <Route path="new" element={<CustomDash />} />
+                <Route path=":dashboardId" element={<CustomDash />} />
+              </Route>
 
               <Route path="real-time" element={<RealTime />} />
 
@@ -569,7 +579,14 @@ export default function App() {
       ...themes,
     },
     primaryShade: { light: 7, dark: 7 },
-    breakpoints: { xl: '92em' },
+    // See defaults at
+    breakpoints: {
+      xl: '92em',
+      '2xl': '106em',
+      '3xl': '122em',
+      '4xl': '138em',
+      '5xl': '154em',
+    },
     primaryColor: primaryColor,
     // https://stackoverflow.com/questions/8118741/css-font-helvetica-neue
     fontFamily: 'Helvetica Neue, sans-serif',

@@ -13,6 +13,7 @@ export const useGetTimeSeries = ({
     device_ids?: number[]
     parent_device_id?: string
     sensor_type_name_shorts?: string[]
+    sensor_type_ids?: number[]
     start?: string
     end?: string
     include_ghost_tags?: boolean

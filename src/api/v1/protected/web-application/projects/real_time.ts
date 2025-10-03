@@ -8,6 +8,8 @@ export interface RealTimeData {
   device_names_y: string[]
   traces: {
     name: string
+    name_short: string
+    sensor_type_id: number
     values: (number | null)[]
     times: string[]
   }[]
@@ -123,7 +125,7 @@ export const useGetDataTimeseriesLast = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/data-last-updated/data-timeseries-last/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-last/`,
     params: queryParams,
   }
 
@@ -137,40 +139,6 @@ export const useGetDataTimeseriesLast = ({
   return useCustomQuery<DataTimeSeriesLast[]>({
     axiosConfig,
     queryName: 'getDataTimeseriesLast',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: queryOptions,
-  })
-}
-
-export const useGetDataAvailability = ({
-  pathParams,
-  queryParams,
-  queryOptions = {},
-}: {
-  pathParams: {
-    projectId: string
-  }
-  queryParams: {
-    device_type_ids?: number[]
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/data-availability`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60,
-  }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<DataAvailability[]>({
-    axiosConfig,
-    queryName: 'getDataAvailability',
     pathParams,
     queryParams: queryParams,
     queryOptions: queryOptions,

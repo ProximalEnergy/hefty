@@ -23,28 +23,12 @@ const KPICard: React.FC<KPISummaryCard> = ({
   prefix,
   unit,
   change,
-  // quality,
   link,
-  // valColor,
   is_visible,
-  // ytd_value,
+  onClick,
 }) => {
-  // const colorMap = {
-  //   good: "green",
-  //   warning: "yellow",
-  //   bad: "red",
-  // };
-
-  // const iconMap = {
-  //   good: <IconCheck style={{ width: rem(16), height: rem(16) }} />,
-  //   warning: (
-  //     <IconExclamationMark style={{ width: rem(16), height: rem(16) }} />
-  //   ),
-  //   bad: <IconExclamationMark style={{ width: rem(16), height: rem(16) }} />,
-  // };
-
   return (
-    <Paper h="100%" withBorder p="xs" radius="md">
+    <Paper h="100%" withBorder p="xs" radius="md" onClick={onClick} miw={400}>
       <Stack justify="apart" gap={0}>
         <Group gap="xs" preventGrowOverflow={true}>
           {!is_visible && (
@@ -72,41 +56,6 @@ const KPICard: React.FC<KPISummaryCard> = ({
               </HoverCard.Dropdown>
             </HoverCard>
           )}
-          {/* {quality && (
-            <HoverCard shadow="md">
-              <HoverCard.Target>
-                <ThemeIcon
-                  color={colorMap[quality.level]}
-                  size={20}
-                  radius="xl"
-                >
-                  <IconLetterQ style={{ width: rem(16), height: rem(16) }} />
-                </ThemeIcon>
-              </HoverCard.Target>
-              <HoverCard.Dropdown>
-                <Text>{quality.message}</Text>
-                <Space h="xs" />
-                <List spacing="xs" size="sm" center>
-                  {quality.details.map((detail, i) => (
-                    <List.Item
-                      key={i}
-                      icon={
-                        <ThemeIcon
-                          color={colorMap[detail.level]}
-                          size={20}
-                          radius="xl"
-                        >
-                          {iconMap[detail.level]}
-                        </ThemeIcon>
-                      }
-                    >
-                      {detail.message}
-                    </List.Item>
-                  ))}
-                </List>
-              </HoverCard.Dropdown>
-            </HoverCard>
-          )} */}
         </Group>
 
         <Group align="flex-end" gap="xs" justify="flex-start">
@@ -116,20 +65,12 @@ const KPICard: React.FC<KPISummaryCard> = ({
               align="flex-end"
             >
               {(value || value === 0) && (
-                <Text
-                  fz={TEXT_SIZE_PRIMARY}
-                  lh={1}
-                  // c={valColor ? valColor : "white"}
-                >
+                <Text fz={TEXT_SIZE_PRIMARY} lh={1}>
                   {value === 0 || value === -0 ? '0' : value.toLocaleString()}
                 </Text>
               )}
               {unit && (
-                <Text
-                  fz={TEXT_SIZE_PRIMARY}
-                  lh={1}
-                  // c={valColor ? valColor : "white"}
-                >
+                <Text fz={TEXT_SIZE_PRIMARY} lh={1}>
                   {unit === 'deg' ? '°' : unit}
                 </Text>
               )}
@@ -147,7 +88,11 @@ const KPICard: React.FC<KPISummaryCard> = ({
                 c={change >= 0 ? 'teal' : 'red'}
                 lh={1}
               >
-                {change > 0 ? '+' : null}({change}%)
+                {change > 0 ? '+' : null}(
+                {unit && unit !== '%'
+                  ? `${change.toLocaleString()} ${unit}`
+                  : `${change}%`}
+                )
               </Text>
             )}
             {(change || change === 0) && (

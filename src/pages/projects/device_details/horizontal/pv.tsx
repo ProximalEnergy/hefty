@@ -9,7 +9,8 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import { Stack } from '@mantine/core'
-import { PlotMouseEvent } from 'plotly.js'
+import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
+import { useCallback, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 const MAX_DAYS = 7
@@ -18,10 +19,15 @@ const Page = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
+  const navigate = useNavigate()
 
   const { projectId } = useParams()
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
+
+  const [sharedXRange, setSharedXRange] = useState<
+    [string, string] | undefined
+  >(undefined)
+
   const project = useGetProject({
     pathParams: { projectId: projectId || '-1' },
   })
@@ -44,6 +50,21 @@ const Page = () => {
     },
     queryOptions: { enabled: !!projectId && !!startRequest && !!endRequest },
   })
+
+  // Handler for plot resizing
+  const handleRelayout = useCallback((event: Partial<PlotRelayoutEvent>) => {
+    if (
+      event['xaxis.range[0]'] !== undefined &&
+      event['xaxis.range[1]'] !== undefined
+    ) {
+      setSharedXRange([
+        event['xaxis.range[0]'].toString(),
+        event['xaxis.range[1]'].toString(),
+      ])
+    } else if (event['xaxis.autorange']) {
+      setSharedXRange(undefined)
+    }
+  }, [])
 
   if (project.isLoading) {
     return <PageLoader />
@@ -74,7 +95,33 @@ const Page = () => {
         includeClearButton={false}
         maxDays={MAX_DAYS}
       />
-      <CustomCard title="Met Station" style={{ flex: 1 }}>
+      <CustomCard title="Project" style={{ flex: 2 }}>
+        <PlotlyPlot
+          data={
+            deviceDetails.data &&
+            deviceDetails.data.meter_power.map((meterPower) => ({
+              x: deviceDetails.data.times,
+              y: meterPower.values,
+              name: meterPower.name,
+              fill: 'tozeroy',
+              customdata: meterPower.device_id,
+            }))
+          }
+          layout={{
+            xaxis: {
+              range: sharedXRange,
+              autorange: sharedXRange === undefined ? true : false,
+            },
+            yaxis: {
+              title: 'Power (MW)',
+            },
+          }}
+          onRelayout={handleRelayout}
+          isLoading={deviceDetails.isLoading}
+          error={deviceDetails.error}
+        />
+      </CustomCard>
+      <CustomCard title="Met Station" style={{ flex: 3 }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -86,16 +133,21 @@ const Page = () => {
             }))
           }
           layout={{
+            xaxis: {
+              range: sharedXRange,
+              autorange: sharedXRange === undefined ? true : false,
+            },
             yaxis: {
               title: 'POA (W/m²)',
             },
             hovermode: 'closest',
           }}
+          onRelayout={handleRelayout}
           isLoading={deviceDetails.isLoading}
           error={deviceDetails.error}
         />
       </CustomCard>
-      <CustomCard title="PCS" style={{ flex: 2 }}>
+      <CustomCard title="PCS" style={{ flex: 3 }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -107,11 +159,16 @@ const Page = () => {
             }))
           }
           layout={{
+            xaxis: {
+              range: sharedXRange,
+              autorange: sharedXRange === undefined ? true : false,
+            },
             yaxis: {
               title: 'AC Power (MW)',
             },
             hovermode: 'closest',
           }}
+          onRelayout={handleRelayout}
           isLoading={deviceDetails.isLoading}
           onClick={handlePlotClick}
           error={deviceDetails.error}

@@ -62,6 +62,7 @@ interface BackfillFormValues {
   dc_wiring_to_combiner: string
   dc_wiring_to_inverter: string
   use_poa_only: boolean
+  use_median_irr_sensor: boolean
 }
 
 const Page = () => {
@@ -88,6 +89,7 @@ const Page = () => {
       dc_wiring_to_combiner: 'target_stc',
       dc_wiring_to_inverter: 'target_stc',
       use_poa_only: false,
+      use_median_irr_sensor: false,
     },
     validate: {
       energy_model_version: (value) =>
@@ -191,6 +193,7 @@ const Page = () => {
       dc_wiring_to_combiner: values.dc_wiring_to_combiner,
       dc_wiring_to_inverter: values.dc_wiring_to_inverter,
       use_poa_only: values.use_poa_only,
+      use_median_irr_sensor: values.use_median_irr_sensor,
     }
 
     // The mutation hook will handle setting isSuccess, isLoading, etc.
@@ -274,7 +277,21 @@ const Page = () => {
           <Switch
             label="Use POA Only"
             description="Use POA only for calculations"
-            {...form.getInputProps('use_poa_only')}
+            checked={form.values.use_poa_only}
+            onChange={(event) =>
+              form.setFieldValue('use_poa_only', event.currentTarget.checked)
+            }
+          />
+          <Switch
+            label="Use Median Irradiance Sensor"
+            description="Use median irradiance sensor for calculations"
+            checked={form.values.use_median_irr_sensor}
+            onChange={(event) =>
+              form.setFieldValue(
+                'use_median_irr_sensor',
+                event.currentTarget.checked,
+              )
+            }
           />
 
           {/* Submit Button with Loading State */}

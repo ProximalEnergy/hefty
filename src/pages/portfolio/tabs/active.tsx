@@ -63,7 +63,15 @@ export function ActiveProjectsTab({
     }
 
     return (
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+      <SimpleGrid
+        cols={{
+          base: 1,
+          md: 2,
+          lg: 3,
+          '3xl': 4,
+          '5xl': 5,
+        }}
+      >
         {projectsList.map((project) => (
           <PortfolioProjectCard
             key={project.project_id}

@@ -1,0 +1,7 @@
+.panel {
+  padding: 0;
+}
+
+.content {
+  padding: var(--mantine-spacing-sm);
+}

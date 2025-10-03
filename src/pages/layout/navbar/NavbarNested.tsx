@@ -235,6 +235,9 @@ export function NavbarNested({
         link.requiresReportIntegration && !project.data?.has_report_integration
       ) &&
       !(link.requiresRealTimeData && !project.data?.has_real_time_data) &&
+      !(
+        link.requiresPV && project.data?.project_type_id === ProjectTypeId.BESS
+      ) &&
       !(link.requiresDroneIntegration && !hasDroneIntegration),
   )
 

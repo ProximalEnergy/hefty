@@ -30,6 +30,7 @@ export type DropdownLink = {
   requiresQualityIntegration?: boolean
   requiresRealTimeData?: boolean
   requiresDroneIntegration?: boolean
+  requiresPV?: boolean
   links?: Link[]
   underDevelopment?: boolean
   userTypeRequired?: string
@@ -85,6 +86,12 @@ export const projectLinks: DropdownLink[] = [
   //   icon: icons.IconCircuitCellPlus,
   //   underDevelopment: true,
   // },
+  {
+    to: (projectId: string) => `/projects/${projectId}/custom-dash`,
+    label: 'Custom Dashboards',
+    icon: icons.IconLayoutDashboard,
+    requiresPV: true,
+  },
   {
     to: (projectId: string) => `/projects/${projectId}/real-time`,
     label: 'Real Time',

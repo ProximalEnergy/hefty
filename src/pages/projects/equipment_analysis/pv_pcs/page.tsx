@@ -1,12 +1,13 @@
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useGetProject } from '@/api/v1/operational/projects'
+import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_pcs'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
-import { useGetEquipmentAnalysisPCSv2, useGetHeatmap } from '@/hooks/api'
+import { useGetHeatmap } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import {
   ActionIcon,

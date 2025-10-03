@@ -17,6 +17,7 @@ export interface KPISummaryCard {
   icon?: React.ReactNode
   valColor?: string
   aggregation_method?: string
+  onClick?: () => void
 }
 
 export const useGetKPISummaryCards = ({
