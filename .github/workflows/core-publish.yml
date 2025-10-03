@@ -137,7 +137,7 @@ jobs:
         working-directory: core
 
       - name: Publish to AWS CodeArtifact
-        run: uv publish --index proximal-package-index
+        run: uv publish --index proximal-package-index dist/*
         working-directory: core
 
   create_release:
