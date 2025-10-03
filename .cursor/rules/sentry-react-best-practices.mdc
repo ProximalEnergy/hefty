@@ -1,0 +1,8 @@
+---
+description: Best practices for error tracking and monitoring with Sentry
+globs: **/*.{ts,tsx,js,jsx}
+---
+- Use Sentry's error boundaries for component-level error handling
+- Implement custom error tags and contexts for better error classification
+- Utilize Sentry's performance monitoring for identifying bottlenecks
+- Set up release tracking for associating errors with specific deployments

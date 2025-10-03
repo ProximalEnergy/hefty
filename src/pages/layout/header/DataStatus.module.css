@@ -1,0 +1,26 @@
+/* Override default processing animation */
+/* See packages/@mantine/core/src/components/Indicator/Indicator.module.css for default */
+@keyframes processing {
+  0% {
+    opacity: 0.6;
+    transform: scale(0);
+  }
+
+  20% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+.indicator {
+  &[data-processing] {
+    &::before {
+      animation: processing 5000ms linear infinite;
+    }
+  }
+}

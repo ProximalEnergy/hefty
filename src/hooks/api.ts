@@ -1,0 +1,1926 @@
+import { KPIType } from '@/api/v1/operational/kpi_types'
+import * as types from '@/hooks/types'
+import { StatisticType } from '@/hooks/types'
+import { baseURL } from '@/urlConfig'
+import { useAuth } from '@clerk/clerk-react'
+import {
+  UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { Table, tableFromIPC } from 'apache-arrow'
+import axios, { AxiosRequestConfig } from 'axios'
+import { FeatureCollection } from 'geojson'
+import qs from 'qs'
+
+export const useCustomQuery = <T>({
+  axiosConfig,
+  queryName,
+  pathParams = {},
+  queryParams = {},
+  queryOptions = {},
+}: {
+  axiosConfig: AxiosRequestConfig
+  queryName: string
+  pathParams?: object
+  queryParams?: object
+  queryOptions?: object
+}) => {
+  const { getToken } = useAuth()
+
+  const queryKey: unknown[] = [queryName]
+
+  // If pathParams is not empty, add it to queryKey
+  if (Object.keys(pathParams).length !== 0) {
+    queryKey.push(pathParams)
+  }
+
+  // If queryParams is not empty, add it to queryKey
+  if (Object.keys(queryParams).length !== 0) {
+    queryKey.push(queryParams)
+  }
+
+  const queryFn = async (): Promise<T> => {
+    const token = await getToken({ template: 'default' })
+    const response = await axios({
+      ...axiosConfig,
+      baseURL: baseURL,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: queryParams, // Add this line to pass query parameters
+      paramsSerializer: (params) => {
+        return qs.stringify(params, { arrayFormat: 'repeat' })
+      },
+    })
+    return response.data
+  }
+
+  return useQuery({
+    queryKey: queryKey,
+    queryFn: () => queryFn(),
+    ...queryOptions,
+  })
+}
+
+export const useCustomQueryArrow = ({
+  axiosConfig,
+  queryName,
+  pathParams = {},
+  queryParams = {},
+  queryOptions = {},
+}: {
+  axiosConfig: AxiosRequestConfig
+  queryName: string
+  pathParams?: object
+  queryParams?: object
+  queryOptions?: object
+}) => {
+  const { getToken } = useAuth()
+
+  const queryKey: unknown[] = [queryName]
+
+  if (Object.keys(pathParams).length !== 0) {
+    queryKey.push(pathParams)
+  }
+
+  if (Object.keys(queryParams).length !== 0) {
+    queryKey.push(queryParams)
+  }
+
+  const queryFn = async (): Promise<Table | null> => {
+    const token = await getToken({ template: 'default' })
+    const response = await axios({
+      ...axiosConfig,
+      baseURL: baseURL,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: 'arraybuffer',
+      params: queryParams,
+      paramsSerializer: (params) => {
+        return qs.stringify(params, { arrayFormat: 'repeat' })
+      },
+    })
+    if (response.data.byteLength < 16) {
+      return null
+    }
+    return tableFromIPC(response.data)
+  }
+
+  return useQuery({
+    queryKey: queryKey,
+    queryFn: () => queryFn(),
+    ...queryOptions,
+  })
+}
+
+export const useGetApiKey = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/admin/api-key',
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.ApiKey>({
+    axiosConfig,
+    queryName: 'getApiKey',
+    pathParams: {},
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useCreateApiKeyMutation = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/admin/api-key`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getApiKey'] })
+    },
+  })
+}
+
+export const useDeleteApiKeyMutation = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'delete',
+        url: `${baseURL}/v1/admin/api-key`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getApiKey'] })
+    },
+  })
+}
+
+export const useCreateFeedbackMutation = () => {
+  const { getToken } = useAuth()
+  return useMutation({
+    mutationFn: async (feedback: FormData) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/feedback`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: feedback,
+      })
+    },
+  })
+}
+
+export const useGetAlertPreferences = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/admin/alert-preferences/',
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<boolean>({
+    axiosConfig,
+    queryName: 'getAlertPreferences',
+    pathParams: {},
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useUpdateAlertPreferencesMutation = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/alert-preferences/`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getAlertPreferences'] })
+    },
+  })
+}
+
+export const useGetProjectReportInstances = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    report_type_ids?: number[]
+    is_visible?: boolean
+    deep?: boolean
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/report-instances/`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.ReportInstance[]>({
+    axiosConfig,
+    queryName: 'getReportInstances',
+    pathParams,
+    queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetReportPreferences = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/admin/report-preferences/',
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<boolean>({
+    axiosConfig,
+    queryName: 'getReportPreferences',
+    pathParams: {},
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useUpdateReportPreferencesMutation = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/report-preferences/`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getReportPreferences'] })
+    },
+  })
+}
+
+export const useGetSubscriptions = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/admin/subscriptions/',
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.UserSubscription[]>({
+    axiosConfig,
+    queryName: 'getSubscriptions',
+    queryOptions: queryOptions,
+  })
+}
+
+export const useUpdateNotificationSubscription = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      subscribe,
+    }: {
+      project_id: string
+      subscribe: boolean
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/subscriptions/notifications/${project_id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          subscribe,
+        },
+      })
+    },
+    onMutate: async (newSubscription) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['getSubscriptions'] })
+
+      // Snapshot the previous value
+      const previousSubscriptions = queryClient.getQueryData<
+        types.UserSubscription[]
+      >(['getSubscriptions'])
+
+      // Optimistically update the new value
+      queryClient.setQueryData(
+        ['getSubscriptions'],
+        (oldSubscriptions: types.UserSubscription[]) => {
+          return oldSubscriptions?.map((subscription) => {
+            if (
+              subscription.operational_project_id === newSubscription.project_id
+            ) {
+              return {
+                ...subscription,
+                notifications: newSubscription.subscribe,
+              }
+            }
+            return subscription
+          })
+        },
+      )
+
+      // Return a context object with the snapshotted value
+      return { previousSubscriptions }
+    },
+    onError: (_err, _newSubscription, context) => {
+      queryClient.setQueryData(
+        ['getSubscriptions'],
+        context?.previousSubscriptions,
+      )
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['getSubscriptions'] })
+    },
+  })
+}
+
+export const useUpdateReportSubscription = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      subscribe,
+    }: {
+      project_id: string
+      subscribe: boolean
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/subscriptions/reports/${project_id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          subscribe,
+        },
+      })
+    },
+    onMutate: async (newSubscription) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['getSubscriptions'] })
+
+      // Snapshot the previous value
+      const previousSubscriptions = queryClient.getQueryData<
+        types.UserSubscription[]
+      >(['getSubscriptions'])
+
+      // Optimistically update the new value
+      queryClient.setQueryData(
+        ['getSubscriptions'],
+        (oldSubscriptions: types.UserSubscription[]) => {
+          return oldSubscriptions?.map((subscription) => {
+            if (
+              subscription.operational_project_id === newSubscription.project_id
+            ) {
+              return {
+                ...subscription,
+                reports: newSubscription.subscribe,
+              }
+            }
+            return subscription
+          })
+        },
+      )
+
+      // Return a context object with the snapshotted value
+      return { previousSubscriptions }
+    },
+    onError: (_err, _newSubscription, context) => {
+      queryClient.setQueryData(
+        ['getSubscriptions'],
+        context?.previousSubscriptions,
+      )
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['getSubscriptions'] })
+    },
+  })
+}
+
+export const useGetDevice = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; deviceId: string }
+  queryParams?: { deep?: boolean }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/devices/${pathParams.deviceId}`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Device>({
+    axiosConfig,
+    queryName: 'getDevice',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+// V2 devices endpoint with POST support and pagination
+export const useGetDevicesV2 = ({
+  pathParams,
+  filters,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  filters: {
+    device_ids?: number[]
+    device_type_ids?: number[]
+    parent_device_ids?: (number | null)[]
+    name_short?: string
+    name_long?: string
+    device_id_descendent_of?: number | null
+    deep?: boolean
+    with_tags?: boolean
+    limit?: number | null
+    offset?: number
+    format?: string
+    fields?: string[]
+  }
+  queryOptions?: Partial<UseQueryOptions<types.Device[]>>
+}) => {
+  const { getToken } = useAuth()
+
+  const queryKey = ['getDevicesV2', pathParams, filters]
+
+  const queryFn = async (): Promise<types.Device[]> => {
+    const token = await getToken({ template: 'default' })
+    const response = await axios({
+      method: 'post',
+      url: `${baseURL}/v1/operational/projects/${pathParams.projectId}/devices/`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      data: filters,
+    })
+    return response.data
+  }
+
+  return useQuery({
+    queryKey: queryKey,
+    queryFn: queryFn,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+    ...queryOptions,
+  })
+}
+
+export const useGetPvModules = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: object
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/pv-modules`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.PvModule[]>({
+    axiosConfig,
+    queryName: 'getPvModules',
+    pathParams,
+    queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetTags = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: object
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/tags/`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Tag[]>({
+    axiosConfig,
+    queryName: 'getTags',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetKPIAlerts = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: { kpi_type_id?: number }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/kpi-alerts/`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.KPIAlertProps[]>({
+    axiosConfig,
+    queryName: 'getKPIAlerts',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetDCAmperageReport = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    start: string
+    min_poa: number
+    max_poa_1d: number
+    max_poa_std: number
+    rolling_window: number
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig: AxiosRequestConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/dc-amperage-report`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.DCAmperageData>({
+    axiosConfig,
+    queryName: 'getDCAmperageReport',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetDCAmperageReportV2 = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    start: string
+    min_poa: number
+    max_poa_1d: number
+    max_poa_std: number
+    rolling_window: number
+    use_poa_1d: boolean
+    use_poa_std: boolean
+    resample_rate: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig: AxiosRequestConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/dc-amperage-report-v2`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.DCAmperageDataV2>({
+    axiosConfig,
+    queryName: 'getDCAmperageReportV2',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetRowData = () => {
+  const axiosConfig = {
+    url: '/v1/row-data',
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  return useCustomQuery<types.RowData[]>({
+    axiosConfig,
+    queryName: 'getRowData',
+    pathParams: {},
+    queryParams: {},
+    queryOptions: defaultQueryOptions,
+  })
+}
+
+export const useGetEvents = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    device_id?: string
+    open?: boolean
+    event_ids?: number[]
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Event[]>({
+    axiosConfig,
+    queryName: 'getEvents',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetPaginatedEvents = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    page?: number
+    page_size?: number
+    open?: boolean
+    sort_column?: string
+    sort_direction?: string
+    device_type_ids?: number[]
+    device_ids?: number[]
+    start?: string
+    end?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/paginated-events`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.PaginatedEvent[]>({
+    axiosConfig,
+    queryName: 'getPaginatedEvents',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetEventsById = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; eventId: number }
+  queryParams?: {
+    open?: boolean
+    deep?: boolean
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/get/${pathParams.eventId}`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Event>({
+    axiosConfig,
+    queryName: 'getEventsById',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetEventLosses = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    event_ids?: number[]
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/event-losses`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.EventLoss[]>({
+    axiosConfig,
+    queryName: 'getEventLosses',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetUptimeTable = ({
+  pathParams,
+  queryParams = {
+    start: '',
+    end: '',
+    project_id: '',
+  },
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    start: string
+    end: string
+    project_id: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/uptime`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.UptimeData[]>({
+    axiosConfig,
+    queryName: 'getUptimeTable',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetFailureModes = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    failure_mode_ids?: number[]
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/failure-modes`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.FailureMode[]>({
+    axiosConfig,
+    queryName: 'getFailureModes',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useUpdateFailureMode = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      event_id,
+      failure_mode_id,
+    }: {
+      project_id: string
+      event_id: number
+      failure_mode_id: number
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/operational/projects/${project_id}/events/${event_id}/failure-mode`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          failure_mode_id,
+        },
+      })
+    },
+    onMutate: async (newFailureMode) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['getFailureModes'] })
+
+      // Snapshot the previous value
+      const previousFailureModes = queryClient.getQueryData<
+        types.FailureMode[]
+      >(['getFailureModes'])
+
+      // Optimistically update the new value
+      queryClient.setQueryData(
+        ['getFailureModes'],
+        (oldFailureModes: types.FailureMode[]) => {
+          return oldFailureModes?.map((failureMode) => {
+            if (
+              failureMode.failure_mode_id === newFailureMode.failure_mode_id
+            ) {
+              return {
+                ...failureMode,
+                failure_mode_id: newFailureMode.failure_mode_id,
+              }
+            }
+            return failureMode
+          })
+        },
+      )
+      return { previousFailureModes }
+    },
+    onError: (_err, _newFailureMode, context) => {
+      queryClient.setQueryData(
+        ['getFailureModes'],
+        context?.previousFailureModes,
+      )
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['getFailureModes'] })
+    },
+  })
+}
+
+export const useGetRootCauses = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    root_cause_ids?: number[]
+    device_type_ids?: number[]
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/root-causes`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.RootCause[]>({
+    axiosConfig,
+    queryName: 'getRootCauses',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useUpdateRootCause = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      event_id,
+      root_cause_id,
+    }: {
+      project_id: string
+      event_id: number
+      root_cause_id?: number
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/operational/projects/${project_id}/events/${event_id}/root-cause`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          root_cause_id: root_cause_id ?? -1,
+        },
+      })
+    },
+    onMutate: async (newRootCause) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['getRootCauses'] })
+      await queryClient.cancelQueries({ queryKey: ['getEvents'] })
+
+      // Snapshot the previous values
+      const previousRootCauses = queryClient.getQueryData<types.RootCause[]>([
+        'getRootCauses',
+      ])
+      const previousEvents = queryClient.getQueriesData({
+        queryKey: ['getEvents'],
+      })
+
+      // Optimistically update the root causes
+      queryClient.setQueryData(
+        ['getRootCauses'],
+        (oldRootCauses: types.RootCause[]) => {
+          return oldRootCauses?.map((rootCause) => {
+            if (rootCause.root_cause_id === newRootCause.root_cause_id) {
+              return {
+                ...rootCause,
+                root_cause_id: newRootCause.root_cause_id,
+              }
+            }
+            return rootCause
+          })
+        },
+      )
+
+      // Optimistically update the events data
+      queryClient.setQueriesData(
+        { queryKey: ['getEvents'] },
+        (oldEvents: types.Event[] | undefined) => {
+          if (!oldEvents) return oldEvents
+          return oldEvents.map((event) => {
+            if (event.event_id === newRootCause.event_id) {
+              return {
+                ...event,
+                root_cause_id: newRootCause.root_cause_id,
+              }
+            }
+            return event
+          })
+        },
+      )
+
+      return { previousRootCauses, previousEvents }
+    },
+    onError: (_err, _newRootCause, context) => {
+      queryClient.setQueryData(['getRootCauses'], context?.previousRootCauses)
+      // Restore previous events data
+      if (context?.previousEvents) {
+        context.previousEvents.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['getRootCauses'] })
+      queryClient.invalidateQueries({ queryKey: ['getEvents'] })
+    },
+  })
+}
+
+export const useGetWeather = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/project-weather`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 15 * 60 * 1000, // 15 minutes
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.WeatherResponse>({
+    axiosConfig,
+    queryName: 'getWeather',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetForecast = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/project-weather-forecast`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 15 * 60 * 1000, // 15 minutes
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.ForecastResponse>({
+    axiosConfig,
+    queryName: 'getForecast',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetHeatmap = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; sensorTypeName: string }
+  queryParams?: object
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/heatmap/${pathParams.sensorTypeName}`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.DataHeatmap>({
+    axiosConfig,
+    queryName: 'getHeatmap',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGeo = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/geo`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<FeatureCollection>({
+    axiosConfig,
+    queryName: 'getGeo',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGISPCS = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    start?: string
+    end?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/gis/pcs`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.GISPCS>({
+    axiosConfig,
+    queryName: 'getPCSPerformance',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGISCombiner = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/gis/combiner`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 60 * 1000,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<FeatureCollection>({
+    axiosConfig,
+    queryName: 'getGISCombiner',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGISCombinerBlock = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; blockId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/gis/combiner/${pathParams.blockId}`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 60 * 1000,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<FeatureCollection>({
+    axiosConfig,
+    queryName: 'getGISCombinerBlock',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGISTracker = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    start?: string
+    end?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/gis/tracker`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<FeatureCollection>({
+    axiosConfig,
+    queryName: 'getGISTracker',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGISTrackerByBlock = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; blockId: string }
+  queryParams?: {
+    start?: string
+    end?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/gis/tracker-by-block/${pathParams.blockId}`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<FeatureCollection>({
+    axiosConfig,
+    queryName: 'getGISTrackerByBlock',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetGISBessEnclosure = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/gis/bess-enclosure`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<FeatureCollection>({
+    axiosConfig,
+    queryName: 'getGISBessEnclosure',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetEquipmentAnalysisCombiner = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams?: {
+    start?: string
+    end?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/equipment-analysis/combiner`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.EquipmentAnalysisCombiner>({
+    axiosConfig,
+    queryName: 'getEquipmentAnalysisCombiner',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetResources = ({
+  queryParams = {},
+  queryOptions = {},
+}: {
+  queryParams?: object
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/development/ercot/resources',
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Resource[]>({
+    axiosConfig,
+    queryName: 'getResources',
+    pathParams: {},
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetResource = ({
+  pathParams,
+  queryParams = {},
+  queryOptions = {},
+}: {
+  pathParams: { resourceId: string }
+  queryParams?: object
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/development/ercot/resources/${pathParams.resourceId}`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Resource>({
+    axiosConfig,
+    queryName: 'getResource',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetResourceNetPower = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { resourceId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/development/ercot/resources/${pathParams.resourceId}/net-power`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.DataTimeSeries[]>({
+    axiosConfig,
+    queryName: 'getResourceNetPower',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetInspections = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/quality/inspections`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Inspection[]>({
+    axiosConfig,
+    queryName: 'getInspections',
+    pathParams,
+    queryParams: {},
+    queryOptions,
+  })
+}
+
+export const useGetObservations = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/quality/observations`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.Observation[]>({
+    axiosConfig,
+    queryName: 'getObservations',
+    pathParams,
+    queryParams: {},
+    queryOptions,
+  })
+}
+
+export const useAddKPIAlert = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      alert_name,
+      comparison,
+      duration_value,
+      kpi_type_id,
+      statistic,
+      notify,
+      threshold_value,
+      triggered,
+    }: {
+      project_id: string
+      alert_name: string
+      comparison: string | null
+      duration_value: string | null
+      kpi_type_id: string | null
+      statistic: StatisticType | null
+      notify: boolean
+      threshold_value: number | null | string
+      triggered: boolean | null
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/kpi-alerts`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          project_id,
+          alert_name,
+          comparison,
+          duration_value,
+          kpi_type_id,
+          statistic,
+          notify,
+          threshold_value,
+          triggered,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
+    },
+  })
+}
+
+export const useUpdateKPIAlert = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      kpi_alert_id,
+      project_id,
+      alert_name,
+      comparison,
+      duration_value,
+      kpi_type_id,
+      statistic,
+      notify,
+      threshold_value,
+      triggered,
+    }: {
+      kpi_alert_id: number
+      project_id: string
+      alert_name: string
+      comparison: string | null
+      duration_value: string | null
+      kpi_type_id: string | null
+      statistic: StatisticType | null
+      notify: boolean
+      threshold_value: number | null | string
+      triggered: boolean | null
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/update-kpi-alert`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          kpi_alert_id,
+          project_id,
+          alert_name,
+          comparison,
+          duration_value,
+          kpi_type_id,
+          statistic,
+          notify,
+          threshold_value,
+          triggered,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
+    },
+  })
+}
+
+export const useDeleteKPIAlert = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      alert_id,
+    }: {
+      project_id: string
+      alert_id: number
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'delete',
+        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/kpi-alerts/`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { alert_id },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
+    },
+  })
+}
+
+export const useGetTriggeredKPIAlerts = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/kpi-data/user-triggered-alerts`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 60,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.KPIAlertProps[]>({
+    axiosConfig,
+    queryName: 'getUserTriggeredAlerts',
+    queryParams: {},
+    queryOptions,
+  })
+}
+
+export const useGetKPIType = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { kpiTypeId: number }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/kpi-types/${pathParams.kpiTypeId}`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<KPIType>({
+    axiosConfig,
+    queryName: 'getKPIType',
+    pathParams,
+    queryParams: {},
+    queryOptions,
+  })
+}
+
+export const useGetSunburstData = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/sunburst-data`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 5 * 60 * 1000,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.SunburstProps>({
+    axiosConfig,
+    queryName: 'getSunburstData',
+    pathParams,
+    queryParams: {},
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetClearskyPOA = ({
+  pathParams,
+  queryOptions = {},
+  queryParams = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+  queryParams?: {
+    start?: string
+    end?: string
+    resample_rate?: string
+  }
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/clearsky-poa`,
+    params: queryParams,
+  }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 5 * 60 * 1000,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.DataTimeSeries[]>({
+    axiosConfig,
+    queryName: 'getClearskyPOA',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useGetDegradationPOA = ({
+  pathParams,
+  queryOptions = {},
+  queryParams = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+  queryParams?: {
+    start?: string
+    end?: string
+  }
+}) => {
+  const axiosConfig = {
+    url: `/v1/analytics/${pathParams.projectId}/degradation-poa`,
+    params: queryParams,
+  }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    staleTime: 5 * 60 * 1000,
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<types.DegradationPOA>({
+    axiosConfig,
+    queryName: 'getDegradationPOA',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
+  })
+}
+
+export const useAnalyzeCombinerSwaps = () => {
+  const { getToken } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      analysisDate,
+      blockNames,
+    }: {
+      projectId: string
+      analysisDate?: string
+      blockNames?: string[]
+    }) => {
+      const token = await getToken({ template: 'default' })
+
+      // Convert parameters to query string
+      const params = new URLSearchParams({
+        project_id: projectId,
+        ...(analysisDate && { analysis_date: analysisDate }),
+        ...(blockNames?.length && { block_names: blockNames.join(',') }),
+      })
+
+      const response = await axios({
+        method: 'GET',
+        baseURL: baseURL,
+        url: `/v1/analytics/${projectId}/combiner-correlation-analysis?${params.toString()}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      return response.data
+    },
+  })
+}
+
+export const useValidateCombinerData = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    deviceIds?: number[]
+    start?: string
+    end?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  // Transform the parameters to match API expectations
+  const transformedParams = {
+    start: queryParams.start,
+    end: queryParams.end,
+    device_ids: queryParams.deviceIds,
+  }
+
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/qc/combiner-swaps/validate-combiner-data`,
+    params: transformedParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+    // Only enable the query if we have all required parameters
+    enabled: !!(
+      queryParams.start &&
+      queryParams.end &&
+      queryParams.deviceIds &&
+      queryParams.deviceIds.length > 0
+    ),
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<{ isValid: boolean; message?: string }>({
+    axiosConfig,
+    queryName: 'validateCombinerData',
+    pathParams,
+    queryParams: transformedParams,
+    queryOptions,
+  })
+}
+
+export const useCreateCompany = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      name_short,
+      name_long,
+    }: {
+      name_short: string
+      name_long: string
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/admin/companies`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          name_short,
+          name_long,
+        },
+      })
+    },
+    onSuccess: () => {
+      // Invalidate any queries that fetch companies
+      queryClient.invalidateQueries({ queryKey: ['getCompanies'] })
+    },
+  })
+}
