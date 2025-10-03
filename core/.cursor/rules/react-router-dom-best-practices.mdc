@@ -1,8 +1,0 @@
----
-description: Best practices for routing and navigation in React applications
-globs: **/*.{ts,tsx,js,jsx}
----
-- Use nested routes for better organization
-- Implement route protection for authenticated routes
-- Use the `useNavigate` hook for programmatic navigation
-- Handle 404 errors with a catch-all route
