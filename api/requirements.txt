@@ -31,8 +31,10 @@ async-timeout==4.0.3
     # via api
 asyncer==0.0.8
     # via api
-asyncpg==0.29.0
-    # via api
+asyncpg==0.30.0
+    # via
+    #   api
+    #   core
 attrs==25.3.0
     # via
     #   aiohttp
@@ -83,7 +85,7 @@ colorama==0.4.6
     #   tqdm
     #   traceloop-sdk
     #   uvicorn
-core==0.2.31
+core==0.2.37
     # via api
 cryptography==44.0.3
     # via
@@ -165,9 +167,10 @@ googleapis-common-protos==1.70.0
     #   google-api-core
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-greenlet==3.2.3
+greenlet==3.2.4
     # via
     #   api
+    #   core
     #   sqlalchemy
 grpcio==1.73.1
     # via

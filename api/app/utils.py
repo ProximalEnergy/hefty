@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from fastapi import HTTPException
 from pvlib import irradiance, location, tracking  # type: ignore
-from requests import Response
 from sqlalchemy.orm import Session
 
 import core
@@ -76,33 +75,6 @@ def check_404(*, value: Any, detail: Any = None):
     """
     if value is None:
         raise HTTPException(status_code=404, detail=detail)
-
-
-def ensure_200(*, response: Any, detail: Any = None) -> Response:
-    """Raise HTTPException if response status code is not 200.
-    This function returns the response object so can be used
-    as a "wrapper" for the response object.
-
-    Args:
-        response (Any): Response object to check.
-        detail (Any, optional): Passed to HTTPException. Defaults to None.
-
-    Raises:
-        HTTPException: If response status code is not 200.
-    """
-    if not hasattr(response, "status_code"):
-        raise HTTPException(
-            status_code=500,
-            detail="Response object has no status_code attribute",
-        )
-
-    if response.status_code != 200:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail=detail or f"Request failed with status code {response.status_code}",
-        )
-
-    return response
 
 
 def seed_from_project_name(*, name: str) -> None:

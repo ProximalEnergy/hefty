@@ -47,6 +47,9 @@ async def get_home(
     else:
         project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
 
+    if len(project_ids) == 0:
+        return []
+
     projects = await core.crud.operational.projects.get_projects_async(
         db, project_ids=project_ids
     )

@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import select  # type: ignore
-from sqlalchemy.exc import IntegrityError  # type: ignore
-from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
+from sqlalchemy import or_, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
-from core import models  # type: ignore
+from core import models
 
 
 async def get_companies(
@@ -59,3 +59,19 @@ async def create_company(
 
     await db.refresh(db_company)
     return db_company
+
+
+async def search_companies(*, db: AsyncSession, q: str, limit: int = 20):
+    pattern = f"%{q}%"
+    stmt = (
+        select(models.Company)
+        .where(
+            or_(
+                models.Company.name_short.ilike(pattern),
+                models.Company.name_long.ilike(pattern),
+            )
+        )
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()

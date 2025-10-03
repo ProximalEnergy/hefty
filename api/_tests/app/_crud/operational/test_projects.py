@@ -8,7 +8,7 @@ import pytest
 # Adjust imports as needed for your project structure
 from sqlalchemy.orm import Session
 
-from core import models
+from core import model_list, models
 from core.crud.operational.projects import get_project
 
 # ... (Keep Mock classes, EXPECTED_PROJECT_DATA, TEST_PROJECT_ID) ...
@@ -274,5 +274,5 @@ def test_get_project_not_found(  # skip-star-syntax
 
     mock_db_session.query.return_value.options.return_value.filter.return_value.first.return_value = None
 
-    with pytest.raises(models.UninitializedError):
+    with pytest.raises(model_list.UninitializedError):
         get_project(db=mock_db_session, project_id=test_id, deep=deep_load).model()

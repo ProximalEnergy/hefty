@@ -16,7 +16,8 @@ from sqlalchemy.orm import Session
 import core
 from app import dependencies, utils
 from app._crud.operational.device_types import get_device_types as crud_get_device_types
-from core import models
+from core import model_list, models
+from core.enumerations import SensorType as SensorTypeEnum
 
 router = APIRouter(
     prefix="/device-details",
@@ -37,20 +38,23 @@ def get_horizontal_bess(
 ):
     # Determine what is the "highest" level of battery storage data
     used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore
-    if 43 in used_sensor_type_ids:
-        bess_sensor_type_id = 43
-    elif 44 in used_sensor_type_ids:
-        bess_sensor_type_id = 44
-    elif 45 in used_sensor_type_ids:
-        bess_sensor_type_id = 45
+    if SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT in used_sensor_type_ids:
+        bess_sensor_type_id = SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT
+    elif SensorTypeEnum.BESS_BANK_SOC_PERCENT in used_sensor_type_ids:
+        bess_sensor_type_id = SensorTypeEnum.BESS_BANK_SOC_PERCENT
+    elif SensorTypeEnum.BESS_STRING_SOC_PERCENT in used_sensor_type_ids:
+        bess_sensor_type_id = SensorTypeEnum.BESS_STRING_SOC_PERCENT
     else:
         bess_sensor_type_id = None
 
     # Configure sensor_type_ids based on the battery storage data level
-    if bess_sensor_type_id is None:
-        sensor_type_ids = [31]  # bess_pcs_ac_power
-    else:
-        sensor_type_ids = [31, bess_sensor_type_id]
+    sensor_type_ids: list[int] = [
+        SensorTypeEnum.METER_ACTIVE_POWER,
+        SensorTypeEnum.PROJECT_SOC_PERCENT,
+        SensorTypeEnum.BESS_PCS_AC_POWER,
+    ]
+    if bess_sensor_type_id is not None:
+        sensor_type_ids.append(bess_sensor_type_id)
 
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
@@ -58,9 +62,18 @@ def get_horizontal_bess(
         deep=True,
     ).models()
 
+    category_mapping: dict[int, str] = {
+        SensorTypeEnum.BESS_PCS_AC_POWER: "pcs",
+        SensorTypeEnum.PROJECT_SOC_PERCENT: "meter_soc",
+        SensorTypeEnum.METER_ACTIVE_POWER: "meter_power",
+        SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT: "battery",
+        SensorTypeEnum.BESS_BANK_SOC_PERCENT: "battery",
+        SensorTypeEnum.BESS_STRING_SOC_PERCENT: "battery",
+    }
+
     tag_id_to_device_name_long = {t.tag_id: t.device.name_long for t in tags}
     tag_id_to_category = {
-        t.tag_id: "pcs" if t.sensor_type_id == 31 else "battery" for t in tags
+        t.tag_id: category_mapping.get(t.sensor_type_id or -1) for t in tags
     }
     tag_id_to_device_id = {t.tag_id: t.device_id for t in tags}
 
@@ -75,32 +88,30 @@ def get_horizontal_bess(
     )
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
 
-    data_pcs = [
-        {
-            "values": df[c].tolist(),
-            "name": tag_id_to_device_name_long[c],
-            "device_id": tag_id_to_device_id[c],
-        }
-        for c in df.columns.astype(int)
-        if tag_id_to_category[c] == "pcs"
-    ]
+    def _get_data(*, category: str):
+        data = [
+            {
+                "values": df[c].tolist(),
+                "name": tag_id_to_device_name_long[c],
+                "device_id": tag_id_to_device_id[c],
+            }
+            for c in df.columns.astype(int)
+            if tag_id_to_category[c] == category
+        ]
 
-    data_battery = [
-        {
-            "values": df[c].tolist(),
-            "name": tag_id_to_device_name_long[c],
-            "device_id": tag_id_to_device_id[c],
-        }
-        for c in df.columns.astype(int)
-        if tag_id_to_category[c] == "battery"
-    ]
+        data = natsorted(data, key=lambda x: x["name"])
 
-    # Sort data by "name"
-    data_pcs = natsorted(data_pcs, key=lambda x: x["name"])
-    data_battery = natsorted(data_battery, key=lambda x: x["name"])
+        return data
+
+    data_meter_power = _get_data(category="meter_power")
+    data_meter_soc = _get_data(category="meter_soc")
+    data_pcs = _get_data(category="pcs")
+    data_battery = _get_data(category="battery")
 
     return {
         "times": df.index.tolist(),
+        "meter_power": data_meter_power,
+        "meter_soc": data_meter_soc,
         "pcs": data_pcs,
         "battery": data_battery,
     }
@@ -116,9 +127,10 @@ def get_horizontal_pv(
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
-    sensor_type_ids = [
-        2,  # pv_pcs_ac_power
-        4,  # met_station_poa
+    sensor_type_ids: list[int] = [
+        SensorTypeEnum.METER_ACTIVE_POWER,
+        SensorTypeEnum.MET_STATION_POA,
+        SensorTypeEnum.PV_PCS_AC_POWER,
     ]
 
     tags = core.crud.project.tags.get_project_tags(
@@ -127,9 +139,15 @@ def get_horizontal_pv(
         deep=True,
     ).models()
 
+    category_mapping: dict[int, str] = {
+        SensorTypeEnum.METER_ACTIVE_POWER: "meter_power",
+        SensorTypeEnum.MET_STATION_POA: "met",
+        SensorTypeEnum.PV_PCS_AC_POWER: "pcs",
+    }
+
     tag_id_to_device_name_long = {t.tag_id: t.device.name_long for t in tags}
     tag_id_to_category = {
-        t.tag_id: "pcs" if t.sensor_type_id == 2 else "met" for t in tags
+        t.tag_id: category_mapping.get(t.sensor_type_id or -1) for t in tags
     }
     tag_id_to_device_id = {t.tag_id: t.device_id for t in tags}
 
@@ -144,32 +162,28 @@ def get_horizontal_pv(
     )
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
 
-    data_met = [
-        {
-            "values": df[c].tolist(),
-            "name": tag_id_to_device_name_long[c],
-            "device_id": tag_id_to_device_id[c],
-        }
-        for c in df.columns.astype(int)
-        if tag_id_to_category[c] == "met"
-    ]
+    def _get_data(*, category: str):
+        data = [
+            {
+                "values": df[c].tolist(),
+                "name": tag_id_to_device_name_long[c],
+                "device_id": tag_id_to_device_id[c],
+            }
+            for c in df.columns.astype(int)
+            if tag_id_to_category[c] == category
+        ]
 
-    data_pcs = [
-        {
-            "values": df[c].tolist(),
-            "name": tag_id_to_device_name_long[c],
-            "device_id": tag_id_to_device_id[c],
-        }
-        for c in df.columns.astype(int)
-        if tag_id_to_category[c] == "pcs"
-    ]
+        data = natsorted(data, key=lambda x: x["name"])
 
-    # Sort data by "name"
-    data_met = natsorted(data_met, key=lambda x: x["name"])
-    data_pcs = natsorted(data_pcs, key=lambda x: x["name"])
+        return data
+
+    data_meter_power = _get_data(category="meter_power")
+    data_met = _get_data(category="met")
+    data_pcs = _get_data(category="pcs")
 
     return {
         "times": df.index.tolist(),
+        "meter_power": data_meter_power,
         "met": data_met,
         "pcs": data_pcs,
     }
@@ -439,7 +453,7 @@ def get_vertical(
 
 
 @router.get("/data-availability")
-def get_data_availability(
+async def get_data_availability(
     device_type_ids: Annotated[list[int], Query()],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     include_ghost_tags: Annotated[bool, Query()] = False,
@@ -480,7 +494,7 @@ def get_data_availability(
 
 
 @router.get("/data-availability-v2")
-def get_data_availability_v2(
+async def get_data_availability_v2(
     device_type_ids: Annotated[list[int], Query()],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     include_ghost_tags: Annotated[bool, Query()] = False,
@@ -492,19 +506,18 @@ def get_data_availability_v2(
     avoiding the 32,767 parameter limit.
     """
 
-    data: models.ModelList = (
+    query: model_list.ModelList = (
         core.crud.project.data_timeseries_last.get_data_timeseries_last_v2(
             project_db=project_db,
             device_type_ids=device_type_ids,
             include_ghost_tags=include_ghost_tags,
+            return_query=True,
         )
     )
     # Execute the query and load the results into Polars
-    query = data.query
     if query is None:
         return []
-    results = query.all()
-    df = pl.DataFrame(results)
+    df = await query.polars_dataframe_async()
 
     if df.is_empty():
         return []
