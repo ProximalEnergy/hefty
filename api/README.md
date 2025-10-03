@@ -1,5 +1,45 @@
 # Proximal API
 
+## Core Package Versioning
+
+The API depends on the `core` package, which is published in different versions based on the environment:
+
+- **Beta** (`0.2.43b1`) - Latest development version from `dev` branch
+- **Release Candidate** (`0.2.43rc1`) - Pre-release version from `staging` branch  
+- **Stable** (`0.2.43`) - Production version from `main` branch
+
+### Quick Start: Install Core for Your Branch
+
+```bash
+# Auto-detect your current branch and install the appropriate core version
+poe core_auto
+```
+
+### Manual Core Version Selection
+
+```bash
+# Install latest beta version (for dev branch)
+poe core_beta
+
+# Install latest RC version (for staging branch)
+poe core_rc
+
+# Install latest stable version (for main/production branch)
+poe core_stable
+
+# Install editable local core (for active core development)
+poe e_core  # requires CORE_PATH in .env
+```
+
+### How It Works
+
+- When you push to `dev`, core is published as beta (e.g., `0.2.43b1`)
+- When you push to `staging`, core is published as RC (e.g., `0.2.43rc1`)
+- When you push to `main`, core is published as stable (e.g., `0.2.43`)
+- API deployments automatically use the matching core version for their branch
+
+📖 For complete versioning documentation, see [VERSIONING.md](../VERSIONING.md)
+
 ## Local Development
 
 - To start the API locally, run `fastapi dev` or `uv run uvicorn app.main:app --reload` from the root of the project directory.

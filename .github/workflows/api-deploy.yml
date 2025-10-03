@@ -3,6 +3,7 @@ name: Deploy API to Elastic Beanstalk
 on:
   push:
     branches:
+      - dev
       - staging
       - main
       - sandbox
@@ -18,13 +19,20 @@ on:
         default: false
         type: boolean
   workflow_run:
-    workflows: ["Auto Merge Staging to Main if All Reviewers Approved"]
+    workflows:
+      - "Auto Merge Staging to Main if All Reviewers Approved"
+      - "Publish Core to AWS CodeArtifact"
     types:
       - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only run if core-publish succeeded (when triggered by workflow_run from core-publish)
+    if: |
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.name != 'Publish Core to AWS CodeArtifact' ||
+      github.event.workflow_run.conclusion == 'success'
     outputs:
       branch_name: ${{ steps.extract_branch.outputs.branch_name }}
 
@@ -62,16 +70,25 @@ jobs:
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.PROD_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=production" >> $GITHUB_ENV
+            echo "CORE_VERSION_TYPE=stable" >> $GITHUB_ENV
             echo "Set production environment variables."
           elif [ "$BRANCH_NAME" = "staging" ]; then
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.STAGING_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=staging" >> $GITHUB_ENV
+            echo "CORE_VERSION_TYPE=rc" >> $GITHUB_ENV
             echo "Set staging environment variables."
+          elif [ "$BRANCH_NAME" = "dev" ]; then
+            echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+            echo "ENV_NAME=${{ vars.DEV_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
+            echo "VERSION_PREFIX=dev" >> $GITHUB_ENV
+            echo "CORE_VERSION_TYPE=beta" >> $GITHUB_ENV
+            echo "Set dev environment variables."
           elif [ "$BRANCH_NAME" = "sandbox" ]; then
             echo "ENVIRONMENT=sandbox" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.SANDBOX_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=sandbox" >> $GITHUB_ENV
+            echo "CORE_VERSION_TYPE=stable" >> $GITHUB_ENV
             echo "Set sandbox environment variables."
           else
             echo "Branch '$BRANCH_NAME' is not configured for deployment. Skipping deployment."
@@ -87,6 +104,20 @@ jobs:
       - name: set up python
         if: env.SKIP_DEPLOYMENT != 'true'
         run: uv python install
+        working-directory: api
+
+      - name: Configure AWS credentials
+        if: env.SKIP_DEPLOYMENT != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-2
+
+      - name: Update core dependency based on environment
+        if: env.SKIP_DEPLOYMENT != 'true'
+        run: |
+          chmod +x _scripts/update_core_version.sh
+          ./_scripts/update_core_version.sh ${{ env.CORE_VERSION_TYPE }}
         working-directory: api
 
       - name: Generate requirements.txt
@@ -139,6 +170,9 @@ jobs:
           elif [ "${{ needs.deploy.outputs.branch_name }}" = "staging" ]; then
             echo "BASE_URL=${{ secrets.STAGING_BASE_URL }}" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
+          elif [ "${{ needs.deploy.outputs.branch_name }}" = "dev" ]; then
+            echo "BASE_URL=${{ secrets.DEV_BASE_URL }}" >> $GITHUB_ENV
+            echo "API_KEY=${{ secrets.DEV_API_KEY }}" >> $GITHUB_ENV
           elif [ "${{ needs.deploy.outputs.branch_name }}" = "sandbox" ]; then
             echo "BASE_URL=${{ secrets.SANDBOX_BASE_URL }}" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV

@@ -16,7 +16,7 @@ dependencies = [
     "boto3 >=1.38,<2",
     "chevron >=0.14.0,<0.15",
     "clerk-backend-api >=3.0.3,<3.1",
-    "core==0.2.40",
+    "core==0.2.43b4",
     "cryptography >=44,<45",
     "deprecated >=1.2.14,<2",
     "dnspython >=2.7.0,<3",
@@ -135,7 +135,19 @@ pytest = "pytest"
 star_syntax = "uv run -m _pr_checks.star_syntax_check"
 hurl = "hurl --location --variable baseURL=http://127.0.0.1:8000 --variables-file .env --test ./_smoke_testing/hurl/get/*"
 
-# CORhttp://proximal-api-sandbox.us-east-2.elasticbeanstalk.com/
+# CORE version management
+core_auto = ["_update_core_auto", "freeze"]
+core_beta = ["_update_core_beta", "freeze"]
+core_rc = ["_update_core_rc", "freeze"]
+core_stable = ["_update_core_stable", "freeze"]
+core_latest = ["_update_core_latest", "freeze"]
+_update_core_auto = "bash _scripts/update_core_auto.sh"
+_update_core_beta = "bash _scripts/update_core_version.sh beta"
+_update_core_rc = "bash _scripts/update_core_version.sh rc"
+_update_core_stable = "bash _scripts/update_core_version.sh stable"
+_update_core_latest = "bash _scripts/update_core_version.sh latest"
+
+# Legacy core tasks
 e_core = ["editable_core", "freeze"]
 core = ["aws_core", "freeze"]
 editable_core = "bash -c 'source .env && uv add --editable ${CORE_PATH}'"

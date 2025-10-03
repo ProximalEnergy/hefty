@@ -1,0 +1,93 @@
+name: Core Pull Request Checks
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+    paths:
+      - 'core/**'
+      - '.github/workflows/core-pr-checks.yml'
+
+permissions:
+  id-token: write # This is crucial for OIDC authentication
+  contents: read # You might also need this depending on your workflow
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Ruff linter
+        uses: astral-sh/ruff-action@v3
+        with:
+          working-directory: core
+
+      - name: Run Ruff formatter
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check --diff
+          working-directory: core
+
+  star_syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+        working-directory: core
+
+      - name: install project
+        run: uv sync
+        working-directory: core
+
+      - name: Run star_syntax_check script
+        run: |
+          python ./_pr_checks/star_syntax_check.py
+        working-directory: core
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+        working-directory: core
+
+      - name: install project
+        run: uv sync
+        working-directory: core
+
+      - name: run mypy
+        run: uv run mypy --config-file pyproject.toml src/ # Add -v for verbosity
+        working-directory: core
+
+  validate-enums:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+        working-directory: core
+
+      - name: install project
+        run: uv sync
+        working-directory: core
+
+      - name: Run enum validation
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: uv run -m src.core.enumerations
+        working-directory: core
