@@ -38,7 +38,6 @@ dev = [
     "basedpyright>=1.31.4",
     "mypy>=1.16.1",
     "pandas-stubs>=2.3.0.250703",
-    "poethepoet>=0.35.0",
     "pytest>=8.4.1",
     "ruff>=0.14.0",
 ]
@@ -85,60 +84,6 @@ ignore = [
 ]
 
 [tool.uv]
-
-# === POE ===
-# --- Complex Tasks ---
-# Release:  Composite task with positional argument
-[tool.poe.tasks.release]
-sequence = ["check", "freeze", "bump", "_add", "_commit", "_push"]
-
-[[tool.poe.tasks.release.args]]
-name = "level"
-help = "version level to bump (patch, minor, major, stabl)"
-positional = true
-default = "patch"
-
-# Bump:  Positional argument require this format
-[tool.poe.tasks.bump]
-shell = "uv version --bump ${level:-patch}"
-help = "Bump version level (patch, minor, major)"
-
-[[tool.poe.tasks.bump.args]]
-name = "level"
-help = "version level to bump (patch, minor, major)"
-positional = true
-default = "patch"
-
-# Alembic
-[tool.poe.tasks.db]
-shell = "alembic revision --autogenerate -m \"$message\" && python3 _scripts/clean_alembic.py --latest && python3 _scripts/update_releases.py \"$message\" && ruff check && ruff format"
-help = "Generate alembic migration with message"
-args = [{ name = "message", help = "Migration message", positional = true }]
-
-# --- Simple Tasks ---
-[tool.poe.tasks]
-
-# Check:  Composite Task and Subtasks
-check = ["types", "ruff_check", "ruff_format", "star_syntax", "enum"]
-types = "uv run mypy --config-file pyproject.toml src/"
-ruff_check = "ruff check"
-ruff_format = "ruff format"
-star_syntax = "uv run _pr_checks/star_syntax_check.py"
-pytest = "pytest"
-
-# Release Subtasks
-freeze = "uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes"
-_add = "git add ."
-_commit = "git commit -m 'Release'"
-_push = "git push"
-_tag = { "shell" = """
-    VERSION=$(python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['version'])")
-    git tag "v$VERSION"
-    git push origin "v$VERSION"
-    """ }
-
-# Validation
-enum = "uv run _scripts/validate_enums.py"
 
 [tool.mypy]
 python_version = "3.12"

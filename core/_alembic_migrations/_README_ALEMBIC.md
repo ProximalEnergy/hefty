@@ -12,7 +12,7 @@ Alembic is used to manage database migrations. Alembic directly compares the SQL
 - `alembic upgrade head` - Run the latest migration script. This WILL make changes to the database. **IMPORTANT** - Only the database admin should push changes to the production database.
 - `alembic downgrade -1` - Downgrade to the previous version. This WILL make changes to the database.
 
-Check `pyproject.toml` for some helpful `poe` commands.
+Check `.mise.toml` for some helpful `mise` commands (e.g., `mise run db "message"`).
 
 You can verify a migration was successful by inspecting the database. The Alembic version is also stored in the `public.alembic_version` table. This version should match the `revision` variable generated in the latest migration. More information can be found in the Alembic [documentation](https://alembic.sqlalchemy.org/en/latest/).
 

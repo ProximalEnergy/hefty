@@ -84,7 +84,7 @@ dev = [
     "ipykernel>=6.29.5",
     "mypy>=1.15.0",
     "pandas-stubs>=2.2.2.240807",
-    "poethepoet>=0.34.0",
+
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
     "pytest-asyncio>=1.1.0",
@@ -109,43 +109,6 @@ build-backend = "setuptools.build_meta"
 [project.scripts]
 aws-core = "_scripts.aws_core_wrapper:main"
 uv-auth = "_scripts.uv_auth_wrapper:main"
-
-# --- POE TASKS ---
-# Shell typoe tasks
-[tool.poe.tasks.aws_core]
-cmd = "./_scripts/update_core.sh"
-executor = { type = "simple" }
-
-[tool.poe.tasks.uv]
-cmd = "./_scripts/uv_wrapper.sh"
-executor = { type = "simple" }
-
-# Standard CLI tasks
-[tool.poe.tasks]
-# QC
-check = ["types", "star_syntax", "ruff", "format", "pytest", "hurl"]
-ruff = "ruff check"
-format = "ruff format"
-types = "mypy --config-file pyproject.toml -p app"
-pytest = "pytest"
-star_syntax = "uv run -m _pr_checks.star_syntax_check"
-hurl = "hurl --location --variable baseURL=http://127.0.0.1:8000 --variables-file .env --test ./_smoke_testing/hurl/get/*"
-
-# CORE
-e_core = ["editable_core", "freeze"]
-core = ["aws_core", "freeze"]
-editable_core = "bash -c 'source .env && uv add --editable ${CORE_PATH}'"
-
-run = "uv run uvicorn app.main:app --reload --timeout-graceful-shutdown 0"
-freeze = "uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes --quiet" # META
-get_env = "uv run _scripts/generate_env_from_secrets.py"
-
-# Insert scripts
-insert_devices = "python3 -m _data_insert.project.1_devices"
-insert_tags = "python3 -m _data_insert.project.2_tags"
-insert_pv_dc_combiners = "python3 -m _data_insert.project.3_pv_dc_combiners"
-insert_kpi_types = "python3 -m _data_insert.operational.5_kpi_types"
-insert_kpi_instances = "python3 -m _data_insert.operational.11_kpi_instances"
 
 # --- ruff configuration ---
 [tool.ruff]

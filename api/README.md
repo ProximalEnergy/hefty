@@ -25,7 +25,7 @@ When deploying to Elastic Beanstalk:
 
 ```bash
 # Test that the deployment package structure is correct
-poe test_deploy
+mise run test_deploy
 ```
 
 ## Local Development with Core
@@ -36,23 +36,23 @@ For **local development**, the `core` library is used as a workspace dependency 
 
 ```bash
 # Auto-detect your current branch and install the appropriate core version
-poe core_auto
+mise run core_auto
 ```
 
 ### Manual Core Version Selection
 
 ```bash
 # Install latest beta version (for dev branch)
-poe core_beta
+mise run core_beta
 
 # Install latest RC version (for staging branch)
-poe core_rc
+mise run core_rc
 
 # Install latest stable version (for main/production branch)
-poe core_stable
+mise run core_stable
 
 # Install editable local core (for active core development)
-poe e_core  # requires CORE_PATH in .env
+mise run e_core  # requires CORE_PATH in .env
 ```
 
 ### Core Package Versioning
@@ -85,8 +85,8 @@ The `core` package is published in different versions based on the environment:
     - `--no-hashes`: No hashes
     - `--no-dev `: Don't include development dependencies
     - `--frozen`: Pin dependencies to a specifric version
-  - `poe freeze` or `uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes`: For AWS environments
-  - `poe types` or `uv run mypy --config-file pyproject.toml -p app`: Locally run type-checks (not included in pre-commit hook)
+  - `mise run freeze` or `uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes`: For AWS environments
+  - `mise run types` or `uv run mypy --config-file pyproject.toml -p app`: Locally run type-checks (not included in pre-commit hook)
 
 Make sure to install PostgreSQL before running `uv sync` the first time.
 
@@ -116,7 +116,7 @@ When running locally the following environment variables are required
 You can pull the environment variables from AWS Secrets with
 
 ```
->>> poe get_env
+>>> mise run get_env
 ```
 
 which creates a `.env.from_secrets` file whose contents can be copied into your actual `.env` file. This command requires AWS authentication which can be setup with
@@ -209,10 +209,10 @@ Metadata tables are stored in Google Drive [here]("https://drive.google.com/driv
 ### Inserting data into the database
 
 Scripts in the `data_insert` folder are used to manually insert data into the database. In order to run these scripts, `CONNECTION_STRING` and `EXCEL_PATH` need to be defined in a `.env` file. To run the insert scripts, use the `python -m` module syntax. For example, run `python -m _data_insert.operational.1_data_types`.
-There are `poe` convenience functions for some of the insert scripts. Currently supported are:
+There are `mise` convenience functions for some of the insert scripts. Currently supported are:
   - project.tags
-    - `poe insert_tags {project_name_short}`
+    - `mise run insert_tags {project_name_short}`
   - operational.kpi_types
-    - `poe insert_kpi_types`
+    - `mise run insert_kpi_types`
   - operational.kpi_instances
-    - `poe insert_kpi_instances`
+    - `mise run insert_kpi_instances`
