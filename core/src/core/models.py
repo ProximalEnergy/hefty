@@ -2371,10 +2371,12 @@ class PVBudgetedData(Base):
     poi_ac_power: Mapped[float] = mapped_column(
         comment="Point of Interconnection AC Power [MW]"
     )
-    ghi: Mapped[float] = mapped_column(comment="Global Horizontal Irradiance [W/m²]")
+    ghi: Mapped[float | None] = mapped_column(
+        comment="Global Horizontal Irradiance [W/m²]"
+    )
     poa: Mapped[float] = mapped_column(comment="Plane of Array Irradiance [W/m²]")
-    temperature: Mapped[float] = mapped_column(comment="Temperature [°C]")
-    soiling_percentage: Mapped[float] = mapped_column(
+    temperature: Mapped[float | None] = mapped_column(comment="Temperature [°C]")
+    soiling_percentage: Mapped[float | None] = mapped_column(
         comment="Soiling loss as percentage [%]"
     )
 
