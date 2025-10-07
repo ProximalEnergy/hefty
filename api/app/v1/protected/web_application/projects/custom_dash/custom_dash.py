@@ -74,7 +74,7 @@ async def get_bar(
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
-    except:
+    except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     sensor_types = core.crud.operational.sensor_types.get_sensor_types(
@@ -175,7 +175,7 @@ async def get_gauge(
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
-    except:
+    except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     match measured_variable:
@@ -255,7 +255,7 @@ async def get_line(
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
-    except:
+    except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     if len(sensor_type_ids) != len(aggregation_types):
@@ -379,7 +379,7 @@ async def get_scatter(
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
-    except:
+    except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     sensor_types = core.crud.operational.sensor_types.get_sensor_types(

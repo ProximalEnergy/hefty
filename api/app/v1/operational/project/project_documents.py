@@ -126,7 +126,7 @@ async def upload_project_document(
                 company_id=user.company_id,
                 project_id=project.project_id,
             )
-        except Exception as e:
+        except Exception:
             raise HTTPException(
                 status_code=500,
                 detail="Failed to create company project. Please try again or contact support.",
@@ -173,7 +173,7 @@ async def upload_project_document(
             ),  # Include the file name with lowercase extension and content
             purpose="assistants",
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail=(
@@ -188,7 +188,7 @@ async def upload_project_document(
             vector_store_id=company_project.vector_store_id,
             file_id=file_object.id,
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail=(
@@ -206,7 +206,7 @@ async def upload_project_document(
             Body=file_content,
             ContentType="application/pdf",
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail=(
@@ -262,7 +262,7 @@ async def search_contract_content(
         if not documents:
             raise HTTPException(status_code=404, detail="Document not found")
 
-        document = documents[0]
+        documents[0]
 
         # Initialize OpenAI client
         client = OpenAI()
@@ -290,7 +290,6 @@ async def search_contract_content(
                 # List files in the vector store and check their readiness (with timeout)
                 files = client.vector_stores.files.list(vector_store_id=vector_store_id)
 
-                all_files_ready = True
                 for file in files.data:
                     # Poll individual files to ensure they're ready (with timeout)
                     file_poll_count = 0
@@ -308,7 +307,7 @@ async def search_contract_content(
                             file_poll_count += 1
 
                     if file.status != "completed":
-                        all_files_ready = False
+                        pass
 
                 # Even if not all files are ready, try the search as it might still work
                 # This prevents hanging on follow-up questions
@@ -360,7 +359,7 @@ async def search_contract_content(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail="An unexpected error occurred while searching contract content",
@@ -393,7 +392,7 @@ async def delete_project_document(
         # Delete document from OpenAI
         client = OpenAI()
         client.files.delete(file_id=document.openai_file_id)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail=(
@@ -406,7 +405,7 @@ async def delete_project_document(
         # Delete file from S3
         s3_client = boto3.client("s3", region_name=REGION_NAME)
         s3_client.delete_object(Bucket=BUCKET_NAME, Key=document.s3_key)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail=(

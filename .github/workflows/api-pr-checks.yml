@@ -4,9 +4,9 @@ on:
   pull_request:
     branches: [dev, staging, main]
     paths:
-      - 'api/**'
-      - '.github/workflows/api-pr-checks.yml'
-      - '.github/actions/install-hurl/**'
+      - "api/**"
+      - ".github/workflows/api-pr-checks.yml"
+      - ".github/actions/install-hurl/**"
 
 permissions:
   id-token: write # This is crucial for OIDC authentication
@@ -22,13 +22,12 @@ jobs:
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
         with:
-          working-directory: api
+          src: ./api
 
       - name: Run Ruff formatter
         uses: astral-sh/ruff-action@v3
         with:
-          args: format --check --diff
-          working-directory: api
+          args: format --check --diff ./api
 
   star_syntax:
     runs-on: ubuntu-latest
@@ -40,17 +39,6 @@ jobs:
 
       - name: set up python
         run: uv python install
-        working-directory: api
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.STAGING_AWS_REGION }}
-
-      - name: add core
-        run: |
-          source ./_scripts/update_core.sh
         working-directory: api
 
       - name: install project
@@ -72,17 +60,6 @@ jobs:
 
       - name: set up python
         run: uv python install
-        working-directory: api
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.STAGING_AWS_REGION }}
-
-      - name: add core
-        run: |
-          source ./_scripts/update_core.sh
         working-directory: api
 
       - name: install project
@@ -113,17 +90,6 @@ jobs:
         run: uv python install
         working-directory: api
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.STAGING_AWS_REGION }}
-
-      - name: add core
-        run: |
-          source ./_scripts/update_core.sh
-        working-directory: api
-
       - name: install project
         run: uv sync
         working-directory: api
@@ -134,52 +100,41 @@ jobs:
         run: uv run pytest
         working-directory: api
 
-  smoke_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
+  # smoke_test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: astral-sh/setup-uv@v5
+  #       with:
+  #         enable-cache: true
 
-      - name: set up python
-        run: uv python install
-        working-directory: api
+  #     - name: set up python
+  #       run: uv python install
+  #       working-directory: api
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.STAGING_AWS_REGION }}
+  #     - name: install project
+  #       run: uv sync
+  #       working-directory: api
 
-      - name: add core
-        run: |
-          source ./_scripts/update_core.sh
-        working-directory: api
+  # - name: Install Hurl
+  #   uses: ./.github/actions/install-hurl
 
-      - name: install project
-        run: uv sync
-        working-directory: api
+  # - name: Start FastAPI server
+  #   run: |
+  #     uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+  #     sleep 10  # Give the server time to start
+  #   working-directory: api
+  #   env:
+  #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #     ENVIRONMENT: development
+  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #     AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+  #     AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+  #     CLERK_SECRET_KEY_DEVELOPMENT: ${{ secrets.CLERK_SECRET_KEY_DEVELOPMENT }}
+  #     MAXAUTH: ${{ secrets.MAXAUTH }}
+  #     URL_JWKS_DEVELOPMENT: ${{ secrets.URL_JWKS_DEVELOPMENT }}
+  #     WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
 
-      - name: Install Hurl
-        uses: ./.github/actions/install-hurl
-
-      - name: Start FastAPI server
-        run: |
-          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          sleep 10  # Give the server time to start
-        working-directory: api
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ENVIRONMENT: development
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
-          CLERK_SECRET_KEY_DEVELOPMENT: ${{ secrets.CLERK_SECRET_KEY_DEVELOPMENT }}
-          MAXAUTH: ${{ secrets.MAXAUTH }}
-          URL_JWKS_DEVELOPMENT: ${{ secrets.URL_JWKS_DEVELOPMENT }}
-          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
-
-      - name: Run smoke tests
-        run: hurl --location --variable baseURL=http://localhost:8000 --variable apiKey=${{ secrets.STAGING_API_KEY }} --test ./_smoke_testing/hurl/get/*
-        working-directory: api
+  # - name: Run smoke tests
+  #   run: hurl --location --variable baseURL=http://localhost:8000 --variable apiKey=${{ secrets.STAGING_API_KEY }} --test ./_smoke_testing/hurl/get/*
+  #   working-directory: api

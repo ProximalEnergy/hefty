@@ -9,7 +9,7 @@ REPO_ROOT = SCRIPT_DIR.parent
 # add repo root to sys.path so that we can import app._utils.aws
 sys.path.append(str(REPO_ROOT))
 
-from app._utils.aws import get_secret
+from app._utils.aws import get_secret  # noqa: E402
 
 ENV_PATH = REPO_ROOT / ".env.from_secrets"
 AWS_SECRET_NAME = "api/env"  # noqa: S105

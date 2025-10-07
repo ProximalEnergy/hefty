@@ -1,10 +1,10 @@
 from uuid import UUID
 
+from core.enumerations import UserTypeEnum
 from fastapi import APIRouter, Depends, Path
 
 from app._dependencies import authentication, authorization
 from app.interfaces import UserAuthed
-from core.enumerations import UserTypeEnum
 
 router = APIRouter(prefix="/auth", tags=["auth-test"])
 

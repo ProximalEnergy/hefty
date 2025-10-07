@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import pyarrow as pa
+from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse, Response
 from natsort import natsorted
@@ -17,7 +18,6 @@ import core
 from app import dependencies, utils
 from app._crud.operational.device_types import get_device_types as crud_get_device_types
 from core import model_list, models
-from core.enumerations import SensorType as SensorTypeEnum
 
 router = APIRouter(
     prefix="/device-details",
@@ -208,7 +208,7 @@ def get_single_by_device_id(
     # At the time of writing, the tags.sensor_type_id column is nullable. This means there could be some tags that have a null sensor_type_id and some tags that have a sensor_type_id of 0 (ghost). We want to remove both.
     tags = [t for t in tags if t.sensor_type_id not in [0, None]]
 
-    tag_id_to_sensor_type_name_long = {t.tag_id: t.sensor_type.name_long for t in tags}
+    {t.tag_id: t.sensor_type.name_long for t in tags}
     tag_id_to_name_scada = {t.tag_id: t.name_scada for t in tags}
     tag_id_to_sensor_type_unit = {t.tag_id: t.sensor_type.unit for t in tags}
 

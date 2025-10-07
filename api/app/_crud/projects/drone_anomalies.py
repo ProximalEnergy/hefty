@@ -1,10 +1,10 @@
 import uuid
 from collections.abc import Sequence
 
+from core.models import DroneAnomaly
 from sqlalchemy.orm import Session
 
 from app.interfaces import DroneAnomalyCreate
-from core.models import DroneAnomaly
 
 
 def bulk_create_drone_anomalies(

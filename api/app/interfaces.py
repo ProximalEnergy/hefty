@@ -13,12 +13,11 @@ import datetime
 import uuid
 from typing import Annotated, Any
 
+from core.enumerations import UserTypeEnum
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
 from pydantic.config import ConfigDict
 from shapely.geometry import mapping  # type: ignore
-
-from core.enumerations import UserTypeEnum
 
 
 class APIKey(BaseModel):

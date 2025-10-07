@@ -4,6 +4,7 @@ import jwt
 import sentry_sdk
 from clerk_backend_api import Clerk
 from clerk_backend_api.models import ClerkErrors
+from core.models import User, UserProject
 from fastapi import Depends, Header, HTTPException
 from fastapi.security import APIKeyHeader
 from sqlalchemy import select
@@ -12,7 +13,6 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from app import settings
 from app.dependencies import get_async_db
 from app.interfaces import UserAuthed
-from core.models import User, UserProject
 
 # API key authentication using a header
 # https://fastapi.tiangolo.com/reference/security/#fastapi.security.APIKeyHeader

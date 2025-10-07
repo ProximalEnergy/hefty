@@ -7,6 +7,7 @@ from uuid import UUID
 import httpx
 import jwt
 import sqlalchemy as sa
+from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -15,7 +16,6 @@ import core
 from app import interfaces, settings
 from app.database import async_engine, engine
 from core import models
-from core.enumerations import UserTypeEnum
 
 
 @contextmanager
@@ -366,7 +366,7 @@ async def get_user_data_async(
                 authorization=authorization,
                 origin_prod=origin_prod,
             )
-        except:
+        except Exception:
             user_data = await get_user_data_from_jwt_async(
                 db=db,
                 authorization=authorization,

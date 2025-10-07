@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.interfaces import *
+from app.interfaces import User
 from core import models
 
 

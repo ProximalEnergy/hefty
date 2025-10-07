@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 import app.utils as utils
 import core
-from app import dependencies, interfaces, utils
+from app import dependencies, interfaces
 from app._crud.operational.sensor_types import get_sensor_types
 from app._crud.projects.data import get_project_data as crud_get_project_data
 from app.dependencies import get_db, get_project, get_project_db

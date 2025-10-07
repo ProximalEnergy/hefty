@@ -94,7 +94,6 @@ async def get_project_devices_v2(
 
     # Handle large device_type_ids lists by chunking if necessary
     # SQLAlchemy typically has a limit around 32K-65K parameters
-    CHUNK_SIZE = 1000  # Conservative chunk size for device_type_ids
 
     # Get the query object and use polars_dataframe for v2
     query_obj = core.crud.project.devices.get_project_devices(
@@ -151,7 +150,7 @@ async def get_project_devices_v2(
         devices_df = devices_df.with_columns(
             pl.col("point")
             .map_elements(wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True)
-            .str.json_decode(infer_schema_length=len(devices_df))
+            .str.json_decode(infer_schema_length=len(devices_df))  # type: ignore[call-arg]
             .alias("point")
         )
 
@@ -160,7 +159,7 @@ async def get_project_devices_v2(
         devices_df = devices_df.with_columns(
             pl.col("polygon")
             .map_elements(wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True)
-            .str.json_decode(infer_schema_length=len(devices_df))
+            .str.json_decode(infer_schema_length=len(devices_df))  # type: ignore[call-arg]
             .alias("polygon")
         )
 

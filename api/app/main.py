@@ -1,8 +1,5 @@
-import warnings
-
-warnings.simplefilter("always", DeprecationWarning)
-
 import tomllib
+import warnings
 
 import sentry_sdk
 import uvicorn
@@ -13,6 +10,8 @@ from fastapi_mcp import FastApiMCP
 from app import settings
 from app.logger import logger
 from app.v1 import v1
+
+warnings.simplefilter("always", DeprecationWarning)
 
 if settings.ENVIRONMENT in ["staging", "production"]:
     sentry_config = {

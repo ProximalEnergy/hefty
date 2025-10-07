@@ -89,16 +89,18 @@ dev = [
     "pytest>=8.3.5",
     "pytest-asyncio>=1.1.0",
     "pytest-mock>=3.14.0",
-    "ruff==0.12.2",
+    "ruff>=0.14.0",
     "tomli>=2.0.2",
     "types-psycopg2>=2.9.21.20250318",
     "types-requests>=2.31.0.6",
     "typing-extensions>=4.12.2",
 ]
-[tool.uv]
-
 [tool.uv.sources]
 core = { path = "../core", editable = true }
+
+[tool.uv]
+
+
 
 [build-system]
 requires = ["setuptools>=45", "wheel"]
@@ -129,19 +131,7 @@ pytest = "pytest"
 star_syntax = "uv run -m _pr_checks.star_syntax_check"
 hurl = "hurl --location --variable baseURL=http://127.0.0.1:8000 --variables-file .env --test ./_smoke_testing/hurl/get/*"
 
-# CORE version management
-core_auto = ["_update_core_auto", "freeze"]
-core_beta = ["_update_core_beta", "freeze"]
-core_rc = ["_update_core_rc", "freeze"]
-core_stable = ["_update_core_stable", "freeze"]
-core_latest = ["_update_core_latest", "freeze"]
-_update_core_auto = "bash _scripts/update_core_auto.sh"
-_update_core_beta = "bash _scripts/update_core_version.sh beta"
-_update_core_rc = "bash _scripts/update_core_version.sh rc"
-_update_core_stable = "bash _scripts/update_core_version.sh stable"
-_update_core_latest = "bash _scripts/update_core_version.sh latest"
-
-# Legacy core tasks
+# CORE
 e_core = ["editable_core", "freeze"]
 core = ["aws_core", "freeze"]
 editable_core = "bash -c 'source .env && uv add --editable ${CORE_PATH}'"
@@ -149,7 +139,6 @@ editable_core = "bash -c 'source .env && uv add --editable ${CORE_PATH}'"
 run = "uv run uvicorn app.main:app --reload --timeout-graceful-shutdown 0"
 freeze = "uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes --quiet" # META
 get_env = "uv run _scripts/generate_env_from_secrets.py"
-test_deploy = "bash _scripts/test_deployment_package.sh"
 
 # Insert scripts
 insert_devices = "python3 -m _data_insert.project.1_devices"
@@ -158,17 +147,75 @@ insert_pv_dc_combiners = "python3 -m _data_insert.project.3_pv_dc_combiners"
 insert_kpi_types = "python3 -m _data_insert.operational.5_kpi_types"
 insert_kpi_instances = "python3 -m _data_insert.operational.11_kpi_instances"
 
-# --- ruff project-specific configuration ---
+# --- ruff configuration ---
 [tool.ruff]
-src = ["app"]
+line-length = 88 # or your preferred line length
+src = ["app"]    # adjust to your source folder
+fix = true
 
-# --- mypy project-specific configuration ---
+[tool.ruff.lint]
+select = [
+    "ANN002",  # checks that *args are typed
+    "ASYNC",   # async python checks
+    "COM",     # Ending commas
+    "EXE",     # Executables
+    "FA",      # Future Annotations
+    "F401",    # Remove unused imports
+    "FAST001", # FastAPI
+    "FAST003", # FastAPI
+    "FURB",    # Code modernization
+    "I",       # isort:  Sort all imports
+    "INT",     # Gettext formatting
+    "ISC",     # Implicit string concat
+    "ICN",     # Import alias
+    "PD002",   # Pandas inplace
+    "PIE",     # Code simplification
+    "S101",    # Look for assert
+    "S102",    # Look for exec
+    "S103",    # Look for os.chmod
+    "S104",    # harcoded bind all interfaces
+    "S105",    # hardcoded password string
+    "S106",    # hardcoded password func arg
+    "S107",    # hardcoded password defaults
+    "S108",    # hardcoded temp files
+    "S110",    # try-except-pass
+    "T",       # debugger checks
+    "T20",     # Lint print and pprint Statements
+    "UP",      # pyupgrade
+]
+fixable = ["ALL"]
+unfixable = []
+ignore = [
+    "COM812",
+    "COM819",
+    "FAST002",
+    "FURB162",
+    "E501",    # E501 line too long
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"_tests/**/*.py" = [
+    # at least this three should be fine in tests:
+    "S101", # asserts allowed in tests...
+    "ARG",  # Unused function args -> fixtures nevertheless are functionally relevant...
+    "FBT",  # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
+]
+
+
+# --- mypy ---
 [tool.mypy]
+disable_error_code = ["import-untyped"]
 exclude = ["^app.crud.py$", "^app.utils.py$"]
 
 [[tool.mypy.overrides]]
 module = ["_alembic_migrations.versions.*", "crud.py$"]
 ignore_errors = true
+
+
+# --- pyright ---
+[tool.pyright]
+venv = ".venv"
+venvPath = "."
 
 [tool.setuptools]
 packages = ["app", "_scripts"]

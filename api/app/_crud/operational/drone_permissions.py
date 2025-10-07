@@ -2,11 +2,11 @@ import uuid
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+from core.models import DronePermission
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces import DronePermissionCreate, DronePermissionUpdate
-from core.models import DronePermission
 
 
 async def get_drone_permissions(*, db: AsyncSession) -> Sequence[DronePermission]:

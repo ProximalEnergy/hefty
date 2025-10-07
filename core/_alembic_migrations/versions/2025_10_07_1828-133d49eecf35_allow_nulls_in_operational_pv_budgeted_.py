@@ -6,16 +6,16 @@ Create Date: 2025-10-07 18:28:11.221774+00:00
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "133d49eecf35"
-down_revision: Union[str, None] = "ab0aa5131b88"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "ab0aa5131b88"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 # Remember to remove any operations unrelated to your migration!
 # Are you making changes to the project schemas?

@@ -1210,9 +1210,9 @@ def get_degradation_poa(
     bad_trackers = trkr_scores[trkr_scores < trkr_scores.mean() * 0.9].index
     df = df.drop(columns=bad_trackers)
 
-    df_1d = df.diff(periods=1).abs() + df.diff(periods=-1).abs()
+    df_1d = df.diff(periods=1).abs() + df.diff(periods=-1).abs()  # type: ignore[operator]
     df_1d_std = df_1d.std(axis=1).rolling(3, center=True).mean()
-    df_1d_std_1d = df_1d_std.diff(periods=1).abs() + df_1d_std.diff(periods=-1).abs()
+    df_1d_std_1d = df_1d_std.diff(periods=1).abs() + df_1d_std.diff(periods=-1).abs()  # type: ignore[operator]
 
     irr_idx = df.median(axis=1) < min_poa
     der_idx = df_1d.mean(axis=1) > max_poa_1d
@@ -1267,8 +1267,8 @@ def get_degradation_poa(
         ],
     }
 
-    data["valid_indexes"] = df_filtered.index.tz_convert(project.time_zone).tolist()
-    data["valid_columns"] = df_filtered.columns.tolist()
+    data["valid_indexes"] = df_filtered.index.tz_convert(project.time_zone).tolist()  # type: ignore[attr-defined]
+    data["valid_columns"] = df_filtered.columns.tolist()  # type: ignore[assignment]
 
     return data
 
@@ -1286,7 +1286,7 @@ async def dc_amperage_report(
     project: models.Project = Depends(dependencies.get_project),
 ):
     logger.logger.info("DC Amperage Report Endpoint Starting")
-    pid_uuid = UUID(project_id)
+    UUID(project_id)
 
     project_tz = project.time_zone
     start = pd.Timestamp(start).tz_convert(None).normalize()

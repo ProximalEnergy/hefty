@@ -42,7 +42,7 @@ def calc_reference_params(
     v_oc = pv_module["voc"]
     i_sc = pv_module["isc"]
     cells_in_series = pv_module["cells_in_series"]
-    technology = pv_module["technology"]
+    pv_module["technology"]
 
     # # --- Calculation of an Initial Guess ---
     # Series Resistance

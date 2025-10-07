@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+from core.models import DroneProvider
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces import DroneProviderCreate, DroneProviderUpdate
-from core.models import DroneProvider
 
 
 async def get_drone_providers(*, db: AsyncSession) -> Sequence[DroneProvider]:

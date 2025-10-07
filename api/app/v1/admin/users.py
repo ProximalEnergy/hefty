@@ -1,6 +1,7 @@
 import uuid
 from typing import Annotated
 
+from core.enumerations import UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +15,6 @@ from app._utils.user_management import (
     send_onboarding_email,
 )
 from app.interfaces import User, UserCreate
-from core.enumerations import UserTypeEnum
 
 router = APIRouter(prefix="/users", tags=["users"])
 

@@ -49,7 +49,7 @@ def get_unique_tag_types(
 
     # Apply base filters
     query = query.filter(models.Tag.device_id != 0)
-    query = query.filter(models.Tag.name_scada != None)
+    query = query.filter(models.Tag.name_scada is not None)  # type: ignore[arg-type]
 
     # Apply sensor type filters
     if only_null_sensor_types:

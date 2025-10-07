@@ -108,7 +108,7 @@ def get_status_interpret(
                     )
                 except KeyError:
                     return pd.Series([None, None, False])
-                binary_value = bin(int(row.value))[2:][::-1].ljust(sub_df.shape[0], "0")
+                binary_value = bin(int(row.value))[2:][::-1].ljust(sub_df.shape[0], "0")  # noqa: FURB116
                 status_out, alert = {}, False
                 for i, bit_val in enumerate(binary_value):
                     status_column = "state_true" if bit_val == "1" else "state_false"

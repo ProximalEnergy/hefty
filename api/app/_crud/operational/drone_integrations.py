@@ -2,10 +2,10 @@ import uuid
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+from core.models import DroneIntegration
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces import DroneIntegrationCreate, DroneIntegrationUpdate
-from core.models import DroneIntegration
 
 
 async def get_drone_integrations(*, db: AsyncSession) -> Sequence[DroneIntegration]:

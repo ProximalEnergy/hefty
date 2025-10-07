@@ -503,7 +503,6 @@ async def get_tag_pattern_samples(
                     )  # Reduced from 3 days to 1 day
 
                 # Get sample tag IDs for this pattern
-                sample_tag_ids = [tag.tag_id]
 
                 # Use the existing utils.data_df function (same as DataBrowsing page)
                 try:
@@ -563,7 +562,7 @@ async def get_tag_pattern_samples(
                         "total_unique_values": total_unique_values,
                     }
                 )
-            except Exception as e:
+            except Exception:
                 # Continue with other tags even if one fails
                 continue
 

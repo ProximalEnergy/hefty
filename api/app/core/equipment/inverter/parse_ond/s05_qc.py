@@ -55,7 +55,7 @@ def validate_inverter_config(*, inverter: dict) -> dict:
 
     # Check list fields
     for key in list_keys:
-        if key in inverter and not isinstance(inverter[key], (list, tuple)):
+        if key in inverter and not isinstance(inverter[key], list | tuple):
             errors.append(f"Key '{key}' must be a list or tuple")
         elif key in inverter and not inverter[key]:
             errors.append(f"Key '{key}' cannot be empty")

@@ -5,21 +5,20 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
+from sqlalchemy import Float, cast, func
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-
-logger = logging.getLogger(__name__)
-from sqlalchemy import Float, cast, func
-from sqlalchemy.dialects.postgresql import array
-
 from app._crud.operational.sensor_types import get_sensor_types
 from app._crud.projects.data_timeseries_latest import (
     get_data_timeseries_latest_by_device_type,
 )
 from app.dependencies import get_project_db
 from core import models
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/real-time",
@@ -412,7 +411,7 @@ def _calculate_pcs_power_sum(
 ) -> float | None:
     """Calculate total power for PV PCS devices using latest values (timeseries_last)."""
     if not device_ids:
-        logger.debug(f"No device IDs provided for PCS power calculation")
+        logger.debug("No device IDs provided for PCS power calculation")
         return None
 
     try:

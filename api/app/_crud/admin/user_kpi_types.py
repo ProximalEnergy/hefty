@@ -78,7 +78,7 @@ async def get_user_favorited_kpi_types(
     try:
         query = select(models.UserKPITypes).where(
             models.UserKPITypes.user_id == user_id,
-            models.UserKPITypes.is_favorited == True,
+            models.UserKPITypes.is_favorited,
         )
         result = await db.execute(query)
         favorited_kpi_types = result.scalars().all()

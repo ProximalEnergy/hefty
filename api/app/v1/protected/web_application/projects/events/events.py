@@ -1,12 +1,12 @@
 import datetime
 
+import core.models as models
 import pandas as pd
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import core
-import core.models as models
 from app import utils
 from app.dependencies import get_db, get_project, get_project_db
 

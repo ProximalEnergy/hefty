@@ -76,12 +76,11 @@ def get_project_tags(
         query = query.filter(models.Tag.name_long == name_long)
     if name_scada:
         query = query.filter(models.Tag.name_scada == name_scada)
+    if has_sensor_type_id:
+        query = query.filter(models.Tag.sensor_type_id != None)  # noqa: E711
     if not include_ghost_tags:
         query = query.filter(models.Tag.device_id != 0)
         query = query.filter(models.Tag.sensor_type_id != 0)
-    if has_sensor_type_id:
-        query = query.filter(models.Tag.sensor_type_id != None)  # noqa: E711
-
     return ModelList(query=query, return_query=return_query)
 
 

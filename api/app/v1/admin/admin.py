@@ -74,7 +74,7 @@ async def get_subscribed_alert_emails(
             models.User.user_id == models.UserPermission.user_id,
         )
         .filter(
-            models.User.subscribed_to_alerts == True,  # type: ignore
+            models.User.subscribed_to_alerts,  # type: ignore
             models.UserPermission.operational_project_id == project_id,  # type: ignore
         )
         .distinct()
@@ -106,7 +106,7 @@ async def get_subscribed_alert_emails(
             ][0]
 
             data[user_id] = email_address
-        except:
+        except Exception:
             logging.error(f"Could not fetch email address for user {user_id}")
 
     return list(set(list(data.values())))
@@ -131,7 +131,7 @@ async def get_subscribed_report_emails(
             models.User.user_id == models.UserPermission.user_id,
         )
         .filter(
-            models.User.subscribed_to_reports == True,  # type: ignore
+            models.User.subscribed_to_reports,  # type: ignore
             models.UserPermission.operational_project_id == project_id,  # type: ignore
         )
         .distinct()
@@ -163,7 +163,7 @@ async def get_subscribed_report_emails(
             ][0]
 
             data[user_id] = email_address
-        except:
+        except Exception:
             logging.error(f"Could not fetch email address for user {user_id}")
 
     return list(set(list(data.values())))
@@ -194,7 +194,7 @@ async def get_user_email(
             if address["id"] == primary_email_address_id
         ][0]
         return email_address
-    except:
+    except Exception:
         logging.error(f"Could not fetch email address for user {user_id}")
 
     return None
@@ -228,7 +228,7 @@ async def get_user_emails(
                 if address["id"] in primary_email_address_ids:
                     email_addresses.append(address["email_address"])
         return email_addresses
-    except:
-        logging.error(f"Could not fetch email addresses for requested users.")
+    except Exception:
+        logging.error("Could not fetch email addresses for requested users.")
 
     return None
