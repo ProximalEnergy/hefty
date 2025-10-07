@@ -3,20 +3,36 @@ from typing import Annotated
 from uuid import UUID
 
 import pytz
-import sentry_sdk
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
-import core
 from app import dependencies, interfaces
 from app._crud.operational.cmms_permissions import get_cmms_permissions_by_project_id
-from app._utils.aws import get_secret
-from app.core.cmms.cmms import CMMSSession, CMMSTicket
-from app.core.cmms.cmms_registry import CMMS_SESSION_MAP
+from core import models
 
 router = APIRouter(prefix="/projects/{project_id}/cmms-tickets", tags=["cmms-tickets"])
+
+
+class CMMSTicket(BaseModel):
+    cmms_provider: str
+    id: int  # machine readable identifier
+    key: str  # human readable identifier
+    created_at: datetime | None = None  # the date and time the ticket was created
+    due_date: datetime | None = None
+    summary: str | None = None
+    summary_long: str | None = None
+    status: str | None = None
+    status_change_at: datetime | None = None
+    priority: str | None = None
+    reporter: str | None = None
+    assigned_to: str | None = None
+    location: str | None = None
+    cmms_device_id: str | None = None  # according to the CMMS provider
+    cmms_device_name: str | None = None  # according to the CMMS provider
+    device_id: int | None = None  # the proximal device id associated with the ticket
+    link: str | None = None  # the link to the ticket on the CMMS provider's platform
 
 
 class CMMSMetadata(BaseModel):
@@ -33,8 +49,8 @@ async def get_cmms_tickets(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[
-        Session,
-        Depends(dependencies.get_project_db),
+        AsyncSession,
+        Depends(dependencies.get_project_db_async),
     ],  # will be needed when incorperating device data
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
     start: str | None = None,
@@ -48,9 +64,9 @@ async def get_cmms_tickets(
     -----------
     project_id : UUID
         The project identifier
-    db : Session
+    db : AsyncSession
         Database session
-    project_db : Session
+    project_db : AsyncSession
         Project database session
     user : interfaces.UserData
         To get the company id
@@ -61,8 +77,7 @@ async def get_cmms_tickets(
     device_ids : Optional[List[int]]
         The list of device ids to filter the tickets by
     """
-
-    integration_configured = False
+    # First get integrations to see if there are any configured
 
     cmms_permissions = await get_cmms_permissions_by_project_id(
         db=db,
@@ -71,59 +86,64 @@ async def get_cmms_tickets(
         can_view=True,
     )
 
-    cmms_device_ids = None
+    # If there are any configured integrations, then the integration is considered configured
+    integration_configured = len(cmms_permissions) > 0
+
+    cmms_integration_ids = [
+        cmms_permission.cmms_integration.cmms_integration_id
+        for cmms_permission in cmms_permissions
+    ]
+
+    stmt = (
+        select(
+            models.CMMSTicket,
+            models.CMMSProvider.name_long,
+            models.CMMSDevice.device_id,
+        )
+        .outerjoin(
+            models.CMMSDevice,
+            models.CMMSDevice.cmms_device_id == models.CMMSTicket.cmms_device_id,
+        )
+        .join(
+            models.CMMSIntegration,
+            models.CMMSIntegration.cmms_integration_id
+            == models.CMMSTicket.cmms_integration_id,
+        )
+        .join(
+            models.CMMSProvider,
+            models.CMMSProvider.cmms_provider_id
+            == models.CMMSIntegration.cmms_provider_id,
+        )
+        .where(models.CMMSTicket.cmms_integration_id.in_(cmms_integration_ids))
+    )
 
     if device_ids is not None:
-        cmms_devices = core.crud.project.cmms_devices.get_project_cmms_devices(
-            project_db=project_db,
-            cmms_integration_ids=[
-                cmms_permission.cmms_integration.cmms_integration_id
-                for cmms_permission in cmms_permissions
-            ],
-            device_ids=device_ids,
-        ).models()
+        stmt = stmt.where(models.CMMSDevice.device_id.in_(device_ids))
 
-        # asset ids according to the CMMS provider
-        cmms_device_ids = list(
-            set([cmms_device.cmms_device_id for cmms_device in cmms_devices]),
+    result = await project_db.execute(stmt)
+    queried_tickets = result.all()
+
+    tickets = [
+        CMMSTicket(
+            cmms_provider=ticket[1],
+            id=ticket[0].source_id,
+            key=ticket[0].key,
+            created_at=ticket[0].source_created_at,
+            due_date=ticket[0].due_date,
+            summary=ticket[0].summary,
+            status=ticket[0].status,
+            status_change_at=ticket[0].status_change_at,
+            priority=ticket[0].priority,
+            reporter=ticket[0].reporter,
+            assigned_to=ticket[0].assigned_to,
+            location=ticket[0].location,
+            cmms_device_id=ticket[0].cmms_device_id,
+            cmms_device_name=ticket[0].cmms_device_name,
+            device_id=ticket[2],  # This will be None if no CMMSDevice exists
+            link=ticket[0].link,
         )
-
-    tickets = []
-
-    for cmms_permission in cmms_permissions:
-        # if there is at least one element in cmms_permissions, then the
-        # integration is considered configured
-        try:
-            integration_configured = True
-
-            secret = get_secret(
-                secret_name=(
-                    f"cmms_integrations/cmms_integration_id/"
-                    f"{cmms_permission.cmms_integration.cmms_integration_id}"
-                ),
-            )
-
-            cmms_name = cmms_permission.cmms_integration.cmms_provider.name_short
-            session_cls: type[CMMSSession] = CMMS_SESSION_MAP[cmms_name]
-            session = session_cls(
-                base_url=cmms_permission.cmms_integration.domain_name,
-            )
-
-            session.authenticate(
-                username=secret["username"],
-                api_key=secret["api_key"],
-            )
-
-            result = session.get_all_tickets(
-                project_name=cmms_permission.cmms_integration.project_name,
-                start=start,
-                end=end,
-                device_ids=cmms_device_ids,
-            )
-
-            tickets.extend(result)
-        except Exception as e:
-            sentry_sdk.capture_exception(e)
+        for ticket in queried_tickets
+    ]
 
     # sort items by created_at
     tickets.sort(

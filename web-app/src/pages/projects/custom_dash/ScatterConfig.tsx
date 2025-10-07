@@ -1,4 +1,4 @@
-import { SensorType } from '@/hooks/types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import {
   Button,
   Group,
@@ -65,6 +65,7 @@ const ScatterConfig = ({
           placeholder="Select Sensor Type..."
           value={xAxisSensorTypeId}
           onChange={setXAxisSensorTypeId}
+          searchable
         />
         <Select
           data={sensorTypesData?.map((sensorType) => ({
@@ -75,6 +76,7 @@ const ScatterConfig = ({
           placeholder="Select Sensor Type..."
           value={yAxisSensorTypeId}
           onChange={setYAxisSensorTypeId}
+          searchable
         />
       </Stack>
       <Group justify="flex-end">
@@ -86,7 +88,7 @@ const ScatterConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addScatterChart} disabled={!allowCreate}>
-            Add
+            Add Scatter Plot Component
           </Button>
         </Tooltip>
       </Group>

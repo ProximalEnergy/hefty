@@ -34,6 +34,8 @@ dayjs.updateLocale('en', {
 
 type DurationTerms =
   | 'today'
+  | 'yesterday'
+  | 'past-2-days'
   | 'past-3-days'
   | 'past-week'
   | 'past-month'
@@ -46,6 +48,8 @@ type DurationTerms =
 
 const durationTermToName: Record<DurationTerms, string> = {
   today: 'Today',
+  yesterday: 'Yesterday',
+  'past-2-days': 'Past 2 Days',
   'past-3-days': 'Past 3 Days',
   'past-week': 'Past Week',
   'past-month': 'Past Month',
@@ -235,6 +239,15 @@ export function AdvancedDatePicker({
     switch (term) {
       case 'today':
         start = today.toDate()
+        end = today.toDate()
+        break
+      case 'yesterday':
+        start = today.subtract(1, 'day').toDate()
+        end = today.subtract(1, 'day').toDate()
+        break
+      case 'past-2-days':
+        // Explicitly set to yesterday through today, regardless of includeTodayInDateRange
+        start = today.subtract(1, 'day').toDate()
         end = today.toDate()
         break
       case 'past-3-days':

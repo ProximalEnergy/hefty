@@ -6,7 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces
 from app._crud.admin.companies import create_company as crud_create_company
-from app._crud.admin.companies import get_companies as crud_get_companies
+from app._crud.admin.companies import (
+    get_companies as crud_get_companies,
+)
+from app._crud.admin.companies import (
+    search_companies as crud_search_companies,
+)
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
@@ -33,3 +38,12 @@ async def get_companies(
         name_shorts=name_shorts,
     )
     return companies
+
+
+@router.get("/search")
+async def search_companies(
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    q: str = Query(min_length=3),
+    limit: int = 20,
+):
+    return await crud_search_companies(db=db, q=q, limit=limit)

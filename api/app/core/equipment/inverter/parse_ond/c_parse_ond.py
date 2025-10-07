@@ -28,7 +28,7 @@ def parse_ond(
     try:
         ond_data = read_ond(file_content=file_content)
         ond_format = ONDformat.TEXT
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         raise ValueError(
             "This may be a PVsyst Binary File from before PVsyst v6."
             "We cannot currently parse these types of files"

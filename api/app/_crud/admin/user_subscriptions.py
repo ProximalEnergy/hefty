@@ -26,7 +26,7 @@ async def get_user_notification_subscriptions(
 ):
     query = select(models.UserSubscription).filter(
         models.UserSubscription.operational_project_id == operational_project_id,
-        models.UserSubscription.notifications == True,
+        models.UserSubscription.notifications,
     )
     result = await db.execute(query)
     return result.scalars().all()
@@ -73,7 +73,7 @@ async def get_user_report_subscriptions(
 ):
     query = select(models.UserSubscription).filter(
         models.UserSubscription.operational_project_id == operational_project_id,
-        models.UserSubscription.reports == True,
+        models.UserSubscription.reports,
     )
     result = await db.execute(query)
     return result.scalars().all()

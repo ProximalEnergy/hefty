@@ -4,8 +4,8 @@ import {
   useGetSensorTypes,
   useUpdateSensorTypeMutation,
 } from '@/api/v1/operational/sensor_types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
-import { SensorType } from '@/hooks/types'
 import {
   ActionIcon,
   Button,
@@ -59,6 +59,7 @@ const SensorTypes = () => {
       name_long: '',
       name_metric: '',
       unit: '',
+      description: '',
     },
     validate: {
       name_short: (value) => {
@@ -84,11 +85,12 @@ const SensorTypes = () => {
   const handleEdit = (sensorType: SensorType) => {
     setEditingSensorType(sensorType)
     form.setValues({
-      device_type_id: '',
+      device_type_id: sensorType.device_type_id.toString(),
       name_short: sensorType.name_short,
       name_long: sensorType.name_long,
       name_metric: sensorType.name_metric,
       unit: sensorType.unit || '',
+      description: sensorType.description || '',
     })
     open()
   }
@@ -118,8 +120,10 @@ const SensorTypes = () => {
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
-      // Remove device_type_id from values before submitting
-      const { device_type_id, ...sensorTypeData } = values
+      const sensorTypeData = {
+        ...values,
+        device_type_id: parseInt(values.device_type_id),
+      }
 
       if (editingSensorType) {
         // Update existing sensor type
@@ -133,8 +137,8 @@ const SensorTypes = () => {
       } else {
         // Create new sensor type
         await createSensorType.mutateAsync({
-          sensor_type_id: 0, // Will be auto-assigned by backend
           ...sensorTypeData,
+          sensor_type_id: 0, // Let backend auto-generate the ID
         })
       }
       close()
@@ -187,6 +191,30 @@ const SensorTypes = () => {
         mantineTableBodyCellProps: {
           align: 'center',
         },
+        Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => (
+          <Text size="sm">{cell.getValue<string | null>() || '-'}</Text>
+        ),
+      },
+      {
+        header: 'Device Type',
+        accessorKey: 'device_type_id',
+        size: 200,
+        Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => {
+          const deviceTypeId = cell.getValue<number>()
+          const deviceType = deviceTypes.data?.find(
+            (dt) => dt.device_type_id === deviceTypeId,
+          )
+          return (
+            <Text size="sm">
+              {deviceType ? `${deviceType.name_short}` : '-'}
+            </Text>
+          )
+        },
+      },
+      {
+        header: 'Description',
+        accessorKey: 'description',
+        size: 300,
         Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => (
           <Text size="sm">{cell.getValue<string | null>() || '-'}</Text>
         ),
@@ -285,9 +313,8 @@ const SensorTypes = () => {
               <Text
                 size="sm"
                 c="red"
+                p="sm"
                 style={{
-                  backgroundColor: 'var(--mantine-color-red-0)',
-                  padding: '8px 12px',
                   borderRadius: '4px',
                   border: '1px solid var(--mantine-color-red-3)',
                 }}
@@ -404,6 +431,11 @@ const SensorTypes = () => {
                 </Stack>
               </Popover.Dropdown>
             </Popover>
+            <TextInput
+              label="Description"
+              placeholder="Optional description of the sensor type"
+              {...form.getInputProps('description')}
+            />
             <Group justify="flex-end" gap="sm">
               <Button
                 variant="subtle"

@@ -4,6 +4,7 @@ from uuid import UUID
 
 import numpy as np
 import pandas as pd
+from core.enumerations import ProjectStatusType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
@@ -14,7 +15,6 @@ from app import dependencies, interfaces, logger, utils
 from app.v1.analytics import analytics_funcs as funcs
 from app.v1.operational.kpi_data import get_kpi_data_helper
 from core import models
-from core.enumerations import ProjectStatusType
 
 router = APIRouter(prefix="/gis", include_in_schema=utils.get_include_in_schema())
 
@@ -798,7 +798,7 @@ def utility_expected(
         current_tag_map = {tag.device_id: tag.tag_id for tag in tags_current}
 
         # Combine tag IDs for the data query
-        all_needed_tag_ids = list(voltage_tag_map.values()) + list(
+        list(voltage_tag_map.values()) + list(
             current_tag_map.values(),
         )
 

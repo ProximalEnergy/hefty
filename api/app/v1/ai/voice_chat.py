@@ -80,7 +80,7 @@ async def create_voice_chat_session(
             else:
                 raise HTTPException(
                     status_code=500,
-                    detail=f"Unexpected OpenAI API response structure. Please check the backend logs for details.",
+                    detail="Unexpected OpenAI API response structure. Please check the backend logs for details.",
                 )
 
             return VoiceChatSessionResponse(
@@ -88,7 +88,7 @@ async def create_voice_chat_session(
                 expires_at=expires_at,
             )
 
-    except httpx.TimeoutException as e:
+    except httpx.TimeoutException:
         raise HTTPException(status_code=408, detail="Request to OpenAI API timed out")
     except httpx.RequestError as e:
         raise HTTPException(

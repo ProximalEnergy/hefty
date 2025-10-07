@@ -1,4 +1,4 @@
-import { SensorType } from '@/hooks/types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import {
   Button,
   Group,
@@ -62,7 +62,6 @@ const BarConfig = ({
           value={sensorTypeId}
           onChange={setSensorTypeId}
           searchable
-          clearable
         />
         <Select
           data={[
@@ -72,13 +71,11 @@ const BarConfig = ({
             { value: 'min', label: 'Minimum' },
             { value: 'max', label: 'Maximum' },
             { value: 'std', label: 'Standard Deviation' },
-            { value: 'count', label: 'Count' },
           ]}
           label="Aggregation Method"
           placeholder="Select Aggregation Method..."
           value={aggregationMethod}
           onChange={setAggregationMethod}
-          clearable
         />
       </Stack>
       <Group justify="flex-end">
@@ -90,7 +87,7 @@ const BarConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addBarChart} disabled={!allowCreate}>
-            Add
+            Add Bar Chart Component
           </Button>
         </Tooltip>
       </Group>

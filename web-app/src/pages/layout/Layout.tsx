@@ -11,7 +11,7 @@ import {
   Text,
   useMantineTheme,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
+import { useDisclosure, useMediaQuery } from '@mantine/hooks'
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -85,6 +85,7 @@ export function Layout() {
   const [firstQuestionAsked, setFirstQuestionAsked] = useState(false)
   const location = useLocation()
   const { projectId } = useParams()
+  const isDesktop = useMediaQuery('(min-width: 768px)') // sm breakpoint
 
   // Clear chat when projectId changes
   useEffect(() => {
@@ -114,30 +115,32 @@ export function Layout() {
         collapsed={navbarCollapsed}
         onExpandNavbar={handleExpandNavbar}
       />
-      <Affix
-        position={{
-          top: 'calc(50% - 20px)',
-          left: navbarCollapsed ? '80px' : '250px',
-        }}
-        style={{
-          transition: 'left 0.2s',
-          transform: 'translateX(-50%)',
-        }}
-      >
-        <ActionIcon
-          onClick={toggleNavbar}
-          size="lg"
-          variant="default"
-          title={navbarCollapsed ? 'Expand navbar' : 'Collapse navbar'}
-          radius="xl"
+      {isDesktop && (
+        <Affix
+          position={{
+            top: 'calc(50% - 20px)',
+            left: navbarCollapsed ? '80px' : '250px',
+          }}
+          style={{
+            transition: 'left 0.2s',
+            transform: 'translateX(-50%)',
+          }}
         >
-          {navbarCollapsed ? (
-            <IconChevronRight size={20} />
-          ) : (
-            <IconChevronLeft size={20} />
-          )}
-        </ActionIcon>
-      </Affix>
+          <ActionIcon
+            onClick={toggleNavbar}
+            size="lg"
+            variant="default"
+            title={navbarCollapsed ? 'Expand navbar' : 'Collapse navbar'}
+            radius="xl"
+          >
+            {navbarCollapsed ? (
+              <IconChevronRight size={20} />
+            ) : (
+              <IconChevronLeft size={20} />
+            )}
+          </ActionIcon>
+        </Affix>
+      )}
       <AppShell.Main h="100dvh">
         <div style={{ height: '100%', width: '100%', overflowY: 'auto' }}>
           <Outlet />

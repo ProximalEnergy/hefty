@@ -12,16 +12,19 @@ import {
 } from '@/api/v1/operational/project/custom_dash'
 import { useGetProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
+import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
+import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 // import { GISContext } from '@/contexts/GISContext'
 import { useGetKPIType } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
-import { SensorType } from '@/hooks/types'
 // import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
   Button,
+  Drawer,
   Group,
   Paper,
   RingProgress,
@@ -34,34 +37,44 @@ import {
   useComputedColorScheme,
   useDrawersStack,
 } from '@mantine/core'
-import { Drawer } from '@mantine/core'
+import { Link, RichTextEditor } from '@mantine/tiptap'
 import { IconTrash } from '@tabler/icons-react'
 import { UseQueryResult } from '@tanstack/react-query'
+import { useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
 import { AxiosError } from 'axios'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import DOMPurify from 'dompurify'
 // import { FeatureCollection } from 'geojson'
 import { PlotType } from 'plotly.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 // import { Layer, LngLatBoundsLike, Map, Source } from 'react-map-gl'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 
 import BarConfig from './BarConfig'
-import GISConfig from './GISConfig'
 import GaugeConfig from './GaugeConfig'
 import KPIConfig from './KPIConfig'
 import LineConfig from './LineConfig'
+import RichTextConfig from './RichTextConfig'
 import ScatterConfig from './ScatterConfig'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const defaultTimeRanges = {
-  '1 Day': 1,
-  '3 Days': 2,
+  Today: 3,
+  Yesterday: 4,
+  'Past 2 Days': 1,
+  'Past 3 Days': 2,
 }
 const defaultKPITimeRanges = {
   '1 Month': 1,
@@ -70,30 +83,18 @@ const defaultKPITimeRanges = {
 }
 
 // Helper function to calculate time ranges based on selected values
-const calculateTimeRange = (timeRangeValue: number, timeZone: string) => {
-  // Get current time in project timezone and floor to last 5-minute interval
-  const now = dayjs()
-    .tz(timeZone)
-    .minute(Math.floor(dayjs().tz(timeZone).minute() / 5) * 5)
-    .second(0)
-    .millisecond(0)
-
+const calculateTimeRange = (timeRangeValue: number) => {
   switch (timeRangeValue) {
-    case 1: // 1 Day
-      return {
-        start: now.subtract(1, 'day').toISOString(),
-        end: now.toISOString(),
-      }
-    case 2: // 3 Days
-      return {
-        start: now.subtract(3, 'day').toISOString(),
-        end: now.toISOString(),
-      }
+    case 1: // Past 2 Days
+      return 'past-2-days'
+    case 2: // Past 3 Days
+      return 'past-3-days'
+    case 3: // Today
+      return 'today'
+    case 4: // Yesterday
+      return 'yesterday'
     default:
-      return {
-        start: now.subtract(1, 'day').toISOString(),
-        end: now.toISOString(),
-      }
+      return 'today'
   }
 }
 
@@ -232,6 +233,10 @@ export interface GISConfig {
   traceSensorTypeId: string | null
 }
 
+export interface RichTextConfig {
+  content: string
+}
+
 // // Placeholder Map Component
 // const PlaceholderMap = ({ projectId }: { projectId: string }) => {
 //   const devices = useGetDevicesV2({
@@ -323,15 +328,16 @@ export interface GISConfig {
 const GaugeComponent = ({
   component,
   projectId,
-  defaultTimeRange,
-  timeZone,
+  startQuery,
+  endQuery,
 }: {
   component: DashboardComponent & { config: GaugeConfig }
   projectId: string | undefined
   defaultTimeRange: number
   timeZone: string
+  startQuery: string
+  endQuery: string
 }) => {
-  const { start, end } = calculateTimeRange(defaultTimeRange, timeZone)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
 
@@ -340,14 +346,16 @@ const GaugeComponent = ({
     queryParams: {
       measured_variable: component.config.measuredVariable,
       maximum_value: component.config.maximumValue,
-      start,
-      end,
+      start: startQuery,
+      end: endQuery,
     },
     queryOptions: {
       enabled:
         !!projectId &&
         !!component.config.measuredVariable &&
-        !!component.config.maximumValue,
+        !!component.config.maximumValue &&
+        !!startQuery &&
+        !!endQuery,
     },
   })
 
@@ -511,17 +519,16 @@ const KPIComponent = ({
 const LineComponent = ({
   component,
   projectId,
-  defaultTimeRange,
-  timeZone,
+  startQuery,
+  endQuery,
   sensorTypes,
 }: {
   component: DashboardComponent & { config: LineConfig }
   projectId: string | undefined
-  defaultTimeRange: number
-  timeZone: string
+  startQuery: string
+  endQuery: string
   sensorTypes: UseQueryResult<SensorType[], AxiosError<unknown>>
 }) => {
-  const { start, end } = calculateTimeRange(defaultTimeRange, timeZone)
   const uniqueSensorTypeIds = component.config.traces
     .map((trace: { sensorTypeId: string | null }) => trace.sensorTypeId)
     .filter((id: string | null) => id !== null)
@@ -543,13 +550,15 @@ const LineComponent = ({
             trace.aggregationMethod,
         )
         .filter((method: string | null) => method !== null) as string[],
-      start,
-      end,
+      start: startQuery,
+      end: endQuery,
     },
     queryOptions: {
       enabled:
         !!projectId &&
         component.config.traces.length > 0 &&
+        !!startQuery &&
+        !!endQuery &&
         component.config.traces.every(
           (trace: {
             sensorTypeId: string | null
@@ -586,7 +595,7 @@ const LineComponent = ({
   // Group traces by unit
   const unitGroups = lineData.data.reduce(
     (groups: { [key: string]: typeof lineData.data }, traceData) => {
-      const unit = traceData.unit || 'Unknown'
+      const unit = traceData.unit || 'Unitless'
       const displayUnit = unit === 'C' ? 'Degrees (C)' : unit
       if (!groups[displayUnit]) {
         groups[displayUnit] = []
@@ -600,31 +609,36 @@ const LineComponent = ({
   const unitKeys = Object.keys(unitGroups)
 
   // Transform the data for Plotly with y-axis assignments
-  const plotData = lineData.data.map((traceData, index) => {
-    const unit = traceData.unit || 'Unknown'
-    const displayUnit = unit === 'C' ? 'Degrees (C)' : unit
-    const unitIndex = unitKeys.indexOf(displayUnit)
+  const plotData = lineData.data
+    .map((traceData, index) => {
+      const unit = traceData.unit || 'Unitless'
+      const displayUnit = unit === 'C' ? 'Degrees (C)' : unit
+      const unitIndex = unitKeys.indexOf(displayUnit)
 
-    // Assign y-axis based on unit index
-    let yAxis = 'y'
-    if (unitIndex === 1) {
-      yAxis = 'y2'
-    } else if (unitIndex === 2) {
-      yAxis = 'y3'
-    }
+      // Assign y-axis based on unit index
+      let yAxis = 'y'
+      if (unitIndex === 1) {
+        yAxis = 'y2'
+      } else if (unitIndex === 2) {
+        yAxis = 'y3'
+      } else if (unitIndex === 3) {
+        yAxis = 'y4'
+      }
 
-    return {
-      x: traceData.x,
-      y: traceData.y,
-      type: 'scatter' as PlotType,
-      mode: 'lines' as const,
-      name: `${traceData.name} (${displayUnit})`,
-      yaxis: yAxis,
-      line: {
-        color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`, // Generate distinct colors
-      },
-    }
-  })
+      return {
+        x: traceData.x,
+        y: traceData.y,
+        type: 'scatter' as PlotType,
+        mode: 'lines' as const,
+        name: `${traceData.name} (${displayUnit})`,
+        yaxis: yAxis,
+        hoverlabel: { namelength: -1 },
+        line: {
+          color: `hsl(${(index * 137.5) % 360}, 70%, 50%)`, // Generate distinct colors
+        },
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
 
   // Create layout with multiple y-axes
   const layout: Record<string, unknown> = {
@@ -694,8 +708,33 @@ const LineComponent = ({
   if (unitKeys.length > 2) {
     layout.yaxis3 = {
       title: unitKeys[2],
+      side: 'right',
+      overlaying: 'y',
+      position: -1, // Offset to the right to avoid overlap
+      showgrid: false,
+      zeroline: false,
+      showline: true,
+      mirror: true,
+      ticks: 'outside',
+      ticklen: 5,
+      tickwidth: 1,
+      tickcolor: '#666',
+      tickfont: {
+        size: 10,
+      },
+      titlefont: {
+        size: 12,
+      },
+    }
+  }
+
+  // Add fourth y-axis if we have more than three units
+  if (unitKeys.length > 3) {
+    layout.yaxis4 = {
+      title: unitKeys[3],
       side: 'left',
       overlaying: 'y',
+      position: 0.05, // Offset to the left to avoid overlap
       showgrid: false,
       zeroline: false,
       showline: true,
@@ -747,29 +786,29 @@ const LineComponent = ({
 const ScatterComponent = ({
   component,
   projectId,
-  defaultTimeRange,
-  timeZone,
+  startQuery,
+  endQuery,
 }: {
   component: DashboardComponent & { config: ScatterConfig }
   projectId: string | undefined
-  defaultTimeRange: number
-  timeZone: string
+  startQuery: string
+  endQuery: string
 }) => {
-  const { start, end } = calculateTimeRange(defaultTimeRange, timeZone)
-
   const scatter = useGetScatterData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       x_axis_sensor_type_id: component.config.xAxisSensorTypeId,
       y_axis_sensor_type_id: component.config.yAxisSensorTypeId,
-      start,
-      end,
+      start: startQuery,
+      end: endQuery,
     },
     queryOptions: {
       enabled:
         !!projectId &&
         !!component.config.xAxisSensorTypeId &&
-        !!component.config.yAxisSensorTypeId,
+        !!component.config.yAxisSensorTypeId &&
+        !!startQuery &&
+        !!endQuery,
     },
   })
 
@@ -780,7 +819,7 @@ const ScatterComponent = ({
   return (
     <Stack h="100%">
       <Text fw={600} size="sm" mb="xs">
-        {scatter.data?.x.name} vs {scatter.data?.y.name}
+        {scatter.data?.y.name} vs {scatter.data?.x.name}
       </Text>
       <PlotlyPlot
         data={[
@@ -789,16 +828,18 @@ const ScatterComponent = ({
             y: scatter.data?.y.values,
             type: 'scatter' as PlotType,
             mode: 'markers' as const,
+            name: `${scatter.data?.x.name} vs ${scatter.data?.y.name}`,
+            hoverlabel: { namelength: -1 },
           },
         ]}
         layout={{
           showlegend: false,
           margin: { t: 10, b: 10, l: 10, r: 10 },
           xaxis: {
-            title: `${scatter.data?.x.name} (${scatter.data?.x.unit})`,
+            title: `${scatter.data?.x.name} (${scatter.data?.x.unit || 'Unitless'})`,
           },
           yaxis: {
-            title: `${scatter.data?.y.name} (${scatter.data?.y.unit})`,
+            title: `${scatter.data?.y.name} (${scatter.data?.y.unit || 'Unitless'})`,
           },
         }}
         config={{ displayModeBar: false }}
@@ -810,29 +851,29 @@ const ScatterComponent = ({
 const BarComponent = ({
   component,
   projectId,
-  defaultTimeRange,
-  timeZone,
+  startQuery,
+  endQuery,
 }: {
   component: DashboardComponent & { config: BarConfig }
   projectId: string | undefined
-  defaultTimeRange: number
-  timeZone: string
+  startQuery: string
+  endQuery: string
 }) => {
-  const { start, end } = calculateTimeRange(defaultTimeRange, timeZone)
-
   const barData = useGetBarData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       sensor_type_id: component.config.sensorTypeId,
       aggregation_type: component.config.aggregationMethod,
-      start,
-      end,
+      start: startQuery,
+      end: endQuery,
     },
     queryOptions: {
       enabled:
         !!projectId &&
         !!component.config.sensorTypeId &&
-        !!component.config.aggregationMethod,
+        !!component.config.aggregationMethod &&
+        !!startQuery &&
+        !!endQuery,
     },
   })
 
@@ -852,6 +893,7 @@ const BarComponent = ({
             y: barData.data?.y,
             type: 'bar',
             name: barData.data?.name,
+            hoverlabel: { namelength: -1 },
           },
         ]}
         layout={{
@@ -867,6 +909,178 @@ const BarComponent = ({
         config={{ displayModeBar: false }}
       />
     </Stack>
+  )
+}
+
+const RichTextComponent = ({
+  component,
+  setCanDrag,
+  updateComponentConfig,
+  isEditing,
+}: {
+  component: DashboardComponent & { config: RichTextConfig }
+  setCanDrag: (canDrag: boolean) => void
+  updateComponentConfig: (componentId: string, config: RichTextConfig) => void
+  isEditing: boolean
+}) => {
+  const [isFocused, setIsFocused] = useState(false)
+
+  const editor = useEditor({
+    shouldRerenderOnTransaction: true,
+    extensions: [StarterKit, Link],
+    content: component.config.content,
+    editable: isEditing,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML()
+      updateComponentConfig(component.component_id, {
+        ...component.config,
+        content: html,
+      })
+    },
+    onFocus: () => {
+      if (isEditing) {
+        setIsFocused(true)
+      }
+    },
+    onBlur: () => {
+      setIsFocused(false)
+    },
+  })
+
+  // Update editor content when component config changes
+  useEffect(() => {
+    if (editor && component.config.content !== editor.getHTML()) {
+      editor.commands.setContent(component.config.content)
+    }
+  }, [component.config.content, editor])
+
+  // Update editor editable state when editing mode changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(isEditing)
+    }
+  }, [editor, isEditing])
+
+  if (!isEditing) {
+    // Read-only view when not editing
+    const sanitizedContent = DOMPurify.sanitize(component.config.content, {
+      ALLOWED_TAGS: [
+        'p',
+        'br',
+        'strong',
+        'em',
+        'u',
+        's',
+        'code',
+        'pre',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'ul',
+        'ol',
+        'li',
+        'blockquote',
+        'hr',
+        'a',
+        'span',
+        'div',
+      ],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style'],
+      ALLOW_DATA_ATTR: false,
+    })
+
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        style={{
+          height: '100%',
+          overflow: 'auto',
+          fontSize: '14px',
+          lineHeight: '1.5',
+          margin: 0,
+          padding: 0,
+        }}
+      />
+    )
+  }
+
+  // Full editor when editing
+  return (
+    <div style={{ height: '100%', position: 'relative' }}>
+      <RichTextEditor
+        editor={editor}
+        h="100%"
+        onMouseEnter={() => setCanDrag(false)}
+        onMouseLeave={() => setCanDrag(true)}
+        onClick={() => {
+          if (isEditing && editor) {
+            editor.commands.focus()
+          }
+        }}
+        styles={{
+          toolbar: {
+            position: 'absolute',
+            top: '-50px',
+            left: '0',
+            right: '0',
+            zIndex: 20,
+            backgroundColor: 'var(--mantine-color-body)',
+            border: '1px solid var(--mantine-color-gray-3)',
+            borderRadius: 'var(--mantine-radius-md)',
+            padding: '8px',
+            boxShadow: 'var(--mantine-shadow-md)',
+            opacity: isFocused ? 1 : 0,
+            visibility: isFocused ? 'visible' : 'hidden',
+            transition: 'opacity 0.2s ease, visibility 0.2s ease',
+          },
+          content: {
+            marginTop: '0',
+            padding: '8px',
+            minHeight: '60px',
+            cursor: 'text',
+          },
+        }}
+      >
+        <RichTextEditor.Toolbar>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Bold />
+            <RichTextEditor.Italic />
+            <RichTextEditor.Strikethrough />
+            <RichTextEditor.ClearFormatting />
+            <RichTextEditor.Code />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.H1 />
+            <RichTextEditor.H2 />
+            <RichTextEditor.H3 />
+            <RichTextEditor.H4 />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Blockquote />
+            <RichTextEditor.Hr />
+            <RichTextEditor.BulletList />
+            <RichTextEditor.OrderedList />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Undo />
+            <RichTextEditor.Redo />
+          </RichTextEditor.ControlsGroup>
+        </RichTextEditor.Toolbar>
+
+        <RichTextEditor.Content />
+      </RichTextEditor>
+    </div>
   )
 }
 
@@ -900,6 +1114,11 @@ const RenderComponent = ({
   defaultKPITimeRange,
   timeZone,
   sensorTypes,
+  setCanDrag,
+  updateComponentConfig,
+  isEditing,
+  startQuery,
+  endQuery,
 }: {
   component: DashboardComponent
   projectId: string | undefined
@@ -907,6 +1126,11 @@ const RenderComponent = ({
   defaultKPITimeRange: number
   timeZone: string
   sensorTypes: UseQueryResult<SensorType[], AxiosError<unknown>>
+  setCanDrag: (canDrag: boolean) => void
+  updateComponentConfig: (componentId: string, config: RichTextConfig) => void
+  isEditing: boolean
+  startQuery: string
+  endQuery: string
 }) => {
   switch (component.component_type) {
     case 'gauge':
@@ -916,6 +1140,8 @@ const RenderComponent = ({
           projectId={projectId}
           defaultTimeRange={defaultTimeRange}
           timeZone={timeZone}
+          startQuery={startQuery}
+          endQuery={endQuery}
         />
       )
     case 'kpi':
@@ -932,8 +1158,8 @@ const RenderComponent = ({
         <LineComponent
           component={component as DashboardComponent & { config: LineConfig }}
           projectId={projectId}
-          defaultTimeRange={defaultTimeRange}
-          timeZone={timeZone}
+          startQuery={startQuery}
+          endQuery={endQuery}
           sensorTypes={sensorTypes}
         />
       )
@@ -944,8 +1170,8 @@ const RenderComponent = ({
             component as DashboardComponent & { config: ScatterConfig }
           }
           projectId={projectId}
-          defaultTimeRange={defaultTimeRange}
-          timeZone={timeZone}
+          startQuery={startQuery}
+          endQuery={endQuery}
         />
       )
     case 'bar':
@@ -953,8 +1179,19 @@ const RenderComponent = ({
         <BarComponent
           component={component as DashboardComponent & { config: BarConfig }}
           projectId={projectId}
-          defaultTimeRange={defaultTimeRange}
-          timeZone={timeZone}
+          startQuery={startQuery}
+          endQuery={endQuery}
+        />
+      )
+    case 'rich_text':
+      return (
+        <RichTextComponent
+          component={
+            component as DashboardComponent & { config: RichTextConfig }
+          }
+          setCanDrag={setCanDrag}
+          updateComponentConfig={updateComponentConfig}
+          isEditing={isEditing}
         />
       )
     // case 'gis':
@@ -1002,6 +1239,7 @@ const Page = () => {
     'bar-config',
     'line-config',
     'scatter-config',
+    'rich-text-config',
   ])
 
   // Check if user navigated from "/new" route
@@ -1016,6 +1254,16 @@ const Page = () => {
   const [dashboardName, setDashboardName] = useState('')
   const [defaultTimeRange, setDefaultTimeRange] = useState(1)
   const [defaultKPITimeRange, setDefaultKPITimeRange] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const prevDefaultTimeRangeRef = useRef(defaultTimeRange)
+  const { start: startURL, end: endURL } = useValidateDateRange({
+    timeZone: project.data?.time_zone || 'UTC',
+  })
+  const startQuery = startURL?.toISOString()
+  const endQuery = endURL?.toISOString()
+
+  // Calculate default range for AdvancedDatePicker
+  const defaultRange = calculateTimeRange(defaultTimeRange)
 
   // Initialize the mutations
   const addUserDashboardMutation = useAddUserDashboard()
@@ -1046,17 +1294,30 @@ const Page = () => {
     }
   }, [dashboard.data, isNewDashboard])
 
+  // Clear URL parameters when defaultTimeRange changes to allow defaultRange to take effect
+  useEffect(() => {
+    if (prevDefaultTimeRangeRef.current !== defaultTimeRange) {
+      prevDefaultTimeRangeRef.current = defaultTimeRange
+      if (searchParams.has('start') || searchParams.has('end')) {
+        const newSearchParams = new URLSearchParams(searchParams)
+        newSearchParams.delete('start')
+        newSearchParams.delete('end')
+        setSearchParams(newSearchParams, { replace: true })
+      }
+    }
+  }, [defaultTimeRange, searchParams, setSearchParams])
+
   // Helper function to get next grid position
-  const getNextGridPosition = () => {
+  const getNextGridPosition = (componentType?: string) => {
     if (dashboardComponents.length === 0) {
-      return { x: 0, y: 0, w: 3, h: 2 }
+      return { x: 0, y: 0, w: 3, h: componentType === 'rich_text' ? 1 : 2 }
     }
     const lastComponent = dashboardComponents[dashboardComponents.length - 1]
     return {
       x: 0,
       y: lastComponent.y + lastComponent.h,
       w: 3,
-      h: 2,
+      h: componentType === 'rich_text' ? 1 : 2,
     }
   }
   // Hooks used inside of configs, these will not prevent page load but may prevent component load:
@@ -1149,6 +1410,18 @@ const Page = () => {
     stack.closeAll()
   }
 
+  const addRichTextComponent = (config: RichTextConfig) => {
+    const gridPos = getNextGridPosition('rich_text')
+    const newComponent: DashboardComponent = {
+      component_id: Date.now().toString(),
+      component_type: 'rich_text',
+      config,
+      ...gridPos,
+    }
+    setDashboardComponents((prev) => [...prev, newComponent])
+    stack.closeAll()
+  }
+
   // const addGISComponent = (config: GISConfig) => {
   //   const gridPos = getNextGridPosition()
   //   const newComponent: DashboardComponent = {
@@ -1193,6 +1466,20 @@ const Page = () => {
   const removeComponent = (id: string) => {
     setDashboardComponents((prev) =>
       prev.filter((component) => component.component_id !== id),
+    )
+  }
+
+  // Update component config function
+  const updateComponentConfig = (
+    componentId: string,
+    newConfig: RichTextConfig,
+  ) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config: newConfig }
+          : component,
+      ),
     )
   }
 
@@ -1451,6 +1738,28 @@ const Page = () => {
                 </Group>
               </Stack>
             </Paper>
+            <Paper
+              bg={paperBGColor}
+              withBorder
+              onClick={() => stack.open('rich-text-config')}
+              style={{ cursor: 'pointer', borderColor: 'grey' }}
+            >
+              <Stack px="sm" py="md">
+                <Text size="lg" fw={700}>
+                  Rich Text
+                </Text>
+                <Group w="100%" h="20vh" align="center" justify="center">
+                  <Stack align="center" gap="xs">
+                    <Text size="sm" c="dimmed">
+                      Add formatted text, links, and other content
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Bold, italic, headings, lists, and more
+                    </Text>
+                  </Stack>
+                </Group>
+              </Stack>
+            </Paper>
           </Stack>
         </Drawer>
         <Drawer {...stack.register('gauge-config')} position="left">
@@ -1473,7 +1782,7 @@ const Page = () => {
             onAdd={addBarComponent}
           />
         </Drawer>
-        <Drawer {...stack.register('line-config')} position="left">
+        <Drawer size="lg" {...stack.register('line-config')} position="left">
           <LineConfig
             stack={stack}
             sensorTypes={sensorTypes}
@@ -1486,6 +1795,9 @@ const Page = () => {
             sensorTypes={sensorTypes}
             onAdd={addScatterComponent}
           />
+        </Drawer>
+        <Drawer {...stack.register('rich-text-config')} position="left">
+          <RichTextConfig stack={stack} onAdd={addRichTextComponent} />
         </Drawer>
       </Drawer.Stack>
       <Group justify="space-between" align="center">
@@ -1523,9 +1835,28 @@ const Page = () => {
               onChange={(value) => setDefaultKPITimeRange(Number(value))}
               value={defaultKPITimeRange.toString()}
             />
+            {/* Invisible AdvancedDatePicker to handle default range updates in editing mode */}
+            <div style={{ display: 'none' }}>
+              <AdvancedDatePicker
+                key={`date-picker-${defaultTimeRange}`}
+                includeTodayInDateRange={true}
+                defaultRange={defaultRange}
+                maxDays={3}
+              />
+            </div>
           </Group>
         ) : (
-          <Title>{dashboardName || 'Custom Dashboard'}</Title>
+          <Group>
+            <Title>{dashboardName || 'Custom Dashboard'}</Title>
+            <AdvancedDatePicker
+              key={`date-picker-${defaultTimeRange}`}
+              includeTodayInDateRange={true}
+              defaultRange={defaultRange}
+              maxDays={3}
+              includeClearButton={false}
+              disableQuickActions={true}
+            />
+          </Group>
         )}
         <Group justify="flex-end" align="center" gap="md">
           {editing && (
@@ -1618,52 +1949,108 @@ const Page = () => {
                 w: component.w,
                 h: component.h,
                 minW: 2,
-                minH: 2,
+                minH: component.component_type === 'rich_text' ? 1 : 2,
                 maxW: 12,
                 maxH: 8,
               }}
             >
-              <Paper
-                p="md"
-                withBorder
-                h="100%"
-                w="100%"
-                style={{
-                  position: 'relative',
-                  backgroundColor: 'var(--mantine-color-body)',
-                  border: editing
-                    ? '2px solid var(--mantine-color-blue-6)'
-                    : '1px solid var(--mantine-color-gray-3)',
-                  borderRadius: 'var(--mantine-radius-md)',
-                }}
-              >
-                {editing && (
-                  <ActionIcon
-                    size="sm"
-                    variant="subtle"
-                    color="red"
-                    onClick={() => removeComponent(component.component_id)}
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      zIndex: 10,
-                    }}
-                    onMouseEnter={() => setCanDrag(false)}
-                    onMouseLeave={() => setCanDrag(true)}
-                  >
-                    <IconTrash size={14} />
-                  </ActionIcon>
-                )}
-                <RenderComponent
-                  component={component}
-                  projectId={projectId}
-                  defaultTimeRange={defaultTimeRange}
-                  defaultKPITimeRange={defaultKPITimeRange}
-                  timeZone={project.data?.time_zone || 'UTC'}
-                  sensorTypes={sensorTypes}
-                />
-              </Paper>
+              {component.component_type === 'rich_text' ? (
+                <div
+                  style={{
+                    position: 'relative',
+                    height: '100%',
+                    width: '100%',
+                    padding: editing ? '4px' : '4px',
+                    margin: '0',
+                    border: editing
+                      ? '2px solid var(--mantine-color-blue-6)'
+                      : 'none',
+                    borderRadius: editing ? 'var(--mantine-radius-md)' : '0',
+                    backgroundColor: 'transparent',
+                    overflow: editing ? 'visible' : 'hidden',
+                    minHeight: editing ? '60px' : 'auto',
+                  }}
+                >
+                  {editing && (
+                    <ActionIcon
+                      size="sm"
+                      variant="subtle"
+                      color="red"
+                      onClick={() => removeComponent(component.component_id)}
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        zIndex: 10,
+                      }}
+                      onMouseEnter={() => setCanDrag(false)}
+                      onMouseLeave={() => setCanDrag(true)}
+                    >
+                      <IconTrash size={14} />
+                    </ActionIcon>
+                  )}
+                  <RenderComponent
+                    component={component}
+                    projectId={projectId}
+                    defaultTimeRange={defaultTimeRange}
+                    defaultKPITimeRange={defaultKPITimeRange}
+                    timeZone={project.data?.time_zone || 'UTC'}
+                    sensorTypes={sensorTypes}
+                    setCanDrag={setCanDrag}
+                    updateComponentConfig={updateComponentConfig}
+                    isEditing={editing}
+                    startQuery={startQuery || ''}
+                    endQuery={endQuery || ''}
+                  />
+                </div>
+              ) : (
+                <Paper
+                  p="xs"
+                  withBorder
+                  h="100%"
+                  w="100%"
+                  style={{
+                    position: 'relative',
+                    backgroundColor: 'var(--mantine-color-body)',
+                    border: editing
+                      ? '2px solid var(--mantine-color-blue-6)'
+                      : '1px solid var(--mantine-color-gray-3)',
+                    borderRadius: 'var(--mantine-radius-md)',
+                  }}
+                >
+                  {editing && (
+                    <ActionIcon
+                      size="sm"
+                      variant="subtle"
+                      color="red"
+                      onClick={() => removeComponent(component.component_id)}
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        zIndex: 10,
+                      }}
+                      onMouseEnter={() => setCanDrag(false)}
+                      onMouseLeave={() => setCanDrag(true)}
+                    >
+                      <IconTrash size={14} />
+                    </ActionIcon>
+                  )}
+                  <RenderComponent
+                    component={component}
+                    projectId={projectId}
+                    defaultTimeRange={defaultTimeRange}
+                    defaultKPITimeRange={defaultKPITimeRange}
+                    timeZone={project.data?.time_zone || 'UTC'}
+                    sensorTypes={sensorTypes}
+                    setCanDrag={setCanDrag}
+                    updateComponentConfig={updateComponentConfig}
+                    isEditing={editing}
+                    startQuery={startQuery || ''}
+                    endQuery={endQuery || ''}
+                  />
+                </Paper>
+              )}
             </div>
           ))}
         </ResponsiveGridLayout>

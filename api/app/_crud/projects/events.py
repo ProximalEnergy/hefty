@@ -80,7 +80,7 @@ def get_project_events_by_id(
     deep: bool = True,
 ):
     query = db.query(models.Event)
-    if type(event_id) == list:
+    if isinstance(event_id, list):
         query = query.filter(models.Event.event_id.in_(event_id))
     elif event_id is not None:
         query = query.filter(models.Event.event_id == event_id)

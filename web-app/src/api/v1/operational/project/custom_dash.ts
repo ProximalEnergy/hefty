@@ -11,7 +11,14 @@ import axios from 'axios'
 // Type definitions for dashboard components
 export interface DashboardComponent {
   component_id: string
-  component_type: 'gauge' | 'kpi' | 'gis' | 'bar' | 'line' | 'scatter'
+  component_type:
+    | 'gauge'
+    | 'kpi'
+    | 'gis'
+    | 'bar'
+    | 'line'
+    | 'scatter'
+    | 'rich_text'
   config: any
   x: number
   y: number

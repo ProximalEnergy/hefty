@@ -4,6 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 import pandas as pd
+from core.database import Base
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -16,7 +17,6 @@ from app._crud.operational.failure_modes import (
 )
 from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expected
 from core import models
-from core.database import Base
 
 DESCRIPTION_404 = "Tag not found"
 
@@ -28,7 +28,7 @@ router = APIRouter(
 def df_from_objects(  # skip-star-syntax
     objects: list[Base], index_col: str, time_zone: str | None = None
 ) -> pd.DataFrame:
-    df = pd.DataFrame.from_records(obj.__dict__ for obj in objects).set_index(index_col)
+    df = pd.DataFrame.from_records(obj.__dict__ for obj in objects).set_index(index_col)  # type: ignore[arg-type]
     if "_sa_instance_state" in df.columns:
         df = df.drop(columns=["_sa_instance_state"])
     if time_zone is not None:

@@ -30,12 +30,25 @@ export const colorLinear = ({
   // The colors in between should be evenly distributed
   const colorArray = colors.map((color) => color.value)
   const colorCount = colorArray.length
+
+  // Handle edge case where there's only one color
+  if (colorCount === 1) {
+    return [lowValue, colorArray[0]]
+  }
+
+  // Handle -Infinity case (when all values are null/undefined)
+  if (!isFinite(highValue)) {
+    return [0, colorArray[0]]
+  }
+
   const colorStep = (highValue - lowValue) / (colorCount - 1)
   const colorLinearArray = []
   for (let i = 0; i < colorCount; i++) {
-    colorLinearArray.push(lowValue + i * colorStep)
+    const stepValue = lowValue + i * colorStep
+    colorLinearArray.push(stepValue)
     colorLinearArray.push(colorArray[i])
   }
+
   return colorLinearArray
 }
 
@@ -224,10 +237,10 @@ export function mapStyle({
   if (empty) {
     return undefined
   } else if (satellite) {
-    return 'mapbox://styles/mapbox/satellite-v9'
+    return 'mapbox://styles/mapbox/satellite-streets-v11'
   } else if (theme === 'light') {
-    return 'mapbox://styles/mapbox/light-v11'
+    return 'mapbox://styles/mapbox/light-v10'
   } else {
-    return 'mapbox://styles/mapbox/dark-v11'
+    return 'mapbox://styles/mapbox/dark-v10'
   }
 }

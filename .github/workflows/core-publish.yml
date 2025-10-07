@@ -1,0 +1,199 @@
+name: Publish Core to AWS CodeArtifact
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - main
+    paths:
+      - "core/src/core/**"
+      - "core/pyproject.toml"
+      - ".github/workflows/core-publish.yml"
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine release type and version
+        id: version
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          echo "Branch: $BRANCH"
+
+          # Read current version from pyproject.toml
+          BASE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])")
+          echo "Current version: $BASE_VERSION"
+
+          # Strip any existing pre-release suffix to get base version
+          BASE_VERSION=$(echo $BASE_VERSION | sed -E 's/(a|b|rc)[0-9]+$//')
+          echo "Base version: $BASE_VERSION"
+
+          if [ "$BRANCH" = "dev" ]; then
+            RELEASE_TYPE="beta"
+            VERSION_SUFFIX="b"
+            PRERELEASE="true"
+
+            # Find the next beta number
+            EXISTING_BETAS=$(git tag -l "core-v${BASE_VERSION}b*" | sed -E "s/.*b([0-9]+)$/\1/" | sort -n | tail -1)
+            if [ -z "$EXISTING_BETAS" ]; then
+              BETA_NUM=1
+            else
+              BETA_NUM=$((EXISTING_BETAS + 1))
+            fi
+            VERSION="${BASE_VERSION}b${BETA_NUM}"
+
+          elif [ "$BRANCH" = "staging" ]; then
+            RELEASE_TYPE="rc"
+            VERSION_SUFFIX="rc"
+            PRERELEASE="true"
+
+            # Find the next rc number
+            EXISTING_RCS=$(git tag -l "core-v${BASE_VERSION}rc*" | sed -E "s/.*rc([0-9]+)$/\1/" | sort -n | tail -1)
+            if [ -z "$EXISTING_RCS" ]; then
+              RC_NUM=1
+            else
+              RC_NUM=$((EXISTING_RCS + 1))
+            fi
+            VERSION="${BASE_VERSION}rc${RC_NUM}"
+
+          elif [ "$BRANCH" = "main" ]; then
+            RELEASE_TYPE="stable"
+            VERSION_SUFFIX=""
+            PRERELEASE="false"
+            VERSION="$BASE_VERSION"
+
+          else
+            echo "Unknown branch: $BRANCH"
+            exit 1
+          fi
+
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+          echo "Final version: $VERSION"
+
+      - name: Update version in pyproject.toml
+        run: |
+          # Update the version in pyproject.toml
+          python3 -c "
+          import tomllib
+          import re
+
+          with open('core/pyproject.toml', 'r') as f:
+              content = f.read()
+
+          # Replace version line
+          content = re.sub(
+              r'version = \"[^\"]+\"',
+              f'version = \"${{ steps.version.outputs.version }}\"',
+              content
+          )
+
+          with open('core/pyproject.toml', 'w') as f:
+              f.write(content)
+          "
+
+          echo "Updated version to ${{ steps.version.outputs.version }}"
+          cat core/pyproject.toml | grep "version ="
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-2
+
+      - name: Authenticate with AWS CodeArtifact
+        run: |
+          AWS_CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain proximal-code-artifact-domain \
+            --region us-east-2 \
+            --query authorizationToken \
+            --output text)
+          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
+          echo "AWS_CODEARTIFACT_TOKEN=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
+
+      - name: Set UV environment variables
+        run: |
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
+          echo "UV_PUBLISH_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_PUBLISH_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build Wheel
+        run: uv build --out-dir dist
+        working-directory: core
+
+      - name: Publish to AWS CodeArtifact
+        run: uv publish --index proximal-package-index dist/*
+        working-directory: core
+
+  create_release:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version info
+        id: version
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          BASE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])")
+          BASE_VERSION=$(echo $BASE_VERSION | sed -E 's/(a|b|rc)[0-9]+$//')
+
+          if [ "$BRANCH" = "dev" ]; then
+            EXISTING_BETAS=$(git tag -l "core-v${BASE_VERSION}b*" | sed -E "s/.*b([0-9]+)$/\1/" | sort -n | tail -1)
+            if [ -z "$EXISTING_BETAS" ]; then
+              BETA_NUM=1
+            else
+              BETA_NUM=$((EXISTING_BETAS + 1))
+            fi
+            VERSION="${BASE_VERSION}b${BETA_NUM}"
+            PRERELEASE="true"
+            RELEASE_NAME="Core v${VERSION} (Beta)"
+          elif [ "$BRANCH" = "staging" ]; then
+            EXISTING_RCS=$(git tag -l "core-v${BASE_VERSION}rc*" | sed -E "s/.*rc([0-9]+)$/\1/" | sort -n | tail -1)
+            if [ -z "$EXISTING_RCS" ]; then
+              RC_NUM=1
+            else
+              RC_NUM=$((EXISTING_RCS + 1))
+            fi
+            VERSION="${BASE_VERSION}rc${RC_NUM}"
+            PRERELEASE="true"
+            RELEASE_NAME="Core v${VERSION} (Release Candidate)"
+          else
+            VERSION="$BASE_VERSION"
+            PRERELEASE="false"
+            RELEASE_NAME="Core v${VERSION}"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then
+            gh release create core-v${{ steps.version.outputs.version }} \
+              --generate-notes \
+              --title "${{ steps.version.outputs.release_name }}" \
+              --prerelease
+          else
+            gh release create core-v${{ steps.version.outputs.version }} \
+              --generate-notes \
+              --title "${{ steps.version.outputs.release_name }}"
+          fi

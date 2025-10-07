@@ -343,27 +343,63 @@ export function AdaptiveGisMap() {
         // VERY HIGH ZOOM: Tracker (polygon), Combiner (polygon), PCS (point), Met (point)
         if (
           device.device_type_id === 29 && // Tracker Row
-          device.polygon &&
-          Array.isArray(device.polygon.coordinates) &&
-          device.polygon.coordinates.length > 0
+          device.polygon
         ) {
-          features.push({
-            type: 'Feature',
-            properties: { ...baseProperties, renderType: 'polygon' },
-            geometry: device.polygon as GeoJSON.MultiPolygon,
-          })
+          // Parse polygon JSON string if it's a string, otherwise use as-is
+          let polygonGeometry = device.polygon
+          if (typeof device.polygon === 'string') {
+            try {
+              polygonGeometry = JSON.parse(device.polygon)
+            } catch (error) {
+              console.warn(
+                'Failed to parse polygon JSON:',
+                error,
+                device.polygon,
+              )
+              return
+            }
+          }
+
+          if (
+            Array.isArray(polygonGeometry.coordinates) &&
+            polygonGeometry.coordinates.length > 0
+          ) {
+            features.push({
+              type: 'Feature',
+              properties: { ...baseProperties, renderType: 'polygon' },
+              geometry: polygonGeometry as GeoJSON.MultiPolygon,
+            })
+          }
         }
         if (
           device.device_type_id === 9 && // Combiner
-          device.polygon &&
-          Array.isArray(device.polygon.coordinates) &&
-          device.polygon.coordinates.length > 0
+          device.polygon
         ) {
-          features.push({
-            type: 'Feature',
-            properties: { ...baseProperties, renderType: 'polygon' }, // Will be colored gray
-            geometry: device.polygon as GeoJSON.MultiPolygon,
-          })
+          // Parse polygon JSON string if it's a string, otherwise use as-is
+          let polygonGeometry = device.polygon
+          if (typeof device.polygon === 'string') {
+            try {
+              polygonGeometry = JSON.parse(device.polygon)
+            } catch (error) {
+              console.warn(
+                'Failed to parse polygon JSON:',
+                error,
+                device.polygon,
+              )
+              return
+            }
+          }
+
+          if (
+            Array.isArray(polygonGeometry.coordinates) &&
+            polygonGeometry.coordinates.length > 0
+          ) {
+            features.push({
+              type: 'Feature',
+              properties: { ...baseProperties, renderType: 'polygon' }, // Will be colored gray
+              geometry: polygonGeometry as GeoJSON.MultiPolygon,
+            })
+          }
         }
         if (
           device.device_type_id === 2 && // PCS

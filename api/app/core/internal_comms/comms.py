@@ -1,8 +1,9 @@
 import logging
 from enum import StrEnum
 
-from app.core.internal_comms.comms_gchat import send_google_chat_message
 from core.models import Feedback
+
+from app.core.internal_comms.comms_gchat import send_google_chat_message
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ def send_feedback_notification(
                 + f"🆔 {feedback.feedback_id}\n"
                 + f"*{feedback.subject}*\n"
                 + f"{feedback.comment}"
-                + (f"\n🖼️ Screenshot Included" if screenshot_included else "")
+                + ("\n🖼️ Screenshot Included" if screenshot_included else "")
             )
             try:
                 send_google_chat_message(

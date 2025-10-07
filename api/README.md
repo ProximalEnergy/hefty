@@ -1,5 +1,72 @@
 # Proximal API
 
+## Deployment
+
+The API is deployed to AWS Elastic Beanstalk with the `core` library **bundled directly** into the deployment package. This means:
+
+- ✅ No AWS CodeArtifact authentication needed during deployment
+- ✅ Faster deployments (no external package lookups)
+- ✅ Core library version is always synchronized with API code
+- ✅ Simpler infrastructure
+
+### How Core is Deployed
+
+When deploying to Elastic Beanstalk:
+1. The CI/CD pipeline copies `core/src/core/*` → `api/core/`
+2. The core library is bundled directly into the deployment package
+3. Requirements.txt is generated **without** the core dependency
+4. Everything is zipped and deployed together
+
+**For other services**: The `core` library continues to be published to AWS CodeArtifact for services outside this API.
+
+📖 For complete deployment documentation, see [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+### Test Deployment Package Locally
+
+```bash
+# Test that the deployment package structure is correct
+poe test_deploy
+```
+
+## Local Development with Core
+
+For **local development**, the `core` library is used as a workspace dependency (not bundled):
+
+### Quick Start: Install Core for Your Branch
+
+```bash
+# Auto-detect your current branch and install the appropriate core version
+poe core_auto
+```
+
+### Manual Core Version Selection
+
+```bash
+# Install latest beta version (for dev branch)
+poe core_beta
+
+# Install latest RC version (for staging branch)
+poe core_rc
+
+# Install latest stable version (for main/production branch)
+poe core_stable
+
+# Install editable local core (for active core development)
+poe e_core  # requires CORE_PATH in .env
+```
+
+### Core Package Versioning
+
+The `core` package is published in different versions based on the environment:
+
+- **Beta** (`0.2.43b1`) - Latest development version from `dev` branch
+- **Release Candidate** (`0.2.43rc1`) - Pre-release version from `staging` branch  
+- **Stable** (`0.2.43`) - Production version from `main` branch
+
+**Note**: These versioning commands are for local development and other services that consume core from CodeArtifact. The API deployment to Elastic Beanstalk uses the bundled approach described above.
+
+📖 For complete versioning documentation, see [VERSIONING.md](../VERSIONING.md)
+
 ## Local Development
 
 - To start the API locally, run `fastapi dev` or `uv run uvicorn app.main:app --reload` from the root of the project directory.

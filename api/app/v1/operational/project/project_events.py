@@ -768,7 +768,7 @@ def get_event_trace_tags(
             )
             raise HTTPException(
                 status_code=400,
-                detail=f"This device type is not yet supported. The Proximal Team has been notified.",
+                detail="This device type is not yet supported. The Proximal Team has been notified.",
             )
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,

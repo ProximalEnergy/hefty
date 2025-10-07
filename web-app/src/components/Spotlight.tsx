@@ -13,7 +13,7 @@ import {
 } from '@mantine/spotlight'
 import { useNavigate, useParams } from 'react-router-dom'
 
-const [searchStore] = createSpotlight()
+export const [searchStore, searchActions] = createSpotlight()
 const [projectStore] = createSpotlight()
 
 export function SpotlightSearch() {

@@ -1,14 +1,14 @@
 import logging
 from uuid import UUID
 
+from core.enumerations import ProjectStatusType
+from core.models import Project as DBProject
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
 
 from app._crud.admin.user_projects import deep_delete_project
 from app.dependencies import get_async_db, requires_superadmin_async
-from core.enumerations import ProjectStatusType
-from core.models import Project as DBProject
 
 logger = logging.getLogger(__name__)
 

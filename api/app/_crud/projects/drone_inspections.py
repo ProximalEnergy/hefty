@@ -1,5 +1,6 @@
-from app.interfaces import DroneInspectionCreate
 from core.models import DroneInspection
+
+from app.interfaces import DroneInspectionCreate
 
 
 def create_drone_inspection(*, db, inspection_data: DroneInspectionCreate):

@@ -57,7 +57,7 @@ const GaugeConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addGauge} disabled={!allowCreate}>
-            Add
+            Add Gauge Component
           </Button>
         </Tooltip>
       </Group>

@@ -28,7 +28,7 @@ async def update_report_preferences(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    user = await crud_get_user(db=db, user_id=user_data.user_id)
+    await crud_get_user(db=db, user_id=user_data.user_id)
 
     # crud.update_user_report_preferences(
     #     db, user.user_id, not user.subscribed_to_reports

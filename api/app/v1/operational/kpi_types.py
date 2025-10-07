@@ -2,6 +2,7 @@ import logging
 import uuid
 from typing import Annotated
 
+from core.models import Company, Contract, ContractKPI, DeviceType, KPIInstance, KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +14,6 @@ from app._crud.operational.contracts import (
 )
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.v1.operational.project.project_contracts import generate_presigned_url
-from core.models import Company, Contract, ContractKPI, DeviceType, KPIInstance, KPIType
 
 router = APIRouter(prefix="/kpi-types", tags=["kpi_types"])
 

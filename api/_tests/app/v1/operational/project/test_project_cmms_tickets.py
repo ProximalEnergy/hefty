@@ -11,7 +11,7 @@ async def test_get_cmms_tickets_no_permissions():
 
     # Mock dependencies
     mock_db = AsyncMock()
-    mock_project_db = MagicMock()
+    mock_project_db = AsyncMock()
     mock_user = MagicMock()
     mock_user.company_id = uuid4()
 
@@ -22,6 +22,11 @@ async def test_get_cmms_tickets_no_permissions():
         "app.v1.operational.project.project_cmms_tickets.get_cmms_permissions_by_project_id"
     ) as mock_get_permissions:
         mock_get_permissions.return_value = []
+
+        # Mock the project_db.execute to return empty results
+        mock_result = MagicMock()
+        mock_result.all.return_value = []
+        mock_project_db.execute.return_value = mock_result
 
         # Call the function
         result = await get_cmms_tickets(

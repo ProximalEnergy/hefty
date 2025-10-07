@@ -1,22 +1,25 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import {
-  useAssignPatternSensorTypeMutation,
-  useGetTagPatternSamples,
-  useGetUniqueTagTypes,
-} from '@/api/v1/operational/project/tags'
-import {
   useCreateSensorTypeMutation,
   useGetSensorTypes,
 } from '@/api/v1/operational/sensor_types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
+import {
+  useAssignPatternSensorTypeMutation,
+  useGetTagPatternSamples,
+  useGetTagsByPattern,
+  useGetUniqueTagTypes,
+  usePopulateUniqueTagPatterns,
+} from '@/api/v1/protected/web-application/projects/project-tag-explorer'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
-import { SensorType } from '@/hooks/types'
 import {
   ActionIcon,
   Badge,
   Button,
   Card,
+  Checkbox,
   Group,
   Modal,
   NumberInput,
@@ -46,11 +49,9 @@ const ProjectTagExplorer = () => {
   const { projectId } = useParams()
 
   // Query parameters state
-  const [limit, setLimit] = useState(500)
-  const [sensorTypeFilter, setSensorTypeFilter] = useState<
-    'assigned' | 'all' | 'unassigned'
-  >('all')
+  // Removed legacy sensor type filter; use table filters instead
   const [executionTime, setExecutionTime] = useState<number | null>(null)
+  const [isTableRefreshing, setIsTableRefreshing] = useState(false)
   const [showColumnHandles, setShowColumnHandles] = useState(false)
   const [tagPatternAlignRight, setTagPatternAlignRight] = useState(true)
   const [isDetailsModalOpen, { open: openDetails, close: closeDetails }] =
@@ -91,6 +92,7 @@ const ProjectTagExplorer = () => {
       name_long: '',
       name_metric: '',
       unit: '',
+      description: '',
     },
     validate: {
       name_short: (value) => {
@@ -122,15 +124,13 @@ const ProjectTagExplorer = () => {
 
   const uniqueTagTypes = useGetUniqueTagTypes({
     pathParams: { projectId: projectId || '-1' },
-    queryParams: {
-      limit,
-      include_null_sensor_types: sensorTypeFilter === 'all',
-      only_null_sensor_types: sensorTypeFilter === 'unassigned',
-    },
+    queryParams: {},
     queryOptions: {
       enabled: false, // Disable automatic fetching
     },
   })
+
+  const populateUniqueTagPatterns = usePopulateUniqueTagPatterns()
 
   // No automatic execution time tracking - only manual refresh measurements
 
@@ -154,6 +154,23 @@ const ProjectTagExplorer = () => {
     }
   }
 
+  // Handle populate unique tag patterns
+  const handlePopulatePatterns = async () => {
+    if (!projectId) return
+
+    try {
+      await populateUniqueTagPatterns.mutateAsync({
+        projectId,
+      })
+      // After population, explicitly refetch and show a spinner on the table
+      setIsTableRefreshing(true)
+      await uniqueTagTypes.refetch()
+      setIsTableRefreshing(false)
+    } catch (error) {
+      console.error('Error populating unique tag patterns:', error)
+    }
+  }
+
   // Trigger initial load
   React.useEffect(() => {
     if (!uniqueTagTypes.data && !uniqueTagTypes.isFetching) {
@@ -161,26 +178,16 @@ const ProjectTagExplorer = () => {
     }
   }, []) // Only run once on mount
 
-  // Auto-refresh when sensor type filter changes
+  // Auto-refresh when project changes (e.g., via project dropdown)
   React.useEffect(() => {
-    // Simulate refresh button click to avoid white screen/spinner
-    const startTime = performance.now()
-    setExecutionTime(null)
+    // Clear any selection tied to previous project
+    setSelectedTagPattern(null)
+    // Refetch unique tag types for the new project
+    handleRefresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId])
 
-    try {
-      if (uniqueTagTypes.data) {
-        // If we have data, use refetch
-        uniqueTagTypes.refetch()
-      } else {
-        // If no data, trigger initial fetch
-        uniqueTagTypes.refetch()
-      }
-      const endTime = performance.now()
-      setExecutionTime(Math.round(endTime - startTime))
-    } catch (error) {
-      console.error('Error refreshing data:', error)
-    }
-  }, [sensorTypeFilter]) // Trigger when sensorTypeFilter changes
+  // Removed legacy sensor type filter
 
   // Load existing pattern data when modal opens
   React.useEffect(() => {
@@ -248,26 +255,89 @@ const ProjectTagExplorer = () => {
     },
   })
 
+  // Fetch all tags matching the selected pattern to compute [INT] ranges
+  const tagsByPattern = useGetTagsByPattern({
+    pathParams: {
+      projectId: projectId || '-1',
+      tagPattern: selectedTagPattern || '',
+    },
+    queryOptions: {
+      enabled: !!selectedTagPattern,
+      refetchOnWindowFocus: false,
+      staleTime: 0,
+    },
+  })
+
+  const intRanges = useMemo(() => {
+    if (!selectedTagPattern || !tagsByPattern.data)
+      return [] as Array<{ index: number; min: number; max: number }>
+    const parts = selectedTagPattern.split('[INT]')
+    const countINT = parts.length - 1
+    const mins = new Array<number>(countINT).fill(Number.POSITIVE_INFINITY)
+    const maxs = new Array<number>(countINT).fill(Number.NEGATIVE_INFINITY)
+
+    for (const t of tagsByPattern.data) {
+      const name: string = t.name_scada
+      if (!name) continue
+      let cursor = 0
+      let ok = true
+      for (let i = 0; i < countINT; i++) {
+        const fixed = parts[i]
+        const pos = name.indexOf(fixed, cursor)
+        if (pos === -1) {
+          ok = false
+          break
+        }
+        cursor = pos + fixed.length
+        let j = cursor
+        while (
+          j < name.length &&
+          name.charCodeAt(j) >= 48 &&
+          name.charCodeAt(j) <= 57
+        )
+          j++
+        if (j === cursor) {
+          ok = false
+          break
+        }
+        const num = parseInt(name.slice(cursor, j), 10)
+        if (!Number.isNaN(num)) {
+          if (num < mins[i]) mins[i] = num
+          if (num > maxs[i]) maxs[i] = num
+        }
+        cursor = j
+      }
+      if (!ok) continue
+    }
+    return mins.map((mn, i) => ({ index: i, min: mn, max: maxs[i] }))
+  }, [selectedTagPattern, tagsByPattern.data])
+
   // Group unique tag types by name_short to show "unique tag types"
   const groupedTagTypes = useMemo(() => {
     if (!uniqueTagTypes.data) return []
 
-    // The data is already grouped by pattern from the backend
-    return uniqueTagTypes.data.map((tagType: any) => ({
-      tag_pattern: tagType.tag_pattern,
-      sensor_type_id: tagType.sensor_type_id,
-      scada_type: tagType.scada_type,
-      unit_scada: tagType.unit_scada,
-      unit_offset: tagType.unit_offset,
-      unit_scale: tagType.unit_scale,
-      total_count: tagType.count,
-      examples: tagType.examples,
-      sample_tag_id: tagType.sample_tag_id,
-      project_id: tagType.project_id,
-      project_name: tagType.project_name,
-      project_name_short: tagType.project_name_short,
-    }))
-  }, [uniqueTagTypes.data])
+    return uniqueTagTypes.data.map((tagType: any) => {
+      const st = sensorTypes.data?.find(
+        (s: SensorType) => s.sensor_type_id === tagType.sensor_type_id,
+      )
+      return {
+        tag_pattern: tagType.tag_pattern,
+        sensor_type_id: tagType.sensor_type_id,
+        sensor_type_name_short: st?.name_short || null,
+        sensor_type_name_long: st?.name_long || null,
+        scada_type: tagType.scada_type,
+        unit_scada: tagType.unit_scada,
+        unit_offset: tagType.unit_offset,
+        unit_scale: tagType.unit_scale,
+        total_count: tagType.count,
+        examples: tagType.examples,
+        sample_tag_id: tagType.sample_tag_id,
+        project_id: tagType.project_id,
+        project_name: tagType.project_name,
+        project_name_short: tagType.project_name_short,
+      }
+    })
+  }, [uniqueTagTypes.data, sensorTypes.data])
 
   const handleAssignPatternSensorType = async () => {
     if (!selectedTagPattern || !patternSensorTypeId || !projectId) return
@@ -326,12 +396,14 @@ const ProjectTagExplorer = () => {
     values: typeof createSensorTypeForm.values,
   ) => {
     try {
-      // Remove device_type_id from values before submitting
-      const { device_type_id, ...sensorTypeData } = values
+      const sensorTypeData = {
+        ...values,
+        device_type_id: parseInt(values.device_type_id),
+      }
 
       await createSensorType.mutateAsync({
-        sensor_type_id: 0, // Will be auto-assigned by backend
         ...sensorTypeData,
+        sensor_type_id: 0, // Let backend auto-generate the ID
       })
       closeCreateSensorType()
       // Refresh sensor types data
@@ -387,18 +459,21 @@ const ProjectTagExplorer = () => {
         },
       },
       {
-        header: 'Sensor Type ID',
-        accessorKey: 'sensor_type_id',
-        size: 120,
+        header: 'Sensor Type',
+        accessorKey: 'sensor_type_name_short',
+        size: 180,
         mantineTableHeadCellProps: {
           align: 'left',
         },
         mantineTableBodyCellProps: {
-          align: 'center',
+          align: 'left',
         },
         Cell: ({ cell }: { cell: MRT_Cell<any> }) => {
-          const sensorTypeId = cell.getValue<number>()
-          if (sensorTypeId === 0) {
+          const nameShort = cell.getValue<string | null>()
+          const sensorTypeId = cell.row.original.sensor_type_id as
+            | number
+            | undefined
+          if (!sensorTypeId || sensorTypeId === 0) {
             return (
               <Tooltip label="Click to assign sensor type">
                 <ActionIcon
@@ -414,7 +489,14 @@ const ProjectTagExplorer = () => {
               </Tooltip>
             )
           }
-          return sensorTypeId
+          const st = sensorTypes.data?.find(
+            (s: SensorType) => s.sensor_type_id === sensorTypeId,
+          )
+          return (
+            <Tooltip label={st?.name_long || undefined}>
+              <Text>{nameShort || '—'}</Text>
+            </Tooltip>
+          )
         },
       },
       {
@@ -519,6 +601,10 @@ const ProjectTagExplorer = () => {
   const table = useMantineReactTable({
     columns,
     data: groupedTagTypes,
+    state: {
+      isLoading: uniqueTagTypes.isFetching || isTableRefreshing,
+      showProgressBars: uniqueTagTypes.isFetching || isTableRefreshing,
+    },
     enableGrouping: true,
     enableColumnDragging: showColumnHandles,
     enableColumnResizing: true,
@@ -543,7 +629,7 @@ const ProjectTagExplorer = () => {
       density: 'xs',
       columnVisibility: {
         tag_pattern: true,
-        sensor_type_id: true,
+        sensor_type_name_short: true,
         scada_type: false,
         unit_scada: false,
         unit_offset: true,
@@ -567,6 +653,105 @@ const ProjectTagExplorer = () => {
     },
   })
 
+  // Assigned Sensor Types table (MantineReactTable)
+  const assignedRows = useMemo(() => {
+    return (
+      sensorTypes.data?.map((st: SensorType) => ({
+        sensor_type_id: st.sensor_type_id,
+        device_type_id: st.device_type_id,
+        name_short: st.name_short,
+        name_long: st.name_long,
+        name_metric: st.name_metric,
+        unit: st.unit,
+        assigned: groupedTagTypes.some(
+          (row: any) => row.sensor_type_id === st.sensor_type_id,
+        ),
+        device_type_name:
+          deviceTypes.data?.find(
+            (dt) => dt.device_type_id === st.device_type_id,
+          )?.name_long || null,
+      })) || []
+    )
+  }, [sensorTypes.data, groupedTagTypes, deviceTypes.data])
+
+  const assignedColumns = useMemo<MRT_ColumnDef<any>[]>(
+    () => [
+      {
+        header: 'Sensor Type',
+        accessorKey: 'name_short',
+        size: 220,
+        Cell: ({ cell }) => {
+          const nameShort = cell.getValue<string>()
+          const nameLong = cell.row.original.name_long as string | undefined
+          return (
+            <Tooltip label={nameLong} disabled={!nameLong}>
+              <Text fw={500}>{nameShort}</Text>
+            </Tooltip>
+          )
+        },
+      },
+      {
+        header: 'Device Type',
+        accessorKey: 'device_type_name',
+        size: 220,
+        mantineTableHeadCellProps: { align: 'left' },
+        mantineTableBodyCellProps: { align: 'left' },
+        Cell: ({ cell }) => {
+          const dtName = cell.getValue<string | null>()
+          return <Text>{dtName ?? '—'}</Text>
+        },
+      },
+      {
+        header: 'Metric',
+        accessorKey: 'name_metric',
+        size: 200,
+      },
+      {
+        header: 'Unit',
+        accessorKey: 'unit',
+        size: 120,
+        mantineTableBodyCellProps: { align: 'center' },
+      },
+      {
+        header: 'Assigned in Project?',
+        accessorKey: 'assigned',
+        size: 200,
+        enableSorting: true,
+        mantineTableBodyCellProps: { align: 'center' },
+        Cell: ({ cell }) => (
+          <Checkbox checked={!!cell.getValue<boolean>()} readOnly />
+        ),
+      },
+    ],
+    [],
+  )
+
+  const assignedTable = useMantineReactTable({
+    columns: assignedColumns,
+    data: assignedRows,
+    state: {
+      isLoading: sensorTypes.isLoading,
+      showProgressBars: sensorTypes.isFetching,
+    },
+    enableGrouping: true,
+    enableRowSelection: false,
+    enableColumnDragging: false,
+    enableColumnOrdering: false,
+    enableMultiSort: false,
+    enableDensityToggle: true,
+    enableGlobalFilter: true,
+    enableColumnFilters: true,
+    initialState: {
+      density: 'xs',
+      sorting: [{ id: 'assigned', desc: true }],
+      columnVisibility: {
+        device_type_id: false,
+      },
+      pagination: { pageSize: 50, pageIndex: 0 },
+    },
+    mantineTableProps: { striped: true, highlightOnHover: true },
+  })
+
   if (
     uniqueTagTypes.isLoading ||
     sensorTypes.isLoading ||
@@ -574,6 +759,11 @@ const ProjectTagExplorer = () => {
   ) {
     return <PageLoader />
   }
+
+  const noPrecomputedPatterns =
+    uniqueTagTypes.data && Array.isArray(uniqueTagTypes.data)
+      ? uniqueTagTypes.data.length === 0
+      : false
 
   return (
     <Stack p="md">
@@ -620,83 +810,101 @@ const ProjectTagExplorer = () => {
         </Text>
       </Group>
 
-      <Card withBorder>
-        <Stack gap="md">
-          <Title order={3}>Unique Tag Types</Title>
-          <Text size="sm" c="dimmed">
-            This table shows unique tag patterns for the current project. Tags
-            are grouped by pattern with integers replaced by <b>[INT]</b>. You
-            can assign sensor types to tag patterns to speed up project
-            onboarding. Limited to 500 most common tag patterns for performance.
-          </Text>
+      <Tabs defaultValue="unique-tag-types">
+        <Tabs.List>
+          <Tabs.Tab value="unique-tag-types">Unique Tag Types</Tabs.Tab>
+          <Tabs.Tab value="assigned-sensor-types">
+            Assigned Sensor Types
+          </Tabs.Tab>
+        </Tabs.List>
 
-          {/* Query Controls */}
-          <Group gap="lg" justify="space-between">
-            <Group gap="lg">
-              <NumberInput
-                label="Result Limit"
-                description="Maximum number of tag patterns to return (higher values may be slower)"
-                value={limit}
-                onChange={(value) =>
-                  setLimit(typeof value === 'number' ? value : 500)
-                }
-                min={50}
-                max={100000}
-                step={50}
-                style={{ minWidth: 200 }}
-              />
-              <Select
-                label="Sensor Type Filter"
-                description="Choose which tags to display"
-                value={sensorTypeFilter}
-                onChange={(value) =>
-                  setSensorTypeFilter(
-                    value as 'assigned' | 'all' | 'unassigned',
-                  )
-                }
-                data={[
-                  { value: 'assigned', label: 'Assigned Only' },
-                  { value: 'all', label: 'All Tags' },
-                  { value: 'unassigned', label: 'Unassigned Only' },
-                ]}
-                style={{ minWidth: 200 }}
-              />
-              <Group gap="xs" style={{ marginTop: 43 }}>
+        <Tabs.Panel value="unique-tag-types" pt="xs">
+          <Card withBorder>
+            <Stack gap="md">
+              <Group justify="space-between" align="center">
+                <Title order={3}>Unique Tag Types</Title>
                 <Button
-                  variant="light"
-                  leftSection={<IconRefresh size={16} />}
-                  onClick={handleRefresh}
-                  loading={uniqueTagTypes.isRefetching}
+                  variant="filled"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={handlePopulatePatterns}
+                  loading={populateUniqueTagPatterns.isPending}
                 >
-                  Refresh
+                  Populate Patterns
                 </Button>
-                {executionTime !== null && (
-                  <Text size="sm" c="dimmed">
-                    Execution time: {executionTime}ms
-                  </Text>
-                )}
               </Group>
-            </Group>
-            <Group gap="sm">
-              <Button
-                variant="light"
-                onClick={() => setShowColumnHandles(!showColumnHandles)}
-                style={{ marginTop: 43 }}
-              >
-                {showColumnHandles ? 'Hide' : 'Show'} Column Handles
-              </Button>
-              <Button
-                variant="light"
-                onClick={() => setTagPatternAlignRight(!tagPatternAlignRight)}
-                style={{ marginTop: 43 }}
-              >
-                Tag Pattern: {tagPatternAlignRight ? 'Right' : 'Left'} Aligned
-              </Button>
-            </Group>
-          </Group>
-          <MantineReactTable table={table} />
-        </Stack>
-      </Card>
+              <Text size="sm" c="dimmed">
+                This table shows unique tag patterns for the current project.
+                Tags are grouped by pattern with integers replaced by{' '}
+                <b>[INT]</b>. You can assign sensor types to tag patterns to
+                speed up project onboarding.
+              </Text>
+
+              {noPrecomputedPatterns && (
+                <Card withBorder>
+                  <Stack gap="xs">
+                    <Text fw={600}>No precomputed patterns found</Text>
+                    <Text size="sm" c="dimmed">
+                      This project has no rows in the unique patterns table yet.
+                      Click "Populate Patterns" to generate them. This may take
+                      a minute.
+                    </Text>
+                  </Stack>
+                </Card>
+              )}
+
+              {/* Query Controls */}
+              <Group gap="lg" justify="space-between">
+                <Group gap="xs">
+                  <Button
+                    variant="light"
+                    leftSection={<IconRefresh size={16} />}
+                    onClick={handleRefresh}
+                    loading={uniqueTagTypes.isRefetching}
+                  >
+                    Refresh
+                  </Button>
+                  {executionTime !== null && (
+                    <Text size="sm" c="dimmed">
+                      Execution time: {executionTime}ms
+                    </Text>
+                  )}
+                </Group>
+                <Group gap="sm">
+                  <Button
+                    variant="light"
+                    onClick={() => setShowColumnHandles(!showColumnHandles)}
+                  >
+                    {showColumnHandles ? 'Hide' : 'Show'} Column Handles
+                  </Button>
+                  <Button
+                    variant="light"
+                    onClick={() =>
+                      setTagPatternAlignRight(!tagPatternAlignRight)
+                    }
+                  >
+                    Tag Pattern: {tagPatternAlignRight ? 'Right' : 'Left'}{' '}
+                    Aligned
+                  </Button>
+                </Group>
+              </Group>
+              <MantineReactTable table={table} />
+            </Stack>
+          </Card>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="assigned-sensor-types" pt="xs">
+          <Card withBorder>
+            <Stack gap="md">
+              <Title order={3}>Assigned Sensor Types</Title>
+              <Text size="sm" c="dimmed">
+                This tab summarizes sensor type availability vs. assignment in
+                this project.
+              </Text>
+              <MantineReactTable table={assignedTable} />
+            </Stack>
+          </Card>
+        </Tabs.Panel>
+      </Tabs>
 
       {/* Temporarily disabled due to performance issues with large datasets */}
       {/* <Card withBorder>
@@ -772,417 +980,453 @@ const ProjectTagExplorer = () => {
             'Tag Pattern Details'
           )
         }
-        size="xl"
+        size="70rem"
       >
         <Stack gap="lg">
           {selectedTagPattern && (
             <>
-              <Card withBorder>
-                <Stack gap="md">
-                  <Group justify="space-between" align="center">
-                    <Title order={4}>Sample Data</Title>
-                    <AdvancedDatePicker
-                      defaultRange="past-3-days"
-                      size="sm"
-                      width={400}
-                    />
-                  </Group>
-                  {tagPatternSamples.data?.sample_tags && (
-                    <Group gap="lg">
-                      <Text size="sm">
-                        <strong>Total Tags:</strong>{' '}
-                        {uniqueTagTypes.data?.find(
-                          (t) => t.tag_pattern === selectedTagPattern,
-                        )?.count || 0}
-                      </Text>
-                      <Text size="sm">
-                        <strong>Sampled Tags:</strong>{' '}
-                        {tagPatternSamples.data.sample_tags.length}
-                      </Text>
-                      <Text size="sm">
-                        <strong>Numeric Tags:</strong>{' '}
-                        {
-                          tagPatternSamples.data.sample_tags.filter(
-                            (tag: any) => tag.is_numeric,
-                          ).length
-                        }
-                      </Text>
-                      <Text size="sm">
-                        <strong>Non-Numeric Tags:</strong>{' '}
-                        {
-                          tagPatternSamples.data.sample_tags.filter(
-                            (tag: any) => !tag.is_numeric,
-                          ).length
-                        }
-                      </Text>
-                    </Group>
-                  )}
-                  {tagPatternSamples.isLoading ? (
-                    <Text>Loading sample data...</Text>
-                  ) : tagPatternSamples.error ? (
-                    <Text c="red">
-                      Error loading sample data:{' '}
-                      {tagPatternSamples.error.message}
+              {/* Pattern with [INT] replaced by computed ranges */}
+              {tagsByPattern.isLoading ? (
+                <Text size="sm">Loading tags…</Text>
+              ) : tagsByPattern.error ? (
+                <Text size="sm" c="red">
+                  Error loading tags
+                </Text>
+              ) : intRanges.length > 0 ? (
+                <Card withBorder>
+                  <Stack gap="xs">
+                    <Text size="sm" fw={500}>
+                      Pattern Ranges
                     </Text>
-                  ) : tagPatternSamples.data?.sample_tags &&
-                    tagPatternSamples.data.sample_tags.length > 0 ? (
-                    <Stack gap="md">
-                      {/* Check if any tags have numeric data */}
+                    <Text size="sm" style={{ wordBreak: 'break-all' }}>
                       {(() => {
-                        const numericTags =
-                          tagPatternSamples.data.sample_tags.filter(
-                            (tag: any) =>
-                              tag.is_numeric && tag.sample_values.length > 0,
-                          )
-                        const nonNumericTags =
-                          tagPatternSamples.data.sample_tags.filter(
-                            (tag: any) =>
-                              !tag.is_numeric && tag.sample_values.length > 0,
-                          )
+                        const parts = (selectedTagPattern || '').split('[INT]')
+                        const nodes: React.ReactNode[] = []
+                        for (let i = 0; i < parts.length; i++) {
+                          nodes.push(parts[i])
+                          if (i < intRanges.length) {
+                            const r = intRanges[i]
+                            const ok =
+                              Number.isFinite(r.min) && Number.isFinite(r.max)
+                            nodes.push(
+                              <Text
+                                key={`range-${i}`}
+                                component="span"
+                                c="blue"
+                                fw={600}
+                              >
+                                [{ok ? `${r.min}-${r.max}` : '—'}]
+                              </Text>,
+                            )
+                          }
+                        }
+                        return <>{nodes}</>
+                      })()}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Based on {tagsByPattern.data?.length || 0} tags matching
+                      this pattern
+                    </Text>
+                  </Stack>
+                </Card>
+              ) : null}
 
-                        return (
-                          <>
-                            {/* Numeric data - show as tabs with histogram and timeseries */}
-                            {numericTags.length > 0 && (
-                              <Tabs defaultValue="timeseries">
-                                <Tabs.List>
-                                  <Tabs.Tab value="timeseries">
-                                    Timeseries
-                                  </Tabs.Tab>
-                                  <Tabs.Tab value="histogram">
-                                    Histogram
-                                  </Tabs.Tab>
-                                </Tabs.List>
+              <Group align="flex-start" grow>
+                {/* Left: Assignment (50%) */}
+                <Card withBorder style={{ flex: 1 }}>
+                  <Stack gap="sm">
+                    <Text fw={500}>Assignment</Text>
+                    <Stack gap="md">
+                      <Group justify="space-between" align="center">
+                        <Text fw={500}>Sensor Type</Text>
+                        <Button
+                          variant="subtle"
+                          size="xs"
+                          leftSection={<IconPlus size={12} />}
+                          onClick={handleCreateSensorType}
+                        >
+                          Add New...
+                        </Button>
+                      </Group>
+                      <Select
+                        placeholder="Select a sensor type"
+                        searchable
+                        clearable
+                        value={patternSensorTypeId}
+                        data={
+                          sensorTypes.data?.map((sensorType: SensorType) => ({
+                            value: sensorType.sensor_type_id.toString(),
+                            label: `${sensorType.name_short} - ${sensorType.name_long}`,
+                            unit: sensorType.unit,
+                          })) || []
+                        }
+                        onChange={(value) => {
+                          setPatternSensorTypeId(value)
+                          if (value && sensorTypes.data) {
+                            const sensorType = sensorTypes.data.find(
+                              (st: SensorType) =>
+                                st.sensor_type_id.toString() === value,
+                            )
+                            setSelectedSensorTypeUnit(sensorType?.unit || null)
+                          } else {
+                            setSelectedSensorTypeUnit(null)
+                          }
+                        }}
+                      />
 
-                                <Tabs.Panel value="timeseries" pt="xs">
-                                  <Plot
-                                    data={numericTags.map((tag: any) => ({
-                                      x: tag.timestamps,
-                                      y: tag.sample_values.map(
-                                        (value: number) =>
-                                          patternUnitScale
-                                            ? value * patternUnitScale
-                                            : value,
-                                      ),
-                                      type: 'scatter',
-                                      mode: 'lines+markers',
-                                      name: tag.tag_name,
-                                      opacity: 0.7,
-                                    }))}
-                                    layout={{
-                                      width: 600,
-                                      height: 300,
-                                      showlegend: false,
-                                      margin: {
-                                        l: 50,
-                                        r: 20,
-                                        t: 20,
-                                        b: 50,
-                                      },
-                                      xaxis: {
-                                        title: 'Time',
-                                        type: 'date',
-                                      },
-                                      yaxis: {
-                                        title: selectedSensorTypeUnit
-                                          ? `Values (${selectedSensorTypeUnit})`
-                                          : 'Values',
-                                      },
-                                    }}
-                                    config={{ displayModeBar: false }}
-                                  />
-                                </Tabs.Panel>
+                      {selectedSensorTypeUnit && (
+                        <Text size="sm" c="blue" fw={500}>
+                          Unit: {selectedSensorTypeUnit}
+                        </Text>
+                      )}
 
-                                <Tabs.Panel value="histogram" pt="xs">
-                                  <Plot
-                                    data={numericTags.map((tag: any) => ({
-                                      x: tag.sample_values.map(
-                                        (value: number) =>
-                                          patternUnitScale
-                                            ? value * patternUnitScale
-                                            : value,
-                                      ),
-                                      type: 'histogram',
-                                      name: tag.tag_name,
-                                      opacity: 0.7,
-                                      nbinsx: 20,
-                                    }))}
-                                    layout={{
-                                      width: 600,
-                                      height: 300,
-                                      showlegend: false,
-                                      margin: {
-                                        l: 50,
-                                        r: 20,
-                                        t: 20,
-                                        b: 50,
-                                      },
-                                      xaxis: {
-                                        title: selectedSensorTypeUnit
-                                          ? `Values (${selectedSensorTypeUnit})`
-                                          : 'Values',
-                                      },
-                                      yaxis: { title: 'Frequency' },
-                                    }}
-                                    config={{ displayModeBar: false }}
-                                  />
-                                </Tabs.Panel>
-                              </Tabs>
-                            )}
+                      <Group gap="md" grow>
+                        <div>
+                          <Tooltip
+                            label="e.g., 0.000001 to convert W to MW"
+                            position="top"
+                          >
+                            <Text
+                              size="sm"
+                              fw={500}
+                              style={{ marginBottom: '8px' }}
+                            >
+                              Unit Scale Multiplier
+                            </Text>
+                          </Tooltip>
+                          <Group gap="xs" align="center">
+                            <Text size="sm">SCADA value ×</Text>
+                            <NumberInput
+                              placeholder="1"
+                              value={patternUnitScale || undefined}
+                              onChange={(value) =>
+                                setPatternUnitScale(
+                                  typeof value === 'number' ? value : null,
+                                )
+                              }
+                              min={0}
+                              step={0.000001}
+                              decimalScale={6}
+                              style={{ width: '120px' }}
+                              size="xs"
+                            />
+                            <Text size="sm">
+                              → {selectedSensorTypeUnit || 'Unit'}
+                            </Text>
+                          </Group>
+                        </div>
+                      </Group>
 
-                            {/* Non-numeric data - show as expanded list with unique values */}
-                            {nonNumericTags.length > 0 && (
-                              <Card withBorder variant="light">
-                                <Stack gap="sm">
-                                  <Text fw={500}>Non-Numeric Values</Text>
-                                  <div
-                                    style={{
-                                      maxHeight: '300px',
-                                      overflowY: 'auto',
-                                      border: '1px solid #e0e0e0',
-                                      borderRadius: '4px',
-                                      padding: '8px',
-                                    }}
-                                  >
-                                    {nonNumericTags.map((tag: any) => (
-                                      <div
-                                        key={tag.tag_id}
-                                        style={{ marginBottom: '12px' }}
-                                      >
-                                        <Text size="sm" fw={500} c="blue">
-                                          {tag.tag_name}:
-                                        </Text>
-                                        <Text
-                                          size="xs"
-                                          c="dimmed"
-                                          style={{
-                                            marginLeft: '16px',
-                                            marginBottom: '4px',
-                                          }}
-                                        >
-                                          {tag.sample_values.length} total
-                                          values,{' '}
-                                          {new Set(tag.sample_values).size}{' '}
-                                          unique
-                                        </Text>
-                                        <Group
-                                          gap="xs"
-                                          wrap="wrap"
-                                          style={{ marginLeft: '16px' }}
-                                        >
-                                          {/* Show unique values instead of all values */}
-                                          {Array.from(
-                                            new Set(tag.sample_values),
-                                          )
-                                            .slice(0, 20)
-                                            .map(
-                                              (
-                                                value: any,
-                                                valueIndex: number,
-                                              ) => (
-                                                <Badge
-                                                  key={valueIndex}
-                                                  size="xs"
-                                                  variant="light"
-                                                  color="gray"
-                                                >
-                                                  {String(value)}
-                                                </Badge>
-                                              ),
-                                            )}
-                                          {new Set(tag.sample_values).size >
-                                            20 && (
-                                            <Text size="xs" c="dimmed">
-                                              +
-                                              {new Set(tag.sample_values).size -
-                                                20}{' '}
-                                              more unique values...
-                                            </Text>
-                                          )}
-                                        </Group>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </Stack>
-                              </Card>
-                            )}
+                      <Group gap="md" grow>
+                        <div>
+                          <Tooltip
+                            label="Usually null/empty (not often used)"
+                            position="top"
+                          >
+                            <Text
+                              size="sm"
+                              fw={500}
+                              style={{ marginBottom: '8px' }}
+                            >
+                              Unit Offset
+                            </Text>
+                          </Tooltip>
+                          <NumberInput
+                            placeholder="0 (default)"
+                            value={patternUnitOffset || undefined}
+                            onChange={(value) =>
+                              setPatternUnitOffset(
+                                typeof value === 'number' ? value : null,
+                              )
+                            }
+                            step={0.01}
+                            decimalScale={2}
+                            size="xs"
+                          />
+                        </div>
+                      </Group>
+                      <Button
+                        variant="light"
+                        color="blue"
+                        onClick={handleAssignPatternClick}
+                        loading={assignPatternSensorType.isPending}
+                        disabled={!patternSensorTypeId}
+                        fullWidth
+                      >
+                        Assign to Pattern
+                      </Button>
+                      <Button variant="subtle" onClick={closeDetails} fullWidth>
+                        Cancel
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Card>
 
-                            {/* Show message when no numeric data available */}
-                            {numericTags.length === 0 &&
-                              nonNumericTags.length === 0 && (
+                {/* Right: Sample Data (50%) */}
+                <Card withBorder style={{ flex: 1 }}>
+                  <Stack gap="md">
+                    <Group justify="space-between" align="center">
+                      <Title order={4}>Sample Data</Title>
+                      <AdvancedDatePicker
+                        defaultRange="past-3-days"
+                        size="sm"
+                        width={400}
+                      />
+                    </Group>
+                    {tagPatternSamples.data?.sample_tags && (
+                      <Group gap="lg">
+                        <Text size="sm">
+                          <strong>Total Tags:</strong>{' '}
+                          {uniqueTagTypes.data?.find(
+                            (t) => t.tag_pattern === selectedTagPattern,
+                          )?.count || 0}
+                        </Text>
+                        <Text size="sm">
+                          <strong>Sampled Tags:</strong>{' '}
+                          {tagPatternSamples.data.sample_tags.length}
+                        </Text>
+                        <Text size="sm">
+                          <strong>Numeric Tags:</strong>{' '}
+                          {
+                            tagPatternSamples.data.sample_tags.filter(
+                              (tag: any) => tag.is_numeric,
+                            ).length
+                          }
+                        </Text>
+                        <Text size="sm">
+                          <strong>Non-Numeric Tags:</strong>{' '}
+                          {
+                            tagPatternSamples.data.sample_tags.filter(
+                              (tag: any) => !tag.is_numeric,
+                            ).length
+                          }
+                        </Text>
+                      </Group>
+                    )}
+                    {tagPatternSamples.isLoading ? (
+                      <Text>Loading sample data...</Text>
+                    ) : tagPatternSamples.error ? (
+                      <Text c="red">
+                        Error loading sample data:{' '}
+                        {tagPatternSamples.error.message}
+                      </Text>
+                    ) : tagPatternSamples.data?.sample_tags &&
+                      tagPatternSamples.data.sample_tags.length > 0 ? (
+                      <Stack gap="md">
+                        {(() => {
+                          const numericTags =
+                            tagPatternSamples.data.sample_tags.filter(
+                              (tag: any) =>
+                                tag.is_numeric && tag.sample_values.length > 0,
+                            )
+                          const nonNumericTags =
+                            tagPatternSamples.data.sample_tags.filter(
+                              (tag: any) =>
+                                !tag.is_numeric && tag.sample_values.length > 0,
+                            )
+
+                          return (
+                            <>
+                              {numericTags.length > 0 && (
+                                <Tabs defaultValue="timeseries">
+                                  <Tabs.List>
+                                    <Tabs.Tab value="timeseries">
+                                      Timeseries
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="histogram">
+                                      Histogram
+                                    </Tabs.Tab>
+                                  </Tabs.List>
+
+                                  <Tabs.Panel value="timeseries" pt="xs">
+                                    <Plot
+                                      data={numericTags.map((tag: any) => ({
+                                        x: tag.timestamps,
+                                        y: tag.sample_values.map(
+                                          (value: number) => {
+                                            let transformedValue = value
+                                            if (patternUnitScale) {
+                                              transformedValue =
+                                                transformedValue *
+                                                patternUnitScale
+                                            }
+                                            if (patternUnitOffset) {
+                                              transformedValue =
+                                                transformedValue +
+                                                patternUnitOffset
+                                            }
+                                            return transformedValue
+                                          },
+                                        ),
+                                        type: 'scatter',
+                                        mode: 'lines+markers',
+                                        name: tag.tag_name,
+                                        opacity: 0.7,
+                                      }))}
+                                      layout={{
+                                        width: 600,
+                                        height: 300,
+                                        showlegend: false,
+                                        margin: { l: 50, r: 20, t: 20, b: 50 },
+                                        xaxis: { title: 'Time', type: 'date' },
+                                        yaxis: {
+                                          title: selectedSensorTypeUnit
+                                            ? `Values (${selectedSensorTypeUnit})`
+                                            : 'Values',
+                                        },
+                                      }}
+                                      config={{ displayModeBar: false }}
+                                    />
+                                  </Tabs.Panel>
+
+                                  <Tabs.Panel value="histogram" pt="xs">
+                                    <Plot
+                                      data={numericTags.map((tag: any) => ({
+                                        x: tag.sample_values.map(
+                                          (value: number) => {
+                                            let transformedValue = value
+                                            if (patternUnitScale) {
+                                              transformedValue =
+                                                transformedValue *
+                                                patternUnitScale
+                                            }
+                                            if (patternUnitOffset) {
+                                              transformedValue =
+                                                transformedValue +
+                                                patternUnitOffset
+                                            }
+                                            return transformedValue
+                                          },
+                                        ),
+                                        type: 'histogram',
+                                        name: tag.tag_name,
+                                        opacity: 0.7,
+                                        nbinsx: 20,
+                                      }))}
+                                      layout={{
+                                        width: 600,
+                                        height: 300,
+                                        showlegend: false,
+                                        margin: { l: 50, r: 20, t: 20, b: 50 },
+                                        xaxis: {
+                                          title: selectedSensorTypeUnit
+                                            ? `Values (${selectedSensorTypeUnit})`
+                                            : 'Values',
+                                        },
+                                        yaxis: { title: 'Frequency' },
+                                      }}
+                                      config={{ displayModeBar: false }}
+                                    />
+                                  </Tabs.Panel>
+                                </Tabs>
+                              )}
+
+                              {nonNumericTags.length > 0 && (
                                 <Card withBorder variant="light">
                                   <Stack gap="sm">
-                                    <Text fw={500}>
-                                      No Sample Data Available
-                                    </Text>
-                                    <Text size="sm" c="dimmed">
-                                      No timeseries data was found for the
-                                      selected tags in the specified date range.
-                                    </Text>
+                                    <Text fw={500}>Non-Numeric Values</Text>
+                                    <div
+                                      style={{
+                                        maxHeight: '300px',
+                                        overflowY: 'auto',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '4px',
+                                        padding: '8px',
+                                      }}
+                                    >
+                                      {nonNumericTags.map((tag: any) => (
+                                        <div
+                                          key={tag.tag_id}
+                                          style={{ marginBottom: '12px' }}
+                                        >
+                                          <Text size="sm" fw={500} c="blue">
+                                            {tag.tag_name}:
+                                          </Text>
+                                          <Text
+                                            size="xs"
+                                            c="dimmed"
+                                            style={{
+                                              marginLeft: '16px',
+                                              marginBottom: '4px',
+                                            }}
+                                          >
+                                            {tag.sample_values.length} total
+                                            values,{' '}
+                                            {new Set(tag.sample_values).size}{' '}
+                                            unique
+                                          </Text>
+                                          <Group
+                                            gap="xs"
+                                            wrap="wrap"
+                                            style={{ marginLeft: '16px' }}
+                                          >
+                                            {Array.from(
+                                              new Set(tag.sample_values),
+                                            )
+                                              .slice(0, 20)
+                                              .map(
+                                                (
+                                                  value: any,
+                                                  valueIndex: number,
+                                                ) => (
+                                                  <Badge
+                                                    key={valueIndex}
+                                                    size="xs"
+                                                    variant="light"
+                                                    color="gray"
+                                                  >
+                                                    {String(value)}
+                                                  </Badge>
+                                                ),
+                                              )}
+                                            {new Set(tag.sample_values).size >
+                                              20 && (
+                                              <Text size="xs" c="dimmed">
+                                                +
+                                                {new Set(tag.sample_values)
+                                                  .size - 20}{' '}
+                                                more unique values...
+                                              </Text>
+                                            )}
+                                          </Group>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </Stack>
                                 </Card>
                               )}
 
-                            {/* Assignment section */}
-                            <Card withBorder variant="light">
-                              <Stack gap="sm">
-                                <Text fw={500}>Assignment</Text>
-                                <Stack gap="md">
-                                  <Group justify="space-between" align="center">
-                                    <Text fw={500}>Sensor Type</Text>
-                                    <Button
-                                      variant="subtle"
-                                      size="xs"
-                                      leftSection={<IconPlus size={12} />}
-                                      onClick={handleCreateSensorType}
-                                    >
-                                      Add New...
-                                    </Button>
-                                  </Group>
-                                  <Select
-                                    placeholder="Select a sensor type"
-                                    searchable
-                                    clearable
-                                    value={patternSensorTypeId}
-                                    data={
-                                      sensorTypes.data?.map(
-                                        (sensorType: SensorType) => ({
-                                          value:
-                                            sensorType.sensor_type_id.toString(),
-                                          label: `${sensorType.name_short} - ${sensorType.name_long}`,
-                                          unit: sensorType.unit,
-                                        }),
-                                      ) || []
-                                    }
-                                    onChange={(value) => {
-                                      setPatternSensorTypeId(value)
-
-                                      // Set the unit from the selected sensor type
-                                      if (value && sensorTypes.data) {
-                                        const sensorType =
-                                          sensorTypes.data.find(
-                                            (st: SensorType) =>
-                                              st.sensor_type_id.toString() ===
-                                              value,
-                                          )
-                                        setSelectedSensorTypeUnit(
-                                          sensorType?.unit || null,
-                                        )
-                                      } else {
-                                        setSelectedSensorTypeUnit(null)
-                                      }
-                                    }}
-                                  />
-
-                                  {selectedSensorTypeUnit && (
-                                    <Text size="sm" c="blue" fw={500}>
-                                      Unit: {selectedSensorTypeUnit}
-                                    </Text>
-                                  )}
-
-                                  <Group gap="md" grow>
-                                    <div>
-                                      <Tooltip
-                                        label="e.g., 0.000001 to convert MW to W"
-                                        position="top"
-                                      >
-                                        <Text
-                                          size="sm"
-                                          fw={500}
-                                          style={{ marginBottom: '8px' }}
-                                        >
-                                          Unit Scale Multiplier
-                                        </Text>
-                                      </Tooltip>
-                                      <Group gap="xs" align="center">
-                                        <Text size="sm">SCADA value ×</Text>
-                                        <NumberInput
-                                          placeholder="1"
-                                          value={patternUnitScale || undefined}
-                                          onChange={(value) =>
-                                            setPatternUnitScale(
-                                              typeof value === 'number'
-                                                ? value
-                                                : null,
-                                            )
-                                          }
-                                          min={0}
-                                          step={0.000001}
-                                          decimalScale={6}
-                                          style={{ width: '120px' }}
-                                          size="xs"
-                                        />
-                                        <Text size="sm">
-                                          → {selectedSensorTypeUnit || 'Unit'}
-                                        </Text>
-                                      </Group>
-                                    </div>
-
-                                    <div>
-                                      <Tooltip
-                                        label="Usually null/empty (not often used)"
-                                        position="top"
-                                      >
-                                        <Text
-                                          size="sm"
-                                          fw={500}
-                                          style={{ marginBottom: '8px' }}
-                                        >
-                                          Unit Offset
-                                        </Text>
-                                      </Tooltip>
-                                      <NumberInput
-                                        placeholder="0 (default)"
-                                        value={patternUnitOffset || undefined}
-                                        onChange={(value) =>
-                                          setPatternUnitOffset(
-                                            typeof value === 'number'
-                                              ? value
-                                              : null,
-                                          )
-                                        }
-                                        step={0.01}
-                                        decimalScale={2}
-                                        size="xs"
-                                      />
-                                    </div>
-                                  </Group>
-
-                                  <Button
-                                    variant="light"
-                                    color="blue"
-                                    onClick={handleAssignPatternClick}
-                                    loading={assignPatternSensorType.isPending}
-                                    disabled={!patternSensorTypeId}
-                                    fullWidth
-                                  >
-                                    Assign to Pattern
-                                  </Button>
-                                  <Button
-                                    variant="subtle"
-                                    onClick={closeDetails}
-                                    fullWidth
-                                  >
-                                    Cancel
-                                  </Button>
-                                </Stack>
-                              </Stack>
-                            </Card>
-                          </>
-                        )
-                      })()}
-                    </Stack>
-                  ) : (
-                    <Text c="dimmed">
-                      No sample data available for this pattern. This could be
-                      because:
-                      <br />• No tags match this pattern in the database
-                      <br />• The tags exist but have no timeseries data in the
-                      selected date range
-                    </Text>
-                  )}
-                </Stack>
-              </Card>
+                              {numericTags.length === 0 &&
+                                nonNumericTags.length === 0 && (
+                                  <Card withBorder variant="light">
+                                    <Stack gap="sm">
+                                      <Text fw={500}>
+                                        No Sample Data Available
+                                      </Text>
+                                      <Text size="sm" c="dimmed">
+                                        No timeseries data was found for the
+                                        selected tags in the specified date
+                                        range.
+                                      </Text>
+                                    </Stack>
+                                  </Card>
+                                )}
+                            </>
+                          )
+                        })()}
+                      </Stack>
+                    ) : (
+                      <Text c="dimmed">
+                        No sample data available for this pattern. This could be
+                        because:
+                        <br />• No tags match this pattern in the database
+                        <br />• The tags exist but have no timeseries data in
+                        the selected date range
+                      </Text>
+                    )}
+                  </Stack>
+                </Card>
+              </Group>
             </>
           )}
         </Stack>
@@ -1193,7 +1437,6 @@ const ProjectTagExplorer = () => {
         opened={isConfirmOpen}
         onClose={closeConfirm}
         title="Confirm Pattern Assignment"
-        size="sm"
       >
         <Stack gap="md">
           <Text>
@@ -1357,6 +1600,11 @@ const ProjectTagExplorer = () => {
                 </Stack>
               </Popover.Dropdown>
             </Popover>
+            <TextInput
+              label="Description"
+              placeholder="Optional description of the sensor type"
+              {...createSensorTypeForm.getInputProps('description')}
+            />
             <Group justify="flex-end" gap="sm">
               <Button
                 variant="subtle"

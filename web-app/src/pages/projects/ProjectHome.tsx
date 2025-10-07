@@ -1,14 +1,16 @@
+import { useGetUserSelf } from '@/api/admin'
+import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import {
   useGetContractKPIs,
   useGetOperationalKPIData,
 } from '@/api/v1/operational/kpi_data'
-import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetCountOpenEvents } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useGetProject, useGetProjects } from '@/api/v1/operational/projects'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
+import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
 import KPICard, { EmptyKPICard } from '@/components/KPICard'
 import { PageLoader } from '@/components/Loading'
@@ -66,11 +68,15 @@ import {
   IconZoomIn,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { PlotRelayoutEvent } from 'plotly.js'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import classes from './ProjectHome.module.css'
+// Extend dayjs with timezone support
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const PowerPlotBESS = () => {
   const { projectId } = useParams()
@@ -143,18 +149,31 @@ const PowerPlotBESS = () => {
     const newEndTime = event['xaxis.range[1]']
 
     if (newStartTime && newEndTime) {
+      // Convert Plotly time values to proper ISO strings
+      // Plotly returns time values as local time strings, but we need to interpret them as project timezone
+      const projectTimezone = project.data?.time_zone || 'UTC'
+
+      const newStartTimeStr =
+        typeof newStartTime === 'number'
+          ? new Date(newStartTime).toISOString()
+          : dayjs.tz(String(newStartTime), projectTimezone).utc().toISOString()
+      const newEndTimeStr =
+        typeof newEndTime === 'number'
+          ? new Date(newEndTime).toISOString()
+          : dayjs.tz(String(newEndTime), projectTimezone).utc().toISOString()
+
       const currentStart = dayjs(startTime)
       const currentEnd = dayjs(endTime)
-      const newStart = dayjs(newStartTime)
-      const newEnd = dayjs(newEndTime)
+      const newStart = dayjs(newStartTimeStr)
+      const newEnd = dayjs(newEndTimeStr)
 
       if (
         Math.abs(currentStart.diff(newStart, 'minute')) > 1 ||
         Math.abs(currentEnd.diff(newEnd, 'minute')) > 1
       ) {
-        setStartTime(newStartTime.toString())
-        setEndTime(newEndTime.toString())
-        setInterval(getInterval(newStartTime.toString(), newEndTime.toString()))
+        setStartTime(newStartTimeStr)
+        setEndTime(newEndTimeStr)
+        setInterval(getInterval(newStartTimeStr, newEndTimeStr))
       }
     }
   }
@@ -262,6 +281,7 @@ const PowerPlotBESS = () => {
               tickformat: '.0%',
             },
             xaxis: {
+              type: 'date',
               fixedrange: false,
               tickangle: 0,
             },
@@ -306,35 +326,26 @@ const CurrentTime = ({ timezone }: { timezone: string }) => {
   )
 }
 
-const KPICards = ({ stackWidth }: { stackWidth: number }) => {
+const KPICards = () => {
   const { projectId } = useParams()
-  const isPageVisible = usePageVisible()
-  // Index of the current step (which card is at the left edge).
-  const [index, setIndex] = useState(0)
-  // A reference to the container for toggling transition on/off.
-  const containerRef = useRef<HTMLDivElement>(null)
-  // Width of a single card (plus any margin) in px:
-  const CARD_WIDTH = 410 // match your .carousel-card width
-  // Movement interval: 4 seconds total (1s slide + 3s pause).
-  const STEP_INTERVAL_MS = 4000
-  // Animation (slide) duration in seconds, matches .5s or 1s in CSS:
-  const SLIDE_DURATION_SEC = 1
+  const container = useElementSize()
+  const content = useElementSize()
+  const [rotationOffset, setRotationOffset] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+
+  const { data: user } = useGetUserSelf({})
 
   const project = useGetProject({
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const kpiInstances = useGetKPIInstances({
-    queryParams: {
-      project_ids: [projectId || '-1'],
-      deep: true,
-    },
-    queryOptions: { enabled: !!projectId },
+  const favoritedKPITypes = useGetUserFavoriteKPITypes({
+    userId: user?.user_id,
   })
 
-  const kpiTypeIds = kpiInstances.data
-    ?.filter((kpiInstance) => kpiInstance.is_visible)
-    .map((kpiInstance) => kpiInstance.kpi_type_id)
+  const kpiTypeIds = favoritedKPITypes.data?.map(
+    (kpiInstance) => kpiInstance.kpi_type_id,
+  )
 
   const data = useGetKPISummaryCards({
     pathParams: { projectId: projectId || '-1' },
@@ -342,72 +353,43 @@ const KPICards = ({ stackWidth }: { stackWidth: number }) => {
       kpi_type_ids: kpiTypeIds,
     },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && !!favoritedKPITypes.data,
     },
   })
+
+  const contentIsGreaterThanContainer = content.width > container.width
+
   const filteredData = data.data?.filter(
     (kpi) => kpi.value !== null && kpi.value !== undefined,
   )
 
-  const originalItems = filteredData?.map((kpi) => kpi)
+  const items = filteredData?.map((kpi) => kpi)
 
-  const items = [...(originalItems || []), ...(originalItems || [])]
+  const rotatedItems = items
+    ?.slice(rotationOffset)
+    .concat(items?.slice(0, rotationOffset))
 
-  // NEW: track whether user is hovering
-  const [hovered, setHovered] = useState(false)
-
+  // Rotate items every second when content is greater than container and not hovered
   useEffect(() => {
-    if (hovered || !isPageVisible) {
-      // If hovered, do not start the interval; effectively pause
-      return
-    } else if (stackWidth / CARD_WIDTH + 0.25 >= (originalItems?.length ?? 0)) {
-      return
-    } else if (index > (originalItems?.length ?? 0)) {
-      const handle = setTimeout(() => {
-        setIndex((prev) => prev + 1)
-      }, 0)
-      return () => clearTimeout(handle)
+    if (!contentIsGreaterThanContainer || isHovered || !items?.length) return
+
+    const interval = setInterval(() => {
+      setRotationOffset((prev) => (prev + 1) % items.length)
+    }, 4000)
+
+    return () => {
+      clearInterval(interval)
     }
-    const intervalId = setInterval(() => {
-      setIndex((prev) => prev + 1)
-    }, STEP_INTERVAL_MS)
+  }, [contentIsGreaterThanContainer, items?.length, isHovered])
 
-    return () => clearInterval(intervalId)
-  }, [hovered, stackWidth, originalItems?.length, isPageVisible, index])
-
-  // If we've scrolled through the first set of items, reset seamlessly
+  // Reset rotation offset when content is no longer greater than container
   useEffect(() => {
-    // Number of "real" items
-    const halfLength = originalItems?.length ?? 0
-    // If index is beyond the first set, snap back by halfLength
-    // so visually there's no jump (because of duplicated items).
-    if (index > halfLength) {
-      // Turn off transition briefly so the snap is invisible
-      disableTransition()
-      setIndex(0)
-
-      // Re-enable transition after snapping
-      requestAnimationFrame(() => {
-        enableTransition()
-      })
+    if (!contentIsGreaterThanContainer) {
+      setRotationOffset(0)
     }
-  }, [index, originalItems?.length])
+  }, [contentIsGreaterThanContainer])
 
-  // Helper: temporarily remove transition for a 0-jump
-  const disableTransition = () => {
-    if (containerRef.current) {
-      containerRef.current.style.transition = 'none'
-    }
-  }
-
-  // Helper: re-enable transition
-  const enableTransition = () => {
-    if (containerRef.current) {
-      containerRef.current.style.transition = `transform ${SLIDE_DURATION_SEC}s`
-    }
-  }
-
-  if (project.isLoading || data.isLoading) {
+  if (project.isLoading || favoritedKPITypes.isLoading || data.isLoading) {
     return (
       <Skeleton radius="md">
         <EmptyKPICard />
@@ -416,53 +398,24 @@ const KPICards = ({ stackWidth }: { stackWidth: number }) => {
   }
 
   return (
-    <div className={classes.carouselContainer}>
-      <div
-        className={classes.carouselContent}
-        ref={containerRef}
-        style={{
-          // Translate left by index * cardWidth
-          transform: `translateX(-${index * CARD_WIDTH}px)`,
-          // Transition is set in CSS, but we can also set/override inline here
-        }}
-      >
-        {items.map((kpi, i) => (
-          <div
-            className={classes.carouselCard}
-            key={i}
-            // Toggle hover state
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-          >
-            <KPICard key={i} {...kpi} link={`kpis/type/${kpi.kpi_type_id}`} />
-          </div>
+    <Group
+      ref={container.ref}
+      style={{ overflow: 'hidden' }}
+      w="100%"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Group wrap="nowrap" ref={content.ref}>
+        {rotatedItems?.map((kpi) => (
+          <KPICard
+            key={kpi.kpi_type_id}
+            {...kpi}
+            link={`kpis/type/${kpi.kpi_type_id}`}
+          />
         ))}
-      </div>
-    </div>
+      </Group>
+    </Group>
   )
-}
-
-/**
- * Returns `true` if the page/tab is currently visible (i.e., not minimized or in another tab).
- */
-function usePageVisible() {
-  const [pageVisible, setPageVisible] = useState(!document.hidden)
-
-  useEffect(() => {
-    function handleVisibilityChange() {
-      // If the document is hidden, set `false`, otherwise `true`
-      setPageVisible(!document.hidden)
-    }
-
-    // Listen for visibilitychange events
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [])
-
-  return pageVisible
 }
 
 const EventTable = () => {
@@ -1915,6 +1868,7 @@ const ProjectHome = () => {
   const stackRef = useElementSize()
   const [_contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
   const project = useGetProject({
     pathParams: { projectId: projectId || '-1' },
@@ -1968,9 +1922,21 @@ const ProjectHome = () => {
             enabled={kioskModeEnabled}
             setEnabled={setKioskModeEnabled}
           />
+          <SegmentedControl
+            size="xs"
+            value={viewMode}
+            onChange={(value) => setViewMode(value as 'kpis' | 'devices')}
+            data={[
+              { label: 'KPIs', value: 'kpis' },
+              { label: 'System', value: 'devices' },
+            ]}
+          />
         </Group>
       </Group>
-      <KPICards stackWidth={stackRef.width} />
+
+      <Box style={{ minHeight: 'fit-content', flexShrink: 0 }}>
+        {viewMode === 'kpis' ? <KPICards /> : <DeviceTypeOverview />}
+      </Box>
       <Group flex={1} align="start">
         <Stack h="100%" flex={1}>
           {/* Performance card - hidden for BESS projects */}

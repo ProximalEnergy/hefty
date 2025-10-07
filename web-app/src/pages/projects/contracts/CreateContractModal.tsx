@@ -1,3 +1,4 @@
+import { useGetUserSelf } from '@/api/admin'
 import { useGetProjectDocuments } from '@/api/v1/operational/documents'
 import {
   useAnalyzeContractDocument,
@@ -184,6 +185,8 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const { data: project } = useGetProject({
     pathParams: { projectId: projectId || '-1' },
   })
+
+  const { data: currentUser } = useGetUserSelf({})
 
   const { data: categories, isLoading: categoriesLoading } =
     useGetContractCategories()
@@ -522,7 +525,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       await createContract.mutateAsync({
         project_id: projectId,
         document_id: selectedDocument,
-        company_id_provider: companyResponse.data.company_id,
+        company_id_provider: currentUser?.company_id!,
         company_id_counter: companyResponse.data.company_id,
         execution_date: formattedExecutionDate,
         contract_category_name_short: contractCategory || undefined,

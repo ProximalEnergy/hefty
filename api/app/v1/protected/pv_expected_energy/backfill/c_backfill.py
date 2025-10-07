@@ -16,6 +16,7 @@ class BackfillRequest(BaseModel):
     dc_wiring_to_combiner: str | None = "target_stc"
     dc_wiring_to_inverter: str | None = "target_stc"
     use_poa_only: bool | None = False
+    use_median_irr_sensor: bool | None = False
 
 
 # --- Routes ---
@@ -64,6 +65,8 @@ def backfill_expected_energy_model(
         kwargs["dc_wiring_to_inverter"] = request.dc_wiring_to_inverter
     if request.use_poa_only is not None:
         kwargs["use_poa_only"] = request.use_poa_only
+    if request.use_median_irr_sensor is not None:
+        kwargs["use_median_irr_sensor"] = request.use_median_irr_sensor
 
     logging.info("kwargs: %s", kwargs)
 

@@ -4,6 +4,9 @@ from datetime import timedelta
 
 import httpx
 import sqlalchemy as sa
+from core.database import Base
+from core.enumerations import ProjectStatusType
+from core.models import Project as DBProject
 from fastapi import HTTPException
 from shapely.geometry import Point
 from sqlalchemy import Interval
@@ -20,9 +23,6 @@ from app.core.internal_comms.comms import (
     send_project_creation_notification,
 )
 from app.interfaces import Project, ProjectCreate
-from core.database import Base
-from core.enumerations import ProjectStatusType
-from core.models import Project as DBProject
 
 logger = logging.getLogger(__name__)
 

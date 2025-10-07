@@ -1,12 +1,12 @@
 import datetime
 
+import core.models as models
 import pandas as pd
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import core
-import core.models as models
 from app import utils
 from app.dependencies import get_db, get_project, get_project_db
 
@@ -91,6 +91,12 @@ async def get_meta_analysis(
     event_data = core.crud.project.events.get_windowed_events(
         db=project_db, start=start, end=end
     )
+    if len(event_data) == 0:
+        return EventMetaData(
+            metrics=[],
+            daily_totals={},
+            device_totals=[],
+        )
     devices = core.crud.project.devices.get_project_devices(
         project_db
     ).pandas_dataframe(index="device_id")

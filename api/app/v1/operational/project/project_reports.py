@@ -72,9 +72,7 @@ async def get_pcs_apparent_vs_voltage(
             ]
         )
     )
-    cec_pv_inverters = await get_cec_pv_inverters(
-        db, cec_pv_inverter_ids=cec_pv_inverter_ids
-    )
+    await get_cec_pv_inverters(db, cec_pv_inverter_ids=cec_pv_inverter_ids)
 
     out = []
     for col in df_voltage.columns.astype(int):

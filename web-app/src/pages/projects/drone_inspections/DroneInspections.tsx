@@ -24,6 +24,7 @@ import {
   Grid,
   Group,
   Image,
+  Loader,
   ScrollArea,
   Stack,
   Text,
@@ -192,14 +193,11 @@ const DroneInspections: React.FC = () => {
     useState<DroneInspection | null>(null)
 
   useEffect(() => {
-    if (
-      !selectedInspection &&
-      sortedInspections &&
-      sortedInspections.length > 0
-    ) {
+    if (sortedInspections && sortedInspections.length > 0) {
+      // Always set to the latest inspection (first in sorted array)
       setSelectedInspection(sortedInspections[0])
     }
-  }, [sortedInspections, selectedInspection])
+  }, [sortedInspections])
 
   const {
     data: anomalies,
@@ -341,7 +339,7 @@ const DroneInspections: React.FC = () => {
                   }}
                 >
                   {/* Map as Background */}
-                  {anomalies && (
+                  {anomalies ? (
                     <Box
                       style={{
                         position: 'absolute',
@@ -353,6 +351,25 @@ const DroneInspections: React.FC = () => {
                       }}
                     >
                       <DroneInspectionsMap anomalies={anomalies} />
+                    </Box>
+                  ) : (
+                    <Box
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'var(--mantine-color-gray-0)',
+                      }}
+                    >
+                      <Stack align="center" gap="md">
+                        <Loader size="lg" />
+                      </Stack>
                     </Box>
                   )}
 

@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from core.enumerations import UserTypeEnum
 from fastapi import Depends, HTTPException, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +8,6 @@ from app._crud.admin.user_permissions import get_user_permissions
 from app._dependencies.authentication import get_user
 from app.dependencies import get_async_db
 from app.interfaces import UserAuthed
-from core.enumerations import UserTypeEnum
 
 
 async def require_jwt_or_api_superadmin(*, user: UserAuthed = Depends(get_user)):

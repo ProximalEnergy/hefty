@@ -1,8 +1,5 @@
-import warnings
-
-warnings.simplefilter("always", DeprecationWarning)
-
 import tomllib
+import warnings
 
 import sentry_sdk
 import uvicorn
@@ -13,6 +10,8 @@ from fastapi_mcp import FastApiMCP
 from app import settings
 from app.logger import logger
 from app.v1 import v1
+
+warnings.simplefilter("always", DeprecationWarning)
 
 if settings.ENVIRONMENT in ["staging", "production"]:
     sentry_config = {
@@ -51,6 +50,8 @@ app.add_middleware(
         "https://app.proximal.energy",  # Production
         "https://staging.d1waz5kiczd3n9.amplifyapp.com",  # Staging
         "http://localhost:5173",  # Local development
+        "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
+        "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
     ],
     allow_credentials=True,
     allow_methods=["*"],

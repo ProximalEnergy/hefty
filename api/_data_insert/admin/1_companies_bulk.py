@@ -119,7 +119,7 @@ def main():
 
     # Display all companies that will be inserted
     for i, company in enumerate(COMPANIES, 1):
-        company_short = create_company_name_short(company)
+        create_company_name_short(company)
 
     # Proceed with bulk insertion
     logging.info("Proceeding with bulk insertion...")

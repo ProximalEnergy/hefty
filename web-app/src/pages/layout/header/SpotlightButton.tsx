@@ -1,6 +1,6 @@
+import { searchActions } from '@/components/Spotlight'
 import { ActionIcon, Tooltip } from '@mantine/core'
 import { useOs } from '@mantine/hooks'
-import { spotlight } from '@mantine/spotlight'
 import { IconSearch } from '@tabler/icons-react'
 
 const SpotlightButton = () => {
@@ -14,7 +14,7 @@ const SpotlightButton = () => {
       <ActionIcon
         variant="default"
         size="lg"
-        onClick={spotlight.open}
+        onClick={searchActions.open}
         aria-label={`Open search (${shortcutText})`}
       >
         <IconSearch size={18} stroke={1.5} />

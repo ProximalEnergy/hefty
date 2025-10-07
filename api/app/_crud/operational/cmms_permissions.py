@@ -1,11 +1,10 @@
 from collections.abc import Sequence
 from uuid import UUID
 
+from core.models import CMMSIntegration, CMMSPermission
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
-
-from core.models import CMMSIntegration, CMMSPermission
 
 
 async def get_cmms_permissions_by_project_id(

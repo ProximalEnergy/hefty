@@ -17,7 +17,7 @@ def send_google_chat_message(
     """
 
     payload = {"text": message}
-    response = requests.post(
+    requests.post(
         webhook_url,
         json=payload,
         headers={"Content-Type": "application/json"},

@@ -2,6 +2,9 @@
 echo "Updating web-app subtree..."
 git subtree pull --prefix=web-app https://github.com/ProximalEnergy/web-app dev --squash
 
+echo "Updating core subtree..."
+git subtree pull --prefix=core https://github.com/ProximalEnergy/core main --squash
+
 echo "Updating api subtree..."
 git subtree pull --prefix=api https://github.com/ProximalEnergy/api dev --squash
 
