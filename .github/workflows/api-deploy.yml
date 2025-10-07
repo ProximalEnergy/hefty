@@ -3,7 +3,6 @@ name: Deploy API to Elastic Beanstalk
 on:
   push:
     branches:
-      - dev
       - staging
       - main
       - sandbox
@@ -76,11 +75,6 @@ jobs:
             echo "ENV_NAME=${{ vars.STAGING_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
             echo "VERSION_PREFIX=staging" >> $GITHUB_ENV
             echo "Set staging environment variables."
-          elif [ "$BRANCH_NAME" = "dev" ]; then
-            echo "ENVIRONMENT=dev" >> $GITHUB_ENV
-            echo "ENV_NAME=${{ vars.DEV_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
-            echo "VERSION_PREFIX=dev" >> $GITHUB_ENV
-            echo "Set dev environment variables."
           elif [ "$BRANCH_NAME" = "sandbox" ]; then
             echo "ENVIRONMENT=sandbox" >> $GITHUB_ENV
             echo "ENV_NAME=${{ vars.SANDBOX_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
@@ -171,9 +165,6 @@ jobs:
           elif [ "${{ needs.deploy.outputs.branch_name }}" = "staging" ]; then
             echo "BASE_URL=${{ secrets.STAGING_BASE_URL }}" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
-          elif [ "${{ needs.deploy.outputs.branch_name }}" = "dev" ]; then
-            echo "BASE_URL=${{ secrets.DEV_BASE_URL }}" >> $GITHUB_ENV
-            echo "API_KEY=${{ secrets.DEV_API_KEY }}" >> $GITHUB_ENV
           elif [ "${{ needs.deploy.outputs.branch_name }}" = "sandbox" ]; then
             echo "BASE_URL=${{ secrets.SANDBOX_BASE_URL }}" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
