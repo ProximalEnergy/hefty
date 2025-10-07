@@ -7,7 +7,7 @@ fi
 # Source the authentication script
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "$SCRIPT_DIR/auth_aws_codeartifact.sh"
+. "$SCRIPT_DIR/_scripts/auth_aws_codeartifact.sh"
 
 # Get the latest stable version (excluding pre-release versions)
 LATEST_STABLE_VERSION=$(aws codeartifact list-package-versions \

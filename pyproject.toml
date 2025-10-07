@@ -1,17 +1,11 @@
 [project]
 name = "mono"
 version = "0.1.0"
-description = "Proximal monorepo workspace"
+description = "Proximal monorepo"
 requires-python = ">=3.12"
-
-[tool.uv.workspace]
-members = ["core", "api"]
 
 [tool.uv]
 
-[tool.uv.sources]
-core = { path = "core" }
-api = { path = "api" }
 
 [[tool.uv.index]]
 name = "proximal-package-index"

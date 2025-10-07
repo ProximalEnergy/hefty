@@ -98,7 +98,7 @@ dev = [
 [tool.uv]
 
 [tool.uv.sources]
-core = { workspace = true }
+core = { path = "../core", editable = true }
 
 [build-system]
 requires = ["setuptools>=45", "wheel"]

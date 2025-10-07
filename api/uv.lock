@@ -218,7 +218,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.38,<2" },
     { name = "chevron", specifier = ">=0.14.0,<0.15" },
     { name = "clerk-backend-api", specifier = ">=3.0.3,<3.1" },
-    { name = "core", specifier = "==0.2.43b4", index = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" },
+    { name = "core", editable = "../core" },
     { name = "cryptography", specifier = ">=44,<45" },
     { name = "dataclasses-json", specifier = ">=0.6.7" },
     { name = "deprecated", specifier = ">=1.2.14,<2" },
@@ -560,8 +560,8 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.2.43b4"
-source = { registry = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/" }
+version = "0.2.43"
+source = { editable = "../core" }
 dependencies = [
     { name = "asyncpg" },
     { name = "dotenv" },
@@ -574,9 +574,30 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "sqlalchemy-utils" },
 ]
-sdist = { url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/core/0.2.43b4/core-0.2.43b4.tar.gz", hash = "sha256:0f6b6cd26d295ff0878f2c7c2f77171019c283fae3d2c06270467e89f2cf763e" }
-wheels = [
-    { url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/core/0.2.43b4/core-0.2.43b4-py3-none-any.whl", hash = "sha256:14f82c628910d7e71f808d23d93cb96b4b802e444da4d39fb7f8850d48630309" },
+
+[package.metadata]
+requires-dist = [
+    { name = "asyncpg", specifier = ">=0.30.0" },
+    { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "fastapi", specifier = ">=0.115.14" },
+    { name = "geoalchemy2", specifier = ">=0.17.1" },
+    { name = "greenlet", specifier = ">=3.2.4" },
+    { name = "pandas", specifier = ">=2.3.0" },
+    { name = "polars", specifier = ">=1.31.0" },
+    { name = "psycopg2-binary", specifier = ">=2.9.10" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
+    { name = "sqlalchemy-utils", specifier = ">=0.41.2" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "alembic", specifier = ">=1.16.1" },
+    { name = "basedpyright", specifier = ">=1.31.4" },
+    { name = "mypy", specifier = ">=1.16.1" },
+    { name = "pandas-stubs", specifier = ">=2.3.0.250703" },
+    { name = "poethepoet", specifier = ">=0.35.0" },
+    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "ruff", specifier = ">=0.12.1" },
 ]
 
 [[package]]
