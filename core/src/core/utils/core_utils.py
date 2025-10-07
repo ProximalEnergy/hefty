@@ -27,8 +27,6 @@ def pivot_timeseries_by_tag_polars(
     if not value_cols:
         return df.select("time").unique().sort("time")
 
-    tag_dtype = df.schema["tag_id"]
-
     tags_lut = pl.DataFrame(
         {
             "tag_id": [t.tag_id for t in tags],

@@ -12,8 +12,8 @@ from pathlib import Path
 src_dir = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_dir))
 
-from core.dependencies import get_db_session
-from core.enumerations import BaseIntEnum
+from core.dependencies import get_db_session  # noqa: E402
+from core.enumerations import BaseIntEnum  # noqa: E402
 
 
 def main() -> None:
@@ -38,7 +38,9 @@ def main() -> None:
                 print(f"  Missing in DB: {result['missing_in_db']}")  # noqa: T201
 
             if result["extra_in_db"]:
-                print(f"  Extra in DB: {result['extra_in_db']}")  # noqa: T201
+                print("  Extra in DB:")  # noqa: T201
+                for extra in result["extra_in_db"]:
+                    print(f"    {extra['db_name'].upper()} = {extra['id']}")  # noqa: T201
 
             if result["name_mismatches"]:
                 print(f"  Name mismatches: {result['name_mismatches']}")  # noqa: T201

@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: [dev, staging, main]
     paths:
-      - 'core/**'
-      - '.github/workflows/core-pr-checks.yml'
+      - "core/**"
+      - ".github/workflows/core-pr-checks.yml"
 
 permissions:
   id-token: write # This is crucial for OIDC authentication
@@ -21,13 +21,13 @@ jobs:
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
         with:
-          working-directory: core
+          src: ./core
 
       - name: Run Ruff formatter
         uses: astral-sh/ruff-action@v3
         with:
           args: format --check --diff
-          working-directory: core
+          src: ./core
 
   star_syntax:
     runs-on: ubuntu-latest

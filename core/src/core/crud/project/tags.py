@@ -80,7 +80,7 @@ def get_project_tags(
         query = query.filter(models.Tag.device_id != 0)
         query = query.filter(models.Tag.sensor_type_id != 0)
     if has_sensor_type_id:
-        query = query.filter(models.Tag.sensor_type_id != None)
+        query = query.filter(models.Tag.sensor_type_id != None)  # noqa: E711
 
     return ModelList(query=query, return_query=return_query)
 
@@ -141,7 +141,7 @@ async def get_project_tags_async(
         stmt = stmt.where(models.Tag.device_id != 0)
         stmt = stmt.where(models.Tag.sensor_type_id != 0)
     if has_sensor_type_id:
-        stmt = stmt.where(models.Tag.sensor_type_id != None)
+        stmt = stmt.where(models.Tag.sensor_type_id != None)  # noqa: E711
 
     result = await db.execute(stmt)
     return list(result.scalars().all())

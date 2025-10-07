@@ -26,8 +26,8 @@ if config.config_file_name is not None:
 # target_metadata = None
 
 # Import all models so they are registered with Base.metadata
-import core.models  # noqa: F401
-from core.database import Base
+import core.models  # noqa: F401, E402
+from core.database import Base  # noqa: E402
 
 target_metadata = Base.metadata
 
