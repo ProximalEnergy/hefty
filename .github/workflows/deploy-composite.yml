@@ -36,6 +36,12 @@ jobs:
             api:
               - 'api/**'
 
+      - name: Echo detected changes
+        run: |
+          echo "Changes detected:"
+          echo "  Core: ${{ steps.filter.outputs.core }}"
+          echo "  API: ${{ steps.filter.outputs.api }}"
+
   # Job 1: Publish Core Package
   publish-core:
     needs: detect-changes
