@@ -46,7 +46,6 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
       release_name: ${{ steps.version.outputs.release_name }}
-</parameter>
 
     steps:
       - uses: actions/checkout@v4
