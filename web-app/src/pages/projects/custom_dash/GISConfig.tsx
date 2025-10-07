@@ -67,7 +67,7 @@ const GISConfig = ({
         <Button variant="default" onClick={() => stack.close('gis-config')}>
           Return
         </Button>
-        <Button onClick={addGISChart}>Add</Button>
+        <Button onClick={addGISChart}>Add GIS Map Component</Button>
       </Group>
     </Stack>
   )

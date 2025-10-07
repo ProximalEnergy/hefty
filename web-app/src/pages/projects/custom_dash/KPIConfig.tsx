@@ -58,6 +58,7 @@ const KPIConfig = ({
           placeholder="Select KPI..."
           value={selectedKpiTypeId}
           onChange={setSelectedKpiTypeId}
+          searchable
         />
       )}
 
@@ -70,7 +71,7 @@ const KPIConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addKPI} disabled={!allowCreate}>
-            Add
+            Add KPI Component
           </Button>
         </Tooltip>
       </Group>

@@ -100,7 +100,10 @@ export default function InspectionsGIS() {
     features: devices.data.map((device) => ({
       type: 'Feature',
       properties: { device },
-      geometry: device.polygon!,
+      geometry:
+        typeof device.polygon === 'string'
+          ? JSON.parse(device.polygon)
+          : device.polygon!,
     })),
   } as FeatureCollection
 

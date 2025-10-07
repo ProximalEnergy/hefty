@@ -30,12 +30,25 @@ export const colorLinear = ({
   // The colors in between should be evenly distributed
   const colorArray = colors.map((color) => color.value)
   const colorCount = colorArray.length
+
+  // Handle edge case where there's only one color
+  if (colorCount === 1) {
+    return [lowValue, colorArray[0]]
+  }
+
+  // Handle -Infinity case (when all values are null/undefined)
+  if (!isFinite(highValue)) {
+    return [0, colorArray[0]]
+  }
+
   const colorStep = (highValue - lowValue) / (colorCount - 1)
   const colorLinearArray = []
   for (let i = 0; i < colorCount; i++) {
-    colorLinearArray.push(lowValue + i * colorStep)
+    const stepValue = lowValue + i * colorStep
+    colorLinearArray.push(stepValue)
     colorLinearArray.push(colorArray[i])
   }
+
   return colorLinearArray
 }
 

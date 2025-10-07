@@ -1,4 +1,4 @@
-import { SensorType } from '@/hooks/types'
+import { SensorType } from '@/api/v1/operational/sensor_types'
 import {
   ActionIcon,
   Box,
@@ -34,7 +34,7 @@ const LineConfig = ({
   onAdd: (config: LineConfigType) => void
 }) => {
   const [traces, setTraces] = useState<Trace[]>([
-    { id: '1', sensorTypeId: null, aggregationMethod: null },
+    { id: '1', sensorTypeId: null, aggregationMethod: 'none' },
   ])
   const allowCreate = traces.every(
     (trace) => trace.sensorTypeId && trace.aggregationMethod,
@@ -43,7 +43,7 @@ const LineConfig = ({
     const newTrace: Trace = {
       id: Date.now().toString(),
       sensorTypeId: null,
-      aggregationMethod: null,
+      aggregationMethod: 'none',
     }
     setTraces([...traces, newTrace])
   }
@@ -178,7 +178,7 @@ const LineConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addLineChart} disabled={!allowCreate}>
-            Add
+            Add Line Chart Component
           </Button>
         </Tooltip>
       </Group>

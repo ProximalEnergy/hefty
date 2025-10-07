@@ -11,6 +11,7 @@ export interface RealTimeData {
     name_short: string
     sensor_type_id: number
     values: (number | null)[]
+    times: string[]
   }[]
 }
 

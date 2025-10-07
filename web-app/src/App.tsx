@@ -76,6 +76,7 @@ import PortfolioSettings from './pages/portfolio/settings/PortfolioSettings'
 import BatteryHealth from './pages/projects/BatteryHealth'
 // Data Browsing
 import DataBrowsing from './pages/projects/DataBrowsing'
+import EnergyWaterfall from './pages/projects/EnergyWaterfall'
 // Project Admin
 import ProjectAdmin from './pages/projects/ProjectAdmin'
 // In Development
@@ -324,6 +325,9 @@ const ClerkProviderWithRoutes = () => {
 
               {/* Battery Health */}
               <Route path="battery-health" element={<BatteryHealth />} />
+
+              {/* Energy Waterfall */}
+              <Route path="energy-waterfall" element={<EnergyWaterfall />} />
 
               {/* GIS */}
               <Route path="gis">

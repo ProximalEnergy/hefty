@@ -422,13 +422,16 @@ const SelectableChartCard = ({
   plotType,
   setPlotType,
   kpiType,
+  dates,
 }: {
   parsedData: Data[] | undefined
   cardTitle: string
   plotType: string
   setPlotType: (value: string) => void
   kpiType: KPIType
+  dates?: string[]
 }) => {
+  const computedColorScheme = useComputedColorScheme('dark')
   const { yAxisTickFormat, yAxisTitle } = YAxisConfig(kpiType)
   return (
     <>
@@ -495,6 +498,9 @@ const SelectableChartCard = ({
                         title: {
                           text: 'Date',
                         },
+                        categoryorder: 'array',
+                        categoryarray: dates,
+                        range: [-0.5, (dates?.length || 0) - 0.5],
                       },
                       yaxis: {
                         range: kpiType.unit === '%' ? [0, 1.05] : [],
@@ -511,6 +517,8 @@ const SelectableChartCard = ({
                           text: 'Device',
                         },
                       },
+                      plot_bgcolor:
+                        computedColorScheme === 'dark' ? '#2C2E33' : '#F8F9FA', // Theme-aware background for null values
                     }
           }
           colorscale={
@@ -600,9 +608,16 @@ const DevicePlotCard = ({
             devices.find((device) => device.device_id.toString() === key)
               ?.name_long,
         )
-        const z = Object.values(device_values || {}).map((values) =>
-          values.map((value) => value ?? 0),
+
+        // Keep null values as null - Plotly will render them as transparent
+        const z = Object.values(device_values || {}).map(
+          (values) => values.map((value) => value), // Keep null values as null
         )
+
+        // Calculate min/max values excluding nulls for proper color scaling
+        const allValues = z.flat().filter((v): v is number => v !== null)
+        const minValue = allValues.length > 0 ? Math.min(...allValues) : 0
+        const maxValue = allValues.length > 0 ? Math.max(...allValues) : 1
 
         return [
           {
@@ -622,11 +637,16 @@ const DevicePlotCard = ({
                 text: yAxisTitle,
               },
             },
-            zmin: 0,
-            zmax:
-              kpiType.unit === '%'
-                ? 1
-                : Math.max(...z.flat().filter((v): v is number => v !== null)),
+            // Use a custom colorscale for actual data values
+            colorscale: [
+              [0, '#440154'], // Dark purple for minimum value
+              [0.5, '#21908C'], // Teal for middle values
+              [1, '#FDE725'], // Yellow for maximum value
+            ],
+            zmin: minValue,
+            zmax: maxValue,
+            showscale: true,
+            connectgaps: false, // Don't connect gaps (null values)
           },
         ] as unknown as Data[]
       }
@@ -661,39 +681,33 @@ const DevicePlotCard = ({
       case 'box': {
         // Create box plots for each date, showing distribution of device values
         const dates = data.data.dates
-        const boxTraces = dates
-          .map((date, dateIndex) => {
-            // Collect all device values for this specific date
-            const dateValues: number[] = []
+        const boxTraces = dates.map((date, dateIndex) => {
+          // Collect all device values for this specific date
+          const dateValues: number[] = []
 
-            Object.values(device_values || {}).forEach((deviceValues) => {
-              const value = deviceValues[dateIndex]
-              if (value !== null && value !== undefined) {
-                dateValues.push(value)
-              }
-            })
-
-            // Only create box plot if we have values for this date
-            if (dateValues.length > 0) {
-              return {
-                y: dateValues,
-                type: 'box',
-                name: date,
-                showlegend: false,
-                jitter: 0.3,
-                pointpos: 0,
-                marker: {
-                  color: '#228BE6', // Use a consistent blue color for all boxes
-                },
-                line: {
-                  color: '#228BE6', // Consistent color for box outlines
-                },
-              }
+          Object.values(device_values || {}).forEach((deviceValues) => {
+            const value = deviceValues[dateIndex]
+            if (value !== null && value !== undefined) {
+              dateValues.push(value)
             }
-            return null
           })
-          .filter((trace): trace is NonNullable<typeof trace> => trace !== null)
 
+          // Return box plot trace for every date, even if no data
+          return {
+            y: dateValues, // Empty array if no data
+            type: 'box',
+            name: date,
+            showlegend: false,
+            jitter: 0.3,
+            pointpos: 0,
+            marker: {
+              color: '#228BE6', // Use a consistent blue color for all boxes
+            },
+            line: {
+              color: '#228BE6', // Consistent color for box outlines
+            },
+          }
+        })
         return boxTraces
       }
     }
@@ -709,6 +723,7 @@ const DevicePlotCard = ({
       setPlotType={setPlotType}
       cardTitle={cardTitle}
       kpiType={kpiType}
+      dates={data.data?.dates}
     />
   )
 }
@@ -934,11 +949,11 @@ function MapHoverCard({
     >
       <Text fw={700}>{hoverInfo.feature?.properties?.name}</Text>
       <Text>
-        {kpiType.unit === '%'
-          ? `${(hoverInfo.feature?.properties?.value * 100).toFixed(2)}%`
-          : `${hoverInfo.feature?.properties?.value.toFixed(2)} ${
-              kpiType.unit
-            }`}
+        {hoverInfo.feature?.properties?.value != null
+          ? kpiType.unit === '%'
+            ? `${(hoverInfo.feature.properties.value * 100).toFixed(2)}%`
+            : `${hoverInfo.feature.properties.value.toFixed(2)} ${kpiType.unit}`
+          : 'No Data'}
       </Text>
     </Paper>
   )
@@ -1071,6 +1086,11 @@ const MapCard = ({
     default:
       lowValue = Math.min(0, ...numberValues)
       highValue = Math.max(...numberValues)
+      // Handle case where all values are null (Math.max([]) returns -Infinity)
+      if (!isFinite(highValue)) {
+        lowValue = 0
+        highValue = 1
+      }
       lowLabel = `${lowValue.toFixed(2)} ${kpiType.unit}`
       highLabel = `${highValue.toFixed(2)} ${kpiType.unit}`
   }
