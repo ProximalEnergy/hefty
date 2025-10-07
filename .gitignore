@@ -259,3 +259,6 @@ cspell.json
 
 # rollup-plugin-visualizer
 rollup-plugin-visualizer-stats.html
+
+# uv lock files
+uv.lock
