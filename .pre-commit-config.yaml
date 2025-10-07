@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: switch-core-source
+        name: Switch core dependency source based on branch
+        entry: python3 _scripts/switch_core_source.py
+        language: system
+        stages: [post-checkout]
+        always_run: true
+        pass_filenames: false
