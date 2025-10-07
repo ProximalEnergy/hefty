@@ -109,6 +109,7 @@ jobs:
         if: env.SKIP_DEPLOYMENT != 'true'
         run: |
           # Generate requirements excluding the workspace core package
+          uv lock
           uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes
           # Remove core from requirements.txt since we're bundling it directly
           sed -i '/^core==/d' requirements.txt
