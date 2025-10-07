@@ -94,10 +94,11 @@ const PowerPlotPVZoom = () => {
   // Color map based on the names returned by the specific hook
   const colorMap: Record<string, string> = {
     'Meter Active Power': theme.colors.green[7],
-    'Expected Power': theme.colors.orange[7],
+    'Power Expected at Full Health': theme.colors.orange[7],
     'PPC Active Power Setpoint': theme.colors.blue[7], // Add setpoint color
     'PV Active Power': theme.colors.cyan[7], // Adjusted PV color for distinction
     'BESS Active Power': theme.colors.yellow[7],
+    'Interconnection Limit': theme.colors.gray[7],
   }
 
   const project = useGetProject({
@@ -184,10 +185,14 @@ const PowerPlotPVZoom = () => {
       val === null ? null : parseFloat(String(val)),
     )
 
+    // Transform name if it's "Expected Power" from backend
+    const displayName =
+      d.name === 'Expected Power' ? 'Power Expected at Full Health' : d.name
+
     // Determine mode and fill based on trace name
-    const isMeterPower = d.name === 'Meter Active Power'
-    const isSetpoint = d.name === 'PPC Active Power Setpoint'
-    const isExpectedPower = d.name === 'Expected Power' // Check for Expected Power
+    const isMeterPower = displayName === 'Meter Active Power'
+    const isSetpoint = displayName === 'PPC Active Power Setpoint'
+    const isExpectedPower = displayName === 'Power Expected at Full Health' // Check for Expected Power
     const mode =
       isMeterPower || isSetpoint || isExpectedPower ? 'lines' : 'lines+markers' // Set mode to lines for Meter, Setpoint, and Expected Power
     const fill = isMeterPower ? 'tozeroy' : 'none' // Only fill for meter
@@ -195,7 +200,7 @@ const PowerPlotPVZoom = () => {
     return {
       x: d.x,
       y: numericY,
-      name: d.name,
+      name: displayName,
       type: 'scatter' as const,
       mode: mode, // Use determined mode
       connectgaps: isExpectedPower ? false : true,
@@ -205,7 +210,8 @@ const PowerPlotPVZoom = () => {
       fill: fill, // Use determined fill
       line: {
         color:
-          colorMap[d.name as keyof typeof colorMap] || theme.colors.gray[7],
+          colorMap[displayName as keyof typeof colorMap] ||
+          theme.colors.gray[7],
         width: 2,
       },
       marker: {
@@ -217,6 +223,32 @@ const PowerPlotPVZoom = () => {
       visible: true,
     }
   }) as Partial<Plotly.Data>[] | undefined
+
+  // Add interconnection limit trace if we have project data and plot data
+  if (
+    plotData &&
+    project.data?.poi &&
+    data.data?.data &&
+    data.data.data.length > 0
+  ) {
+    const firstTrace = data.data.data[0]
+    plotData.push({
+      x: firstTrace.x,
+      y: Array(firstTrace.x.length).fill(project.data.poi),
+      name: 'Interconnection Limit',
+      type: 'scatter' as const,
+      mode: 'lines',
+      line: {
+        color: colorMap['Interconnection Limit'],
+        width: 2,
+        dash: 'dash',
+      },
+      hoverlabel: {
+        namelength: -1,
+      },
+      visible: true,
+    })
+  }
 
   return (
     <CustomCard
