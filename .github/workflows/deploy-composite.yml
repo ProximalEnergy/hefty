@@ -17,17 +17,36 @@ permissions:
   contents: write
 
 jobs:
+  # Job 0: Detect what changed
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.filter.outputs.core }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            core:
+              - 'core/src/core/**'
+              - 'core/pyproject.toml'
+            api:
+              - 'api/**'
+
   # Job 1: Publish Core Package
   publish-core:
+    needs: detect-changes
     runs-on: ubuntu-latest
     # Only run if core files changed
-    if: |
-      contains(github.event.head_commit.modified, 'core/') ||
-      contains(github.event.head_commit.added, 'core/')
+    if: needs.detect-changes.outputs.core == 'true'
     outputs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
       release_name: ${{ steps.version.outputs.release_name }}
+</parameter>
 
     steps:
       - uses: actions/checkout@v4
@@ -165,14 +184,16 @@ jobs:
 
   # Job 3: Deploy API (depends on publish-core - ATOMIC)
   deploy-api:
-    needs: publish-core
+    needs: [detect-changes, publish-core]
     runs-on: ubuntu-latest
-    # Only deploy API if core publish succeeded
+    # Only deploy API if core publish succeeded OR if only API files changed
     if: |
-      needs.publish-core.result == 'success' &&
+      !cancelled() &&
+      (needs.publish-core.result == 'success' || (needs.publish-core.result == 'skipped' && needs.detect-changes.outputs.api == 'true')) &&
       (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox')
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
+</parameter>
 
     steps:
       - uses: actions/checkout@v4
