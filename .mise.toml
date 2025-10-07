@@ -7,6 +7,15 @@
 description = "Run API and web-app development servers concurrently"
 run = "./_scripts/run_dev.sh"
 
+[tasks.switch-core]
+description = "Switch core dependency source based on current git branch (dev=editable, staging/main=CodeArtifact)"
+run = "python3 _scripts/switch_core_source.py"
+
+[tasks.check-core-source]
+description = "Check which core dependency source is currently configured"
+dir = "api"
+run = "grep -A 1 '\\[tool.uv.sources\\]' pyproject.toml | grep core"
+
 [tasks.check]
 description = "Run all quality checks across the entire monorepo"
 depends = ["core:check", "api:check", "web-app:check"]
