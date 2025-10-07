@@ -1,0 +1,49 @@
+# Development and testing
+_tests/
+_pr_checks/
+_smoke_testing/
+_data_insert/
+_docs/
+_scripts/
+.cursor/
+*.ipynb
+pull_request_template.md
+core_test.ipynb
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+.proxapi/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development tools
+.pre-commit-config.yaml
+hurl_*.deb
+
+# Config files not neede

@@ -97,20 +97,20 @@ for script in "${SCRIPTS[@]}"; do
     fi
 done
 
-# Check 4: API pyproject.toml has poe tasks
+# Check 4: API .mise.toml has tasks
 echo ""
-echo "📋 Checking API poe tasks..."
-if [ -f "$MONO_ROOT/api/pyproject.toml" ]; then
-    if grep -q "core_auto" "$MONO_ROOT/api/pyproject.toml" && \
-       grep -q "core_beta" "$MONO_ROOT/api/pyproject.toml" && \
-       grep -q "core_rc" "$MONO_ROOT/api/pyproject.toml" && \
-       grep -q "core_stable" "$MONO_ROOT/api/pyproject.toml"; then
-        success "API pyproject.toml has core version tasks"
+echo "📋 Checking API mise tasks..."
+if [ -f "$MONO_ROOT/api/.mise.toml" ]; then
+    if grep -q "core_auto" "$MONO_ROOT/api/.mise.toml" && \
+       grep -q "core_beta" "$MONO_ROOT/api/.mise.toml" && \
+       grep -q "core_rc" "$MONO_ROOT/api/.mise.toml" && \
+       grep -q "core_stable" "$MONO_ROOT/api/.mise.toml"; then
+        success "API .mise.toml has core version tasks"
     else
-        error "API pyproject.toml missing core version tasks"
+        error "API .mise.toml missing core version tasks"
     fi
 else
-    error "API pyproject.toml not found"
+    error "API .mise.toml not found"
 fi
 
 # Check 5: Core pyproject.toml has version
@@ -125,10 +125,10 @@ if [ -f "$MONO_ROOT/core/pyproject.toml" ]; then
     fi
 
     # Check for bump task
-    if grep -q "poe.tasks.bump" "$MONO_ROOT/core/pyproject.toml"; then
+    if [ -f "$MONO_ROOT/core/.mise.toml" ] && grep -q "tasks.bump" "$MONO_ROOT/core/.mise.toml"; then
         success "Core has version bump task"
     else
-        warning "Core pyproject.toml missing bump task"
+        warning "Core .mise.toml missing bump task"
     fi
 else
     error "Core pyproject.toml not found"
@@ -190,22 +190,22 @@ else
     info "Install with: brew install awscli"
 fi
 
-# Check 9: Test poe command availability (in API)
+# Check 9: Test mise command availability
 echo ""
-echo "📋 Checking poe availability..."
+echo "📋 Checking mise availability..."
 cd "$MONO_ROOT/api"
-if command -v poe >/dev/null 2>&1 || command -v uv >/dev/null 2>&1; then
-    success "poe/uv is available"
+if command -v mise >/dev/null 2>&1; then
+    success "mise is available"
 
     # Try listing tasks
-    if uv run poe --help >/dev/null 2>&1; then
-        success "poe tasks are accessible"
+    if mise tasks >/dev/null 2>&1; then
+        success "mise tasks are accessible"
     else
-        warning "poe tasks might not be accessible (this is normal if dependencies aren't installed)"
+        warning "mise tasks might not be accessible"
     fi
 else
-    warning "Neither poe nor uv found in PATH"
-    info "Install uv with: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    warning "mise not found in PATH"
+    info "Install mise with: curl https://mise.run | sh"
 fi
 
 # Summary
@@ -218,7 +218,7 @@ if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
     echo -e "${GREEN}🎉 All checks passed! Versioning setup is complete.${NC}"
     echo ""
     echo "Next steps:"
-    echo "  1. Test locally: cd api && poe core_auto"
+    echo "  1. Test locally: cd api && mise run core_auto"
     echo "  2. Make a change and push to dev branch"
     echo "  3. Verify core publishes as beta version"
     echo "  4. Check API deployment uses beta core"

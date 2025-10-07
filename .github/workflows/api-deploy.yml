@@ -111,21 +111,63 @@ jobs:
           # Generate requirements excluding the workspace core package
           uv lock
           uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt --no-hashes
-          # Remove core from requirements.txt since we're bundling it directly
-          sed -i '/^core==/d' requirements.txt
+
+          # Remove ALL references to core from requirements.txt since we're bundling it directly
+          # Use grep to filter out lines starting with "core" and comment lines mentioning core
+          grep -v "^core[=@]" requirements.txt > requirements.tmp && mv requirements.tmp requirements.txt
+          grep -v "^[[:space:]]*#.*via core$" requirements.txt > requirements.tmp && mv requirements.tmp requirements.txt
+
           echo "Generated requirements.txt without core dependency"
+          echo ""
+          echo "Checking for any remaining core references:"
+          if grep -i "^core" requirements.txt; then
+            echo "WARNING: Core references still found in requirements.txt!"
+            exit 1
+          else
+            echo "✓ No core references found - good!"
+          fi
+          echo ""
+          echo "Verifying core directory structure:"
+          ls -la core/
+          echo ""
+          echo "Checking core __init__.py exists:"
+          if test -f core/__init__.py; then
+            echo "✓ core/__init__.py found"
+          else
+            echo "ERROR: core/__init__.py not found!"
+            exit 1
+          fi
         working-directory: api
 
       - name: Generate deployment package
         if: env.SKIP_DEPLOYMENT != 'true'
         run: |
           cd api
+          # Verify structure before zipping
+          echo "Files to be included in deployment:"
+          echo "- requirements.txt: $(test -f requirements.txt && echo 'EXISTS' || echo 'MISSING')"
+          echo "- app directory: $(test -d app && echo 'EXISTS' || echo 'MISSING')"
+          echo "- core directory: $(test -d core && echo 'EXISTS' || echo 'MISSING')"
+          echo "- Procfile: $(test -f Procfile && echo 'EXISTS' || echo 'MISSING')"
+          echo ""
           # Create deployment package with bundled core (.ebignore will handle exclusions)
           zip -r ../deploy.zip . -x "*.git*"
+          echo ""
           echo "Deployment package created"
           cd ..
-          echo "Package contents (first 50 files):"
-          unzip -l deploy.zip | head -50
+          echo ""
+          echo "Verifying critical files in package:"
+          echo "=== requirements.txt ==="
+          unzip -l deploy.zip | grep "requirements.txt" || echo "ERROR: requirements.txt not found in package!"
+          echo ""
+          echo "=== core module files (first 20) ==="
+          unzip -l deploy.zip | grep "core/" | head -20 || echo "ERROR: core directory not found in package!"
+          echo ""
+          echo "=== app module files (first 20) ==="
+          unzip -l deploy.zip | grep "app/" | head -20
+          echo ""
+          echo "=== Package size ==="
+          ls -lh deploy.zip
 
       - name: echo
         run: |

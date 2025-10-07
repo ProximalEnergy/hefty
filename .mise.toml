@@ -1,0 +1,254 @@
+
+# =============================================================================
+# MONOREPO-LEVEL TASKS
+# =============================================================================
+
+[tasks.dev]
+description = "Run API and web-app development servers concurrently"
+run = "./_scripts/run_dev.sh"
+
+[tasks.check]
+description = "Run all quality checks across the entire monorepo"
+depends = ["core:check", "api:check", "web-app:check"]
+
+# =============================================================================
+# CORE TASKS (runs in ./core directory)
+# =============================================================================
+
+[tasks."core:check"]
+description = "Run all quality checks for core"
+dir = "core"
+depends = [
+  "core:types",
+  "core:ruff_check",
+  "core:ruff_format",
+  "core:star_syntax",
+  "core:enum",
+]
+
+[tasks."core:types"]
+description = "Run mypy type checking for core"
+dir = "core"
+run = "uv run mypy --config-file pyproject.toml src/"
+
+[tasks."core:ruff_check"]
+description = "Run ruff linter for core"
+dir = "core"
+run = "ruff check"
+
+[tasks."core:ruff_format"]
+description = "Run ruff formatter for core"
+dir = "core"
+run = "ruff format"
+
+[tasks."core:star_syntax"]
+description = "Check for star syntax violations in core"
+dir = "core"
+run = "uv run _pr_checks/star_syntax_check.py"
+
+[tasks."core:pytest"]
+description = "Run pytest for core"
+dir = "core"
+run = "pytest"
+
+[tasks."core:enum"]
+description = "Validate enums in core"
+dir = "core"
+run = "uv run _scripts/validate_enums.py"
+
+[tasks."core:release"]
+description = "Full release workflow for core (check, freeze, bump, commit, push)"
+dir = "core"
+depends = [
+  "core:check",
+  "core:freeze",
+  "core:bump",
+  "core:_add",
+  "core:_commit",
+  "core:_push",
+]
+
+[tasks."core:bump"]
+description = "Bump core version (usage: mise run core:bump [patch|minor|major])"
+dir = "core"
+run = "uv version --bump ${1:-patch}"
+
+[tasks."core:freeze"]
+description = "Export frozen requirements.txt for core"
+dir = "core"
+run = """
+uv export --frozen --no-emit-workspace --no-dev --no-editable \
+  -o requirements.txt --no-hashes
+"""
+
+[tasks."core:_add"]
+description = "Git add all changes in core"
+dir = "core"
+run = "git add ."
+
+[tasks."core:_commit"]
+description = "Git commit with 'Release' message for core"
+dir = "core"
+run = "git commit -m 'Release'"
+
+[tasks."core:_push"]
+description = "Git push changes for core"
+dir = "core"
+run = "git push"
+
+[tasks."core:_tag"]
+description = "Create and push git tag based on core version"
+dir = "core"
+run = """
+VERSION=$(python -c "import tomllib; \
+  print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+git tag "v$VERSION"
+git push origin "v$VERSION"
+"""
+
+[tasks."core:db"]
+description = "Generate alembic migration for core (usage: mise run core:db 'message')"
+dir = "core"
+run = """
+alembic revision --autogenerate -m "$1" && \
+python3 _scripts/clean_alembic.py --latest && \
+python3 _scripts/update_releases.py "$1" && \
+ruff check && \
+ruff format
+"""
+
+# =============================================================================
+# API TASKS (runs in ./api directory)
+# =============================================================================
+
+[tasks."api:check"]
+description = "Run all quality checks for api"
+dir = "api"
+depends = [
+  "api:types",
+  "api:star_syntax",
+  "api:ruff",
+  "api:format",
+  "api:pytest",
+  "api:hurl",
+]
+
+[tasks."api:ruff"]
+description = "Run ruff linter for api"
+dir = "api"
+run = "ruff check"
+
+[tasks."api:format"]
+description = "Run ruff formatter for api"
+dir = "api"
+run = "ruff format"
+
+[tasks."api:types"]
+description = "Run mypy type checking for api"
+dir = "api"
+run = "mypy --config-file pyproject.toml -p app"
+
+[tasks."api:pytest"]
+description = "Run pytest for api"
+dir = "api"
+run = "pytest"
+
+[tasks."api:star_syntax"]
+description = "Check for star syntax violations in api"
+dir = "api"
+run = "uv run -m _pr_checks.star_syntax_check"
+
+[tasks."api:hurl"]
+description = "Run hurl smoke tests for api"
+dir = "api"
+run = """
+hurl --location --variable baseURL=http://127.0.0.1:8000 \
+  --variables-file .env --test ./_smoke_testing/hurl/get/*
+"""
+
+[tasks."api:freeze"]
+description = "Export requirements.txt for AWS deployment"
+dir = "api"
+run = """
+uv export --frozen --no-emit-workspace --no-dev --no-editable \
+  -o requirements.txt --no-hashes --quiet
+"""
+
+[tasks."api:run"]
+description = "Run the API server with hot reload"
+dir = "api"
+run = "uv run uvicorn app.main:app --reload --timeout-graceful-shutdown 0"
+
+[tasks."api:get_env"]
+description = "Generate .env file from AWS Secrets Manager"
+dir = "api"
+run = "uv run _scripts/generate_env_from_secrets.py"
+
+[tasks."api:uv"]
+description = "Run uv wrapper script"
+dir = "api"
+run = "./_scripts/uv_wrapper.sh"
+
+[tasks."api:test_deploy"]
+description = "Test deployment package structure"
+dir = "api"
+run = "./_scripts/test_deployment_package.sh"
+
+[tasks."api:insert_devices"]
+description = "Insert devices data"
+dir = "api"
+run = "python3 -m _data_insert.project.1_devices"
+
+[tasks."api:insert_tags"]
+description = "Insert tags data for a project"
+dir = "api"
+run = "python3 -m _data_insert.project.2_tags"
+
+[tasks."api:insert_pv_dc_combiners"]
+description = "Insert PV DC combiners data"
+dir = "api"
+run = "python3 -m _data_insert.project.3_pv_dc_combiners"
+
+[tasks."api:insert_kpi_types"]
+description = "Insert KPI types data"
+dir = "api"
+run = "python3 -m _data_insert.operational.5_kpi_types"
+
+[tasks."api:insert_kpi_instances"]
+description = "Insert KPI instances data"
+dir = "api"
+run = "python3 -m _data_insert.operational.11_kpi_instances"
+
+# =============================================================================
+# WEB-APP TASKS (runs in ./web-app directory)
+# =============================================================================
+
+[tasks."web-app:dev"]
+description = "Run web-app development server"
+dir = "web-app"
+run = "npm run dev"
+
+[tasks."web-app:build"]
+description = "Build web-app for production"
+dir = "web-app"
+run = "npm run build"
+
+[tasks."web-app:lint"]
+description = "Run ESLint for web-app"
+dir = "web-app"
+run = "npm run lint"
+
+[tasks."web-app:preview"]
+description = "Preview production build of web-app"
+dir = "web-app"
+run = "npm run preview"
+
+[tasks."web-app:check"]
+description = "Run TypeScript check and format web-app"
+dir = "web-app"
+run = "npm run check"
+
+[tasks."web-app:test"]
+description = "Run Playwright tests for web-app"
+dir = "web-app"
+run = "npm run test"

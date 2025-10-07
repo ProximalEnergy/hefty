@@ -1,5 +1,5 @@
 # General
-- Make sure to run `poe check` finished making changes
+- Make sure to run `mise run check` finished making changes
 - Use uv not pip
 - Functions with arguments should use * as the first argument
 - make sure lines are shorter than 88 characters
