@@ -253,8 +253,8 @@ jobs:
         run: |
           echo "Setting core version constraint to: ${{ env.CORE_VERSION_CONSTRAINT }}"
 
-          export UV_INDEX_PROXIMAL_USERNAME=aws
-          export UV_INDEX_PROXIMAL_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
+          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws
+          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
 
           python3 << 'EOF'
           import re
@@ -289,8 +289,8 @@ jobs:
 
       - name: Generate requirements.txt with core from CodeArtifact
         run: |
-          export UV_INDEX_PROXIMAL_USERNAME=aws
-          export UV_INDEX_PROXIMAL_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
+          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws
+          export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
 
           uv lock --upgrade-package core
 
