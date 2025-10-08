@@ -104,7 +104,7 @@ url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east
 explicit = true
 
 [[tool.uv.index]]
-name = "proximal"
+name = "proximal-package-index"
 url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"
 explicit = true
 
