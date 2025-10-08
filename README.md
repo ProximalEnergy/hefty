@@ -9,3 +9,8 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 - `mise tasks`:  Discover mise tasks
 - `mise run dev`:  Run api and web-app servers together.
 - `mise run check`:  Check all folders in mono-repo
+
+
+# Deployments
+## Beanstalk
+- Role: api-elastic-beanstalk-role
