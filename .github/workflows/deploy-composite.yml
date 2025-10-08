@@ -249,9 +249,49 @@ jobs:
         run: uv python install
         working-directory: api
 
+      - name: Determine latest core version from CodeArtifact
+        id: core-version
+        run: |
+          echo "Querying CodeArtifact for available core versions..."
+
+          # Get all package versions from CodeArtifact
+          VERSIONS=$(aws codeartifact list-package-versions \
+            --domain proximal-code-artifact-domain \
+            --repository proximal-package-index \
+            --format pypi \
+            --package core \
+            --region us-east-2 \
+            --query 'versions[*].version' \
+            --output text)
+
+          echo "Available versions: $VERSIONS"
+
+          CONSTRAINT="${{ env.CORE_VERSION_CONSTRAINT }}"
+
+          if [ "$CONSTRAINT" = "stable" ]; then
+            # Find latest stable version (no pre-release suffix)
+            LATEST_VERSION=$(echo "$VERSIONS" | tr ' ' '\n' | grep -v -E '(a|b|rc)' | sort -V | tail -1)
+            echo "Latest stable version: $LATEST_VERSION"
+          elif [ "$CONSTRAINT" = "rc" ]; then
+            # Find latest RC version
+            LATEST_VERSION=$(echo "$VERSIONS" | tr ' ' '\n' | grep 'rc' | sort -V | tail -1)
+            echo "Latest RC version: $LATEST_VERSION"
+          else
+            echo "Unknown constraint: $CONSTRAINT"
+            exit 1
+          fi
+
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "ERROR: No matching version found for constraint: $CONSTRAINT"
+            exit 1
+          fi
+
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "Selected core version: $LATEST_VERSION"
+
       - name: Set core version constraint in pyproject.toml
         run: |
-          echo "Setting core version constraint to: ${{ env.CORE_VERSION_CONSTRAINT }}"
+          echo "Pinning core to version: ${{ steps.core-version.outputs.version }}"
 
           export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws
           export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=${{ env.AWS_CODEARTIFACT_TOKEN }}
@@ -262,14 +302,8 @@ jobs:
           with open('pyproject.toml', 'r') as f:
               content = f.read()
 
-          constraint = "${{ env.CORE_VERSION_CONSTRAINT }}"
-
-          if constraint == "stable":
-              version_spec = 'core>=0.2.0,<1.0.0'
-          elif constraint == "rc":
-              version_spec = 'core>=0.2.0rc0,<1.0.0rc'
-          else:
-              version_spec = 'core'
+          version = "${{ steps.core-version.outputs.version }}"
+          version_spec = f'core=={version}'
 
           content = re.sub(
               r'"core[^"]*"',
@@ -353,7 +387,37 @@ jobs:
           deployment_package: deploy.zip
           wait_for_deployment: true
 
-  # # Job 4: Smoke Test (depends on deploy-api - ATOMIC)
+  # Job 4: Deploy Web-App (depends on deploy-api - ATOMIC)
+  deploy-web-app:
+    needs: deploy-api
+    runs-on: ubuntu-latest
+    # Only deploy web-app if API deploy succeeded and branch is staging or main
+    if: |
+      needs.deploy-api.result == 'success' &&
+      (github.ref_name == 'staging' || github.ref_name == 'main')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger Amplify Build
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          echo "Triggering Amplify build for branch: $BRANCH"
+
+          if [ "$BRANCH" = "main" ]; then
+            WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_MAIN }}"
+          elif [ "$BRANCH" = "staging" ]; then
+            WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_STAGING }}"
+          else
+            echo "No Amplify webhook configured for branch '$BRANCH'"
+            exit 1
+          fi
+
+          curl -X POST -d {} "$WEBHOOK_URL" -H "Content-Type:application/json"
+          echo ""
+          echo "Amplify build triggered successfully for $BRANCH"
+
+  # # Job 5: Smoke Test (depends on deploy-api - ATOMIC)
   # smoke-test:
   #   needs: [publish-core, deploy-api]
   #   runs-on: ubuntu-latest
