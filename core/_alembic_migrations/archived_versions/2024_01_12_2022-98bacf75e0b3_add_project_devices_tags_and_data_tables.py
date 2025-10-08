@@ -10,9 +10,8 @@ from collections.abc import Sequence
 
 import geoalchemy2
 import sqlalchemy as sa
-from alembic import op
-
 from _alembic_migrations.tenant import for_each_project_schema
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "98bacf75e0b3"

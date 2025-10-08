@@ -5,20 +5,22 @@
 
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
+depends = ["api:switch-core"]
 run = "./_scripts/run_dev.sh"
-
-[tasks.switch-core]
-description = "Switch core dependency source based on current git branch (dev=editable, staging/main=CodeArtifact)"
-run = "python3 _scripts/switch_core_source.py"
-
-[tasks.check-core-source]
-description = "Check which core dependency source is currently configured"
-dir = "api"
-run = "grep -A 1 '\\[tool.uv.sources\\]' pyproject.toml | grep core"
 
 [tasks.check]
 description = "Run all quality checks across the entire monorepo"
-depends = ["core:check", "api:check", "web-app:check"]
+depends = ["api:switch-core"]
+run = "./_scripts/run_checks.sh"
+
+[tasks.deps]
+description = "Install and sync all dependencies across the monorepo"
+run = """
+cd core && uv sync && cd .. && \
+mise run api:switch-core && \
+cd api && uv sync && cd .. && \
+cd web-app && npm install && npx node build-plotly-custom.js
+"""
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
@@ -38,17 +40,17 @@ depends = [
 [tasks."core:types"]
 description = "Run mypy type checking for core"
 dir = "core"
-run = "uv run mypy --config-file pyproject.toml src/"
+run = "uv run mypy --config-file ../pyproject.toml src/"
 
 [tasks."core:ruff_check"]
 description = "Run ruff linter for core"
-dir = "core"
-run = "ruff check"
+dir = "."
+run = "ruff check --config pyproject.toml core/"
 
 [tasks."core:ruff_format"]
 description = "Run ruff formatter for core"
-dir = "core"
-run = "ruff format"
+dir = "."
+run = "ruff format --config pyproject.toml core/"
 
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
@@ -130,6 +132,15 @@ ruff format
 # API TASKS (runs in ./api directory)
 # =============================================================================
 
+[tasks."api:switch-core"]
+description = "Switch core dependency source based on current git branch (staging/sandbox/main=CodeArtifact, others=editable)"
+run = "python3 _scripts/switch_core_source.py"
+
+[tasks."api:check-core-source"]
+description = "Check which core dependency source is currently configured"
+dir = "api"
+run = "grep -A 1 '\\[tool.uv.sources\\]' pyproject.toml | grep core"
+
 [tasks."api:check"]
 description = "Run all quality checks for api"
 dir = "api"
@@ -144,23 +155,23 @@ depends = [
 
 [tasks."api:ruff"]
 description = "Run ruff linter for api"
-dir = "api"
-run = "ruff check"
+dir = "."
+run = "ruff check --config pyproject.toml api/"
 
 [tasks."api:format"]
 description = "Run ruff formatter for api"
-dir = "api"
-run = "ruff format"
+dir = "."
+run = "ruff format --config pyproject.toml api/"
 
 [tasks."api:types"]
 description = "Run mypy type checking for api"
 dir = "api"
-run = "mypy --config-file pyproject.toml -p app"
+run = "uv run mypy --config-file ../pyproject.toml -p app"
 
 [tasks."api:pytest"]
 description = "Run pytest for api"
 dir = "api"
-run = "pytest"
+run = "uv run pytest"
 
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
