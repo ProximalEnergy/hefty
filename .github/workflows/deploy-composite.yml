@@ -137,7 +137,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
           aws-region: us-east-2
 
       - name: Authenticate with AWS CodeArtifact
@@ -228,10 +228,10 @@ jobs:
             echo "environment=sandbox" >> $GITHUB_OUTPUT
           fi
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials for CodeArtifact
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
           aws-region: us-east-2
 
       - name: Authenticate with AWS CodeArtifact
@@ -326,6 +326,12 @@ jobs:
           echo ""
           echo "=== Package size ==="
           ls -lh deploy.zip
+
+      - name: Configure AWS credentials for Elastic Beanstalk
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_EB }}
+          aws-region: us-east-2
 
       - name: Get temporary AWS credentials
         id: aws-creds
