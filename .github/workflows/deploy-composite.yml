@@ -327,11 +327,19 @@ jobs:
           echo "=== Package size ==="
           ls -lh deploy.zip
 
+      - name: Get temporary AWS credentials
+        id: aws-creds
+        run: |
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_OUTPUT
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_OUTPUT
+          echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN" >> $GITHUB_OUTPUT
+
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v22
         with:
-          # aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          # aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_access_key: ${{ steps.aws-creds.outputs.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ steps.aws-creds.outputs.AWS_SECRET_ACCESS_KEY }}
+          aws_session_token: ${{ steps.aws-creds.outputs.AWS_SESSION_TOKEN }}
           application_name: api
           environment_name: ${{ env.ENV_NAME }}
           version_label: "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"

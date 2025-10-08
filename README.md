@@ -7,3 +7,5 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 ## Mise
 - `brew install mise`:  Install the mise task runner
 - `mise tasks`:  Discover mise tasks
+- `mise run dev`:  Run api and web-app servers together.
+- `mise run check`:  Check all folders in mono-repo
