@@ -31,3 +31,6 @@ WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 # File paths
 EXCEL_PATH = os.getenv("EXCEL_PATH")
+
+
+VERSION = 1
