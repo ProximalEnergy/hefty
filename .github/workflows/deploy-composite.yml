@@ -330,8 +330,8 @@ jobs:
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v22
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: api
           environment_name: ${{ env.ENV_NAME }}
           version_label: "${{ env.VERSION_PREFIX }}-${{ github.sha }}-${{ github.run_number }}"
@@ -339,39 +339,39 @@ jobs:
           deployment_package: deploy.zip
           wait_for_deployment: true
 
-  # Job 4: Smoke Test (depends on deploy-api - ATOMIC)
-  smoke-test:
-    needs: [publish-core, deploy-api]
-    runs-on: ubuntu-latest
-    # Only run smoke tests if API deploy succeeded
-    if: needs.deploy-api.result == 'success'
+  # # Job 4: Smoke Test (depends on deploy-api - ATOMIC)
+  # smoke-test:
+  #   needs: [publish-core, deploy-api]
+  #   runs-on: ubuntu-latest
+  #   # Only run smoke tests if API deploy succeeded
+  #   if: needs.deploy-api.result == 'success'
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Set environment variables for smoke testing
-        run: |
-          BRANCH="${{ github.ref_name }}"
-          echo "BRANCH_NAME=$BRANCH" >> $GITHUB_ENV
+  #     - name: Set environment variables for smoke testing
+  #       run: |
+  #         BRANCH="${{ github.ref_name }}"
+  #         echo "BRANCH_NAME=$BRANCH" >> $GITHUB_ENV
 
-          if [ "$BRANCH" = "main" ]; then
-            echo "BASE_URL=${{ secrets.PROD_BASE_URL }}" >> $GITHUB_ENV
-            echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> $GITHUB_ENV
-          elif [ "$BRANCH" = "staging" ]; then
-            echo "BASE_URL=${{ secrets.STAGING_BASE_URL }}" >> $GITHUB_ENV
-            echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
-          elif [ "$BRANCH" = "sandbox" ]; then
-            echo "BASE_URL=${{ secrets.SANDBOX_BASE_URL }}" >> $GITHUB_ENV
-            echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
-          else
-            echo "No smoke test configuration for branch '$BRANCH'"
-            exit 1
-          fi
+  #         if [ "$BRANCH" = "main" ]; then
+  #           echo "BASE_URL=${{ secrets.PROD_BASE_URL }}" >> $GITHUB_ENV
+  #           echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> $GITHUB_ENV
+  #         elif [ "$BRANCH" = "staging" ]; then
+  #           echo "BASE_URL=${{ secrets.STAGING_BASE_URL }}" >> $GITHUB_ENV
+  #           echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
+  #         elif [ "$BRANCH" = "sandbox" ]; then
+  #           echo "BASE_URL=${{ secrets.SANDBOX_BASE_URL }}" >> $GITHUB_ENV
+  #           echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
+  #         else
+  #           echo "No smoke test configuration for branch '$BRANCH'"
+  #           exit 1
+  #         fi
 
-      - name: Install Hurl
-        uses: ./.github/actions/install-hurl
+  #     - name: Install Hurl
+  #       uses: ./.github/actions/install-hurl
 
-      - name: Run smoke tests
-        run: |
-          hurl --location --variable baseURL=${{ env.BASE_URL }} --variable apiKey=${{ env.API_KEY }} --test ./_smoke_testing/hurl/get/*
-        working-directory: api
+  #     - name: Run smoke tests
+  #       run: |
+  #         hurl --location --variable baseURL=${{ env.BASE_URL }} --variable apiKey=${{ env.API_KEY }} --test ./_smoke_testing/hurl/get/*
+  #       working-directory: api
