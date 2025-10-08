@@ -33,4 +33,4 @@ WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 EXCEL_PATH = os.getenv("EXCEL_PATH")
 
 
-VERSION = 1
+VERSION = 2
