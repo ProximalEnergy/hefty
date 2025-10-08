@@ -1,0 +1,99 @@
+# =============================================================================
+# MONOREPO ROOT CONFIGURATION
+# =============================================================================
+# This file contains unified linting and type checking configuration for the
+# entire monorepo. Dependencies remain at the project level (api, core).
+
+[tool.ruff]
+line-length = 88
+fix = true
+
+[tool.ruff.lint]
+select = [
+    "ANN002",  # checks that *args are typed
+    "ASYNC",   # async python checks
+    "COM",     # Ending commas
+    "EXE",     # Executables
+    "FA",      # Future Annotations
+    "F401",    # Remove unused imports
+    "FAST001", # FastAPI
+    "FAST003", # FastAPI
+    "FURB",    # Code modernization
+    "I",       # isort: Sort all imports
+    "INT",     # Gettext formatting
+    "ISC",     # Implicit string concat
+    "ICN",     # Import alias
+    "PD002",   # Pandas inplace
+    "PIE",     # Code simplification
+    "S101",    # Look for assert
+    "S102",    # Look for exec
+    "S103",    # Look for os.chmod
+    "S104",    # hardcoded bind all interfaces
+    "S105",    # hardcoded password string
+    "S106",    # hardcoded password func arg
+    "S107",    # hardcoded password defaults
+    "S108",    # hardcoded temp files
+    "S110",    # try-except-pass
+    "T",       # debugger checks
+    "T20",     # Lint print and pprint Statements
+    "UP",      # pyupgrade
+    "S608",    # hardcoded-sql-expression
+]
+fixable = ["ALL"]
+unfixable = []
+ignore = [
+    "COM812",
+    "COM819",
+    "FAST002",
+    "FURB162",
+    "E501",    # E501 line too long
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"**/tests/**/*.py" = [
+    "S101",  # asserts allowed in tests
+    "ARG",   # Unused function args -> fixtures are functionally relevant
+    "FBT",   # Don't care about booleans as positional arguments in tests
+]
+"**/_tests/**/*.py" = [
+    "S101",  # asserts allowed in tests
+    "ARG",   # Unused function args -> fixtures are functionally relevant
+    "FBT",   # Don't care about booleans as positional arguments in tests
+]
+"api/_data_insert/**/*.py" = [
+    "S608",  # hardcoded-sql-expression allowed in data insert scripts
+]
+"api/app/_crud/projects/data.py" = [
+    "S608",  # hardcoded-sql-expression allowed for dynamic schema queries
+]
+"api/app/_crud/projects/data_raw.py" = [
+    "S608",  # hardcoded-sql-expression allowed for dynamic schema queries
+]
+"api/app/_crud/projects/data_timeseries.py" = [
+    "S608",  # hardcoded-sql-expression allowed for dynamic schema queries
+]
+
+# =============================================================================
+# MYPY CONFIGURATION
+# =============================================================================
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+namespace_packages = true
+explicit_package_bases = true
+disable_error_code = ["import-untyped"]
+mypy_path = "src"
+
+# Exclude patterns for mypy
+exclude = [
+    "^core/.*",  # Exclude installed package in api
+    "^app\\.crud\\.py$",
+    "^app\\.utils\\.py$",
+]
+
+[[tool.mypy.overrides]]
+module = ["_alembic_migrations.versions.*", "crud.py$"]
+ignore_errors = true

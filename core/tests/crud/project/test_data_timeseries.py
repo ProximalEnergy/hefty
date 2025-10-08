@@ -15,7 +15,6 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
-
 from core.crud.project.data_timeseries import (
     get_project_data_timeseries,
     get_project_data_timeseries_v2,

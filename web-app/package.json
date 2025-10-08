@@ -8,7 +8,7 @@
     "build": "node build-plotly-custom.js && tsc && vite build",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "check": "npx tsc && npx prettier --write .",
+    "check": "npx tsc && npx prettier --write --log-level warn .",
     "test": "npx playwright test"
   },
   "dependencies": {

@@ -67,7 +67,7 @@ jobs:
         working-directory: api
 
       - name: run mypy
-        run: uv run mypy --config-file pyproject.toml -p app # Add -v for verbosity
+        run: uv run mypy --config-file ../pyproject.toml -p app # Add -v for verbosity
         working-directory: api
 
   deprecator:

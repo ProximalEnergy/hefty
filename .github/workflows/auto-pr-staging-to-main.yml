@@ -1,4 +1,4 @@
-name: API Auto PR Staging to Main
+name: Auto PR Staging to Main
 
 on:
   schedule:
@@ -37,17 +37,32 @@ jobs:
             exit 0
           fi
 
-          # Check if there are API changes in the commits
-          API_CHANGES=$(git diff --name-only origin/main..origin/staging | grep "^api/" || true)
+          # Check if there are changes in application directories
+          APP_CHANGES=$(git diff --name-only origin/main..origin/staging | grep -E "^(api|web-app|core)/" || true)
 
-          if [ -z "$API_CHANGES" ]; then
-            echo "ℹ️ No API changes found between staging and main branches. Skipping PR creation."
+          if [ -z "$APP_CHANGES" ]; then
+            echo "ℹ️ No application changes found between staging and main branches. Skipping PR creation."
             echo "no_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "🚀 API changes detected. Proceeding to create PR."
-            echo "API changes found:"
-            echo "$API_CHANGES"
+            echo "🚀 Application changes detected. Proceeding to create PR."
+            echo "Application changes found:"
+            echo "$APP_CHANGES"
             echo "no_changes=false" >> $GITHUB_OUTPUT
+
+            # Determine which apps have changes
+            CHANGED_APPS=""
+            if echo "$APP_CHANGES" | grep -q "^api/"; then
+              CHANGED_APPS="${CHANGED_APPS}API, "
+            fi
+            if echo "$APP_CHANGES" | grep -q "^web-app/"; then
+              CHANGED_APPS="${CHANGED_APPS}Web App, "
+            fi
+            if echo "$APP_CHANGES" | grep -q "^core/"; then
+              CHANGED_APPS="${CHANGED_APPS}Core, "
+            fi
+            # Remove trailing comma and space
+            CHANGED_APPS=$(echo "$CHANGED_APPS" | sed 's/, $//')
+            echo "changed_apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
           fi
 
       - name: Log environment info
@@ -74,17 +89,19 @@ jobs:
 
             const commits = compare.data.commits;
 
-            // Filter commits that affect the API directory
-            const apiCommits = commits.filter(commit => {
-              return commit.files && commit.files.some(file => file.filename.startsWith('api/'));
+            // Filter commits that affect application directories
+            const appCommits = commits.filter(commit => {
+              return commit.files && commit.files.some(file =>
+                file.filename.match(/^(api|web-app|core)\//)
+              );
             });
 
             const logins = [
-              ...new Set(apiCommits.map(c => c.author?.login).filter(Boolean))
+              ...new Set(appCommits.map(c => c.author?.login).filter(Boolean))
             ];
 
-            core.info(`Found ${commits.length} total commits, ${apiCommits.length} affecting API.`);
-            core.info(`API Contributors (usernames): ${logins.join(', ')}`);
+            core.info(`Found ${commits.length} total commits, ${appCommits.length} affecting applications.`);
+            core.info(`Contributors (usernames): ${logins.join(', ')}`);
 
             core.setOutput('reviewers', logins.join(','));
 
@@ -100,8 +117,8 @@ jobs:
               repo: context.repo.repo,
               base: process.env.BRANCH_TO,
               head: process.env.BRANCH_FROM,
-              title: `Merge API changes from ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
-              body: `This PR merges API changes from \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
+              title: `Merge changes from ${process.env.BRANCH_FROM} into ${process.env.BRANCH_TO}`,
+              body: `This PR merges application changes (${{ steps.diff.outputs.changed_apps }}) from \`${process.env.BRANCH_FROM}\` into \`${process.env.BRANCH_TO}\`. Contributors are assigned as reviewers. Please review your changes carefully and approve if appropriate. If all reviewers approve, this PR will be merged automatically this evening.`,
               draft: false,
             });
 
@@ -135,4 +152,4 @@ jobs:
 
       - name: Log no changes found
         if: steps.diff.outputs.no_changes == 'true'
-        run: echo "No API changes to merge. Workflow completed without creating a PR."
+        run: echo "No application changes to merge. Workflow completed without creating a PR."

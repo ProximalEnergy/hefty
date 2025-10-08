@@ -1,0 +1,91 @@
+name: Auto PR Dev to Staging
+
+on:
+  schedule:
+    # This is 12:00 UTC (fixed) - converts to 5:00 AM MST (UTC-7) and 6:00 AM MDT (UTC-6)
+    - cron: "0 12 * * 2,4,5" # Tuesday, Thursday, Friday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for application changes between dev and staging
+        id: check_changes
+        run: |
+          git fetch origin dev
+          git fetch origin staging
+
+          # Check if there are any changes in application directories
+          APP_CHANGES=$(git diff --name-only origin/staging..origin/dev | grep -E "^(api|web-app|core)/" || true)
+
+          if [ -z "$APP_CHANGES" ]; then
+            echo "No application changes found between dev and staging"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Application changes found:"
+            echo "$APP_CHANGES"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+
+            # Determine which apps have changes
+            CHANGED_APPS=""
+            if echo "$APP_CHANGES" | grep -q "^api/"; then
+              CHANGED_APPS="${CHANGED_APPS}API, "
+            fi
+            if echo "$APP_CHANGES" | grep -q "^web-app/"; then
+              CHANGED_APPS="${CHANGED_APPS}Web App, "
+            fi
+            if echo "$APP_CHANGES" | grep -q "^core/"; then
+              CHANGED_APPS="${CHANGED_APPS}Core, "
+            fi
+            # Remove trailing comma and space
+            CHANGED_APPS=$(echo "$CHANGED_APPS" | sed 's/, $//')
+            echo "changed_apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create pull request from dev to staging
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          set +e
+
+          echo "Creating pull request from 'dev' to 'staging'..."
+          echo `gh --version`
+
+          # Attempt to create PR
+          ERROR_OUTPUT=$(gh pr create -B staging -H dev \
+            --title '[Automated] Merge changes from dev into staging' \
+            --body "Created by Github action for application changes (${{ steps.check_changes.outputs.changed_apps }}). Please review and merge manually." \
+            --reviewer marcus-maro \
+            --reviewer hunter-proximal 2>&1)
+          EXIT_CODE=$?
+
+          set -e
+
+          echo "ERROR_OUTPUT: $ERROR_OUTPUT"
+          echo "EXIT_CODE: $EXIT_CODE"
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "✅ Pull request created successfully."
+          else
+            if echo "$ERROR_OUTPUT" | grep -q "No commits between"; then
+              echo "ℹ️ No commits between branches. No pull request needed."
+              exit 0
+            else
+              echo "❌ Unexpected error occurred."
+              exit 1
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip PR creation
+        if: steps.check_changes.outputs.has_changes == 'false'
+        run: echo "No application changes detected. Skipping PR creation."

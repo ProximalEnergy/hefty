@@ -103,6 +103,11 @@ name = "proximal"
 url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"
 explicit = true
 
+[[tool.uv.index]]
+name = "proximal"
+url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"
+explicit = true
+
 [tool.uv]
 
 
@@ -111,73 +116,8 @@ explicit = true
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project.scripts]
-aws-core = "_scripts.aws_core_wrapper:main"
-uv-auth = "_scripts.uv_auth_wrapper:main"
-
-# --- ruff configuration ---
-[tool.ruff]
-line-length = 88 # or your preferred line length
-src = ["app"]    # adjust to your source folder
-fix = true
-
-[tool.ruff.lint]
-select = [
-    "ANN002",  # checks that *args are typed
-    "ASYNC",   # async python checks
-    "COM",     # Ending commas
-    "EXE",     # Executables
-    "FA",      # Future Annotations
-    "F401",    # Remove unused imports
-    "FAST001", # FastAPI
-    "FAST003", # FastAPI
-    "FURB",    # Code modernization
-    "I",       # isort:  Sort all imports
-    "INT",     # Gettext formatting
-    "ISC",     # Implicit string concat
-    "ICN",     # Import alias
-    "PD002",   # Pandas inplace
-    "PIE",     # Code simplification
-    "S101",    # Look for assert
-    "S102",    # Look for exec
-    "S103",    # Look for os.chmod
-    "S104",    # harcoded bind all interfaces
-    "S105",    # hardcoded password string
-    "S106",    # hardcoded password func arg
-    "S107",    # hardcoded password defaults
-    "S108",    # hardcoded temp files
-    "S110",    # try-except-pass
-    "T",       # debugger checks
-    "T20",     # Lint print and pprint Statements
-    "UP",      # pyupgrade
-]
-fixable = ["ALL"]
-unfixable = []
-ignore = [
-    "COM812",
-    "COM819",
-    "FAST002",
-    "FURB162",
-    "E501",    # E501 line too long
-]
-
-[tool.ruff.lint.extend-per-file-ignores]
-"_tests/**/*.py" = [
-    # at least this three should be fine in tests:
-    "S101", # asserts allowed in tests...
-    "ARG",  # Unused function args -> fixtures nevertheless are functionally relevant...
-    "FBT",  # Don't care about booleans as positional arguments in tests, e.g. via @pytest.mark.parametrize()
-]
-
-
-# --- mypy ---
-[tool.mypy]
-disable_error_code = ["import-untyped"]
-exclude = ["^app.crud.py$", "^app.utils.py$"]
-
-[[tool.mypy.overrides]]
-module = ["_alembic_migrations.versions.*", "crud.py$"]
-ignore_errors = true
+# Note: ruff and mypy configuration now lives in the root pyproject.toml
+# to unify linting logic across the monorepo
 
 
 # --- pyright ---

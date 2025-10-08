@@ -2,10 +2,10 @@ import sys
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import MetaData, engine_from_config, pool, text
 
 # Import settings to ensure environment variables are loaded
 from core.settings import DATABASE_URL
+from sqlalchemy import MetaData, engine_from_config, pool, text
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

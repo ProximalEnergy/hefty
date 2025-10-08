@@ -8,9 +8,8 @@ Create Date: 2024-11-07 16:53:52.531717+00:00
 
 from collections.abc import Sequence
 
-from alembic import op
-
 from _alembic_migrations.tenant import for_each_project_schema
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "82f42ca7a88a"

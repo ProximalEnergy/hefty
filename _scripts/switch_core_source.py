@@ -2,15 +2,13 @@
 """
 Switch core dependency source based on git branch.
 
-- dev: Uses editable local path (../core)
-- staging/main: Uses AWS CodeArtifact index
+- staging/sandbox/main: Uses AWS CodeArtifact index
+- all other branches: Uses editable local path (../core)
 """
 
 import subprocess
 import sys
 from pathlib import Path
-
-import tomllib
 
 
 def get_current_branch() -> str:
@@ -79,7 +77,7 @@ def main() -> None:
         sys.exit(1)
 
     # Determine which source to use
-    use_editable = branch == "dev"
+    use_editable = branch not in ["staging", "sandbox", "main"]
 
     # Update api/pyproject.toml
     api_pyproject = Path(__file__).parent.parent / "api" / "pyproject.toml"
@@ -91,18 +89,28 @@ def main() -> None:
         pyproject_path=api_pyproject, use_editable=use_editable
     )
 
+    mode = (
+        "editable local core" if use_editable else "CodeArtifact (staging/sandbox/main)"
+    )
+
     if changed:
-        mode = (
-            "editable local core (dev)"
-            if use_editable
-            else "CodeArtifact (staging/main)"
-        )
         print(f"✓ Switched to {mode}")
         print(f"  Updated: {api_pyproject.relative_to(Path.cwd())}")
-        print("  Run 'uv sync' to apply the changes.")
+        print("  Running 'uv sync'...")
+
+        # Run uv sync in the api directory
+        try:
+            subprocess.run(
+                ["uv", "sync"],
+                cwd=api_pyproject.parent,
+                check=True,
+            )
+            print("✓ uv sync completed successfully")
+        except subprocess.CalledProcessError as e:
+            print(f"Error: uv sync failed with code {e.returncode}", file=sys.stderr)
+            sys.exit(1)
     else:
-        # Already correct, silent success
-        pass
+        print(f"✓ Already configured for {mode}")
 
 
 if __name__ == "__main__":
