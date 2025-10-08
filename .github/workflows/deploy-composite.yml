@@ -267,7 +267,7 @@ jobs:
           if constraint == "stable":
               version_spec = 'core>=0.2.0,<1.0.0'
           elif constraint == "rc":
-              version_spec = 'core>=0.2.0rc0,<1.0.0'
+              version_spec = 'core>=0.2.0rc0,<1.0.0rc'
           else:
               version_spec = 'core'
 
