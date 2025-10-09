@@ -427,3 +427,28 @@ export const useSyncZeitviewAnomalies = (
     isFetching: mutation.isPending,
   }
 }
+
+export interface DroneInspectionOrderRequest {
+  project_id: string
+  provider_email: string
+  timing: string
+}
+
+export const useOrderDroneInspection = () => {
+  const { getToken } = useAuth()
+
+  return useMutation({
+    mutationFn: async (request: DroneInspectionOrderRequest) => {
+      const token = await getToken({ template: 'default' })
+      const response = await axios({
+        method: 'post',
+        url: `${baseURL}/v1/operational/drone-integrations/order-inspection`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: request,
+      })
+      return response.data
+    },
+  })
+}
