@@ -262,7 +262,7 @@ jobs:
             --package core \
             --region us-east-2 \
             --query 'versions[*].version' \
-            --output text)
+            --output text | tr '\t' '\n')
 
           echo "Available versions: $VERSIONS"
 
@@ -270,11 +270,11 @@ jobs:
 
           if [ "$CONSTRAINT" = "stable" ]; then
             # Find latest stable version (no pre-release suffix)
-            LATEST_VERSION=$(echo "$VERSIONS" | tr ' ' '\n' | grep -v -E '(a|b|rc)' | sort -V | tail -1)
+            LATEST_VERSION=$(echo "$VERSIONS" | grep -v -E '(a|b|rc)' | sort -V | tail -1)
             echo "Latest stable version: $LATEST_VERSION"
           elif [ "$CONSTRAINT" = "rc" ]; then
             # Find latest RC version
-            LATEST_VERSION=$(echo "$VERSIONS" | tr ' ' '\n' | grep 'rc' | sort -V | tail -1)
+            LATEST_VERSION=$(echo "$VERSIONS" | grep 'rc' | sort -V | tail -1)
             echo "Latest RC version: $LATEST_VERSION"
           else
             echo "Unknown constraint: $CONSTRAINT"

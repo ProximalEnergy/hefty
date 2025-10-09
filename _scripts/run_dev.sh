@@ -21,6 +21,9 @@ else
   echo "✓ Branch is already up to date with dev"
 fi
 
+# Ensure core dependency source matches current branch
+python3 _scripts/switch_core_source.py
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

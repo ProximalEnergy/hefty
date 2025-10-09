@@ -96,7 +96,7 @@ dev = [
     "typing-extensions>=4.12.2",
 ]
 [tool.uv.sources]
-core = { path = "../core", editable = true }
+core = { index = "proximal-package-index" }
 
 [[tool.uv.index]]
 name = "proximal-package-index"
