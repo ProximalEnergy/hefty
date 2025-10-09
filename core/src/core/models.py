@@ -1496,8 +1496,6 @@ class Event(Base):
     failure_mode = relationship("FailureMode")
     root_cause = relationship("RootCause")
 
-    __table_args__ = (sa.UniqueConstraint("device_id", "time_start"),)
-
 
 class Event2(Base):
     __tablename__ = "events_2"
