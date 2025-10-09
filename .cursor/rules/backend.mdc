@@ -1,0 +1,251 @@
+---
+alwaysApply: true
+---
+
+## Overview
+
+The Proximal Energy platform backend is built with FastAPI, a modern web framework for building APIs with Python. The backend follows a modular structure with clear separation of topics.
+
+- The API backend is FastAPI, located in the `/api/app` folder within the mono repo structure, with `main.py` as the main executable
+- The Database models and past alembic migrations are defined in the `/core` folder and the models specifically in `/core/src/core/models.py`
+- This is part of a mono repo that also contains `/web-app` (frontend) and `/core` (database models)
+
+## Mono Repo Structure
+
+This backend is part of a mono repo containing:
+
+- `/api/` - FastAPI Python backend (this component)
+- `/web-app/` - React TypeScript frontend
+- `/core/` - Database models and migrations
+
+All paths in this documentation are relative to the mono repo root.
+
+## Architecture
+
+- **Framework**: FastAPI
+- **Schema Definition**: Uses SQLAlchemy models with metadata schema definitions
+- **API Versioning**: Uses /v1 prefix for the current API version
+- **Authentication**: JWT-based authentication with user permissions system
+- **Error Handling**: Standardized exception handling
+
+## File Organization
+
+The backend root directory is `api/` within the mono repo, and the main application folder is `api/app/`
+
+### `api/app/`: Root Structure
+
+- `api/app/__init__.py` - Initializes the app directory as a Python package.
+- `api/app/_crud/` - Houses modules for direct database interactions (Create, Read, Update, Delete operations). These are typically organized by database schema or specific data models.
+  - `__init__.py`: Initializes the `_crud` directory as a Python package.
+  - `_README.md`: Provides an overview or guidelines for the `_crud` modules.
+  - `aws_secrets.py`: CRUD operations for managing secrets stored in AWS Secrets Manager.
+  - `admin/`: CRUD operations related to the `admin` database schema.
+    - `__init__.py`: Initializes the `admin` subdirectory within `_crud`.
+    - `companies.py`: CRUD for company data.
+    - `company_permissions.py`: CRUD for company-level permissions.
+    - `company_projects.py`: CRUD for associations between companies and projects.
+    - `feedback.py`: CRUD for user feedback data.
+    - `permissions.py`: CRUD for general permission entities.
+    - `user_permissions.py`: CRUD for user-specific permissions.
+    - `user_projects.py`: CRUD for associations between users and projects.
+    - `user_subscriptions.py`: CRUD for user subscription data.
+    - `user_types.py`: CRUD for user type definitions.
+    - `users.py`: CRUD for user account data.
+  - `ercot/`: CRUD operations related to the `ercot` database schema (Note: Marked as DO NOT USE in some contexts, usage should be verified).
+    - `__init__.py`: Initializes the `ercot` subdirectory within `_crud`.
+    - `dam_spp.py`: CRUD for ERCOT Day-Ahead Market Settlement Point Prices.
+    - `dmes.py`: CRUD for ERCOT DMES (Dynamically Scheduled or Modeled Energy Storage) data.
+    - `qses.py`: CRUD for ERCOT QSE (Qualified Scheduling Entity) data.
+    - `resources.py`: CRUD for ERCOT resource data.
+    - `rtm_spp.py`: CRUD for ERCOT Real-Time Market Settlement Point Prices.
+    - `sced_gen.py`: CRUD for ERCOT SCED (Security-Constrained Economic Dispatch) Generation data.
+    - `sced_load.py`: CRUD for ERCOT SCED Load data.
+    - `settlement_point_markets.py`: CRUD for ERCOT settlement point market data.
+    - `settlement_point_types.py`: CRUD for ERCOT settlement point type definitions.
+    - `settlement_points.py`: CRUD for ERCOT settlement point data.
+  - `operational/`: CRUD operations related to the `operational` database schema, covering core operational data.
+    - `__init__.py`: Initializes the `operational` subdirectory within `_crud`.
+    - `cec_pv_inverters.py`: CRUD for CEC PV inverter data.
+    - `cec_pv_modules.py`: CRUD for CEC PV module data.
+    - `cmms_permissions.py`: CRUD for CMMS permission data.
+    - `contracts.py`: CRUD for contract data.
+    - `data_timeseries.py`: CRUD for operational timeseries data.
+    - `data_types.py`: CRUD for operational data type definitions.
+    - `device_types.py`: CRUD for device type definitions.
+    - `documents.py`: CRUD for document metadata.
+    - `event_loss_types.py`: CRUD for event loss type definitions.
+    - `failure_modes.py`: CRUD for failure mode definitions.
+    - `inverters.py`: CRUD for inverter-specific data.
+    - `kpi_alerts.py`: CRUD for KPI alert data.
+    - `kpi_data.py`: CRUD for KPI data.
+    - `kpi_instances.py`: CRUD for KPI instance data.
+    - `kpi_types.py`: CRUD for KPI type definitions.
+    - `pg_data_types.py`: CRUD for PostgreSQL-specific data type definitions used in operational contexts.
+    - `project_data_last_updated.py`: CRUD for tracking the last update times of project data.
+    - `project_types.py`: CRUD for project type definitions.
+    - `projects.py`: CRUD for project master data.
+    - `pv_modules.py`: CRUD for PV module-specific data.
+    - `rackings.py`: CRUD for racking system data.
+    - `report_types.py`: CRUD for report type definitions.
+    - `sensor_types.py`: CRUD for sensor type definitions.
+    - `trees.py`: CRUD for hierarchical tree structure data (e.g., asset trees).
+  - `projects/`: CRUD operations related to dynamically created `project` schemas, holding project-specific data.
+    - `__init__.py`: Initializes the `projects` subdirectory within `_crud`.
+    - `calculations.py`: CRUD for stored project calculation results or configurations.
+    - `calendar.py`: CRUD for project-specific calendar or event items (related to `crud_calendar_item_category.py` in pycache).
+    - `combiners.py`: CRUD for combiner box data within a project.
+    - `data_expected.py`: CRUD for expected performance data for a project.
+    - `data_raw.py`: CRUD for raw, unprocessed data for a project.
+    - `data_timeseries_latest.py`: CRUD for fetching the latest timeseries data points for a project.
+    - `data_timeseries.py`: CRUD for project-specific timeseries data.
+    - `data.py`: General data CRUD operations for a project.
+    - `devices.py`: CRUD for device instances within a project.
+    - `event_losses.py`: CRUD for event loss data within a project.
+    - `events.py`: CRUD for event occurrences within a project.
+    - `kpi_data.py`: CRUD for project-specific KPI data.
+    - `reports.py`: CRUD for report instances or definitions for a project.
+    - `status.py`: CRUD for device or system status data within a project.
+    - `tags.py`: CRUD for tag or sensor point definitions within a project.
+- `api/app/_utils/` - Houses utility modules for various functionalities like AWS integration, CMMS (Computerized Maintenance Management System) interactions, distribution utilities, and recursive parent object finding.
+- `api/app/core/` - Directory for core business logic and functionalities, potentially including modules like commissioning.
+- `api/app/custom_types.py` - Defines custom Pydantic or type hint definitions (e.g., AnnotatedDeep, OptionalListOfInts, OptionalListOfUUIDs) used across the application for data validation and clarity.
+- `api/app/dependencies.py` - Defines FastAPI dependency injection functions, commonly used for things like authentication, database session provision, and user data retrieval.
+- `api/app/interfaces.py` - Contains interface definitions or abstract base classes that define contracts for other components in the application.
+- `api/app/logger.py` - Configures logging for the application, setting up handlers, formatters, and log levels.
+- `api/app/main.py` - The main entry point for the FastAPI application. It initializes the FastAPI app, includes routers, and sets up middleware.
+- `api/app/schemas/` - Directory containing Pydantic schemas used for request/response validation, serialization, and data structuring (e.g., `calendar.py`).
+- `api/app/utils.py` - General utility functions and helper methods that are broadly applicable across the backend application.
+- `api/app/v1/` - Contains all API version 1 endpoint modules, organized by resource or functionality (admin, analytics, commissioning, etc.).
+
+### `core/` database models structure:
+
+This directory involves the database structure and its tables and columns.
+
+- `core/_alembic_migrations/` - Historical/archived alembic migrations performed.
+- `core/src/core/models.py` - All database models are defined here, including table_name, table_args, columns, etc.
+- `core/src/core/database.py` - Manages database connection setup, session management, and engine configuration for SQLAlchemy.
+
+To run an alembic migration, run `source .venv/bin/activate` and then `poe db "[DESCRIPTION]"`
+
+### Endpoints Structure (`api/app/v1/`)
+
+This directory houses all version 1 API endpoints, structured by domain.
+
+- `v1.py`: The main FastAPI router for API v1. It aggregates and includes routers from all subdirectories within `v1/`.
+- `__init__.py`: Makes the `v1` directory a Python package.
+
+- `admin/`: Contains endpoints related to administrative functionalities.
+
+  - `__init__.py`: Initializes the `admin` subdirectory as a Python package.
+  - `admin.py`: Main router for administrative endpoints.
+  - `api_key.py`: Endpoints for managing API keys.
+  - `companies.py`: Endpoints for managing company information.
+  - `company_projects.py`: Endpoints for managing relationships between companies and projects.
+  - `permissions.py`: Endpoints for managing user permissions.
+  - `report_preferences.py`: Endpoints for managing report preferences.
+  - `subscriptions.py`: Endpoints for managing user subscriptions or notifications.
+
+- `analytics/`: Endpoints for data analytics and reporting.
+
+  - `__init__.py`: Initializes the `analytics` subdirectory as a Python package.
+  - `analytics_funcs.py`: Contains functions supporting analytics operations.
+  - `analytics_vars.py`: Defines variables or constants used in analytics.
+  - `analytics.py`: Main router for analytics endpoints.
+  - `gis.py`: Endpoints related to Geographic Information System (GIS) data or operations.
+
+- `commissioning/`: Endpoints related to project commissioning processes.
+
+  - `__init__.py`: (Likely present) Initializes the `commissioning` subdirectory.
+  - `commissioning.py`: Main router for commissioning endpoints.
+  - `inverter/`: Subdirectory for inverter-specific commissioning endpoints.
+  - `pv_modules/`: Subdirectory for PV module-specific commissioning endpoints.
+  - `system/`: Subdirectory for system-level commissioning endpoints.
+
+- `development/`: Endpoints used for development or testing purposes. **Should not be used in production.**
+
+- `feedback/`: Endpoints for collecting and managing user feedback.
+
+  - `__init__.py`: Initializes the `feedback` subdirectory.
+  - `feedback.py`: Handles user feedback submissions, possibly including features like screenshot uploads.
+
+- `operational/`: Endpoints for core operational data and functionalities of energy projects.
+
+  - `__init__.py`: Initializes the `operational` subdirectory.
+  - `aws.py`: Endpoints related to AWS services utilized in operations.
+  - `cec_pv_inverters.py`: Endpoints for accessing data related to CEC (California Energy Commission) listed PV inverters.
+  - `cec_pv_modules.py`: Endpoints for CEC listed PV modules.
+  - `data_types.py`: Endpoints for managing or retrieving definitions of various data types used in the system.
+  - `device_types.py`: Endpoints for device type definitions.
+  - `failure_modes.py`: Endpoints related to system failure mode definitions.
+  - `kpi_data.py`: Endpoints for Key Performance Indicator (KPI) data.
+  - `kpi_instances.py`: Endpoints for managing specific instances of KPIs.
+  - `kpi_types.py`: Endpoints for KPI type definitions.
+  - `operational.py`: Main router for operational endpoints.
+  - `project/`: Subdirectory for project-specific operational endpoints. (This seems to mirror the top-level `project/` folder mentioned in some docs, structure might need clarification if they are distinct).
+  - `project_types.py`: Endpoints for project type definitions.
+  - `projects.py`: Endpoints for managing project information.
+  - `pv_inverters.py`: Endpoints related to PV inverters (distinct from CEC list, possibly for specific project inverters).
+  - `pv_modules.py`: Endpoints for PV modules (distinct from CEC list).
+  - `pv_rackings.py`: Endpoints for PV racking system information.
+  - `report_types.py`: Endpoints for report type definitions.
+  - `root_causes.py`: Endpoints for root cause analysis definitions.
+  - `sensor_types.py`: Endpoints for sensor type definitions.
+  - `status.py`: Endpoints for reporting device (e.g., inverter, tracker) status codes.
+  - `trees.py`: Endpoints related to hierarchical data structures, possibly for asset trees or system layouts.
+
+- `protected/`: Endpoints that require authentication and specific permissions.
+
+  - `__init__.py`: Initializes the `protected` subdirectory.
+  - `backfill/`: Subdirectory for data backfilling operations, likely protected.
+  - `protected.py`: Main router for protected endpoints.
+  - `system.py`: Endpoints for system-level protected operations.
+  - `web_application/`: Subdirectory for endpoints specifically supporting the web application's protected functionalities.
+
+- `ui/`: Endpoints specifically designed to support the user interface or frontend application.
+  - `__init__.py`: Initializes the `ui` subdirectory.
+  - `ui.py`: Main router for UI-specific endpoints.
+
+## Database Schema
+
+The database is organized into multiple schemas:
+
+- `admin` - User, company, and permissions management
+- `operational` - Core operational data for energy projects
+- `project` - Project-specific data (dynamically created per project)
+- `ercot` - DO NOT USE THIS.
+
+## Models (api/app/models.py)
+
+Major model categories:
+
+- **User Models**: User, UserType, UserPermission, UserProject, UserSubscription
+- **Company Models**: Company, CompanyPermission, CompanyProject
+- **Project Models**: Project, ProjectType, ProjectDataLastUpdated
+- **Device Models**: Device, DeviceType, Tag, SensorType, PVModule, CECPVModule, CECPVInverter, Inverter, Racking
+- **Data Models**: DataTimeseries, DataRaw, Data, OperationalDataTimeseries, KPIData, DataExpected
+- **Event Models**: Event, EventLoss, EventLossType, FailureMode, RootCause, StatusLookup, StatusBinary, StatusString, StatusBoolean
+- **Report Models**: Report, ReportType, ReportInstance
+
+## Authentication
+
+The application uses dependency injection for authentication:
+
+- `dependencies.get_user_data` - Extracts and validates user data from JWT
+- `dependencies.get_db` - Provides database session with proper schema
+
+## API Organization
+
+All endpoints are organized by functional domain (admin, operational, etc.) with consistent URL patterns:
+
+- `/v1/admin/...` - Administrative endpoints
+- `/v1/operational/...` - Operational endpoints
+- `/v1/feedback/...` - Feedback endpoints
+- `/v1/protected/...` - Protected endpoints
+
+## Data Flow
+
+1. Request comes to main.py
+2. Router directs to appropriate module in v1/
+3. Endpoint handler gets authenticated user via dependencies
+4. Business logic accesses database via \_crud functions
+5. Response is returned with appropriate schema validation

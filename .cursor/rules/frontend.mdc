@@ -1,0 +1,142 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Frontend Structure for Proximal Energy platform
+
+- The frontend is TypeScript React, located in the `/web-app` folder within the mono repo structure
+- Entry point: [main.tsx](mdc:web-app/src/main.tsx)
+- This is part of a mono repo that also contains `/api` (backend) and `/core` (database models)
+
+# Frontend Structure
+
+## Overview
+
+The Proximal Energy platform frontend is built with React and TypeScript, providing a modern, type-safe UI for the Asset Management platform. It's designed to visualize and interact with timeseries data from utility-scale solar and energy storage projects.
+
+## Mono Repo Structure
+
+This frontend is part of a mono repo containing:
+
+- `/web-app/` - React TypeScript frontend (this component)
+- `/api/` - FastAPI Python backend
+- `/core/` - Database models and migrations
+
+All paths in this documentation are relative to the mono repo root.
+
+## Architecture
+
+- **Framework**: React with TypeScript
+- **Styling**: CSS modules with App.css for global styles
+- **State Management**: React Context API with custom providers
+- **Routing**: React Router
+- **Data Visualization**: Plotly for custom charts and visualizations
+- **Layout Management**: React Grid Layout for responsive dashboards
+- **API Communication**: Custom hooks for data fetching
+
+## File Organization
+
+### Root Structure
+
+- `web-app/src/main.tsx` - Entry point for the React application
+- `web-app/src/App.tsx` - Main application component
+- `web-app/src/App.css` - Global styles
+- `web-app/src/index.css` - Base styling
+- `web-app/src/ErrorBoundary.tsx` - Global error handler
+- `web-app/src/HexLoader.tsx` - Loading indicator component
+- `web-app/src/utils.ts` - Utility functions
+
+### Components Directory
+
+- `components/` - Reusable UI components
+
+  - `charts/` - Data visualization components
+  - `forms/` - Form components and inputs
+  - `tables/` - Table components for data display
+  - `common/` - Common UI elements (buttons, cards, modals)
+
+### Pages Directory
+
+- `pages/` - Application pages/routes
+  - `development/`
+  - `layout/` - Layout components (NavBar Navigation, Header, Sidebar, Footer)
+  - `portfolio/` -
+  - `projects/` -
+  - `AccountSettings.tsx` - Main dashboard view
+  - `Api.tsx` - Project listing and management
+  - `ApplicationSettings.tsx` - Individual project view
+  - `LoomTesting.tsx` - Reporting interface
+  - `SignIn.tsx` - Data analysis tools
+
+### Contexts Directory
+
+- `contexts/` - React contexts for state management
+  - `AuthContext.tsx` - User authentication state
+  - `ProjectContext.tsx` - Current project data
+  - `ThemeContext.tsx` - UI theme settings
+  - `NotificationContext.tsx` - System notifications
+
+### Hooks Directory
+
+- `hooks/` - Custom React hooks
+  - `useApi.ts` - API request handling
+  - `useAuth.ts` - Authentication utilities
+  - `useProject.ts` - Project data access
+  - `useTimeseries.ts` - Timeseries data fetching
+  - `useDeviceData.ts` - Device-specific data
+
+### API Directory
+
+- `api/` - API communication layer
+  - `client.ts` - Base API client configuration
+  - `endpoints.ts` - API endpoint definitions
+  - `auth.ts` - Authentication API calls
+  - `projects.ts` - Project-related API calls
+  - `timeseries.ts` - Timeseries data fetching
+  - `devices.ts` - Device data operations
+
+### Utils Directory
+
+- `utils/` - Utility functions and helpers
+  - `date.ts` - Date manipulation utilities
+  - `format.ts` - Data formatting helpers
+  - `validation.ts` - Form validation functions
+  - `calculations.ts` - Data calculation utilities
+  - `storage.ts` - Local storage wrapper
+
+### Assets Directory
+
+- `assets/` - Static assets
+  - `images/` - Image files
+  - `icons/` - Icon assets
+  - `fonts/` - Custom fonts
+
+### Providers Directory
+
+- `providers/` - Service providers and wrappers
+  - `AuthProvider.tsx` - Authentication provider
+  - `ThemeProvider.tsx` - Theme management
+  - `NotificationProvider.tsx` - System notifications
+  - `ApiProvider.tsx` - API context provider
+
+## Data Flow
+
+1. User interacts with the UI
+2. Component handlers update local state or call context methods
+3. Context providers communicate with API layer when needed
+4. API responses update application state via context
+5. UI re-renders based on new state
+6. For timeseries data, specialized hooks manage polling and caching
+
+## Key Features
+
+- **Project Dashboard**: Customizable views of project performance metrics
+- **Real-time Monitoring**: Regular polling for updated timeseries data
+- **Interactive Charts**: Zoomable, filterable visualizations of energy data
+- **Device Management**: Interfaces for managing and monitoring devices
+- **Reporting Tools**: Automated and custom reporting capabilities
+- **Alert System**: Notifications for performance issues and maintenance needs
+
+For styling/css color selection, the key is using useComputedColorScheme() and useMantineTheme() to conditionally apply colors based on the current theme (light/dark).
