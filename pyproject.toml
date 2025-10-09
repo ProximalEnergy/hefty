@@ -108,3 +108,17 @@ exclude = [
 [[tool.mypy.overrides]]
 module = ["_alembic_migrations.versions.*", "crud.py$"]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+    "geoalchemy2.*",
+    "_alembic_migrations.tenant",
+    "alembic",
+    "fastapi.*",
+    "app.*",
+    "natsort",
+    "jwt",
+    "google.*",
+    "googleapiclient.*",
+]
+ignore_missing_imports = true

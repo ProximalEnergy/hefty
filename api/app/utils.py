@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from fastapi import HTTPException
-from pvlib import irradiance, location, tracking  # type: ignore
+from pvlib import irradiance, location, tracking
 from sqlalchemy.orm import Session
 
 import core
