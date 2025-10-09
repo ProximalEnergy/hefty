@@ -1808,7 +1808,7 @@ async def dc_amperage_report(
             },
             ExpiresIn=3600,  # Link expiration in seconds (1 hour)
         )
-        return presigned_url
+        return str(presigned_url)
 
     try:
         s3_client.put_object(

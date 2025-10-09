@@ -58,7 +58,8 @@ class ZeitviewAPI:
                     logger.error(f"Response status: {response.status_code}")
                     logger.error(f"Response content: {response.text}")
                 response.raise_for_status()
-                return response.json()
+                result: dict[str, Any] = response.json()
+                return result
             except httpx.TimeoutException as e:
                 logger.warning(
                     f"Timeout on attempt {attempt + 1}/{max_retries} for {url}: {e}"

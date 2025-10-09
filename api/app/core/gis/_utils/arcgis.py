@@ -47,7 +47,7 @@ def get_arcgis_token(
     if response.status_code == 200:
         token_info = json.loads(response.text)
         if "token" in token_info:
-            return token_info["token"]
+            return str(token_info["token"])
 
         # --- Failure Path ---
         else:

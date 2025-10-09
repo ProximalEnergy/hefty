@@ -47,7 +47,7 @@ def _read48_to_float(*, real48: bytes) -> float:
         mantissa = -mantissa
 
     # Final calculation using the exponent
-    return mantissa * (2.0**exponent)
+    return float(mantissa * (2.0**exponent))
 
 
 def _find_marker_index(*, marker: int, start_index: int, byte_array: bytes) -> int:

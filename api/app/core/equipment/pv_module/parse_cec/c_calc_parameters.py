@@ -1,3 +1,5 @@
+from typing import Any
+
 from app import interfaces
 from app.core.equipment.pv_module._utils.single_diode_params import (
     calc_reference_params,
@@ -27,4 +29,6 @@ def adapt_cec_pv_module_to_proximal(
     adapted_cec_pv_module = calc_reference_params(
         pv_module=adapted_cec_pv_module,
     )
-    return adapted_cec_pv_module
+    # Type assertion to satisfy mypy
+    result: interfaces.PVModule | dict[Any, Any] = adapted_cec_pv_module
+    return result
