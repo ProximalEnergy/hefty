@@ -588,6 +588,7 @@ export default function App() {
       '5xl': '154em',
     },
     primaryColor: primaryColor,
+    scale: 0.8,
     // https://stackoverflow.com/questions/8118741/css-font-helvetica-neue
     fontFamily: 'Helvetica Neue, sans-serif',
     components: {

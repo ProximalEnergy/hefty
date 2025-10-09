@@ -4,11 +4,6 @@
 }
 /*  */
 
-/* Global font size reduction - 80% of original size */
-html {
-  font-size: 80% !important;
-}
-
 /* Plotly font size reduction - 80% of original size */
 .js-plotly-plot .plotly .main-svg text,
 .js-plotly-plot .plotly .main-svg .legend text,
