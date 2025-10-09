@@ -2,7 +2,18 @@
 # MONOREPO ROOT CONFIGURATION
 # =============================================================================
 # This file contains unified linting and type checking configuration for the
-# entire monorepo. Dependencies remain at the project level (api, core).
+# entire monorepo. Ruff is installed at the root level for consistency.
+
+[project]
+name = "mono"
+version = "0.1.0"
+description = "Monorepo root for unified tooling"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.0",
+]
 
 [tool.ruff]
 line-length = 88
@@ -79,7 +90,7 @@ ignore = [
 
 [tool.mypy]
 python_version = "3.12"
-warn_return_any = false
+warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 namespace_packages = true
@@ -97,3 +108,17 @@ exclude = [
 [[tool.mypy.overrides]]
 module = ["_alembic_migrations.versions.*", "crud.py$"]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+    "geoalchemy2.*",
+    "_alembic_migrations.tenant",
+    "alembic",
+    "fastapi.*",
+    "app.*",
+    "natsort",
+    "jwt",
+    "google.*",
+    "googleapiclient.*",
+]
+ignore_missing_imports = true

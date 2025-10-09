@@ -17,7 +17,7 @@ from core.enumerations import UserTypeEnum
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
 from pydantic.config import ConfigDict
-from shapely.geometry import mapping  # type: ignore
+from shapely.geometry import mapping
 
 
 class APIKey(BaseModel):
@@ -164,7 +164,7 @@ class ProjectSpec(BaseModel):
 # --- Operational.Projects ---
 class ProjectShared(BaseModel):
     """
-    Shared attibutes of the following classes:
+    Shared attributes of the following classes:
     - Project
     - ProjectCreate
     """
@@ -415,7 +415,7 @@ class KPIInstance(BaseModel):
 
 class KPIAlertPost(BaseModel):
     """
-    Inhereted by:
+    Inherited by:
     - KPIAlertAdd
     - KPIAlertUpdate
     """

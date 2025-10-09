@@ -53,7 +53,7 @@ def generate_presigned_url(*, file_key: str) -> str:
         },
         ExpiresIn=3600,  # Link expiration in seconds (1 hour)
     )
-    return presigned_url
+    return str(presigned_url)
 
 
 @router.get("/", response_model=list[interfaces.Document])

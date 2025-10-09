@@ -257,7 +257,7 @@ jobs:
           # Get all package versions from CodeArtifact
           VERSIONS=$(aws codeartifact list-package-versions \
             --domain proximal-code-artifact-domain \
-            --repository proximal-package-index \
+            --repository proximal-hub \
             --format pypi \
             --package core \
             --region us-east-2 \

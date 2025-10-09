@@ -189,7 +189,7 @@ async def _get_elevation(
             )
             response.raise_for_status()
             data = response.json()
-            return data["results"][0]["elevation"]
+            return float(data["results"][0]["elevation"])
         except httpx.RequestError as e:
             logger.error(f"Failed to get elevation: {e}")
             return None

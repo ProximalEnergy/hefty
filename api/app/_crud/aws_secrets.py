@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 import boto3
@@ -36,4 +37,5 @@ def get_secret(
         raise e
 
     # Return the secret value
-    return get_secret_value_response["SecretString"]
+    result = json.loads(get_secret_value_response["SecretString"])
+    return dict(result)

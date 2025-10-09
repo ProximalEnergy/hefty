@@ -3,7 +3,7 @@ from uuid import UUID
 
 import numpy as np
 import pandas as pd
-import pvlib  # type: ignore # No types available for pvlib
+import pvlib
 from sqlalchemy.orm import Session
 
 import core

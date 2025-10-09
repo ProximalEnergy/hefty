@@ -38,4 +38,4 @@ def parse_pan(*, file_content: bytes) -> dict[str, Any]:
     pv_module_data = calc_absolute_temp_coefficients(pv_module=pv_module_data)
     pv_module_data = calc_reference_params(pv_module=pv_module_data)
 
-    return pv_module_data
+    return dict(pv_module_data)
