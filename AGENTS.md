@@ -1,11 +1,10 @@
 # General
-- Make sure to run `mise run check` finished making changes
+- Install mise if it is not already installed `curl https://mise.run | sh`
+- Make sure to run `mise run check` when finished making changes
 - Use uv not pip
 - Functions with arguments should use * as the first argument
 - make sure lines are shorter than 88 characters
-- Create diffs, don't start from scratch
 
 
 # Asking for more details
-- Ask for an AWS authentication token if you need to update requirements in pyproject.toml
 - Ask for .env variables if user has not provided them
