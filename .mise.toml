@@ -13,13 +13,15 @@ description = "Run all quality checks across the entire monorepo"
 depends = ["api:switch-core"]
 run = "./_scripts/run_checks.sh"
 
-[tasks.deps]
+[tasks.install]
 description = "Install and sync all dependencies across the monorepo"
 run = """
 cd core && uv sync && cd .. && \
 mise run api:switch-core && \
 cd api && uv sync && cd .. && \
-cd web-app && npm install && npx node build-plotly-custom.js
+cd web-app && npm install && npx node build-plotly-custom.js && \
+cd .. && \
+brew install hurl
 """
 
 [tasks.sync]
