@@ -2260,6 +2260,10 @@ class DroneAnomaly(Base):
         sa.ForeignKey("project.drone_inspections.inspection_uuid"),
         index=True,
     )
+    event_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("project.events.event_id"),
+        index=True,
+    )
     stack_id: Mapped[str | None]
     ir_signal: Mapped[str | None]
     rgb_signal: Mapped[str | None]
@@ -2274,6 +2278,7 @@ class DroneAnomaly(Base):
     client_status_id: Mapped[int | None]
 
     inspection = relationship("DroneInspection", back_populates="anomalies")
+    event = relationship("Event")
 
 
 class CustomDashboard(Base):
