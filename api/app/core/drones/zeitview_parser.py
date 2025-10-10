@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 import httpx
-from app._crud.aws_secrets import get_secret
+from app._utils.aws import get_secret
 
 logger = logging.getLogger(__name__)
 

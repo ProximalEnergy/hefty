@@ -1,12 +1,24 @@
 import asyncio
 from collections.abc import AsyncGenerator, Generator
-from contextlib import asynccontextmanager, contextmanager
-from functools import lru_cache
 from uuid import UUID
 
 import httpx
 import jwt
 import sqlalchemy as sa
+
+# Import core database functions
+from core.dependencies import (
+    get_project_name_short as core_get_project_name_short,
+)
+from core.dependencies import (
+    get_project_name_short_async as core_get_project_name_short_async,
+)
+from core.dependencies import (
+    with_db as _with_db,
+)
+from core.dependencies import (
+    with_db_async as _with_async_db,
+)
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,38 +26,10 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, settings
-from app.database import async_engine, engine
 from core import models
 
-
-@contextmanager
-def _with_db(*, schema: str | None) -> Generator[Session, None, None]:
-    """Get a database session with the specified schema."""
-    if schema:
-        schema_translate_map = dict(project=schema)
-    else:
-        schema_translate_map = None
-
-    connectable = engine.execution_options(schema_translate_map=schema_translate_map)
-
-    with Session(autocommit=False, autoflush=False, bind=connectable) as db:
-        yield db
-
-
-@asynccontextmanager
-async def _with_async_db(*, schema: str | None) -> AsyncGenerator[AsyncSession, None]:
-    """Get a database session with the specified schema."""
-    if schema:
-        schema_translate_map = dict(project=schema)
-    else:
-        schema_translate_map = None
-
-    connectable = async_engine.execution_options(
-        schema_translate_map=schema_translate_map,
-    )
-
-    async with AsyncSession(autocommit=False, autoflush=False, bind=connectable) as db:
-        yield db
+# Note: _with_db and _with_async_db are now imported from core.dependencies
+# They are aliased above for backward compatibility
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -58,15 +42,8 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
         yield db
 
 
-@lru_cache(maxsize=128)
-def get_project_name_short(*, project_id: UUID):
-    with _with_db(schema=None) as db:
-        project = (
-            db.query(models.Project)
-            .filter(models.Project.project_id == project_id)
-            .first()
-        )
-    return project.name_short if project else None
+# Use core's cached version directly
+get_project_name_short = core_get_project_name_short
 
 
 def get_project_db(*, project_id: UUID = Path(...)):
@@ -104,15 +81,8 @@ def is_prod_api(*, request: Request):
 
 
 # --- ASYNC ---
-async def get_project_name_short_async(*, project_id: UUID) -> str | None:
-    async with _with_async_db(schema=None) as db:
-        result = await db.execute(
-            sa.select(models.Project.name_short).filter(
-                models.Project.project_id == project_id
-            )
-        )
-        name_short = result.scalars().first()
-    return name_short
+# Use core's cached version directly
+get_project_name_short_async = core_get_project_name_short_async
 
 
 async def get_project_db_async(*, project_id: UUID = Path(...)):
