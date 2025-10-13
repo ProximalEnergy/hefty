@@ -2,6 +2,7 @@ import logging
 import uuid
 from typing import Annotated
 
+from core.crud.operational.projects import get_project_async
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +31,6 @@ from app.interfaces import (
     DroneIntegrationUpdate,
     UserData,
 )
-from core.crud.operational.projects import get_project_async
 
 router = APIRouter(prefix="/drone-integrations")
 logger = logging.getLogger(__name__)
