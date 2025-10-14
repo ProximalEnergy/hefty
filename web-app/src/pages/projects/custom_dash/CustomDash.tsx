@@ -11,8 +11,10 @@ import {
   useUpdateUserDashboard,
 } from '@/api/v1/operational/project/custom_dash'
 import { useGetProject } from '@/api/v1/operational/projects'
-import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
-import { SensorType } from '@/api/v1/operational/sensor_types'
+import {
+  SensorType,
+  useGetSensorTypes,
+} from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
@@ -80,6 +82,7 @@ const defaultKPITimeRanges = {
   '1 Month': 1,
   'Year to Date': 2,
   'Beginning of Life': 3,
+  'Month to Date': 4,
 }
 
 // Helper function to calculate time ranges based on selected values
@@ -121,6 +124,11 @@ const calculateKPITimeRange = (timeRangeValue: number, timeZone: string) => {
     case 3: // Beginning of Life
       return {
         start: now.startOf('year').subtract(10, 'year').format('YYYY-MM-DD'), // Assuming 10 years for "beginning of life"
+        end: now.format('YYYY-MM-DD'),
+      }
+    case 4: // Month to Date
+      return {
+        start: now.startOf('month').format('YYYY-MM-DD'),
         end: now.format('YYYY-MM-DD'),
       }
     default:
