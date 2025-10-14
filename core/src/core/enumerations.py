@@ -357,6 +357,7 @@ class DefaultKPITimeRange(IntEnum):
     ONE_MONTH = 1
     YEAR_TO_DATE = 2
     BEGINNING_OF_LIFE = 3
+    MONTH_TO_DATE = 4
 
 
 class RackingArchitecture(IntEnum):

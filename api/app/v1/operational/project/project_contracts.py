@@ -68,6 +68,7 @@ async def create_contract(
     # Create contract data
     contract_data = contract.model_dump()
     contract_data["project_id"] = project_id
+    contract_data["company_id_provider"] = user_data.company_id
 
     # Map provided category name to id if needed
     if contract_data.get("contract_category_id") is None and contract_data.get(
