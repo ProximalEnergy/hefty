@@ -1,0 +1,17 @@
+[book]
+authors = ["Kurt Rhee"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Proximal Energy Documentation"
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
+[preprocessor.katex]
+after = ["links"]
+
+[output.html]
+site-url = "/docs-mdbook/"
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-css = ["theme/card-layout.css"]
