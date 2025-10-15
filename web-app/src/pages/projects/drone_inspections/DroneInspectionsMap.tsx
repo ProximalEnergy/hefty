@@ -1,11 +1,13 @@
+import { useSuggestRootCauses } from '@/api/v1/ai/root-cause'
 import { DroneAnomaly } from '@/api/v1/operational/drone_integrations'
+import { useBulkCreateEvents } from '@/api/v1/operational/project/events'
 import { useGetProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
-import { useGetDevicesV2 } from '@/hooks/api'
+import { useGetDevicesV2, useGetRootCauses } from '@/hooks/api'
 import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
@@ -20,6 +22,7 @@ import {
   Menu,
   Modal,
   MultiSelect,
+  Select,
   Stack,
   Tabs,
   Text,
@@ -27,13 +30,22 @@ import {
   rem,
   useComputedColorScheme,
 } from '@mantine/core'
+import { DateTimePicker } from '@mantine/dates'
+import { notifications } from '@mantine/notifications'
 import {
   IconChevronDown,
   IconFilter,
+  IconInfoCircle,
   IconLock,
   IconLockOpen,
+  IconRobot,
 } from '@tabler/icons-react'
 import { Feature } from 'geojson'
+import {
+  type MRT_ColumnDef,
+  MantineReactTable,
+  useMantineReactTable,
+} from 'mantine-react-table'
 import { LngLatBoundsLike } from 'mapbox-gl'
 import {
   useCallback,
@@ -44,10 +56,11 @@ import {
   useState,
 } from 'react'
 import { Layer, MapMouseEvent, Map as ReactMapGL, Source } from 'react-map-gl'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 interface DroneInspectionsMapProps {
   anomalies: DroneAnomaly[]
+  inspectionTime?: string
 }
 
 interface HoverInfo {
@@ -108,7 +121,10 @@ const layerLockConfig = {
   },
 } as const
 
-const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
+const DroneInspectionsMap = ({
+  anomalies,
+  inspectionTime,
+}: DroneInspectionsMapProps) => {
   const { projectId } = useParams()
   const computedColorScheme = useComputedColorScheme('dark')
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
@@ -187,6 +203,12 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
     rgbUrl: string | null
     anomaly: DroneAnomaly | null
   }>({ irUrl: null, rgbUrl: null, anomaly: null })
+
+  // --- Add Events Modal State ---
+  const [addEventsOpen, setAddEventsOpen] = useState(false)
+  const [openDate, setOpenDate] = useState<Date | null>(null)
+  const [closeDate, setCloseDate] = useState<Date | null>(null)
+  const bulkCreate = useBulkCreateEvents()
 
   // --- View State ---
   const [viewState, setViewState] = useState({
@@ -405,6 +427,7 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
           rgb_signal: anomaly.rgb_signal,
           power_loss_kw: anomaly.power_loss_kw,
           remediation_category: anomaly.remediation_category,
+          event_id: anomaly.event_id,
         },
       }))
 
@@ -459,12 +482,95 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
   const anomalyToDeviceMapping = useMemo(() => {
     if (!filteredAnomalies || !deviceData.data) return new Map<string, string>()
 
-    // Skip proximity calculations for large inspections (>5000 affected modules)
-    if (filteredAnomalies.length > 5000) {
-      return new Map<string, string>()
-    }
-
     const mapping = new Map<string, string>()
+
+    // Pre-process all devices with polygons and calculate bounding boxes
+    const devicesWithBounds = deviceData.data
+      .filter((device) => device.polygon && device.device_type_id !== 29) // Skip tracker rows
+      .map((device) => {
+        let coordinates: number[][]
+
+        try {
+          // Parse polygon JSON string if it's a string, otherwise use as-is
+          let polygonData = device.polygon!
+          if (typeof device.polygon === 'string') {
+            try {
+              polygonData = JSON.parse(device.polygon)
+            } catch (parseError) {
+              console.warn(
+                'Failed to parse polygon JSON:',
+                parseError,
+                device.polygon,
+              )
+              return null
+            }
+          }
+
+          // Check the actual structure at runtime instead of relying on type
+          const coords = polygonData.coordinates
+
+          // If it's deeply nested (4 levels), it's MultiPolygon format
+          if (
+            Array.isArray(coords[0]) &&
+            Array.isArray(coords[0][0]) &&
+            Array.isArray(coords[0][0][0])
+          ) {
+            // MultiPolygon: coordinates[0] is first polygon, [0] is outer ring
+            coordinates = (coords as unknown as number[][][][])[0][0]
+          }
+          // If it's 3 levels deep, it's regular Polygon format
+          else if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+            // Polygon: coordinates[0] is outer ring
+            coordinates = (coords as unknown as number[][][])[0]
+          } else {
+            console.warn('Unsupported coordinate structure:', coords)
+            return null
+          }
+
+          // Validate final coordinates structure
+          if (!Array.isArray(coordinates) || !Array.isArray(coordinates[0])) {
+            console.warn('Invalid final coordinates structure:', coordinates)
+            return null
+          }
+
+          // Calculate bounding box and centroid
+          let minLon = Infinity,
+            maxLon = -Infinity
+          let minLat = Infinity,
+            maxLat = -Infinity
+          let sumLon = 0,
+            sumLat = 0
+
+          coordinates.forEach((coord) => {
+            const lon = coord[0]
+            const lat = coord[1]
+            minLon = Math.min(minLon, lon)
+            maxLon = Math.max(maxLon, lon)
+            minLat = Math.min(minLat, lat)
+            maxLat = Math.max(maxLat, lat)
+            sumLon += lon
+            sumLat += lat
+          })
+
+          const centroidLon = sumLon / coordinates.length
+          const centroidLat = sumLat / coordinates.length
+
+          return {
+            device,
+            coordinates,
+            bounds: { minLon, maxLon, minLat, maxLat },
+            centroid: { lon: centroidLon, lat: centroidLat },
+          }
+        } catch (error) {
+          console.warn(
+            'Error processing device polygon:',
+            error,
+            device.polygon,
+          )
+          return null
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
 
     filteredAnomalies.forEach((anomaly) => {
       if (
@@ -474,98 +580,51 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
       )
         return
 
+      const anomalyLon = anomaly.location_lon
+      const anomalyLat = anomaly.location_lat
+
+      // Spatial pre-filtering: only check devices whose bounding box is within ~300m
+      // (roughly 0.003 degrees at mid-latitudes)
+      const buffer = 0.003
+      const candidateDevices = devicesWithBounds.filter(
+        ({ bounds }) =>
+          anomalyLon >= bounds.minLon - buffer &&
+          anomalyLon <= bounds.maxLon + buffer &&
+          anomalyLat >= bounds.minLat - buffer &&
+          anomalyLat <= bounds.maxLat + buffer,
+      )
+
       let closestDevice: any = null
       let closestDistance = Infinity
       let isInsideAnyPolygon = false
 
-      deviceData.data
-        .filter((device) => device.polygon && device.device_type_id !== 29) // Skip tracker rows to reduce compute
-        .forEach((device) => {
-          // Handle different polygon types (Polygon vs MultiPolygon)
-          let coordinates: number[][]
+      // Now only check the pre-filtered candidates
+      for (const { device, coordinates, centroid } of candidateDevices) {
+        // First check if anomaly is inside this polygon
+        const isInside = pointInPolygon([anomalyLon, anomalyLat], coordinates)
 
-          try {
-            // Parse polygon JSON string if it's a string, otherwise use as-is
-            let polygonData = device.polygon!
-            if (typeof device.polygon === 'string') {
-              try {
-                polygonData = JSON.parse(device.polygon)
-              } catch (parseError) {
-                console.warn(
-                  'Failed to parse polygon JSON:',
-                  parseError,
-                  device.polygon,
-                )
-                return
-              }
-            }
+        if (isInside) {
+          closestDevice = device
+          isInsideAnyPolygon = true
+          break // Found inside, no need to check other devices
+        }
 
-            // Check the actual structure at runtime instead of relying on type
-            const coords = polygonData.coordinates
-
-            // If it's deeply nested (4 levels), it's MultiPolygon format
-            if (
-              Array.isArray(coords[0]) &&
-              Array.isArray(coords[0][0]) &&
-              Array.isArray(coords[0][0][0])
-            ) {
-              // MultiPolygon: coordinates[0] is first polygon, [0] is outer ring
-              coordinates = (coords as unknown as number[][][][])[0][0]
-            }
-            // If it's 3 levels deep, it's regular Polygon format
-            else if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
-              // Polygon: coordinates[0] is outer ring
-              coordinates = (coords as unknown as number[][][])[0]
-            } else {
-              console.warn('Unsupported coordinate structure:', coords)
-              return
-            }
-
-            // Validate final coordinates structure
-            if (!Array.isArray(coordinates) || !Array.isArray(coordinates[0])) {
-              console.warn('Invalid final coordinates structure:', coordinates)
-              return
-            }
-          } catch (error) {
-            console.warn('Error extracting coordinates:', error, device.polygon)
-            return
-          }
-
-          // First check if anomaly is inside this polygon
-          const isInside = pointInPolygon(
-            [anomaly.location_lon!, anomaly.location_lat!],
-            coordinates,
+        // If not inside any polygon yet, calculate distance to centroid
+        if (!isInsideAnyPolygon) {
+          const distance = calculateDistance(
+            centroid.lat,
+            centroid.lon,
+            anomalyLat,
+            anomalyLon,
           )
 
-          if (isInside) {
+          if (distance < closestDistance && distance < 100) {
+            // Within 100 meters
+            closestDistance = distance
             closestDevice = device
-            isInsideAnyPolygon = true
-            return // Found inside, no need to check distance
           }
-
-          // If not inside any polygon yet, calculate distance to centroid
-          if (!isInsideAnyPolygon) {
-            const centroidLon =
-              coordinates.reduce((sum, coord) => sum + coord[0], 0) /
-              coordinates.length
-            const centroidLat =
-              coordinates.reduce((sum, coord) => sum + coord[1], 0) /
-              coordinates.length
-
-            const distance = calculateDistance(
-              centroidLat,
-              centroidLon,
-              anomaly.location_lat!,
-              anomaly.location_lon!,
-            )
-
-            if (distance < closestDistance && distance < 100) {
-              // Within 100 meters
-              closestDistance = distance
-              closestDevice = device
-            }
-          }
-        })
+        }
+      }
 
       // Map anomaly to the closest device (if any)
       if (closestDevice) {
@@ -596,6 +655,532 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
     },
     [anomalyToDeviceMapping, deviceLookup],
   )
+
+  // Deferred aggregation state (computed on-demand when opening modal)
+  const [combinerAggregation, setCombinerAggregation] = useState(
+    new Map<
+      string, // Key format: "dc_field_id|signal_pair_key"
+      {
+        dcFieldId: number
+        dcFieldName: string
+        combinerName: string
+        signalPairKey: string
+        signalPairIr: string
+        signalPairRgb: string
+        lossKw: number
+        anomalyCount: number
+        anomalyUuids: string[]
+      }
+    >(),
+  )
+  // --- Summary metrics ---
+  const totalFiltered = filteredAnomalies?.length ?? 0
+  const totalAnomalies = anomalies?.length ?? 0
+  const totalLossKw = useMemo(
+    () =>
+      Array.from(combinerAggregation.values()).reduce(
+        (sum, v) => sum + (v.lossKw || 0),
+        0,
+      ),
+    [combinerAggregation],
+  )
+  const totalWithExistingEvents = useMemo(
+    () => filteredAnomalies?.filter((a) => a.event_id != null).length ?? 0,
+    [filteredAnomalies],
+  )
+  const totalAvailableForEvents = totalFiltered - totalWithExistingEvents
+
+  // --- Root Causes for DC Combiner (9), Tracker (29), and DC Field (30) ---
+  const rootCausesQuery = useGetRootCauses({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: { device_type_ids: [9, 29, 30] },
+    queryOptions: { enabled: !!projectId },
+  })
+  const allowedRootCauses = rootCausesQuery.data || []
+
+  // Build unique IR and RGB signal groups from filteredAnomalies
+  const signalPairs = useMemo(() => {
+    const s = new Map<string, { ir: string; rgb: string; count: number }>()
+    filteredAnomalies.forEach((a) => {
+      // Skip anomalies that already have an event associated
+      if (a.event_id != null) return
+
+      const ir = (a.ir_signal || '').trim() || '(none)'
+      const rgb = (a.rgb_signal || '').trim() || '(none)'
+      const key = `${ir}||${rgb}`
+      const prev = s.get(key)
+      if (prev) {
+        prev.count += 1
+      } else {
+        s.set(key, { ir, rgb, count: 1 })
+      }
+    })
+    return Array.from(s.entries()).map(([key, v]) => ({ key, ...v }))
+  }, [filteredAnomalies])
+
+  // Store selections per signal group for association during event creation
+  const [pairSelections, setPairSelections] = useState<
+    Record<string, { root_cause_id: number | null; confidence?: number | null }>
+  >({})
+  const rootCauseOptions = useMemo(
+    () =>
+      allowedRootCauses.map((rc: any) => ({
+        value: String(rc.root_cause_id),
+        label: rc.name_full || rc.name_long || rc.name_short,
+      })),
+    [allowedRootCauses],
+  )
+  const suggestRootCauses = useSuggestRootCauses()
+
+  // --- Table state (filter/sort/selection) ---
+  const [tableFilter] = useState('')
+  const [sortBy] = useState<'name' | 'count' | 'loss'>('loss')
+  const [sortDir] = useState<'asc' | 'desc'>('desc')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+  const [isMapping, setIsMapping] = useState(false)
+
+  // Helper function to get confidence-based styling
+  const getConfidenceStyle = (confidence: number | null | undefined) => {
+    if (confidence === null || confidence === undefined) return {}
+
+    if (confidence >= 0.9) {
+      return { borderColor: 'var(--mantine-color-green-6)', borderWidth: 2 }
+    } else if (confidence >= 0.8) {
+      return { borderColor: 'var(--mantine-color-orange-6)', borderWidth: 2 }
+    } else {
+      return { borderColor: 'var(--mantine-color-red-6)', borderWidth: 2 }
+    }
+  }
+
+  const getConfidenceTooltip = (confidence: number | null | undefined) => {
+    if (confidence === null || confidence === undefined)
+      return 'No confidence data'
+
+    const percentage = Math.round(confidence * 100)
+    if (confidence >= 0.8) {
+      return `High confidence: ${percentage}%`
+    } else if (confidence >= 0.6) {
+      return `Medium confidence: ${percentage}%`
+    } else {
+      return `Low confidence: ${percentage}%`
+    }
+  }
+
+  useEffect(() => {
+    const all = new Set<string>(Array.from(combinerAggregation.keys()))
+    setSelected(all)
+    const rs: Record<string, boolean> = {}
+    all.forEach((key) => (rs[key] = true))
+    setRowSelection(rs)
+  }, [combinerAggregation])
+
+  const combinerRows = useMemo(() => {
+    const rows = Array.from(combinerAggregation.entries()).map(([key, v]) => ({
+      key,
+      device_id: v.dcFieldId,
+      name: v.dcFieldName,
+      combinerName: v.combinerName,
+      signalPairKey: v.signalPairKey,
+      signalPairIr: v.signalPairIr,
+      signalPairRgb: v.signalPairRgb,
+      count: v.anomalyCount,
+      loss: v.lossKw,
+    }))
+    const filtered = rows.filter((r) =>
+      tableFilter
+        ? r.name?.toLowerCase().includes(tableFilter.toLowerCase())
+        : true,
+    )
+    const sorted = filtered.sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1
+      if (sortBy === 'name') return a.name.localeCompare(b.name) * dir
+      if (sortBy === 'count') return (a.count - b.count) * dir
+      return (a.loss - b.loss) * dir
+    })
+    return sorted
+  }, [combinerAggregation, tableFilter, sortBy, sortDir])
+
+  // Legacy flags removed
+
+  // MantineReactTable setup (unconditional to preserve hook order)
+  const combinerColumns = useMemo(() => {
+    return [
+      {
+        accessorKey: 'name',
+        header: 'DC Field',
+        Cell: ({ row }: any) => (
+          <Text size="sm" fw={500}>
+            {row.original.name}
+          </Text>
+        ),
+      } as MRT_ColumnDef<any>,
+      {
+        accessorKey: 'signalPairIr',
+        header: 'IR Signal',
+        Cell: ({ row }: any) => (
+          <Text size="sm">{row.original.signalPairIr}</Text>
+        ),
+      } as MRT_ColumnDef<any>,
+      {
+        accessorKey: 'signalPairRgb',
+        header: 'RGB Signal',
+        Cell: ({ row }: any) => (
+          <Text size="sm">{row.original.signalPairRgb}</Text>
+        ),
+      } as MRT_ColumnDef<any>,
+      {
+        accessorKey: 'count',
+        header: '# Anomalies',
+        Cell: ({ cell }: any) => (
+          <Text size="sm">
+            {Number(cell.getValue())?.toLocaleString?.() ?? 0}
+          </Text>
+        ),
+      } as MRT_ColumnDef<any>,
+      {
+        accessorKey: 'loss',
+        header: 'Total DC Loss (kW)',
+        Cell: ({ cell }: any) => (
+          <Text size="sm">{Number(cell.getValue()).toFixed(2)}</Text>
+        ),
+      } as MRT_ColumnDef<any>,
+    ] as MRT_ColumnDef<any>[]
+  }, [])
+
+  const combinerTable = useMantineReactTable({
+    columns: combinerColumns,
+    data: combinerRows,
+    getRowId: (row) => row.key,
+    enableRowSelection: true,
+    enableMultiRowSelection: true,
+    positionToolbarAlertBanner: 'top',
+    renderToolbarAlertBannerContent: ({ table }) => {
+      const allPageSelected = (table as any).getIsAllPageRowsSelected?.()
+      const allSelected = (table as any).getIsAllRowsSelected?.()
+      if (allPageSelected && !allSelected) {
+        return (
+          <Group gap={8}>
+            <Text size="sm">All rows selected on this page.</Text>
+            <Button
+              variant="subtle"
+              size="compact-sm"
+              onClick={() => (table as any).toggleAllRowsSelected?.(true)}
+            >
+              Select All from All Pages
+            </Button>
+          </Group>
+        )
+      }
+      return null
+    },
+    initialState: {
+      density: 'xs',
+      sorting: [{ id: sortBy, desc: sortDir === 'desc' }],
+    },
+    enableColumnDragging: false,
+    mantineTableProps: {
+      withTableBorder: true,
+      withColumnBorders: true,
+      striped: true,
+    },
+    state: { rowSelection },
+    onRowSelectionChange: setRowSelection,
+  })
+
+  const handleConfirmAddEvents = async () => {
+    if (!projectId || !openDate || combinerAggregation.size === 0) {
+      setAddEventsOpen(false)
+      return
+    }
+
+    // Create separate events for each selected signal pair group
+    const items = Array.from(combinerAggregation.entries())
+      .filter(([, v]) =>
+        Boolean(rowSelection[v.dcFieldId + '|' + v.signalPairKey]),
+      )
+      .map(([, v]) => {
+        // Get the root cause for this specific signal pair
+        const signalPairSelection = pairSelections[v.signalPairKey]
+        const rootCauseId = signalPairSelection?.root_cause_id || null
+
+        const item = {
+          device_id: v.dcFieldId,
+          loss: Number(v.lossKw || 0),
+          event_loss_type_id: 3,
+          root_cause_id: rootCauseId,
+          anomaly_uuids: v.anomalyUuids,
+        }
+
+        return item
+      })
+
+    // Group items by root_cause_id for batch processing
+    const itemsByRootCause = new Map<number | null, typeof items>()
+    items.forEach((item) => {
+      const key = item.root_cause_id
+      if (!itemsByRootCause.has(key)) {
+        itemsByRootCause.set(key, [])
+      }
+      itemsByRootCause.get(key)!.push(item)
+    })
+
+    // Create events in batches by root cause
+    for (const [rootCauseId, batchItems] of itemsByRootCause) {
+      const requestPayload = {
+        project_id: projectId,
+        time_start: openDate.toISOString(),
+        time_end: closeDate ? closeDate.toISOString() : null,
+        items: batchItems.map(({ root_cause_id, ...item }) => item), // Remove root_cause_id from items
+        root_cause_id: rootCauseId,
+      }
+
+      await bulkCreate.mutateAsync(requestPayload)
+    }
+
+    setAddEventsOpen(false)
+    setOpenDate(null)
+    setCloseDate(null)
+  }
+
+  // On-demand computation when opening the Add Events modal
+  const handleOpenAddEvents = () => {
+    setIsMapping(true)
+    // Ensure both DC Combiner (9) and DC Field (30) layers are loaded
+    // We need DC Combiners for geographic mapping and DC Fields for event creation
+    const hasBothInView =
+      lockedDeviceTypeIds &&
+      lockedDeviceTypeIds.includes(9) &&
+      lockedDeviceTypeIds.includes(30)
+
+    if (!hasBothInView) {
+      // Lock view to include both DC Combiners and DC Fields
+      setIsViewLocked(true)
+      setLockedDeviceTypeIds([9, 30])
+      setLockedViewName('DC Combiner')
+    }
+  }
+
+  // Build aggregation when mapping is requested and combiners are available
+  useEffect(() => {
+    if (!isMapping) return
+    if (!filteredAnomalies || !deviceData.data) return
+
+    const combiners = deviceData.data.filter(
+      (d) => d.device_type_id === 9 && d.polygon,
+    )
+    if (combiners.length === 0) return
+
+    // Get DC Fields (device_type_id = 30) that are children of the combiners
+    const dcFields = deviceData.data.filter(
+      (d) =>
+        d.device_type_id === 30 &&
+        combiners.some((c) => c.device_id === d.parent_device_id),
+    )
+
+    // Don't allow event creation if there are no DC Fields
+    if (dcFields.length === 0) {
+      setIsMapping(false)
+      notifications.show({
+        title: 'DC Fields Required',
+        message:
+          'No DC Field devices found. Please define DC Field devices (device_type_id = 30) as children of DC Combiners before creating events from drone inspections.',
+        color: 'red',
+      })
+      return
+    }
+
+    // Allow spinner to render
+    const id = setTimeout(() => {
+      const combinerPolys = combiners
+        .map((device) => {
+          let polygonData = device.polygon as any
+          if (typeof device.polygon === 'string') {
+            try {
+              polygonData = JSON.parse(device.polygon)
+            } catch {
+              return null
+            }
+          }
+
+          let coordinates: number[][] | null = null
+          const coords = polygonData?.coordinates
+          if (
+            Array.isArray(coords?.[0]) &&
+            Array.isArray(coords?.[0]?.[0]) &&
+            Array.isArray(coords?.[0]?.[0]?.[0])
+          ) {
+            coordinates = (coords as unknown as number[][][][])[0][0]
+          } else if (
+            Array.isArray(coords?.[0]) &&
+            Array.isArray(coords?.[0]?.[0])
+          ) {
+            coordinates = (coords as unknown as number[][][])[0]
+          }
+          if (!coordinates) return null
+
+          const centroidLon =
+            coordinates.reduce((sum, c) => sum + c[0], 0) / coordinates.length
+          const centroidLat =
+            coordinates.reduce((sum, c) => sum + c[1], 0) / coordinates.length
+
+          // Find the DC Field child for this combiner
+          const dcField = dcFields.find(
+            (df) => df.parent_device_id === device.device_id,
+          )
+
+          // Skip this combiner if it doesn't have a DC Field child
+          if (!dcField) return null
+
+          return {
+            device_id: device.device_id,
+            dc_field_id: dcField.device_id,
+            name: device.name_long || 'Combiner',
+            dc_field_name: dcField.name_long || 'DC Field',
+            coordinates,
+            centroidLat,
+            centroidLon,
+          }
+        })
+        .filter(Boolean) as Array<{
+        device_id: number
+        dc_field_id: number
+        name: string
+        dc_field_name: string
+        coordinates: number[][]
+        centroidLat: number
+        centroidLon: number
+      }>
+
+      const totals = new Map<
+        string, // Key format: "dc_field_id|signal_pair_key"
+        {
+          dcFieldId: number
+          dcFieldName: string
+          combinerName: string
+          signalPairKey: string
+          signalPairIr: string
+          signalPairRgb: string
+          lossKw: number
+          anomalyCount: number
+          anomalyUuids: string[]
+        }
+      >()
+
+      filteredAnomalies.forEach((a) => {
+        if (
+          a.power_loss_kw == null ||
+          a.location_lat == null ||
+          a.location_lon == null
+        )
+          return
+
+        // Skip anomalies that already have an event associated
+        if (a.event_id != null) return
+
+        // Create signal pair key for this anomaly
+        const ir = (a.ir_signal || '').trim() || '(none)'
+        const rgb = (a.rgb_signal || '').trim() || '(none)'
+        const signalPairKey = `${ir}||${rgb}`
+
+        let matched = false
+        for (const comb of combinerPolys) {
+          if (
+            pointInPolygon([a.location_lon, a.location_lat], comb.coordinates)
+          ) {
+            const key = `${comb.dc_field_id}|${signalPairKey}`
+            const prev = totals.get(key)
+            if (prev) {
+              const updated = {
+                ...prev,
+                lossKw: prev.lossKw + (a.power_loss_kw || 0),
+                anomalyCount: prev.anomalyCount + 1,
+                anomalyUuids: [...prev.anomalyUuids, a.anomaly_uuid!],
+              }
+              totals.set(key, updated)
+            } else {
+              const newGroup = {
+                dcFieldId: comb.dc_field_id,
+                dcFieldName: comb.dc_field_name,
+                combinerName: comb.name,
+                signalPairKey,
+                signalPairIr: ir,
+                signalPairRgb: rgb,
+                lossKw: a.power_loss_kw || 0,
+                anomalyCount: 1,
+                anomalyUuids: [a.anomaly_uuid!],
+              }
+              totals.set(key, newGroup)
+            }
+            matched = true
+            break
+          }
+        }
+
+        if (matched) return
+
+        let best: { id: number; name: string; combinerName: string } | null =
+          null
+        let bestDist = Infinity
+        for (const comb of combinerPolys) {
+          const dist = calculateDistance(
+            a.location_lat,
+            a.location_lon,
+            comb.centroidLat,
+            comb.centroidLon,
+          )
+          if (dist < bestDist) {
+            bestDist = dist
+            best = {
+              id: comb.dc_field_id,
+              name: comb.dc_field_name,
+              combinerName: comb.name,
+            }
+          }
+        }
+        if (best && bestDist <= 300) {
+          const key = `${best.id}|${signalPairKey}`
+          const prev = totals.get(key)
+          if (prev) {
+            totals.set(key, {
+              ...prev,
+              lossKw: prev.lossKw + (a.power_loss_kw || 0),
+              anomalyCount: prev.anomalyCount + 1,
+              anomalyUuids: [...prev.anomalyUuids, a.anomaly_uuid!],
+            })
+          } else {
+            totals.set(key, {
+              dcFieldId: best.id,
+              dcFieldName: best.name,
+              combinerName: best.combinerName,
+              signalPairKey,
+              signalPairIr: ir,
+              signalPairRgb: rgb,
+              lossKw: a.power_loss_kw || 0,
+              anomalyCount: 1,
+              anomalyUuids: [a.anomaly_uuid!],
+            })
+          }
+        }
+      })
+
+      setCombinerAggregation(totals)
+      setAddEventsOpen(true)
+      setIsMapping(false)
+    }, 0)
+
+    return () => clearTimeout(id)
+  }, [isMapping, deviceData.data, filteredAnomalies])
+
+  // Initialize Open Date to inspection timestamp when opening modal
+  useEffect(() => {
+    if (addEventsOpen && !openDate && inspectionTime) {
+      const dt = new Date(inspectionTime)
+      if (!isNaN(dt.getTime())) {
+        setOpenDate(dt)
+      }
+    }
+  }, [addEventsOpen, inspectionTime, openDate])
 
   // Function to get anomalies for a specific device
   const getDeviceAnomalies = useCallback(
@@ -946,6 +1531,32 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
                           Category:{' '}
                           {hoverInfo.feature.properties.remediation_category}
                         </Text>
+                        {hoveredAnomaly?.event_id && (
+                          <Text size="xs" c="blue">
+                            Event ID: {hoveredAnomaly.event_id}
+                          </Text>
+                        )}
+                        {hoveredAnomaly?.event_id && (
+                          <Text size="xs">
+                            <Link
+                              to={`/projects/${projectId}/events/event/?eventId=${hoveredAnomaly.event_id}`}
+                              style={{
+                                color: 'var(--mantine-color-blue-6)',
+                                textDecoration: 'none',
+                                fontWeight: 600,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.textDecoration =
+                                  'underline'
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.textDecoration = 'none'
+                              }}
+                            >
+                              View Event →
+                            </Link>
+                          </Text>
+                        )}
                         {anomalyDevice && (
                           <Text size="xs" c="dimmed" mt={4}>
                             Mapped to:{' '}
@@ -1308,6 +1919,27 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
                 ))}
               </Menu.Dropdown>
             </Menu>
+
+            {/* Add Events Button */}
+            <Tooltip
+              label={
+                isMapping
+                  ? 'Mapping anomalies to DC Combiners'
+                  : 'Group anomalies by DC Field and signal pair to create events'
+              }
+              multiline
+              w={220}
+              withArrow
+            >
+              <Button
+                size="compact-md"
+                variant="filled"
+                onClick={handleOpenAddEvents}
+                loading={isMapping}
+              >
+                Add Events...
+              </Button>
+            </Tooltip>
           </Stack>
         </Box>
       </Box>
@@ -1407,11 +2039,297 @@ const DroneInspectionsMap = ({ anomalies }: DroneInspectionsMapProps) => {
                       {imageModalData.anomaly.stack_id}
                     </Text>
                   )}
+                  {imageModalData.anomaly?.event_id && (
+                    <Text size="sm" c="blue">
+                      <span style={{ fontWeight: 600 }}>Event ID:</span>{' '}
+                      {imageModalData.anomaly.event_id}
+                    </Text>
+                  )}
+                  {imageModalData.anomaly?.event_id && (
+                    <Text size="sm">
+                      <Link
+                        to={`/projects/${projectId}/events/event/?eventId=${imageModalData.anomaly.event_id}`}
+                        style={{
+                          color: 'var(--mantine-color-blue-6)',
+                          textDecoration: 'none',
+                          fontWeight: 600,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textDecoration = 'underline'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textDecoration = 'none'
+                        }}
+                      >
+                        View Event Details →
+                      </Link>
+                    </Text>
+                  )}
                 </Stack>
               </Grid.Col>
             </Grid>
           </Stack>
         )}
+      </Modal>
+
+      {/* Add Events Modal */}
+      <Modal
+        opened={addEventsOpen}
+        onClose={() => setAddEventsOpen(false)}
+        title="Create Events for Signal Pair Groups"
+        size="70%"
+        centered
+      >
+        <Stack gap="sm">
+          {/* Summary */}
+          <Card withBorder p="sm">
+            <Grid gutter="xs" align="center">
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Stack gap={4}>
+                  <Text fw={700}>Total anomalies filtered</Text>
+                  <Text size="lg" fw={700}>
+                    {totalFiltered.toLocaleString()} /{' '}
+                    {totalAnomalies.toLocaleString()}
+                  </Text>
+                </Stack>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Stack gap={4}>
+                  <Text fw={700}>Available for events</Text>
+                  <Text size="lg" fw={700}>
+                    {totalAvailableForEvents.toLocaleString()}
+                  </Text>
+                  {totalWithExistingEvents > 0 && (
+                    <Group gap={4}>
+                      <Text size="xs" c="dimmed">
+                        {totalWithExistingEvents.toLocaleString()} already have
+                        events
+                      </Text>
+                      <Tooltip
+                        label="These anomalies are already associated with existing events and will not be included in new event creation"
+                        multiline
+                        w={220}
+                        withArrow
+                      >
+                        <IconInfoCircle
+                          size={14}
+                          style={{ opacity: 0.5, cursor: 'help' }}
+                        />
+                      </Tooltip>
+                    </Group>
+                  )}
+                </Stack>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Stack gap={4}>
+                  <Text fw={700}>
+                    Signal pair groups with filtered anomalies
+                  </Text>
+                  <Text size="lg" fw={700}>
+                    {combinerAggregation.size.toLocaleString()}
+                  </Text>
+                </Stack>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Stack gap={4}>
+                  <Text fw={700}>Total DC Capacity Loss</Text>
+                  <Text size="lg" fw={700}>
+                    {totalLossKw.toLocaleString()} kW DC
+                  </Text>
+                </Stack>
+              </Grid.Col>
+            </Grid>
+          </Card>
+
+          {/* Signal Pair Configuration (IR + RGB) */}
+          <Card withBorder p="sm">
+            <Stack gap="sm">
+              <Group justify="space-between">
+                <Text fw={600}>Signal Pair Configuration</Text>
+                <Group gap="xs">
+                  {rootCausesQuery.isLoading && (
+                    <Text size="xs">Loading options…</Text>
+                  )}
+                  <Tooltip
+                    label={
+                      suggestRootCauses.isPending
+                        ? `This will take around ${Math.round(1.5 * signalPairs.length + 6)} seconds`
+                        : 'Use AI to automatically suggest root causes for each IR/RGB signal pair based on their characteristics'
+                    }
+                    multiline
+                    w={220}
+                    withArrow
+                  >
+                    <Button
+                      variant="light"
+                      size="compact-md"
+                      leftSection={<IconRobot size={16} />}
+                      onClick={async () => {
+                        try {
+                          const pairs = signalPairs.map((p) => ({
+                            ir_signal: p.ir === '(none)' ? null : p.ir,
+                            rgb_signal: p.rgb === '(none)' ? null : p.rgb,
+                          }))
+                          const candidates = allowedRootCauses.map(
+                            (rc: any) => ({
+                              root_cause_id: rc.root_cause_id,
+                              name_short: rc.name_short,
+                              name_long: rc.name_long,
+                              device_type_id: rc.device_type_id,
+                            }),
+                          )
+                          const res = await suggestRootCauses.mutateAsync({
+                            pairs,
+                            candidates,
+                          })
+                          const next: Record<
+                            string,
+                            {
+                              root_cause_id: number | null
+                              confidence?: number | null
+                            }
+                          > = {}
+                          res.suggestions?.forEach((s) => {
+                            const key = signalPairs[s.index]?.key
+                            if (key)
+                              next[key] = {
+                                root_cause_id: s.root_cause_id,
+                                confidence: s.confidence,
+                              }
+                          })
+                          setPairSelections((prev) => ({ ...prev, ...next }))
+                        } catch (e) {
+                          // optional helper: ignore errors silently
+                        }
+                      }}
+                      loading={suggestRootCauses.isPending}
+                      disabled={signalPairs.length === 0}
+                    >
+                      Suggest Root Causes
+                    </Button>
+                  </Tooltip>
+                </Group>
+              </Group>
+              <Box mah={300} style={{ overflowY: 'auto' }}>
+                <Stack gap={6}>
+                  {signalPairs.length === 0 ? (
+                    <Text size="sm" c="dimmed">
+                      No IR/RGB signal pairs in current filter.
+                    </Text>
+                  ) : (
+                    signalPairs.map(({ key, ir, rgb, count }) => (
+                      <Group key={key} wrap="wrap" gap="xs">
+                        <Badge variant="light">{count}</Badge>
+                        <Text fw={500}>IR: {ir}</Text>
+                        <Text fw={500}>RGB: {rgb}</Text>
+                        <Tooltip
+                          label={getConfidenceTooltip(
+                            pairSelections[key]?.confidence,
+                          )}
+                          disabled={
+                            pairSelections[key]?.confidence === null ||
+                            pairSelections[key]?.confidence === undefined
+                          }
+                        >
+                          <Select
+                            placeholder="Root Cause"
+                            data={rootCauseOptions}
+                            value={
+                              pairSelections[key]?.root_cause_id != null
+                                ? String(pairSelections[key]?.root_cause_id)
+                                : null
+                            }
+                            onChange={(v: string | null) =>
+                              setPairSelections((prev) => ({
+                                ...prev,
+                                [key]: {
+                                  root_cause_id: v ? Number(v) : null,
+                                  confidence: prev[key]?.confidence, // Preserve confidence when manually changing
+                                },
+                              }))
+                            }
+                            searchable
+                            clearable
+                            w={320}
+                            styles={{
+                              input: getConfidenceStyle(
+                                pairSelections[key]?.confidence,
+                              ),
+                            }}
+                          />
+                        </Tooltip>
+                      </Group>
+                    ))
+                  )}
+                </Stack>
+              </Box>
+              <Text size="xs" c="dimmed">
+                Selections apply to events created from the currently filtered
+                anomalies. Root causes include device types 9 (DC Combiner), 29
+                (Tracker), and 30 (DC Field).
+              </Text>
+            </Stack>
+          </Card>
+          <Grid gutter="sm">
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <DateTimePicker
+                label="Open date"
+                placeholder="Pick date and time"
+                value={openDate}
+                onChange={setOpenDate}
+                locale="en-US"
+                valueFormat="MM/DD/YYYY HH:mm"
+                required
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <DateTimePicker
+                label="Close date (optional)"
+                placeholder="Pick date and time"
+                value={closeDate}
+                onChange={setCloseDate}
+                locale="en-US"
+                valueFormat="MM/DD/YYYY HH:mm"
+                clearable
+              />
+            </Grid.Col>
+          </Grid>
+
+          {/* Action Buttons moved above table */}
+          <Group justify="flex-end" mt="sm">
+            <Button variant="default" onClick={() => setAddEventsOpen(false)}>
+              Cancel
+            </Button>
+            <Tooltip
+              label="This may take up to a minute, depending on the number of anomalies processed"
+              multiline
+              w={220}
+              withArrow
+              events={{ hover: true, focus: true, touch: true }}
+            >
+              <Box style={{ display: 'inline-block' }}>
+                <Button
+                  onClick={handleConfirmAddEvents}
+                  loading={bulkCreate.isPending}
+                  disabled={!openDate || selected.size === 0}
+                >
+                  Create Events
+                </Button>
+              </Box>
+            </Tooltip>
+          </Group>
+
+          {/* Table */}
+          <Card withBorder p="sm">
+            {combinerRows.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                No signal pair groups matched the current filters.
+              </Text>
+            ) : (
+              <MantineReactTable table={combinerTable} />
+            )}
+          </Card>
+        </Stack>
       </Modal>
     </>
   )

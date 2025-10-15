@@ -3,6 +3,7 @@ import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import React from 'react'
 
 export interface DroneIntegration {
   drone_integration_id: number
@@ -71,6 +72,7 @@ export interface DroneInspection {
 export interface DroneAnomaly {
   anomaly_uuid: string
   inspection_uuid: string
+  event_id?: number
   stack_id?: string
   ir_signal?: string
   rgb_signal?: string
@@ -391,6 +393,47 @@ export const useGetDroneAnomalies = (
       enabled: !!projectId && !!inspectionId,
     },
   })
+}
+
+export const useGetDroneAnomaliesWithBounds = (
+  projectId?: string,
+  inspectionId?: string,
+  bounds?: {
+    minLat: number
+    maxLat: number
+    minLon: number
+    maxLon: number
+  },
+) => {
+  const axiosConfig = {
+    url: `v1/operational/projects/${projectId}/drone-inspections/${inspectionId}/anomalies`,
+  }
+
+  const queryParams = bounds
+    ? {
+        min_lat: bounds.minLat,
+        max_lat: bounds.maxLat,
+        min_lon: bounds.minLon,
+        max_lon: bounds.maxLon,
+      }
+    : {}
+
+  const queryResult = useCustomQuery<DroneAnomaly[]>({
+    axiosConfig,
+    queryName: `getDroneAnomaliesWithBounds-${inspectionId}-${JSON.stringify(bounds)}`,
+    queryParams: queryParams,
+    queryOptions: {
+      enabled: !!projectId && !!inspectionId,
+    },
+  })
+
+  // Add timing debug for the API call
+  React.useEffect(() => {
+    if (queryResult.data) {
+    }
+  }, [queryResult.data, bounds])
+
+  return queryResult
 }
 
 export const useSyncZeitviewAnomalies = (

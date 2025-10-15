@@ -111,7 +111,7 @@ async def get_project_devices_v2(
     )
 
     # Use polars_dataframe method for efficient data processing
-    devices_df = await query_obj.polars_dataframe_async()
+    devices_df = query_obj.polars_dataframe()
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
     def wkb_to_geojson(wkb_bytes):  # skip-star-syntax

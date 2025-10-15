@@ -626,6 +626,25 @@ class GeoJSON(BaseModel):
     features: list[Features]
 
 
+# --- Event Creation (bulk) ---
+class BulkEventItem(BaseModel):
+    device_id: int
+    loss: float
+    event_loss_type_id: int = 3
+    anomaly_uuids: list[uuid.UUID] | None = None
+
+
+class BulkCreateEventsRequest(BaseModel):
+    time_start: datetime.datetime
+    time_end: datetime.datetime | None = None
+    items: list[BulkEventItem]
+    root_cause_id: int | None = None
+
+
+class BulkCreateEventsResponse(BaseModel):
+    created_event_ids: list[int]
+
+
 class SettlementPointMarket(BaseModel):
     settlement_point_market_id: int
     name_short: str
@@ -1365,6 +1384,7 @@ class DroneInspection(BaseModel):
 class DroneAnomalyBase(BaseModel):
     anomaly_uuid: uuid.UUID
     inspection_uuid: uuid.UUID
+    event_id: int | None = None
     stack_id: str | None = None
     ir_signal: str | None = None
     rgb_signal: str | None = None
