@@ -451,7 +451,8 @@ const FeedbackForm = ({
 
   const handleDrop = (acceptedFiles: FileWithPath[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0])
+      const file = acceptedFiles[0]
+      setFile(file)
     }
   }
 
@@ -482,6 +483,8 @@ const FeedbackForm = ({
     )
   }
 
+  const { user } = useUser()
+
   const handleSubmit = async (values: types.FeedbackFormData) => {
     const formData = new FormData()
 
@@ -490,9 +493,10 @@ const FeedbackForm = ({
     formData.append('url', values.url)
     formData.append('comment', values.comment)
     if (file) {
-      formData.append('screenshot', file || '')
-      formData.append('screenshot_filename', file?.name || '')
-      formData.append('screenshot_mimetype', file?.type || '')
+      formData.append('screenshot', file)
+    }
+    if (user && user.primaryEmailAddress) {
+      formData.append('email', user.primaryEmailAddress.emailAddress)
     }
 
     mutation.mutate(formData)

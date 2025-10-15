@@ -85,8 +85,6 @@ colorama==0.4.6
     #   tqdm
     #   traceloop-sdk
     #   uvicorn
-core==0.2.43b4
-    # via api
 cryptography==44.0.3
     # via
     #   api
@@ -171,6 +169,7 @@ googleapis-common-protos==1.70.0
     #   google-api-core
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
+gql[aiohttp]==3.4.1
 greenlet==3.2.4
     # via
     #   api
