@@ -1,3 +1,4 @@
+import importlib.metadata
 import tomllib
 import warnings
 
@@ -111,6 +112,11 @@ def get_root():
 @app.get("/version")
 def get_version():
     return {"version": version}
+
+
+@app.get("/version/core")
+def get_core_version():
+    return {"version": importlib.metadata.version("core")}
 
 
 if __name__ == "__main__":
