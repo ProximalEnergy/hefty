@@ -844,10 +844,14 @@ const ScatterComponent = ({
           showlegend: false,
           margin: { t: 10, b: 10, l: 10, r: 10 },
           xaxis: {
-            title: `${scatter.data?.x.name} (${scatter.data?.x.unit || 'Unitless'})`,
+            title: {
+              text: `${scatter.data?.x.name} (${scatter.data?.x.unit || 'Unitless'})`,
+            },
           },
           yaxis: {
-            title: `${scatter.data?.y.name} (${scatter.data?.y.unit || 'Unitless'})`,
+            title: {
+              text: `${scatter.data?.y.name} (${scatter.data?.y.unit || 'Unitless'})`,
+            },
           },
         }}
         config={{ displayModeBar: false }}
@@ -908,10 +912,10 @@ const BarComponent = ({
           showlegend: false,
           margin: { t: 10, b: 10, l: 10, r: 10 },
           xaxis: {
-            title: 'Device',
+            title: { text: 'Device' },
           },
           yaxis: {
-            title: barData.data?.unit || 'Value',
+            title: { text: barData.data?.unit || 'Value' },
           },
         }}
         config={{ displayModeBar: false }}

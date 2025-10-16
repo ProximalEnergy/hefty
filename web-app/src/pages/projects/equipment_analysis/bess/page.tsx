@@ -72,17 +72,9 @@ const Page = () => {
       {project.data?.has_bess_enclosures && (
         <CustomCard title="BESS DC Enclosure" style={{ flex: 1 }}>
           <PlotlyPlot
-            data={
-              data.data?.bess_enclosure &&
-              data.data.bess_enclosure.map((d) => ({
-                x: d.x,
-                y: d.y,
-                name: d.name,
-              }))
-            }
             layout={{
               yaxis: {
-                title: 'SOC (%)',
+                title: { text: 'SOC (%)' },
                 tickformat: ',.0%',
                 range: [0, 1],
               },
@@ -96,17 +88,9 @@ const Page = () => {
       {project.data?.has_bess_banks && (
         <CustomCard title="BESS Bank" style={{ flex: 1 }}>
           <PlotlyPlot
-            data={
-              data.data?.bess_bank &&
-              data.data.bess_bank.map((d) => ({
-                x: d.x,
-                y: d.y,
-                name: d.name,
-              }))
-            }
             layout={{
               yaxis: {
-                title: 'SOC (%)',
+                title: { text: 'SOC (%)' },
                 tickformat: ',.0%',
                 range: [0, 1],
               },
@@ -130,7 +114,7 @@ const Page = () => {
             }
             layout={{
               yaxis: {
-                title: 'SOC (%)',
+                title: { text: 'SOC (%)' },
                 tickformat: ',.0%',
                 range: [0, 1],
               },

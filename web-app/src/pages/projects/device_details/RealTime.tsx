@@ -802,7 +802,9 @@ const Page = () => {
       type: isLarge ? 'category' : undefined,
       categoryorder: 'array',
       categoryarray: naturalSort(xvals),
-      title: deviceTypeName ? `${deviceTypeName} Device Name` : 'Device Name',
+      title: {
+        text: deviceTypeName ? `${deviceTypeName} Device Name` : 'Device Name',
+      },
     },
     yaxis: {
       type: isLarge ? 'category' : undefined,
@@ -810,7 +812,7 @@ const Page = () => {
       categoryarray: naturalSort(yvals),
       showgrid: isLarge ? false : true,
       range: isLarge ? undefined : ['data', 'data'],
-      title: isLarge ? largeYAxisTitle : (unit ?? ''),
+      title: { text: isLarge ? largeYAxisTitle : (unit ?? '') },
       tickformat: unit?.includes('%') ? ',.0%' : undefined,
     },
   }

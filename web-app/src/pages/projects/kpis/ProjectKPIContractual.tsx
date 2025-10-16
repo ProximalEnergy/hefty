@@ -69,15 +69,18 @@ const BarAndHeatmapCard = ({
         layout={{
           xaxis: {
             type: kpiTypeData?.device_type_id === 1 ? 'date' : 'category',
-            title: kpiTypeData?.device_type_id === 1 ? 'Date' : undefined,
+            title:
+              kpiTypeData?.device_type_id === 1 ? { text: 'Date' } : undefined,
           },
           yaxis: {
             tickformat: kpiTypeData?.unit === '%' ? ',.0%' : ',.0f',
-            title: isCumulative
-              ? `Cumulative Total (${kpiTypeData.unit || ''})`
-              : kpiTypeData?.unit
-                ? `Value (${kpiTypeData.unit})`
-                : 'Value',
+            title: {
+              text: isCumulative
+                ? `Cumulative Total (${kpiTypeData.unit || ''})`
+                : kpiTypeData?.unit
+                  ? `Value (${kpiTypeData.unit})`
+                  : 'Value',
+            },
           },
           showlegend: true,
           legend: {

@@ -130,10 +130,10 @@ const Page: React.FC = () => {
           isLoading={data.isPending}
           layout={{
             xaxis: {
-              title: 'Apparent Power (MVA)',
+              title: { text: 'Apparent Power (MVA)' },
             },
             yaxis: {
-              title: 'Voltage (V)',
+              title: { text: 'Voltage (V)' },
             },
             hovermode: 'closest',
           }}

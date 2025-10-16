@@ -33,11 +33,11 @@ const PowerPlantController = () => {
       }))}
       layout={{
         yaxis: {
-          title: 'Power (MW, MVAR, MVA)',
+          title: { text: 'Power (MW, MVAR, MVA)' },
           side: 'left',
         },
         yaxis2: {
-          title: 'Power Factor',
+          title: { text: 'Power Factor' },
           side: 'right',
           showgrid: false,
           zeroline: false,

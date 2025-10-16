@@ -313,7 +313,7 @@ const PowerPlotPVZoom = () => {
         layout={
           project.data && {
             yaxis: {
-              title: 'Power (MW)',
+              title: { text: 'Power (MW)' },
               fixedrange: true,
               // Restore explicit range
               range:

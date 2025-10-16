@@ -432,10 +432,10 @@ const processPoaData = (
     shapes: shapes,
     showlegend: true,
     yaxis: {
-      title: 'POA',
+      title: { text: 'POA' },
     },
     yaxis2: {
-      title: 'Filters',
+      title: { text: 'Filters' },
       showgrid: false,
       zeroline: false,
       side: 'right' as const,

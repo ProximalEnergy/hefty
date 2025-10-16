@@ -85,11 +85,11 @@ const POIMeter = () => {
       layout={{
         showlegend: true,
         yaxis: {
-          title: 'Power (MW, MVAR, MVA)',
+          title: { text: 'Power (MW, MVAR, MVA)' },
           side: 'left',
         },
         yaxis2: {
-          title: 'Power Factor',
+          title: { text: 'Power Factor' },
           overlaying: 'y',
           side: 'right',
           showgrid: false,
