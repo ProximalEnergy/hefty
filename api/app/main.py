@@ -116,7 +116,8 @@ def get_version():
 
 @app.get("/version/core")
 def get_core_version():
-    return {"version": importlib.metadata.version("core")}
+    core_version = importlib.metadata.version("core")
+    return {"version": core_version}
 
 
 if __name__ == "__main__":
