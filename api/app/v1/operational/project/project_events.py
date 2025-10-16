@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import sentry_sdk
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -20,6 +21,10 @@ from app._crud.operational.failure_modes import (
 )
 from app._crud.operational.failure_modes import (
     update_event_root_cause as crud_update_event_root_cause,
+)
+from app._crud.projects.drone_anomalies import bulk_update_anomalies_with_event_ids
+from app._crud.projects.drone_anomalies import (
+    get_anomalies_by_event_id as crud_get_anomalies_by_event_id,
 )
 from app._crud.projects.events import get_count_open as crud_get_count_open
 from app._crud.projects.events import get_event_device_ids as crud_get_event_device_ids
@@ -34,6 +39,7 @@ from app.dependencies import (
     get_project,
     get_project_db,
     get_project_db_async,
+    get_project_name_short,
 )
 from core import models
 
@@ -864,3 +870,241 @@ def get_count_open(
 ):
     x = crud_get_count_open(db=project_db)
     return x
+
+
+@router.post("/bulk-create", response_model=interfaces.BulkCreateEventsResponse)
+def bulk_create_events(
+    project_db: Annotated[Session, Depends(get_project_db)],
+    db: Annotated[Session, Depends(get_db)],
+    project_id: uuid.UUID,
+    payload: interfaces.BulkCreateEventsRequest,
+):
+    """Create events in bulk for a set of device_ids and attach a single loss row each.
+
+    - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
+    - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
+    - If event_loss_type_id=3 is not present in operational.event_loss_types, create it with
+      name_short 'proximal_pv_dc_capacity'.
+    """
+    # Ensure event_loss_type id exists (id 3 requested by frontend)
+    loss_type_id = 3
+    try:
+        exists = (
+            db.query(models.EventLossType)
+            .filter(models.EventLossType.event_loss_type_id == loss_type_id)
+            .first()
+        )
+        if not exists:
+            new_type = models.EventLossType(
+                event_loss_type_id=loss_type_id, name_short="proximal_pv_dc_capacity"
+            )
+            db.add(new_type)
+            db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    # Default failure mode to DC Field Underperforming (94) for drone inspection events
+    DEFAULT_FAILURE_MODE_ID = 94
+
+    # Get project name_short for schema name
+    project_name_short = get_project_name_short(project_id=project_id)
+    if not project_name_short:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Validate schema name to prevent SQL injection (alphanumeric and underscore only)
+    if not project_name_short.replace("_", "").isalnum():
+        raise HTTPException(status_code=400, detail="Invalid project identifier")
+
+    try:
+        # Implement lock mechanism to prevent race conditions
+        project_db.execute(text("SET lock_timeout = '30s'"))
+        project_db.execute(text("BEGIN"))
+        # Note: project_name_short is validated above to contain only safe characters
+        project_db.execute(
+            text(f"LOCK TABLE {project_name_short}.events IN ACCESS EXCLUSIVE MODE")  # noqa: S608
+        )
+
+        # Update sequence to ensure proper ID generation
+        # Note: project_name_short is validated above to contain only safe characters
+        project_db.execute(
+            text(
+                f"SELECT setval( pg_get_serial_sequence('{project_name_short}.events', 'event_id'), "  # noqa: S608
+                f"COALESCE((SELECT MAX(event_id) FROM {project_name_short}.events), 1), true )"  # noqa: S608
+            )
+        )
+        project_db.execute(text("COMMIT"))
+
+        # Map DC Combiner device_ids to their DC Field children (device_type_id = 30)
+        combiner_device_ids = [item.device_id for item in payload.items]
+
+        # Get DC Field devices that are direct children of our combiners
+        dc_field_children = core.crud.project.devices.get_project_devices(
+            project_db,
+            device_type_ids=[30],  # DC Field device type
+            parent_device_ids=[device_id for device_id in combiner_device_ids],
+        ).models()
+
+        # Create mapping from combiner_id to dc_field_id
+        combiner_to_field_mapping = {
+            dc_field.parent_device_id: dc_field.device_id
+            for dc_field in dc_field_children
+        }
+
+        # Group items by target device_id to handle time offsets properly
+        device_items: dict[int, list[interfaces.BulkEventItem]] = {}
+        for item in payload.items:
+            # Use DC Field device_id if available, otherwise fall back to combiner device_id
+            target_device_id = combiner_to_field_mapping.get(
+                item.device_id, item.device_id
+            )
+
+            if target_device_id not in device_items:
+                device_items[target_device_id] = []
+            device_items[target_device_id].append(item)
+
+        # Check for existing events to avoid conflicts
+        target_device_ids = list(device_items.keys())
+        existing_events = (
+            project_db.query(models.Event)
+            .filter(
+                models.Event.device_id.in_(target_device_ids),
+                models.Event.time_start >= payload.time_start,
+                models.Event.time_start
+                < payload.time_start + datetime.timedelta(seconds=len(payload.items)),
+            )
+            .all()
+        )
+
+        # Create a set of existing (device_id, time_start) combinations
+        existing_combinations = {
+            (event.device_id, event.time_start) for event in existing_events
+        }
+
+        # Create events and losses with proper event_id assignment
+        created_event_ids = []
+        losses_data = []
+        event_to_anomalies_mapping = {}  # Track which event_id corresponds to which anomaly UUIDs
+        event_objects = []  # Collect all events for bulk insert
+
+        for target_device_id, items in device_items.items():
+            time_offset = 0
+            for item in items:
+                # Find the next available time_start for this device
+                while True:
+                    adjusted_time_start = payload.time_start + datetime.timedelta(
+                        seconds=time_offset
+                    )
+                    if (
+                        target_device_id,
+                        adjusted_time_start,
+                    ) not in existing_combinations:
+                        break
+                    time_offset += 1
+
+                # Create event object (don't add to session yet)
+                event = models.Event(
+                    device_id=target_device_id,
+                    failure_mode_id=DEFAULT_FAILURE_MODE_ID,
+                    root_cause_id=payload.root_cause_id,
+                    time_start=adjusted_time_start,
+                    time_end=payload.time_end,
+                    time_detected=datetime.datetime.now(datetime.UTC),
+                    time_last_analyzed=None,
+                    loss_total_financial=None,
+                    version="manual-drone",
+                )
+                event_objects.append(event)
+
+                # Store anomaly mapping for bulk update later
+                if item.anomaly_uuids:
+                    # We'll set the event_id after the event is created
+                    event_to_anomalies_mapping[len(event_objects) - 1] = (
+                        item.anomaly_uuids
+                    )
+
+                time_offset += 1
+
+        # Add all events to session and flush to get their IDs
+        for event in event_objects:
+            project_db.add(event)
+        project_db.flush()  # Flush once to get all event_ids
+
+        # Now create loss data and update mappings with actual event_ids
+        actual_event_mapping = {}
+        loss_index = 0
+
+        for target_device_id, items in device_items.items():
+            for item in items:
+                # Find the corresponding event object
+                event_index = loss_index
+                event = event_objects[event_index]
+
+                # Ensure we have the event_id after flush
+                if event.event_id is None:
+                    raise ValueError(
+                        f"Event at index {event_index} has no event_id after flush"
+                    )
+
+                created_event_ids.append(event.event_id)
+
+                # Create loss data with correct values from the item
+                loss_data = {
+                    "event_id": event.event_id,
+                    "time": payload.time_start,
+                    "event_loss_type_id": item.event_loss_type_id,
+                    "loss": item.loss,
+                    "version": "manual-drone",
+                }
+                losses_data.append(loss_data)
+
+                # Update anomaly mapping with actual event_id
+                if event_index in event_to_anomalies_mapping:
+                    actual_event_mapping[event.event_id] = event_to_anomalies_mapping[
+                        event_index
+                    ]
+
+                loss_index += 1
+
+        # Bulk update all anomalies in a single operation
+        if actual_event_mapping:
+            bulk_update_anomalies_with_event_ids(
+                db=project_db,
+                event_mapping=actual_event_mapping,
+            )
+
+        # Bulk insert losses using the most efficient approach
+        if losses_data:
+            from sqlalchemy import insert
+
+            # Single bulk INSERT with all data - this is the fastest approach
+            stmt = insert(models.EventLoss)
+            project_db.execute(stmt, losses_data)
+
+        project_db.commit()
+
+    except Exception as e:
+        project_db.rollback()
+        logging.error(f"bulk_create_events failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create events")
+
+    return interfaces.BulkCreateEventsResponse(created_event_ids=created_event_ids)
+
+
+@router.get("/{event_id}/anomalies")
+def get_event_anomalies(
+    project_db: Annotated[Session, Depends(get_project_db)],
+    event_id: int = Path(..., description="Event ID to get anomalies for"),
+):
+    """
+    Get all drone anomalies associated with a specific event.
+    Anomalies are linked to events via the event_id column.
+    """
+    try:
+        anomalies = crud_get_anomalies_by_event_id(db=project_db, event_id=event_id)
+        return anomalies
+    except Exception as e:
+        logging.error(f"Failed to get anomalies for event {event_id}: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve anomalies for event"
+        )

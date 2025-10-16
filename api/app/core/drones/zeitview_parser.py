@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 from typing import Any
 
@@ -15,14 +14,10 @@ class ZeitviewAPI:
     def __init__(self, *, drone_integration_id: int):
         secret_name = f"drone_integrations/drone_integration_id/{drone_integration_id}"
         try:
-            secret_string = str(get_secret(secret_name=secret_name))
-            if not secret_string:
+            secret_dict = get_secret(secret_name=secret_name)
+            if not secret_dict:
                 raise ValueError(f"Secret is empty for {secret_name}")
-            secret_dict = json.loads(secret_string)
             api_key = secret_dict.get("zeitview_api_key")
-        except json.JSONDecodeError:
-            logger.error(f"Failed to decode JSON from secret '{secret_name}'")
-            raise ValueError(f"Could not parse secret: {secret_name}")
         except Exception as e:
             logger.error(f"Failed to get or parse secret '{secret_name}': {e}")
             raise ValueError(

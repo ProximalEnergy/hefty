@@ -148,7 +148,7 @@ const Page = () => {
           }
           layout={{
             yaxis: {
-              title: checked ? 'Current/Power (A/kW)' : 'Current (A)',
+              title: { text: checked ? 'Current/Power (A/kW)' : 'Current (A)' },
             },
           }}
           isLoading={data.isLoading}

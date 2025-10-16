@@ -224,15 +224,15 @@ const Page = () => {
           layout={{
             grid: { rows: numRows, columns: 1 },
             yaxis: {
-              title: axisLabelMap[reversedYAxisMap[1]],
+              title: { text: axisLabelMap[reversedYAxisMap[1]] },
               automargin: true,
             },
             yaxis2: {
-              title: axisLabelMap[reversedYAxisMap[2]],
+              title: { text: axisLabelMap[reversedYAxisMap[2]] },
               automargin: true,
             },
             yaxis3: {
-              title: axisLabelMap[reversedYAxisMap[3]],
+              title: { text: axisLabelMap[reversedYAxisMap[3]] },
               automargin: true,
             },
           }}

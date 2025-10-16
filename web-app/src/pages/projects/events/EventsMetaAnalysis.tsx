@@ -377,16 +377,18 @@ const Page = () => {
             <PlotlyPlot
               data={compoundChartData}
               layout={{
-                xaxis: { title: 'Date' },
+                xaxis: { title: { text: 'Date' } },
                 yaxis: {
-                  title: projectAvailabilityData.isPerformanceRatio
-                    ? 'Performance Ratio (%)'
-                    : 'Availability (%)',
+                  title: {
+                    text: projectAvailabilityData.isPerformanceRatio
+                      ? 'Performance Ratio (%)'
+                      : 'Availability (%)',
+                  },
                   range: [0, 1.025],
                   tickformat: ',.2%',
                 },
                 yaxis2: {
-                  title: 'Daily Events',
+                  title: { text: 'Daily Events' },
                   overlaying: 'y',
                   side: 'right',
                   showgrid: false,
@@ -414,9 +416,9 @@ const Page = () => {
                     name: k.kpi_type_name,
                   }))}
                 layout={{
-                  xaxis: { title: 'Date' },
+                  xaxis: { title: { text: 'Date' } },
                   yaxis: {
-                    title: 'Availability (%)',
+                    title: { text: 'Availability (%)' },
                     range: [0, 1.025],
                     tickformat: ',.2%',
                   },
@@ -439,9 +441,9 @@ const Page = () => {
                     name: k.kpi_type_name,
                   }))}
                 layout={{
-                  xaxis: { title: 'Date' },
+                  xaxis: { title: { text: 'Date' } },
                   yaxis: {
-                    title: 'Availability (%)',
+                    title: { text: 'Availability (%)' },
                     range: [0, 1.025],
                     tickformat: ',.2%',
                   },
@@ -462,10 +464,10 @@ const Page = () => {
             <PlotlyPlot
               data={combinedChartData}
               layout={{
-                xaxis: { title: 'Device Type' },
-                yaxis: { title: 'Failure Count' },
+                xaxis: { title: { text: 'Device Type' } },
+                yaxis: { title: { text: 'Failure Count' } },
                 yaxis2: {
-                  title: 'Unavailability Contribution (%)',
+                  title: { text: 'Unavailability Contribution (%)' },
                   overlaying: 'y',
                   side: 'right',
                   showgrid: false,
@@ -486,10 +488,9 @@ const Page = () => {
             >
               {mtbfData[0]?.x?.length || eventsMetaAnalysis.isLoading ? (
                 <PlotlyPlot
-                  data={mtbfData}
                   layout={{
-                    xaxis: { title: 'Device Type' },
-                    yaxis: { title: 'Hours' },
+                    xaxis: { title: { text: 'Device Type' } },
+                    yaxis: { title: { text: 'Hours' } },
                   }}
                   isLoading={eventsMetaAnalysis.isLoading}
                 />
@@ -505,8 +506,8 @@ const Page = () => {
                 <PlotlyPlot
                   data={mttrData}
                   layout={{
-                    xaxis: { title: 'Device Type' },
-                    yaxis: { title: 'Hours' },
+                    xaxis: { title: { text: 'Device Type' } },
+                    yaxis: { title: { text: 'Hours' } },
                   }}
                   isLoading={eventsMetaAnalysis.isLoading}
                 />
@@ -647,12 +648,14 @@ const DeviceTypeModal = ({
                   },
                 ]}
                 layout={{
-                  xaxis: { title: 'Device Name' },
+                  xaxis: { title: { text: 'Device Name' } },
                   yaxis: {
-                    title:
-                      selectedTotalType === 'total_failures'
-                        ? 'Failure Count'
-                        : 'Hours Unavailable',
+                    title: {
+                      text:
+                        selectedTotalType === 'total_failures'
+                          ? 'Failure Count'
+                          : 'Hours Unavailable',
+                    },
                   },
                   autosize: true,
                 }}

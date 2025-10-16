@@ -50,6 +50,7 @@ app.add_middleware(
         "https://app.proximal.energy",  # Production
         "https://staging.d1waz5kiczd3n9.amplifyapp.com",  # Staging
         "http://localhost:5173",  # Local development
+        "http://127.0.0.1:5173",  # Local development
         "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
         "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
     ],

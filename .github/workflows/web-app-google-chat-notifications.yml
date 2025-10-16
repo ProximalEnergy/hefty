@@ -4,8 +4,8 @@ on:
   pull_request:
     types: [closed]
     paths:
-      - 'web-app/**'
-      - '.github/workflows/web-app-google-chat-notifications.yml'
+      - "web-app/**"
+      - ".github/workflows/web-app-google-chat-notifications.yml"
 
 jobs:
   notify:
@@ -17,8 +17,8 @@ jobs:
           CHAT_WEBHOOK: ${{ secrets.DEPLOYMENTS_BOT_URL }}
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
-          AWS_STAGING_URL: ${{ secrets.EB_STAGING_URL }}
-          AWS_MAIN_URL: ${{ secrets.EB_PROD_URL }}
+          AWS_STAGING_URL: ${{ vars.STAGING_AMPLIFY_DEPLOYMENT_URL }}
+          AWS_MAIN_URL: ${{ vars.MAIN_AMPLIFY_DEPLOYMENT_URL }}
         run: |
           if [[ "$BASE_BRANCH" == "main" && "$HEAD_BRANCH" == "staging" ]]; then
             DEPLOYMENT_URL="$AWS_MAIN_URL"

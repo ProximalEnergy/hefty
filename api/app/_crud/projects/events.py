@@ -252,3 +252,15 @@ def get_count_open(
     query = db.query(models.Event)
     query = query.filter(models.Event.time_end.is_(None))
     return query.count()
+
+
+def get_maximum_event_id(
+    *,
+    db: Session,
+) -> int:
+    """Get the maximum event_id from the events table.
+
+    Returns 0 if no events exist in the table.
+    """
+    result = db.query(func.max(models.Event.event_id)).scalar()
+    return result if result is not None else 0

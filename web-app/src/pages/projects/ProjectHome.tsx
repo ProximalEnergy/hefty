@@ -268,12 +268,12 @@ const PowerPlotBESS = () => {
         layout={
           project.data && {
             yaxis: {
-              title: 'Power (MW)',
+              title: { text: 'Power (MW)' },
               fixedrange: true,
               range: [project.data.poi * 1.05 * -1, project.data.poi * 1.05],
             },
             yaxis2: {
-              title: 'SOC',
+              title: { text: 'SOC' },
               fixedrange: true,
               range: [0, 1.05],
               overlaying: 'y',
@@ -1145,7 +1145,7 @@ const BatteryHealth = () => {
                       fixedrange: false,
                     },
                     yaxis: {
-                      title: 'SOH (%)',
+                      title: { text: 'SOH (%)' },
                       range: [80, 100],
                       showgrid: true,
                       gridcolor: theme.colors.gray[2],
@@ -1155,24 +1155,26 @@ const BatteryHealth = () => {
                     yaxis2:
                       showCycleData || showSocData || showRestSocData
                         ? {
-                            title: showCycleData
-                              ? 'Cycle Count'
-                              : showSocData
-                                ? 'String SOC (%)'
-                                : 'String Rest SOC (%)',
+                            title: {
+                              text: showCycleData
+                                ? 'Cycle Count'
+                                : showSocData
+                                  ? 'String SOC (%)'
+                                  : 'String Rest SOC (%)',
+                              font: {
+                                color: showCycleData
+                                  ? theme.colors.blue[6]
+                                  : showSocData
+                                    ? theme.colors.green[6]
+                                    : theme.colors.violet[6],
+                              },
+                            },
                             overlaying: 'y',
                             side: 'right',
                             showgrid: false,
                             range: showCycleData ? [0, 2] : [0, 100],
                             tickformat: showCycleData ? '.1f' : '.1f',
                             fixedrange: true,
-                            titlefont: {
-                              color: showCycleData
-                                ? theme.colors.blue[6]
-                                : showSocData
-                                  ? theme.colors.green[6]
-                                  : theme.colors.violet[6],
-                            },
                             tickfont: {
                               color: showCycleData
                                 ? theme.colors.blue[6]

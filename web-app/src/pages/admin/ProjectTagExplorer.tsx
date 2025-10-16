@@ -1268,11 +1268,16 @@ const ProjectTagExplorer = () => {
                                         height: 300,
                                         showlegend: false,
                                         margin: { l: 50, r: 20, t: 20, b: 50 },
-                                        xaxis: { title: 'Time', type: 'date' },
+                                        xaxis: {
+                                          title: { text: 'Time' },
+                                          type: 'date',
+                                        },
                                         yaxis: {
-                                          title: selectedSensorTypeUnit
-                                            ? `Values (${selectedSensorTypeUnit})`
-                                            : 'Values',
+                                          title: {
+                                            text: selectedSensorTypeUnit
+                                              ? `Values (${selectedSensorTypeUnit})`
+                                              : 'Values',
+                                          },
                                         },
                                       }}
                                       config={{ displayModeBar: false }}
@@ -1309,11 +1314,13 @@ const ProjectTagExplorer = () => {
                                         showlegend: false,
                                         margin: { l: 50, r: 20, t: 20, b: 50 },
                                         xaxis: {
-                                          title: selectedSensorTypeUnit
-                                            ? `Values (${selectedSensorTypeUnit})`
-                                            : 'Values',
+                                          title: {
+                                            text: selectedSensorTypeUnit
+                                              ? `Values (${selectedSensorTypeUnit})`
+                                              : 'Values',
+                                          },
                                         },
-                                        yaxis: { title: 'Frequency' },
+                                        yaxis: { title: { text: 'Frequency' } },
                                       }}
                                       config={{ displayModeBar: false }}
                                     />

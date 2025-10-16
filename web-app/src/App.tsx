@@ -113,7 +113,7 @@ import EquipmentAnalysis from './pages/projects/equipment_analysis'
 import EquipmentAnalysisPVDCCombinerBlock from './pages/projects/equipment_analysis/pv_dc_combiner/block/page'
 import EquipmentAnalysisTrackerBlock from './pages/projects/equipment_analysis/tracker/block/page'
 // Events
-import EventPage from './pages/projects/events/EventPage'
+import EventRouter from './pages/projects/events/EventRouter'
 import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
 // GIS
@@ -380,7 +380,7 @@ const ClerkProviderWithRoutes = () => {
               {/* Events */}
               <Route path="events">
                 <Route index element={<ProjectEvents />} />
-                <Route path="event" element={<EventPage />} />
+                <Route path="event" element={<EventRouter />} />
                 <Route path="uptime" element={<UptimeTable />} />
                 <Route path="meta-analysis" element={<EventsMetaAnalysis />} />
               </Route>

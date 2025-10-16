@@ -354,7 +354,10 @@ const DroneInspections: React.FC = () => {
                         zIndex: 0,
                       }}
                     >
-                      <DroneInspectionsMap anomalies={anomalies} />
+                      <DroneInspectionsMap
+                        anomalies={anomalies}
+                        inspectionTime={selectedInspection.inspection_time}
+                      />
                     </Box>
                   ) : (
                     <Box

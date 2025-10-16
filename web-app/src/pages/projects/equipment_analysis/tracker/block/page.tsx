@@ -109,7 +109,7 @@ const Page = () => {
           )}
           layout={{
             yaxis: {
-              title: 'Angle (degrees)',
+              title: { text: 'Angle (degrees)' },
             },
           }}
           isLoading={data.isLoading}
@@ -128,7 +128,7 @@ const Page = () => {
           )}
           layout={{
             yaxis: {
-              title: 'Angle (degrees)',
+              title: { text: 'Angle (degrees)' },
             },
           }}
           isLoading={data.isLoading}

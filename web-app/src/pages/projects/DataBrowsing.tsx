@@ -50,7 +50,7 @@ interface TagChild {
 interface BaseLayout {
   xaxis: { domain: [number, number] }
   yaxis: {
-    title: string
+    title: { text: string }
     linecolor: string | undefined
     showgrid: boolean
     tickfont: { color: string | undefined }
@@ -60,7 +60,7 @@ interface BaseLayout {
 
 interface AdditionalAxes {
   [key: string]: {
-    title: string
+    title: { text: string }
     overlaying: string
     side: string
     autoshift: boolean
@@ -764,14 +764,14 @@ const Page = () => {
     if (!uniqueUnits || uniqueUnits.length === 0 || !unitGroups) {
       return {
         xaxis: { domain: [0.05, 0.95] },
-        yaxis: { title: 'Add Data!', showgrid: false },
+        yaxis: { title: { text: 'Add Data!' }, showgrid: false },
       }
     }
 
     const baseLayout: BaseLayout = {
       xaxis: { domain: [0.05, 0.95] },
       yaxis: {
-        title: uniqueUnits[0] || 'Add Data!',
+        title: { text: uniqueUnits[0] || 'Add Data!' },
         linecolor: unitGroups[0]?.color,
         showgrid: false,
         tickfont: { color: unitGroups[0]?.color },
@@ -782,7 +782,7 @@ const Page = () => {
     if (unitGroups.length > 1) {
       const additionalAxes = unitGroups.slice(1).reduce((acc, group, idx) => {
         acc[`yaxis${idx + 2}`] = {
-          title: group.unit,
+          title: { text: group.unit },
           overlaying: 'y',
           side: idx % 2 === 0 ? 'right' : 'left',
           autoshift: true,

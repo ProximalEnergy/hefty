@@ -389,7 +389,7 @@ const EnergyWaterfall = () => {
                   layout={{
                     // title: 'Losses from Grid Import to Export',
                     yaxis: {
-                      title: 'Total Energy (MWh)',
+                      title: { text: 'Total Energy (MWh)' },
                       range: [450, 590],
                     },
                     xaxis: {

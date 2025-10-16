@@ -43,11 +43,11 @@ const NetPowerPlot = () => {
           }
           layout={{
             yaxis: {
-              title: 'Net Power (MW)',
+              title: { text: 'Net Power (MW)' },
               range: filteredData && filteredData[0].y_range,
             },
             yaxis2: {
-              title: 'SPP ($/MWh)',
+              title: { text: 'SPP ($/MWh)' },
               side: 'right',
               showgrid: false,
               overlaying: 'y',

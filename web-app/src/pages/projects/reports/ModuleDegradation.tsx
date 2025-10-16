@@ -861,10 +861,10 @@ const GraphsTab: React.FC<{
             ]}
             layout={{
               xaxis: {
-                title: 'Date',
+                title: { text: 'Date' },
               },
               yaxis: {
-                title: 'DC Performance',
+                title: { text: 'DC Performance' },
                 tickformat: ',.1%',
               },
               legend: {
@@ -909,10 +909,10 @@ const GraphsTab: React.FC<{
                   xaxis: {
                     showticklabels: false,
                     showgrid: false,
-                    title: 'Combiner',
+                    title: { text: 'Combiner' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.0%',
                   },
                 }}
@@ -941,10 +941,10 @@ const GraphsTab: React.FC<{
                   xaxis: {
                     showticklabels: false,
                     showgrid: false,
-                    title: 'Inverter',
+                    title: { text: 'Inverter' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.0%',
                   },
                 }}
@@ -973,10 +973,10 @@ const GraphsTab: React.FC<{
                   xaxis: {
                     showticklabels: false,
                     showgrid: false,
-                    title: 'Circuit',
+                    title: { text: 'Circuit' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.0%',
                   },
                 }}
@@ -1003,10 +1003,10 @@ const GraphsTab: React.FC<{
                   xaxis: {
                     showticklabels: false,
                     showgrid: false,
-                    title: 'Combiner',
+                    title: { text: 'Combiner' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.0%',
                   },
                 }}
@@ -1035,10 +1035,10 @@ const GraphsTab: React.FC<{
                   xaxis: {
                     showticklabels: false,
                     showgrid: false,
-                    title: 'Inverter',
+                    title: { text: 'Inverter' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.0%',
                   },
                 }}
@@ -1067,10 +1067,10 @@ const GraphsTab: React.FC<{
                   xaxis: {
                     showticklabels: false,
                     showgrid: false,
-                    title: 'Circuit',
+                    title: { text: 'Circuit' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.0%',
                   },
                 }}
@@ -1098,11 +1098,11 @@ const GraphsTab: React.FC<{
                 xaxis: {
                   tickformat: ',.0%',
                   tickangle: -45,
-                  title: 'DC Performance',
+                  title: { text: 'DC Performance' },
                   type: 'linear',
                 },
                 yaxis: {
-                  title: 'Combiner Count',
+                  title: { text: 'Combiner Count' },
                 },
               }}
             />
@@ -1136,10 +1136,10 @@ const GraphsTab: React.FC<{
                 ]}
                 layout={{
                   xaxis: {
-                    title: 'Date',
+                    title: { text: 'Date' },
                   },
                   yaxis: {
-                    title: 'DC Performance',
+                    title: { text: 'DC Performance' },
                     tickformat: ',.1%',
                   },
                 }}
@@ -1477,10 +1477,10 @@ const ModuleDegradation: React.FC = () => {
                       xaxis: {
                         showticklabels: false,
                         showgrid: false,
-                        title: 'Combiner',
+                        title: { text: 'Combiner' },
                       },
                       yaxis: {
-                        title: 'DC Performance',
+                        title: { text: 'DC Performance' },
                         tickformat: ',.0%',
                       },
                     }}
@@ -1662,14 +1662,14 @@ function processPoaData(
     shapes,
     showlegend: true,
     yaxis: {
-      title: 'POA',
+      title: { text: 'POA' },
     },
     xaxis: {
-      title: 'Date',
+      title: { text: 'Date' },
       type: 'date',
     },
     yaxis2: {
-      title: 'Filters',
+      title: { text: 'Filters' },
       showgrid: false,
       zeroline: false,
       side: 'right',
