@@ -45,7 +45,7 @@ def get_report_types_legacy(
 async def get_report_type(
     report_type_id: int, db: Annotated[AsyncSession, Depends(dependencies.get_async_db)]
 ):
-    return _crud.get_report_type(db=db, report_type_id=report_type_id)
+    return await _crud.get_report_type(db=db, report_type_id=report_type_id)
 
 
 @deprecated_router.get(
