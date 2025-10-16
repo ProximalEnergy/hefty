@@ -312,6 +312,13 @@ jobs:
               content
           )
 
+          # Replace local path dependency with index dependency
+          content = re.sub(
+              r'core = \{ path = "\.\./core", editable = true \}',
+              'core = { index = "proximal-package-index" }',
+              content
+          )
+
           with open('pyproject.toml', 'w') as f:
               f.write(content)
 
