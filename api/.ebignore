@@ -8,7 +8,6 @@ _scripts/
 .cursor/
 *.ipynb
 pull_request_template.md
-core_test.ipynb
 
 # Version control
 .git/
