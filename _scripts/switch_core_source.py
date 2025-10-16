@@ -53,7 +53,7 @@ def update_pyproject_toml(*, pyproject_path: Path, use_editable: bool) -> bool:
     if use_editable:
         desired_line = 'core = { path = "../core", editable = true }'
     else:
-        desired_line = 'core = { index = "proximal" }'
+        desired_line = 'core = { index = "proximal-package-index" }'
 
     # Check if already correct
     if lines[core_line_idx] == desired_line:
