@@ -5,7 +5,7 @@
 
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
-depends = ["api:switch-core"]
+depends = ["api:switch-core", "install"]
 run = "./_scripts/run_dev.sh"
 
 [tasks.check]
