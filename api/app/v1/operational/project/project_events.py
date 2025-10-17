@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import sentry_sdk
+from core.crud.operational.device_types import get_device_types
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +15,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, utils
-from app._crud.operational.device_types import get_device_types
 from app._crud.operational.failure_modes import get_failure_modes, get_root_causes
 from app._crud.operational.failure_modes import (
     update_event_failure_mode as crud_update_event_failure_mode,

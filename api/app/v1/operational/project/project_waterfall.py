@@ -4,6 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 import pandas as pd
+from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.database import Base
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from app._crud.operational.device_types import get_device_types as crud_get_device_types
 from app._crud.operational.failure_modes import (
     get_failure_modes as crud_get_failure_modes,
 )

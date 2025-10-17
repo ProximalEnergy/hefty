@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import requests
 from botocore.config import Config
+from core.crud.operational.device_types import get_device_types
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
@@ -35,7 +36,6 @@ from sqlalchemy.orm import Session
 import core
 from app import dependencies, interfaces, logger, settings, utils
 from app._crud.operational.cec_pv_modules import get_cec_pv_modules
-from app._crud.operational.device_types import get_device_types
 from app._crud.operational.pv_modules import get_pv_modules
 from app._crud.projects.events import get_project_events
 from app.core.current_day_pages.combiner import get_equipment_analysis_combiner_data

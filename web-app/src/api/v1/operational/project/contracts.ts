@@ -214,3 +214,32 @@ export const useGetContractCategories = ({
     queryOptions,
   })
 }
+
+export const useDeleteContract = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      contractId,
+    }: {
+      projectId: string
+      contractId: number
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'delete',
+        url: `${baseURL}/v1/operational/projects/${projectId}/contracts/${contractId}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['getProjectContracts', { projectId: variables.projectId }],
+      })
+    },
+  })
+}

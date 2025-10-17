@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, settings
-from app._crud.admin.user_types import get_user_type as crud_get_user_type
 from app.v1.admin import (
     api_key,
     companies,
@@ -20,7 +19,7 @@ from app.v1.admin import (
     user_projects,
     users,
 )
-from core import models
+from core import crud, models
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 router.include_router(api_key.router)
@@ -47,7 +46,7 @@ async def get_user_type(
 ):
     user_type_id = user_data.user_type_id
 
-    user_type = await crud_get_user_type(
+    user_type = await crud.admin.user_types.get_user_type(
         db=db,
         user_type_id=user_type_id,
     )
