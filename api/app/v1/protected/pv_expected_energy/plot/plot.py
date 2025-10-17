@@ -3,9 +3,9 @@ from typing import Annotated
 
 import pandas as pd
 from app import dependencies, interfaces
-from app._crud.operational.device_types import get_device_types
 from app._utils.recursive_parents import get_recursive_parents
 from app.utils import data_df
+from core.crud.operational.device_types import get_device_types
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from fastapi.responses import ORJSONResponse
