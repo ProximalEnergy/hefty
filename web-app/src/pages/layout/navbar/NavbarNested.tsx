@@ -116,6 +116,10 @@ export function NavbarNested({
     }
 
     const projectTypeId = project.data.project_type_id
+    // Drone inspections are only available for PV and PV_BESS projects, not for BESS-only projects
+    if (projectTypeId === ProjectTypeId.BESS) {
+      return false
+    }
     if (
       projectTypeId !== ProjectTypeId.PV &&
       projectTypeId !== ProjectTypeId.PV_BESS
@@ -197,7 +201,9 @@ export function NavbarNested({
           !(
             dropdownLink.requiresReportIntegration &&
             removeReportIntegrationLinks
-          ),
+          ) &&
+          // Remove Drone Integration links if necessary
+          !(dropdownLink.requiresDroneIntegration && !hasDroneIntegration),
       )
 
       return { ...link, links: filteredChildren }
@@ -237,8 +243,7 @@ export function NavbarNested({
       !(link.requiresRealTimeData && !project.data?.has_real_time_data) &&
       !(
         link.requiresPV && project.data?.project_type_id === ProjectTypeId.BESS
-      ) &&
-      !(link.requiresDroneIntegration && !hasDroneIntegration),
+      ),
   )
 
   // Remove links based on user type
