@@ -1,11 +1,7 @@
 import uuid
 from typing import Annotated
 
-from core.enumerations import UserTypeEnum
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app import dependencies
+from app import dependencies, interfaces
 from app._crud.admin.users import create_user as create_user_crud
 from app._crud.admin.users import delete_user as delete_user_crud
 from app._crud.admin.users import get_users as crud_get_users
@@ -13,10 +9,20 @@ from app._utils.user_management import (
     create_clerk_user,
     delete_clerk_user,
     send_onboarding_email,
+    update_clerk_user_theme,
 )
 from app.interfaces import User, UserCreate
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.enumerations import UserTypeEnum
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+class ThemeUpdateRequest(BaseModel):
+    theme: str
 
 
 @router.get(
@@ -96,3 +102,18 @@ async def delete_user(
 ):
     await delete_clerk_user(user_id=user_id)
     await delete_user_crud(db=db, user_id=user_id)
+
+
+@router.put(
+    "/self/clerk-theme",
+    dependencies=[Depends(dependencies.requires_superadmin_async)],
+)
+async def update_self_clerk_theme(
+    user_data: Annotated[
+        interfaces.UserData, Depends(dependencies.get_user_data_async)
+    ],
+    request: ThemeUpdateRequest,
+):
+    """Update the current user's theme in Clerk."""
+    user_id = user_data.user_id
+    return await update_clerk_user_theme(user_id=user_id, theme=request.theme)

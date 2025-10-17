@@ -617,6 +617,31 @@ export const useCreateUser = () => {
   })
 }
 
+export const useUpdateSelfClerkTheme = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ theme }: { theme: string }) => {
+      const token = await getToken({ template: 'default' })
+
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/users/self/clerk-theme`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          theme,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getUserSelf'] })
+    },
+  })
+}
+
 export const useDeleteUser = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()

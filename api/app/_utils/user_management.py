@@ -197,3 +197,54 @@ async def send_drone_inspection_order_email(
     }
 
     ses_client.send_email(**email_kwargs)
+
+
+async def get_clerk_user_metadata(*, user_id: str) -> dict:
+    """Get a user's public metadata from Clerk.
+
+    Args:
+        user_id (str): The ID of the user to get metadata for.
+
+    Returns:
+        dict: The user's public metadata.
+    """
+    try:
+        with Clerk(
+            bearer_auth=settings.CLERK_SECRET_KEY,
+        ) as clerk:
+            clerk_user = clerk.users.get(user_id=user_id)
+            if not clerk_user:
+                raise ValueError("User not found")
+            return clerk_user.public_metadata or {}
+    except models.ClerkErrors as e:
+        return {"error": f"Failed to get user metadata: {e.data.errors[0].message}"}
+
+
+async def update_clerk_user_theme(*, user_id: str, theme: str):
+    """Update a user's theme in Clerk while preserving existing metadata.
+
+    Args:
+        user_id (str): The ID of the user to update.
+        theme (str): The theme to update the user to.
+    """
+    try:
+        # First get the current metadata to preserve it
+        current_metadata = await get_clerk_user_metadata(user_id=user_id)
+        if "error" in current_metadata:
+            return current_metadata
+
+        # Update the theme while preserving other metadata
+        updated_metadata = {**current_metadata, "parent_company": theme}
+
+        with Clerk(
+            bearer_auth=settings.CLERK_SECRET_KEY,
+        ) as clerk:
+            clerk_user = clerk.users.update(
+                user_id=user_id,
+                public_metadata=updated_metadata,
+            )
+            if not clerk_user:
+                raise ValueError("Failed to update user")
+        return {"success": True}
+    except models.ClerkErrors as e:
+        return {"error": f"Failed to update user: {e.data.errors[0].message}"}
