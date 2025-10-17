@@ -11,6 +11,9 @@ from app import dependencies, interfaces
 from app._crud.admin.companies import get_companies
 from app._crud.operational.contracts import create_contract as crud_create_contract
 from app._crud.operational.contracts import (
+    delete_contract as crud_delete_contract,
+)
+from app._crud.operational.contracts import (
     get_project_contracts as crud_get_project_contracts,
 )
 from app._crud.operational.documents import get_project_documents
@@ -542,4 +545,51 @@ async def analyze_contract_document(
         logging.error(f"Error analyzing contract document: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to analyze contract document: {str(e)}"
+        )
+
+
+@router.delete("/{contract_id}")
+async def delete_contract(
+    project_id: UUID,
+    contract_id: int,
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user_data: Annotated[
+        interfaces.UserData, Depends(dependencies.get_user_data_async)
+    ],
+    project: Annotated[models.Project, Depends(dependencies.get_project)],
+):
+    """
+    Delete a contract if it has no associated Contractual KPIs.
+
+    This endpoint will only delete contracts that don't have any Contractual KPIs
+    associated with them, ensuring data integrity.
+    """
+    try:
+        deleted = await crud_delete_contract(
+            db=db, contract_id=contract_id, project_id=project_id
+        )
+
+        if not deleted:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Contract {contract_id} not found in project {project_id}",
+            )
+
+        return {
+            "success": True,
+            "message": f"Contract {contract_id} deleted successfully",
+            "contract_id": contract_id,
+        }
+
+    except ValueError as e:
+        # This is raised when contract has associated KPIs
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+    except Exception as e:
+        logging.error(f"Error deleting contract {contract_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete contract: {str(e)}",
         )

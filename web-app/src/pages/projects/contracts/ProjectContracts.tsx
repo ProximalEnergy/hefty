@@ -1,4 +1,5 @@
 import {
+  useDeleteContract,
   useGetContractKPIs,
   useGetProjectContracts,
 } from '@/api/v1/operational/project/contracts'
@@ -7,6 +8,7 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { VoiceChatModal } from '@/components/VoiceChat'
 import {
+  ActionIcon,
   Badge,
   Box,
   Button,
@@ -14,6 +16,7 @@ import {
   Container,
   Grid,
   Group,
+  Modal,
   Paper,
   ScrollArea,
   Skeleton,
@@ -24,11 +27,13 @@ import {
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
 import {
   IconFileText,
   IconMail,
   IconMapPin,
   IconPlus,
+  IconTrash,
   IconUser,
 } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -113,6 +118,7 @@ interface ContractCardProps {
   onContractClick: (contractId: number) => void
   isExample?: boolean
   onVoiceChat: (contract: any) => void
+  onDeleteContract?: (contractId: number) => void
 }
 
 const ContractCard = ({
@@ -120,6 +126,7 @@ const ContractCard = ({
   onContractClick,
   isExample = false,
   onVoiceChat,
+  onDeleteContract,
 }: ContractCardProps) => {
   const theme = useMantineTheme()
   const computedColorScheme = useComputedColorScheme('light')
@@ -298,6 +305,20 @@ const ContractCard = ({
           {contractType} - {contract.name_long}
         </Title>
         <Group gap="xs">
+          {!isExample && onDeleteContract && contractualKPIs.length === 0 && (
+            <ActionIcon
+              color="red"
+              variant="light"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDeleteContract(contract.contract_id)
+              }}
+              title="Delete contract (only available when no Contractual KPIs are associated)"
+            >
+              <IconTrash size={16} />
+            </ActionIcon>
+          )}
           {isExample && (
             <Badge color="orange" variant="light" size="sm">
               Example
@@ -664,6 +685,8 @@ const Page = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [voiceChatModalOpen, setVoiceChatModalOpen] = useState(false)
   const [selectedContract, setSelectedContract] = useState<any>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [contractToDelete, setContractToDelete] = useState<number | null>(null)
 
   if (!projectId) {
     return <Text>Error: Project ID is missing.</Text>
@@ -675,6 +698,8 @@ const Page = () => {
   } = useGetProjectContracts({
     pathParams: { projectId: projectId || '-1' },
   })
+
+  const deleteContract = useDeleteContract()
 
   if (isLoading) return <PageLoader />
   if (error) return <Text>Error loading contracts: {error.message}</Text>
@@ -688,6 +713,37 @@ const Page = () => {
   const handleVoiceChat = (contract: any) => {
     setSelectedContract(contract)
     setVoiceChatModalOpen(true)
+  }
+
+  const handleDeleteContract = (contractId: number) => {
+    setContractToDelete(contractId)
+    setDeleteModalOpen(true)
+  }
+
+  const confirmDeleteContract = async () => {
+    if (!contractToDelete || !projectId) return
+
+    try {
+      await deleteContract.mutateAsync({
+        projectId,
+        contractId: contractToDelete,
+      })
+
+      notifications.show({
+        title: 'Contract Deleted',
+        message: 'Contract has been successfully deleted.',
+        color: 'green',
+      })
+
+      setDeleteModalOpen(false)
+      setContractToDelete(null)
+    } catch (error: any) {
+      notifications.show({
+        title: 'Delete Failed',
+        message: error.response?.data?.detail || 'Failed to delete contract.',
+        color: 'red',
+      })
+    }
   }
 
   return (
@@ -719,6 +775,46 @@ const Page = () => {
           onClose={() => setVoiceChatModalOpen(false)}
           contractData={selectedContract}
         />
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          opened={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false)
+            setContractToDelete(null)
+          }}
+          title="Delete Contract"
+          size="sm"
+        >
+          <Stack gap="md">
+            <Text>
+              Are you sure you want to delete this contract? This action cannot
+              be undone.
+            </Text>
+            <Text size="sm" c="dimmed">
+              Note: Contracts can only be deleted if they have no associated
+              Contractual KPIs.
+            </Text>
+            <Group justify="flex-end" gap="sm">
+              <Button
+                variant="light"
+                onClick={() => {
+                  setDeleteModalOpen(false)
+                  setContractToDelete(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                loading={deleteContract.isPending}
+                onClick={confirmDeleteContract}
+              >
+                Delete Contract
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
 
         {contractList.length === 0 ? (
           <Stack gap="lg">
@@ -771,6 +867,7 @@ const Page = () => {
                 contract={contract}
                 onContractClick={handleRowClick}
                 onVoiceChat={handleVoiceChat}
+                onDeleteContract={handleDeleteContract}
               />
             ))}
           </Stack>
