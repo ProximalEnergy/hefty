@@ -101,7 +101,7 @@ mcp = FastApiMCP(
     include_tags=["sensor_types"],
     headers=["x-api-key"],
 )
-mcp.mount()
+mcp.mount_http()
 
 
 @app.get("/")
