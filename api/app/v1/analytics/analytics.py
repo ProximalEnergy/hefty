@@ -2406,7 +2406,7 @@ async def dc_amperage_report_v2(
             columns={x: y for x, y in zip(df_poa.columns, new_columns)},
         )
 
-    def rename_cb_columns(*, df_cb, cb_tags, met_devices):
+    def rename_cb_columns(*, df_cb, met_devices):
         # Create mappings for easier lookup
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in tags_cb}
         device_id_to_name_long = {
@@ -2433,7 +2433,7 @@ async def dc_amperage_report_v2(
     )
     df_poa.columns = pd.Index(natsorted(df_poa.columns))
 
-    df_cb = rename_cb_columns(df_cb=df_cb, cb_tags=tags_cb, met_devices=cb_devices)
+    df_cb = rename_cb_columns(df_cb=df_cb, met_devices=cb_devices)
     df_cb.columns = pd.Index(natsorted(df_cb.columns))
 
     # Function to upload a file to S3 and generate a presigned URL

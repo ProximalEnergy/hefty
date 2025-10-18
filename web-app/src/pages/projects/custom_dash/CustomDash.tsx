@@ -236,11 +236,6 @@ export interface BarConfig {
   aggregationMethod: string | null
 }
 
-export interface GISConfig {
-  deviceTypeId: string | null
-  traceSensorTypeId: string | null
-}
-
 export interface RichTextConfig {
   content: string
 }

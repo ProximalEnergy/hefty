@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface DeviceTypePowerSummary {
+interface DeviceTypePowerSummary {
   device_type_power: Record<number, number> // device_type_id -> power in MW
   timestamp: string // ISO timestamp of the data
 }

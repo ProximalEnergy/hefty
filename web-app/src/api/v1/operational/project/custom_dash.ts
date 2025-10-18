@@ -26,7 +26,7 @@ export interface DashboardComponent {
   h: number
 }
 
-export interface DataCustomBar {
+interface DataCustomBar {
   x: string[]
   y: number[]
   sensor_type_id: number
@@ -34,13 +34,13 @@ export interface DataCustomBar {
   unit: string
 }
 
-export interface DataCustomGauge {
+interface DataCustomGauge {
   value: number
   value_raw: number
   max: number
 }
 
-export interface DataCustomLine {
+interface DataCustomLine {
   x: string[]
   y: number[]
   sensor_type_id: number
@@ -48,24 +48,18 @@ export interface DataCustomLine {
   unit: string
 }
 
-export interface DataCustomScatter {
+interface DataCustomScatter {
   x: { values: number[]; name: string; unit: string }
   y: { values: number[]; name: string; unit: string }
 }
 
-export interface CustomDashCreate {
-  dashboard_name: string
-  default_time_range: number
-  default_kpi_time_range: number
-}
-
-export interface UserDashboard {
+interface UserDashboard {
   dashboard_id: string
   dashboard_name: string
   owner_user_id: string
 }
 
-export interface Dashboard {
+interface Dashboard {
   dashboard_name: string
   default_time_range: string
   default_kpi_time_range: string

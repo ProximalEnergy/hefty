@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager, contextmanager
 from functools import lru_cache
 from uuid import UUID
 
+from async_lru import alru_cache
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -85,7 +86,7 @@ def get_project_name_short(*, project_id: UUID) -> str | None:
     return project.name_short if project else None
 
 
-@lru_cache(maxsize=128)
+@alru_cache(maxsize=128)
 async def get_project_name_short_async(*, project_id: UUID) -> str | None:
     async with with_db_async(schema=None) as db:
         stmt = select(models.Project).filter(models.Project.project_id == project_id)

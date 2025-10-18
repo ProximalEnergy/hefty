@@ -2,7 +2,7 @@
 
 import datetime
 import uuid
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import sqlalchemy as sa
 from geoalchemy2 import Geography
@@ -24,7 +24,7 @@ class LTree(UserDefinedType):
     This is enough for Alembic to autogenerate `LTREE` columns for new tables/columns.
     """
 
-    def get_col_spec(self, **kw: Any) -> str:
+    def get_col_spec(self, **kw) -> str:  # noqa
         # The exact column type specification used in CREATE TABLE
         return "LTREE"
 

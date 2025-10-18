@@ -263,7 +263,7 @@ export function PortfolioProjectCard({
   )
 }
 
-export const RingProgressStat = ({
+const RingProgressStat = ({
   project,
   type,
   value,

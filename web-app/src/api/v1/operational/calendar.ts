@@ -203,7 +203,7 @@ export const useDeleteCalendarEvent = () => {
 }
 
 // Interface for the payload to cancel/modify an occurrence
-export interface CalendarOccurrenceActionPayload {
+interface CalendarOccurrenceActionPayload {
   is_cancelled?: boolean
   override_start_time?: string | null // Allow null to clear the time
   override_end_time?: string | null // Allow null to clear the time

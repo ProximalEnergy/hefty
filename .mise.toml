@@ -24,6 +24,17 @@ cd .. && \
 brew install hurl
 """
 
+[tasks.depends]
+description = "Remove unused dependencies and upgrade old dependencies"
+run = """
+mise run core:deptry && \
+mise run api:deptry && \
+mise run web:knip && \
+uv tree --outdated && \
+npm outdated
+"""
+
+
 [tasks.sync]
 description = "Sync current branch with latest dev from remote"
 run = """
@@ -60,6 +71,8 @@ depends = [
   "core:ruff_check",
   "core:ruff_format",
   "core:star_syntax",
+  "core:vulture",
+  "core:deptry",
   "core:enum",
 ]
 
@@ -67,6 +80,16 @@ depends = [
 description = "Run mypy type checking for core"
 dir = "core"
 run = "uv run mypy --config-file ../pyproject.toml src/"
+
+[tasks."core:deptry"]
+description = "Run deptry for core"
+dir = "core"
+run = "uv run deptry ."
+
+[tasks."core:vulture"]
+description = "Run vulture for core"
+dir = "."
+run = "uv run vulture core/src/core --min-confidence 100"
 
 [tasks."core:ruff_check"]
 description = "Run ruff linter for core"
@@ -177,6 +200,8 @@ depends = [
   "api:format",
   "api:pytest",
   "api:hurl",
+  "api:deptry",
+  "api:vulture"
 ]
 
 [tasks."api:ruff"]
@@ -189,10 +214,20 @@ description = "Run ruff formatter for api"
 dir = "."
 run = "uv run --dev ruff format api/app/"
 
+[tasks."api:vulture"]
+description = "Run vulture for api"
+dir = "."
+run = "uv run vulture api/app --min-confidence 100"
+
 [tasks."api:types"]
 description = "Run mypy type checking for api"
 dir = "api"
 run = "uv run mypy --config-file ../pyproject.toml -p app"
+
+[tasks."api:deptry"]
+description = "Run deptry for api"
+dir = "api"
+run = "uv run deptry ."
 
 [tasks."api:pytest"]
 description = "Run pytest for api"
@@ -269,32 +304,32 @@ run = "python3 -m _data_insert.operational.11_kpi_instances"
 # WEB-APP TASKS (runs in ./web-app directory)
 # =============================================================================
 
-[tasks."web-app:dev"]
+[tasks."web:dev"]
 description = "Run web-app development server"
 dir = "web-app"
 run = "npm run dev"
 
-[tasks."web-app:build"]
+[tasks."web:build"]
 description = "Build web-app for production"
 dir = "web-app"
 run = "npm run build"
 
-[tasks."web-app:lint"]
+[tasks."web:lint"]
 description = "Run ESLint for web-app"
 dir = "web-app"
 run = "npm run lint"
 
-[tasks."web-app:preview"]
+[tasks."web:preview"]
 description = "Preview production build of web-app"
 dir = "web-app"
 run = "npm run preview"
 
-[tasks."web-app:check"]
+[tasks."web:check"]
 description = "Run TypeScript check and format web-app"
 dir = "web-app"
 run = "npm run check"
 
-[tasks."web-app:test"]
-description = "Run Playwright tests for web-app"
+[tasks."web:knip"]
+description = "Run dependency check for web-app"
 dir = "web-app"
-run = "npm run test"
+run = "npx knip"

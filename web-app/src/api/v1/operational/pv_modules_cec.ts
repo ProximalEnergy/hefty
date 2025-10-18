@@ -1,10 +1,6 @@
 import { PVModule } from '@/api/v1/operational/pv_modules'
 import { useCustomQuery } from '@/hooks/api'
-import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
 import { UseQueryOptions } from '@tanstack/react-query'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 
 // --- Manufacturers ---
 export const useGetCECPVModuleManufacturers = ({
@@ -134,51 +130,5 @@ export const useGetCECPVModuleInProximalFormat = ({
     pathParams: {},
     queryParams: queryParams,
     queryOptions: queryOptions,
-  })
-}
-
-// --- Create or Update PV Module using POST ---
-export const useCreateOrUpdatePVModuleMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (module: PVModule) => {
-      const token = await getToken({ template: 'default' })
-
-      // Clean up data - convert empty strings to null
-      const cleanModule = { ...module }
-
-      // Convert empty strings to null for temperature coefficients
-      if (cleanModule.alpha_isc_relative === '')
-        cleanModule.alpha_isc_relative = null
-      if (cleanModule.beta_voc_relative === '')
-        cleanModule.beta_voc_relative = null
-      if (cleanModule.alpha_isc === '') cleanModule.alpha_isc = null
-      if (cleanModule.beta_voc === '') cleanModule.beta_voc = null
-
-      const response = await axios({
-        method: 'post',
-        url: `${baseURL}/v1/operational/cec-pv-modules`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: cleanModule,
-      })
-      return response.data as PVModule
-    },
-    onSuccess: () => {
-      // Invalidate relevant queries to refetch data
-      queryClient.invalidateQueries({
-        queryKey: ['cec-pv-module-manufacturers'],
-      })
-      queryClient.invalidateQueries({ queryKey: ['cec-pv-module-ids-lookup'] })
-      // Models queries are prefixed with manufacturer name, so we need to invalidate all of them
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          typeof query.queryKey[0] === 'string' &&
-          query.queryKey[0].startsWith('models-'),
-      })
-    },
   })
 }

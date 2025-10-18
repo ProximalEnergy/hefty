@@ -1,4 +1,3 @@
-import Timeline from '@/components/gis/Timeline'
 import { GISContext } from '@/contexts/GISContext'
 import {
   ActionIcon,
@@ -139,5 +138,3 @@ export function MapSettings({
     </Popover>
   )
 }
-
-export { Timeline }

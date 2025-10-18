@@ -1,14 +1,16 @@
 import datetime
 
-import core.models as models
 import pandas as pd
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
+import core.models as models
 from app import utils
-from app.dependencies import get_db, get_project, get_project_db
+from app.dependencies import get_db, get_project, get_project_db, get_project_db_async
+from core.model_list import ModelList
 
 router = APIRouter(
     prefix="/events",
@@ -68,8 +70,8 @@ async def get_meta_analysis(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
+    project_db_async: AsyncSession = Depends(get_project_db_async),
     project: models.Project = Depends(get_project),
-    db: Session = Depends(get_db),
 ):
     # -----------------------
     # Window setup (unchanged outputs)
@@ -281,9 +283,12 @@ async def get_meta_analysis(
     # -----------------------
     # Device type names
     # -----------------------
-    device_types = core.crud.operational.device_types.get_device_types(
-        project_db, device_type_ids=agg_types["device_type_id"].unique().tolist()
-    ).pandas_dataframe(index="device_type_id")
+    device_types_result = await core.crud.operational.device_types.get_device_types(
+        db=project_db_async,
+        device_type_ids=agg_types["device_type_id"].unique().tolist(),
+    )
+    device_types_model_list = ModelList.from_items(list(device_types_result))
+    device_types = device_types_model_list.pandas_dataframe(index="device_type_id")
 
     # -----------------------
     # Build response

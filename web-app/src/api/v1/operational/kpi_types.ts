@@ -24,7 +24,7 @@ interface ContractInfo {
   counter_company: string
 }
 
-export interface ContractKPIInfo {
+interface ContractKPIInfo {
   contract_id: number
   kpi_type_id: number
   threshold?: {
@@ -41,26 +41,6 @@ export interface KPITypeWithContractInfo extends KPIType {
   contract_kpis: ContractKPIInfo[]
   contracts: ContractInfo[]
   is_visible: boolean
-}
-
-export const useGetKPIType = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { kpiTypeId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/kpi-types/${pathParams.kpiTypeId}`,
-  }
-
-  return useCustomQuery<KPIType>({
-    axiosConfig,
-    queryName: 'getKPIType',
-    pathParams,
-    queryParams: {},
-    queryOptions,
-  })
 }
 
 export const useGetKPITypes = ({

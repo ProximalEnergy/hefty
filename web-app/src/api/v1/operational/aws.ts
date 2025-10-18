@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface BucketItem {
+interface BucketItem {
   Key: string
   LastModified: string
   ETag: string

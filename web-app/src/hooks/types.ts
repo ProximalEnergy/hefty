@@ -61,7 +61,7 @@ export interface MultiPolygon {
   coordinates: number[][][][]
 }
 
-export interface DataType {
+interface DataType {
   data_type_id: number
   name_short: string
 }
@@ -205,21 +205,6 @@ export interface UptimeData {
   events: number
 }
 
-export interface KPIProjectTemplate {
-  data: {
-    timestamps: string[]
-    values: (number | null)[]
-  }
-}
-
-export interface KPIDevicesTemplate {
-  data: {
-    timestamps: string[]
-    names: string[]
-    values: (number | null)[][]
-  }
-}
-
 export interface FailureMode {
   failure_mode_id: number
   device_type_id: number
@@ -235,11 +220,6 @@ export interface RootCause {
   name_full?: string
 }
 
-export interface Report {
-  filename: string
-  data_pdf: string
-}
-
 export interface ReportInstance {
   project_id: string
   report_type_id: number
@@ -251,12 +231,6 @@ export interface ReportInstance {
     name_long: string
     doc_url: string
   }
-}
-
-export interface RowData {
-  name: string
-  email: string
-  company: string
 }
 
 export interface DataHeatmap {
@@ -285,41 +259,7 @@ export interface DegradationPOA {
   valid_columns: string[]
 }
 
-export interface KPITimeSeries {
-  x: string[]
-  y: number[]
-  json:
-    | Array<{
-        project_quality: number | null
-        project_mechanical_availability: number | null
-      }>
-    | null[]
-}
-
-interface Feature {
-  type: string
-  properties: {
-    status: string
-    power: number
-    normalized_power: number
-    name: string
-    device_id: string
-  }
-  geometry: Point | MultiPolygon
-}
-
-export interface GeoJSON {
-  type: string
-  features: Feature[]
-}
-
-export interface SettlementPointType {
-  settlement_point_type_id: number
-  name_short: string
-  name_long: string
-}
-
-export interface SettlementPoint {
+interface SettlementPoint {
   settlement_point_id: number
   name: string
   settlement_point_type_id: number
@@ -327,13 +267,13 @@ export interface SettlementPoint {
   trading_hub_id: number
 }
 
-export interface QSE {
+interface QSE {
   qse_id: number
   name_short: string
   name_long: string
 }
 
-export interface DME {
+interface DME {
   dme_id: number
   name_short: string
   name_long: string
@@ -353,12 +293,6 @@ export interface Resource {
   qse: QSE | null
   dme: DME | null
   settlement_point: SettlementPoint | null
-}
-
-export interface DatetimeDataFrame {
-  index: string[]
-  columns: string[]
-  data: number[][]
 }
 
 export interface WeatherResponse {
@@ -456,109 +390,13 @@ export interface ForecastResponse {
   }
 }
 
-export interface EquipmentAnalysisPCS {
-  generating_power_block: {
-    value: number
-    total: number
-  }
-  generating_power_pcs: {
-    value: number
-    total: number
-  }
-  generating_power_pcs_module: {
-    value: number
-    total: number
-  }
-  total_power_output: {
-    value: number
-    total_nameplate: number
-  }
-  block_power_distribution: {
-    x: string[]
-    y: number[]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-  pcs_power_distribution: {
-    x: string[]
-    y: number[]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-  pcs_module_power_distribution: {
-    x: string[]
-    y: number[]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-}
-
-export interface EquipmentAnalysisPCSv2 {
-  generating_power_block: {
-    value: number[]
-    total: number
-  }
-  generating_power_pcs: {
-    value: number[]
-    total: number
-  }
-  generating_power_pcs_module?: {
-    value: number[]
-    total: number
-  }
-  total_power_output: {
-    value: number[]
-    total_nameplate: number
-  }
-  block_power_distribution: {
-    x: string[]
-    y: number[][]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-  block_power_distribution_norm: {
-    x: string[]
-    y: number[][]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-  pcs_power_distribution: {
-    x: string[]
-    y: number[][]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-  pcs_power_distribution_norm: {
-    x: string[]
-    y: number[][]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-  pcs_module_power_distribution?: {
-    x: string[]
-    y: number[][]
-    customdata: number[]
-    yaxis_range_max: number
-  }
-}
-
 export interface EquipmentAnalysisCombiner {
   x: string[]
   y: number[]
   y_norm: number[]
 }
 
-export interface EquipmentAnalysisBESSBlock {
-  x: string[]
-  y: number[]
-}
-
-export interface EquipmentAnalysisBESSPCS {
-  x: string[]
-  y: number[]
-}
-
-export type QualityLevel = 'good' | 'warning' | 'bad'
+type QualityLevel = 'good' | 'warning' | 'bad'
 type QualityItem = {
   level: QualityLevel
   message: string
@@ -611,13 +449,6 @@ export interface Observation {
   device_id: number
 }
 
-export interface KPIInstances {
-  project_id: string
-  kpi_type_id: string
-  kpi_type: KPIInstanceProps
-  is_visible: boolean
-}
-
 export interface KPIInstanceProps {
   name_short: string
   name_long: string
@@ -628,14 +459,7 @@ export interface KPIInstanceProps {
   device_type_id: number
 }
 
-export interface KPIData {
-  x: string[]
-  y: Array<{
-    device_values: { [deviceId: string]: number | null }
-  }>
-}
-
-export interface alertProps {
+interface alertProps {
   alert_name: string
   comparison: string | null
   duration_value: string | null
@@ -668,12 +492,6 @@ export interface CombinerHealth {
   data: Array<Array<number | null>>
 }
 
-export interface DCAmperageData {
-  inv: CombinerHealth
-  proj: CombinerHealth
-  report_link: string
-}
-
 export interface DCAmperageDataV2 {
   inv: CombinerHealth
   proj: CombinerHealth
@@ -689,20 +507,7 @@ export interface BlockDropdownItem {
   name_full: string
 }
 
-export interface Contract {
-  contract_id: number
-  project_id: string
-  document_id: string
-  company_id_provider: string
-  company_id_counter: string
-  execution_date: string
-  name_long: string
-  name_short: string
-  s3_key: string | null
-  document_url?: string
-}
-
-export interface ContractKPI {
+interface ContractKPI {
   contract_id: number
   kpi_type_id: number
   threshold: {
@@ -723,7 +528,7 @@ export interface KPITypeWithContracts extends KPIType {
   contracts: ContractWithCompany[]
   contract_kpis: ContractKPI[]
 }
-export interface ContractWithCompany {
+interface ContractWithCompany {
   contract_id: number
   project_id: string
   document_id: string

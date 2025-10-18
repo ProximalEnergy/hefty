@@ -3,21 +3,21 @@ import { useAuth } from '@clerk/clerk-react'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface VoiceChatSessionRequest {
+interface VoiceChatSessionRequest {
   model: string
 }
 
-export interface VoiceChatSessionResponse {
+interface VoiceChatSessionResponse {
   client_secret: string
   expires_at: string
 }
 
-export interface EnsureVectorStoreRequest {
+interface EnsureVectorStoreRequest {
   openai_file_id: string
   name?: string
 }
 
-export interface EnsureVectorStoreResponse {
+interface EnsureVectorStoreResponse {
   vector_store_id: string
 }
 

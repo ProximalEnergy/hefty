@@ -2,7 +2,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { Device, MeterPowerAndExpected } from '@/hooks/types'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface UtilityExpected {
+interface UtilityExpected {
   parent_devices: Device[]
   times: string[]
   actual: {

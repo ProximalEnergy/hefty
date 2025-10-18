@@ -13,6 +13,7 @@ requires-python = ">=3.12"
 [dependency-groups]
 dev = [
     "ruff>=0.14.0",
+    "vulture>=2.14",
 ]
 
 [tool.ruff]
@@ -122,3 +123,13 @@ module = [
     "googleapiclient.*",
 ]
 ignore_missing_imports = true
+
+# =============================================================================
+# VULTURE CONFIGURATION
+# =============================================================================
+[tool.vulture]
+exclude = [
+# --- CORE ---
+# --- API ---
+"*protected/deletions/delete_project*.py"
+]

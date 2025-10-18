@@ -1,7 +1,7 @@
 import { useCustomQuery, useCustomQueryArrow } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface RealTimeData {
+interface RealTimeData {
   device_ids: number[]
   device_names: string[]
   device_names_x: string[]
@@ -15,7 +15,7 @@ export interface RealTimeData {
   }[]
 }
 
-export interface DataTimeSeriesLast {
+interface DataTimeSeriesLast {
   tag_id: number
   time: string
   value_integer: number | null

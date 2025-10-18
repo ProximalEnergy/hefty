@@ -125,41 +125,6 @@ export const useGetTagPatternSamples = ({
   })
 }
 
-export const useAssignSensorTypeMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({
-      projectId,
-      tagNameShort,
-      sensorTypeId,
-    }: {
-      projectId: string
-      tagNameShort: string
-      sensorTypeId: number
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'post',
-        baseURL: baseURL,
-        url: `/v1/protected/web-application/projects/${projectId}/project-tag-explorer/assign-sensor-type`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          project_id: projectId,
-          tag_name_short: tagNameShort,
-          sensor_type_id: sensorTypeId,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getUniqueTagTypes'] })
-      queryClient.invalidateQueries({ queryKey: ['getSensorTypeAssignments'] })
-    },
-  })
-}
-
 export const useAssignPatternSensorTypeMutation = () => {
   const { getToken } = useAuth()
   return useMutation({

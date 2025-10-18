@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface WaterfallData {
+interface WaterfallData {
   value: number[]
   measure: string[]
   name: string[]
