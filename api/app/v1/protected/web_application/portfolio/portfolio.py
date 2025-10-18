@@ -2,7 +2,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 import pandas as pd
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,20 +80,14 @@ async def get_home(
         # Parse data into a DataFrame
         df = pd.DataFrame.from_records([d.__dict__ for d in data_timeseries])
 
-        # Raise an error if the DataFrame is empty
-        if df.empty:
-            raise HTTPException(
-                status_code=404,
-                detail="No portfolio data found for the past 24 hours.",
-            )
+        if not df.empty:
+            # Collapse value columns into a single column
+            with pd.option_context("future.no_silent_downcasting", True):
+                df["value"] = df.filter(regex="value_").bfill(axis=1).iloc[:, 0]
+            df = df.infer_objects()
 
-        # Collapse value columns into a single column
-        with pd.option_context("future.no_silent_downcasting", True):
-            df["value"] = df.filter(regex="value_").bfill(axis=1).iloc[:, 0]
-        df = df.infer_objects()
-
-        # Select the relevant columns
-        df = df[["time", "project_id", "tag_id", "sensor_type_id", "value"]]
+            # Select the relevant columns
+            df = df[["time", "project_id", "tag_id", "sensor_type_id", "value"]]
 
     if day_behind_project_ids:
         day_behind_start = (
@@ -117,24 +111,18 @@ async def get_home(
             [d.__dict__ for d in data_timeseries_day_behind]
         )
 
-        # Raise an error if the DataFrame is empty
-        if df_day_behind.empty:
-            raise HTTPException(
-                status_code=404,
-                detail="No portfolio data found for the past 24 hours.",
-            )
+        if not df_day_behind.empty:
+            # Collapse value columns into a single column
+            with pd.option_context("future.no_silent_downcasting", True):
+                df_day_behind["value"] = (
+                    df_day_behind.filter(regex="value_").bfill(axis=1).iloc[:, 0]
+                )
+            df_day_behind = df_day_behind.infer_objects()
 
-        # Collapse value columns into a single column
-        with pd.option_context("future.no_silent_downcasting", True):
-            df_day_behind["value"] = (
-                df_day_behind.filter(regex="value_").bfill(axis=1).iloc[:, 0]
-            )
-        df_day_behind = df_day_behind.infer_objects()
-
-        # Select the relevant columns
-        df_day_behind = df_day_behind[
-            ["time", "project_id", "tag_id", "sensor_type_id", "value"]
-        ]
+            # Select the relevant columns
+            df_day_behind = df_day_behind[
+                ["time", "project_id", "tag_id", "sensor_type_id", "value"]
+            ]
 
     if day_behind_project_ids and real_time_project_ids:
         # Create a full date range to be used for each project DataFrame
@@ -152,7 +140,10 @@ async def get_home(
     df = pd.concat([df, df_day_behind])
 
     for project_id in project_ids:
-        df_project = df[df["project_id"] == project_id]
+        if not df.empty:
+            df_project = df[df["project_id"] == project_id]
+        else:
+            df_project = pd.DataFrame()
 
         if df_project.empty:
             return_data.append(
