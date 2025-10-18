@@ -672,7 +672,7 @@ def get_tracking_angles(
     # Get tracking data
     tracking_df = tracking.singleaxis(
         apparent_zenith=solpos["apparent_zenith"],
-        apparent_azimuth=solpos["azimuth"],
+        solar_azimuth=solpos["azimuth"],
         axis_tilt=axis_tilt,
         axis_azimuth=axis_azimuth,
         max_angle=max_angle,
