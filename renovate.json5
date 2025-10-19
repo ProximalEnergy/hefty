@@ -1,0 +1,49 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+  minimumReleaseAge: "30 days",
+  reviewers: ["kurt-rhee"],
+  packageRules: [
+    // =========== Don't Upgrade Python ============
+    {
+      matchDatasources: ["python-version"],
+      enabled: false,
+    },
+    {
+      matchPackageNames: ["python"],
+      matchDatasources: ["docker", "github-tags"],
+      enabled: false,
+    },
+    {
+      matchPackageNames: ["python/cpython"],
+      matchDatasources: ["github-tags"],
+      enabled: false,
+    },
+    // =========== Don't Upgrade Certain Packages ============
+    {
+      matchPackageNames: ["polars", "plotly.js"],
+      enabled: false,
+    },
+    {
+      matchPackagePatterns: ["^@mantine/", "^mantine$"],
+      enabled: false,
+    },
+    // =========== Group Upgrades by Service ============
+    {
+      matchFileNames: ["api/**"],
+      groupName: "api",
+    },
+    {
+      matchFileNames: ["core/**"],
+      groupName: "core",
+    },
+    {
+      matchFileNames: ["web-app/**"],
+      groupName: "web-app",
+    },
+    {
+      matchFileNames: ["docs-mdbook/**"],
+      groupName: "docs-mdbook",
+    },
+  ],
+}
