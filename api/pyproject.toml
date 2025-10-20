@@ -17,7 +17,7 @@ dependencies = [
     "natsort >=8.4.0,<9",
     "openai>=1.86.0",
     "pandas >=2.2.3,<3",
-    "polars==1.32.0", # Added strict version constraint to avoid breaking change introduced here https://github.com/pola-rs/polars/pull/24027
+    "polars==1.32.0",                        # Added strict version constraint to avoid breaking change introduced here https://github.com/pola-rs/polars/pull/24027
     "psycopg2-binary>=2.9.11,<3",
     "pvlib>=0.13,<0.14",
     "pyarrow>=20.0.0",
@@ -40,6 +40,7 @@ dependencies = [
     "orjson~=3.11.3",
     "xlsxwriter~=3.2.9",
     "jinja2~=3.1.6",
+    "openpyxl>=3.1.5",
 ]
 
 [dependency-groups]
@@ -96,4 +97,5 @@ DEP002 = [
     "orjson",     # optional dependency used by fastapi
     "xlsxwriter", # optional dependency used by pandas
     "jinja2",     # optional dependency used by pandas
+    "openpyxl",   # optional dependency used by pandas in data_insert scripts
 ]
