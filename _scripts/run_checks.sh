@@ -33,7 +33,7 @@ run_check() {
         echo -e "${GREEN}✓ ${check_name} passed${NC}\n"
         return 0
     else
-        FAILED_CHECKS+=("$check_name")
+        FAILED_CHECKS+=("$check_name:$check_command")
         echo -e "${RED}✗ ${check_name} failed${NC}\n"
         return 1
     fi
@@ -45,13 +45,18 @@ run_check "Core: Ruff Linting" "mise run core:ruff_check"
 run_check "Core: Ruff Formatting" "mise run core:ruff_format"
 run_check "Core: Star Syntax Check" "mise run core:star_syntax"
 run_check "Core: Enum Validation" "mise run core:enum"
+run_check "Core: Unused Import Check" "mise run core:deptry"
+run_check "Core: Dead Code Check" "mise run core:vulture"
 run_check "API: Type Checking (mypy)" "mise run api:types"
 run_check "API: Star Syntax Check" "mise run api:star_syntax"
 run_check "API: Ruff Linting" "mise run api:ruff"
 run_check "API: Ruff Formatting" "mise run api:format"
+run_check "API: Unused Import Check" "mise run api:deptry"
+run_check "API: Dead Code Check" "mise run api:vulture"
 run_check "API: Pytest" "mise run api:pytest"
 run_check "API: Hurl Tests" "mise run api:hurl"
-run_check "Web-App: TypeScript & Format Check" "mise run web-app:check"
+run_check "Web-App: TypeScript & Format Check" "mise run web:check"
+run_check "Web-App: Dead Code Check" "mise run web:knip"
 
 # Print summary
 echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -70,8 +75,10 @@ fi
 # Print failed checks
 if [ ${#FAILED_CHECKS[@]} -gt 0 ]; then
     echo -e "${BOLD}${RED}Failed (${#FAILED_CHECKS[@]}):${NC}"
-    for check in "${FAILED_CHECKS[@]}"; do
-        echo -e "  ${RED}✗${NC} $check"
+    for check_info in "${FAILED_CHECKS[@]}"; do
+        check_name="${check_info%%:*}"
+        check_command="${check_info#*:}"
+        echo -e "  ${RED}✗${NC} ${check_name}: ${BOLD}${check_command}${NC}"
     done
     echo ""
 fi

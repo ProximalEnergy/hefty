@@ -33,7 +33,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext } from 'react'
 
-export const ApplicationSettings = () => {
+const ApplicationSettings = () => {
   // const { user } = useUser()
   // Use shared gate to check visibility to reduce duplicate logic
   const TeamsGate = ({ children }: { children: React.ReactNode }) => (

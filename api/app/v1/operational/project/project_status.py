@@ -49,7 +49,6 @@ def get_status_interpret(
     db: Annotated[Session, Depends(get_project_db)],
     status_tags: Annotated[list[int], Query()] = [],
     status_values: Annotated[list[Any], Query()] = [],
-    ignore_nominal: bool = False,
 ):
     validate_status_tags_and_values(
         status_tags=status_tags,
@@ -283,7 +282,6 @@ def get_status_time_series(
         db=db,
         status_tags=[int(k) for k in keys],
         status_values=vals,
-        ignore_nominal=True,
     )
 
     lookup = {
@@ -437,7 +435,6 @@ def get_status_time_series_python(
         db=db,
         status_tags=[int(k) for k in keys],
         status_values=vals,
-        ignore_nominal=True,
     )
 
     lookup = {

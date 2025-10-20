@@ -14,13 +14,13 @@ import { Link, useLocation } from 'react-router-dom'
 
 import classes from './NavbarLinksGroup.module.css'
 
-export interface DropdownLinkProps {
+interface DropdownLinkProps {
   label: string
   to: string
   underDevelopment: boolean
 }
 
-export interface LinksGroupProps {
+interface LinksGroupProps {
   icon: React.ElementType
   label: string
   initiallyOpened?: boolean

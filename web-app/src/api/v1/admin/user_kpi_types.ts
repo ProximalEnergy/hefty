@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface UserKPIType {
+interface UserKPIType {
   user_id: string
   kpi_type_id: number
   is_favorited: boolean

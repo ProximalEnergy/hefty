@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface StatusTimeSeries {
+interface StatusTimeSeries {
   x: string[]
   y: string[]
   name: string

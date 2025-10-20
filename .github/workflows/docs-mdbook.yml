@@ -35,7 +35,7 @@ jobs:
       MDBOOK_MERMAID_VERSION: 0.15.0
       MDBOOK_KATEX_VERSION: 0.9.4
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install dependencies
         run: |
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh
@@ -52,7 +52,7 @@ jobs:
       - name: Build with mdBook
         run: mdbook build
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./book
 

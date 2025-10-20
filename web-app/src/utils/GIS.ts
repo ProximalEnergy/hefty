@@ -3,8 +3,8 @@ import { useMemo } from 'react'
 import { LayerProps, MapStyle } from 'react-map-gl'
 
 export const OPACITY_DEFAULT = 0.75
-export const COLOR_NON_COMM = '#1C7ED6'
-export const OPACITY_NON_COMM = 0.5
+const OPACITY_NON_COMM = 0.5
+const COLOR_NON_COMM = '#1C7ED6'
 
 export const colorBar = ({
   colors,
@@ -16,7 +16,7 @@ export const colorBar = ({
     .join(', ')})`
 }
 
-export const colorLinear = ({
+const colorLinear = ({
   colors,
   lowValue,
   highValue,
@@ -198,23 +198,6 @@ export function layerNonComm({
       'line-opacity': 1,
     },
     filter: ['all', ['==', ['get', featureKey], null]],
-  }
-}
-
-export function layerRedOutline({
-  featureKey,
-}: {
-  featureKey: string
-}): LayerProps {
-  return {
-    id: 'red-outline',
-    type: 'line',
-    paint: {
-      'line-color': '#F03E3E',
-      'line-width': 1,
-      'line-opacity': 1,
-    },
-    filter: ['all', ['==', ['get', featureKey], true]],
   }
 }
 

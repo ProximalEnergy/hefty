@@ -1,7 +1,7 @@
 import * as icons from '@tabler/icons-react'
 import React from 'react'
 
-export type Link = {
+type Link = {
   label: string
   to: string | ((arg: string) => string)
   requiresPV?: boolean
@@ -241,6 +241,11 @@ export const projectLinks: DropdownLink[] = [
           `/projects/${projectId}/utility/project-tag-explorer`,
         label: 'Tag Explorer',
       },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/utility/company-view`,
+        label: 'Company View',
+      },
     ],
   },
   // {
@@ -260,24 +265,6 @@ export const projectLinks: DropdownLink[] = [
   //   icon: icons.IconBattery3,
   //   bessOnly: true,
   // },
-]
-
-export const profileLinks: DropdownLink[] = [
-  {
-    to: '/account',
-    label: 'Account',
-    icon: icons.IconUser,
-  },
-  {
-    to: '/settings',
-    label: 'Settings',
-    icon: icons.IconSettings,
-  },
-  {
-    to: '/api',
-    label: 'API',
-    icon: icons.IconCode,
-  },
 ]
 
 export const developmentLinks: DropdownLink[] = [

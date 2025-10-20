@@ -84,7 +84,9 @@ class BaseIntEnum(IntEnum):
 
     @classmethod
     def validate_all_enums(
-        cls, *, session: "Session", case_sensitive: bool = True
+        cls,
+        *,
+        session: "Session",
     ) -> dict[str, dict]:
         """
         Validate all enum subclasses against their database tables.

@@ -10,7 +10,7 @@ export interface EventMetrics {
   failure_count: number
 }
 
-export interface EventsMetaAnalysis {
+interface EventsMetaAnalysis {
   metrics: EventMetrics[]
   daily_totals: {
     dates: string[]

@@ -102,10 +102,6 @@ const layerLockConfig = {
   },
 } as const // Use 'as const' for stricter typing of keys
 
-export default function AdaptiveGis() {
-  return <AdaptiveGisMap />
-}
-
 export function AdaptiveGisMap() {
   // GIS context for settings
   const context = useContext(GISContext)

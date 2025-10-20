@@ -17,7 +17,7 @@ type PowerData = {
 } | null // It can be null if not requested or not found
 
 // Extend the base Device type to include optional power_data
-export type DeviceWithPower = Device & {
+type DeviceWithPower = Device & {
   power_data: PowerData
   tracker_data?: {
     // Add optional tracker data

@@ -40,8 +40,8 @@ import { PageLoader } from './components/Loading'
 import RequiresUserType from './components/admin/RequiresUserType'
 import { useTheme } from './contexts/ThemeContext'
 // Profile
-import { AccountSettings } from './pages/AccountSettings'
-import { Api } from './pages/Api'
+import AccountSettings from './pages/AccountSettings'
+import Api from './pages/Api'
 import ApplicationSettings from './pages/ApplicationSettings'
 import LoomTesting from './pages/LoomTesting'
 import NotFound from './pages/NotFound'
@@ -142,6 +142,7 @@ import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageR
 import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabilityReport'
 // Utility
 import Backfill from './pages/projects/utility/Backfill'
+import CompanyView from './pages/projects/utility/CompanyView'
 import ExpectedPlotting from './pages/projects/utility/ExpectedPlotting'
 
 // import CustomDash from './pages/projects/custom_dash/CustomDash'
@@ -495,6 +496,14 @@ const ClerkProviderWithRoutes = () => {
                   element={
                     <RequiresUserType requiredUserType="superadmin">
                       <ProjectTagExplorer />
+                    </RequiresUserType>
+                  }
+                />
+                <Route
+                  path="company-view"
+                  element={
+                    <RequiresUserType requiredUserType="superadmin">
+                      <CompanyView />
                     </RequiresUserType>
                   }
                 />

@@ -122,8 +122,8 @@ class Point(BaseModel):
     coordinates: conlist(float, min_length=2, max_length=2)  # type: ignore # pyright: ignore
 
     @model_validator(mode="before")  # skip-star-syntax
-    @classmethod
-    def convert_point(cls, point):  # skip-star-syntax
+    @staticmethod
+    def convert_point(point):  # skip-star-syntax
         return convert(point)
 
 
@@ -133,8 +133,8 @@ class Polygon(BaseModel):
     coordinates: list[Any]
 
     @model_validator(mode="before")  # skip-star-syntax
-    @classmethod
-    def convert_polygon(cls, polygon):  # skip-star-syntax
+    @staticmethod
+    def convert_polygon(polygon):  # skip-star-syntax
         return convert(polygon)
 
 

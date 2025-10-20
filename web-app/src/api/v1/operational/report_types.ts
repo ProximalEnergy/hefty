@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface ReportType {
+interface ReportType {
   report_type_id: number
   name_short: string
   name_long: string

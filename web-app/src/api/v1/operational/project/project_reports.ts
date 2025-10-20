@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface PCSApparentVsVoltage {
+interface PCSApparentVsVoltage {
   device_id: number
   x: number[]
   y: number[]

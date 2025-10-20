@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface TrackerEquipmentAnalysisData {
+interface TrackerEquipmentAnalysisData {
   position_from_setpoint: {
     by_block: { [key: string]: number }
     by_row: { [key: number]: { [rowKey: number]: number } }
