@@ -26,7 +26,7 @@ jobs:
 
       - name: Get open PR
         id: get_pr
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const prs = await github.rest.pulls.list({
@@ -50,7 +50,7 @@ jobs:
       - name: Check reviewer approvals
         if: steps.get_pr.outputs.found == 'true'
         id: check_approvals
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const prNumber = Number('${{ steps.get_pr.outputs.pr_number }}');
@@ -86,7 +86,7 @@ jobs:
 
       - name: Merge PR
         if: steps.check_approvals.outputs.ready == 'true'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const prNumber = Number('${{ steps.get_pr.outputs.pr_number }}');
