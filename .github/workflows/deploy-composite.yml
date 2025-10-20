@@ -24,7 +24,7 @@ jobs:
       core: ${{ steps.filter.outputs.core }}
       api: ${{ steps.filter.outputs.api }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: dorny/paths-filter@v3
         id: filter
@@ -55,7 +55,7 @@ jobs:
       release_name: ${{ steps.version.outputs.release_name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -172,7 +172,7 @@ jobs:
     if: needs.publish-core.result == 'success'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Create GitHub Release
         env:
@@ -201,7 +201,7 @@ jobs:
       environment: ${{ steps.set-env.outputs.environment }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set environment variables
         id: set-env
@@ -405,7 +405,7 @@ jobs:
       (github.ref_name == 'staging' || github.ref_name == 'main')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Trigger Amplify Build
         run: |
