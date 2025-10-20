@@ -1,16 +1,16 @@
 import datetime
 
+import core.models as models
 import pandas as pd
+from core.model_list import ModelList
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-import core.models as models
 from app import utils
-from app.dependencies import get_db, get_project, get_project_db, get_project_db_async
-from core.model_list import ModelList
+from app.dependencies import get_project, get_project_db, get_project_db_async
 
 router = APIRouter(
     prefix="/events",

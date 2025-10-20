@@ -1,6 +1,11 @@
 import uuid
 from typing import Annotated
 
+from core.enumerations import UserTypeEnum
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app import dependencies, interfaces
 from app._crud.admin.users import create_user as create_user_crud
 from app._crud.admin.users import delete_user as delete_user_crud
@@ -12,11 +17,6 @@ from app._utils.user_management import (
     update_clerk_user_theme,
 )
 from app.interfaces import User, UserCreate
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from core.enumerations import UserTypeEnum
 
 router = APIRouter(prefix="/users", tags=["users"])
 
