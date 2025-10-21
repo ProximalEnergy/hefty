@@ -26,7 +26,10 @@ export const useGetKPISummaryCards = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string }
-  queryParams?: object
+  queryParams?: {
+    kpi_type_ids?: number[]
+    date?: string
+  }
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {

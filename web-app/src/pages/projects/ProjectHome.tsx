@@ -332,6 +332,7 @@ const KPICards = () => {
   const content = useElementSize()
   const [rotationOffset, setRotationOffset] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
+  const [queryDate, setQueryDate] = useState(dayjs().format('YYYY-MM-DD'))
 
   const { data: user } = useGetUserSelf({})
 
@@ -351,11 +352,22 @@ const KPICards = () => {
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       kpi_type_ids: kpiTypeIds,
+      date: queryDate,
     },
     queryOptions: {
       enabled: !!projectId && !!favoritedKPITypes.data,
     },
   })
+
+  useEffect(() => {
+    if (
+      data.isSuccess &&
+      data.data.length === 0 &&
+      queryDate === dayjs().format('YYYY-MM-DD')
+    ) {
+      setQueryDate(dayjs().subtract(1, 'day').format('YYYY-MM-DD'))
+    }
+  }, [data.isSuccess, data.data, queryDate])
 
   const contentIsGreaterThanContainer = content.width > container.width
 
