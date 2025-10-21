@@ -242,7 +242,6 @@ const SparePartsPage = () => {
         icon={<IconAlertCircle size={16} />}
         title="Placeholder Data"
         color="yellow"
-        my="md"
       >
         This is placeholder data. If you would like to work with Proximal on
         integrating spare parts management, please use the feedback button at
@@ -250,7 +249,7 @@ const SparePartsPage = () => {
       </Alert>
 
       {/* Summary Cards */}
-      <Grid mb="md">
+      <Grid>
         <Grid.Col span={3}>
           <Card withBorder p="md" bg="rgba(255, 0, 0, 0.1)">
             <Group justify="space-between">

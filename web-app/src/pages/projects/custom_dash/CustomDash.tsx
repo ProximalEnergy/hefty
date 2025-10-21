@@ -1941,8 +1941,8 @@ const Page = () => {
           isDraggable={editing && canDrag}
           isResizable={editing}
           onLayoutChange={onLayoutChange}
-          margin={[16, 16]}
-          containerPadding={[16, 16]}
+          margin={[12.8, 12.8]}
+          containerPadding={[0, 0]}
           snapToGrid={true}
           preventCollision={false}
           compactType="vertical"
@@ -2021,7 +2021,7 @@ const Page = () => {
                     backgroundColor: 'var(--mantine-color-body)',
                     border: editing
                       ? '2px solid var(--mantine-color-blue-6)'
-                      : '1px solid var(--mantine-color-gray-3)',
+                      : undefined,
                     borderRadius: 'var(--mantine-radius-md)',
                   }}
                 >
