@@ -4,6 +4,7 @@ from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
+from core.crud.operational.projects import get_project_async
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
@@ -34,7 +35,6 @@ from app.dependencies import (
 from app.v1.operational.kpi_instances import get_kpi_instances_helper
 from app.v1.operational.project.project_documents import generate_presigned_url
 from core import models
-from core.crud.operational.projects import get_project_async
 
 router = APIRouter(prefix="/projects/{project_id}/kpi-data", tags=["project_kpi_data"])
 

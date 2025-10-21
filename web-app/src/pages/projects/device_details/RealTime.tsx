@@ -794,6 +794,18 @@ const Page = () => {
     }
   }
 
+  const bessYRange = (() => {
+    if (deviceTypeId !== 13) return undefined
+
+    const allValues =
+      realTimeData?.traces?.flatMap(
+        (t) => t.values?.filter((v): v is number => v !== null) ?? [],
+      ) ?? []
+    const maxAbs = allValues.reduce((max, v) => Math.max(max, Math.abs(v)), 0)
+    const yAxisMax = Math.max(1.0, maxAbs)
+    return [-yAxisMax, yAxisMax]
+  })()
+
   const layout: Partial<Layout> = {
     barmode: 'overlay',
     plot_bgcolor: 'transparent',
@@ -811,7 +823,7 @@ const Page = () => {
       categoryorder: 'array',
       categoryarray: naturalSort(yvals),
       showgrid: isLarge ? false : true,
-      range: isLarge ? undefined : ['data', 'data'],
+      range: isLarge ? undefined : (bessYRange ?? ['data', 'data']),
       title: { text: isLarge ? largeYAxisTitle : (unit ?? '') },
       tickformat: unit?.includes('%') ? ',.0%' : undefined,
     },
