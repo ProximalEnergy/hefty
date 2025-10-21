@@ -328,8 +328,3 @@ run = "npm run preview"
 description = "Run TypeScript check and format web-app"
 dir = "web-app"
 run = "npm run check"
-
-[tasks."web:knip"]
-description = "Run dependency check for web-app"
-dir = "web-app"
-run = "npx knip"

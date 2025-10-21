@@ -52,7 +52,7 @@ export const useGetKPISummaryCards = ({
   })
 }
 
-export interface RoundTripEfficiencyData {
+interface RoundTripEfficiencyData {
   rte: number | null
 }
 
