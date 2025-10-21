@@ -1128,7 +1128,7 @@ export const useGetEquipmentAnalysisCombiner = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/equipment-analysis/combiner`,
+    url: `/v1/protected/web_application/projects/${pathParams.projectId}/equipment_analysis/combiner`,
     params: queryParams,
   }
 
