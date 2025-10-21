@@ -30,7 +30,8 @@ import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
 import { BlockHeader } from './BlockHeader'
@@ -782,7 +783,7 @@ const StringNode = ({ data }: NodeProps<Node<StringData>>) => {
 }
 
 const BusNode = ({ data }: NodeProps<Node<BusData>>) => {
-  const handles: JSX.Element[] = []
+  const handles: React.JSX.Element[] = []
 
   // Check if this is the main vertical bus (used in BESS MV circuit layout)
   if (data.is_vertical_bus) {

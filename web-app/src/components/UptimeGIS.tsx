@@ -22,7 +22,7 @@ import { PageLoader } from './Loading'
 interface UptimeGISProps {
   deviceTypeId: number
   uptimeData: UptimeData[]
-  mapRef?: React.RefObject<MapRef>
+  mapRef?: React.Ref<MapRef>
   deviceTypeName: string
   onBoundsChange?: (bounds: any) => void
 }
