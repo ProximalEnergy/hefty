@@ -1475,7 +1475,7 @@ export const useGetSunburstData = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/sunburst-data`,
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/sunburst-data`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
