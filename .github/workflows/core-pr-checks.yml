@@ -95,6 +95,7 @@ jobs:
   validate-documentation:
     name: Validate Documentation
     runs-on: ubuntu-latest
+    if: github.base_ref == 'dev'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -125,7 +126,7 @@ jobs:
     name: Validate Version Bump
     runs-on: ubuntu-latest
     needs: [validate-documentation] # Run this job only if the documentation check passes
-    if: success()
+    if: success() && github.base_ref == 'dev'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
