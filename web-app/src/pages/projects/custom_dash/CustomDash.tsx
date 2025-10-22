@@ -150,6 +150,18 @@ const toProperCase = (str: string): string => {
     .join(' ')
 }
 
+// Helper function to get minimum height based on component type
+const getComponentMinHeight = (componentType: string): number => {
+  switch (componentType) {
+    case 'rich_text':
+      return 1
+    case 'gauge':
+      return 3
+    default:
+      return 2
+  }
+}
+
 // Helper function to apply aggregation method to KPI data
 const applyAggregationMethod = (
   values: (number | null)[],
@@ -415,7 +427,7 @@ const GaugeComponent = ({
       >
         <RingProgress
           thickness={12}
-          size={ringSize}
+          size={Math.max(ringSize ?? 0, 12 * 2 + 1)}
           sections={[
             {
               value: gauge.data?.value || 0,
@@ -1317,14 +1329,19 @@ const Page = () => {
   // Helper function to get next grid position
   const getNextGridPosition = (componentType?: string) => {
     if (dashboardComponents.length === 0) {
-      return { x: 0, y: 0, w: 3, h: componentType === 'rich_text' ? 1 : 2 }
+      return {
+        x: 0,
+        y: 0,
+        w: 3,
+        h: componentType ? getComponentMinHeight(componentType) : 2,
+      }
     }
     const lastComponent = dashboardComponents[dashboardComponents.length - 1]
     return {
       x: 0,
       y: lastComponent.y + lastComponent.h,
       w: 3,
-      h: componentType === 'rich_text' ? 1 : 2,
+      h: componentType ? getComponentMinHeight(componentType) : 2,
     }
   }
   // Hooks used inside of configs, these will not prevent page load but may prevent component load:
@@ -1358,7 +1375,7 @@ const Page = () => {
 
   // Callback functions for each component type
   const addGaugeComponent = (config: GaugeConfig) => {
-    const gridPos = getNextGridPosition()
+    const gridPos = getNextGridPosition('gauge')
     const newComponent: DashboardComponent = {
       component_id: Date.now().toString(),
       component_type: 'gauge',
@@ -1956,7 +1973,7 @@ const Page = () => {
                 w: component.w,
                 h: component.h,
                 minW: 2,
-                minH: component.component_type === 'rich_text' ? 1 : 2,
+                minH: getComponentMinHeight(component.component_type),
                 maxW: 12,
                 maxH: 8,
               }}

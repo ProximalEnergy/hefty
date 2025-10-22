@@ -27,6 +27,7 @@ const CustomDashMenu = () => {
     id: string
     name: string
   } | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const project = useGetProject({
     pathParams: { projectId: projectId || '-1' },
@@ -52,6 +53,7 @@ const CustomDashMenu = () => {
     if (!dashboardToDelete || !projectId) return
 
     try {
+      setDeletingId(dashboardToDelete.id)
       await deleteUserDashboardMutation.mutateAsync({
         project_id: projectId,
         dashboard_id: dashboardToDelete.id,
@@ -60,6 +62,8 @@ const CustomDashMenu = () => {
       setDashboardToDelete(null)
     } catch (error) {
       console.error('Failed to delete dashboard:', error)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -75,14 +79,15 @@ const CustomDashMenu = () => {
     <Stack p="md" h="100%">
       <Title>Custom Dashboards</Title>
       {userDashboards.data?.map((dashboard) => (
-        <Group justify="space-between" align="center">
-          <Button
-            key={dashboard.dashboard_id}
-            onClick={() => navigate(dashboard.dashboard_id)}
-            flex={1}
-          >
+        <Group
+          key={dashboard.dashboard_id}
+          justify="space-between"
+          align="center"
+        >
+          <Button onClick={() => navigate(dashboard.dashboard_id)} flex={1}>
             {dashboard.dashboard_name}
           </Button>
+
           <Group>
             <Tooltip label="Delete">
               <ActionIcon
@@ -94,16 +99,21 @@ const CustomDashMenu = () => {
                     dashboard.dashboard_name,
                   )
                 }
-                loading={deleteUserDashboardMutation.isPending}
+                loading={deletingId === dashboard.dashboard_id} // only this one spins
+                disabled={
+                  Boolean(deletingId) && deletingId !== dashboard.dashboard_id
+                } // optional: lock others
               >
                 <IconTrash size={16} />
               </ActionIcon>
             </Tooltip>
+
             <Tooltip label="Share coming soon!">
               <ActionIcon variant="light" color="blue" disabled>
                 <IconShare size={16} />
               </ActionIcon>
             </Tooltip>
+
             <Tooltip label="Duplicate coming soon!">
               <ActionIcon variant="light" color="gray" disabled>
                 <IconCopy size={16} />
