@@ -23,14 +23,6 @@ import boto3
 import numpy as np
 import pandas as pd
 import requests
-from app import dependencies, interfaces, logger, settings, utils
-from app._crud.operational.cec_pv_modules import get_cec_pv_modules
-from app._crud.operational.pv_modules import get_pv_modules
-from app.core.current_day_pages.combiner import get_equipment_analysis_combiner_data
-from app.utils import get_include_in_schema
-from app.v1.analytics import analytics_funcs as funcs
-from app.v1.analytics.gis import router as gis_router
-from app.v1.operational.project.project_data import get_project_dataframe
 from botocore.config import Config
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import ORJSONResponse
@@ -41,6 +33,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
+from app import dependencies, interfaces, logger, settings, utils
+from app._crud.operational.cec_pv_modules import get_cec_pv_modules
+from app._crud.operational.pv_modules import get_pv_modules
+from app.core.current_day_pages.combiner import get_equipment_analysis_combiner_data
+from app.utils import get_include_in_schema
+from app.v1.analytics import analytics_funcs as funcs
+from app.v1.analytics.gis import router as gis_router
+from app.v1.operational.project.project_data import get_project_dataframe
 from core import models
 
 router = APIRouter(

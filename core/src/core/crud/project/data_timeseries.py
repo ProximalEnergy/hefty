@@ -9,6 +9,7 @@ import polars as pl
 
 if TYPE_CHECKING:
     from fastapi.responses import Response
+
 from sqlalchemy import MetaData, Table, TextClause, text
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,11 +20,7 @@ from core.crud.operational.projects import (
     get_project_timezone_and_data_cagg_interval_by_name_short_async,
 )
 from core.crud.project.tags import get_project_tags
-from core.enumerations import (
-    AggregationType,
-    TimeInterval,
-    TimeOffset,
-)
+from core.enumerations import AggregationType, TimeInterval, TimeOffset
 from core.model_list import ModelList
 from core.utils import arrow as arrow_utils
 from core.utils.pivot import pivot_timeseries_by_tag_polars
@@ -514,21 +511,25 @@ class DataTimeseries:
             )
 
             # Replace first row NaN values with lookback values using polars operations
+            # Filter out time-related columns and only keep columns that exist in both dataframes
             lookback_cols = [
-                col for col in lookback_pivoted.columns if col != "time_bucket"
+                col
+                for col in lookback_pivoted.columns
+                if col not in ["time", "time_bucket"] and col in df.columns
             ]
             df = df.with_columns(
                 [
                     pl.when(pl.int_range(pl.len()) == 0)
                     .then(
                         pl.when(pl.col(col).is_null())
-                        .then(lookback_pivoted[col][0])
+                        .then(
+                            pl.lit(lookback_pivoted[col].item())
+                        )  # Extract scalar value
                         .otherwise(pl.col(col))
                     )
                     .otherwise(pl.col(col))
                     .alias(col)
                     for col in lookback_cols
-                    if col in df.columns
                 ]
             )
 
@@ -539,28 +540,18 @@ class DataTimeseries:
         if ensure_full_range and len(df) > 0:
             # Create complete time range
             interval_td = pd.Timedelta(agg_interval.value)
-            # Remove timezone from query_start and query_end for pd.date_range
-            # They're already in the correct timezone from pre-processing
-            query_start_naive = query_start.replace(tzinfo=None)
-            query_end_naive = query_end.replace(tzinfo=None)
 
             full_range = pd.date_range(
-                start=query_start_naive,
-                end=query_end_naive,
+                start=query_start,
+                end=query_end,
                 freq=interval_td,
                 inclusive="left",
-                tz=timezone,
             )
 
-            # Convert to polars DataFrame and remove timezone info
             full_range_df = pl.DataFrame({time_col: full_range}).with_columns(
-                pl.col(time_col).dt.replace_time_zone(None).dt.cast_time_unit("us")
+                pl.col(time_col).dt.cast_time_unit("us")
             )
-            # Ensure df time column is also in microseconds and timezone-naive
-            df = df.with_columns(
-                pl.col(time_col).dt.replace_time_zone(None).dt.cast_time_unit("us")
-            )
-            # Join with existing data to fill in missing timestamps
+            df = df.with_columns(pl.col(time_col).dt.cast_time_unit("us"))
             df = full_range_df.join(
                 df,
                 on=time_col,
