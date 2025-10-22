@@ -111,7 +111,7 @@ async def get_project_devices_v2(
     )
 
     # Use polars_dataframe method for efficient data processing
-    devices_df = query_obj.polars_dataframe()
+    devices_df = await query_obj.polars_dataframe_async()
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
     def wkb_to_geojson(wkb_bytes):  # skip-star-syntax
@@ -147,22 +147,27 @@ async def get_project_devices_v2(
     # Convert geometry fields using Polars native operations for better performance
     # Process point column if it exists
     if "point" in devices_df.columns:
+        point_dtype = pl.Struct(
+            [
+                pl.Field("type", pl.Utf8),
+                pl.Field("coordinates", pl.List(pl.Float64)),
+            ]
+        )
         devices_df = devices_df.with_columns(
             pl.col("point")
             .map_elements(wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True)
-            .str.json_decode(infer_schema_length=len(devices_df))  # type: ignore[call-arg]
+            .str.json_decode(dtype=point_dtype)
             .alias("point")
         )
 
     # Process polygon column if it exists
     if "polygon" in devices_df.columns:
-        devices_df = devices_df.with_columns(
-            pl.col("polygon")
-            .map_elements(wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True)
-            .str.json_decode(infer_schema_length=len(devices_df))  # type: ignore[call-arg]
-            .alias("polygon")
+        devices_df = devices_df.map_columns(
+            ["polygon"],
+            lambda s: s.map_elements(
+                wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True
+            ).str.json_decode(infer_schema_length=None),
         )
-
     # Add name_full column using Polars operations
     # Device Type Name Long is called name_long_1 because it is joined in
     # To Do:  Modify core to call it device type name long

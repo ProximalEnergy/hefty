@@ -2,6 +2,7 @@ import {
   useDeleteUserDashboard,
   useGetUserDashboards,
 } from '@/api/v1/operational/project/custom_dash'
+import { useGetProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import {
   ActionIcon,
@@ -26,6 +27,10 @@ const CustomDashMenu = () => {
     id: string
     name: string
   } | null>(null)
+
+  const project = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+  })
 
   const userDashboards = useGetUserDashboards({
     pathParams: {
@@ -58,9 +63,13 @@ const CustomDashMenu = () => {
     }
   }
 
-  if (userDashboards.isLoading) {
+  if (userDashboards.isLoading || project.isLoading) {
     return <PageLoader />
   }
+
+  const disabledProjects = ['sun_streams_3', 'lancaster', 'snipesville_2']
+  const isDisabled =
+    project.data && disabledProjects.includes(project.data.name_short)
 
   return (
     <Stack p="md" h="100%">
@@ -103,9 +112,21 @@ const CustomDashMenu = () => {
           </Group>
         </Group>
       ))}
-      <Button onClick={() => navigate('new')}>
-        <IconPlus /> New Dashboard
-      </Button>
+      <Tooltip
+        label="Custom dashboards are not enabled for this project. Please request custom dashboards using the feedback button in the bottom left hand corner of the screen."
+        disabled={!isDisabled}
+        multiline
+        w={220}
+        withArrow
+      >
+        <Button
+          onClick={() => navigate('new')}
+          disabled={isDisabled}
+          style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+        >
+          <IconPlus /> New Dashboard
+        </Button>
+      </Tooltip>
 
       <Modal opened={opened} onClose={close} title="Delete Dashboard" centered>
         <Stack>
