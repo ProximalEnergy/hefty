@@ -6,19 +6,20 @@ applications:
         preBuild:
           commands:
             # Specify the Node.js version
-            - nvm use 20
+            - nvm use 22
             # Install dependencies
             - npm ci
             # Write the latest commit hash to version.json
-            - 'echo "{\"version\": \"$(git rev-parse HEAD)\"}" > public/version.json'
+            - 'echo "{\"version\": \"$(git rev-parse HEAD)\"}" > ./public/version.json'
         build:
           commands:
             - export NODE_OPTIONS=--max_old_space_size=6144
+            - export GENERATE_SOURCEMAP=false
             - npm run build
       artifacts:
         baseDirectory: dist
         files:
-          - '**/*'
+          - "**/*"
       cache:
         paths:
           - node_modules/**/*

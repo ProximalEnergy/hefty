@@ -19,7 +19,7 @@ interface DeviceDataObj {
   device_values: { [deviceId: string]: (number | null)[] }
 }
 
-export interface DeviceAggregationObj {
+interface DeviceAggregationObj {
   sum?: (number | null)[]
   mean?: (number | null)[]
   std?: (number | null)[]

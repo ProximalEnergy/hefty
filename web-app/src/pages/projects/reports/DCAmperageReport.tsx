@@ -288,14 +288,14 @@ const DCAmperageReport: React.FC = () => {
           ]}
           layout={{
             xaxis: {
-              title: 'Inverter',
+              title: { text: 'Inverter' },
               side: 'top',
               tickangle: -45,
               showgrid: false,
               type: 'category',
             },
             yaxis: {
-              title: 'Combiner',
+              title: { text: 'Combiner' },
               autorange: 'reversed',
               showgrid: false,
               showticklabels: false,

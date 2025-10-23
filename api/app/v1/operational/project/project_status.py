@@ -49,7 +49,6 @@ def get_status_interpret(
     db: Annotated[Session, Depends(get_project_db)],
     status_tags: Annotated[list[int], Query()] = [],
     status_values: Annotated[list[Any], Query()] = [],
-    ignore_nominal: bool = False,
 ):
     validate_status_tags_and_values(
         status_tags=status_tags,
@@ -266,7 +265,7 @@ def get_status_time_series(
             str_interpret.index, "value_text"
         ].apply(lambda x: int(x, 16))
         data_to_df.loc[str_interpret.index, "value_text"] = None
-    df_timeseries = core.utils.core_utils.pivot_timeseries_by_tag(
+    df_timeseries = core.utils.pivot.pivot_timeseries_by_tag(
         df=data_to_df, tags=tags_model_list
     )
     keys, vals = [], []
@@ -283,7 +282,6 @@ def get_status_time_series(
         db=db,
         status_tags=[int(k) for k in keys],
         status_values=vals,
-        ignore_nominal=True,
     )
 
     lookup = {
@@ -420,7 +418,7 @@ def get_status_time_series_python(
             str_interpret.index, "value_text"
         ].apply(lambda x: int(x, 16))
         data_to_df.loc[str_interpret.index, "value_text"] = None
-    df_timeseries = core.utils.core_utils.pivot_timeseries_by_tag(
+    df_timeseries = core.utils.pivot.pivot_timeseries_by_tag(
         df=data_to_df, tags=tags_model_list
     )
     keys, vals = [], []
@@ -437,7 +435,6 @@ def get_status_time_series_python(
         db=db,
         status_tags=[int(k) for k in keys],
         status_values=vals,
-        ignore_nominal=True,
     )
 
     lookup = {

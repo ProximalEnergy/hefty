@@ -723,7 +723,7 @@ const Page = () => {
             })}
           layout={{
             yaxis: {
-              title: 'Current (A)',
+              title: { text: 'Current (A)' },
             },
           }}
           isLoading={combinerData.isLoading}
@@ -759,7 +759,7 @@ const Page = () => {
             })}
           layout={{
             yaxis: {
-              title: 'Specific Current (A/kWdc)',
+              title: { text: 'Specific Current (A/kWdc)' },
             },
           }}
           isLoading={combinerData.isLoading}

@@ -6,7 +6,7 @@ import * as gisUtils from '@/utils/GIS'
 import { findBoundingBox } from '@/utils/GIS'
 import { Box, Paper, Text, useComputedColorScheme } from '@mantine/core'
 import { FeatureCollection } from 'geojson'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useState } from 'react'
 import Map, {
   Layer,
   LngLatBoundsLike,
@@ -22,7 +22,7 @@ import { PageLoader } from './Loading'
 interface UptimeGISProps {
   deviceTypeId: number
   uptimeData: UptimeData[]
-  mapRef?: React.RefObject<MapRef>
+  mapRef?: React.Ref<MapRef>
   deviceTypeName: string
   onBoundsChange?: (bounds: any) => void
 }
@@ -32,7 +32,7 @@ const UptimeGIS = ({
   uptimeData,
   mapRef,
   deviceTypeName,
-  onBoundsChange,
+  // onBoundsChange,
 }: UptimeGISProps) => {
   const projectId = useParams().projectId || '-1'
   const computedColorScheme = useComputedColorScheme('dark')
@@ -84,14 +84,16 @@ const UptimeGIS = ({
   let bounds: LngLatBoundsLike | undefined = undefined
   let filteredData: FeatureCollection
 
-  useEffect(() => {
-    if (filteredData?.features.length > 0) {
-      const bounds = findBoundingBox(filteredData)
-      if (bounds) {
-        onBoundsChange?.(bounds)
-      }
-    }
-  }, [onBoundsChange])
+  // TODO: This section was commented out due to infinite re-renders
+  // This is likely due to some changes made in the /devices endpoint and how GeoJSON data is being returned.
+  // useEffect(() => {
+  //   if (filteredData?.features.length > 0) {
+  //     const bounds = findBoundingBox(filteredData)
+  //     if (bounds) {
+  //       onBoundsChange?.(bounds)
+  //     }
+  //   }
+  // }, [onBoundsChange])
 
   if (isDevicesLoading) {
     return <PageLoader />

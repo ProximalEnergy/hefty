@@ -282,7 +282,7 @@ const TrackerRowDetail = React.memo(() => {
         ],
       },
       yaxis: {
-        title: 'Angle (degrees)',
+        title: { text: 'Angle (degrees)' },
         range: [-90, 90], // Fixed range for tracker angles
       },
       shapes: shapes,

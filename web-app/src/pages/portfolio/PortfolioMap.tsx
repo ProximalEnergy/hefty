@@ -40,6 +40,19 @@ import { Link } from 'react-router-dom'
 
 import styles from './PortfolioMap.module.css'
 
+const DAY_1_OPACITY = 0.8
+const DAY_2_OPACITY = 0.4
+const FILL_OUTLINE_COLOR = '#000000'
+
+const HAIL_COLOR = {
+  5: '#C6A294',
+  15: '#FFFF00',
+  30: '#FF0000',
+  45: '#FF00C5',
+  60: '#A80084',
+  default: '#000000',
+}
+
 const tileUrl = (tile: string): string => {
   const appid = import.meta.env.VITE_OPENWEATHERMAP_APP_ID
   return `https://tile.openweathermap.org/map/${tile}/{z}/{x}/{y}.png?appid=${appid}`
@@ -160,11 +173,11 @@ const PortfolioMap = () => {
   const showHailLegend = showHail || showHailDay2
 
   const hailLegendItems = [
-    { value: 5, color: '#C6A294', label: '5%' },
-    { value: 15, color: '#FFFF00', label: '15%' },
-    { value: 30, color: '#FF0000', label: '30%' },
-    { value: 45, color: '#FF00C5', label: '45%' },
-    { value: 60, color: '#A80084', label: '60%' },
+    { value: 5, color: HAIL_COLOR[5], label: '5%' },
+    { value: 15, color: HAIL_COLOR[15], label: '15%' },
+    { value: 30, color: HAIL_COLOR[30], label: '30%' },
+    { value: 45, color: HAIL_COLOR[45], label: '45%' },
+    { value: 60, color: HAIL_COLOR[60], label: '60%' },
   ]
 
   return (
@@ -252,19 +265,19 @@ const PortfolioMap = () => {
                   'match',
                   ['get', 'dn'],
                   5,
-                  '#C6A294',
+                  HAIL_COLOR[5],
                   15,
-                  '#FFFF00',
+                  HAIL_COLOR[15],
                   30,
-                  '#FF0000',
+                  HAIL_COLOR[30],
                   45,
-                  '#FF00C5',
+                  HAIL_COLOR[45],
                   60,
-                  '#A80084',
-                  '#000000',
+                  HAIL_COLOR[60],
+                  HAIL_COLOR.default,
                 ],
-                'fill-opacity': 0.3,
-                'fill-outline-color': '#000000',
+                'fill-opacity': DAY_1_OPACITY,
+                'fill-outline-color': FILL_OUTLINE_COLOR,
               }}
             />
           </Source>
@@ -280,19 +293,19 @@ const PortfolioMap = () => {
                   'match',
                   ['get', 'dn'],
                   5,
-                  '#C6A294',
+                  HAIL_COLOR[5],
                   15,
-                  '#FFFF00',
+                  HAIL_COLOR[15],
                   30,
-                  '#FF0000',
+                  HAIL_COLOR[30],
                   45,
-                  '#FF00C5',
+                  HAIL_COLOR[45],
                   60,
-                  '#A80084',
-                  '#000000',
+                  HAIL_COLOR[60],
+                  HAIL_COLOR.default,
                 ],
-                'fill-opacity': 0.2,
-                'fill-outline-color': '#333333',
+                'fill-opacity': DAY_2_OPACITY,
+                'fill-outline-color': FILL_OUTLINE_COLOR,
               }}
             />
           </Source>
@@ -342,22 +355,30 @@ const PortfolioMap = () => {
                 <Stack gap="sm">
                   <Switch
                     checked={showClouds}
-                    onChange={() => setShowClouds((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowClouds(event.currentTarget.checked)
+                    }
                     label="Cloud Overlay"
                   />
                   <Switch
                     checked={showPrecipitation}
-                    onChange={() => setShowPrecipitation((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowPrecipitation(event.currentTarget.checked)
+                    }
                     label="Precipitation Overlay"
                   />
                   <Switch
                     checked={showHail}
-                    onChange={() => setShowHail((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowHail(event.currentTarget.checked)
+                    }
                     label="Hail Forecast (Day 1)"
                   />
                   <Switch
                     checked={showHailDay2}
-                    onChange={() => setShowHailDay2((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowHailDay2(event.currentTarget.checked)
+                    }
                     label="Hail Forecast (Day 2)"
                   />
                 </Stack>
@@ -369,7 +390,9 @@ const PortfolioMap = () => {
                 <Stack gap="sm">
                   <Switch
                     checked={showFavorites}
-                    onChange={() => setShowFavorites((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowFavorites(event.currentTarget.checked)
+                    }
                     label="Favorites Only"
                   />
                   {projectTypes?.map((projectType) => (

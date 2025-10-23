@@ -12,7 +12,7 @@ import {
 } from '@mantine/core'
 import { useMemo, useState } from 'react'
 
-export interface CompanyLookupProps {
+interface CompanyLookupProps {
   label?: string
   placeholder?: string
   minQueryLength?: number

@@ -30,13 +30,13 @@ export interface User {
   operational_project_ids: string[]
 }
 
-export interface Company {
+interface Company {
   company_id: string
   name_short: string
   name_long: string
 }
 
-export interface Team {
+interface Team {
   team_id: string
   company_id: string
   name_long: string
@@ -44,11 +44,11 @@ export interface Team {
   updated_at: string
 }
 
-export interface TeamWithMembers extends Team {
+interface TeamWithMembers extends Team {
   members: { user_id: string; name_long: string }[]
 }
 
-export interface UserType {
+interface UserType {
   user_type_id: number
   name_short: 'admin' | 'superadmin' | 'user'
 }
@@ -351,34 +351,6 @@ export const useGetCompanies = ({
   })
 }
 
-export const useGetTeams = ({
-  queryParams,
-  queryOptions = {},
-}: {
-  queryParams: { company_id: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/admin/teams`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<Team[]>({
-    axiosConfig,
-    queryName: 'getTeams',
-    pathParams: {},
-    queryParams,
-    queryOptions,
-  })
-}
-
 export const useGetCompanyTeams = ({
   queryOptions = {},
 }: {
@@ -613,6 +585,31 @@ export const useCreateUser = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getUsers'] })
+    },
+  })
+}
+
+export const useUpdateSelfClerkTheme = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ theme }: { theme: string }) => {
+      const token = await getToken({ template: 'default' })
+
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/users/self/clerk-theme`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          theme,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getUserSelf'] })
     },
   })
 }

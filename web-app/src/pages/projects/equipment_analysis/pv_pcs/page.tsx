@@ -193,7 +193,7 @@ const PCSEquipmentAnalysis = () => {
 
   const { data: produced } = useGetKPISummaryCards({
     pathParams: { projectId: projectId || '-1' },
-    queryParams: { kpi_type_ids: [6], start: startQuery },
+    queryParams: { kpi_type_ids: [6] },
     queryOptions: {
       enabled: includeEnergy,
     },

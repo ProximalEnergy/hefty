@@ -103,8 +103,6 @@ def get_data_timeseries_last_v2(
     deep: bool = False,
     return_query: bool = True,
     include_ghost_tags: bool = False,
-    # New parameter to trigger the optimized column-specific query
-    load_only_columns: list | None = None,
 ) -> ModelList[models.DataTimeseriesLast]:
     """
     Fetches the latest timeseries data.

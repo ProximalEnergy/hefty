@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check for changes between staging and main
         id: diff
@@ -65,6 +65,15 @@ jobs:
             echo "changed_apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug - Log no_changes value
+        run: |
+          echo "no_changes value: ${{ steps.diff.outputs.no_changes }}"
+          if [ "${{ steps.diff.outputs.no_changes }}" == "true" ]; then
+            echo "✅ no_changes is TRUE - PR creation will be skipped"
+          else
+            echo "🚀 no_changes is FALSE - PR creation will proceed"
+          fi
+
       - name: Log environment info
         if: steps.diff.outputs.no_changes == 'false'
         run: |
@@ -77,7 +86,7 @@ jobs:
       - name: Get commit authors
         id: get_authors
         if: steps.diff.outputs.no_changes == 'false'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const compare = await github.rest.repos.compareCommits({
@@ -89,26 +98,36 @@ jobs:
 
             const commits = compare.data.commits;
 
-            // Filter commits that affect application directories
-            const appCommits = commits.filter(commit => {
-              return commit.files && commit.files.some(file =>
-                file.filename.match(/^(api|web-app|core)\//)
-              );
-            });
-
+            // Get all unique author logins
             const logins = [
-              ...new Set(appCommits.map(c => c.author?.login).filter(Boolean))
+              ...new Set(commits.map(c => c.author?.login).filter(Boolean))
             ];
 
-            core.info(`Found ${commits.length} total commits, ${appCommits.length} affecting applications.`);
+            core.info(`Found ${commits.length} total commits.`);
             core.info(`Contributors (usernames): ${logins.join(', ')}`);
-
             core.setOutput('reviewers', logins.join(','));
+
+      - name: Check if PR already exists
+        if: steps.check_changes.outputs.has_changes == 'true'
+        id: check_pr_exists
+        run: |
+          # Check for existing open PR from staging to main
+          EXISTING_PR=$(gh pr list --base staging --head main --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "ℹ️ PR #$EXISTING_PR already exists from staging to main"
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "No existing PR found from staging to main"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR
         id: create_pr
         if: steps.diff.outputs.no_changes == 'false'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           result-encoding: string
           script: |
@@ -127,7 +146,7 @@ jobs:
 
       - name: Assign reviewers
         if: steps.diff.outputs.no_changes == 'false' && steps.get_authors.outputs.reviewers != '' && steps.create_pr.outputs.pr_number != ''
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const reviewers = '${{ steps.get_authors.outputs.reviewers }}'

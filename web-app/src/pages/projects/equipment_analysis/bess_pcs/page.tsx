@@ -84,7 +84,7 @@ const Page = () => {
             }))
           }
           layout={{
-            yaxis: { title: 'MW' },
+            yaxis: { title: { text: 'MW' } },
           }}
           isLoading={data.isLoading}
           error={data.error}

@@ -5,21 +5,8 @@
 
 set -e
 
-# Automatically merge latest dev into current branch
-echo "Fetching latest dev branch..."
-git fetch origin dev:dev 2>/dev/null || git fetch origin dev
-
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-DEV_COMMIT=$(git rev-parse origin/dev)
-MERGE_BASE=$(git merge-base HEAD origin/dev)
-
-if [ "$MERGE_BASE" != "$DEV_COMMIT" ]; then
-  echo "Merging origin/dev into $CURRENT_BRANCH..."
-  git merge origin/dev --no-edit
-  echo "✓ Successfully merged dev into $CURRENT_BRANCH"
-else
-  echo "✓ Branch is already up to date with dev"
-fi
+# Ensure core dependency source matches current branch
+python3 _scripts/switch_core_source.py
 
 # Colors for output
 RED='\033[0;31m'
@@ -43,7 +30,7 @@ trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
 # Run web-app dev server in background and prefix output
 (
-  mise run web-app:dev 2>&1 | \
+  mise run web:dev 2>&1 | \
     while IFS= read -r line; do
       echo -e "${GREEN}[WEB]${NC} $line"
     done

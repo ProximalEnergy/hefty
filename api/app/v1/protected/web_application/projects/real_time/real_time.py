@@ -43,7 +43,7 @@ def _extract_numeric_value(*, row) -> float | None:
             value = float(value)
             if row.tag.unit_scale is not None:
                 value = value * row.tag.unit_scale
-            return value
+            return float(value)
     return None
 
 
@@ -532,7 +532,7 @@ def _calculate_circuit_power_sum(
                 logger.debug(
                     f"Circuit power calculation (meter): total_power_MW={total_power_MW}, device_ids={device_ids}"
                 )
-                return total_power_MW
+                return float(total_power_MW)
         except Exception as e:
             logger.error(
                 f"Error in circuit power calculation (meter) for devices {device_ids}: {e}"
@@ -573,7 +573,7 @@ def _calculate_circuit_power_sum(
         logger.debug(
             f"Circuit power calculation (PCS fallback): total_power_MW={total_power_MW}, device_ids={device_ids}"
         )
-        return total_power_MW
+        return float(total_power_MW)
     except Exception as e:
         logger.error(
             f"Error in circuit power calculation (PCS fallback) for devices {device_ids}: {e}"
@@ -636,7 +636,7 @@ def _calculate_bess_power_sum(
         logger.debug(
             f"BESS power calculation: total_power_MW={total_power_MW}, device_ids={device_ids}"
         )
-        return total_power_MW
+        return float(total_power_MW)
     except Exception as e:
         logger.error(f"Error in BESS power calculation for devices {device_ids}: {e}")
         return None
@@ -683,7 +683,7 @@ def _calculate_generic_power_sum(
                     logger.debug(
                         f"Generic power calculation: total_power_MW={total_power_MW}, device_ids={device_ids}, sensor_type_id={sensor_type_id}"
                     )
-                    return total_power_MW
+                    return float(total_power_MW)
             except Exception as e:
                 logger.error(
                     f"Error in generic power calculation for devices {device_ids}, sensor_type_id={sensor_type_id}: {e}"

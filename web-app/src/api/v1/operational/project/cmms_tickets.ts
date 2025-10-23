@@ -20,11 +20,11 @@ export interface CMMSTicket {
   link?: string
 }
 
-export interface CMMSMetadata {
+interface CMMSMetadata {
   integration_configured: boolean
 }
 
-export interface CMMSResponse {
+interface CMMSResponse {
   metadata: CMMSMetadata
   data: CMMSTicket[]
 }

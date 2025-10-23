@@ -3,7 +3,7 @@ import { Center, Modal } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect } from 'react'
 
-export const AccountSettings = () => {
+const AccountSettings = () => {
   const { user } = useUser()
   const [opened, { open, close }] = useDisclosure(false)
 

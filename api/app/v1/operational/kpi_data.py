@@ -7,6 +7,7 @@ from typing import Annotated
 import boto3
 import numpy as np
 import pandas as pd
+from core.crud.operational.device_types import get_device_types
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +15,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces
-from app._crud.operational.device_types import get_device_types
 from app._crud.operational.kpi_alerts import (
     get_user_triggered_alerts as crud_get_user_triggered_alerts,
 )
@@ -304,7 +304,7 @@ async def get_kpi_excel(
             },
             ExpiresIn=3600,  # Link expiration in seconds (1 hour)
         )
-        return presigned_url
+        return str(presigned_url)
 
     try:
         s3_client.put_object(

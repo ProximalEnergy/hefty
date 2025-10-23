@@ -1,6 +1,8 @@
 import uuid
+from typing import cast
 
 from sqlalchemy import Select, delete, select
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -107,16 +109,19 @@ async def delete_team(*, db: AsyncSession, team_id: uuid.UUID) -> dict[str, int]
     if assignment_model is not None:
         query = delete(assignment_model).filter(assignment_model.team_id == team_id)
         result = await db.execute(query)
+        result = cast(CursorResult, result)
         deleted_assignments = result.rowcount
 
     # 2) Remove team member links
     query = delete(models.TeamMember).filter(models.TeamMember.team_id == team_id)
     result = await db.execute(query)
+    result = cast(CursorResult, result)
     deleted_members = result.rowcount
 
     # 3) Remove the team itself
     query = delete(models.Team).filter(models.Team.team_id == team_id)
     result = await db.execute(query)
+    result = cast(CursorResult, result)
     deleted_teams = result.rowcount
 
     await db.commit()

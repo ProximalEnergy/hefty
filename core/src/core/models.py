@@ -2,11 +2,11 @@
 
 import datetime
 import uuid
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import sqlalchemy as sa
 from geoalchemy2 import Geography
-from sqlalchemy import SmallInteger, func
+from sqlalchemy import Enum, SmallInteger, func
 from sqlalchemy.dialects.postgresql import BYTEA, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import UserDefinedType
@@ -24,7 +24,7 @@ class LTree(UserDefinedType):
     This is enough for Alembic to autogenerate `LTREE` columns for new tables/columns.
     """
 
-    def get_col_spec(self, **kw: Any) -> str:
+    def get_col_spec(self, **kw) -> str:  # noqa
         # The exact column type specification used in CREATE TABLE
         return "LTREE"
 
@@ -822,7 +822,13 @@ class Project(Base):
     name_short: Mapped[str] = mapped_column(unique=True)
     name_long: Mapped[str]
     data_table: Mapped[str]
-    data_interval: Mapped[str]
+    data_interval: Mapped[enumerations.ProjectDataInterval] = mapped_column(
+        Enum(
+            enumerations.ProjectDataInterval,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=False,
+    )
     data_cagg_interval: Mapped[str | None]
     data_receive_schedule: Mapped[str | None]
     commencement_of_construction_date: Mapped[datetime.date | None]
@@ -1281,9 +1287,6 @@ class Device(Base):
     device_type_id: Mapped[int] = mapped_column(
         sa.ForeignKey("operational.device_types.device_type_id"),
     )
-    device_model_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("operational.device_models.device_model_id"),
-    )
     cec_pv_inverter_id: Mapped[int | None] = mapped_column(
         sa.ForeignKey("operational.cec_pv_inverters.cec_pv_inverter_id"),
     )
@@ -1495,8 +1498,6 @@ class Event(Base):
     device = relationship("Device")
     failure_mode = relationship("FailureMode")
     root_cause = relationship("RootCause")
-
-    __table_args__ = (sa.UniqueConstraint("device_id", "time_start"),)
 
 
 class Event2(Base):
@@ -2262,6 +2263,10 @@ class DroneAnomaly(Base):
         sa.ForeignKey("project.drone_inspections.inspection_uuid"),
         index=True,
     )
+    event_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("project.events.event_id"),
+        index=True,
+    )
     stack_id: Mapped[str | None]
     ir_signal: Mapped[str | None]
     rgb_signal: Mapped[str | None]
@@ -2276,6 +2281,7 @@ class DroneAnomaly(Base):
     client_status_id: Mapped[int | None]
 
     inspection = relationship("DroneInspection", back_populates="anomalies")
+    event = relationship("Event")
 
 
 class CustomDashboard(Base):

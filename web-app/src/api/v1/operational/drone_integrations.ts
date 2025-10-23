@@ -23,40 +23,6 @@ export interface DronePermission {
   can_view: boolean
 }
 
-export interface SiteInfo {
-  site_uuid: string
-  site_id: number
-  site_name: string
-  site_capacity_mw: number
-}
-
-export interface Grade {
-  site_impact_category: string
-  grade: string
-  power_loss_kw: number
-  power_loss_percent: number
-  affected_modules: number
-  affected_modules_percent: number
-}
-
-export interface ZeitviewObservation {
-  description: string
-}
-
-export interface ZeitviewInspection {
-  inspection_uuid: string
-  inspection_date: string
-  upload_date: string
-  site: SiteInfo
-  service_tier?: string
-  total_power_loss_kw?: number
-  total_power_loss_percent?: number
-  total_affected_modules?: number
-  grades: Grade[]
-  observations: ZeitviewObservation[]
-  report_summary?: string
-}
-
 export interface DroneInspection {
   inspection_uuid: string
   inspection_time: string
@@ -71,6 +37,7 @@ export interface DroneInspection {
 export interface DroneAnomaly {
   anomaly_uuid: string
   inspection_uuid: string
+  event_id?: number
   stack_id?: string
   ir_signal?: string
   rgb_signal?: string
@@ -426,4 +393,29 @@ export const useSyncZeitviewAnomalies = (
     refetch: mutation.mutateAsync,
     isFetching: mutation.isPending,
   }
+}
+
+export interface DroneInspectionOrderRequest {
+  project_id: string
+  provider_email: string
+  timing: string
+}
+
+export const useOrderDroneInspection = () => {
+  const { getToken } = useAuth()
+
+  return useMutation({
+    mutationFn: async (request: DroneInspectionOrderRequest) => {
+      const token = await getToken({ template: 'default' })
+      const response = await axios({
+        method: 'post',
+        url: `${baseURL}/v1/operational/drone-integrations/order-inspection`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: request,
+      })
+      return response.data
+    },
+  })
 }

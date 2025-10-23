@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run Ruff linter
         uses: astral-sh/ruff-action@v3
@@ -32,7 +32,7 @@ jobs:
   star_syntax:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
@@ -53,7 +53,7 @@ jobs:
   mypy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
@@ -67,13 +67,13 @@ jobs:
         working-directory: core
 
       - name: run mypy
-        run: uv run mypy --config-file pyproject.toml src/ # Add -v for verbosity
+        run: uv run mypy --config-file ../pyproject.toml src/ # Add -v for verbosity
         working-directory: core
 
   validate-enums:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
@@ -91,3 +91,91 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: uv run -m src.core.enumerations
         working-directory: core
+
+  validate-documentation:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'dev'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Documentation Changes
+        run: |
+          # Use git diff to find all files changed in the `core/` directory for this pull request.
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} -- 'core/')
+          echo "Changed files in core/:
+          $changed_files"
+
+          # Identify if there are any changes to source code (i.e., not in the docs directory).
+          core_code_changes=$(echo "$changed_files" | grep -v '^core/_docs/releases/' || true)
+
+          # Identify if there are any changes to the documentation.
+          docs_changes=$(echo "$changed_files" | grep '^core/_docs/releases/' || true)
+
+          if [[ -n "$core_code_changes" && -z "$docs_changes" ]]; then
+            echo "::error::Changes were made to 'core/' source files, but no corresponding documentation update was found in 'core/_docs/releases/'. Please add a release note for your changes."
+            exit 1
+          else
+            echo "Documentation check passed."
+          fi
+
+  validate-version:
+    name: Validate Version Bump
+    runs-on: ubuntu-latest
+    needs: [validate-documentation] # Run this job only if the documentation check passes
+    if: success() && github.base_ref == 'dev'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install toml packaging
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
+          aws-region: us-east-2 # This must match the AWS region of your CodeArtifact repository.
+
+      - name: Check for Version Bump
+        env:
+          CODEARTIFACT_DOMAIN: proximal-code-artifact-domain-016997484973
+          CODEARTIFACT_REPOSITORY: proximal-hub
+          PACKAGE_NAME: core
+        run: |
+          # Extract the current version from the pyproject.toml file.
+          current_version=$(python -c "import toml; print(toml.load('core/pyproject.toml')['project']['version'])")
+          echo "Current version in pyproject.toml: $current_version"
+
+          # Fetch the latest published version from AWS CodeArtifact.
+          # If the package does not exist, default to version "0.0.0".
+          echo "Fetching latest version from AWS CodeArtifact..."
+          aws_output=$(aws codeartifact list-package-versions --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY --format pypi --package $PACKAGE_NAME --sort-by PUBLISHED_TIME 2>/dev/null || echo '{"versions":[]}')
+          latest_version=$(echo $aws_output | jq -r '.versions[0].version // "0.0.0"')
+          echo "Latest published version from CodeArtifact: $latest_version"
+
+          # Use Python's `packaging` library for a robust semantic version comparison.
+          # The script will exit with an error if the current version is not strictly greater than the latest published version.
+          python - <<EOF
+          from packaging.version import parse as V
+
+          current = "$current_version"
+          latest = "$latest_version"
+
+          if V(current) <= V(latest):
+              print(f"::error::Version check failed. The current version ({current}) must be greater than the latest published version ({latest}). Please bump the version in core/pyproject.toml.")
+              exit(1)
+
+          print(f"Version check passed. Current version ({current}) > Latest version ({latest}).")
+          EOF

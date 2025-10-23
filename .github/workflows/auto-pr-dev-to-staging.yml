@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check for application changes between dev and staging
         id: check_changes
@@ -50,6 +50,23 @@ jobs:
             CHANGED_APPS=$(echo "$CHANGED_APPS" | sed 's/, $//')
             echo "changed_apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
           fi
+
+      - name: Check if PR already exists
+        if: steps.check_changes.outputs.has_changes == 'true'
+        id: check_pr_exists
+        run: |
+          # Check for existing open PR from dev to staging
+          EXISTING_PR=$(gh pr list --base staging --head dev --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "ℹ️ PR #$EXISTING_PR already exists from dev to staging"
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "No existing PR found from dev to staging"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create pull request from dev to staging
         if: steps.check_changes.outputs.has_changes == 'true'

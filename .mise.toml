@@ -5,7 +5,7 @@
 
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
-depends = ["api:switch-core"]
+depends = ["sync", "api:switch-core", "install"]
 run = "./_scripts/run_dev.sh"
 
 [tasks.check]
@@ -13,14 +13,51 @@ description = "Run all quality checks across the entire monorepo"
 depends = ["api:switch-core"]
 run = "./_scripts/run_checks.sh"
 
-[tasks.deps]
+[tasks.install]
 description = "Install and sync all dependencies across the monorepo"
 run = """
 cd core && uv sync && cd .. && \
 mise run api:switch-core && \
 cd api && uv sync && cd .. && \
-cd web-app && npm install && npx node build-plotly-custom.js
+cd web-app && npm install && npx node build-plotly-custom.js && \
+cd .. && \
+brew install hurl
 """
+
+[tasks.depends]
+description = "Remove unused dependencies and upgrade old dependencies"
+run = """
+mise run core:deptry && \
+mise run api:deptry && \
+mise run web:knip && \
+uv tree --outdated && \
+npm outdated
+"""
+
+
+[tasks.sync]
+description = "Sync current branch with latest dev from remote"
+run = """
+echo "Fetching latest changes from remote..." && \
+git fetch origin && \
+echo "Pulling latest dev branch..." && \
+git checkout dev && \
+git pull origin dev && \
+echo "Switching back to original branch and merging dev..." && \
+git checkout - && \
+git merge dev --no-edit && \
+echo "Sync complete! Your branch is now up to date with dev."
+"""
+
+[tasks."ruff:check"]
+description = "Run ruff linter on entire monorepo"
+dir = "."
+run = "uv run --dev ruff check core/src/ api/app/"
+
+[tasks."ruff:format"]
+description = "Run ruff formatter on entire monorepo"
+dir = "."
+run = "uv run --dev ruff format core/src/ api/app/"
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
@@ -34,6 +71,8 @@ depends = [
   "core:ruff_check",
   "core:ruff_format",
   "core:star_syntax",
+  "core:vulture",
+  "core:deptry",
   "core:enum",
 ]
 
@@ -42,15 +81,25 @@ description = "Run mypy type checking for core"
 dir = "core"
 run = "uv run mypy --config-file ../pyproject.toml src/"
 
+[tasks."core:deptry"]
+description = "Run deptry for core"
+dir = "core"
+run = "uv run deptry ."
+
+[tasks."core:vulture"]
+description = "Run vulture for core"
+dir = "."
+run = "uv run vulture core/src/core --min-confidence 100"
+
 [tasks."core:ruff_check"]
 description = "Run ruff linter for core"
 dir = "."
-run = "ruff check --config pyproject.toml core/"
+run = "uv run --dev ruff check core/src/"
 
 [tasks."core:ruff_format"]
 description = "Run ruff formatter for core"
 dir = "."
-run = "ruff format --config pyproject.toml core/"
+run = "uv run --dev ruff format core/src/"
 
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
@@ -124,8 +173,8 @@ run = """
 alembic revision --autogenerate -m "$1" && \
 python3 _scripts/clean_alembic.py --latest && \
 python3 _scripts/update_releases.py "$1" && \
-ruff check && \
-ruff format
+cd .. && uv run --dev ruff check core/src/ && \
+cd .. && uv run --dev ruff format core/src/
 """
 
 # =============================================================================
@@ -151,22 +200,34 @@ depends = [
   "api:format",
   "api:pytest",
   "api:hurl",
+  "api:deptry",
+  "api:vulture"
 ]
 
 [tasks."api:ruff"]
 description = "Run ruff linter for api"
 dir = "."
-run = "ruff check --config pyproject.toml api/"
+run = "uv run --dev ruff check api/app/"
 
 [tasks."api:format"]
 description = "Run ruff formatter for api"
 dir = "."
-run = "ruff format --config pyproject.toml api/"
+run = "uv run --dev ruff format api/app/"
+
+[tasks."api:vulture"]
+description = "Run vulture for api"
+dir = "."
+run = "uv run vulture api/app --min-confidence 100"
 
 [tasks."api:types"]
 description = "Run mypy type checking for api"
 dir = "api"
 run = "uv run mypy --config-file ../pyproject.toml -p app"
+
+[tasks."api:deptry"]
+description = "Run deptry for api"
+dir = "api"
+run = "uv run deptry ."
 
 [tasks."api:pytest"]
 description = "Run pytest for api"
@@ -243,32 +304,27 @@ run = "python3 -m _data_insert.operational.11_kpi_instances"
 # WEB-APP TASKS (runs in ./web-app directory)
 # =============================================================================
 
-[tasks."web-app:dev"]
+[tasks."web:dev"]
 description = "Run web-app development server"
 dir = "web-app"
 run = "npm run dev"
 
-[tasks."web-app:build"]
+[tasks."web:build"]
 description = "Build web-app for production"
 dir = "web-app"
 run = "npm run build"
 
-[tasks."web-app:lint"]
+[tasks."web:lint"]
 description = "Run ESLint for web-app"
 dir = "web-app"
 run = "npm run lint"
 
-[tasks."web-app:preview"]
+[tasks."web:preview"]
 description = "Preview production build of web-app"
 dir = "web-app"
 run = "npm run preview"
 
-[tasks."web-app:check"]
+[tasks."web:check"]
 description = "Run TypeScript check and format web-app"
 dir = "web-app"
 run = "npm run check"
-
-[tasks."web-app:test"]
-description = "Run Playwright tests for web-app"
-dir = "web-app"
-run = "npm run test"

@@ -352,7 +352,7 @@ function DeviceTypeCard({
             autorange: xaxisRange === undefined ? true : false,
           },
           yaxis: {
-            title: deviceDetails.data?.layout.y_axis_label,
+            title: { text: deviceDetails.data?.layout.y_axis_label },
             tickformat:
               deviceDetails.data?.layout.y_axis_label === 'SOC'
                 ? ',.0%'

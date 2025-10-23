@@ -108,7 +108,7 @@ const Prices = () => {
           }))}
           layout={{
             yaxis: {
-              title: 'Price ($/MWh)',
+              title: { text: 'Price ($/MWh)' },
             },
           }}
           isLoading={priceDataIsLoading}

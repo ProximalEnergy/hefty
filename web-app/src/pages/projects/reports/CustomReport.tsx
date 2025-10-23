@@ -352,7 +352,7 @@ const KPICardComponent = ({
 }) => {
   const { data: kpiData, isLoading: kpiIsLoading } = useGetKPISummaryCards({
     pathParams: { projectId: projectId || '' },
-    queryParams: { kpi_type_ids: [kpiTypeId || ''] },
+    queryParams: { kpi_type_ids: [Number(kpiTypeId)] },
     queryOptions: { enabled: !!kpiTypeId },
   })
   if (kpiIsLoading) {

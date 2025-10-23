@@ -1,6 +1,7 @@
+from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -166,3 +167,58 @@ async def get_kpi_type_by_name_with_contracts(
         "contracts": contracts_with_company,
         "contract_kpis": contract_kpis,
     }
+
+
+async def delete_contract(
+    *, db: AsyncSession, contract_id: int, project_id: UUID
+) -> bool:
+    """
+    Delete a contract if it has no associated Contractual KPIs.
+
+    Args:
+        db: Database session
+        contract_id: ID of the contract to delete
+        project_id: Project ID for validation
+
+    Returns:
+        bool: True if contract was deleted, False if not found or has KPIs
+
+    Raises:
+        ValueError: If contract has associated Contractual KPIs
+    """
+    # First, check if the contract exists and belongs to the project
+    contract_result = await db.execute(
+        select(models.Contract).where(
+            models.Contract.contract_id == contract_id,
+            models.Contract.project_id == project_id,
+        )
+    )
+    contract = contract_result.scalar_one_or_none()
+
+    if not contract:
+        return False
+
+    # Check if contract has any associated Contractual KPIs
+    kpi_result = await db.execute(
+        select(models.ContractKPI).where(models.ContractKPI.contract_id == contract_id)
+    )
+    contract_kpis = kpi_result.scalars().all()
+
+    if contract_kpis:
+        raise ValueError(
+            f"Cannot delete contract {contract_id} because it has {len(contract_kpis)} "
+            "associated Contractual KPIs. Please remove the KPIs first."
+        )
+
+    # Delete the contract
+    delete_stmt = delete(models.Contract).where(
+        models.Contract.contract_id == contract_id,
+        models.Contract.project_id == project_id,
+    )
+    result = await db.execute(delete_stmt)
+    await db.commit()
+
+    # Check to see if contract was deleted
+    contract_deleted = bool(cast(Any, result).rowcount > 0)
+
+    return contract_deleted

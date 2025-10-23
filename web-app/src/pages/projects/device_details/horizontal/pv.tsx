@@ -113,7 +113,7 @@ const Page = () => {
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: 'Power (MW)',
+              title: { text: 'Power (MW)' },
             },
           }}
           onRelayout={handleRelayout}
@@ -138,7 +138,7 @@ const Page = () => {
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: 'POA (W/m²)',
+              title: { text: 'POA (W/m²)' },
             },
             hovermode: 'closest',
           }}
@@ -164,7 +164,7 @@ const Page = () => {
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: 'AC Power (MW)',
+              title: { text: 'AC Power (MW)' },
             },
             hovermode: 'closest',
           }}

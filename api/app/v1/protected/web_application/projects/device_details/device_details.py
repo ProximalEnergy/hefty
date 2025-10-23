@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import pyarrow as pa
+from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse, Response
@@ -16,7 +17,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from app._crud.operational.device_types import get_device_types as crud_get_device_types
 from core import model_list, models
 
 router = APIRouter(

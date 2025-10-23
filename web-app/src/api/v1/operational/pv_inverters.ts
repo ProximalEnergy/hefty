@@ -10,10 +10,10 @@ import {
 import axios from 'axios'
 
 // Query Names
-export const INVERTERS_QUERY_NAME = 'inverters'
-export const INVERTER_MANUFACTURERS_QUERY_NAME = 'inverterManufacturers'
-export const INVERTER_MODELS_QUERY_NAME = 'inverterModels'
-export const INVERTER_IDS_QUERY_NAME = 'inverterIdsLookup'
+const INVERTERS_QUERY_NAME = 'inverters'
+const INVERTER_MANUFACTURERS_QUERY_NAME = 'inverterManufacturers'
+const INVERTER_MODELS_QUERY_NAME = 'inverterModels'
+const INVERTER_IDS_QUERY_NAME = 'inverterIdsLookup'
 
 // Interfaces
 export interface Inverter {

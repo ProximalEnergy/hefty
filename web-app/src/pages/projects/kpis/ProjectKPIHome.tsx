@@ -612,8 +612,14 @@ const ProjectKPIHome = () => {
             ? ((lastValue - previousValue) / previousValue) * 100
             : null
 
-        // Get threshold from contract KPI if it exists
-        const contractKpi = kpiType.contract_kpis[0]
+        // Get threshold from contract KPI if it exists - filter by current project
+        const contractKpi = kpiType.contract_kpis.find((ck) =>
+          kpiType.contracts.some(
+            (contract) =>
+              contract.contract_id === ck.contract_id &&
+              contract.project_id === projectId,
+          ),
+        )
         const multiplier = kpiType.unit === '%' ? 100 : 1
         const thresholdValue = contractKpi
           ? (() => {
@@ -724,13 +730,18 @@ const ProjectKPIHome = () => {
     if (!kpiTypesWithContracts) return new Map()
 
     const contracts = new Map()
+
     kpiTypesWithContracts.forEach((kpiType) => {
       kpiType.contracts.forEach((contract) => {
-        contracts.set(contract.contract_id, contract)
+        // Only include contracts for the current project
+        if (contract.project_id === projectId) {
+          contracts.set(contract.contract_id, contract)
+        }
       })
     })
+
     return contracts
-  }, [kpiTypesWithContracts])
+  }, [kpiTypesWithContracts, projectId])
 
   // Return early if loading
   if (isLoading || deviceTypes.isLoading) {

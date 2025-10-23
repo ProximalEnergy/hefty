@@ -40,8 +40,8 @@ import { PageLoader } from './components/Loading'
 import RequiresUserType from './components/admin/RequiresUserType'
 import { useTheme } from './contexts/ThemeContext'
 // Profile
-import { AccountSettings } from './pages/AccountSettings'
-import { Api } from './pages/Api'
+import AccountSettings from './pages/AccountSettings'
+import Api from './pages/Api'
 import ApplicationSettings from './pages/ApplicationSettings'
 import LoomTesting from './pages/LoomTesting'
 import NotFound from './pages/NotFound'
@@ -72,6 +72,7 @@ import PortfolioKPIHome from './pages/portfolio/PortfolioKPIHome'
 import PortfolioList from './pages/portfolio/PortfolioList'
 import PortfolioMap from './pages/portfolio/PortfolioMap'
 import PortfolioSettings from './pages/portfolio/settings/PortfolioSettings'
+import BESSOperation from './pages/projects/BESSOperation'
 // Battery Health
 import BatteryHealth from './pages/projects/BatteryHealth'
 // Data Browsing
@@ -113,7 +114,7 @@ import EquipmentAnalysis from './pages/projects/equipment_analysis'
 import EquipmentAnalysisPVDCCombinerBlock from './pages/projects/equipment_analysis/pv_dc_combiner/block/page'
 import EquipmentAnalysisTrackerBlock from './pages/projects/equipment_analysis/tracker/block/page'
 // Events
-import EventPage from './pages/projects/events/EventPage'
+import EventRouter from './pages/projects/events/EventRouter'
 import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
 // GIS
@@ -142,6 +143,7 @@ import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageR
 import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabilityReport'
 // Utility
 import Backfill from './pages/projects/utility/Backfill'
+import CompanyView from './pages/projects/utility/CompanyView'
 import ExpectedPlotting from './pages/projects/utility/ExpectedPlotting'
 
 // import CustomDash from './pages/projects/custom_dash/CustomDash'
@@ -326,6 +328,9 @@ const ClerkProviderWithRoutes = () => {
               {/* Battery Health */}
               <Route path="battery-health" element={<BatteryHealth />} />
 
+              {/* BESS Operation */}
+              <Route path="bess-operation" element={<BESSOperation />} />
+
               {/* Energy Waterfall */}
               <Route path="energy-waterfall" element={<EnergyWaterfall />} />
 
@@ -380,7 +385,7 @@ const ClerkProviderWithRoutes = () => {
               {/* Events */}
               <Route path="events">
                 <Route index element={<ProjectEvents />} />
-                <Route path="event" element={<EventPage />} />
+                <Route path="event" element={<EventRouter />} />
                 <Route path="uptime" element={<UptimeTable />} />
                 <Route path="meta-analysis" element={<EventsMetaAnalysis />} />
               </Route>
@@ -498,6 +503,14 @@ const ClerkProviderWithRoutes = () => {
                     </RequiresUserType>
                   }
                 />
+                <Route
+                  path="company-view"
+                  element={
+                    <RequiresUserType requiredUserType="superadmin">
+                      <CompanyView />
+                    </RequiresUserType>
+                  }
+                />
               </Route>
 
               {/* In Development */}
@@ -588,6 +601,7 @@ export default function App() {
       '5xl': '154em',
     },
     primaryColor: primaryColor,
+    scale: 0.8,
     // https://stackoverflow.com/questions/8118741/css-font-helvetica-neue
     fontFamily: 'Helvetica Neue, sans-serif',
     components: {

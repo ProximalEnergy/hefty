@@ -1,4 +1,4 @@
-import { Text, TextProps } from '@mantine/core'
+import { Loader, Text, TextProps } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
 interface StreamingTextProps extends Omit<TextProps, 'children'> {
@@ -17,12 +17,14 @@ export const StreamingText = ({
 }: StreamingTextProps) => {
   const [displayedText, setDisplayedText] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+  const [showSpinner, setShowSpinner] = useState(false)
 
   useEffect(() => {
     if (!text) return
 
     setDisplayedText('')
     setIsComplete(false)
+    setShowSpinner(false)
 
     let currentIndex = 0
     const interval = setInterval(() => {
@@ -32,7 +34,12 @@ export const StreamingText = ({
       } else {
         clearInterval(interval)
         setIsComplete(true)
-        onComplete?.()
+        // Show spinner briefly after text is complete
+        setShowSpinner(true)
+        setTimeout(() => {
+          setShowSpinner(false)
+          onComplete?.()
+        }, 1000) // Show spinner for 1 second after completion
       }
     }, speed)
 
@@ -43,6 +50,13 @@ export const StreamingText = ({
     <Text className={className} {...textProps}>
       {displayedText}
       {!isComplete && <span className="streaming-cursor">|</span>}
+      {showSpinner && (
+        <span
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+        >
+          <Loader size="xs" />
+        </span>
+      )}
     </Text>
   )
 }

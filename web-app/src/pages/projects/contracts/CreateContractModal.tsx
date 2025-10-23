@@ -1,4 +1,8 @@
 import { useGetUserSelf } from '@/api/admin'
+import {
+  useCreateCalendarEvent,
+  useGetCalendarEventCategories,
+} from '@/api/v1/operational/calendar'
 import { useGetProjectDocuments } from '@/api/v1/operational/documents'
 import {
   useAnalyzeContractDocument,
@@ -194,6 +198,15 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
     value: c.name_short,
     label: c.name_long,
   }))
+
+  // Calendar hooks
+  const createCalendarEvent = useCreateCalendarEvent()
+  const { data: calendarCategories } = useGetCalendarEventCategories({
+    pathParams: { projectId: projectId || '-1' },
+    queryOptions: {
+      enabled: !!projectId,
+    },
+  })
 
   // Helper function to map backend category response to dropdown value
   const mapBackendCategoryToValue = (
@@ -487,6 +500,63 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
     setStoreOnCalendar(true)
   }
 
+  // Helper function to create calendar events from contract dates
+  const createCalendarEventsFromContractDates = async () => {
+    if (!projectId || !storeOnCalendar || contractDates.length === 0) {
+      return
+    }
+
+    // Get the first available calendar category (or use a default)
+    const defaultCategory = calendarCategories?.[0]
+    if (!defaultCategory) {
+      console.warn('No calendar categories available')
+      return
+    }
+
+    try {
+      // Create calendar events for each contract date
+      const calendarPromises = contractDates
+        .filter((contractDate) => contractDate.date && contractDate.title)
+        .map(async (contractDate) => {
+          const startTime = new Date(contractDate.date!)
+          const endTime = new Date(contractDate.date!)
+          endTime.setDate(endTime.getDate() + 1) // Make it all day by setting end to next day
+
+          return createCalendarEvent.mutateAsync({
+            projectId,
+            event: {
+              title: contractDate.title,
+              description:
+                contractDate.description ||
+                `Contract date: ${contractDate.title}`,
+              start_time: startTime.toISOString(),
+              end_time: endTime.toISOString(),
+              all_day: true,
+              calendar_item_category_id: defaultCategory.category_id,
+              color: defaultCategory.color_code,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            },
+          })
+        })
+
+      await Promise.all(calendarPromises)
+
+      notifications.show({
+        title: 'Calendar Events Created',
+        message: `Successfully added ${contractDates.length} contract dates to the project calendar.`,
+        color: 'green',
+      })
+    } catch (error) {
+      console.error('Error creating calendar events:', error)
+      notifications.show({
+        title: 'Calendar Error',
+        message:
+          'Failed to create some calendar events. Please check the calendar manually.',
+        color: 'yellow',
+      })
+    }
+  }
+
   const documentOptions =
     documents
       ?.filter((doc) => !doc.contract_name)
@@ -536,6 +606,11 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
         counter_contact_address: counterContactAddress || undefined,
         contract_summary: contractSummary || undefined,
       })
+
+      // Create calendar events if checkbox is selected and there are contract dates
+      if (storeOnCalendar && contractDates.length > 0) {
+        await createCalendarEventsFromContractDates()
+      }
 
       resetForm()
       onClose()
@@ -721,16 +796,6 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
                       size="sm"
                     >
                       {analysisCompleted ? 'AI Assisted' : 'Manual Entry'}
-                    </Badge>
-                  )}
-                  {process.env.NODE_ENV === 'development' && (
-                    <Badge
-                      color="gray"
-                      variant="light"
-                      size="sm"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      Debug
                     </Badge>
                   )}
                 </Group>

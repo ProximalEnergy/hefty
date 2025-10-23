@@ -1,8 +1,10 @@
 import logging
 import uuid
+from typing import cast
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
@@ -279,14 +281,13 @@ async def deep_delete_project(
 
         deletion_counts = {}
 
-        from sqlalchemy import delete
-
         # Delete from admin schema tables
         # user_projects
         delete_stmt = delete(models.UserProject).where(
             models.UserProject.operational_project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["user_projects"] = result.rowcount
 
         # user_subscriptions
@@ -294,6 +295,7 @@ async def deep_delete_project(
             models.UserSubscription.operational_project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["user_subscriptions"] = result.rowcount
 
         # company_projects
@@ -301,6 +303,7 @@ async def deep_delete_project(
             models.CompanyProject.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["company_projects"] = result.rowcount
 
         # company_permissions
@@ -308,6 +311,7 @@ async def deep_delete_project(
             models.CompanyPermission.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["company_permissions"] = result.rowcount
 
         # user_permissions
@@ -315,6 +319,7 @@ async def deep_delete_project(
             models.UserPermission.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["user_permissions"] = result.rowcount
 
         # Delete from operational schema tables
@@ -323,6 +328,7 @@ async def deep_delete_project(
             models.Document.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["documents"] = result.rowcount
 
         # contracts
@@ -330,6 +336,7 @@ async def deep_delete_project(
             models.Contract.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["contracts"] = result.rowcount
 
         # kpi_alerts (if exists)
@@ -338,6 +345,7 @@ async def deep_delete_project(
                 models.KPIAlert.project_id == project_id
             )
             result = await db.execute(delete_stmt)
+            result = cast(CursorResult, result)
             deletion_counts["kpi_alerts"] = result.rowcount
         except AttributeError:
             # KPIAlert model might not exist or have different structure
@@ -348,6 +356,7 @@ async def deep_delete_project(
             models.KPIInstance.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["kpi_instances"] = result.rowcount
 
         # data_timeseries
@@ -355,6 +364,7 @@ async def deep_delete_project(
             models.OperationalDataTimeseries.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["data_timeseries"] = result.rowcount
 
         # kpi_data
@@ -362,6 +372,7 @@ async def deep_delete_project(
             models.OperationalKPIData.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["kpi_data"] = result.rowcount
 
         # project_data_last_updated
@@ -369,6 +380,7 @@ async def deep_delete_project(
             models.ProjectDataLastUpdated.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["project_data_last_updated"] = result.rowcount
 
         # report_instances
@@ -376,6 +388,7 @@ async def deep_delete_project(
             models.ReportInstance.project_id == project_id
         )
         result = await db.execute(delete_stmt)
+        result = cast(CursorResult, result)
         deletion_counts["report_instances"] = result.rowcount
 
         # Note: CMMSDevice doesn't have a direct project_id field

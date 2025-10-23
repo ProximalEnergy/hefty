@@ -126,10 +126,10 @@ const Page = () => {
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: 'Power (MW)',
+              title: { text: 'Power (MW)' },
             },
             yaxis2: {
-              title: 'State of Charge',
+              title: { text: 'State of Charge' },
               overlaying: 'y',
               side: 'right',
               tickformat: ',.0%',
@@ -161,7 +161,7 @@ const Page = () => {
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: 'Power (MW)',
+              title: { text: 'Power (MW)' },
             },
             hovermode: 'closest',
           }}
@@ -190,7 +190,7 @@ const Page = () => {
               },
               yaxis: {
                 tickformat: ',.0%',
-                title: 'State of Charge',
+                title: { text: 'State of Charge' },
               },
               hovermode: 'closest',
             }}

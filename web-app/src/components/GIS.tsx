@@ -1,4 +1,3 @@
-import Timeline from '@/components/gis/Timeline'
 import { GISContext } from '@/contexts/GISContext'
 import {
   ActionIcon,
@@ -123,7 +122,9 @@ export function MapSettings({
               label="Satellite"
               size={switchSize}
               checked={showSatellite}
-              onChange={() => setShowSatellite((prev) => !prev)}
+              onChange={(event) =>
+                setShowSatellite(event.currentTarget.checked)
+              }
             />
           )}
           {!disableLabels && (
@@ -131,7 +132,7 @@ export function MapSettings({
               label="Labels"
               size={switchSize}
               checked={showLabels}
-              onChange={() => setShowLabels((prev) => !prev)}
+              onChange={(event) => setShowLabels(event.currentTarget.checked)}
             />
           )}
         </Stack>
@@ -139,5 +140,3 @@ export function MapSettings({
     </Popover>
   )
 }
-
-export { Timeline }

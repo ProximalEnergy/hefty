@@ -60,15 +60,24 @@ def send_feedback_notification(
     user_name_long: str,
     feedback: Feedback,
     channel: CommunicationChannel,
+    issue_id: str | None = None,
 ):
     match channel:
         case CommunicationChannel.GOOGLE_CHAT:
             webhook_url = "https://chat.googleapis.com/v1/spaces/AAQAkqNNa48/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=4cUB-LNkgLEDFyHHHxe0nYPIvrP9DqM5cl1eRXnpuT0"
             url = f"https://app.proximal.energy{feedback.url}" if feedback.url else ""
             screenshot_included = feedback.screenshot_filename is not None
+            linear_issue_url = (
+                f"https://linear.app/proximal/issue/{issue_id}" if issue_id else ""
+            )
             text = (
                 f"💬 {user_name_long}\n"
-                + (f"<{url}|🔗 Link>\n" if url else "")
+                + (f"🔗 <{url}|Link>\n" if url else "")
+                + (
+                    f"📝 <{linear_issue_url}|Linear Issue>\n"
+                    if linear_issue_url
+                    else ""
+                )
                 + f"🆔 {feedback.feedback_id}\n"
                 + f"*{feedback.subject}*\n"
                 + f"{feedback.comment}"

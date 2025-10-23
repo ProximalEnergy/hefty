@@ -1,5 +1,6 @@
 import { useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import { EdgeProps, getStraightPath } from '@xyflow/react'
+import React from 'react'
 
 export const PowerFlowEdge = ({
   id,
@@ -10,7 +11,7 @@ export const PowerFlowEdge = ({
   style = {},
   data,
   markerEnd,
-}: EdgeProps): JSX.Element => {
+}: EdgeProps): React.JSX.Element => {
   const theme = useMantineTheme()
   const [edgePath] = getStraightPath({
     sourceX,

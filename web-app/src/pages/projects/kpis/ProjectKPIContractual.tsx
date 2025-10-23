@@ -69,15 +69,18 @@ const BarAndHeatmapCard = ({
         layout={{
           xaxis: {
             type: kpiTypeData?.device_type_id === 1 ? 'date' : 'category',
-            title: kpiTypeData?.device_type_id === 1 ? 'Date' : undefined,
+            title:
+              kpiTypeData?.device_type_id === 1 ? { text: 'Date' } : undefined,
           },
           yaxis: {
             tickformat: kpiTypeData?.unit === '%' ? ',.0%' : ',.0f',
-            title: isCumulative
-              ? `Cumulative Total (${kpiTypeData.unit || ''})`
-              : kpiTypeData?.unit
-                ? `Value (${kpiTypeData.unit})`
-                : 'Value',
+            title: {
+              text: isCumulative
+                ? `Cumulative Total (${kpiTypeData.unit || ''})`
+                : kpiTypeData?.unit
+                  ? `Value (${kpiTypeData.unit})`
+                  : 'Value',
+            },
           },
           showlegend: true,
           legend: {
@@ -467,11 +470,97 @@ const ProjectKPIContractual = () => {
       }
     })
 
-    // Calculate values for each year (total for sum, average for others)
-    const years = Object.keys(yearlyData).sort()
+    // Find the earliest year with actual data
+    const dataYears = Object.keys(yearlyData).filter(
+      (year) => yearlyData[year].count > 0,
+    )
+    const earliestDataYear =
+      dataYears.length > 0 ? Math.min(...dataYears.map(Number)) : null
+
+    // Find the earliest year with threshold data (but be more careful about it)
+    let earliestThresholdYear: number | null = null
+    if (kpiTypeData?.contracts) {
+      for (const contract of kpiTypeData.contracts) {
+        const contractKpi = kpiTypeData.contract_kpis?.find(
+          (ck: any) => ck.contract_id === contract.contract_id,
+        )
+        if (contractKpi?.threshold?.values) {
+          // Get all threshold dates and find the earliest one
+          // Parse dates safely to avoid timezone issues
+          const thresholdDates = Object.keys(contractKpi.threshold.values)
+            .map((dateStr) => {
+              // Parse YYYY-MM-DD format safely without timezone conversion
+              const [year, month, day] = dateStr.split('-').map(Number)
+              return new Date(year, month - 1, day) // month is 0-indexed
+            })
+            .filter((date) => !isNaN(date.getTime()))
+            .sort((a, b) => a.getTime() - b.getTime())
+
+          if (thresholdDates.length > 0) {
+            const earliestDate = thresholdDates[0]
+            const earliestYear = earliestDate.getFullYear()
+
+            // Only consider threshold years that are reasonable (not too far in the past)
+            const currentYear = new Date().getFullYear()
+            if (earliestYear >= currentYear - 5) {
+              if (
+                earliestThresholdYear === null ||
+                earliestYear < earliestThresholdYear
+              ) {
+                earliestThresholdYear = earliestYear
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Use the earliest of data year or threshold year
+    const earliestYear = Math.min(
+      earliestDataYear || Infinity,
+      earliestThresholdYear || Infinity,
+    )
+
+    // Create a comprehensive list of years that includes both data years and threshold years
+    const allDataYears = Object.keys(yearlyData).sort()
+    const allThresholdYears: string[] = []
+
+    if (kpiTypeData?.contracts) {
+      for (const contract of kpiTypeData.contracts) {
+        const contractKpi = kpiTypeData.contract_kpis?.find(
+          (ck: any) => ck.contract_id === contract.contract_id,
+        )
+        if (contractKpi?.threshold?.values) {
+          const thresholdYears = Object.keys(contractKpi.threshold.values)
+            .map((dateStr) => {
+              // Parse YYYY-MM-DD format safely without timezone conversion
+              const [year] = dateStr.split('-').map(Number)
+              return year.toString()
+            })
+            .filter((year) => !isNaN(parseInt(year)))
+          allThresholdYears.push(...thresholdYears)
+        }
+      }
+    }
+
+    // Combine and deduplicate years, then filter from earliest year onwards
+    const allYears = [
+      ...new Set([...allDataYears, ...allThresholdYears]),
+    ].sort()
+    const filteredYears =
+      earliestYear !== null && earliestYear !== Infinity
+        ? allYears.filter((year) => parseInt(year) >= earliestYear)
+        : allYears
+
+    // Calculate values for each filtered year (total for sum, average for others)
+    const years = filteredYears
     const values = years.map((year) => {
-      const { sum, count } = yearlyData[year]
-      return isCumulative ? sum : count > 0 ? sum / count : 0
+      const yearData = yearlyData[year]
+      if (!yearData) {
+        return null // No data for this year
+      }
+      const { sum, count } = yearData
+      return isCumulative ? sum : count > 0 ? sum / count : null
     })
 
     // Get threshold values for each year

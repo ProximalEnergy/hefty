@@ -2,9 +2,12 @@ import datetime
 import uuid
 from typing import Annotated, Any
 
+import numpy as np
 import pandas as pd
+from core.crud.operational.projects import get_project_async
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pandas.tseries.offsets import DateOffset
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
@@ -16,6 +19,7 @@ from app._crud.operational.kpi_alerts import (
 )
 from app._crud.operational.kpi_alerts import update_kpi_alert as crud_update_kpi_alert
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
+from app._crud.operational.kpi_data import get_kpi_data_async as crud_get_kpi_data_async
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
@@ -417,3 +421,89 @@ def get_llm_kpis(
             df = df.join(json_df).drop("json", axis=1)
 
     return df.to_dict("tight")
+
+
+class RTEResponse(BaseModel):
+    rte: float | None
+
+
+@router.get("/rte")
+async def get_rte(
+    project_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    start: datetime.date,
+    end: datetime.date,
+    level: str = "string",
+) -> RTEResponse:
+    STRING_ENERGY_CHARGED_KPI_ID = 37
+    STRING_ENERGY_DISCHARGED_KPI_ID = 41
+    PROJECT_SOC_INCREASE_KPI_ID = 94
+    PROJECT_SOC_DECREASE_KPI_ID = 95
+
+    THRESHOLD = 0.2
+
+    if level != "string":
+        raise HTTPException(status_code=400, detail="Invalid level")
+
+    project = await get_project_async(db=db, project_id=project_id)
+
+    if project is None or project.capacity_bess_energy_bol_dc is None:
+        return RTEResponse(rte=None)
+
+    df = await crud_get_kpi_data_async(
+        db=db,
+        start=start,
+        end=end,
+        project_ids=[project_id],
+        kpi_type_ids=[
+            STRING_ENERGY_CHARGED_KPI_ID,
+            STRING_ENERGY_DISCHARGED_KPI_ID,
+            PROJECT_SOC_INCREASE_KPI_ID,
+            PROJECT_SOC_DECREASE_KPI_ID,
+        ],
+        include_device_data=False,
+    )
+    if df.empty:
+        return RTEResponse(rte=None)
+
+    pivot_df = df.pivot(
+        index="date",
+        columns="kpi_type_id",
+        values="project_data",
+    ).reindex(
+        columns=[
+            STRING_ENERGY_CHARGED_KPI_ID,
+            STRING_ENERGY_DISCHARGED_KPI_ID,
+            PROJECT_SOC_INCREASE_KPI_ID,
+            PROJECT_SOC_DECREASE_KPI_ID,
+        ]
+    )
+
+    energy_cols = [STRING_ENERGY_CHARGED_KPI_ID, STRING_ENERGY_DISCHARGED_KPI_ID]
+    pivot_df[energy_cols] = pivot_df[energy_cols] / project.capacity_bess_energy_bol_dc
+    pivot_df = pivot_df.dropna()
+
+    sum_df = pivot_df.sum(min_count=1)
+
+    charge_total = sum_df[STRING_ENERGY_CHARGED_KPI_ID]
+    if charge_total < THRESHOLD:
+        charge_total = np.nan
+    discharge_total = sum_df[STRING_ENERGY_DISCHARGED_KPI_ID]
+    if discharge_total < THRESHOLD:
+        discharge_total = np.nan
+    soc_increase_total = sum_df[PROJECT_SOC_INCREASE_KPI_ID]
+    if soc_increase_total < THRESHOLD:
+        soc_increase_total = np.nan
+    soc_decrease_total = sum_df[PROJECT_SOC_DECREASE_KPI_ID]
+    if soc_decrease_total < THRESHOLD:
+        soc_decrease_total = np.nan
+
+    charge_efficiency = soc_increase_total / charge_total
+    discharge_efficiency = discharge_total / soc_decrease_total
+    rte = charge_efficiency * discharge_efficiency
+    if rte > 1:
+        rte = np.nan
+
+    # Convert np.nan to None for JSON serialization
+    rte_value = None if pd.isna(rte) else rte
+    return RTEResponse(rte=rte_value)

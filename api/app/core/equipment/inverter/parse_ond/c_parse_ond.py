@@ -2,7 +2,6 @@ from typing import Any
 
 from app.core.equipment._utils.enumerations import ONDformat
 from app.core.equipment.inverter.parse_ond.s01a_read_ond import read_ond
-from app.core.equipment.inverter.parse_ond.s01b_read_ond_binary import read_ond_binary
 from app.core.equipment.inverter.parse_ond.s02_format_ond import convert_ond_data
 from app.core.equipment.inverter.parse_ond.s03_calc_power_dc_nominal import (
     calc_power_dc_nominal,
@@ -33,8 +32,6 @@ def parse_ond(
             "This may be a PVsyst Binary File from before PVsyst v6."
             "We cannot currently parse these types of files"
         )
-        ond_data = read_ond_binary(file_content=file_content)
-        ond_format = ONDformat.BINARY
 
     inverter_data = convert_ond_data(inverter=ond_data, ond_format=ond_format)
     inverter_data = calc_power_dc_nominal(inverter=inverter_data)

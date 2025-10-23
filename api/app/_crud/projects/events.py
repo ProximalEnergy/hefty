@@ -1,7 +1,7 @@
 import datetime
 
 from sqlalchemy import Date, case, cast, func, or_, text
-from sqlalchemy.orm import Session, noload, selectinload
+from sqlalchemy.orm import Session, selectinload
 
 from core import models
 
@@ -41,26 +41,6 @@ def get_project_events(
     if event_ids is not None:
         query = query.filter(models.Event.event_id.in_(event_ids))
 
-    return query.all()
-
-
-def get_windowed_events(
-    db: Session,
-    *,
-    start: datetime.datetime,
-    end: datetime.datetime,
-    deep: bool = False,
-):
-    """Query events that start before `end` and end after `start` or are ongoing."""
-    query = db.query(models.Event)
-    query = query.filter(models.Event.time_start <= end)
-    query = query.filter(
-        or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
-    )
-    if deep:
-        query = query.options(selectinload(models.Event.device))
-    else:
-        query = query.options(noload(models.Event.device))
     return query.all()
 
 
@@ -252,3 +232,15 @@ def get_count_open(
     query = db.query(models.Event)
     query = query.filter(models.Event.time_end.is_(None))
     return query.count()
+
+
+def get_maximum_event_id(
+    *,
+    db: Session,
+) -> int:
+    """Get the maximum event_id from the events table.
+
+    Returns 0 if no events exist in the table.
+    """
+    result = db.query(func.max(models.Event.event_id)).scalar()
+    return result if result is not None else 0

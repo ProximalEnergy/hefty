@@ -108,7 +108,9 @@ class BaseIntEnum(IntEnum):
 
     @classmethod
     def validate_all_enums(
-        cls, *, session: "Session", case_sensitive: bool = True
+        cls,
+        *,
+        session: "Session",
     ) -> dict[str, dict]:
         """
         Validate all enum subclasses against their database tables.
@@ -381,6 +383,7 @@ class DefaultKPITimeRange(IntEnum):
     ONE_MONTH = 1
     YEAR_TO_DATE = 2
     BEGINNING_OF_LIFE = 3
+    MONTH_TO_DATE = 4
 
 
 class RackingArchitecture(IntEnum):
@@ -409,6 +412,38 @@ class ComponentType(IntEnum):
 class AggregationType(StrEnum):
     LAST = "last"
     AVERAGE = "avg"
+
+
+class TimeOffset(StrEnum):
+    NONE = "0min"
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+    TEN_MINUTES = "10min"
+    FIFTEEN_MINUTES = "15min"
+    THIRTY_MINUTES = "30min"
+    ONE_HOUR = "1hour"
+    TWO_HOURS = "2hour"
+    FOUR_HOURS = "4hour"
+    SIX_HOURS = "6hour"
+    EIGHT_HOURS = "8hour"
+    TWELVE_HOURS = "12hour"
+    TWENTY_FOUR_HOURS = "24hour"
+
+
+class TimeInterval(StrEnum):
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+    TEN_MINUTES = "10min"
+    FIFTEEN_MINUTES = "15min"
+    THIRTY_MINUTES = "30min"
+    ONE_HOUR = "1hour"
+
+
+class ProjectDataInterval(StrEnum):
+    MQTT = "mqtt"
+    ONE_SEC = "1sec"
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
 
 
 class PVBudgetedSoilingMode(StrEnum):

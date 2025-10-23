@@ -1,7 +1,8 @@
+import importlib.metadata
+import tomllib
 import warnings
 
 import sentry_sdk
-import tomllib
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -50,6 +51,7 @@ app.add_middleware(
         "https://app.proximal.energy",  # Production
         "https://staging.d1waz5kiczd3n9.amplifyapp.com",  # Staging
         "http://localhost:5173",  # Local development
+        "http://127.0.0.1:5173",  # Local development
         "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
         "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
     ],
@@ -99,7 +101,7 @@ mcp = FastApiMCP(
     include_tags=["sensor_types"],
     headers=["x-api-key"],
 )
-mcp.mount()
+mcp.mount_http()
 
 
 @app.get("/")
@@ -109,6 +111,12 @@ def get_root():
 
 @app.get("/version")
 def get_version():
+    return {"version": version}
+
+
+@app.get("/version/core")
+def get_core_version():
+    version = importlib.metadata.version(distribution_name="core")
     return {"version": version}
 
 

@@ -530,7 +530,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
           ...(codLabel ? [codLabel] : []),
         ],
         yaxis: {
-          title: showDCEnergy ? 'Capacity (MWh)' : 'SOH (%)',
+          title: { text: showDCEnergy ? 'Capacity (MWh)' : 'SOH (%)' },
           range: showDCEnergy
             ? [nameplateCapacity * 0.8, nameplateCapacity]
             : [80, 100], // Fixed range from 80% to 100%
@@ -552,7 +552,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
             marker: { size: 4 },
           },
         ],
-        yaxis: { title: 'Cycles per Day (cycles/day)' },
+        yaxis: { title: { text: 'Cycles per Day (cycles/day)' } },
       },
       {
         title: 'Resting State of Charge',
@@ -573,7 +573,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
             marker: { size: 4 },
           },
         ],
-        yaxis: { title: 'Rest SOC (%)' },
+        yaxis: { title: { text: 'Rest SOC (%)' } },
       },
       {
         title: 'Average Cell Temperature',
@@ -594,7 +594,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
           },
         ],
         yaxis: {
-          title: 'Temperature (°C)',
+          title: { text: 'Temperature (°C)' },
         },
       },
     ]
@@ -1575,7 +1575,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                 <Box h={1000}>
                   {(() => {
                     const plotLayout = {
-                      title: 'Battery Health Metrics',
+                      title: { text: 'Battery Health Metrics' },
                       grid: {
                         rows: 4,
                         columns: 1,
@@ -1635,8 +1635,8 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                       },
                       // Handle y-axes separately with proper titles
                       yaxis: {
-                        title: {
-                          text: stackedGraphs[0]?.yaxis?.title || 'SOH (%)',
+                        title: stackedGraphs[0]?.yaxis?.title || {
+                          text: 'SOH (%)',
                         },
                         showticklabels: true,
                         side: 'left' as const,
@@ -1648,10 +1648,8 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         range: stackedGraphs[0]?.yaxis?.range || [80, 100],
                       },
                       yaxis2: {
-                        title: {
-                          text:
-                            stackedGraphs[1]?.yaxis?.title ||
-                            'Cycles per Day (cycles/day)',
+                        title: stackedGraphs[1]?.yaxis?.title || {
+                          text: 'Cycles per Day (cycles/day)',
                         },
                         showticklabels: true,
                         side: 'left' as const,
@@ -1662,9 +1660,8 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         gridwidth: 1,
                       },
                       yaxis3: {
-                        title: {
-                          text:
-                            stackedGraphs[2]?.yaxis?.title || 'Rest SOC (%)',
+                        title: stackedGraphs[2]?.yaxis?.title || {
+                          text: 'Rest SOC (%)',
                         },
                         showticklabels: true,
                         side: 'left' as const,
@@ -1675,10 +1672,8 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         gridwidth: 1,
                       },
                       yaxis4: {
-                        title: {
-                          text:
-                            stackedGraphs[3]?.yaxis?.title ||
-                            'Temperature (°C)',
+                        title: stackedGraphs[3]?.yaxis?.title || {
+                          text: 'Temperature (°C)',
                         },
                         showticklabels: true,
                         side: 'left' as const,

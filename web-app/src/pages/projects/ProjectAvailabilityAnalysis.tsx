@@ -68,9 +68,9 @@ const ProjectAvailabilityAnalysis = () => {
             },
           ]}
           layout={{
-            yaxis: { title: 'Number of Faults' },
+            yaxis: { title: { text: 'Number of Faults' } },
             yaxis2: {
-              title: 'Total Unavailability Contribution',
+              title: { text: 'Total Unavailability Contribution' },
               overlaying: 'y',
               side: 'right',
               showgrid: false,

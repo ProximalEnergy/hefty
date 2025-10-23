@@ -249,15 +249,15 @@ const Page = () => {
           ]}
           layout={{
             yaxis: {
-              title: 'Power (kW)',
+              title: { text: 'Power (kW)' },
             },
             yaxis2: {
-              title: 'POA',
+              title: { text: 'POA' },
               overlaying: 'y',
               side: 'right',
             },
             yaxis3: {
-              title: 'Soiling',
+              title: { text: 'Soiling' },
               overlaying: 'y',
               side: 'right',
               // @ts-expect-error - This is a valid property

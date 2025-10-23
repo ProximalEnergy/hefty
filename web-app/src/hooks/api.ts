@@ -195,48 +195,6 @@ export const useCreateFeedbackMutation = () => {
   })
 }
 
-export const useGetAlertPreferences = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: '/v1/admin/alert-preferences/',
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<boolean>({
-    axiosConfig,
-    queryName: 'getAlertPreferences',
-    pathParams: {},
-    queryParams: {},
-    queryOptions: queryOptions,
-  })
-}
-
-export const useUpdateAlertPreferencesMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'put',
-        url: `${baseURL}/v1/admin/alert-preferences/`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getAlertPreferences'] })
-    },
-  })
-}
-
 export const useGetProjectReportInstances = ({
   pathParams,
   queryParams = {},
@@ -268,48 +226,6 @@ export const useGetProjectReportInstances = ({
     pathParams,
     queryParams,
     queryOptions: queryOptions,
-  })
-}
-
-export const useGetReportPreferences = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: '/v1/admin/report-preferences/',
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<boolean>({
-    axiosConfig,
-    queryName: 'getReportPreferences',
-    pathParams: {},
-    queryParams: {},
-    queryOptions: queryOptions,
-  })
-}
-
-export const useUpdateReportPreferencesMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'put',
-        url: `${baseURL}/v1/admin/report-preferences/`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getReportPreferences'] })
-    },
   })
 }
 
@@ -630,39 +546,6 @@ export const useGetKPIAlerts = ({
   })
 }
 
-export const useGetDCAmperageReport = ({
-  pathParams,
-  queryParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams: {
-    start: string
-    min_poa: number
-    max_poa_1d: number
-    max_poa_std: number
-    rolling_window: number
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig: AxiosRequestConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/dc-amperage-report`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<types.DCAmperageData>({
-    axiosConfig,
-    queryName: 'getDCAmperageReport',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: queryOptions,
-  })
-}
-
 export const useGetDCAmperageReportV2 = ({
   pathParams,
   queryParams,
@@ -696,22 +579,6 @@ export const useGetDCAmperageReportV2 = ({
     pathParams,
     queryParams: queryParams,
     queryOptions: queryOptions,
-  })
-}
-
-export const useGetRowData = () => {
-  const axiosConfig = {
-    url: '/v1/row-data',
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.RowData[]>({
-    axiosConfig,
-    queryName: 'getRowData',
-    pathParams: {},
-    queryParams: {},
-    queryOptions: defaultQueryOptions,
   })
 }
 
@@ -777,36 +644,6 @@ export const useGetPaginatedEvents = ({
   return useCustomQuery<types.PaginatedEvent[]>({
     axiosConfig,
     queryName: 'getPaginatedEvents',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: queryOptions,
-  })
-}
-
-export const useGetEventsById = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string; eventId: number }
-  queryParams?: {
-    open?: boolean
-    deep?: boolean
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events/get/${pathParams.eventId}`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<types.Event>({
-    axiosConfig,
-    queryName: 'getEventsById',
     pathParams,
     queryParams: queryParams,
     queryOptions: queryOptions,
@@ -903,71 +740,6 @@ export const useGetFailureModes = ({
     pathParams,
     queryParams: queryParams,
     queryOptions: queryOptions,
-  })
-}
-
-export const useUpdateFailureMode = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({
-      project_id,
-      event_id,
-      failure_mode_id,
-    }: {
-      project_id: string
-      event_id: number
-      failure_mode_id: number
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'put',
-        url: `${baseURL}/v1/operational/projects/${project_id}/events/${event_id}/failure-mode`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          failure_mode_id,
-        },
-      })
-    },
-    onMutate: async (newFailureMode) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['getFailureModes'] })
-
-      // Snapshot the previous value
-      const previousFailureModes = queryClient.getQueryData<
-        types.FailureMode[]
-      >(['getFailureModes'])
-
-      // Optimistically update the new value
-      queryClient.setQueryData(
-        ['getFailureModes'],
-        (oldFailureModes: types.FailureMode[]) => {
-          return oldFailureModes?.map((failureMode) => {
-            if (
-              failureMode.failure_mode_id === newFailureMode.failure_mode_id
-            ) {
-              return {
-                ...failureMode,
-                failure_mode_id: newFailureMode.failure_mode_id,
-              }
-            }
-            return failureMode
-          })
-        },
-      )
-      return { previousFailureModes }
-    },
-    onError: (_err, _newFailureMode, context) => {
-      queryClient.setQueryData(
-        ['getFailureModes'],
-        context?.previousFailureModes,
-      )
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['getFailureModes'] })
-    },
   })
 }
 
@@ -1171,30 +943,6 @@ export const useGetHeatmap = ({
   })
 }
 
-export const useGetGeo = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/geo`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<FeatureCollection>({
-    axiosConfig,
-    queryName: 'getGeo',
-    pathParams,
-    queryParams: {},
-    queryOptions: queryOptions,
-  })
-}
-
 export const useGetGISPCS = ({
   pathParams,
   queryParams = {},
@@ -1380,7 +1128,7 @@ export const useGetEquipmentAnalysisCombiner = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/equipment-analysis/combiner`,
+    url: `/v1/protected/web_application/projects/${pathParams.projectId}/equipment_analysis/combiner`,
     params: queryParams,
   }
 
@@ -1727,7 +1475,7 @@ export const useGetSunburstData = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/sunburst-data`,
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/sunburst-data`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

@@ -93,30 +93,3 @@ export const useUpdateSensorTypeMutation = () => {
     },
   })
 }
-
-export const useGetSensorTypeAssignments = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/project-tag-explorer/sensor-type-assignments`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: 300000, // 5 minutes
-  }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<any[]>({
-    axiosConfig,
-    queryName: 'getSensorTypeAssignments',
-    pathParams,
-    queryParams: {},
-    queryOptions: queryOptions,
-  })
-}

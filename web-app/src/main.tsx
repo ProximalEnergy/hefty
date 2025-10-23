@@ -12,14 +12,8 @@ import './index.css'
 if (import.meta.env.VITE_ENVIRONMENT === 'PRODUCTION') {
   Sentry.init({
     dsn: 'https://8ff693545e0977d5bf3710df789065bd@o4506555874672640.ingest.sentry.io/4506592803094528',
+    tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
     integrations: [
-      Sentry.browserTracingIntegration({
-        // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-        tracePropagationTargets: [
-          'localhost',
-          /^https:\/\/yourserver\.io\/api/,
-        ],
-      }),
       Sentry.replayIntegration({
         maskAllText: false,
         blockAllMedia: false,

@@ -51,7 +51,7 @@ interface FileUploadProps {
   disabled: boolean
 }
 
-export function FileUpload({
+function FileUpload({
   projectId,
   uploadMutation,
   disabled,

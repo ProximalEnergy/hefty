@@ -19,7 +19,7 @@ from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, GetJsonSchemaHandler, conlist, model_validator
 from pydantic.config import ConfigDict
 from pydantic.json_schema import JsonSchemaValue
-from shapely.geometry import mapping  # type: ignore
+from shapely.geometry import mapping
 
 
 class APIKey(BaseModel):
@@ -124,8 +124,8 @@ class Point(BaseModel):
     coordinates: conlist(float, min_length=2, max_length=2)  # type: ignore # pyright: ignore
 
     @model_validator(mode="before")  # skip-star-syntax
-    @classmethod
-    def convert_point(cls, point):  # skip-star-syntax
+    @staticmethod
+    def convert_point(point):  # skip-star-syntax
         return convert(point)
 
 
@@ -135,8 +135,8 @@ class Polygon(BaseModel):
     coordinates: list[Any]
 
     @model_validator(mode="before")  # skip-star-syntax
-    @classmethod
-    def convert_polygon(cls, polygon):  # skip-star-syntax
+    @staticmethod
+    def convert_polygon(polygon):  # skip-star-syntax
         return convert(polygon)
 
 
@@ -189,7 +189,7 @@ class IntEnumWithNames(int, Enum):
 # --- Operational.Projects ---
 class ProjectShared(BaseModel):
     """
-    Shared attibutes of the following classes:
+    Shared attributes of the following classes:
     - Project
     - ProjectCreate
     """
@@ -440,7 +440,7 @@ class KPIInstance(BaseModel):
 
 class KPIAlertPost(BaseModel):
     """
-    Inhereted by:
+    Inherited by:
     - KPIAlertAdd
     - KPIAlertUpdate
     """
@@ -649,6 +649,25 @@ class GeoJSON(BaseModel):
 
     type: str
     features: list[Features]
+
+
+# --- Event Creation (bulk) ---
+class BulkEventItem(BaseModel):
+    device_id: int
+    loss: float
+    event_loss_type_id: int = 3
+    anomaly_uuids: list[uuid.UUID] | None = None
+
+
+class BulkCreateEventsRequest(BaseModel):
+    time_start: datetime.datetime
+    time_end: datetime.datetime | None = None
+    items: list[BulkEventItem]
+    root_cause_id: int | None = None
+
+
+class BulkCreateEventsResponse(BaseModel):
+    created_event_ids: list[int]
 
 
 class SettlementPointMarket(BaseModel):
@@ -1390,6 +1409,7 @@ class DroneInspection(BaseModel):
 class DroneAnomalyBase(BaseModel):
     anomaly_uuid: uuid.UUID
     inspection_uuid: uuid.UUID
+    event_id: int | None = None
     stack_id: str | None = None
     ir_signal: str | None = None
     rgb_signal: str | None = None

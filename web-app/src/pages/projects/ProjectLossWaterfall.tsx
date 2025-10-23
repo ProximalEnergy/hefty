@@ -58,7 +58,7 @@ const ProjectLossWaterfall = () => {
               tickvals: [],
             },
             yaxis: {
-              title: 'Energy (MWh)',
+              title: { text: 'Energy (MWh)' },
             },
           }}
         />

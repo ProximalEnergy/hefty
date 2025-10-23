@@ -40,9 +40,9 @@ const LossWaterfall = ({
         } as Partial<Plotly.PlotData>,
       ]}
       layout={{
-        title: 'Loss Waterfall',
+        title: { text: 'Loss Waterfall' },
         yaxis: {
-          title: 'MWh',
+          title: { text: 'MWh' },
         },
 
         margin: { t: 30 },

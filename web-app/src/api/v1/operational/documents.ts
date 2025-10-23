@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface ProjectDocument {
+interface ProjectDocument {
   document_id: string
   name: string
   url: string

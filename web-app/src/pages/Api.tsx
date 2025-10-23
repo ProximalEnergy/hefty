@@ -75,7 +75,7 @@ const APIKey = () => {
   )
 }
 
-export const Api = () => {
+const Api = () => {
   return (
     <Stack p="md" h="100%">
       <Title order={1}>API</Title>

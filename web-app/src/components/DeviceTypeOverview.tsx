@@ -168,7 +168,8 @@ const DeviceTypeOverview = ({
   const [cardWidth, setCardWidth] = useState(1200) // Default fallback
   const [isBESSExpanded, setIsBESSExpanded] = useState(false)
   const [openedPopover, setOpenedPopover] = useState<number | null>(null)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Measure card width on mount and resize
   useEffect(() => {
@@ -343,38 +344,53 @@ const DeviceTypeOverview = ({
       DEVICE_TYPE_CONFIG[deviceType.device_type_id]?.category === 'bess',
   )
 
-  // Helper functions for popover timeout management
-  const clearPopoverTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
+  // Helper functions for hover popup timeout management
+  const clearHoverTimeout = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
     }
   }
 
-  const startCloseTimeout = () => {
-    clearPopoverTimeout()
-    timeoutRef.current = setTimeout(() => {
-      setOpenedPopover(null)
-    }, 500) // 0.5 seconds
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
   }
 
-  const handlePopoverOpen = (deviceTypeId: number) => {
-    clearPopoverTimeout()
-    setOpenedPopover(deviceTypeId)
+  const handleMouseEnter = (deviceTypeId: number) => {
+    clearCloseTimeout()
+    clearHoverTimeout()
+    hoverTimeoutRef.current = setTimeout(() => {
+      setOpenedPopover(deviceTypeId)
+    }, 300) // 300ms delay before showing popup
+  }
+
+  const handleMouseLeave = () => {
+    clearHoverTimeout()
+    clearCloseTimeout()
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpenedPopover(null)
+    }, 200) // 200ms delay before hiding popup
   }
 
   const handlePopoverMouseEnter = () => {
-    clearPopoverTimeout()
+    clearCloseTimeout()
   }
 
   const handlePopoverMouseLeave = () => {
-    startCloseTimeout()
+    clearCloseTimeout()
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpenedPopover(null)
+    }, 200) // 200ms delay before hiding popup
   }
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      clearPopoverTimeout()
+      clearHoverTimeout()
+      clearCloseTimeout()
     }
   }, [])
 
@@ -1390,15 +1406,14 @@ const DeviceTypeOverview = ({
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'scale(1.1)'
-                      handlePopoverMouseEnter()
+                      handleMouseEnter(deviceType.device_type_id)
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'scale(1)'
-                      handlePopoverMouseLeave()
+                      handleMouseLeave()
                     }}
                     onClick={() => {
                       onDeviceTypeClick?.(deviceType.device_type_id)
-                      handlePopoverOpen(deviceType.device_type_id)
                     }}
                   >
                     <img

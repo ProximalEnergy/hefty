@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from fastapi import HTTPException
-from pvlib import irradiance, location, tracking  # type: ignore
+from pvlib import irradiance, location, tracking
 from sqlalchemy.orm import Session
 
 import core
@@ -672,7 +672,7 @@ def get_tracking_angles(
     # Get tracking data
     tracking_df = tracking.singleaxis(
         apparent_zenith=solpos["apparent_zenith"],
-        apparent_azimuth=solpos["azimuth"],
+        solar_azimuth=solpos["azimuth"],
         axis_tilt=axis_tilt,
         axis_azimuth=axis_azimuth,
         max_angle=max_angle,
@@ -682,7 +682,7 @@ def get_tracking_angles(
     tracking_df["tracker_theta"] = tracking_df["tracker_theta"].fillna(0)
     tracking_df["surface_azimuth"] = tracking_df["surface_azimuth"].fillna(0)
 
-    return tracking_df
+    return pd.DataFrame(tracking_df)
 
 
 def get_truetracking_irradiance(
@@ -731,13 +731,14 @@ def get_truetracking_irradiance(
         solar_azimuth=solar_position["azimuth"],
     )
 
-    return pd.concat(
+    result = pd.concat(
         [
             clearsky[["ghi"]],
             poa_irradiance[["poa_global"]],
         ],
         axis=1,
     )
+    return pd.DataFrame(result)
 
 
 def deprecated(reason):

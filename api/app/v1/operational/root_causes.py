@@ -1,9 +1,9 @@
 from typing import Annotated
 
+from core.crud.operational.device_types import get_device_types
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app._crud.operational.device_types import get_device_types
 from app._crud.operational.failure_modes import get_root_causes as crud_get_root_causes
 from app.dependencies import get_async_db
 

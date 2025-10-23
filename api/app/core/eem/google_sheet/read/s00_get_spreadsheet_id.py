@@ -16,6 +16,6 @@ def get_spreadsheet_id(
     )
 
     if google_sheet_id is not None:
-        return google_sheet_id[0]
+        return str(google_sheet_id[0])
     else:
         raise ValueError("No project matches that name, or gsheet_id value is null")

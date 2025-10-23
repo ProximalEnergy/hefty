@@ -34,4 +34,5 @@ def get_secret(
         raise e
 
     # Return the secret value
-    return json.loads(get_secret_value_response["SecretString"])
+    result = json.loads(get_secret_value_response["SecretString"])
+    return dict(result)

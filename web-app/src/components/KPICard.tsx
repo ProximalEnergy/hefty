@@ -30,7 +30,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
   return (
     <Paper h="100%" withBorder p="xs" radius="md" onClick={onClick} miw={400}>
       <Stack justify="apart" gap={0}>
-        <Group gap="xs" preventGrowOverflow={true}>
+        <Group gap="xs" preventGrowOverflow={true} wrap="nowrap">
           {!is_visible && (
             <ThemeIcon color="gray" size={20} radius="xl">
               <IconEyeOff style={{ width: rem(16), height: rem(16) }} />
@@ -38,7 +38,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
           )}
           <Link to={link} style={{ color: 'inherit' }}>
             {' '}
-            <Group maw={350}>
+            <Group maw={300}>
               <Tooltip label={title} position="bottom">
                 <Text size="lg" style={{ fontWeight: 'bold' }} truncate="end">
                   {title}
@@ -52,7 +52,9 @@ const KPICard: React.FC<KPISummaryCard> = ({
                 <IconInfoCircle size={15} />
               </HoverCard.Target>
               <HoverCard.Dropdown>
-                <Text size="sm">{info}</Text>
+                <Text size="sm" component="div">
+                  {info}
+                </Text>
               </HoverCard.Dropdown>
             </HoverCard>
           )}
@@ -70,7 +72,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
                 </Text>
               )}
               {unit && (
-                <Text fz={TEXT_SIZE_PRIMARY} lh={1}>
+                <Text fz={TEXT_SIZE_PRIMARY} lh={1} truncate="end" maw={120}>
                   {unit === 'deg' ? '°' : unit}
                 </Text>
               )}
@@ -87,6 +89,8 @@ const KPICard: React.FC<KPISummaryCard> = ({
                 fz={TEXT_SIZE_SECONDARY}
                 c={change >= 0 ? 'teal' : 'red'}
                 lh={1}
+                truncate="end"
+                maw={150}
               >
                 {change > 0 ? '+' : null}(
                 {unit && unit !== '%'

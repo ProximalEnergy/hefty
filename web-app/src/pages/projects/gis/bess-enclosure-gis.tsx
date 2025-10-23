@@ -22,7 +22,7 @@ import { useParams } from 'react-router-dom'
 
 import { HoverInfo } from './utils'
 
-export const Page = () => {
+const Page = () => {
   useProjectFilter({
     projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
   })

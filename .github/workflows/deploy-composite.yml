@@ -1,4 +1,4 @@
-name: Composite Deploy - Core & API
+name: Composite Deploy
 
 on:
   push:
@@ -10,7 +10,9 @@ on:
       - "core/src/core/**"
       - "core/pyproject.toml"
       - "api/**"
+      - "web-app/**"
       - ".github/workflows/deploy-composite.yml"
+      - "amplify.yml"
 
 permissions:
   id-token: write
@@ -23,24 +25,30 @@ jobs:
     outputs:
       core: ${{ steps.filter.outputs.core }}
       api: ${{ steps.filter.outputs.api }}
+      web-app: ${{ steps.filter.outputs.web-app }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.event.before }}
           filters: |
             core:
               - 'core/src/core/**'
               - 'core/pyproject.toml'
             api:
               - 'api/**'
+            web-app:
+              - 'web-app/**'
+              - 'amplify.yml'
 
       - name: Echo detected changes
         run: |
           echo "Changes detected:"
           echo "  Core: ${{ steps.filter.outputs.core }}"
           echo "  API: ${{ steps.filter.outputs.api }}"
+          echo "  Web-App: ${{ steps.filter.outputs.web-app }}"
 
   # Job 1: Publish Core Package
   publish-core:
@@ -54,7 +62,7 @@ jobs:
       release_name: ${{ steps.version.outputs.release_name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -171,7 +179,7 @@ jobs:
     if: needs.publish-core.result == 'success'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Create GitHub Release
         env:
@@ -200,7 +208,7 @@ jobs:
       environment: ${{ steps.set-env.outputs.environment }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set environment variables
         id: set-env
@@ -257,12 +265,12 @@ jobs:
           # Get all package versions from CodeArtifact
           VERSIONS=$(aws codeartifact list-package-versions \
             --domain proximal-code-artifact-domain \
-            --repository proximal-package-index \
+            --repository proximal-hub \
             --format pypi \
             --package core \
             --region us-east-2 \
             --query 'versions[*].version' \
-            --output text)
+            --output text | tr '\t' '\n')
 
           echo "Available versions: $VERSIONS"
 
@@ -270,11 +278,11 @@ jobs:
 
           if [ "$CONSTRAINT" = "stable" ]; then
             # Find latest stable version (no pre-release suffix)
-            LATEST_VERSION=$(echo "$VERSIONS" | tr ' ' '\n' | grep -v -E '(a|b|rc)' | sort -V | tail -1)
+            LATEST_VERSION=$(echo "$VERSIONS" | grep -v -E '(a|b|rc)' | sort -V | tail -1)
             echo "Latest stable version: $LATEST_VERSION"
           elif [ "$CONSTRAINT" = "rc" ]; then
             # Find latest RC version
-            LATEST_VERSION=$(echo "$VERSIONS" | tr ' ' '\n' | grep 'rc' | sort -V | tail -1)
+            LATEST_VERSION=$(echo "$VERSIONS" | grep 'rc' | sort -V | tail -1)
             echo "Latest RC version: $LATEST_VERSION"
           else
             echo "Unknown constraint: $CONSTRAINT"
@@ -308,6 +316,13 @@ jobs:
           content = re.sub(
               r'"core[^"]*"',
               f'"{version_spec}"',
+              content
+          )
+
+          # Replace local path dependency with index dependency
+          content = re.sub(
+              r'core = \{ path = "\.\./core", editable = true \}',
+              'core = { index = "proximal-package-index" }',
               content
           )
 
@@ -389,15 +404,17 @@ jobs:
 
   # Job 4: Deploy Web-App (depends on deploy-api - ATOMIC)
   deploy-web-app:
-    needs: deploy-api
+    needs: [publish-core, deploy-api, detect-changes]
     runs-on: ubuntu-latest
     # Only deploy web-app if API deploy succeeded and branch is staging or main
     if: |
-      needs.deploy-api.result == 'success' &&
-      (github.ref_name == 'staging' || github.ref_name == 'main')
+      !cancelled() &&
+      (github.ref_name == 'staging' || github.ref_name == 'main') &&
+      needs.publish-core.result != 'failure' &&
+      (needs.deploy-api.result == 'success' || (needs.deploy-api.result == 'skipped' && needs.detect-changes.outputs.web-app == 'true'))
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Trigger Amplify Build
         run: |

@@ -15,6 +15,7 @@ import {
 } from '@/api/v1/operational/drone_integrations'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import { OrderDroneInspectionModal } from '@/components/modals/OrderDroneInspectionModal'
 import { StatsGrid } from '@/components/stats/StatsGrid'
 import {
   ActionIcon,
@@ -33,6 +34,7 @@ import {
   Tooltip,
   useMantineColorScheme,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { IconDrone, IconPlus, IconRefresh } from '@tabler/icons-react'
 import {
   MRT_ColumnDef,
@@ -55,6 +57,8 @@ const DroneInspections: React.FC = () => {
     useGetDroneProviders()
 
   const self = useGetUserSelf({})
+  const [orderModalOpened, { open: openOrderModal, close: closeOrderModal }] =
+    useDisclosure(false)
 
   const timelineRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -350,7 +354,10 @@ const DroneInspections: React.FC = () => {
                         zIndex: 0,
                       }}
                     >
-                      <DroneInspectionsMap anomalies={anomalies} />
+                      <DroneInspectionsMap
+                        anomalies={anomalies}
+                        inspectionTime={selectedInspection.inspection_time}
+                      />
                     </Box>
                   ) : (
                     <Box
@@ -582,36 +589,43 @@ const DroneInspections: React.FC = () => {
                           bulletSize={24}
                           lineWidth={2}
                         >
-                          <Timeline.Item
-                            key="order-flyover"
-                            title={
-                              <Text
-                                fw={600}
-                                c="var(--mantine-primary-color-light-color)"
-                              >
-                                Order New Inspection
-                              </Text>
-                            }
-                            bullet={<IconPlus size={12} />}
-                            color="green"
-                            lineVariant="dashed"
-                            style={{
-                              cursor: 'pointer',
-                              paddingTop: '12px',
-                              paddingBottom: '12px',
-                              marginTop: '5px',
-                            }}
-                            onClick={() => {}}
+                          <Tooltip
+                            label="Click to view order form"
+                            position="right"
                           >
-                            <Text size="xs" c="dimmed">
-                              Coming Soon: request a new inspection for this
-                              project
-                            </Text>
-                          </Timeline.Item>
+                            <Timeline.Item
+                              key="order-flyover"
+                              title={
+                                <Text
+                                  fw={600}
+                                  c="var(--mantine-primary-color-light-color)"
+                                >
+                                  Request New Inspection...
+                                </Text>
+                              }
+                              bullet={<IconPlus size={12} />}
+                              color="green"
+                              lineVariant="dashed"
+                              style={{
+                                cursor: 'pointer',
+                                paddingTop: '12px',
+                                paddingBottom: '12px',
+                                marginTop: '5px',
+                              }}
+                              onClick={openOrderModal}
+                            >
+                              <Text size="xs" c="dimmed">
+                                Click to request a new inspection for this
+                                project
+                              </Text>
+                            </Timeline.Item>
+                          </Tooltip>
 
                           {sortedInspections.map((inspection, index) => (
                             <Timeline.Item
-                              ref={(el) => (itemRefs.current[index] = el)}
+                              ref={(el) => {
+                                itemRefs.current[index] = el
+                              }}
                               key={inspection.inspection_uuid}
                               title={
                                 <Text
@@ -726,6 +740,16 @@ const DroneInspections: React.FC = () => {
         </Stack>
       ) : (
         <Text>No inspections found.</Text>
+      )}
+
+      {/* Order New Inspection Modal */}
+      {projectId && (
+        <OrderDroneInspectionModal
+          opened={orderModalOpened}
+          onClose={closeOrderModal}
+          projectId={projectId}
+          currentProvider={currentProvider}
+        />
       )}
     </Stack>
   )

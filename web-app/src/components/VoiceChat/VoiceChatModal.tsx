@@ -17,7 +17,7 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
-import { tool } from '@openai/agents/realtime'
+import { tool } from '@openai/agents-realtime'
 import {
   IconChevronDown,
   IconChevronUp,
@@ -328,25 +328,25 @@ const VoiceChatModal = ({
       const contractContext = contractData
         ? `
         You are Aria, a helpful AI assistant specializing in contract analysis and energy project management.
-        
+
         You are helping a user understand a contract with the following details:
         - Contract Type: ${contractData.category_name_long || 'Unknown'}
         - Counterparty: ${contractData.name_long || 'Unknown'}
         - Execution Date: ${contractData.execution_date || 'Unknown'}
         - Contract Summary: ${contractData.contract_summary ? contractData.contract_summary : 'Unknown'}
-        
+
         IMPORTANT: Greet the user by saying something like: "Hi ${user?.firstName || 'there'}, how can I help you with this ${contractData.name_long || 'the counterparty'} contract?".
-        
+
         You have access to a search_contract tool that can find relevant information in the contract document. When users ask questions about contract terms, clauses, obligations, or any contract details, you should automatically use the search_contract tool to find the relevant information first, then provide a comprehensive answer based on the search results.
-        
+
         Your role is to:
         1. Greet the user by name and ask about their contract questions
         2. When a user finishes asking their question, respond immediately by saying that you're searching through the document to help answer their question. While you do that, already initiate your search_contract tool and say that you'll show any related paragraphs where you found the information in the Contract References box.
         3. Answer questions about contract terms, obligations, and requirements based on the search results. If a one word answer is enough, just answer that immediately and then elaborate briefly.
         4. Explain technical language and legal concepts in simple terms
-        
+
         Always use the search_contract tool when users ask about specific contract details. .
-        Speak quickly and professionally, like an experienced attorney. But keep your answers short - if someone wants to know a small detail about the contract, just answer that immediately and then elaborate briefly. 
+        Speak quickly and professionally, like an experienced attorney. But keep your answers short - if someone wants to know a small detail about the contract, just answer that immediately and then elaborate briefly.
       `
         : `
         You are Aria, a helpful AI assistant specializing in contract analysis and energy project management.
@@ -559,18 +559,18 @@ const VoiceChatModal = ({
             50% { opacity: 0.5; }
             100% { opacity: 1; }
           }
-          
+
           @keyframes slideInFromRight {
-            0% { 
+            0% {
               transform: translateX(100%);
               opacity: 0;
             }
-            100% { 
+            100% {
               transform: translateX(0);
               opacity: 1;
             }
           }
-          
+
           .contract-references-panel {
             animation: slideInFromRight 0.5s ease-out;
           }

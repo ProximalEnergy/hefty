@@ -123,3 +123,85 @@ async def get_project_async(
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
+
+
+async def get_project_id_by_name_short_async(
+    *, db: AsyncSession, name_short: str
+) -> UUID | None:
+    """
+    Get project_id by project name_short.
+
+    Args:
+        db (AsyncSession): The database session to use for the query.
+        name_short (str): The project name_short to look up.
+
+    Returns:
+        UUID | None: The project_id if found, None otherwise.
+    """
+    stmt = select(models.Project.project_id).where(
+        models.Project.name_short == name_short
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def get_project_timezone_and_data_cagg_interval_async(
+    *, db: AsyncSession, project_id: UUID
+) -> dict[str, str | None] | None:
+    """
+    Get timezone and data_cagg_interval for a project.
+
+    Args:
+        db (AsyncSession): The database session to use for the query.
+        project_id (UUID): The project ID to get timezone and data_cagg_interval for.
+
+    Returns:
+        dict[str, str | None] | None: A dictionary containing timezone and
+            data_cagg_interval, or None if project not found.
+    """
+    stmt = select(
+        models.Project.time_zone,
+        models.Project.data_cagg_interval,
+    ).where(models.Project.project_id == project_id)
+
+    result = await db.execute(stmt)
+    row = result.first()
+
+    if row is None:
+        return None
+
+    return {
+        "timezone": row.time_zone,
+        "data_cagg_interval": row.data_cagg_interval,
+    }
+
+
+async def get_project_timezone_and_data_cagg_interval_by_name_short_async(
+    *, db: AsyncSession, name_short: str
+) -> dict[str, str | None] | None:
+    """
+    Get timezone and data_cagg_interval for a project by name_short.
+
+    Args:
+        db (AsyncSession): The database session to use for the query.
+        name_short (str): The project name_short to look up.
+
+    Returns:
+        dict[str, str | None] | None: A dictionary containing timezone and
+            data_cagg_interval, or None if project not found.
+    """
+    stmt = select(
+        models.Project.time_zone,
+        models.Project.data_cagg_interval,
+    ).where(models.Project.name_short == name_short)
+
+    result = await db.execute(stmt)
+    row = result.first()
+
+    if row is None:
+        return None
+
+    return {
+        "timezone": row.time_zone,
+        "data_cagg_interval": row.data_cagg_interval,
+    }

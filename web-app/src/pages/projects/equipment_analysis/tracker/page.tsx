@@ -248,11 +248,10 @@ const ProjectEquipmentAnalysisTracker = () => {
           data={PositionData() as Data[]}
           layout={{
             xaxis: {
-              title: view === 'block' ? 'PV Block' : 'Tracker Row', // Change label based on view
-              type: 'category', // Make x axis categorical
+              title: { text: view === 'block' ? 'PV Block' : 'Tracker Row' },
             },
             yaxis: {
-              title: 'Degrees',
+              title: { text: 'Degrees' },
               range: view === 'row' ? [0, 5] : undefined,
             },
             showlegend: false,
@@ -340,10 +339,10 @@ const ProjectEquipmentAnalysisTracker = () => {
           data={SetpointData() as Data[]}
           layout={{
             xaxis: {
-              title: view === 'block' ? 'PV Block' : 'Tracker Row', // Change label based on view
+              title: { text: view === 'block' ? 'PV Block' : 'Tracker Row' }, // Change label based on view
             },
             yaxis: {
-              title: 'Degrees',
+              title: { text: 'Degrees' },
               range: view === 'row' ? [0, 5] : undefined,
             },
             showlegend: false,

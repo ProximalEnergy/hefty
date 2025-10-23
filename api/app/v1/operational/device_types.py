@@ -1,11 +1,11 @@
 from typing import Annotated
 
+from core.crud.operational.device_types import get_device_type as crud_get_device_type
+from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces, utils
-from app._crud.operational.device_types import get_device_type as crud_get_device_type
-from app._crud.operational.device_types import get_device_types as crud_get_device_types
 from app.dependencies import get_async_db
 
 DESCRIPTION_404 = "Device type not found"
