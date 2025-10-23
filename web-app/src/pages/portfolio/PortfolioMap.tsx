@@ -355,22 +355,30 @@ const PortfolioMap = () => {
                 <Stack gap="sm">
                   <Switch
                     checked={showClouds}
-                    onChange={() => setShowClouds((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowClouds(event.currentTarget.checked)
+                    }
                     label="Cloud Overlay"
                   />
                   <Switch
                     checked={showPrecipitation}
-                    onChange={() => setShowPrecipitation((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowPrecipitation(event.currentTarget.checked)
+                    }
                     label="Precipitation Overlay"
                   />
                   <Switch
                     checked={showHail}
-                    onChange={() => setShowHail((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowHail(event.currentTarget.checked)
+                    }
                     label="Hail Forecast (Day 1)"
                   />
                   <Switch
                     checked={showHailDay2}
-                    onChange={() => setShowHailDay2((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowHailDay2(event.currentTarget.checked)
+                    }
                     label="Hail Forecast (Day 2)"
                   />
                 </Stack>
@@ -382,7 +390,9 @@ const PortfolioMap = () => {
                 <Stack gap="sm">
                   <Switch
                     checked={showFavorites}
-                    onChange={() => setShowFavorites((prev) => !prev)}
+                    onChange={(event) =>
+                      setShowFavorites(event.currentTarget.checked)
+                    }
                     label="Favorites Only"
                   />
                   {projectTypes?.map((projectType) => (

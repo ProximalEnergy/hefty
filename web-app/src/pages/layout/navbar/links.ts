@@ -136,6 +136,11 @@ export const projectLinks: DropdownLink[] = [
         requiresBESS: true,
       },
       {
+        to: (projectId: string) => `/projects/${projectId}/bess-operation`,
+        label: 'BESS Operation',
+        requiresBESS: true,
+      },
+      {
         to: (projectId: string) => `/projects/${projectId}/energy-waterfall`,
         label: 'Energy Waterfall',
         requiresBESS: true,

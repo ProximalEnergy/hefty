@@ -52,7 +52,9 @@ const KPICard: React.FC<KPISummaryCard> = ({
                 <IconInfoCircle size={15} />
               </HoverCard.Target>
               <HoverCard.Dropdown>
-                <Text size="sm">{info}</Text>
+                <Text size="sm" component="div">
+                  {info}
+                </Text>
               </HoverCard.Dropdown>
             </HoverCard>
           )}

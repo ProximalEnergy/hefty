@@ -6,7 +6,7 @@ from typing import TypeVar
 
 import sqlalchemy as sa
 from geoalchemy2 import Geography
-from sqlalchemy import SmallInteger, func
+from sqlalchemy import Enum, SmallInteger, func
 from sqlalchemy.dialects.postgresql import BYTEA, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import UserDefinedType
@@ -822,7 +822,13 @@ class Project(Base):
     name_short: Mapped[str] = mapped_column(unique=True)
     name_long: Mapped[str]
     data_table: Mapped[str]
-    data_interval: Mapped[str]
+    data_interval: Mapped[enumerations.ProjectDataInterval] = mapped_column(
+        Enum(
+            enumerations.ProjectDataInterval,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=False,
+    )
     data_cagg_interval: Mapped[str | None]
     data_receive_schedule: Mapped[str | None]
     commencement_of_construction_date: Mapped[datetime.date | None]
@@ -1280,9 +1286,6 @@ class Device(Base):
     device_id_path: Mapped[str | None] = mapped_column(LTree)
     device_type_id: Mapped[int] = mapped_column(
         sa.ForeignKey("operational.device_types.device_type_id"),
-    )
-    device_model_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("operational.device_models.device_model_id"),
     )
     cec_pv_inverter_id: Mapped[int | None] = mapped_column(
         sa.ForeignKey("operational.cec_pv_inverters.cec_pv_inverter_id"),

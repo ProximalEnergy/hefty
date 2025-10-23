@@ -623,7 +623,9 @@ const DroneInspections: React.FC = () => {
 
                           {sortedInspections.map((inspection, index) => (
                             <Timeline.Item
-                              ref={(el) => (itemRefs.current[index] = el)}
+                              ref={(el) => {
+                                itemRefs.current[index] = el
+                              }}
                               key={inspection.inspection_uuid}
                               title={
                                 <Text

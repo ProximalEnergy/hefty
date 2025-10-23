@@ -1,4 +1,4 @@
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, AsyncIterator, Generator
 from contextlib import asynccontextmanager, contextmanager
 from functools import lru_cache
 from uuid import UUID
@@ -69,10 +69,14 @@ def get_db_session(*, schema: str | None = None) -> Session:
     return next(get_db(schema=schema))
 
 
-async def get_db_session_async(*, schema: str | None = None) -> AsyncSession:
+@asynccontextmanager
+async def get_db_session_async(
+    *, schema: str | None = None
+) -> AsyncIterator[AsyncSession]:
     """Get an async database session directly (not a generator)."""
+
     async with with_db_async(schema=schema) as db:
-        return db
+        yield db
 
 
 @lru_cache(maxsize=128)

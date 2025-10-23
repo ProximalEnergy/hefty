@@ -35,7 +35,9 @@ export const PageTitle = ({
             <IconInfoCircle size={iconSize} stroke={iconStroke} />
           </HoverCard.Target>
           <HoverCard.Dropdown maw="50%">
-            <Text size="sm">{info}</Text>
+            <Text size="sm" component="div">
+              {info}
+            </Text>
           </HoverCard.Dropdown>
         </HoverCard>
       )}

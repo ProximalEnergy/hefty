@@ -26,7 +26,10 @@ export const useGetKPISummaryCards = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string }
-  queryParams?: object
+  queryParams?: {
+    kpi_type_ids?: number[]
+    date?: string
+  }
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
@@ -46,5 +49,41 @@ export const useGetKPISummaryCards = ({
     pathParams,
     queryParams: queryParams,
     queryOptions: queryOptions,
+  })
+}
+
+interface RoundTripEfficiencyData {
+  rte: number | null
+}
+
+export const useGetRoundTripEfficiency = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    start: string
+    end: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/rte`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+  }
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+  return useCustomQuery<RoundTripEfficiencyData>({
+    axiosConfig,
+    queryName: 'getRoundTripEfficiency',
+    pathParams,
+    queryParams,
+    queryOptions,
   })
 }

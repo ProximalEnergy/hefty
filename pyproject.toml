@@ -9,9 +9,12 @@ name = "mono"
 version = "0.1.0"
 description = "Monorepo root for unified tooling"
 requires-python = ">=3.12"
+dependencies = []
 
 [dependency-groups]
 dev = [
+    "mypy>=1.18.2",
+    "pyarrow-stubs>=20.0.0.20250928",
     "ruff>=0.14.0",
     "vulture>=2.14",
 ]
@@ -98,6 +101,7 @@ namespace_packages = true
 explicit_package_bases = true
 disable_error_code = ["import-untyped"]
 mypy_path = "src"
+plugins = ["sqlalchemy.ext.mypy.plugin"]
 
 # Exclude patterns for mypy
 exclude = [

@@ -36,7 +36,7 @@ export const PageError = ({
       <Center h="100%" w="100%">
         <Stack align="center">
           <IconAlertTriangle size={48} />
-          {message && <Text>{message}</Text>}
+          {message && <Text component="div">{message}</Text>}
         </Stack>
       </Center>
     </div>
@@ -49,7 +49,7 @@ export const NoData = ({ text }: { text?: string }) => {
       <Center h="100%" w="100%">
         <Stack align="center">
           <IconChartBarOff size={48} />
-          {text ? <Text>{text}</Text> : <Text>No data</Text>}
+          {text ? <Text component="div">{text}</Text> : <Text>No data</Text>}
         </Stack>
       </Center>
     </div>

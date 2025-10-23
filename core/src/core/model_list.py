@@ -290,7 +290,14 @@ class ModelList[T]:
                     )
                     # Apply column mapping for consistency with model-based results
                     if self._sql_to_model_col_map:
-                        df = df.rename(self._sql_to_model_col_map)
+                        # Only rename columns that actually exist in the dataframe
+                        cols_to_rename = {
+                            k: v
+                            for k, v in self._sql_to_model_col_map.items()
+                            if k in df.columns
+                        }
+                        if cols_to_rename:
+                            df = df.rename(cols_to_rename)
                 else:
                     df = pl.read_database(
                         query=self.sql_string(),
@@ -302,27 +309,6 @@ class ModelList[T]:
         # Run the blocking database operation in a thread pool
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, _run_query)
-
-    def polars_dataframe(self) -> pl.DataFrame:
-        """Run the query using Polars instead of SQLAlchemy and return a Polars DataFrame."""
-        if self.items is not None:
-            warnings.warn(
-                """
-                ModelList.polars_dataframe() is inefficient when items are already
-                loaded. Best practice is to use ModelItem.polars_dataframe() when
-                return_query=True.
-                """,
-                category=RuntimeWarning,
-                stacklevel=2,
-            )
-
-        engine = create_engine(database_url())
-        with engine.connect() as connection:
-            df = pl.read_database(
-                query=self.sql_string(), connection=connection, infer_schema_length=None
-            )
-
-        return df
 
     @classmethod
     def from_items(cls, items: list[T]) -> "ModelList[T]":  # skip-star-syntax

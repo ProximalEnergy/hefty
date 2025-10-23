@@ -265,7 +265,7 @@ def get_status_time_series(
             str_interpret.index, "value_text"
         ].apply(lambda x: int(x, 16))
         data_to_df.loc[str_interpret.index, "value_text"] = None
-    df_timeseries = core.utils.core_utils.pivot_timeseries_by_tag(
+    df_timeseries = core.utils.pivot.pivot_timeseries_by_tag(
         df=data_to_df, tags=tags_model_list
     )
     keys, vals = [], []
@@ -418,7 +418,7 @@ def get_status_time_series_python(
             str_interpret.index, "value_text"
         ].apply(lambda x: int(x, 16))
         data_to_df.loc[str_interpret.index, "value_text"] = None
-    df_timeseries = core.utils.core_utils.pivot_timeseries_by_tag(
+    df_timeseries = core.utils.pivot.pivot_timeseries_by_tag(
         df=data_to_df, tags=tags_model_list
     )
     keys, vals = [], []

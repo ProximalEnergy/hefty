@@ -390,6 +390,38 @@ class AggregationType(StrEnum):
     AVERAGE = "avg"
 
 
+class TimeOffset(StrEnum):
+    NONE = "0min"
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+    TEN_MINUTES = "10min"
+    FIFTEEN_MINUTES = "15min"
+    THIRTY_MINUTES = "30min"
+    ONE_HOUR = "1hour"
+    TWO_HOURS = "2hour"
+    FOUR_HOURS = "4hour"
+    SIX_HOURS = "6hour"
+    EIGHT_HOURS = "8hour"
+    TWELVE_HOURS = "12hour"
+    TWENTY_FOUR_HOURS = "24hour"
+
+
+class TimeInterval(StrEnum):
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+    TEN_MINUTES = "10min"
+    FIFTEEN_MINUTES = "15min"
+    THIRTY_MINUTES = "30min"
+    ONE_HOUR = "1hour"
+
+
+class ProjectDataInterval(StrEnum):
+    MQTT = "mqtt"
+    ONE_SEC = "1sec"
+    ONE_MINUTE = "1min"
+    FIVE_MINUTES = "5min"
+
+
 class PVBudgetedSoilingMode(StrEnum):
     FIXED = "fixed"
     PER_TIMESTAMP = "per_timestamp"

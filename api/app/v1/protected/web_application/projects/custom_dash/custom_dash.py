@@ -65,6 +65,7 @@ class UpdateDashboardRequest(BaseModel):
 async def get_bar(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(dependencies.get_db)],
+    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     sensor_type_id: int,
     aggregation_type: str,
@@ -85,23 +86,17 @@ async def get_bar(
         db=project_db,
         sensor_type_ids=[sensor_type_id],
     )
-    data_timeseries_v2 = (
-        await core.crud.project.data_timeseries.get_project_data_timeseries_v2(
-            project_name_short=project.name_short,
-            tag_ids=[t.tag_id for t in tags],
-            start=project_start,
-            end=project_end,
-            interval="5min",
-            return_query=True,
-        ).polars_dataframe_async()
+    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries.get(
+        project_name_short=project.name_short,
+        tag_ids=[t.tag_id for t in tags],
+        query_start=project_start,
+        query_end=project_end,
+        agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+        project_db=project_db,
+        operational_db=operational_db,
+        return_arrow=False,
     )
-    df = (
-        core.utils.core_utils.pivot_timeseries_by_tag_polars(
-            df=data_timeseries_v2, tags=tags, project=project
-        )
-        .to_pandas()
-        .set_index("time", drop=True)
-    )
+    df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
     df = (
         df.reindex(pd.date_range(project_start, project_end, freq="5min"))
@@ -166,6 +161,7 @@ async def get_bar(
 async def get_gauge(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(dependencies.get_db)],
+    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     measured_variable: str,
     maximum_value: str,
@@ -188,23 +184,17 @@ async def get_gauge(
                 db=project_db,
                 sensor_type_ids=[measured_sensor_type_id],
             )
-            data_real = (
-                await core.crud.project.data_timeseries.get_project_data_timeseries_v2(
-                    project_name_short=project.name_short,
-                    tag_ids=[t.tag_id for t in tags],
-                    start=project_start,
-                    end=project_end,
-                    interval="5min",
-                    return_query=True,
-                ).polars_dataframe_async()
+            data_real = await core.crud.project.data_timeseries.DataTimeseries.get(
+                project_name_short=project.name_short,
+                tag_ids=[t.tag_id for t in tags],
+                query_start=project_start,
+                query_end=project_end,
+                agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+                project_db=project_db,
+                operational_db=operational_db,
+                return_arrow=False,
             )
-            df_real = (
-                core.utils.core_utils.pivot_timeseries_by_tag_polars(
-                    df=data_real, tags=tags, project=project
-                )
-                .to_pandas()
-                .set_index("time", drop=True)
-            )
+            df_real = data_real.df.to_pandas().set_index("time", drop=True)
             df_real.columns = df_real.columns.astype(int)
             series_real = df_real.sum(axis=1)
     match maximum_value:
@@ -246,6 +236,7 @@ async def get_gauge(
 async def get_line(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(dependencies.get_db)],
+    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     sensor_type_ids: Annotated[list[int], Query()],
     aggregation_types: Annotated[list[str], Query()],
@@ -273,23 +264,17 @@ async def get_line(
     tags = core.crud.project.tags.get_project_tags(
         db=project_db, sensor_type_ids=list(set(sensor_type_ids))
     )
-    data_timeseries_v2 = (
-        await core.crud.project.data_timeseries.get_project_data_timeseries_v2(
-            project_name_short=project.name_short,
-            tag_ids=[t.tag_id for t in tags],
-            start=project_start,
-            end=project_end,
-            interval="5min",
-            return_query=True,
-        ).polars_dataframe_async()
+    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries.get(
+        project_name_short=project.name_short,
+        tag_ids=[t.tag_id for t in tags],
+        query_start=project_start,
+        query_end=project_end,
+        agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+        project_db=project_db,
+        operational_db=operational_db,
+        return_arrow=False,
     )
-    df = (
-        core.utils.core_utils.pivot_timeseries_by_tag_polars(
-            df=data_timeseries_v2, tags=tags, project=project
-        )
-        .to_pandas()
-        .set_index("time", drop=True)
-    )
+    df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
     df = (
         df.reindex(pd.date_range(project_start, project_end, freq="5min"))
@@ -369,6 +354,7 @@ async def get_line(
 async def get_scatter(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(dependencies.get_db)],
+    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     x_axis_sensor_type_id: int,
     y_axis_sensor_type_id: int,
@@ -404,23 +390,17 @@ async def get_scatter(
     y_axis_tag_ids = [t.tag_id for t in y_axis_tags]
     tags = tags.find(tag_id__in=x_axis_tag_ids + y_axis_tag_ids)
 
-    data_timeseries_v2 = (
-        await core.crud.project.data_timeseries.get_project_data_timeseries_v2(
-            project_name_short=project.name_short,
-            tag_ids=[t.tag_id for t in tags],
-            start=project_start,
-            end=project_end,
-            interval="5min",
-            return_query=True,
-        ).polars_dataframe_async()
+    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries.get(
+        project_name_short=project.name_short,
+        tag_ids=[t.tag_id for t in tags],
+        query_start=project_start,
+        query_end=project_end,
+        agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+        project_db=project_db,
+        operational_db=operational_db,
+        return_arrow=False,
     )
-    df = (
-        core.utils.core_utils.pivot_timeseries_by_tag_polars(
-            df=data_timeseries_v2, tags=tags, project=project
-        )
-        .to_pandas()
-        .set_index("time", drop=True)
-    )
+    df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
     x_axis_df = df[
         df.columns.astype(int).intersection([tag_id for tag_id in x_axis_tag_ids])

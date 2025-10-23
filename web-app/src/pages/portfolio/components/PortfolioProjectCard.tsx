@@ -17,6 +17,7 @@ import {
   Text,
   Title,
   Tooltip,
+  useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
 import {
@@ -45,6 +46,7 @@ export function PortfolioProjectCard({
   isFavorited?: boolean
 }) {
   const theme = useMantineTheme()
+  const computedColorScheme = useComputedColorScheme('dark')
   const { user } = useUser()
   const updateFavoriteMutation = useUpdateProjectFavorite()
 
@@ -61,6 +63,24 @@ export function PortfolioProjectCard({
       projectId: project.project_id,
       isFavorited: !isFavorited,
     })
+  }
+
+  // Define x-axis data based on real time data availability
+  const x = project.has_real_time_data
+    ? portfolioHomeProject?.times?.slice(-288)
+    : portfolioHomeProject?.times?.slice(0, 288)
+
+  // Define max power line based on project characteristics
+  // NOTE: On some projects (Serrano) it appears that the BESS capacity is greater than the POI
+  const maxPower = Math.max(project.poi, project.capacity_bess_power_ac || 0)
+
+  // Define max power line
+  const maxPowerLinePositive = Array(x?.length ?? 0).fill(maxPower)
+  const maxPowerLineNegative = Array(x?.length ?? 0).fill(-maxPower)
+  const maxPowerLineConfig = {
+    color: computedColorScheme === 'dark' ? theme.colors.dark[0] : 'black',
+    dash: 'dot' as const,
+    width: 1,
   }
 
   return (
@@ -123,11 +143,26 @@ export function PortfolioProjectCard({
             {portfolioHomeProject?.times ? (
               <PlotlyPlot
                 data={[
+                  {
+                    x,
+                    y: maxPowerLinePositive,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: maxPowerLineConfig,
+                  },
+                  project.project_type_id === ProjectTypeId.BESS ||
+                  project.project_type_id === ProjectTypeId.PV_BESS
+                    ? {
+                        x,
+                        y: maxPowerLineNegative,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: maxPowerLineConfig,
+                      }
+                    : {},
                   portfolioHomeProject.meter_active_power
                     ? {
-                        x: project.has_real_time_data
-                          ? portfolioHomeProject.times.slice(-288)
-                          : portfolioHomeProject.times.slice(0, 288),
+                        x,
                         y: project.has_real_time_data
                           ? portfolioHomeProject.meter_active_power.slice(-288)
                           : portfolioHomeProject.meter_active_power.slice(
@@ -145,9 +180,7 @@ export function PortfolioProjectCard({
                     : {},
                   portfolioHomeProject.meter_soc_percent
                     ? {
-                        x: project.has_real_time_data
-                          ? portfolioHomeProject.times.slice(-288)
-                          : portfolioHomeProject.times.slice(0, 288),
+                        x,
                         y: project.has_real_time_data
                           ? portfolioHomeProject.meter_soc_percent.slice(-288)
                           : portfolioHomeProject.meter_soc_percent.slice(
@@ -185,14 +218,8 @@ export function PortfolioProjectCard({
                     range: [
                       project.project_type_id === ProjectTypeId.PV
                         ? 0
-                        : Math.max(
-                            project.poi,
-                            project.capacity_bess_power_ac || 0,
-                          ) * -1.1,
-                      Math.max(
-                        project.poi,
-                        project.capacity_bess_power_ac || 0,
-                      ) * 1.1,
+                        : maxPower * -1.1,
+                      maxPower * 1.1,
                     ],
                     gridcolor: 'transparent',
                   },

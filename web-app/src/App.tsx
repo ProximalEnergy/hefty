@@ -72,6 +72,7 @@ import PortfolioKPIHome from './pages/portfolio/PortfolioKPIHome'
 import PortfolioList from './pages/portfolio/PortfolioList'
 import PortfolioMap from './pages/portfolio/PortfolioMap'
 import PortfolioSettings from './pages/portfolio/settings/PortfolioSettings'
+import BESSOperation from './pages/projects/BESSOperation'
 // Battery Health
 import BatteryHealth from './pages/projects/BatteryHealth'
 // Data Browsing
@@ -326,6 +327,9 @@ const ClerkProviderWithRoutes = () => {
 
               {/* Battery Health */}
               <Route path="battery-health" element={<BatteryHealth />} />
+
+              {/* BESS Operation */}
+              <Route path="bess-operation" element={<BESSOperation />} />
 
               {/* Energy Waterfall */}
               <Route path="energy-waterfall" element={<EnergyWaterfall />} />

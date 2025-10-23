@@ -65,6 +65,15 @@ jobs:
             echo "changed_apps=$CHANGED_APPS" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug - Log no_changes value
+        run: |
+          echo "no_changes value: ${{ steps.diff.outputs.no_changes }}"
+          if [ "${{ steps.diff.outputs.no_changes }}" == "true" ]; then
+            echo "✅ no_changes is TRUE - PR creation will be skipped"
+          else
+            echo "🚀 no_changes is FALSE - PR creation will proceed"
+          fi
+
       - name: Log environment info
         if: steps.diff.outputs.no_changes == 'false'
         run: |
@@ -89,12 +98,18 @@ jobs:
 
             const commits = compare.data.commits;
 
+            // Log all commits
+            core.info(`All commits: ${JSON.stringify(commits, null, 2)}`);
+
             // Filter commits that affect application directories
             const appCommits = commits.filter(commit => {
               return commit.files && commit.files.some(file =>
                 file.filename.match(/^(api|web-app|core)\//)
               );
             });
+
+            // Log filtered app commits
+            core.info(`App commits: ${JSON.stringify(appCommits, null, 2)}`);
 
             const logins = [
               ...new Set(appCommits.map(c => c.author?.login).filter(Boolean))

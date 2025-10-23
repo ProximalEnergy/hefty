@@ -5,7 +5,7 @@
 
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
-depends = ["api:switch-core", "install"]
+depends = ["sync", "api:switch-core", "install"]
 run = "./_scripts/run_dev.sh"
 
 [tasks.check]
@@ -45,7 +45,7 @@ git checkout dev && \
 git pull origin dev && \
 echo "Switching back to original branch and merging dev..." && \
 git checkout - && \
-git merge dev && \
+git merge dev --no-edit && \
 echo "Sync complete! Your branch is now up to date with dev."
 """
 
@@ -328,8 +328,3 @@ run = "npm run preview"
 description = "Run TypeScript check and format web-app"
 dir = "web-app"
 run = "npm run check"
-
-[tasks."web:knip"]
-description = "Run dependency check for web-app"
-dir = "web-app"
-run = "npx knip"

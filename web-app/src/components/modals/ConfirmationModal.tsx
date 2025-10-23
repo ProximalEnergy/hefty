@@ -17,7 +17,7 @@ const ConfirmationModal = ({
 }: ConfirmationModalProps) => {
   return (
     <Modal opened={opened} onClose={onClose} title={title}>
-      <Text>{message}</Text>
+      <Text component="div">{message}</Text>
       <Group mt="md">
         <Button variant="default" onClick={onClose}>
           Cancel
