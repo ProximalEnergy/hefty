@@ -22,22 +22,14 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   build: {
-    sourcemap: 'hidden',
+    sourcemap: true,
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Split vendor dependencies
-          if (id.includes('node_modules')) {
-            return id
-              .toString()
-              .split('node_modules/')[1]
-              .split('/')[0]
-              .toString()
-          }
-        },
+        manualChunks: undefined,
       },
     },
   },

@@ -8,6 +8,15 @@ description = "Run API and web-app development servers concurrently"
 depends = ["sync", "api:switch-core", "install"]
 run = "./_scripts/run_dev.sh"
 
+[tasks.preview]
+description = "Run API and web-app preview servers concurrently"
+depends = ["sync", "api:switch-core"]
+run = [
+    "mise run install",
+    "mise run web:build",
+    "./_scripts/run_preview.sh"
+]
+
 [tasks.check]
 description = "Run all quality checks across the entire monorepo"
 depends = ["api:switch-core"]
@@ -45,7 +54,7 @@ git checkout dev && \
 git pull origin dev && \
 echo "Switching back to original branch and merging dev..." && \
 git checkout - && \
-git merge dev --no-edit && \
+git merge dev && \
 echo "Sync complete! Your branch is now up to date with dev."
 """
 
