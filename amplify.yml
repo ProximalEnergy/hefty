@@ -10,7 +10,7 @@ applications:
             # Install dependencies
             - npm ci
             # Write the latest commit hash to version.json
-            - 'echo "{\"version\": \"$(git rev-parse HEAD)\"}" > public/version.json'
+            - 'echo "{\"version\": \"$(git rev-parse HEAD)\"}" > ./public/version.json'
         build:
           commands:
             - export NODE_OPTIONS=--max_old_space_size=6144
