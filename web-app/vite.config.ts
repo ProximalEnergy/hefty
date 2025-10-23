@@ -27,8 +27,6 @@ export default defineConfig({
     sourcemap: 'hidden',
     minify: 'esbuild',
     rollupOptions: {
-      // Externalize pdfjs-dist completely since you're using CDN
-      external: ['pdfjs-dist'],
       output: {
         manualChunks: (id) => {
           // Split vendor dependencies
@@ -44,7 +42,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    // Don't pre-bundle pdfjs-dist
-    exclude: ['pdfjs-dist'],
+    exclude: [],
   },
 })
