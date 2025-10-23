@@ -38,7 +38,6 @@ export default function OMContractors({ projectId }: { projectId: string }) {
 
   const deviceTypes = useGetDeviceTypes({
     // Backend supports filtering by project_id to only return device types in use
-    queryParams: { project_id: projectId },
     queryOptions: { enabled: !!projectId },
   })
 

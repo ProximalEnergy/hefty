@@ -5,7 +5,7 @@ import { UseQueryOptions } from '@tanstack/react-query'
 const COMPONENT_NAME = 'DeviceType'
 const URL = '/v1/operational/device-types/'
 
-type DeviceType = types.components['schemas'][typeof COMPONENT_NAME]
+export type DeviceType = types.components['schemas'][typeof COMPONENT_NAME]
 type get = types.paths[typeof URL]['get']
 type getQueryParams = get['parameters']['query']
 

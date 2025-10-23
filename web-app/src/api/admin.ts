@@ -1,3 +1,4 @@
+import * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { useAuth } from '@clerk/clerk-react'
 import {
@@ -22,13 +23,9 @@ interface UserWithPermissions {
   permission_name_shorts: string[]
 }
 
-export interface User {
-  user_id: string
-  name_long: string
-  company_id: string
-  user_type_id: number
-  operational_project_ids: string[]
-}
+export type User = types.components['schemas']['User']
+
+type UserWithProjects = types.components['schemas']['UserWithProjects']
 
 interface Company {
   company_id: string
@@ -289,7 +286,7 @@ export const useGetUsers = ({
 
   queryOptions = { ...defaultQueryOptions, ...queryOptions }
 
-  return useCustomQuery<User[]>({
+  return useCustomQuery<UserWithProjects[]>({
     axiosConfig,
     queryName: 'getUsers',
     pathParams: {},

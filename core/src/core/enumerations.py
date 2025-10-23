@@ -2,9 +2,6 @@ from collections.abc import Sequence
 from enum import IntEnum, StrEnum, nonmember
 from typing import TYPE_CHECKING, Any
 
-from pydantic import GetJsonSchemaHandler
-from pydantic.json_schema import JsonSchemaValue
-
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
@@ -16,26 +13,26 @@ class BaseIntEnum(IntEnum):
     _db_id_column = nonmember(None)
     _db_name_column = nonmember(None)
 
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls, core_schema, handler: GetJsonSchemaHandler
-    ) -> JsonSchemaValue:
-        schema = handler(core_schema)
+    # @classmethod
+    # def __get_pydantic_json_schema__(
+    #     cls, core_schema, handler: GetJsonSchemaHandler
+    # ) -> JsonSchemaValue:
+    #     schema = handler(core_schema)
 
-        # If we got a $ref, resolve and mutate the target schema
-        if isinstance(schema, dict) and "$ref" in schema:
-            target = handler.resolve_ref_schema(schema)
-            if isinstance(target, dict):
-                # only add when it’s actually an enum
-                if "enum" in target and "x-enum-varnames" not in target:
-                    target["x-enum-varnames"] = [m.name for m in cls]
-            return schema
+    #     # If we got a $ref, resolve and mutate the target schema
+    #     if isinstance(schema, dict) and "$ref" in schema:
+    #         target = handler.resolve_ref_schema(schema)
+    #         if isinstance(target, dict):
+    #             # only add when it’s actually an enum
+    #             if "enum" in target and "x-enum-varnames" not in target:
+    #                 target["x-enum-varnames"] = [m.name for m in cls]
+    #         return schema
 
-        # Inline schema (no $ref)
-        if isinstance(schema, dict) and "enum" in schema:
-            schema["x-enum-varnames"] = [m.name for m in cls]
+    #     # Inline schema (no $ref)
+    #     if isinstance(schema, dict) and "enum" in schema:
+    #         schema["x-enum-varnames"] = [m.name for m in cls]
 
-        return schema
+    #     return schema
 
     @classmethod
     def extract_values(  # skip-star-syntax

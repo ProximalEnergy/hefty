@@ -28,6 +28,7 @@ class ThemeUpdateRequest(BaseModel):
 @router.get(
     "/",
     dependencies=[Depends(dependencies.requires_admin_async)],
+    response_model=list[interfaces.UserWithProjects],
 )
 async def get_users(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -50,6 +51,7 @@ async def get_users(
 
 @router.get(
     "/self",
+    response_model=interfaces.User,
 )
 async def get_self(
     user_data: Annotated[dict, Depends(dependencies.get_user_data_async)],

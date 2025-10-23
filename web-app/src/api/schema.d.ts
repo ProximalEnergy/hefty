@@ -8247,6 +8247,21 @@ export interface components {
             /** Components */
             components: components["schemas"]["DashboardComponent"][];
         };
+        /** User */
+        User: {
+            /** User Id */
+            user_id: string;
+            user_type_id: components["schemas"]["UserTypeEnum"];
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name Long */
+            name_long: string;
+            /** Api Key */
+            api_key: string | null;
+        };
         /** UserBasic */
         UserBasic: {
             /** User Id */
@@ -8339,6 +8354,23 @@ export interface components {
             name_long: string;
             /** Permission Ids */
             permission_ids: number[];
+        };
+        /** UserWithProjects */
+        UserWithProjects: {
+            /** User Id */
+            user_id: string;
+            user_type_id: components["schemas"]["UserTypeEnum"];
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name Long */
+            name_long: string;
+            /** Api Key */
+            api_key: string | null;
+            /** Operational Project Ids */
+            operational_project_ids: string[];
         };
         /** UtilityExpectedResponse */
         UtilityExpectedResponse: {
@@ -9448,7 +9480,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserWithProjects"][];
                 };
             };
             /** @description Validation Error */
@@ -9480,7 +9512,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["User"];
                 };
             };
             /** @description Validation Error */

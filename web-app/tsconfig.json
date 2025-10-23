@@ -20,9 +20,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* OpenAPI */
-    "noUncheckedIndexedAccess": true,
-
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -92,7 +92,6 @@ const UptimeTable = () => {
 
   const { data: deviceTypes, isLoading: isDeviceTypesLoading } =
     useGetDeviceTypes({
-      queryParams: { project_id: projectId || '' },
       queryOptions: {
         enabled: !!projectId,
       },
