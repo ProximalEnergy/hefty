@@ -45,8 +45,7 @@ interface TeamWithMembers extends Team {
   members: { user_id: string; name_long: string }[]
 }
 
-interface UserType {
-  user_type_id: number
+type UserType = types.components['schemas']['UserType'] & {
   name_short: 'admin' | 'superadmin' | 'user'
 }
 
