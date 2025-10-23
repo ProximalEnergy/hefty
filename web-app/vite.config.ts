@@ -25,7 +25,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   build: {
-    sourcemap: true,
+    sourcemap: 'hidden',
     minify: 'esbuild',
     rollupOptions: {
       output: {
