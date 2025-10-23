@@ -10,6 +10,7 @@ on:
       - "core/src/core/**"
       - "core/pyproject.toml"
       - "api/**"
+      - "web-app/*"
       - ".github/workflows/deploy-composite.yml"
       - "amplify.yml"
 
