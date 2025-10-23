@@ -32,10 +32,6 @@ class User(BaseModel):
     api_key: str | None
 
 
-class UserWithProjects(User):
-    operational_project_ids: list[uuid.UUID]
-
-
 class UserCreate(BaseModel):
     first_name: str
     last_name: str
