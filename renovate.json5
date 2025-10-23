@@ -2,7 +2,6 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:recommended", "mergeConfidence:all-badges"],
   minimumReleaseAge: "30 days",
-  prCreation: "not-pending",
   reviewers: ["kurt-rhee"],
   packageRules: [
     // =========== Don't Upgrade Python ============
