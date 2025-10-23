@@ -10,7 +10,7 @@ on:
       - "core/src/core/**"
       - "core/pyproject.toml"
       - "api/**"
-      - "web-app/*"
+      - "web-app/**"
       - ".github/workflows/deploy-composite.yml"
       - "amplify.yml"
 
@@ -25,7 +25,7 @@ jobs:
     outputs:
       core: ${{ steps.filter.outputs.core }}
       api: ${{ steps.filter.outputs.api }}
-      webapp: ${{ steps.filter.outputs.web-app }}
+      web-app: ${{ steps.filter.outputs.web-app }}
     steps:
       - uses: actions/checkout@v5
 
@@ -48,7 +48,7 @@ jobs:
           echo "Changes detected:"
           echo "  Core: ${{ steps.filter.outputs.core }}"
           echo "  API: ${{ steps.filter.outputs.api }}"
-          echo "  Web-App: ${{ steps.filter.outputs.webapp }}"
+          echo "  Web-App: ${{ steps.filter.outputs.web-app }}"
 
   # Job 1: Publish Core Package
   publish-core:
