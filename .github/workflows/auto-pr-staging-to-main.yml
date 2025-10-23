@@ -98,27 +98,31 @@ jobs:
 
             const commits = compare.data.commits;
 
-            // Log all commits
-            core.info(`All commits: ${JSON.stringify(commits, null, 2)}`);
-
-            // Filter commits that affect application directories
-            const appCommits = commits.filter(commit => {
-              return commit.files && commit.files.some(file =>
-                file.filename.match(/^(api|web-app|core)\//)
-              );
-            });
-
-            // Log filtered app commits
-            core.info(`App commits: ${JSON.stringify(appCommits, null, 2)}`);
-
+            // Get all unique author logins
             const logins = [
-              ...new Set(appCommits.map(c => c.author?.login).filter(Boolean))
+              ...new Set(commits.map(c => c.author?.login).filter(Boolean))
             ];
 
-            core.info(`Found ${commits.length} total commits, ${appCommits.length} affecting applications.`);
+            core.info(`Found ${commits.length} total commits.`);
             core.info(`Contributors (usernames): ${logins.join(', ')}`);
-
             core.setOutput('reviewers', logins.join(','));
+
+      - name: Check if PR already exists
+        if: steps.check_changes.outputs.has_changes == 'true'
+        id: check_pr_exists
+        run: |
+          # Check for existing open PR from staging to main
+          EXISTING_PR=$(gh pr list --base staging --head main --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "ℹ️ PR #$EXISTING_PR already exists from staging to main"
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "No existing PR found from staging to main"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR
         id: create_pr
