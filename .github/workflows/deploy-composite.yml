@@ -25,6 +25,7 @@ jobs:
     outputs:
       core: ${{ steps.filter.outputs.core }}
       api: ${{ steps.filter.outputs.api }}
+      webapp: ${{ steps.filter.outputs.web-app }}
     steps:
       - uses: actions/checkout@v5
 
@@ -38,12 +39,16 @@ jobs:
               - 'core/pyproject.toml'
             api:
               - 'api/**'
+            web-app:
+              - 'web-app/**'
+              - 'amplify.yml'
 
       - name: Echo detected changes
         run: |
           echo "Changes detected:"
           echo "  Core: ${{ steps.filter.outputs.core }}"
           echo "  API: ${{ steps.filter.outputs.api }}"
+          echo "  Web-App: ${{ steps.filter.outputs.webapp }}"
 
   # Job 1: Publish Core Package
   publish-core:
@@ -399,12 +404,14 @@ jobs:
 
   # Job 4: Deploy Web-App (depends on deploy-api - ATOMIC)
   deploy-web-app:
-    needs: deploy-api
+    needs: [publish-core, deploy-api, detect-changes]
     runs-on: ubuntu-latest
     # Only deploy web-app if API deploy succeeded and branch is staging or main
     if: |
-      needs.deploy-api.result == 'success' &&
-      (github.ref_name == 'staging' || github.ref_name == 'main')
+      !cancelled() &&
+      (github.ref_name == 'staging' || github.ref_name == 'main') &&
+      needs.publish-core.result != 'failure' &&
+      (needs.deploy-api.result == 'success' || (needs.deploy-api.result == 'skipped' && needs.detect-changes.outputs.web-app == 'true'))
 
     steps:
       - uses: actions/checkout@v5

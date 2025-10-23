@@ -1,5 +1,7 @@
 # Proximal Energy Web Application
 
+This is a small change for CI, please delete me later
+
 ## Getting Started
 
 1. Install Node.js version 22. Installation instructions can be found [here](https://nodejs.org/en/download). Make sure to select v22 for macOS using nvm with npm.
