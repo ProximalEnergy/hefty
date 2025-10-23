@@ -12,6 +12,10 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 - `mise run install`:  Sync all dependencies across mono
 - `eval "$(mise activate zsh)"`:  Install in `.zshrc` for auto venv activation
 
+### Mise Notes
+- `Depends` will run all dependency tasks in parallel
+- `Run` will run all tasks sequentially
+
 
 # Deployments
 ## Beanstalk

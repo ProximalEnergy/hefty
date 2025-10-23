@@ -27,7 +27,7 @@ trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
 # Run web-app dev server in background and prefix output
 (
-  mise run web:dev 2>&1 | \
+  mise run web:preview 2>&1 | \
     while IFS= read -r line; do
       echo -e "${GREEN}[WEB]${NC} $line"
     done
