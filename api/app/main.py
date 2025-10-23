@@ -52,6 +52,8 @@ app.add_middleware(
         "https://staging.d1waz5kiczd3n9.amplifyapp.com",  # Staging
         "http://localhost:5173",  # Local development
         "http://127.0.0.1:5173",  # Local development
+        "http://localhost:4173",  # Local Preview Build
+        "http://127.0.0.1:4173",  # Local Preview Build
         "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
         "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
     ],
