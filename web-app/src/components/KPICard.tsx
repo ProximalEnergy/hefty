@@ -68,7 +68,9 @@ const KPICard: React.FC<KPISummaryCard> = ({
             >
               {(value || value === 0) && (
                 <Text fz={TEXT_SIZE_PRIMARY} lh={1}>
-                  {value === 0 || value === -0 ? '0' : value.toLocaleString()}
+                  {value === 0 || Object.is(value, -0)
+                    ? '0'
+                    : value.toLocaleString()}
                 </Text>
               )}
               {unit && (
