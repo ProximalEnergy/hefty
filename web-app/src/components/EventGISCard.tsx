@@ -1,3 +1,4 @@
+import { DeviceType } from '@/api/enumerations'
 import { useGetProject } from '@/api/v1/operational/projects'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
@@ -56,7 +57,7 @@ const EventGISCard = ({
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [6],
+      device_type_ids: [DeviceType.BLOCK],
     },
   })
 

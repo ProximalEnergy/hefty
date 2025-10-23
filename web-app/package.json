@@ -11,7 +11,7 @@
     "check": "npx tsc && npx prettier --write --log-level warn .",
     "test": "npx playwright test",
     "generate:types": "openapi-typescript ../api/openapi.json --output ./src/api/_example/openapi-typescript/api-types.ts",
-    "generate:enums": "node ./scripts/generate-enums.mjs ../api/openapi.json ./src/api/_example/openapi-typescript/enums.ts",
+    "generate:enums": "node ./scripts/generate-enums.mjs ../api/openapi.json ./src/api//enums.ts",
     "generate-api": "npm run generate:types && npm run generate:enums"
   },
   "dependencies": {
@@ -93,12 +93,13 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "knip": "^5.66.0",
+    "openapi-typescript": "^7.10.1",
     "postcss": "^8.5.3",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^6.0.5",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "vite": "7.0.0"
   },
   "prettier": {
