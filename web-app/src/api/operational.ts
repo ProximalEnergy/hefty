@@ -1,7 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-import { User } from './admin'
+import { UserWithProjects } from './admin'
 
 export const useGetCompanyUsers = ({
   queryOptions = {},
@@ -19,7 +19,7 @@ export const useGetCompanyUsers = ({
 
   queryOptions = { ...defaultQueryOptions, ...queryOptions }
 
-  return useCustomQuery<User[]>({
+  return useCustomQuery<UserWithProjects[]>({
     axiosConfig,
     queryName: 'getCompanyUsers',
     pathParams: {},

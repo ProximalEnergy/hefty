@@ -23,9 +23,8 @@ interface UserWithPermissions {
   permission_name_shorts: string[]
 }
 
-export type User = types.components['schemas']['User']
-
-type UserWithProjects = types.components['schemas']['UserWithProjects']
+type UserData = types.components['schemas']['UserData']
+export type UserWithProjects = types.components['schemas']['UserWithProjects']
 
 interface Company {
   company_id: string
@@ -310,7 +309,7 @@ export const useGetUserSelf = ({
 
   queryOptions = { ...defaultQueryOptions, ...queryOptions }
 
-  return useCustomQuery<User>({
+  return useCustomQuery<UserData>({
     axiosConfig,
     queryName: 'getUserSelf',
     pathParams: {},

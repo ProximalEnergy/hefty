@@ -51,7 +51,7 @@ async def get_users(
 
 @router.get(
     "/self",
-    response_model=interfaces.User,
+    response_model=interfaces.UserData,
 )
 async def get_self(
     user_data: Annotated[dict, Depends(dependencies.get_user_data_async)],
