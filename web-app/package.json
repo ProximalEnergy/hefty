@@ -9,7 +9,10 @@
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "check": "npx tsc && npx prettier --write --log-level warn .",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "generate:types": "openapi-typescript ../api/openapi.json --output ./src/api/_example/openapi-typescript/api-types.ts",
+    "generate:enums": "node ./scripts/generate-enums.mjs ../api/openapi.json ./src/api/_example/openapi-typescript/enums.ts",
+    "generate-api": "npm run generate:types && npm run generate:enums"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.24.1",
@@ -95,6 +98,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "install": "^0.13.0",
     "npm": "^11.3.0",
+    "openapi-typescript": "^7.9.1",
     "playwright": "^1.55.0",
     "postcss": "^8.5.3",
     "postcss-preset-mantine": "^1.17.0",

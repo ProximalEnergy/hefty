@@ -11,12 +11,14 @@ you should create a child interface in the corresponding _crud file.
 
 import datetime
 import uuid
+from enum import Enum
 from typing import Annotated, Any
 
 from core.enumerations import UserTypeEnum
 from geoalchemy2.shape import to_shape
-from pydantic import BaseModel, Field, conlist, model_validator
+from pydantic import BaseModel, Field, GetJsonSchemaHandler, conlist, model_validator
 from pydantic.config import ConfigDict
+from pydantic.json_schema import JsonSchemaValue
 from shapely.geometry import mapping  # type: ignore
 
 
@@ -159,6 +161,29 @@ class ProjectSpec(BaseModel):
     used_sensor_type_ids: list[int] | None = None
     device_types_with_all_points: list[int] | None = None
     device_types_all_with_polygons: list[int] | None = None
+
+
+class IntEnumWithNames(int, Enum):
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        schema = handler(core_schema)
+
+        # If we got a $ref, resolve and mutate the target schema
+        if isinstance(schema, dict) and "$ref" in schema:
+            target = handler.resolve_ref_schema(schema)
+            if isinstance(target, dict):
+                # only add when it’s actually an enum
+                if "enum" in target and "x-enum-varnames" not in target:
+                    target["x-enum-varnames"] = [m.name for m in cls]
+            return schema
+
+        # Inline schema (no $ref)
+        if isinstance(schema, dict) and "enum" in schema:
+            schema["x-enum-varnames"] = [m.name for m in cls]
+
+        return schema
 
 
 # --- Operational.Projects ---
