@@ -1,4 +1,4 @@
-name: Composite Deploy - Core & API
+name: Composite Deploy
 
 on:
   push:
@@ -11,6 +11,7 @@ on:
       - "core/pyproject.toml"
       - "api/**"
       - ".github/workflows/deploy-composite.yml"
+      - "amplify.yml"
 
 permissions:
   id-token: write
