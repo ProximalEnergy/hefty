@@ -3,13 +3,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import dependencies, interfaces
+from app import dependencies
 from app._crud.admin.users import get_users as crud_get_users
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/", response_model=list[interfaces.UserWithProjects])
+@router.get("/")
 async def get_users(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
