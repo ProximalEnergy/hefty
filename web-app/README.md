@@ -1,6 +1,5 @@
 # Proximal Energy Web Application
 
-This is a small change for CI, please delete me later
 
 ## Getting Started
 
