@@ -4,7 +4,6 @@ import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -14,19 +13,38 @@ export default defineConfig({
     }),
     visualizer({
       filename: 'rollup-plugin-visualizer-stats.html',
-      open: true, // Automatically open the report in your browser
-      gzipSize: true, // Show gzip sizes
-      brotliSize: true, // Show Brotli sizes
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
     }),
   ],
-
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
-
   build: {
-    sourcemap: true,
+    sourcemap: 'hidden',
+    minify: 'esbuild',
+    rollupOptions: {
+      // Externalize pdfjs-dist completely since you're using CDN
+      external: ['pdfjs-dist'],
+      output: {
+        manualChunks: (id) => {
+          // Split vendor dependencies
+          if (id.includes('node_modules')) {
+            return id
+              .toString()
+              .split('node_modules/')[1]
+              .split('/')[0]
+              .toString()
+          }
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    // Don't pre-bundle pdfjs-dist
+    exclude: ['pdfjs-dist'],
   },
 })
