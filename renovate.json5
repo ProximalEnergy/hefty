@@ -1,6 +1,6 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended", "mergeConfidence:all-badges"],
+  extends: ["config:recommended"],
   minimumReleaseAge: "30 days",
   reviewers: ["kurt-rhee"],
   packageRules: [
