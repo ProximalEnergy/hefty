@@ -292,6 +292,7 @@ const PCSEquipmentAnalysis = () => {
             includeTodayInDateRange
             disableQuickActions
             defaultRange="today"
+            includeClearButton={false}
           />
           {includeEnergy && produced?.[0]?.value ? (
             <Link
