@@ -19,6 +19,11 @@
       matchDatasources: ["github-tags"],
       enabled: false,
     },
+    {
+      matchPackageNames: ["python"],
+      matchDatasources: ["uses-with"],
+      enabled: false,
+    },
     // =========== Don't Upgrade Certain Packages ============
     {
       matchPackageNames: ["polars", "plotly.js"],
