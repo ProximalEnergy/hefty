@@ -1,7 +1,9 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:recommended"],
+  dependencyDashboard: true,
   minimumReleaseAge: "30 days",
+  internalChecksFilter: "strict",
   reviewers: ["kurt-rhee"],
   packageRules: [
     // =========== Don't Upgrade Python ============
