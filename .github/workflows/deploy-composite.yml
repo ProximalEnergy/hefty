@@ -163,6 +163,8 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
 
       - name: Build Wheel
         run: uv build --out-dir dist
@@ -251,7 +253,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Set up python
         run: uv python install
