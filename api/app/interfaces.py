@@ -998,9 +998,39 @@ class ContractCreate(BaseModel):
 class Contract(BaseModel):
     project_id: uuid.UUID
     document_id: uuid.UUID
-    company_id_provider: uuid.UUID
-    company_id_counter: uuid.UUID
-    execution_date: datetime.date
+    company_id_provider: uuid.UUID | None = None
+    company_id_counter: uuid.UUID | None = None
+    execution_date: datetime.date | None = None
+
+
+# --- PV Budgeted Performance ---
+class PVBudgetedSeriesIn(BaseModel):
+    p_value: str
+    frequency: str
+    soiling_mode: str | None = None
+    soiling_fixed_percentage: float | None = None
+    tmy_source: str | None = None
+    model_version: str | None = None
+    filename: str | None = None
+
+
+class PVBudgetedSeries(PVBudgetedSeriesIn):
+    pv_budgeted_series_id: int
+
+
+class PVBudgetedDataRow(BaseModel):
+    time_stamp: datetime.datetime
+    poi_ac_power: float
+    ghi: float | None = None
+    poa: float
+    temperature: float | None = None
+    soiling_percentage: float | None = None
+
+
+class PVBudgetedBulkUpsertRequest(BaseModel):
+    pv_budgeted_series_id: int | None = None
+    series: PVBudgetedSeriesIn | None = None
+    rows: list[PVBudgetedDataRow]
 
 
 class ContractWithCompany(BaseModel):
