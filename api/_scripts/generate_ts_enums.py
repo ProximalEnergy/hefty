@@ -1,13 +1,5 @@
 # generate_ts_enums.py
 # NOTE object as const is better than TS enum at compile time!
-"""
-Usage:
-  python generate_ts_enums.py
-
-This script automatically generates TypeScript enum constants from Python enums
-defined in ../core/src/core/enumerations.py and writes them to
-../web-app/src/api/_example/enums_from_core.ts
-"""
 
 import importlib.util
 import inspect
