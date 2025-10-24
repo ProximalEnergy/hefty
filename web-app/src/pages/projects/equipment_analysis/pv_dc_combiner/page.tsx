@@ -107,7 +107,7 @@ const Page = () => {
           includeFirstLast={false}
         />
         <AdvancedDatePicker
-          includeClearButton={true}
+          includeClearButton={false}
           limits={{
             day: 1,
             week: 0,

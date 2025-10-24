@@ -195,6 +195,7 @@ export default function EquipmentAnalysis() {
         onChange={handleTabChange}
         h="100%"
         style={{ display: 'flex', flexDirection: 'column' }}
+        keepMounted={false}
       >
         <Tabs.List px="md">
           {availableTabs.map((tab) => (

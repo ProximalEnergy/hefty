@@ -180,16 +180,14 @@ const ProjectEquipmentAnalysisTracker = () => {
           ]}
         />
       </Group>
-      {!selectedBlockId || selectedBlockId === '' ? (
-        <Alert
-          icon={<IconInfoCircle size={16} />}
-          title="Information"
-          color="blue"
-        >
-          Select a block above to view detailed tracker analysis for that
-          specific block.
-        </Alert>
-      ) : null}
+      <Alert
+        icon={<IconInfoCircle size={16} />}
+        title="Information"
+        color="blue"
+      >
+        Select a block above to view detailed tracker analysis for that specific
+        block.
+      </Alert>
       <CustomCard
         title="Position Deviating From Setpoint"
         info={
