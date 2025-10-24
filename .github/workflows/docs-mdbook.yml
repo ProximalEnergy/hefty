@@ -9,10 +9,6 @@ on:
     branches: ["main"]
     paths:
       - "docs-mdbook/**"
-  pull_request:
-    branches: ["main"]
-    paths:
-      - "docs-mdbook/**"
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -32,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MDBOOK_VERSION: 0.4.51
-      MDBOOK_MERMAID_VERSION: 0.15.0
+      MDBOOK_MERMAID_VERSION: 0.16.2
       MDBOOK_KATEX_VERSION: 0.9.4
     steps:
       - uses: actions/checkout@v5
@@ -43,18 +39,24 @@ jobs:
           cargo install --version ${MDBOOK_VERSION} mdbook
           cargo install --version ${MDBOOK_MERMAID_VERSION} mdbook-mermaid
           cargo install --version ${MDBOOK_KATEX_VERSION} mdbook-katex
+        working-directory: docs-mdbook
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
+
       - name: Build with Cargo
         run: |
           cargo build --release
       - name: Build with mdBook
         run: mdbook build
+        working-directory: docs-mdbook
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./book
+          working-directory: docs-mdbook
 
   # Deployment job
   deploy:
