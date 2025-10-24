@@ -8,11 +8,7 @@
     "build": "node build-plotly-custom.js && tsc && NODE_OPTIONS=--max_old_space_size=8192 vite build",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "check": "npx tsc && npx prettier --write --log-level warn .",
-    "test": "npx playwright test",
-    "generate:types": "openapi-typescript ../api/openapi.json --output ./src/api/_example/openapi-typescript/api-types.ts",
-    "generate:enums": "node ./scripts/generate-enums.mjs ../api/openapi.json ./src/api//enums.ts",
-    "generate-api": "npm run generate:types && npm run generate:enums"
+    "check": "npx tsc && npx prettier --write --log-level warn . && npx knip"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.24.1",
