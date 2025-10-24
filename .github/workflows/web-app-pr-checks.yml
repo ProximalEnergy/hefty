@@ -32,7 +32,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20 # Or your preferred Node.js version
+          node-version: 22 # Or your preferred Node.js version
       - name: Install system dependencies for canvas
         run: |
           sudo apt-get update
