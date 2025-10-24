@@ -54,6 +54,7 @@ export const useGetCMMSTickets = ({
     axiosConfig,
     queryName: 'getCMMSTickets',
     pathParams,
+    queryParams: queryParams,
     queryOptions: queryOptions,
   })
 }

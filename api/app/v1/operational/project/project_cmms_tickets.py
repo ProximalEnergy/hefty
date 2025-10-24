@@ -5,7 +5,7 @@ from uuid import UUID
 import pytz
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import and_, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces
@@ -31,7 +31,6 @@ class CMMSTicket(BaseModel):
     location: str | None = None
     cmms_device_id: str | None = None  # according to the CMMS provider
     cmms_device_name: str | None = None  # according to the CMMS provider
-    device_id: int | None = None  # the proximal device id associated with the ticket
     link: str | None = None  # the link to the ticket on the CMMS provider's platform
 
 
@@ -98,11 +97,6 @@ async def get_cmms_tickets(
         select(
             models.CMMSTicket,
             models.CMMSProvider.name_long,
-            models.CMMSDevice.device_id,
-        )
-        .outerjoin(
-            models.CMMSDevice,
-            models.CMMSDevice.cmms_device_id == models.CMMSTicket.cmms_device_id,
         )
         .join(
             models.CMMSIntegration,
@@ -118,7 +112,17 @@ async def get_cmms_tickets(
     )
 
     if device_ids is not None:
-        stmt = stmt.where(models.CMMSDevice.device_id.in_(device_ids))
+        stmt = stmt.where(
+            exists().where(
+                and_(
+                    models.CMMSDevice.cmms_device_id
+                    == models.CMMSTicket.cmms_device_id,
+                    models.CMMSDevice.cmms_integration_id
+                    == models.CMMSTicket.cmms_integration_id,
+                    models.CMMSDevice.device_id.in_(device_ids),
+                )
+            )
+        )
 
     result = await project_db.execute(stmt)
     queried_tickets = result.all()
@@ -139,7 +143,6 @@ async def get_cmms_tickets(
             location=ticket[0].location,
             cmms_device_id=ticket[0].cmms_device_id,
             cmms_device_name=ticket[0].cmms_device_name,
-            device_id=ticket[2],  # This will be None if no CMMSDevice exists
             link=ticket[0].link,
         )
         for ticket in queried_tickets

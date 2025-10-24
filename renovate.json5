@@ -1,7 +1,9 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended", "mergeConfidence:all-badges"],
+  extends: ["config:recommended"],
+  dependencyDashboard: true,
   minimumReleaseAge: "30 days",
+  internalChecksFilter: "strict",
   reviewers: ["kurt-rhee"],
   packageRules: [
     // =========== Don't Upgrade Python ============
@@ -17,6 +19,11 @@
     {
       matchPackageNames: ["python/cpython"],
       matchDatasources: ["github-tags"],
+      enabled: false,
+    },
+    {
+      matchPackageNames: ["python"],
+      matchDatasources: ["uses-with"],
       enabled: false,
     },
     // =========== Don't Upgrade Certain Packages ============
