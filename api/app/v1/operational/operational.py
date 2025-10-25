@@ -19,6 +19,7 @@ from app.v1.operational import (
     project_data_last_updated,
     project_types,
     projects,
+    pv_budgeted_data,
     pv_inverters,
     pv_modules,
     pv_rackings,
@@ -66,6 +67,7 @@ router.include_router(status.router)
 router.include_router(pv_modules.router)
 router.include_router(pv_rackings.router)
 router.include_router(pv_inverters.router)
+router.include_router(pv_budgeted_data.router)
 router.include_router(drone_integrations.router)
 router.include_router(drone_providers.router)
 router.include_router(drone_permissions.router)

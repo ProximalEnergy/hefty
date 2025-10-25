@@ -91,6 +91,18 @@ const Page = () => {
           },
         ]
       : []),
+    ...(reportData?.find((report) => report.report_type_id === 9)
+      ? [
+          {
+            name: 'PV Performance Daily Report',
+            component: <DailyPerformanceReportPreview />,
+            link: `/projects/${projectId}/reports/daily-performance`,
+            is_visible: reportData?.find(
+              (report) => report.report_type_id === 9,
+            )?.is_visible,
+          },
+        ]
+      : []),
   ]
 
   if (isReportDataLoading) return <PageLoader />
@@ -231,6 +243,23 @@ const PCSApparentPowerVsVoltageReport = () => {
       <Text size="sm">
         Data is available for visualization only; ideal limits are customizable
         in the report view.
+      </Text>
+    </Stack>
+  )
+}
+
+const DailyPerformanceReportPreview = () => {
+  return (
+    <Stack h="100%" justify="space-between" flex={1}>
+      <Text size="sm">
+        This report provides a comprehensive daily performance overview,
+        including project generation, performance ratio, PCS mechanical
+        availability, and event tracking. It features a 30-day trailing energy
+        analysis and DC combiner field health visualization.
+      </Text>
+      <Text size="sm">
+        Data is displayed for a single selected date with interactive
+        visualizations and metrics.
       </Text>
     </Stack>
   )

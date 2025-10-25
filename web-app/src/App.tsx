@@ -137,6 +137,7 @@ import ObservationsGIS from './pages/projects/mccarthy_quality/ObservationsGIS'
 import QualityHome from './pages/projects/mccarthy_quality/QualityHome'
 import CustomReport from './pages/projects/reports/CustomReport'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
+import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
 import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
 import ModuleDegradation from './pages/projects/reports/ModuleDegradation'
 import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageReport'
@@ -435,6 +436,10 @@ const ClerkProviderWithRoutes = () => {
               <Route
                 path="reports/pcs-apparent-vs-voltage"
                 element={<PCSApparentVsVoltage />}
+              />
+              <Route
+                path="reports/daily-performance"
+                element={<DailyPerformanceReport />}
               />
 
               <Route path="reports/custom" element={<CustomReport />} />
