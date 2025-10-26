@@ -119,11 +119,7 @@ import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
 // GIS
 import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
-import CombinerBlockGIS from './pages/projects/gis/combiner-block-gis'
-import CombinerGIS from './pages/projects/gis/combiner-gis'
 import PCSGIS from './pages/projects/gis/pcs-gis'
-import TrackerBlockGIS from './pages/projects/gis/tracker-block-gis'
-import TrackerGIS from './pages/projects/gis/tracker-gis'
 import ProjectKPIAlerts from './pages/projects/kpis/ProjectKPIAlerts'
 import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPIHome from './pages/projects/kpis/ProjectKPIHome'
@@ -338,15 +334,7 @@ const ClerkProviderWithRoutes = () => {
               {/* GIS */}
               <Route path="gis">
                 <Route path="bess-enclosure" element={<BessEnclosureGIS />} />
-                <Route path="pv-dc-combiner">
-                  <Route index element={<CombinerGIS />} />
-                  <Route path=":blockId" element={<CombinerBlockGIS />} />
-                </Route>
                 <Route path="pv-pcs" element={<PCSGIS />} />
-                <Route path="tracker">
-                  <Route index element={<TrackerGIS />} />
-                  <Route path=":blockId" element={<TrackerBlockGIS />} />
-                </Route>
               </Route>
 
               {/* Current Day */}

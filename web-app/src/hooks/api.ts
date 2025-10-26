@@ -973,32 +973,6 @@ export const useGetGISPCS = ({
   })
 }
 
-export const useGetGISCombiner = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/combiner`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    staleTime: 60 * 1000,
-  }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<FeatureCollection>({
-    axiosConfig,
-    queryName: 'getGISCombiner',
-    pathParams,
-    queryParams: {},
-    queryOptions: queryOptions,
-  })
-}
-
 export const useGetGISCombinerBlock = ({
   pathParams,
   queryOptions = {},
@@ -1021,39 +995,6 @@ export const useGetGISCombinerBlock = ({
     queryName: 'getGISCombinerBlock',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
-  })
-}
-
-export const useGetGISTracker = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    start?: string
-    end?: string
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/tracker`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<FeatureCollection>({
-    axiosConfig,
-    queryName: 'getGISTracker',
-    pathParams,
-    queryParams: queryParams,
     queryOptions: queryOptions,
   })
 }
