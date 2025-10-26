@@ -152,7 +152,7 @@ const UptimeTable = () => {
     <Stack h="100%" w="100%" p="sm">
       <Title order={1}>Uptime Table</Title>
       <Group justify="space-between">
-        <AdvancedDatePicker defaultRange="today" />
+        <AdvancedDatePicker defaultRange="today" includeClearButton={false} />
         <Text>Maximum Uptime: {maxUptime.toFixed(1)} hours</Text>
       </Group>
       <Tabs
