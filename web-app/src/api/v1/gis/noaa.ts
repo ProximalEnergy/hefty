@@ -3,8 +3,10 @@ import axios from 'axios'
 import { FeatureCollection, MultiPolygon } from 'geojson'
 import { GeoJsonProperties } from 'geojson'
 
-const arcgisEndpointUrl =
+const spcWxOutlooksEndpointUrl =
   'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer'
+const spcFireWxEndpointUrl =
+  'https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer'
 
 interface ArcGisFeature {
   attributes: {
@@ -19,10 +21,11 @@ interface ArcGisResponse {
   features: ArcGisFeature[]
 }
 
-const getHailForecastPolygons = async (
+const getSPCForecastPolygons = async (
+  endpointUrl: string,
   arcgis_layer_id: number,
 ): Promise<FeatureCollection<MultiPolygon, GeoJsonProperties>> => {
-  const query_url = `${arcgisEndpointUrl}/${arcgis_layer_id}/query`
+  const query_url = `${endpointUrl}/${arcgis_layer_id}/query`
 
   const params = {
     where: '1=1',
@@ -86,11 +89,15 @@ const getHailForecastPolygons = async (
   }
 }
 
-export const useGetHailForecastPolygons = ({
+const useGetSPCForecastPolygons = ({
+  endpointUrl,
   arcgis_layer_id,
+  queryKey,
   queryOptions = {},
 }: {
+  endpointUrl: string
   arcgis_layer_id: number
+  queryKey: string
   queryOptions?: Partial<
     UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
   >
@@ -103,9 +110,71 @@ export const useGetHailForecastPolygons = ({
   }
 
   return useQuery<FeatureCollection<MultiPolygon, GeoJsonProperties>>({
-    queryKey: ['getHailForecastPolygons', arcgis_layer_id],
-    queryFn: () => getHailForecastPolygons(arcgis_layer_id),
+    queryKey: [queryKey, arcgis_layer_id],
+    queryFn: () => getSPCForecastPolygons(endpointUrl, arcgis_layer_id),
     ...defaultQueryOptions,
     ...queryOptions,
+  })
+}
+
+export const useGetHailForecastPolygons = ({
+  arcgis_layer_id,
+  queryOptions = {},
+}: {
+  arcgis_layer_id: number
+  queryOptions?: Partial<
+    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
+  >
+}) => {
+  return useGetSPCForecastPolygons({
+    endpointUrl: spcWxOutlooksEndpointUrl,
+    arcgis_layer_id,
+    queryKey: 'getHailForecastPolygons',
+    queryOptions,
+  })
+}
+
+export const useGetTornadoOutlook = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<
+    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
+  >
+}) => {
+  return useGetSPCForecastPolygons({
+    endpointUrl: spcWxOutlooksEndpointUrl,
+    arcgis_layer_id: 3,
+    queryKey: 'getTornadoOutlook',
+    queryOptions,
+  })
+}
+
+export const useGetWindOutlook = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<
+    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
+  >
+}) => {
+  return useGetSPCForecastPolygons({
+    endpointUrl: spcWxOutlooksEndpointUrl,
+    arcgis_layer_id: 7,
+    queryKey: 'getWindOutlook',
+    queryOptions,
+  })
+}
+
+export const useGetFireOutlook = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<
+    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
+  >
+}) => {
+  return useGetSPCForecastPolygons({
+    endpointUrl: spcFireWxEndpointUrl,
+    arcgis_layer_id: 1,
+    queryKey: 'getFireOutlook',
+    queryOptions,
   })
 }

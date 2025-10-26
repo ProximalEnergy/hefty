@@ -4,4 +4,6 @@
 
 .content {
   padding: var(--mantine-spacing-sm);
+  max-height: none;
+  overflow: visible;
 }
