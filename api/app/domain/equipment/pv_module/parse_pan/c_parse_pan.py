@@ -1,20 +1,20 @@
 from typing import Any
 
-from app.core.equipment._utils.enumerations import PANformat
-from app.core.equipment.pv_module._utils.single_diode_params_2 import (
+from app.domain.equipment._utils.enumerations import PANformat
+from app.domain.equipment.pv_module._utils.single_diode_params_2 import (
     calc_reference_params,
 )
-from app.core.equipment.pv_module.parse_pan.s01a_read_pan import read_pan_txt
-from app.core.equipment.pv_module.parse_pan.s01b_read_pan_binary import (
+from app.domain.equipment.pv_module.parse_pan.s01a_read_pan import read_pan_txt
+from app.domain.equipment.pv_module.parse_pan.s01b_read_pan_binary import (
     read_pan_binary,
 )
-from app.core.equipment.pv_module.parse_pan.s02_column_mapping import (
+from app.domain.equipment.pv_module.parse_pan.s02_column_mapping import (
     format_pan_to_pvmodule,
 )
-from app.core.equipment.pv_module.parse_pan.s03_bandgap_parameters import (
+from app.domain.equipment.pv_module.parse_pan.s03_bandgap_parameters import (
     assign_bandgap_parameters,
 )
-from app.core.equipment.pv_module.parse_pan.s04_absolute_temp_coefficients import (
+from app.domain.equipment.pv_module.parse_pan.s04_absolute_temp_coefficients import (
     calc_absolute_temp_coefficients,
 )
 

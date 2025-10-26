@@ -92,9 +92,7 @@ def test_query_text_comparison_default_table(mock_db_session, sample_parameters)
         # Mock MetaData
         with patch("core.crud.project.data_timeseries.MetaData"):
             # Get query from v2 function (which returns the query)
-            result_v2 = get_project_data_timeseries_v2(
-                project_db=mock_db_session, **sample_parameters
-            )
+            result_v2 = get_project_data_timeseries_v2(**sample_parameters)
             query_text_v2 = result_v2.sql_string()
 
             # Mock the execute method to capture the query for v1 function
@@ -145,9 +143,7 @@ def test_query_text_comparison_cagg_table(mock_db_session, sample_parameters):
         # Mock MetaData
         with patch("core.crud.project.data_timeseries.MetaData"):
             # Get query from v2 function (which returns the query)
-            result_v2 = get_project_data_timeseries_v2(
-                project_db=mock_db_session, **cagg_params
-            )
+            result_v2 = get_project_data_timeseries_v2(**cagg_params)
             query_text_v2 = result_v2.sql_string()
 
             # Mock the execute method to capture the query for v1 function
@@ -194,9 +190,7 @@ def test_bind_parameters_are_identical(mock_db_session, sample_parameters):
         # Mock MetaData
         with patch("core.crud.project.data_timeseries.MetaData"):
             # Get query from v2 function
-            result_v2 = get_project_data_timeseries_v2(
-                project_db=mock_db_session, **sample_parameters
-            )
+            result_v2 = get_project_data_timeseries_v2(**sample_parameters)
 
             # Extract bind parameters from v2 query
             v2_query = result_v2.query

@@ -5,8 +5,8 @@ from typing import Annotated
 import shapely
 from fastapi import APIRouter, HTTPException, Query
 
-from app.core.gis.map import MapData, MapDataType
-from app.core.gis.providers.dtn import DTN
+from app.domain.gis.map import MapData, MapDataType
+from app.domain.gis.providers.dtn import DTN
 
 router = APIRouter(tags=["gis"])
 

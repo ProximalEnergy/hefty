@@ -1,13 +1,13 @@
 from typing import Any
 
-from app.core.equipment._utils.enumerations import ONDformat
-from app.core.equipment.inverter.parse_ond.s01a_read_ond import read_ond
-from app.core.equipment.inverter.parse_ond.s02_format_ond import convert_ond_data
-from app.core.equipment.inverter.parse_ond.s03_calc_power_dc_nominal import (
+from app.domain.equipment._utils.enumerations import ONDformat
+from app.domain.equipment.inverter.parse_ond.s01a_read_ond import read_ond
+from app.domain.equipment.inverter.parse_ond.s02_format_ond import convert_ond_data
+from app.domain.equipment.inverter.parse_ond.s03_calc_power_dc_nominal import (
     calc_power_dc_nominal,
 )
-from app.core.equipment.inverter.parse_ond.s04_calc_sandia_fit import calc_fit_sandia
-from app.core.equipment.inverter.parse_ond.s05_qc import validate_inverter_config
+from app.domain.equipment.inverter.parse_ond.s04_calc_sandia_fit import calc_fit_sandia
+from app.domain.equipment.inverter.parse_ond.s05_qc import validate_inverter_config
 
 
 def parse_ond(

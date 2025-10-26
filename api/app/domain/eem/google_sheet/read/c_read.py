@@ -3,32 +3,32 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.core.eem.google_sheet.read.s01_read_gsheet import (
+from app.domain.eem.google_sheet.read.s01_read_gsheet import (
     read_google_sheet,
 )
-from app.core.eem.google_sheet.read.s02_parse_equipment_modules import (
+from app.domain.eem.google_sheet.read.s02_parse_equipment_modules import (
     parse_equipment_modules,
 )
-from app.core.eem.google_sheet.read.s03_parse_equipment_rackings import (
+from app.domain.eem.google_sheet.read.s03_parse_equipment_rackings import (
     parse_equipment_rackings,
 )
-from app.core.eem.google_sheet.read.s04_parse_equipment_inverters import (
+from app.domain.eem.google_sheet.read.s04_parse_equipment_inverters import (
     parse_equipment_inverters,
 )
-from app.core.eem.google_sheet.read.s05_parse_devices_combiners import (
+from app.domain.eem.google_sheet.read.s05_parse_devices_combiners import (
     parse_devices_combiners,
 )
-from app.core.eem.google_sheet.read.s06_parse_devices_inverters import (
+from app.domain.eem.google_sheet.read.s06_parse_devices_inverters import (
     parse_devices_inverters,
 )
-from app.core.eem.google_sheet.read.s08_add_devices_blocks import (
+from app.domain.eem.google_sheet.read.s08_add_devices_blocks import (
     add_devices_blocks,
 )
-from app.core.eem.google_sheet.read.s09_add_devices_circuits import (
+from app.domain.eem.google_sheet.read.s09_add_devices_circuits import (
     add_devices_circuits,
 )
-from app.core.eem.google_sheet.read.s10_build_system import build_system
-from app.core.eem.google_sheet.read.s11_export import export_system
+from app.domain.eem.google_sheet.read.s10_build_system import build_system
+from app.domain.eem.google_sheet.read.s11_export import export_system
 from core import models
 
 

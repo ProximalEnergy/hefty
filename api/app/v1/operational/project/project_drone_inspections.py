@@ -20,8 +20,8 @@ from app._crud.projects.drone_inspections import (
     get_drone_inspections,
 )
 from app._dependencies.authorization import require_jwt_or_api_superadmin
-from app.core.drones.zeitview_parser import ZeitviewAPI
 from app.dependencies import get_async_db, get_project_db
+from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
     DroneAnomaly,
     DroneAnomalyCreate,

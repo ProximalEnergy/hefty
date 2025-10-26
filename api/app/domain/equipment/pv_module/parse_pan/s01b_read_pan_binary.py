@@ -8,7 +8,7 @@ This is based on:
 import struct
 from typing import Any
 
-from app.core.equipment._utils.real48_utils import (
+from app.domain.equipment._utils.real48_utils import (
     CR_MARKER,
     DOT_MARKER,
     DOUBLE_DOT_MARKER,

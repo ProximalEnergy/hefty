@@ -36,7 +36,7 @@ import core
 from app import dependencies, interfaces, logger, settings, utils
 from app._crud.operational.cec_pv_modules import get_cec_pv_modules
 from app._crud.operational.pv_modules import get_pv_modules
-from app.core.current_day_pages.combiner import get_equipment_analysis_combiner_data
+from app.domain.current_day_pages.combiner import get_equipment_analysis_combiner_data
 from app.utils import get_include_in_schema
 from app.v1.analytics import analytics_funcs as funcs
 from app.v1.analytics.gis import router as gis_router

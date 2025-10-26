@@ -1,5 +1,5 @@
 import numpy as np
-from app.core.equipment.pv_module._utils.fit_desoto_modified import fit_desoto
+from app.domain.equipment.pv_module._utils.fit_desoto_modified import fit_desoto
 
 
 def calc_reference_params(

@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import httpx
 import shapely.geometry
-from app.core.gis.map import ArcGISProvider, MapData, MapDataProvider, MapDataType
+from app.domain.gis.map import ArcGISProvider, MapData, MapDataProvider, MapDataType
 
 
 class DTN(

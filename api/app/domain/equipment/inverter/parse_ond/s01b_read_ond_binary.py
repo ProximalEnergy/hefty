@@ -1,7 +1,7 @@
 import struct
 from typing import Any
 
-from app.core.equipment._utils.real48_utils import (
+from app.domain.equipment._utils.real48_utils import (
     DOT_MARKER,
     DOUBLE_DOT_MARKER,
     FORWARD_SLASH_MARKER,

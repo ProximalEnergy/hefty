@@ -1,16 +1,16 @@
 from typing import Any
 
 from app import interfaces
-from app.core.equipment.pv_module._utils.single_diode_params import (
+from app.domain.equipment.pv_module._utils.single_diode_params import (
     calc_reference_params,
 )
-from app.core.equipment.pv_module.parse_cec.s00_column_mapping import (
+from app.domain.equipment.pv_module.parse_cec.s00_column_mapping import (
     map_columns_to_proximal_format,
 )
-from app.core.equipment.pv_module.parse_cec.s01_bandgap_parameters import (
+from app.domain.equipment.pv_module.parse_cec.s01_bandgap_parameters import (
     assign_bandgap_parameters,
 )
-from app.core.equipment.pv_module.parse_cec.s02_absolute_temp_coefficients import (
+from app.domain.equipment.pv_module.parse_cec.s02_absolute_temp_coefficients import (
     calc_absolute_temp_coefficients,
 )
 

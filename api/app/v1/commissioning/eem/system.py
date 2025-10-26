@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from app import dependencies
-from app.core.eem.google_sheet.read.c_read import import_google_sheet
+from app.domain.eem.google_sheet.read.c_read import import_google_sheet
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session

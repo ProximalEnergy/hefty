@@ -23,8 +23,8 @@ from app._crud.operational.inverters import (
     get_inverters as crud_get_inverters,
 )
 from app._dependencies.authorization import require_user_company
-from app.core.equipment.inverter.parse_ond.c_parse_ond import parse_ond
-from app.core.equipment.inverter.parse_ond.s04_calc_sandia_fit import calc_fit_sandia
+from app.domain.equipment.inverter.parse_ond.c_parse_ond import parse_ond
+from app.domain.equipment.inverter.parse_ond.s04_calc_sandia_fit import calc_fit_sandia
 
 # --- Routes ---
 router = APIRouter(prefix="/pv-inverters", tags=["pv_inverters"])

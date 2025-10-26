@@ -5,7 +5,7 @@ from enum import StrEnum
 
 import shapely
 
-from app.core.gis._utils.arcgis import get_arcgis_token
+from app.domain.gis._utils.arcgis import get_arcgis_token
 
 
 class MapDataType(StrEnum):

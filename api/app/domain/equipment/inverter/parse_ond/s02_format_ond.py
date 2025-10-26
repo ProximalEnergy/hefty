@@ -1,4 +1,4 @@
-from app.core.equipment._utils.enumerations import ONDformat
+from app.domain.equipment._utils.enumerations import ONDformat
 
 
 def convert_ond_data(

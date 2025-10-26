@@ -1,6 +1,6 @@
 from typing import Any
 
-from app.core.equipment._utils.enumerations import PANformat
+from app.domain.equipment._utils.enumerations import PANformat
 
 
 def format_pan_to_pvmodule(

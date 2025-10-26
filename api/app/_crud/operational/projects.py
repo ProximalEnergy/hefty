@@ -18,7 +18,7 @@ from app._crud.admin.user_projects import (
     assign_project_to_relevant_users,
 )
 from app._crud.admin.users import get_user
-from app.core.internal_comms.comms import (
+from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_project_creation_notification,
 )

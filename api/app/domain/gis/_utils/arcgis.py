@@ -12,7 +12,7 @@ import requests
 from app._utils.aws import get_secret
 
 if TYPE_CHECKING:
-    from app.core.gis.map import ArcGISProvider
+    from app.domain.gis.map import ArcGISProvider
 
 
 def get_arcgis_token(

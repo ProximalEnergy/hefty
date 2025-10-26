@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app import dependencies, interfaces, utils
-from app.core.internal_comms.comms import (
+from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_project_creation_notification,
 )

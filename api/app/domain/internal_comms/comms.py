@@ -3,7 +3,7 @@ from enum import StrEnum
 
 from core.models import Feedback
 
-from app.core.internal_comms.comms_gchat import send_google_chat_message
+from app.domain.internal_comms.comms_gchat import send_google_chat_message
 
 logger = logging.getLogger(__name__)
 

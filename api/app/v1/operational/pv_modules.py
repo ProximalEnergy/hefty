@@ -23,10 +23,10 @@ from app._crud.operational.pv_modules import (
     get_pv_modules as crud_get_pv_modules,
 )
 from app._dependencies.authorization import require_user_company
-from app.core.equipment.pv_module._utils.single_diode_params import (
+from app.domain.equipment.pv_module._utils.single_diode_params import (
     calc_reference_params,
 )
-from app.core.equipment.pv_module.parse_pan.c_parse_pan import parse_pan
+from app.domain.equipment.pv_module.parse_pan.c_parse_pan import parse_pan
 
 # --- Routes ---
 router = APIRouter(prefix="/pv-modules", tags=["pv_modules"])
