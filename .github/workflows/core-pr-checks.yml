@@ -136,11 +136,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install toml packaging
-          sudo apt-get update && sudo apt-get install -y jq
+          uv sync
+        working-directory: core
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -150,30 +153,34 @@ jobs:
 
       - name: Check for Version Bump
         env:
-          CODEARTIFACT_DOMAIN: proximal-code-artifact-domain-016997484973
+          CODEARTIFACT_DOMAIN: proximal-code-artifact-domain
           CODEARTIFACT_REPOSITORY: proximal-hub
           PACKAGE_NAME: core
+        working-directory: core
         run: |
           # Extract the current version from the pyproject.toml file.
-          current_version=$(python -c "import toml; print(toml.load('core/pyproject.toml')['project']['version'])")
+          current_version=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           echo "Current version in pyproject.toml: $current_version"
 
           # Fetch the latest published version from AWS CodeArtifact.
-          # If the package does not exist, default to version "0.0.0".
           echo "Fetching latest version from AWS CodeArtifact..."
           aws_output=$(aws codeartifact list-package-versions --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY --format pypi --package $PACKAGE_NAME --sort-by PUBLISHED_TIME 2>/dev/null || echo '{"versions":[]}')
-          latest_version=$(echo $aws_output | jq -r '.versions[0].version // "0.0.0"')
+          latest_version=$(echo $aws_output | jq -r '.versions[0].version')
           echo "Latest published version from CodeArtifact: $latest_version"
 
           # Use Python's `packaging` library for a robust semantic version comparison.
           # The script will exit with an error if the current version is not strictly greater than the latest published version.
-          python - <<EOF
+          uv run python - <<EOF
           from packaging.version import parse as V
 
           current = "$current_version"
           latest = "$latest_version"
 
-          if V(current) <= V(latest):
+          current_parsed = V(current)
+          latest_parsed = V(latest)
+
+          # Compare base versions only
+          if current_parsed.base_version <= latest_parsed.base_version:
               print(f"::error::Version check failed. The current version ({current}) must be greater than the latest published version ({latest}). Please bump the version in core/pyproject.toml.")
               exit(1)
 
