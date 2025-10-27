@@ -1358,7 +1358,10 @@ const ModuleDegradation: React.FC = () => {
             href="https://docs.proximal.energy/reports/module_state_of_health.html"
             dropdownText="Read more about the filters and analysis process in Proximal's documentation."
           />
-          <AdvancedDatePicker defaultRange={'past-year'} />
+          <AdvancedDatePicker
+            defaultRange={'past-year'}
+            includeClearButton={false}
+          />
         </Group>
         <ActionIcon size="xl">
           <IconFileTypeCsv

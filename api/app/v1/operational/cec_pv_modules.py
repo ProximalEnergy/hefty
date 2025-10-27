@@ -18,10 +18,10 @@ from app._crud.operational.cec_pv_modules import (
 from app._crud.operational.cec_pv_modules import (
     upsert_cec_pv_modules_bulk as crud_upsert_cec_pv_modules_bulk,
 )
-from app.core.equipment.pv_module.parse_cec.c_calc_parameters import (
+from app.dependencies import get_async_db
+from app.domain.equipment.pv_module.parse_cec.c_calc_parameters import (
     adapt_cec_pv_module_to_proximal,
 )
-from app.dependencies import get_async_db
 from core import models
 
 DESCRIPTION_404 = "CEC PV Module not found"

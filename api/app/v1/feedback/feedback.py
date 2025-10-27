@@ -6,11 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies
 from app._crud.admin.users import get_user
-from app.core.internal_comms.comms import (
+from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_feedback_notification,
 )
-from app.core.linear_integration import create_linear_issue
+from app.domain.linear_integration import create_linear_issue
 from core import models
 
 router = APIRouter(

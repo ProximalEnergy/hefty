@@ -95,7 +95,7 @@ const Page = () => {
         includeClearButton={false}
         maxDays={MAX_DAYS}
       />
-      <CustomCard title="Project" style={{ flex: 2 }}>
+      <CustomCard title="Project" style={{ flex: 1 }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -121,7 +121,7 @@ const Page = () => {
           error={deviceDetails.error}
         />
       </CustomCard>
-      <CustomCard title="Met Station" style={{ flex: 3 }}>
+      <CustomCard title="Met Station" style={{ flex: 1 }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -147,7 +147,7 @@ const Page = () => {
           error={deviceDetails.error}
         />
       </CustomCard>
-      <CustomCard title="PCS" style={{ flex: 3 }}>
+      <CustomCard title="PCS" style={{ flex: 2 }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&

@@ -119,11 +119,7 @@ import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
 // GIS
 import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
-import CombinerBlockGIS from './pages/projects/gis/combiner-block-gis'
-import CombinerGIS from './pages/projects/gis/combiner-gis'
 import PCSGIS from './pages/projects/gis/pcs-gis'
-import TrackerBlockGIS from './pages/projects/gis/tracker-block-gis'
-import TrackerGIS from './pages/projects/gis/tracker-gis'
 import ProjectKPIAlerts from './pages/projects/kpis/ProjectKPIAlerts'
 import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPIHome from './pages/projects/kpis/ProjectKPIHome'
@@ -137,6 +133,7 @@ import ObservationsGIS from './pages/projects/mccarthy_quality/ObservationsGIS'
 import QualityHome from './pages/projects/mccarthy_quality/QualityHome'
 import CustomReport from './pages/projects/reports/CustomReport'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
+import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
 import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
 import ModuleDegradation from './pages/projects/reports/ModuleDegradation'
 import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageReport'
@@ -337,15 +334,7 @@ const ClerkProviderWithRoutes = () => {
               {/* GIS */}
               <Route path="gis">
                 <Route path="bess-enclosure" element={<BessEnclosureGIS />} />
-                <Route path="pv-dc-combiner">
-                  <Route index element={<CombinerGIS />} />
-                  <Route path=":blockId" element={<CombinerBlockGIS />} />
-                </Route>
                 <Route path="pv-pcs" element={<PCSGIS />} />
-                <Route path="tracker">
-                  <Route index element={<TrackerGIS />} />
-                  <Route path=":blockId" element={<TrackerBlockGIS />} />
-                </Route>
               </Route>
 
               {/* Current Day */}
@@ -435,6 +424,10 @@ const ClerkProviderWithRoutes = () => {
               <Route
                 path="reports/pcs-apparent-vs-voltage"
                 element={<PCSApparentVsVoltage />}
+              />
+              <Route
+                path="reports/daily-performance"
+                element={<DailyPerformanceReport />}
               />
 
               <Route path="reports/custom" element={<CustomReport />} />

@@ -265,7 +265,7 @@ const BESSOperationDataPage = () => {
     return (
       <>
         {/* Key Metrics Cards */}
-        <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }} mb="sm">
+        <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }}>
           {/* make sure that energy charged is in the kpi instances */}
           {hasEnergyCharged && (
             <MetricCard
@@ -314,7 +314,7 @@ const BESSOperationDataPage = () => {
           )}
         </SimpleGrid>
 
-        <Stack gap="md" style={{ flex: 1 }}>
+        <Stack>
           {kpiInstances.data?.map((instance) => (
             <CustomCard
               title={instance.kpi_type?.name_long}
@@ -385,13 +385,11 @@ const BESSOperation = () => {
     'and shows summary statistic cards for the selected date range.'
 
   return (
-    <Stack h="100%" p="md" gap="lg">
-      <Group justify="space-between" align="center" mb="sm">
-        <Box px="md" pt="md">
-          <PageTitle order={1} info={pageInfo}>
-            BESS Operation
-          </PageTitle>
-        </Box>
+    <Stack h="100%" p="md">
+      <Group justify="space-between" align="center">
+        <PageTitle order={1} info={pageInfo}>
+          BESS Operation
+        </PageTitle>
         <AdvancedDatePicker
           defaultRange="past-month"
           includeTodayInDateRange={true}
@@ -399,7 +397,6 @@ const BESSOperation = () => {
           includeClearButton={false}
         />
       </Group>
-
       <BESSOperationDataPage />
     </Stack>
   )

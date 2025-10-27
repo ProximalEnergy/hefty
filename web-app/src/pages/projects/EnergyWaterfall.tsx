@@ -1,5 +1,6 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import CustomCard from '@/components/CustomCard'
+import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
@@ -9,9 +10,9 @@ import {
   Group,
   SegmentedControl,
   SimpleGrid,
+  Stack,
   Table,
   Text,
-  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineTheme,
@@ -262,27 +263,16 @@ const EnergyWaterfall = () => {
   }
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <Group align="center" mb="md">
-        <Title order={2}>Energy Waterfall</Title>
-        <Tooltip
-          label="This page visualizes energy losses throughout the power conversion process from grid import to export. The waterfall chart shows cumulative energy at each step, while the table provides detailed loss percentages compared to expected values."
-          multiline
-          w={300}
-          withArrow
-        >
-          <IconInfoCircle
-            size={20}
-            style={{ cursor: 'help', color: 'var(--mantine-color-dimmed)' }}
-          />
-        </Tooltip>
-      </Group>
+    <Stack p="md">
+      <PageTitle info="This page visualizes energy losses throughout the power conversion process from grid import to export. The waterfall chart shows cumulative energy at each step, while the table provides detailed loss percentages compared to expected values.">
+        Energy Waterfall
+      </PageTitle>
 
       <Alert
         icon={<IconAlertCircle size={16} />}
         title="Placeholder Data"
         color="yellow"
-        my="md"
+        radius="md"
       >
         Some critical tags are missing from the project SCADA Feed. We're
         working with the SCADA vendor to get the tags. Showing placeholder data
@@ -292,7 +282,7 @@ const EnergyWaterfall = () => {
       </Alert>
 
       {/* Key Metrics Cards */}
-      <SimpleGrid cols={{ base: 1, xs: 2, md: 5 }} mb="lg">
+      <SimpleGrid cols={{ base: 1, xs: 2, md: 5 }}>
         {statsCards.map((stat, index) => {
           const Icon = stat.icon
           return (
@@ -326,7 +316,10 @@ const EnergyWaterfall = () => {
               fill={true}
               headerChildren={
                 <Group gap="xs">
-                  <AdvancedDatePicker defaultRange="last-month" />
+                  <AdvancedDatePicker
+                    defaultRange="last-month"
+                    includeClearButton={false}
+                  />
                   <Tooltip
                     label="Visual representation of energy losses at each conversion step. Gray bars show normal losses, blue bars are subtotals, and red labels indicate underperforming components."
                     multiline
@@ -583,7 +576,7 @@ const EnergyWaterfall = () => {
           </div>
         </Group>
       </div>
-    </div>
+    </Stack>
   )
 }
 

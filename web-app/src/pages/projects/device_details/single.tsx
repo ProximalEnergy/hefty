@@ -79,7 +79,10 @@ const Page = () => {
             position="bottom"
           >
             <ActionIcon variant="light" size="input-sm">
-              <IconArrowBackUp />
+              <IconArrowBackUp
+                style={{ width: '70%', height: '70%' }}
+                stroke={1.5}
+              />
             </ActionIcon>
           </Tooltip>
         </Link>
