@@ -604,10 +604,10 @@ export const CalendarItemModal = ({
     }
 
     if (targetCategoryId) {
+      const currentCategoryId = form.values.calendar_item_category_id
       if (
         prevItemId === currentContextItemId &&
-        (form.values.calendar_item_category_id === '' ||
-          form.values.calendar_item_category_id === undefined)
+        (currentCategoryId === '' || currentCategoryId === undefined)
       ) {
         form.setFieldValue('calendar_item_category_id', targetCategoryId)
       } else if (prevItemId !== currentContextItemId && opened) {
@@ -622,56 +622,51 @@ export const CalendarItemModal = ({
     contextualProjectId,
     form.setFieldValue,
     prevItemId,
-    form.values.calendar_item_category_id,
   ])
 
-  useEffect(() => {
-    if (!opened) return
-    if (form.values.frequency !== Frequency.WEEKLY.toString()) {
+  // Handle form field changes that need side effects
+  const handleFrequencyChange = (value: string) => {
+    form.setFieldValue('frequency', value)
+
+    if (value !== Frequency.WEEKLY.toString()) {
       form.setFieldValue('weekdays', [])
     }
-    if (form.values.frequency !== Frequency.MONTHLY.toString()) {
+    if (value !== Frequency.MONTHLY.toString()) {
       form.setFieldValue('monthlyMode', undefined)
       form.setFieldValue('monthDay', undefined)
       form.setFieldValue('weekOrdinal', undefined)
       form.setFieldValue('monthWeekday', undefined)
     }
+  }
 
-    if (form.values.endCondition === 'never') {
+  const handleEndConditionChange = (value: 'never' | 'on' | 'after') => {
+    form.setFieldValue('endCondition', value)
+
+    if (value === 'never') {
       form.setFieldValue('endDate', undefined)
       form.setFieldValue('occurrences', undefined)
-    } else if (form.values.endCondition === 'on') {
+    } else if (value === 'on') {
       form.setFieldValue('occurrences', undefined)
       if (!form.values.endDate) {
         const nextDay = new Date(form.values.start_time)
         nextDay.setDate(nextDay.getDate() + 1)
         form.setFieldValue('endDate', nextDay.toISOString())
       }
-    } else if (form.values.endCondition === 'after') {
+    } else if (value === 'after') {
       form.setFieldValue('endDate', undefined)
       if (!form.values.occurrences) {
         form.setFieldValue('occurrences', 1)
       }
     }
+  }
 
-    if (!generateRRule(form.values)) {
-      form.setFieldValue('end_time', form.values.start_time)
-    } else {
-      form.setFieldValue('end_time', form.values.start_time)
-    }
-  }, [
-    opened,
-    form.values.frequency,
-    form.values.endCondition,
-    form.setFieldValue,
-    form.values.start_time,
-    form.values.endDate,
-    form.values.occurrences,
-  ])
+  const handleStartTimeChange = (value: string) => {
+    form.setFieldValue('start_time', value)
+    form.setFieldValue('end_time', value)
+  }
 
-  // When Weekly is selected, default "Repeat on" to the weekday of the start date
-  useEffect(() => {
-    if (!opened) return
+  // Handle weekly frequency selection - set default weekday
+  const handleWeeklyFrequencySelection = () => {
     if (form.values.frequency === Frequency.WEEKLY.toString()) {
       const hasSelection = (form.values.weekdays || []).length > 0
       if (!hasSelection && !item) {
@@ -681,7 +676,7 @@ export const CalendarItemModal = ({
         form.setFieldValue('weekdays', [mondayIndexed])
       }
     }
-  }, [opened, form.values.frequency, form.values.start_time, item, form])
+  }
 
   const handleSubmit = async (values: FormValues) => {
     const finalProjectId = item?.project_id || values.project_id
@@ -870,8 +865,7 @@ export const CalendarItemModal = ({
                 const newStartTime = new Date(
                   Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
                 ).toISOString()
-                form.setFieldValue('start_time', newStartTime)
-                form.setFieldValue('end_time', newStartTime)
+                handleStartTimeChange(newStartTime)
               }
             }}
           />
@@ -896,7 +890,13 @@ export const CalendarItemModal = ({
                 <Select
                   label="Frequency"
                   data={frequencyOptions}
-                  {...form.getInputProps('frequency')}
+                  value={form.values.frequency}
+                  onChange={(value) => {
+                    if (value) {
+                      handleFrequencyChange(value)
+                      handleWeeklyFrequencySelection()
+                    }
+                  }}
                 />
               </Group>
 
@@ -970,7 +970,14 @@ export const CalendarItemModal = ({
                     { label: 'On', value: 'on' },
                     { label: 'After', value: 'after' },
                   ]}
-                  {...form.getInputProps('endCondition')}
+                  value={form.values.endCondition}
+                  onChange={(value) => {
+                    if (value) {
+                      handleEndConditionChange(
+                        value as 'never' | 'on' | 'after',
+                      )
+                    }
+                  }}
                 />
               </Stack>
 
