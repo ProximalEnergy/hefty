@@ -765,23 +765,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/gis/combiner": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Combiner Performance */
-        get: operations["get_combiner_performance_v1_analytics__project_id__gis_combiner_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/analytics/{project_id}/gis/combiner/{block_device_id}": {
         parameters: {
             query?: never;
@@ -1045,6 +1028,29 @@ export interface paths {
         get: operations["get_tracking_angles_v1_analytics__project_id__tracking_angles_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ai/daily-performance-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Daily Performance Summary
+         * @description Generate an AI-written summary of daily project performance.
+         *
+         *     Uses OpenAI to analyze key performance metrics and provide a written
+         *     summary of the project's performance for the selected day.
+         */
+        post: operations["generate_daily_performance_summary_v1_ai_daily_performance_summary_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2167,30 +2173,7 @@ export interface paths {
         };
         /**
          * Get Events Summary
-         * @description Generate a summary of events with their associated device, failure mode,
-         *     root cause, and loss information.
-         *
-         *     Args:
-         *         project_db (Session): Project-specific database session
-         *         db (Session): Main database session
-         *         open (bool, optional): Filter for open events only. Defaults to True.
-         *         start (datetime, optional): Start time for filtering events
-         *         end (datetime, optional): End time for filtering events
-         *         device_type_ids (list[int], optional): Filter events by device type IDs
-         *         device_ids (list[int], optional): Filter events by device IDs
-         *         project_id (UUID, optional): Project ID for timezone conversion
-         *
-         *     Returns:
-         *         list[EventSummary]: List of event summaries containing:
-         *             - event_id: Unique identifier for the event
-         *             - device_type_name: Name of the device type
-         *             - device_name_full: Full name of the device
-         *             - time_start: Event start time
-         *             - time_end: Event end time
-         *             - failure_mode: Name of the failure mode
-         *             - root_cause: Name of the root cause
-         *             - loss_total_financial: Total financial loss
-         *             - loss_total_energy: Total energy loss
+         * @description Generate a summary of events with associated device/failure/root-cause and loss info.
          */
         get: operations["get_events_summary_v1_operational_projects__project_id__events_get_events_summary_get"];
         put?: never;
@@ -2307,6 +2290,23 @@ export interface paths {
          *     Anomalies are linked to events via the event_id column.
          */
         get: operations["get_event_anomalies_v1_operational_projects__project_id__events__event_id__anomalies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/events/event-losses-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Event Losses Summary */
+        get: operations["get_event_losses_summary_v1_operational_projects__project_id__events_event_losses_summary_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2555,6 +2555,75 @@ export interface paths {
         get: operations["get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Pv Budgeted Series */
+        get: operations["list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get"];
+        put?: never;
+        /** Create Pv Budgeted Series */
+        post: operations["create_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pv Budgeted Data */
+        get: operations["get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/series/{pv_budgeted_series_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Pv Budgeted Series */
+        delete: operations["delete_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series__pv_budgeted_series_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/data/bulk-upsert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk Upsert Pv Budgeted Data */
+        post: operations["bulk_upsert_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_bulk_upsert_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3908,6 +3977,134 @@ export interface paths {
         get?: never;
         /** Calculate and update Sandia parameters for an inverter */
         put: operations["calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Series
+         * @description Get all budgeted series for a project.
+         */
+        get: operations["get_pv_budgeted_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Data
+         * @description Get PV budgeted data for a project (all series).
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         start: Start datetime
+         *         end: End datetime
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Data By Series
+         * @description Get PV budgeted data for a specific series.
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         start: Start datetime
+         *         end: End datetime
+         *         pv_budgeted_series_id: Specific series ID
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_data_by_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}/full-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Series Full Data
+         * @description Get all budgeted data for a specific series (entire dataset).
+         *     This preloads the full series to the frontend for degradation calculations.
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         pv_budgeted_series_id: Specific series ID to get full data for
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_series_full_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}/daily-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Series Daily Data
+         * @description Get daily aggregated budgeted data for a specific series within a date range.
+         *     This aggregates hourly data to daily values and applies degradation adjustment.
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         pv_budgeted_series_id: Specific series ID to get data for
+         *         start_date: Start date for the range
+         *         end_date: End date for the range
+         *         degradation_rate: Annual degradation rate percentage (default 0.5%)
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_series_daily_data"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -5974,8 +6171,6 @@ export interface components {
             cmms_device_id?: string | null;
             /** Cmms Device Name */
             cmms_device_name?: string | null;
-            /** Device Id */
-            device_id?: number | null;
             /** Link */
             link?: string | null;
         };
@@ -6197,21 +6392,12 @@ export interface components {
              * Format: uuid
              */
             document_id: string;
-            /**
-             * Company Id Provider
-             * Format: uuid
-             */
-            company_id_provider: string;
-            /**
-             * Company Id Counter
-             * Format: uuid
-             */
-            company_id_counter: string;
-            /**
-             * Execution Date
-             * Format: date
-             */
-            execution_date: string;
+            /** Company Id Provider */
+            company_id_provider?: string | null;
+            /** Company Id Counter */
+            company_id_counter?: string | null;
+            /** Execution Date */
+            execution_date?: string | null;
         };
         /** ContractCategory */
         ContractCategory: {
@@ -6387,6 +6573,66 @@ export interface components {
             name_short: string;
             /** Name Long */
             name_long: string | null;
+        };
+        /**
+         * DailyPerformanceStats
+         * @description Statistics for daily performance analysis.
+         */
+        DailyPerformanceStats: {
+            /** Project Name */
+            project_name: string;
+            /** Date */
+            date: string;
+            /** Actual Energy Mwh */
+            actual_energy_mwh: number;
+            /** Budgeted Energy Mwh */
+            budgeted_energy_mwh: number;
+            /** Energy Difference Mwh */
+            energy_difference_mwh: number;
+            /** Energy Performance Percent */
+            energy_performance_percent: number;
+            /** Trailing 30 Day Actual */
+            trailing_30_day_actual: number;
+            /** Trailing 30 Day Budgeted */
+            trailing_30_day_budgeted: number;
+            /** Trailing 30 Day Difference */
+            trailing_30_day_difference: number;
+            /** Trailing 30 Day Performance Percent */
+            trailing_30_day_performance_percent: number;
+            /** Daily Revenue */
+            daily_revenue: number;
+            /** Mtd Revenue */
+            mtd_revenue: number;
+            /** Events */
+            events: components["schemas"]["EventData"][];
+            /** Total Events */
+            total_events: number;
+            /** Open Events */
+            open_events: number;
+            /** Closed Events */
+            closed_events: number;
+            /** Total Revenue Loss */
+            total_revenue_loss: number;
+        };
+        /**
+         * DailyPerformanceSummaryRequest
+         * @description Request for daily performance summary generation.
+         */
+        DailyPerformanceSummaryRequest: {
+            stats: components["schemas"]["DailyPerformanceStats"];
+            /**
+             * Model
+             * @default gpt-4o-mini
+             */
+            model: string;
+        };
+        /**
+         * DailyPerformanceSummaryResponse
+         * @description Response containing AI-generated performance summary.
+         */
+        DailyPerformanceSummaryResponse: {
+            /** Summary */
+            summary: string;
         };
         /** DashboardComponent */
         DashboardComponent: {
@@ -6859,6 +7105,20 @@ export interface components {
             /** Version */
             version?: string | null;
         };
+        /**
+         * EventData
+         * @description Event information for AI analysis.
+         */
+        EventData: {
+            /** Device Type Name */
+            device_type_name: string;
+            /** Count */
+            count: number;
+            /** Revenue Loss */
+            revenue_loss: number;
+            /** Status */
+            status: string;
+        };
         /** EventMetaData */
         EventMetaData: {
             /** Metrics */
@@ -7287,6 +7547,68 @@ export interface components {
             /** Name Short */
             name_short: string;
         };
+        /** PVBudgetedBulkUpsertRequest */
+        PVBudgetedBulkUpsertRequest: {
+            /** Pv Budgeted Series Id */
+            pv_budgeted_series_id?: number | null;
+            series?: components["schemas"]["PVBudgetedSeriesIn"] | null;
+            /** Rows */
+            rows: components["schemas"]["PVBudgetedDataRow"][];
+        };
+        /** PVBudgetedDataRow */
+        PVBudgetedDataRow: {
+            /**
+             * Time Stamp
+             * Format: date-time
+             */
+            time_stamp: string;
+            /** Poi Ac Power */
+            poi_ac_power: number;
+            /** Ghi */
+            ghi?: number | null;
+            /** Poa */
+            poa: number;
+            /** Temperature */
+            temperature?: number | null;
+            /** Soiling Percentage */
+            soiling_percentage?: number | null;
+        };
+        /** PVBudgetedSeries */
+        PVBudgetedSeries: {
+            /** P Value */
+            p_value: string;
+            /** Frequency */
+            frequency: string;
+            /** Soiling Mode */
+            soiling_mode?: string | null;
+            /** Soiling Fixed Percentage */
+            soiling_fixed_percentage?: number | null;
+            /** Tmy Source */
+            tmy_source?: string | null;
+            /** Model Version */
+            model_version?: string | null;
+            /** Filename */
+            filename?: string | null;
+            /** Pv Budgeted Series Id */
+            pv_budgeted_series_id: number;
+        };
+        /** PVBudgetedSeriesIn */
+        PVBudgetedSeriesIn: {
+            /** P Value */
+            p_value: string;
+            /** Frequency */
+            frequency: string;
+            /** Soiling Mode */
+            soiling_mode?: string | null;
+            /** Soiling Fixed Percentage */
+            soiling_fixed_percentage?: number | null;
+            /** Tmy Source */
+            tmy_source?: string | null;
+            /** Model Version */
+            model_version?: string | null;
+            /** Filename */
+            filename?: string | null;
+        };
         /** PVModule */
         PVModule: {
             /**
@@ -7532,17 +7854,17 @@ export interface components {
             /** Time End */
             time_end: string | null;
             /** Loss Daily Power */
-            loss_daily_power: number;
+            loss_daily_power: number | null;
             /** Loss Today Power */
-            loss_today_power: number;
+            loss_today_power: number | null;
             /** Loss Total Power */
-            loss_total_power: number;
+            loss_total_power: number | null;
             /** Loss Daily Financial */
-            loss_daily_financial: number;
+            loss_daily_financial: number | null;
             /** Loss Today Financial */
-            loss_today_financial: number;
+            loss_today_financial: number | null;
             /** Loss Total Financial */
-            loss_total_financial: number;
+            loss_total_financial: number | null;
             /** Root Cause */
             root_cause: string;
         };
@@ -8270,25 +8592,6 @@ export interface components {
             /** Company Name Short */
             company_name_short: string;
         };
-        /** UserData */
-        UserData: {
-            /** User Id */
-            user_id: string;
-            /**
-             * Company Id
-             * Format: uuid
-             */
-            company_id: string;
-            /** Public Metadata */
-            public_metadata: {
-                [key: string]: unknown;
-            };
-            /** Api Key */
-            api_key: string | null;
-            /** Operational Project Ids */
-            operational_project_ids: string[];
-            user_type_id: components["schemas"]["UserTypeEnum"];
-        };
         /** UserKPITypes */
         UserKPITypes: {
             /** User Id */
@@ -8358,23 +8661,6 @@ export interface components {
             name_long: string;
             /** Permission Ids */
             permission_ids: number[];
-        };
-        /** UserWithProjects */
-        UserWithProjects: {
-            /** User Id */
-            user_id: string;
-            user_type_id: components["schemas"]["UserTypeEnum"];
-            /**
-             * Company Id
-             * Format: uuid
-             */
-            company_id: string;
-            /** Name Long */
-            name_long: string;
-            /** Api Key */
-            api_key: string | null;
-            /** Operational Project Ids */
-            operational_project_ids: string[];
         };
         /** UtilityExpectedResponse */
         UtilityExpectedResponse: {
@@ -9484,7 +9770,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserWithProjects"][];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -9516,7 +9802,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserData"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -10209,40 +10495,6 @@ export interface operations {
             };
         };
     };
-    get_combiner_performance_v1_analytics__project_id__gis_combiner_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_combiner_block_performance_v1_analytics__project_id__gis_combiner__block_device_id__get: {
         parameters: {
             query?: never;
@@ -10792,6 +11044,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_daily_performance_summary_v1_ai_daily_performance_summary_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyPerformanceSummaryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyPerformanceSummaryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -13338,6 +13626,44 @@ export interface operations {
             };
         };
     };
+    get_event_losses_summary_v1_operational_projects__project_id__events_event_losses_summary_get: {
+        parameters: {
+            query: {
+                event_id: number;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number | null;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get: {
         parameters: {
             query?: {
@@ -13930,6 +14256,189 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PVBudgetedSeries"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PVBudgetedSeriesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PVBudgetedSeries"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get: {
+        parameters: {
+            query: {
+                pv_budgeted_series_id: number;
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PVBudgetedDataRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series__pv_budgeted_series_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_budgeted_series_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_upsert_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_bulk_upsert_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PVBudgetedBulkUpsertRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -16867,6 +17376,194 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Inverter"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_series: {
+        parameters: {
+            query: {
+                project_id: string;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_data: {
+        parameters: {
+            query: {
+                project_id: string;
+                start: string;
+                end: string;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_data_by_series: {
+        parameters: {
+            query: {
+                project_id: string;
+                start: string;
+                end: string;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_budgeted_series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_series_full_data: {
+        parameters: {
+            query: {
+                project_id: string;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_budgeted_series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_series_daily_data: {
+        parameters: {
+            query: {
+                project_id: string;
+                start_date: string;
+                end_date: string;
+                degradation_rate?: number;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_budgeted_series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

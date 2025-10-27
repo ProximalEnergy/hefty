@@ -43,6 +43,12 @@ uv tree --outdated && \
 npm outdated
 """
 
+[tasks.codegen]
+description = "Automatically generate interfaces"
+run = """
+./_scripts/sync_api_and_ts_types_and_enums.sh
+"""
+
 
 [tasks.sync]
 description = "Sync current branch with latest dev from remote"
