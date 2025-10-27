@@ -8,16 +8,13 @@ from typing import Any, TypeVar, cast
 import pandas as pd
 import polars as pl
 import sqlalchemy as sa
+from pandas.api import types as pdt
 from sqlalchemy import TextClause, create_engine
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Result
 from sqlalchemy.inspection import inspect
 from sqlalchemy.inspection import inspect as sa_inspect
-from sqlalchemy.orm import (
-    Mapper,
-    Query,
-    class_mapper,
-)
+from sqlalchemy.orm import Mapper, Query, class_mapper
 from sqlalchemy.orm.exc import UnmappedClassError
 
 from core.database import database_url
@@ -46,6 +43,40 @@ MISSING_QUERY_ERROR = MissingQueryError(
     "Query is not available. This ModelList was initialized with a raw SQL result, "
     "so certain functions such as `.query_items()` and `.sql_string()` are unsupported."
 )
+
+
+def _normalize_df_dtypes(
+    df: pd.DataFrame, *, strings_as_object: bool = True
+) -> pd.DataFrame:
+    """
+    Convert Arrow-backed dtypes (e.g., double[pyarrow], string[pyarrow]) to
+    pandas/numpy dtypes for compatibility with legacy code.
+
+    - First: Arrow -> pandas nullable (Int64, Float64, boolean, string)
+    - Then: if no NA present, nullable ints -> int64, nullable bools -> bool
+    - Optionally: strings -> object (many libs still expect object dtype)
+    """
+    # Fast path: only do work if any Arrow dtype present
+    if any(getattr(dt, "pyarrow_dtype", None) is not None for dt in df.dtypes):
+        # Arrow -> pandas nullable dtypes
+        df = df.convert_dtypes(dtype_backend="numpy_nullable")
+
+    # Downcast nullable integers/bools without NA to plain numpy dtypes
+    for col in df.columns:
+        s = df[col]
+        dt = s.dtype
+        if pdt.is_integer_dtype(dt) and not s.isna().any():
+            df[col] = s.astype("int64")
+        elif pdt.is_bool_dtype(dt) and not s.isna().any():
+            df[col] = s.astype("bool")
+
+    # Optionally coerce pandas StringDtype -> object for max compatibility
+    if strings_as_object:
+        str_cols = df.select_dtypes(include=["string"]).columns
+        if len(str_cols) > 0:
+            df[str_cols] = df[str_cols].astype("object")
+
+    return df
 
 
 def _sql_string[T](*, query: Query[T]) -> str:
@@ -204,46 +235,72 @@ class ModelList[T]:
         as_datetime: bool = False,
         tz: str | None = None,
     ) -> pd.DataFrame:
-        """Convert the loaded models into a Pandas DataFrame."""
-        if self.items is None:
-            # Handle TextClause queries by executing them directly
-            if isinstance(self.query, TextClause):
-                from sqlalchemy import create_engine
+        """Convert the ModelList into a Pandas DataFrame quickly.
 
-                from core.database import database_url
+        Fast paths:
+        - If a SQLAlchemy Query/TextClause is present, always read directly from SQL.
+        (Skips Python object materialization; much faster for large results.)
+        - If only in-memory items exist, use a cached attrgetter + tuples + from_records.
+        """
+        import operator
 
-                engine = create_engine(database_url())
-                with engine.connect() as connection:
-                    df = pd.read_sql(
-                        sql=self.query,
-                        con=connection,
-                    )
-                    # Apply column mapping for consistency with model-based results
-                    if self._sql_to_model_col_map:
-                        df = df.rename(columns=self._sql_to_model_col_map)
-            else:
-                raise UNINITIALIZED_ERROR_ITEMS
+        # ---- 1) Prefer DB -> pandas whenever we still have a query ----
+        if isinstance(self.query, TextClause):
+            engine = create_engine(database_url())
+            with engine.connect() as connection:
+                df = pd.read_sql(sql=self.query, con=connection)
+                # Apply column mapping for consistency with model-based results
+                if self._sql_to_model_col_map:
+                    df = df.rename(columns=self._sql_to_model_col_map)
+
+        elif isinstance(self.query, Query):
+            engine = create_engine(database_url())
+            sql = self.sql_string()
+            with engine.connect() as connection:
+                # Try Arrow backend (pandas >= 2) for additional speed/memory wins
+                try:
+                    df = pd.read_sql(sql, con=connection)  # type: ignore[call-arg]
+                except TypeError:
+                    df = pd.read_sql(sql, con=connection)
+
+        # ---- 2) No query available: build from in-memory ORM items efficiently ----
         else:
+            if self.items is None:
+                raise UNINITIALIZED_ERROR_ITEMS
             if len(self.items) == 0:
                 return pd.DataFrame()
 
-            df = pd.DataFrame(
-                [
-                    {
-                        col.key: getattr(obj, col.key)
-                        for col in inspect(obj).mapper.column_attrs  # type: ignore
-                    }
-                    for obj in self.items
-                ]
-            )
+            # Class-level caches to avoid repeated mapper/attrgetter work
+            cls = type(self)
+            if not hasattr(cls, "_SCHEMA_CACHE"):
+                cls._SCHEMA_CACHE = {}  # type: ignore[attr-defined]
+            if not hasattr(cls, "_GETTER_CACHE"):
+                cls._GETTER_CACHE = {}  # type: ignore[attr-defined]
 
+            first = self.items[0]
+            mapper = inspect(first).mapper  # type: ignore  # one inspect only
+            cols = cls._SCHEMA_CACHE.get(first.__class__)  # type: ignore[attr-defined]
+            if cols is None:
+                cols = [col.key for col in mapper.column_attrs]
+                cls._SCHEMA_CACHE[first.__class__] = cols  # type: ignore[attr-defined]
+
+            getter = cls._GETTER_CACHE.get(first.__class__)  # type: ignore[attr-defined]
+            if getter is None:
+                getter = operator.attrgetter(*cols)
+                cls._GETTER_CACHE[first.__class__] = getter  # type: ignore[attr-defined]
+
+            # Build rows as tuples (cheaper than dicts), then from_records
+            rows = [getter(obj) for obj in self.items]
+            df = pd.DataFrame.from_records(rows, columns=cols)
+
+        # ---- 3) Optional index + datetime/tz handling (unchanged behavior) ----
         if index:
             if index not in df.columns:
                 raise ValueError(f"Column '{index}' not found in DataFrame.")
             if as_datetime:
                 df[index] = pd.to_datetime(df[index], errors="coerce")
                 if tz:
-                    if df[index].dt.tz is None:
+                    if getattr(df[index].dt, "tz", None) is None:
                         df[index] = df[index].dt.tz_localize(
                             "UTC", nonexistent="NaT", ambiguous="NaT"
                         )
@@ -262,7 +319,7 @@ class ModelList[T]:
                 stacklevel=2,
             )
 
-        return df
+        return _normalize_df_dtypes(df)
 
     async def polars_dataframe_async(self) -> pl.DataFrame:
         """Run the query using Polars instead of SQLAlchemy and return a Polars DataFrame."""
@@ -392,8 +449,8 @@ class ModelList[T]:
             if op == "in" and len(tuple(v)) == 0:
                 return ModelList.from_items([])
 
-        # Case A: deferred query → push to SQL
-        if self.items is None and self.query is not None:
+        # Prefer SQL pushdown whenever a Query exists (regardless of self.items)
+        if isinstance(self.query, Query):
             descs = getattr(self.query, "column_descriptions", None)
             if not descs:
                 raise ValueError("find() requires an ORM query with a primary entity.")
@@ -429,10 +486,11 @@ class ModelList[T]:
                     seq = tuple(value)
                     exprs.append(sa.false() if len(seq) == 0 else col.in_(seq))
             new_q = self.query.filter(sa.and_(*exprs))
-            return ModelList(query=new_q, return_query=True)
+            # Return query if items are not loaded, otherwise return a ModelList
+            return ModelList(query=new_q, return_query=(self.items is None))
 
-        # Case B: in-memory filtering
-        if self.items is not None:
+        # Only fall back to in-memory filtering if there is NO Query
+        elif self.items is not None:
             if len(self.items) > 0:
                 mapper = sa_inspect(self.items[0]).mapper  # type: ignore[arg-type, union-attr]
                 col_keys = set(mapper.columns.keys())
@@ -441,24 +499,35 @@ class ModelList[T]:
                     raise ValueError(
                         f"Unknown attribute(s) for {mapper.class_.__name__} in find(): {invalid}"
                     )
+            in_sets: dict[int, set] = {}
+            for i, (field, op, value) in enumerate(normalized):
+                if op == "in":
+                    in_sets[i] = set(value)
 
             def _match(obj: Any) -> bool:  # skip-star-syntax
-                for field, op, value in normalized:
+                for i, (field, op, value) in enumerate(normalized):
                     attr = getattr(obj, field)
-                    if op == "eq" and not (attr == value):
-                        return False
-                    elif op == "ne" and not (attr != value):
-                        return False
-                    elif op == "gt" and not (attr > value):
-                        return False
-                    elif op == "lt" and not (attr < value):
-                        return False
-                    elif op == "ge" and not (attr >= value):
-                        return False
-                    elif op == "le" and not (attr <= value):
-                        return False
-                    elif op == "in" and attr not in set(value):
-                        return False
+                    if op == "eq":
+                        if attr != value:
+                            return False
+                    elif op == "ne":
+                        if attr == value:
+                            return False
+                    elif op == "gt":
+                        if not (attr > value):
+                            return False
+                    elif op == "lt":
+                        if not (attr < value):
+                            return False
+                    elif op == "ge":
+                        if not (attr >= value):
+                            return False
+                    elif op == "le":
+                        if not (attr <= value):
+                            return False
+                    elif op == "in":
+                        if attr not in in_sets[i]:
+                            return False
                 return True
 
             filtered = [obj for obj in self.items if _match(obj)]

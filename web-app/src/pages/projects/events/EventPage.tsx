@@ -1,6 +1,9 @@
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
-import { useGetEventTraceTags } from '@/api/v1/operational/project/events'
+import {
+  useGetEventLossesSummary,
+  useGetEventTraceTags,
+} from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useGetStatusTimeSeries } from '@/api/v1/operational/project/project_status'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
@@ -12,7 +15,6 @@ import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { traceColors } from '@/components/plots/PlotlyPlotUtils'
 import {
-  useGetEventLosses,
   useGetEvents,
   useGetFailureModes,
   useGetRootCauses,
@@ -27,6 +29,7 @@ import {
   Card,
   ComboboxItem,
   Group,
+  HoverCard,
   Modal,
   OptionsFilter,
   Select,
@@ -38,7 +41,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconClock } from '@tabler/icons-react'
+import { IconClock, IconInfoCircle } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { Dash } from 'plotly.js'
 import { useEffect, useState } from 'react'
@@ -101,16 +104,10 @@ const useEventData = (projectId: string | undefined, eventId: number) => {
     },
   })
 
-  const eventLosses = useGetEventLosses({
-    pathParams: {
-      projectId: projectId || '-1',
-    },
-    queryParams: {
-      event_ids: [eventId],
-    },
-    queryOptions: {
-      enabled: !!eventId && !!projectId,
-    },
+  const eventLossesSummary = useGetEventLossesSummary({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: { event_id: eventId },
+    queryOptions: { enabled: !!eventId && !!projectId },
   })
 
   const event = eventData.data?.[0]
@@ -143,13 +140,13 @@ const useEventData = (projectId: string | undefined, eventId: number) => {
   return {
     project,
     event,
-    eventLosses,
+    eventLossesSummary,
     eventsHistorical,
     CMMSTickets,
     rootCauses,
     failureModes,
     isLoading:
-      project.isLoading || eventData.isLoading || eventLosses.isLoading,
+      project.isLoading || eventData.isLoading || eventLossesSummary.isLoading,
   }
 }
 
@@ -213,13 +210,25 @@ const EventLosses = ({
 }: {
   losses: Record<
     string,
-    { title: string; value: string | number; unit: string }
+    { title: string; value: string | number; unit: string; info?: string }
   >
 }) => (
   <Table w="100%">
     <Table.Thead>
       <Table.Tr>
-        <Table.Td>{losses.financial.title}</Table.Td>
+        <Table.Td>
+          {losses.financial.title}
+          {losses.financial.info && (
+            <HoverCard>
+              <HoverCard.Target>
+                <IconInfoCircle size={10} />
+              </HoverCard.Target>
+              <HoverCard.Dropdown w="50%">
+                <Text>{losses.financial.info}</Text>
+              </HoverCard.Dropdown>
+            </HoverCard>
+          )}
+        </Table.Td>
         <Table.Td>{losses.energetic.title}</Table.Td>
         <Table.Td>{losses.capacity.title}</Table.Td>
       </Table.Tr>
@@ -401,7 +410,7 @@ const Page = () => {
   const {
     project,
     event,
-    eventLosses,
+    eventLossesSummary,
     eventsHistorical,
     CMMSTickets,
     rootCauses,
@@ -409,15 +418,6 @@ const Page = () => {
     isLoading: isPageLoading,
   } = useEventData(projectId, eventId)
   const projectTz = project.data?.time_zone || 'UTC'
-
-  const lossTotalFinancial = eventLosses.data?.reduce(
-    (acc, curr) => (curr.event_loss_type_id === 2 ? acc + curr.loss : acc),
-    0,
-  )
-  const lossTotalEnergetic = eventLosses.data?.reduce(
-    (acc, curr) => (curr.event_loss_type_id === 1 ? acc + curr.loss : acc),
-    0,
-  )
 
   // If project.has_pv_dc_combiners is true, and we are on a PV DC Combiner (device_type_id 9) event,
   // allow root causes for DC Field (device_type_id 30).
@@ -560,11 +560,6 @@ const Page = () => {
   const eventStartTime = dayjs(event?.time_start).tz(project.data?.time_zone)
   const eventEndTime = dayjs(event?.time_end).tz(project.data?.time_zone)
 
-  const today = dayjs()
-  const days = event?.time_end
-    ? dayjs(event.time_end).diff(dayjs(event.time_start), 'days') + 1
-    : today.diff(dayjs(event?.time_start), 'days') + 1
-
   const currentType = [2, 3].includes(
     event?.device.device_type?.device_type_id || 0,
   )
@@ -573,21 +568,36 @@ const Page = () => {
   const losses = {
     financial: {
       title: 'Daily Impact',
-      value: ((lossTotalFinancial || 0) / days)?.toFixed(2) || ' N/A',
+      value:
+        (eventLossesSummary.data?.loss_daily_financial || 0)?.toFixed(2) ||
+        ' N/A',
       unit: '$',
+      info: 'Daily financial loss is calculated by dividing the total financial loss by the number of days in the event.\
+      This calculation is sensitive to nuances such as other impacts to the project (including other Events) and daily expected production.\
+      Financial loss is calculated as energy lost multiplied by the PPA price, as provided.',
     },
     energetic: {
       title: '',
-      value: ((lossTotalEnergetic || 0) / days)?.toFixed(2) || ' N/A',
+      value:
+        (eventLossesSummary.data?.loss_daily_energy || 0)?.toFixed(2) || ' N/A',
       unit: 'MWh',
     },
     capacity: {
       title: 'Capacity Loss',
       value:
-        currentType === 'ac'
-          ? event?.device.capacity_ac || 0
-          : event?.device.capacity_dc || 0,
-      unit: currentType === 'ac' ? 'kW AC' : 'kW DC',
+        eventLossesSummary.data?.loss_capacity !== null &&
+        eventLossesSummary.data?.loss_capacity !== undefined
+          ? eventLossesSummary.data.loss_capacity
+          : currentType === 'ac'
+            ? event?.device.capacity_ac || 0
+            : event?.device.capacity_dc || 0,
+      unit:
+        eventLossesSummary.data?.loss_capacity !== null &&
+        eventLossesSummary.data?.loss_capacity !== undefined
+          ? 'kW DC'
+          : currentType === 'ac'
+            ? 'kW AC'
+            : 'kW DC',
     },
   }
 
@@ -782,7 +792,12 @@ const Page = () => {
             title="Aria Recommendation"
             style={{ height: '100%' }}
           >
-            <AriaRecommendation {...(event || ({} as Event))} />
+            {event && losses.financial.value && (
+              <AriaRecommendation
+                event={event}
+                dailyLoss={Number(losses.financial.value || 0)}
+              />
+            )}
           </CustomCard>
           <Group flex={1} h="100%" w="100%">
             <Card withBorder w="100%" h="100%" p={0} radius="md">
