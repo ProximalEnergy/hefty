@@ -28,6 +28,8 @@ class PortfolioHome(BaseModel):
     times: list[Any] | None
     meter_active_power: list[Any] | None
     meter_soc_percent: list[Any] | None
+    max_charge_power: list[Any] | None
+    max_discharge_power: list[Any] | None
 
 
 @router.get(
@@ -155,6 +157,8 @@ async def get_home(
                     times=None,
                     meter_active_power=None,
                     meter_soc_percent=None,
+                    max_charge_power=None,
+                    max_discharge_power=None,
                 ),
             )
         else:
@@ -201,6 +205,35 @@ async def get_home(
                 meter_soc_percent = None
                 soc = None
 
+            max_charge_columns = [
+                c for c in df_project.columns if c[1] == 80
+            ]  # max_charge_power
+            if max_charge_columns:
+                poi = pd.to_numeric(
+                    projects_df.loc[str(project_id), "poi"], errors="coerce"
+                )
+                max_charge_power = (
+                    (df_project[max_charge_columns].sum(axis=1) / -1_000)
+                    .clip(lower=-poi)
+                    .tolist()
+                )
+            else:
+                max_charge_power = None
+            max_discharge_columns = [
+                c for c in df_project.columns if c[1] == 81
+            ]  # max_discharge_power
+            if max_discharge_columns:
+                poi = pd.to_numeric(
+                    projects_df.loc[str(project_id), "poi"], errors="coerce"
+                )
+                max_discharge_power = (
+                    (df_project[max_discharge_columns].sum(axis=1) / 1_000)
+                    .clip(upper=poi)
+                    .tolist()
+                )
+            else:
+                max_discharge_power = None
+
             return_data.append(
                 PortfolioHome(
                     project_id=project_id,
@@ -210,6 +243,8 @@ async def get_home(
                     times=times,
                     meter_active_power=meter_active_power,
                     meter_soc_percent=meter_soc_percent,
+                    max_charge_power=max_charge_power,
+                    max_discharge_power=max_discharge_power,
                 ),
             )
 

@@ -197,6 +197,37 @@ export function PortfolioProjectCard({
                         yaxis: 'y2',
                       }
                     : {},
+                  portfolioHomeProject.max_charge_power
+                    ? {
+                        x,
+                        y: project.has_real_time_data
+                          ? portfolioHomeProject.max_charge_power.slice(-288)
+                          : portfolioHomeProject.max_charge_power.slice(0, 288),
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {
+                          color: theme.colors.orange[7],
+                          dash: 'dash',
+                        },
+                      }
+                    : {},
+                  portfolioHomeProject.max_discharge_power
+                    ? {
+                        x,
+                        y: project.has_real_time_data
+                          ? portfolioHomeProject.max_discharge_power.slice(-288)
+                          : portfolioHomeProject.max_discharge_power.slice(
+                              0,
+                              288,
+                            ),
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {
+                          color: theme.colors.orange[7],
+                          dash: 'dash',
+                        },
+                      }
+                    : {},
                 ]}
                 layout={{
                   xaxis: {
@@ -205,7 +236,11 @@ export function PortfolioProjectCard({
                   },
                   yaxis: {
                     title: {
-                      text: 'Power (MW)',
+                      text:
+                        portfolioHomeProject.max_charge_power ||
+                        portfolioHomeProject.max_discharge_power
+                          ? `Power (MW)<br><sub style="color: ${theme.colors.orange[7]}; font-size: 10px;">Available Charge Power (MW)</sub>`
+                          : 'Power (MW)',
                       font: {
                         color: theme.colors.green[7],
                       },

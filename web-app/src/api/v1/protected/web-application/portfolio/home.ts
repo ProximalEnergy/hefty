@@ -9,6 +9,8 @@ type PortfolioHomeProject = {
   times?: string[]
   meter_active_power?: number[]
   meter_soc_percent?: number[]
+  max_charge_power?: number[]
+  max_discharge_power?: number[]
 }
 
 export const useGetPortfolioHome = ({
