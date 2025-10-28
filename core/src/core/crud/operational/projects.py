@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
@@ -205,3 +206,38 @@ async def get_project_timezone_and_data_cagg_interval_by_name_short_async(
         "timezone": row.time_zone,
         "data_cagg_interval": row.data_cagg_interval,
     }
+
+
+def update_project_spec(
+    *, db: Session, project_id: UUID, spec_updates: dict[str, Any]
+) -> models.Project:
+    """
+    Update the project spec with new values.
+
+    Args:
+        db: Database session
+        project_id: UUID of the project to update
+        spec_updates: Dictionary of spec fields to update
+
+    Returns:
+        Updated project model
+    """
+    project = (
+        db.query(models.Project).filter(models.Project.project_id == project_id).first()
+    )
+
+    if not project:
+        raise ValueError(f"Project with ID {project_id} not found")
+
+    # Get current spec or initialize empty dict
+    current_spec = project.spec or {}
+
+    # Update the spec with new values
+    updated_spec = {**current_spec, **spec_updates}
+
+    # Update the project's spec field
+    project.spec = updated_spec
+    db.commit()
+    db.refresh(project)
+
+    return project

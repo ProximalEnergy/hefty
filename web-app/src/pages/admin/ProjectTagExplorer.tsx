@@ -1,9 +1,10 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
+import { useGetProject } from '@/api/v1/operational/projects'
 import {
+  SensorType,
   useCreateSensorTypeMutation,
   useGetSensorTypes,
 } from '@/api/v1/operational/sensor_types'
-import { SensorType } from '@/api/v1/operational/sensor_types'
 import {
   useAssignPatternSensorTypeMutation,
   useGetTagPatternSamples,
@@ -35,6 +36,9 @@ import {
 import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconEye, IconPlus, IconRefresh } from '@tabler/icons-react'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import {
   type MRT_Cell,
   MRT_ColumnDef,
@@ -44,6 +48,9 @@ import {
 import React, { useMemo, useState } from 'react'
 import Plot from 'react-plotly.js'
 import { useParams } from 'react-router-dom'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const ProjectTagExplorer = () => {
   const { projectId } = useParams()
@@ -235,6 +242,9 @@ const ProjectTagExplorer = () => {
   // })
   const sensorTypes = useGetSensorTypes({})
   const deviceTypes = useGetDeviceTypes({})
+  const project = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+  })
 
   const assignPatternSensorType = useAssignPatternSensorTypeMutation()
 
@@ -489,11 +499,8 @@ const ProjectTagExplorer = () => {
               </Tooltip>
             )
           }
-          const st = sensorTypes.data?.find(
-            (s: SensorType) => s.sensor_type_id === sensorTypeId,
-          )
           return (
-            <Tooltip label={st?.name_long || undefined}>
+            <Tooltip label={`ID: ${sensorTypeId}`}>
               <Text>{nameShort || '—'}</Text>
             </Tooltip>
           )
@@ -755,9 +762,22 @@ const ProjectTagExplorer = () => {
   if (
     uniqueTagTypes.isLoading ||
     sensorTypes.isLoading ||
-    deviceTypes.isLoading
+    deviceTypes.isLoading ||
+    project.isLoading
   ) {
     return <PageLoader />
+  }
+
+  if (project.isError) {
+    return (
+      <Stack p="md">
+        <Title order={1}>Project Tag Explorer</Title>
+        <Text c="red">
+          Error loading project data:{' '}
+          {project.error?.message || 'Unknown error'}
+        </Text>
+      </Stack>
+    )
   }
 
   const noPrecomputedPatterns =
@@ -980,7 +1000,7 @@ const ProjectTagExplorer = () => {
             'Tag Pattern Details'
           )
         }
-        size="70rem"
+        size="90rem"
       >
         <Stack gap="lg">
           {selectedTagPattern && (
@@ -1168,7 +1188,9 @@ const ProjectTagExplorer = () => {
                     <Group justify="space-between" align="center">
                       <Title order={4}>Sample Data</Title>
                       <AdvancedDatePicker
-                        defaultRange="past-3-days"
+                        defaultRange="yesterday"
+                        includeClearButton={false}
+                        includeTodayInDateRange={true}
                         size="sm"
                         width={400}
                       />
@@ -1227,7 +1249,7 @@ const ProjectTagExplorer = () => {
 
                           return (
                             <>
-                              {numericTags.length > 0 && (
+                              {numericTags.length > 0 && project.isSuccess && (
                                 <Tabs defaultValue="timeseries">
                                   <Tabs.List>
                                     <Tabs.Tab value="timeseries">
@@ -1241,7 +1263,17 @@ const ProjectTagExplorer = () => {
                                   <Tabs.Panel value="timeseries" pt="xs">
                                     <Plot
                                       data={numericTags.map((tag: any) => ({
-                                        x: tag.timestamps,
+                                        x: tag.timestamps.map(
+                                          (timestamp: string) => {
+                                            // Convert UTC timestamp to project's local timezone
+                                            const projectTimezone =
+                                              project.data?.time_zone || 'UTC'
+                                            return dayjs
+                                              .utc(timestamp)
+                                              .tz(projectTimezone)
+                                              .format('MM-DD HH:mm')
+                                          },
+                                        ),
                                         y: tag.sample_values.map(
                                           (value: number) => {
                                             let transformedValue = value
@@ -1255,6 +1287,7 @@ const ProjectTagExplorer = () => {
                                                 transformedValue +
                                                 patternUnitOffset
                                             }
+
                                             return transformedValue
                                           },
                                         ),
@@ -1262,15 +1295,24 @@ const ProjectTagExplorer = () => {
                                         mode: 'lines+markers',
                                         name: tag.tag_name,
                                         opacity: 0.7,
+                                        hovertemplate:
+                                          `<b>${tag.tag_name}</b><br>` +
+                                          `Time: %{x}<br>` +
+                                          `Value: %{y}<br>` +
+                                          `<extra></extra>`,
                                       }))}
                                       layout={{
                                         width: 600,
-                                        height: 300,
+                                        height: 400,
                                         showlegend: false,
-                                        margin: { l: 50, r: 20, t: 20, b: 50 },
+                                        margin: { l: 50, r: 20, t: 20, b: 100 },
                                         xaxis: {
-                                          title: { text: 'Time' },
-                                          type: 'date',
+                                          title: {
+                                            text: 'Time (Project Local)',
+                                            standoff: 20,
+                                          },
+                                          type: 'category',
+                                          tickmode: 'auto',
                                         },
                                         yaxis: {
                                           title: {
@@ -1278,6 +1320,13 @@ const ProjectTagExplorer = () => {
                                               ? `Values (${selectedSensorTypeUnit})`
                                               : 'Values',
                                           },
+                                          tickformat:
+                                            selectedSensorTypeUnit &&
+                                            selectedSensorTypeUnit
+                                              .toLowerCase()
+                                              .includes('%')
+                                              ? ',.0%'
+                                              : undefined,
                                         },
                                       }}
                                       config={{ displayModeBar: false }}
@@ -1300,6 +1349,7 @@ const ProjectTagExplorer = () => {
                                                 transformedValue +
                                                 patternUnitOffset
                                             }
+
                                             return transformedValue
                                           },
                                         ),
@@ -1307,18 +1357,30 @@ const ProjectTagExplorer = () => {
                                         name: tag.tag_name,
                                         opacity: 0.7,
                                         nbinsx: 20,
+                                        hovertemplate:
+                                          `<b>${tag.tag_name}</b><br>` +
+                                          `Value: %{x}<br>` +
+                                          `Count: %{y}<br>` +
+                                          `<extra></extra>`,
                                       }))}
                                       layout={{
                                         width: 600,
-                                        height: 300,
+                                        height: 400,
                                         showlegend: false,
-                                        margin: { l: 50, r: 20, t: 20, b: 50 },
+                                        margin: { l: 50, r: 20, t: 20, b: 100 },
                                         xaxis: {
                                           title: {
                                             text: selectedSensorTypeUnit
                                               ? `Values (${selectedSensorTypeUnit})`
                                               : 'Values',
                                           },
+                                          tickformat:
+                                            selectedSensorTypeUnit &&
+                                            selectedSensorTypeUnit
+                                              .toLowerCase()
+                                              .includes('%')
+                                              ? ',.0%'
+                                              : undefined,
                                         },
                                         yaxis: { title: { text: 'Frequency' } },
                                       }}
@@ -1326,6 +1388,14 @@ const ProjectTagExplorer = () => {
                                     />
                                   </Tabs.Panel>
                                 </Tabs>
+                              )}
+
+                              {numericTags.length > 0 && !project.isSuccess && (
+                                <Card withBorder variant="light">
+                                  <Text c="dimmed">
+                                    Charts unavailable: Project data not loaded
+                                  </Text>
+                                </Card>
                               )}
 
                               {nonNumericTags.length > 0 && (
@@ -1444,6 +1514,7 @@ const ProjectTagExplorer = () => {
         opened={isConfirmOpen}
         onClose={closeConfirm}
         title="Confirm Pattern Assignment"
+        size="lg"
       >
         <Stack gap="md">
           <Text>

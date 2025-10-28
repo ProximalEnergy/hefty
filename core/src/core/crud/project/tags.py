@@ -80,3 +80,35 @@ def get_project_tags(
         query = query.filter(models.Tag.device_id != 0)
         query = query.filter(models.Tag.sensor_type_id != 0)
     return ModelList(query=query, return_query=return_query)
+
+
+def get_unique_sensor_type_ids_from_tags(*, db: Session) -> list[int]:
+    """
+    Get all unique sensor type IDs that are assigned to tags in the project.
+    Includes sensor type ID 0 and sorts results in ascending order.
+
+    Args:
+        db: Database session
+
+    Returns:
+        List of unique sensor type IDs sorted in ascending order
+    """
+    # Get all unique sensor_type_ids from tags where sensor_type_id is not null
+    # Sort at database level for better performance
+    unique_sensor_type_ids = (
+        db.query(models.Tag.sensor_type_id)
+        .filter(models.Tag.sensor_type_id.isnot(None))
+        .distinct()
+        .order_by(models.Tag.sensor_type_id.asc())
+        .all()
+    )
+
+    # Extract the sensor_type_id values from the result tuples
+    # They should already be sorted from the database query
+    sensor_type_ids = [row[0] for row in unique_sensor_type_ids]
+
+    # Ensure sensor_type_id 0 is included and maintain ascending order
+    if 0 not in sensor_type_ids:
+        sensor_type_ids.insert(0, 0)
+
+    return sensor_type_ids

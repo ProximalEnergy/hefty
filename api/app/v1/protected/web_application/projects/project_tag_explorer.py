@@ -3,6 +3,8 @@ import urllib.parse
 from typing import Annotated, Any, cast
 
 import pandas as pd
+from core.crud.operational import projects as crud_projects
+from core.crud.project import tags as crud_project_tags
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -260,6 +262,7 @@ async def assign_sensor_type_to_pattern(
     request: AssignPatternSensorTypeRequest,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
+    db: Annotated[Session, Depends(dependencies.get_db)],
 ):
     """
     Assign a sensor type to all tags matching a pattern in a project.
@@ -295,6 +298,20 @@ async def assign_sensor_type_to_pattern(
             unit_offset=request.unit_offset,
         )
 
+        # Update project spec with current used_sensor_type_ids
+        # Get all unique sensor type IDs from tags in this project
+        unique_sensor_type_ids = crud_project_tags.get_unique_sensor_type_ids_from_tags(
+            db=project_db
+        )
+
+        # Update the project spec in the operational database
+        # We need to use the main database session for this, not the project database
+        crud_projects.update_project_spec(
+            db=db,
+            project_id=project.project_id,
+            spec_updates={"used_sensor_type_ids": unique_sensor_type_ids},
+        )
+
         return {
             "message": f"Successfully updated {updated_count} tags",
             "updated_count": updated_count,
@@ -302,6 +319,7 @@ async def assign_sensor_type_to_pattern(
             "sensor_type_id": request.sensor_type_id,
             "unit_scale": request.unit_scale,
             "unit_offset": request.unit_offset,
+            "updated_spec": {"used_sensor_type_ids": unique_sensor_type_ids},
         }
 
     except Exception as e:
