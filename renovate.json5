@@ -5,6 +5,9 @@
   minimumReleaseAge: "30 days",
   internalChecksFilter: "strict",
   reviewers: ["kurt-rhee"],
+  schedule: ["0 5 * * 1"],
+  timezone: "America/Los_Angeles",
+  description: "Schedule Monday at 5 AM Pacific",
   packageRules: [
     // =========== Don't Upgrade Python ============
     {

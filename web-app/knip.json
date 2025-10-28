@@ -1,0 +1,4 @@
+{
+  "ignore": ["src/api/enumerations.ts"],
+  "ignoreDependencies": ["openapi-typescript"]
+}

@@ -46,6 +46,15 @@ from core import models
 router = APIRouter(prefix="/projects/{project_id}/events", tags=["project_events"])
 
 
+def _none_if_nan(x: Any) -> float | None:  # skip-star-syntax
+    if x is None:
+        return None
+    try:
+        return None if pd.isna(x) else float(x)
+    except (TypeError, ValueError):
+        return None
+
+
 @router.get("/", response_model=list[interfaces.Event])
 def get_events(
     db: Annotated[Session, Depends(get_db)],
@@ -56,7 +65,7 @@ def get_events(
     open: bool = True,
     event_ids: Annotated[list[int] | None, Query()] = None,
     open_at: datetime.datetime | None = None,
-):
+) -> list[interfaces.Event] | None:
     if device_id == -1:
         return None
 
@@ -107,7 +116,7 @@ async def get_paginated_events(
     device_ids: Annotated[list[int] | None, Query()] = None,
     project_db: Session = Depends(get_project_db),
     db: AsyncSession = Depends(get_async_db),
-):
+) -> list[interfaces.PaginatedEvent]:
     # Get paginated events with single query
     data = crud_get_paginated_events(
         project_db,
@@ -116,7 +125,7 @@ async def get_paginated_events(
         sort_column=sort_column,
         sort_direction=sort_direction,
         open=open,
-        device_type_id=device_type_ids,
+        device_type_id=device_type_ids,  # preserve existing behavior/signature
         device_ids=device_ids,
         start=start,
         end=end,
@@ -125,110 +134,160 @@ async def get_paginated_events(
     if not data:
         return []
 
-    # Extract event_ids for all needed lookups
-    if sort_column == "loss_daily":
-        event_objs = [x[0] for x in data]
-    else:
-        event_objs = data
+    # Extract event objects depending on sort mode
+    event_objs = [x[0] for x in data] if sort_column == "loss_daily" else data
 
-    event_ids = [event.event_id for event in event_objs]
-    device_ids = [event.device_id for event in event_objs]
+    event_ids = [e.event_id for e in event_objs]
+    device_ids_only = [e.device_id for e in event_objs]
 
-    # Batch fetch all required data in a minimal number of queries
+    # Root causes: fetch only those referenced (minor efficiency boost; same behavior)
+    root_cause_ids: list[int] = [
+        int(e.root_cause_id) for e in event_objs if e.root_cause_id is not None
+    ]
 
-    # 1. Get all root causes in a single query
-    root_causes = await get_root_causes(db=db)
-    root_cause_id_to_name = {
-        root_cause.root_cause_id: root_cause.name_long for root_cause in root_causes
-    }
+    root_causes = await get_root_causes(
+        db=db,
+        root_cause_ids=root_cause_ids if root_cause_ids else [],
+    )
 
-    # 2. Get all devices in a single query
+    root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
+
+    # Devices and types
     devices = core.crud.project.devices.get_project_devices(
-        project_db, device_ids=device_ids
+        project_db, device_ids=device_ids_only
     ).models()
-    device_dict = {device.device_id: device for device in devices}
+    device_dict = {d.device_id: d for d in devices}
 
-    # 3. Get all device types in a single query
-    device_type_ids = list(set(device.device_type_id for device in devices))
-    device_types = await get_device_types(db=db, device_type_ids=device_type_ids)
-    device_type_dict = {
-        device_type.device_type_id: device_type for device_type in device_types
-    }
+    device_type_ids_only: list[int] = [
+        int(d.device_type_id) for d in devices if d.device_type_id is not None
+    ]
 
-    # 4. Get all event losses in a single query
-    losses = core.crud.project.event_losses.get_event_losses(
+    device_types = await get_device_types(
+        db=db,
+        device_type_ids=device_type_ids_only if device_type_ids_only else [],
+    )
+
+    device_type_dict = {dt.device_type_id: dt for dt in device_types}
+
+    # Precompute full device names
+    device_name_full_by_event: dict[uuid.UUID, str] = {}
+    for e in event_objs:
+        d = device_dict.get(e.device_id)
+        if d:
+            dt = device_type_dict.get(d.device_type_id)
+            if dt:
+                device_name_full_by_event[e.event_id] = (
+                    f"{dt.name_long} {d.name_long or ''}"
+                )
+
+    # Losses (pivot once, NaN -> None)
+    losses_df = core.crud.project.event_losses.get_event_losses(
         project_db, event_ids=event_ids
-    ).models()
+    ).pandas_dataframe()
 
-    # Process losses data more efficiently
-    loss_objects_by_event: dict[int, list] = {}
-    energy_losses_by_event: dict[int, float] = {}
-    financial_losses_by_event: dict[int, float] = {}
+    # If no losses, keep existing behavior
+    if losses_df.empty:
+        losses_map: dict = {}
+    else:
+        # Ensure expected columns exist
+        cols_needed = {"event_id", "event_loss_type_id", "loss", "time"}
+        missing = cols_needed - set(losses_df.columns)
+        if missing:
+            raise RuntimeError(f"event_losses missing columns: {missing}")
 
-    for loss in losses:
-        event_id = loss.event_id
-        if event_id not in loss_objects_by_event:
-            loss_objects_by_event[event_id] = []
-            energy_losses_by_event[event_id] = 0.0
-            financial_losses_by_event[event_id] = 0.0
+        # 1) per (event, type) totals + data-span
+        g = losses_df.groupby(["event_id", "event_loss_type_id"], as_index=False).agg(
+            total_loss=("loss", "sum"), tmin=("time", "min"), tmax=("time", "max")
+        )
+        g["days_data_span"] = (
+            g["tmax"].dt.floor("D") - g["tmin"].dt.floor("D")
+        ).dt.days + 1
 
-        loss_objects_by_event[event_id].append(loss)
+        # 2) per event duration (event-based denominator)
+        ev = pd.DataFrame(
+            [
+                {
+                    "event_id": e.event_id,
+                    "time_start": e.time_start,
+                    "time_end": e.time_end
+                    or datetime.datetime.now(e.time_start.tzinfo),
+                }
+                for e in event_objs
+            ]
+        )
+        # Align tz and floor to whole days if you want calendar-aware durations
+        ev["days_event"] = (
+            ev["time_end"].dt.floor("D") - ev["time_start"].dt.floor("D")
+        ).dt.days + 1
 
-        if loss.event_loss_type_id == 1:  # Energy loss
-            energy_losses_by_event[event_id] += loss.loss
-        elif loss.event_loss_type_id == 2:  # Financial loss
-            financial_losses_by_event[event_id] += loss.loss
+        # 3) choose denominator: event duration (matches your refactor)
+        g = g.merge(ev[["event_id", "days_event"]], on="event_id", how="left")
+        denom = g["days_event"]  # or g["days_data_span"] for original behavior
 
-    # Prepare device name lookup
-    event_device_name_full_dict = {}
-    for event in event_objs:
-        device = device_dict.get(event.device_id)
-        if device:
-            device_type = device_type_dict.get(device.device_type_id)
-            if device_type:
-                name = f"{device_type.name_long} {device.name_long or ''}"
-                event_device_name_full_dict[event.event_id] = name
+        g["avg_loss_per_day"] = g["total_loss"] / denom.replace({0: pd.NA})
 
-    # Create summaries more efficiently
-    summary_events = []
-    for event in event_objs:
-        event_id = event.event_id
-        event_losses = loss_objects_by_event.get(event_id, [])
-        num_losses = len(event_losses)
-
-        # Calculate daily averages only if we have losses
-        if num_losses > 0:
-            daily_energy = (
-                energy_losses_by_event.get(event_id, 0) / (num_losses / 2)
-                if num_losses > 0
-                else 0
-            )
-            daily_financial = (
-                financial_losses_by_event.get(event_id, 0) / (num_losses / 2)
-                if num_losses > 0
-                else 0
-            )
-        else:
-            daily_energy = 0
-            daily_financial = 0
-
-        summary_events.append(
-            interfaces.PaginatedEvent(
-                event_id=event_id,
-                device_name_full=event_device_name_full_dict.get(event_id, "Unknown"),
-                time_start=event.time_start,
-                time_end=event.time_end,
-                loss_daily_power=daily_energy,
-                loss_today_power=0,  # This is always 0 in the original code
-                loss_total_power=energy_losses_by_event.get(event_id, 0),
-                loss_daily_financial=daily_financial,
-                loss_today_financial=0,  # This is always 0 in the original code
-                loss_total_financial=financial_losses_by_event.get(event_id, 0),
-                root_cause=root_cause_id_to_name.get(event.root_cause_id) or "Unknown",
-            ),
+        # 4) pivot once
+        totals = g.pivot(
+            index="event_id", columns="event_loss_type_id", values="total_loss"
+        )
+        dailies = g.pivot(
+            index="event_id", columns="event_loss_type_id", values="avg_loss_per_day"
         )
 
-    return summary_events
+        # 5) build losses_map in O(E)
+        losses_map = {}
+        has = lambda frame, col: (frame is not None) and (
+            col in getattr(frame, "columns", [])
+        )
+        for ev_id in set(g["event_id"]):
+            losses_map[ev_id] = {
+                "loss_total_power": _none_if_nan(
+                    totals.at[ev_id, 1]
+                    if has(totals, 1) and ev_id in totals.index
+                    else None
+                ),
+                "loss_total_financial": _none_if_nan(
+                    totals.at[ev_id, 2]
+                    if has(totals, 2) and ev_id in totals.index
+                    else None
+                ),
+                "loss_daily_power": _none_if_nan(
+                    dailies.at[ev_id, 1]
+                    if has(dailies, 1) and ev_id in dailies.index
+                    else None
+                ),
+                "loss_daily_financial": _none_if_nan(
+                    dailies.at[ev_id, 2]
+                    if has(dailies, 2) and ev_id in dailies.index
+                    else None
+                ),
+            }
+
+    # Build response
+    out: list[interfaces.PaginatedEvent] = []
+    for e in event_objs:
+        ev_id = e.event_id
+        name_full = device_name_full_by_event.get(ev_id, "Unknown")
+        loss_vals = losses_map.get(ev_id, {})
+
+        out.append(
+            interfaces.PaginatedEvent(
+                event_id=ev_id,
+                device_name_full=name_full,
+                time_start=e.time_start,
+                time_end=e.time_end,
+                # per original code, "today" fields are constant zeros
+                loss_daily_power=loss_vals.get("loss_daily_power"),
+                loss_today_power=0,
+                loss_total_power=loss_vals.get("loss_total_power"),
+                loss_daily_financial=loss_vals.get("loss_daily_financial"),
+                loss_today_financial=0,
+                loss_total_financial=loss_vals.get("loss_total_financial"),
+                root_cause=root_cause_id_to_name.get(e.root_cause_id) or "Unknown",
+            )
+        )
+
+    return out
 
 
 @router.get("/event-losses")
@@ -366,46 +425,19 @@ async def get_events_summary(
     device_ids: Annotated[list[int] | None, Query()] = None,
     project_id: uuid.UUID | None = None,
     project: Annotated[models.Project, Depends(get_project)],
-):
-    """Generate a summary of events with their associated device, failure mode,
-    root cause, and loss information.
-
-    Args:
-        project_db (Session): Project-specific database session
-        db (Session): Main database session
-        open (bool, optional): Filter for open events only. Defaults to True.
-        start (datetime, optional): Start time for filtering events
-        end (datetime, optional): End time for filtering events
-        device_type_ids (list[int], optional): Filter events by device type IDs
-        device_ids (list[int], optional): Filter events by device IDs
-        project_id (UUID, optional): Project ID for timezone conversion
-
-    Returns:
-        list[EventSummary]: List of event summaries containing:
-            - event_id: Unique identifier for the event
-            - device_type_name: Name of the device type
-            - device_name_full: Full name of the device
-            - time_start: Event start time
-            - time_end: Event end time
-            - failure_mode: Name of the failure mode
-            - root_cause: Name of the root cause
-            - loss_total_financial: Total financial loss
-            - loss_total_energy: Total energy loss
+) -> list[interfaces.EventSummary]:
     """
-    # Get timezone information
-    if project_id:
-        project_tz = project.time_zone
-    else:
-        project_tz = "UTC"
-    tzinfo = ZoneInfo(project_tz)
+    Generate a summary of events with associated device/failure/root-cause and loss info.
+    """
 
-    # Adjust timezone for start/end if provided
+    # Time zone (same behavior: only use project's tz if project_id is provided)
+    tzinfo = ZoneInfo(project.time_zone if project_id else "UTC")
+
     if start is not None:
         start = start.astimezone(tzinfo)
     if end is not None:
         end = end.astimezone(tzinfo)
 
-    # Get events with device information using the CRUD function
     events = crud_get_events_summary(
         project_db,
         open=open,
@@ -414,127 +446,134 @@ async def get_events_summary(
         device_type_ids=device_type_ids,
         device_ids=device_ids,
     )
-
     if not events:
         return []
 
-    # Extract IDs for batch fetching
-    event_ids = [event.event_id for event in events]
-    failure_mode_ids = list(set(event.failure_mode_id for event in events))
+    event_ids = [e.event_id for e in events]
+    failure_mode_ids = list(
+        {e.failure_mode_id for e in events if e.failure_mode_id is not None}
+    )
     root_cause_ids = list(
-        set(event.root_cause_id for event in events if event.root_cause_id is not None),
+        {e.root_cause_id for e in events if e.root_cause_id is not None}
     )
 
-    # Batch fetch all related data
     failure_modes = await get_failure_modes(db=db, failure_mode_ids=failure_mode_ids)
-    failure_mode_id_to_name = {
-        failure_mode.failure_mode_id: failure_mode.name_long
-        for failure_mode in failure_modes
-    }
+    failure_mode_id_to_name = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
 
     root_causes = await get_root_causes(db=db, root_cause_ids=root_cause_ids)
-    root_cause_id_to_name = {
-        root_cause.root_cause_id: root_cause.name_long for root_cause in root_causes
-    }
+    root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
 
-    # Get event losses in a single query
-    event_losses = core.crud.project.event_losses.get_event_losses(
+    # Build per-event loss map with NaN -> None coercion
+    losses_map: dict[uuid.UUID, dict[str, float | None]] = {}
+    losses_df = core.crud.project.event_losses.get_event_losses(
         project_db, event_ids=event_ids
-    ).models()
+    ).pandas_dataframe()
 
-    # Process event losses once into a more efficient structure
-    loss_data: dict[int, dict[str, Any]] = {}
-    for loss in event_losses:
-        event_id = loss.event_id
-        if event_id not in loss_data:
-            loss_data[event_id] = {"energy": 0.0, "financial": 0.0, "count": 0}
+    # If no losses, keep existing behavior
+    if losses_df.empty:
+        losses_map = {}
+    else:
+        # Ensure expected columns exist
+        cols_needed = {"event_id", "event_loss_type_id", "loss", "time"}
+        missing = cols_needed - set(losses_df.columns)
+        if missing:
+            raise RuntimeError(f"event_losses missing columns: {missing}")
 
-        loss_data[event_id]["count"] += 1
-        if loss.event_loss_type_id == 1:  # Energy loss
-            loss_data[event_id]["energy"] += loss.loss
-        elif loss.event_loss_type_id == 2:  # Financial loss
-            loss_data[event_id]["financial"] += loss.loss
+        # 1) per (event, type) totals + data-span
+        g = losses_df.groupby(["event_id", "event_loss_type_id"], as_index=False).agg(
+            total_loss=("loss", "sum"), tmin=("time", "min"), tmax=("time", "max")
+        )
+        g["days_data_span"] = (
+            g["tmax"].dt.floor("D") - g["tmin"].dt.floor("D")
+        ).dt.days + 1
 
-    # Current time for calculating days elapsed for open events
-    now = datetime.datetime.now(tzinfo)
+        # 2) per event duration (event-based denominator)
+        ev = pd.DataFrame(
+            [
+                {
+                    "event_id": e.event_id,
+                    "time_start": e.time_start,
+                    "time_end": e.time_end
+                    or datetime.datetime.now(e.time_start.tzinfo),
+                }
+                for e in events
+            ]
+        )
+        # Align tz and floor to whole days if you want calendar-aware durations
+        ev["days_event"] = (
+            ev["time_end"].dt.floor("D") - ev["time_start"].dt.floor("D")
+        ).dt.days + 1
 
-    # Generate summaries
-    summary = []
-    for event in events:
-        # Get device and type information directly from joined data
-        device = event.device
+        # 3) choose denominator: event duration (matches your refactor)
+        g = g.merge(ev[["event_id", "days_event"]], on="event_id", how="left")
+        denom = g["days_event"]  # or g["days_data_span"] for original behavior
+
+        g["avg_loss_per_day"] = g["total_loss"] / denom.replace({0: pd.NA})
+
+        # 4) pivot once
+        totals = g.pivot(
+            index="event_id", columns="event_loss_type_id", values="total_loss"
+        )
+        dailies = g.pivot(
+            index="event_id", columns="event_loss_type_id", values="avg_loss_per_day"
+        )
+
+        # 5) build losses_map in O(E)
+        losses_map = {}
+        has = lambda frame, col: (frame is not None) and (
+            col in getattr(frame, "columns", [])
+        )
+        for ev_id in set(g["event_id"]):
+            losses_map[ev_id] = {
+                "loss_total_energy": _none_if_nan(
+                    totals.at[ev_id, 1]
+                    if has(totals, 1) and ev_id in totals.index
+                    else None
+                ),
+                "loss_total_financial": _none_if_nan(
+                    totals.at[ev_id, 2]
+                    if has(totals, 2) and ev_id in totals.index
+                    else None
+                ),
+                "loss_daily_energy": _none_if_nan(
+                    dailies.at[ev_id, 1]
+                    if has(dailies, 1) and ev_id in dailies.index
+                    else None
+                ),
+                "loss_daily_financial": _none_if_nan(
+                    dailies.at[ev_id, 2]
+                    if has(dailies, 2) and ev_id in dailies.index
+                    else None
+                ),
+            }
+
+    unknown = "Unknown"
+    out: list[interfaces.EventSummary] = []
+    for e in events:
+        device = e.device
         device_type = device.device_type if device else None
 
-        device_type_name = device_type.name_long if device_type else "Unknown"
-        device_name = device.name_long or ""
-        device_name_full = f"{device_type_name} {device_name}"
+        device_type_name = device_type.name_long if device_type else unknown
+        device_name_full = f"{device_type_name} {device.name_long or ''}"
 
-        # Calculate days elapsed
-        if event.time_end is not None:
-            days_elapsed = (event.time_end - event.time_start).days
-        else:
-            days_elapsed = (now - event.time_start).days
-
-        # Get loss data
-        event_loss = loss_data.get(
-            event.event_id,
-            {"energy": 0.0, "financial": 0.0, "count": 0},
+        losses = losses_map.get(e.event_id, {})
+        out.append(
+            interfaces.EventSummary(
+                event_id=e.event_id,
+                device_type_name=device_type_name,
+                device_name_full=device_name_full,
+                time_start=e.time_start,
+                time_end=e.time_end,
+                failure_mode=failure_mode_id_to_name.get(e.failure_mode_id, unknown),
+                root_cause=root_cause_id_to_name.get(e.root_cause_id, unknown),
+                loss_total_financial=losses.get("loss_total_financial"),
+                loss_total_energy=losses.get("loss_total_energy"),
+                loss_daily_financial=losses.get("loss_daily_financial"),
+                loss_daily_energy=losses.get("loss_daily_energy"),
+            )
         )
-        loss_count = event_loss["count"]
-        energy = event_loss["energy"]
-        financial = event_loss["financial"]
 
-        # Calculate daily losses if we have loss data
-        if loss_count > 0 and days_elapsed is not None and days_elapsed >= 0:
-            loss_daily_energy = energy / (days_elapsed + 1)
-            loss_daily_financial = financial / (days_elapsed + 1)
-
-            summary.append(
-                interfaces.EventSummary(
-                    event_id=event.event_id,
-                    device_type_name=device_type_name,
-                    device_name_full=device_name_full,
-                    time_start=event.time_start,
-                    time_end=event.time_end,
-                    failure_mode=failure_mode_id_to_name.get(
-                        event.failure_mode_id,
-                        "Unknown",
-                    ),
-                    root_cause=root_cause_id_to_name.get(
-                        event.root_cause_id,
-                        "Unknown",
-                    ),
-                    loss_total_financial=financial,
-                    loss_total_energy=energy,
-                    loss_daily_financial=loss_daily_financial,
-                    loss_daily_energy=loss_daily_energy,
-                ),
-            )
-        else:
-            # Handle the case where we don't have loss data
-            summary.append(
-                interfaces.EventSummary(
-                    event_id=event.event_id,
-                    device_type_name=device_type_name,
-                    device_name_full=device_name_full,
-                    time_start=event.time_start,
-                    time_end=event.time_end,
-                    failure_mode=failure_mode_id_to_name.get(
-                        event.failure_mode_id,
-                        "Unknown",
-                    ),
-                    root_cause=root_cause_id_to_name.get(
-                        event.root_cause_id,
-                        "Unknown",
-                    ),
-                    loss_total_financial=None,
-                    loss_total_energy=None,
-                    loss_daily_financial=None,
-                    loss_daily_energy=None,
-                ),
-            )
-
-    return summary
+    return out
 
 
 @router.get("/uptime")
@@ -1108,3 +1147,79 @@ def get_event_anomalies(
         raise HTTPException(
             status_code=500, detail="Failed to retrieve anomalies for event"
         )
+
+
+@router.get("/event-losses-summary")
+def get_event_losses_summary(
+    project_db: Annotated[Session, Depends(get_project_db)],
+    event_id: int,
+) -> dict[str, float | None]:
+    event = core.crud.project.events.get_events_by_id(project_db, event_ids=[event_id])[
+        0
+    ]
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    losses_df = core.crud.project.event_losses.get_event_losses(
+        project_db,
+        event_ids=[event_id],
+    ).pandas_dataframe()
+
+    # Default output (None when data is missing)
+    out: dict[str, float | None] = {
+        "loss_total_energy": None,
+        "loss_total_financial": None,
+        "loss_daily_energy": None,
+        "loss_daily_financial": None,
+        "loss_capacity": None,
+    }
+
+    # If no event found, we cannot compute days_event (keep dailies as None)
+    if event is None:
+        return out
+
+    # Compute days_event = floor(day_end) - floor(day_start) + 1
+    # Use event.time_end or "now" in the same tz as time_start
+    now_like = (
+        datetime.datetime.now(event.time_start.tzinfo)
+        if event.time_start.tzinfo
+        else datetime.datetime.now()
+    )
+    time_end = event.time_end or now_like
+
+    start_day = pd.Timestamp(event.time_start).floor("D")
+    end_day = pd.Timestamp(time_end).floor("D")
+    days_event: int | None = int((end_day - start_day).days) + 1
+    if days_event is not None and days_event <= 0:
+        days_event = None  # avoid divide-by-zero
+
+    # If no losses, totals/dailies remain None, but capacity check still applies below
+    if not losses_df.empty:
+        # Totals per type
+        sums = losses_df.groupby("event_loss_type_id")["loss"].sum()
+
+        t_energy = sums.get(1)
+        t_fin = sums.get(2)
+
+        # Daily = totals / days_event (if available)
+        d_energy = (
+            (t_energy / days_event) if (t_energy is not None and days_event) else None
+        )
+        d_fin = (t_fin / days_event) if (t_fin is not None and days_event) else None
+
+        out["loss_total_energy"] = _none_if_nan(t_energy)
+        out["loss_total_financial"] = _none_if_nan(t_fin)
+        out["loss_daily_energy"] = _none_if_nan(d_energy)
+        out["loss_daily_financial"] = _none_if_nan(d_fin)
+
+        # Capacity = latest value for type 3 (unchanged behavior)
+        cap_rows = losses_df[losses_df["event_loss_type_id"] == 3]
+        if not cap_rows.empty:
+            cap_rows = cap_rows.sort_values("time", ascending=True)
+            out["loss_capacity"] = _none_if_nan(cap_rows["loss"].iloc[-1])
+
+    else:
+        # No loss rows: only capacity could still be None here (no rows)
+        pass
+
+    return out

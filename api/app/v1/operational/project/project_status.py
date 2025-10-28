@@ -241,6 +241,11 @@ def get_status_time_series(
             deep=True,
         )
     tags = tags_model_list.pandas_dataframe(index="tag_id")
+    if tags.empty:
+        raise HTTPException(
+            status_code=404, detail="No tags found for the given request."
+        )
+
     tags = tags[~pd.isna(tags["status_lookup_id"])]
 
     data = core.crud.project.data_timeseries.get_project_data_timeseries(

@@ -37,7 +37,6 @@ export default function ProjectInfoModal({
   const userType = useGetUserType({})
   const { data: projectTypes } = useGetProjectTypes({})
   const { data: deviceTypes } = useGetDeviceTypes({
-    queryParams: { project_id: projectId },
     queryOptions: { enabled: !!projectId },
   })
   const computedColorScheme = useComputedColorScheme()

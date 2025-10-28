@@ -10,13 +10,15 @@ const getNextScheduledMaintenance = (date: Dayjs) => {
   return nextDate
 }
 
-const AriaRecommendation = (event: Event) => {
+const AriaRecommendation = ({
+  event,
+  dailyLoss,
+}: {
+  event: Event
+  dailyLoss: number
+}) => {
   const today = dayjs()
-  const days = event.time_end
-    ? dayjs(event.time_end).diff(dayjs(event.time_start), 'days') + 1
-    : today.diff(dayjs(event.time_start), 'days') + 1
 
-  const dailyLoss = event.loss_total_financial / days
   const nextMaintenance = getNextScheduledMaintenance(today)
   const daysUntilMaintenance = nextMaintenance.diff(today, 'days')
   const noActionLoss = daysUntilMaintenance * dailyLoss

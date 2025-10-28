@@ -9,6 +9,14 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
+interface EventLossesSummary {
+  loss_total_energy: number | null
+  loss_total_financial: number | null
+  loss_daily_energy: number | null
+  loss_daily_financial: number | null
+  loss_capacity: number | null
+}
+
 export const useGetEventsSummary = ({
   pathParams,
   queryParams = {},
@@ -203,5 +211,34 @@ export const useBulkCreateEvents = () => {
       queryClient.invalidateQueries({ queryKey: ['getEvents'] })
       queryClient.invalidateQueries({ queryKey: ['getPaginatedEvents'] })
     },
+  })
+}
+
+export const useGetEventLossesSummary = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    event_id: number
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/event-losses-summary`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
+  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+
+  return useCustomQuery<EventLossesSummary>({
+    axiosConfig,
+    queryName: 'getEventLossesSummary',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: queryOptions,
   })
 }

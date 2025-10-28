@@ -593,12 +593,12 @@ class PaginatedEvent(BaseModel):
     device_name_full: str
     time_start: datetime.datetime
     time_end: datetime.datetime | None
-    loss_daily_power: float
-    loss_today_power: float
-    loss_total_power: float
-    loss_daily_financial: float
-    loss_today_financial: float
-    loss_total_financial: float
+    loss_daily_power: float | None
+    loss_today_power: float | None
+    loss_total_power: float | None
+    loss_daily_financial: float | None
+    loss_today_financial: float | None
+    loss_total_financial: float | None
     root_cause: str
 
 

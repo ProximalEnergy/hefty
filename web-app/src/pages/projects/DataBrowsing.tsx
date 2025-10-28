@@ -380,9 +380,7 @@ const Page = () => {
   }
 
   const { data: deviceTypes, isLoading: isDeviceTypesLoading } =
-    useGetDeviceTypes({
-      queryParams: { project_id: projectId },
-    })
+    useGetDeviceTypes({})
   const { data: sensorTypes, isLoading: isSensorTypesLoading } =
     useGetSensorTypes({
       queryParams: { project_id: projectId },

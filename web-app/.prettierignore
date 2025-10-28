@@ -3,3 +3,5 @@ out/
 dist/
 test-fixtures/
 node_modules/
+src/api/enumerations.ts
+src/api/schema.d.ts
