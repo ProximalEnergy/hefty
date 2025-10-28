@@ -1146,6 +1146,7 @@ const Page = () => {
               )}
               layout={layout}
               isLoading={timeSeriesIsLoading}
+              allowPinning
             />
           </CustomCard>
           <Button
