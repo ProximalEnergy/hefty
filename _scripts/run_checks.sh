@@ -39,6 +39,17 @@ run_check() {
     fi
 }
 
+# Function to check for package.json or package-lock.json in the root
+check_root_for_package_json() {
+    if [ -f "package.json" ] || [ -f "package-lock.json" ]; then
+        echo "Error: package.json or package-lock.json found in the root directory. These files should not exist at the monorepo root."
+        return 1
+    else
+        echo "No package.json or package-lock.json found in the root directory. Check passed."
+        return 0
+    fi
+}
+
 # Run all checks
 run_check "Core: Type Checking (mypy)" "mise run core:types"
 run_check "Core: Ruff Linting" "mise run core:ruff_check"
@@ -55,6 +66,7 @@ run_check "API: Unused Import Check" "mise run api:deptry"
 run_check "API: Dead Code Check" "mise run api:vulture"
 run_check "API: Pytest" "mise run api:pytest"
 run_check "API: Hurl Tests" "mise run api:hurl"
+run_check "Root: No package.json" "check_root_for_package_json"
 run_check "Web-App: TypeScript & Format Check" "mise run web:check"
 run_check "Web-App: ESLint" "mise run web:lint"
 
