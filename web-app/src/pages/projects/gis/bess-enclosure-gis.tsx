@@ -17,7 +17,12 @@ import {
   useComputedColorScheme,
 } from '@mantine/core'
 import { useCallback, useContext, useState } from 'react'
-import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl'
+import {
+  Layer,
+  MapMouseEvent,
+  Map as ReactMap,
+  Source,
+} from 'react-map-gl/mapbox'
 import { useParams } from 'react-router-dom'
 
 import { HoverInfo } from './utils'
@@ -99,7 +104,7 @@ export const BESSEnclosureGIS = ({
           width: '100%',
         }}
       >
-        <Map
+        <ReactMap
           key={projectId}
           initialViewState={{
             bounds: gisUtils.findBoundingBox(data.data),
@@ -149,7 +154,7 @@ export const BESSEnclosureGIS = ({
               </Text>
             </Paper>
           )}
-        </Map>
+        </ReactMap>
         <Box
           style={{ position: 'absolute', bottom: 0, left: 0, zIndex: 1 }}
           p="md"

@@ -6,7 +6,12 @@ import { List, Paper, ScrollArea, Stack, useMantineTheme } from '@mantine/core'
 import { FeatureCollection } from 'geojson'
 import { GeoJSONFeature, GeoJSONSource, MapMouseEvent } from 'mapbox-gl'
 import { useCallback, useState } from 'react'
-import { Layer, Map, MapboxMap, Popup, Source } from 'react-map-gl'
+import MapboxMap, {
+  Layer,
+  MapInstance,
+  Popup,
+  Source,
+} from 'react-map-gl/mapbox'
 import { useParams } from 'react-router-dom'
 
 import './CustomStyles.css'
@@ -37,7 +42,7 @@ export default function ObservationsGIS() {
   >([])
 
   const handleMapClick = useCallback((event: MapMouseEvent) => {
-    const map = event.target as MapboxMap
+    const map = event.target as MapInstance
     const features = map.queryRenderedFeatures(event.point, {
       layers: ['clusters', 'unclustered-point'],
     }) as GeoJSONFeature[]
@@ -107,7 +112,7 @@ export default function ObservationsGIS() {
   return (
     <Stack h="100%" gap={0}>
       <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-        <Map
+        <MapboxMap
           initialViewState={{
             bounds: gisUtils.findBoundingBox(dataBlocks),
             fitBoundsOptions: { padding: 25 },
@@ -230,7 +235,7 @@ export default function ObservationsGIS() {
               </Paper>
             </Popup>
           )}
-        </Map>
+        </MapboxMap>
       </div>
     </Stack>
   )

@@ -11,7 +11,7 @@ import { Button, Group, Stack, Tabs, Text, Title } from '@mantine/core'
 import { IconArrowRight } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'
 import { useEffect, useRef, useState } from 'react'
-import { MapRef } from 'react-map-gl'
+import { MapRef } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router-dom'
 
 function ViewDataButton({

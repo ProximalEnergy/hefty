@@ -13,7 +13,7 @@ import Map, {
   MapMouseEvent,
   MapRef,
   Source,
-} from 'react-map-gl'
+} from 'react-map-gl/mapbox'
 import { useParams } from 'react-router-dom'
 
 import { ColorBar, MapSettings } from './GIS'

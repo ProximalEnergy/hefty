@@ -40,7 +40,7 @@ import {
   IconSolarPanel,
 } from '@tabler/icons-react'
 import { useContext, useEffect } from 'react'
-import Map, { Layer, Marker, Source } from 'react-map-gl'
+import MapboxMap, { Layer, Marker, Source } from 'react-map-gl/mapbox'
 import { Link } from 'react-router-dom'
 
 import styles from './PortfolioMap.module.css'
@@ -304,7 +304,7 @@ const PortfolioMap = () => {
           </Alert>
         </div>
       )}
-      <Map
+      <MapboxMap
         initialViewState={{
           bounds: [-124.4, 24.54, -66.93, 49.38], // USA lower 48 bounds
           fitBoundsOptions: {
@@ -517,7 +517,7 @@ const PortfolioMap = () => {
             </Link>
           </Marker>
         ))}
-      </Map>
+      </MapboxMap>
       <div
         style={{
           position: 'absolute',

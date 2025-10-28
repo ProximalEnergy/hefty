@@ -66,8 +66,8 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import type { MapMouseEvent } from 'react-map-gl'
-import Map, { Layer, Source } from 'react-map-gl'
+import type { MapMouseEvent } from 'react-map-gl/mapbox'
+import Map, { Layer, Source } from 'react-map-gl/mapbox'
 import { Link, useParams } from 'react-router-dom'
 
 import { HoverInfo } from '../gis/utils'

@@ -20,7 +20,7 @@ import {
 } from '@mantine/core'
 import { Feature } from 'geojson'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Layer, MapMouseEvent, Map as ReactMapGL, Source } from 'react-map-gl'
+import MapboxMap, { Layer, MapMouseEvent, Source } from 'react-map-gl/mapbox'
 
 interface DcFieldAnomaliesMapProps {
   event: any // Event object
@@ -157,9 +157,14 @@ const DcFieldAnomaliesMap = ({
           }
         }
 
+        // Skip if geometry is null
+        if (!polygonData) {
+          return null
+        }
+
         return {
           type: 'Feature' as const,
-          geometry: polygonData,
+          geometry: polygonData as GeoJSON.MultiPolygon,
           properties: {
             device_id: device.device_id,
             device_type_id: device.device_type_id,
@@ -169,7 +174,9 @@ const DcFieldAnomaliesMap = ({
           },
         }
       })
-      .filter(Boolean)
+      .filter(
+        (feature): feature is NonNullable<typeof feature> => feature !== null,
+      )
 
     return {
       type: 'FeatureCollection' as const,
@@ -430,7 +437,7 @@ const DcFieldAnomaliesMap = ({
               </Group>
             </Box>
           )}
-          <ReactMapGL
+          <MapboxMap
             {...viewState}
             onMove={(evt) => setViewState(evt.viewState)}
             onClick={(evt) => {
@@ -608,7 +615,7 @@ const DcFieldAnomaliesMap = ({
             )}
 
             <Attribution />
-          </ReactMapGL>
+          </MapboxMap>
         </Box>
       </Card>
 

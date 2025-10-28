@@ -9,7 +9,7 @@ import {
   Text,
   useComputedColorScheme,
 } from '@mantine/core'
-import { Map, Marker } from 'react-map-gl'
+import MapboxMap, { Marker } from 'react-map-gl/mapbox'
 import { Link } from 'react-router-dom'
 
 import { countyCoordinates } from './county-data'
@@ -57,7 +57,7 @@ const ERCOTMap = () => {
 
   return (
     <div style={{ height: '100%', width: '100%' }}>
-      <Map
+      <MapboxMap
         initialViewState={{
           bounds: [-106.6, 25.8, -93.5, 36.5], //Texas bounds
           fitBoundsOptions: {
@@ -136,7 +136,7 @@ const ERCOTMap = () => {
             </Link>
           </Marker>
         ))}
-      </Map>
+      </MapboxMap>
       <Attribution />
     </div>
   )

@@ -1,6 +1,6 @@
 import { FeatureCollection } from 'geojson'
 import { useMemo } from 'react'
-import { LayerProps, MapStyle } from 'react-map-gl'
+import { LayerProps, StyleSpecification } from 'react-map-gl/mapbox'
 
 export const OPACITY_DEFAULT = 0.75
 const OPACITY_NON_COMM = 0.5
@@ -52,7 +52,7 @@ const colorLinear = ({
   return colorLinearArray
 }
 
-const blankMapStyle: MapStyle = {
+const blankMapStyle: StyleSpecification = {
   version: 8,
   name: 'Empty',
   metadata: {

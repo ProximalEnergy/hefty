@@ -53,7 +53,7 @@ import dayjs from 'dayjs'
 import { FeatureCollection } from 'geojson'
 import { Data, PlotMouseEvent } from 'plotly.js'
 import { ReactNode, useCallback, useContext, useState } from 'react'
-import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl'
+import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl/mapbox'
 import {
   Link,
   NavigateFunction,

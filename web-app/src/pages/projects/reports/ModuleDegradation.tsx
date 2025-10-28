@@ -46,7 +46,12 @@ import { FeatureCollection } from 'geojson'
 import { groupBy } from 'lodash'
 import { Data, Layout, PlotData, Shape } from 'plotly.js'
 import React, { memo, useCallback, useContext, useMemo, useState } from 'react'
-import { Layer, MapMouseEvent, Map as ReactMap, Source } from 'react-map-gl'
+import {
+  Layer,
+  MapMouseEvent,
+  Map as ReactMap,
+  Source,
+} from 'react-map-gl/mapbox'
 import { useParams } from 'react-router-dom'
 
 import { HoverInfo } from '../gis/utils'

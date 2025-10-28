@@ -14,7 +14,7 @@ import {
 import { IconDatabaseOff, IconFlag } from '@tabler/icons-react'
 import { FeatureCollection } from 'geojson'
 import { useContext } from 'react'
-import Map, { Layer, Marker, Source } from 'react-map-gl'
+import Map, { Layer, Marker, Source } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router-dom'
 
 import { MapSettings } from './GIS'
