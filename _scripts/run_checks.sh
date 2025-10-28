@@ -56,6 +56,7 @@ run_check "API: Dead Code Check" "mise run api:vulture"
 run_check "API: Pytest" "mise run api:pytest"
 run_check "API: Hurl Tests" "mise run api:hurl"
 run_check "Web-App: TypeScript & Format Check" "mise run web:check"
+run_check "Web-App: ESLint" "mise run web:lint"
 
 # Print summary
 echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
