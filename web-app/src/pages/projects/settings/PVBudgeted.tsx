@@ -76,7 +76,7 @@ const getVisibleColumnKeys = (
   soilingMode: string | null,
   hasData: boolean = false,
 ): (keyof GridRow)[] => {
-  let keys: (keyof GridRow)[] = []
+  const keys: (keyof GridRow)[] = []
 
   // Add timestamp column only if data has been pasted
   if (hasData) {
@@ -241,8 +241,8 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
   const [visibleRows, setVisibleRows] = useState<GridRow[]>([])
   const allRowsRef = useRef<GridRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
-  const [_parsedCount, setParsedCount] = useState(0)
-  const [_isParsing, setIsParsing] = useState(false)
+  const [, setParsedCount] = useState(0)
+  const [, setIsParsing] = useState(false)
   const focusedCellRef = useRef<{ rowIndex: number; colIndex: number } | null>(
     null,
   )

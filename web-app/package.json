@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node build-plotly-custom.js && tsc && NODE_OPTIONS=--max_old_space_size=8192 vite build",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "check": "npx tsc && npx prettier --write --log-level warn . && npx knip"
   },
@@ -73,6 +73,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.38.0",
     "@tanstack/eslint-plugin-query": "^5.67.2",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/chroma-js": "3.1.1",
@@ -84,12 +85,11 @@
     "@types/react": "19.1.14",
     "@types/react-dom": "19.1.9",
     "@types/react-plotly.js": "^2.6.3",
-    "@typescript-eslint/eslint-plugin": "^8.26.1",
-    "@typescript-eslint/parser": "^8.26.1",
     "@vitejs/plugin-react-swc": "4.1.0",
     "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.4.0",
     "knip": "^5.66.0",
     "openapi-typescript": "^7.10.1",
     "postcss": "^8.5.3",
@@ -98,6 +98,7 @@
     "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.46.2",
     "vite": "7.1.7"
   },
   "prettier": {

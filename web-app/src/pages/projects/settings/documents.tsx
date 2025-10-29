@@ -194,7 +194,7 @@ const Documents = ({ projectId }: DocumentsProps) => {
       })
       uploadMutation.reset()
     }
-  }, [uploadMutation.error])
+  }, [uploadMutation, uploadMutation.error])
 
   const handleDeleteDocument = (documentId: string) => {
     deleteDocumentMutation.mutate({ projectId, documentId })

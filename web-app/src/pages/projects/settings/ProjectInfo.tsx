@@ -179,7 +179,7 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
         ),
       })
     }
-  }, [project])
+  }, [form, project])
 
   const handleSubmit = (values: ProjectUpdate) => {
     // Only allow admins to submit changes

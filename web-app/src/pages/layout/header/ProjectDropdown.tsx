@@ -3,7 +3,7 @@ import { evaluateFilterCriteria } from '@/hooks/custom'
 import {
   ProjectFilterCriteria,
   useProjectDropdown,
-} from '@/providers/ProjectDropdownProvider'
+} from '@/providers/ProjectDropdownContext'
 import { Select, Tooltip } from '@mantine/core'
 import { useDidUpdate, useOs } from '@mantine/hooks'
 import { useRef } from 'react'

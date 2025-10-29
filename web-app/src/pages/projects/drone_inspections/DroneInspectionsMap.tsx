@@ -936,7 +936,9 @@ const DroneInspectionsMap = ({
         project_id: projectId,
         time_start: openDate.toISOString(),
         time_end: closeDate ? closeDate.toISOString() : null,
-        items: batchItems.map(({ root_cause_id, ...item }) => item), // Remove root_cause_id from items
+        items: batchItems.map(
+          ({ root_cause_id, ...item }) => (void root_cause_id, item),
+        ), // Remove root_cause_id from items
         root_cause_id: rootCauseId,
       }
 
@@ -2223,7 +2225,7 @@ const DroneInspectionsMap = ({
                               }
                           })
                           setPairSelections((prev) => ({ ...prev, ...next }))
-                        } catch (e) {
+                        } catch {
                           // optional helper: ignore errors silently
                         }
                       }}

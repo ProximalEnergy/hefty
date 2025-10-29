@@ -5,7 +5,7 @@ import {
 import { useGetProjects } from '@/api/v1/operational/projects'
 // import { useGetProjectReportInstances } from '@/hooks/api'
 import { isDisabled } from '@/pages/layout/header/ProjectDropdown'
-import { useProjectDropdown } from '@/providers/ProjectDropdownProvider'
+import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import {
   Spotlight,
   SpotlightActionData,
