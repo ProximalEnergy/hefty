@@ -29,7 +29,7 @@ import {
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 interface DeviceTypeOverviewProps {
   className?: string

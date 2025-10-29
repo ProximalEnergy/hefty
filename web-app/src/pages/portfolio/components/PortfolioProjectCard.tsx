@@ -27,7 +27,7 @@ import {
   IconInfoCircle,
   IconSolarPanel,
 } from '@tabler/icons-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import DataStatus from '../../layout/header/DataStatus'
 import styles from '../PortfolioHome.module.css'

@@ -16,7 +16,7 @@ import { IconExternalLink } from '@tabler/icons-react'
 import { UseQueryResult } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const ICON_SIZE = 14
 

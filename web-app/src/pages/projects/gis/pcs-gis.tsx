@@ -32,7 +32,7 @@ import utc from 'dayjs/plugin/utc'
 import { FeatureCollection } from 'geojson'
 import { useCallback, useContext, useState } from 'react'
 import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl/mapbox'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { z } from 'zod'
 
 import { HoverInfo } from './utils'

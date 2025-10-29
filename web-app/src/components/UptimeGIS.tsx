@@ -14,7 +14,7 @@ import Map, {
   MapRef,
   Source,
 } from 'react-map-gl/mapbox'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { ColorBar, MapSettings } from './GIS'
 import { PageLoader } from './Loading'

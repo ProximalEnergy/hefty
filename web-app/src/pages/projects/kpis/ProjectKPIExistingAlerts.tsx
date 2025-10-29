@@ -16,7 +16,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import ProjectKPIAlertModal from './ProjectKPIAlertModal'
 

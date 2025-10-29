@@ -10,7 +10,7 @@ import {
   rem,
 } from '@mantine/core'
 import { IconEyeOff, IconInfoCircle } from '@tabler/icons-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 const TEXT_SIZE_PRIMARY = 36
 const TEXT_SIZE_SECONDARY = 24

@@ -18,7 +18,7 @@ import {
   IconMessageChatbot,
 } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
-import { Outlet, useLocation, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useParams } from 'react-router'
 
 import Header from './header/Header'
 import { NavbarNested } from './navbar/NavbarNested'

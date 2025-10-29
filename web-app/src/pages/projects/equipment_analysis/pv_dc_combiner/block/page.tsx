@@ -51,7 +51,7 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { useContext, useEffect, useState } from 'react'
 import { Layer, Map, Source } from 'react-map-gl/mapbox'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

@@ -1,6 +1,6 @@
 import { PageLoader } from '@/components/Loading'
 import { useGetEvents } from '@/hooks/api'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import DcFieldEventPage from './DcFieldEventPage'
 import EventPage from './EventPage'

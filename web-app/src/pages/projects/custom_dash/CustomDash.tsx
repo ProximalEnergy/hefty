@@ -60,7 +60,7 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
-} from 'react-router-dom'
+} from 'react-router'
 
 import BarConfig from './BarConfig'
 import GaugeConfig from './GaugeConfig'

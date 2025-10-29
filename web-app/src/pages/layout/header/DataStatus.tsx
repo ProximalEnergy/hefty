@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import type { Duration } from 'dayjs/plugin/duration'
 import { useMemo } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 import classes from './DataStatus.module.css'
 

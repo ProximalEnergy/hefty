@@ -32,7 +32,7 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import 'react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 
 import { BlockHeader } from './BlockHeader'
 import { PowerFlowEdge } from './PowerFlowEdge'

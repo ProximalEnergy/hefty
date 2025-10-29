@@ -33,7 +33,7 @@ import {
   IconThermometer,
 } from '@tabler/icons-react'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 // Battery Health KPI Type IDs
 const BATTERY_KPI_IDS = {

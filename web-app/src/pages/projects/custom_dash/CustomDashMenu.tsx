@@ -17,7 +17,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconCopy, IconPlus, IconShare, IconTrash } from '@tabler/icons-react'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 const CustomDashMenu = () => {
   const { projectId } = useParams()

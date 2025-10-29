@@ -18,7 +18,7 @@ import {
 import { IconInfoCircle } from '@tabler/icons-react'
 import { Data } from 'plotly.js'
 import { useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 

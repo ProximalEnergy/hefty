@@ -27,7 +27,7 @@ import { IconAlertTriangle } from '@tabler/icons-react'
 import { IconBatteryCharging, IconBolt } from '@tabler/icons-react'
 import { Data } from 'plotly.js'
 import { ReactNode } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 
 // MetricCard component for displaying key metrics
 interface MetricCardProps {

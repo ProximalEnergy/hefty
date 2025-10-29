@@ -1,6 +1,6 @@
 import { PageTitle } from '@/components/PageTitle'
 import { Stack, Tabs, Text } from '@mantine/core'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 
 import OMContractors from './settings/OMContractors'
 import PVBudgeted from './settings/PVBudgeted'

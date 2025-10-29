@@ -13,7 +13,7 @@ import {
 import { IconExternalLink } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import CMMSTicketCard from '../cmms/CMMSTicketCard'
 

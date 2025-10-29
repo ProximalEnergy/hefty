@@ -14,7 +14,7 @@ import rrulePlugin from '@fullcalendar/rrule'
 import { Box, Paper, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { CalendarItemModal } from './CalendarItemModal'
 import { DetachAndEditOccurrenceModal } from './DetachAndEditOccurrenceModal'

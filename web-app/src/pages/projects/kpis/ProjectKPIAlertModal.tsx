@@ -21,7 +21,7 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 interface ProjectKPIAlertModalProps {
   opened: boolean

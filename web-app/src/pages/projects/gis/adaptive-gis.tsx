@@ -32,7 +32,7 @@ import MapboxMap, {
   MapRef,
   Source,
 } from 'react-map-gl/mapbox'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 import { HoverInfo } from './utils'
 

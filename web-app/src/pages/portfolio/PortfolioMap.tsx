@@ -41,7 +41,7 @@ import {
 } from '@tabler/icons-react'
 import { useContext, useEffect } from 'react'
 import MapboxMap, { Layer, Marker, Source } from 'react-map-gl/mapbox'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import styles from './PortfolioMap.module.css'
 

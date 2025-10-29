@@ -9,7 +9,7 @@ import { traceColors } from '@/components/plots/PlotlyPlotUtils'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import { Stack, useMantineTheme } from '@mantine/core'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const MAX_DAYS = 7
 

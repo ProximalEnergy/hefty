@@ -61,7 +61,7 @@ import {
   Map as MapboxMap,
   Source,
 } from 'react-map-gl/mapbox'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 interface DroneInspectionsMapProps {
   anomalies: DroneAnomaly[]

@@ -33,7 +33,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { IconClock } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import DcFieldAnomaliesMap from './DcFieldAnomaliesMap'
 import DeviceEventsTimeline from './DeviceEventsTimeline'

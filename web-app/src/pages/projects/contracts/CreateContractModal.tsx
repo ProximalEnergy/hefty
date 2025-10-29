@@ -41,7 +41,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 import PdfViewer, { PdfViewerHandle } from '../../../components/PdfViewer'
 import { StreamingText } from '../../../components/StreamingText'

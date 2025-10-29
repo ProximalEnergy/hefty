@@ -24,7 +24,7 @@ import {
 import dayjs from 'dayjs'
 import { Data } from 'plotly.js'
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 interface Threshold {
   values: { [key: string]: number }

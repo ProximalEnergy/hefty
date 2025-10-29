@@ -3,7 +3,7 @@ import { useGetForecast, useGetWeather } from '@/hooks/api'
 import { Group, HoverCard, Image, Stack, Text, Tooltip } from '@mantine/core'
 import { IconSunOff } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 const WeatherCard = () => {
   const { projectId } = useParams()

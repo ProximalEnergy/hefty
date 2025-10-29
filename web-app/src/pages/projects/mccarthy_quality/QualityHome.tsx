@@ -1,6 +1,6 @@
 import { PageError } from '@/components/Error'
 import { Stack } from '@mantine/core'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 export default function QualityHome() {
   const { projectId } = useParams()

@@ -3,7 +3,7 @@ import { PageTitle } from '@/components/PageTitle'
 import { useGetProjectReportInstances } from '@/hooks/api'
 import { Group, Paper, Stack, Text, Title } from '@mantine/core'
 import { IconEyeOff } from '@tabler/icons-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 import styles from './ProjectReports.module.css'
 

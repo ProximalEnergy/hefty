@@ -18,7 +18,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 
 const Page = () => {
   const { projectId } = useParams()

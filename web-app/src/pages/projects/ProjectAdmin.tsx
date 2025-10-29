@@ -15,7 +15,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const Page = () => {
   const { projectId } = useParams()

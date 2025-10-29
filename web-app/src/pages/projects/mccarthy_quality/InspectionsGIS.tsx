@@ -7,7 +7,7 @@ import { FeatureCollection } from 'geojson'
 import { GeoJSONFeature, GeoJSONSource, MapMouseEvent } from 'mapbox-gl'
 import { useCallback, useState } from 'react'
 import { Layer, Map, MapInstance, Popup, Source } from 'react-map-gl/mapbox'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import './CustomStyles.css'
 

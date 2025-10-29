@@ -16,7 +16,7 @@ import { useViewportSize } from '@mantine/hooks'
 import { IconArrowBackUp, IconPlus, IconX } from '@tabler/icons-react'
 import type { Layout, PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
 import React, { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 
 const ICON_STROKE = 1.5
 const MAX_DAYS = 7

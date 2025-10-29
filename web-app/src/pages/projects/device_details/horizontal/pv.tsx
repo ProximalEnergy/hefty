@@ -11,7 +11,7 @@ import { useProjectFilter } from '@/hooks/custom'
 import { Stack } from '@mantine/core'
 import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
 import { useCallback, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 

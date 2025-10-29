@@ -21,7 +21,7 @@ import { notifications } from '@mantine/notifications'
 import { IconSend } from '@tabler/icons-react'
 import MarkdownIt from 'markdown-it'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { v4 as uuidv4 } from 'uuid'
 
 interface Context {

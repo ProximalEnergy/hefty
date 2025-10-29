@@ -30,7 +30,7 @@ import {
   IconInfoCircle,
 } from '@tabler/icons-react'
 import { memo, useEffect, useMemo, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 import RequestKPIModal from './RequestKPIModal'
 

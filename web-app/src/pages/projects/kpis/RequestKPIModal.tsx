@@ -12,7 +12,7 @@ import {
   Textarea,
 } from '@mantine/core'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import CreateContractModal from '../contracts/CreateContractModal'
 

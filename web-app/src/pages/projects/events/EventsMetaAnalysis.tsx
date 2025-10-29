@@ -25,7 +25,7 @@ import { IconAlertTriangle } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { PlotMouseEvent } from 'plotly.js/dist/plotly-custom.min.js'
 import { useCallback, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 type DateRangeOption =
   | 'Week to Date'

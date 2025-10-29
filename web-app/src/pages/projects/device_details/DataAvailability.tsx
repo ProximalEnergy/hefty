@@ -28,7 +28,7 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const Page = () => {
   const theme = useMantineTheme()

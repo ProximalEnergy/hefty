@@ -28,7 +28,7 @@ import {
 import { notifications } from '@mantine/notifications'
 import { IconInfoCircle, IconTrash } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 function AdminContactInfo() {
   const label =

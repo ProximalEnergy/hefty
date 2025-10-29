@@ -33,7 +33,7 @@ import type * as Plotly from 'plotly.js'
 // Import Plotly namespace for type assertion
 import type { PlotRelayoutEvent } from 'plotly.js'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)

@@ -23,7 +23,7 @@ import {
   Map as ReactMap,
   Source,
 } from 'react-map-gl/mapbox'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { HoverInfo } from './utils'
 

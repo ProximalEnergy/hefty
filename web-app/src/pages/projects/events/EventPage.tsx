@@ -45,7 +45,7 @@ import { IconClock, IconInfoCircle } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { Dash } from 'plotly.js'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 import { AdaptiveGisMap } from '../gis/adaptive-gis'
 import { PCSGISMap } from '../gis/pcs-gis'

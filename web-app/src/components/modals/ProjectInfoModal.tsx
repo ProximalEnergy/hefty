@@ -19,7 +19,7 @@ import {
   Title,
   useComputedColorScheme,
 } from '@mantine/core'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 interface ProjectInfoModalProps {
   opened: boolean

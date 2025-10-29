@@ -3,7 +3,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetResource, useGetResourceNetPower } from '@/hooks/api'
 import { Card, Checkbox, Group, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const NetPowerPlot = () => {
   const [showSPP, setShowSPP] = useState(false)

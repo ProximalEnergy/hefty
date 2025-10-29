@@ -33,7 +33,7 @@ import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconArrowBackUp, IconMessageChatbot, IconX } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router'
 
 import { LinksGroup } from './NavbarLinksGroup'
 import ProjectPicture from './ProjectPicture'

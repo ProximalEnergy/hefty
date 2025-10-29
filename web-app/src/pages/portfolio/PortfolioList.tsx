@@ -6,7 +6,7 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsPersonalPortfolio } from '@/components/Tips'
 import { Stack, Table, Text } from '@mantine/core'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 const PortfolioList = () => {
   useTipsPersonalPortfolio()

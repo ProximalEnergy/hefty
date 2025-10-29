@@ -1,7 +1,7 @@
 import { PageLoader } from '@/components/Loading'
 import { useGetObservations } from '@/hooks/api'
-import { Paper, Stack, Text } from '@mantine/core'
-import { Link, useParams } from 'react-router-dom'
+import { Anchor, Paper, Stack, Text } from '@mantine/core'
+import { useParams } from 'react-router'
 
 export default function Observations() {
   const { projectId } = useParams()
@@ -30,13 +30,12 @@ export default function Observations() {
             <Text>Date: {observation.created.slice(0, 10)}</Text>
           )}
           <Text>Status: {observation.status}</Text>
-          <Link
-            to={`https://app.procore.com/2000024/project/observations/items/${observation.id}`}
+          <Anchor
+            href={`https://app.procore.com/2000024/project/observations/items/${observation.id}`}
             target="_blank"
-            style={{ color: 'inherit' }}
           >
             Procore
-          </Link>
+          </Anchor>
         </Paper>
       ))}
     </Stack>

@@ -30,7 +30,7 @@ import { useDebouncedValue } from '@mantine/hooks'
 import { IconChevronDown, IconTag } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 interface Parent {
   id: number

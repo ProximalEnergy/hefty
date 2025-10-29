@@ -2,7 +2,7 @@ import { useGetProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { Box, Stack, Tabs, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 // Import all equipment analysis components
 import EquipmentAnalysisBESS from './bess/page'

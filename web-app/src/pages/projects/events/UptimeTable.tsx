@@ -12,7 +12,7 @@ import { IconArrowRight } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'
 import { useEffect, useRef, useState } from 'react'
 import { MapRef } from 'react-map-gl/mapbox'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 function ViewDataButton({
   deviceId,

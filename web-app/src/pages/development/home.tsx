@@ -8,7 +8,7 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 const Home = () => {
   const columns = useMemo<MRT_ColumnDef<Resource>[]>(

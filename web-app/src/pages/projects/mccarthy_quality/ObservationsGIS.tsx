@@ -12,7 +12,7 @@ import MapboxMap, {
   Popup,
   Source,
 } from 'react-map-gl/mapbox'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import './CustomStyles.css'
 

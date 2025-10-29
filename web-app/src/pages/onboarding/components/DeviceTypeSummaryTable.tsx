@@ -1,6 +1,6 @@
 import { type MRT_ColumnDef, MantineReactTable } from 'mantine-react-table'
 import { useMemo } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 interface DeviceTypeSummary {
   deviceType: string

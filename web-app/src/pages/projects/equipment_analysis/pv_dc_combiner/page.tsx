@@ -12,7 +12,7 @@ import { Device } from '@/hooks/types'
 import { Checkbox, Group, HoverCard, Stack, Text } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 import { useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 1
 

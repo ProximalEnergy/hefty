@@ -11,7 +11,7 @@ import {
   Title,
 } from '@mantine/core'
 import dayjs from 'dayjs'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 const ProjectContract = () => {
   const { projectId, contractId } = useParams()

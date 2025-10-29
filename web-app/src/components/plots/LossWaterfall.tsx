@@ -1,5 +1,5 @@
 import { useGetWaterfall } from '@/api/v1/operational/project/waterfall'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { PageLoader } from '../Loading'
 import PlotlyPlot from './PlotlyPlot'

@@ -11,7 +11,7 @@ import { useUser } from '@clerk/clerk-react'
 import { Box, Stack, Tabs, TextInput, Title } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 
 import { ActiveProjectsTab } from './tabs/active'
 import { ArchivedProjectsTab } from './tabs/archived'

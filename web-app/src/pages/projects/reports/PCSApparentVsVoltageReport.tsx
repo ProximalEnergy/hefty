@@ -6,7 +6,7 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { Group, NumberInput, Stack, Title } from '@mantine/core'
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const MAX_DAYS = 3
 

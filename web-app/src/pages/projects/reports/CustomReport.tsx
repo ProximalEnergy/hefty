@@ -19,7 +19,7 @@ import {
 } from '@mantine/core'
 import { useRef, useState } from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 type Item = {
   key: string

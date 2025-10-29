@@ -47,7 +47,7 @@ import {
 } from 'mantine-react-table'
 import React, { useMemo, useState } from 'react'
 import Plot from 'react-plotly.js'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

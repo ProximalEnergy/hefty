@@ -11,7 +11,7 @@ import {
   IconUserCog,
   IconUsers,
 } from '@tabler/icons-react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 const UserDropdown = () => {
   const { signOut } = useClerk()

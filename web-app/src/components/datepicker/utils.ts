@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)

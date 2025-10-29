@@ -3,7 +3,7 @@ import { ActionIcon, Group, Indicator, Popover, Text } from '@mantine/core'
 import { IconAlertTriangle, IconBell } from '@tabler/icons-react'
 import cx from 'clsx'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import classes from './ThemeToggle.module.css'
 

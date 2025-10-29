@@ -12,7 +12,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevice } from '@/hooks/api'
 import { ActionIcon, Group, Stack, Tooltip } from '@mantine/core'
 import { IconArrowBackUp } from '@tabler/icons-react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 

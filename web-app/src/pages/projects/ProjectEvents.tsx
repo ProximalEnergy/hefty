@@ -33,7 +33,7 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 dayjs.extend(timezone)
 dayjs.extend(relativeTime)

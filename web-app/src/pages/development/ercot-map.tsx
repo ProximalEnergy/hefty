@@ -10,7 +10,7 @@ import {
   useComputedColorScheme,
 } from '@mantine/core'
 import MapboxMap, { Marker } from 'react-map-gl/mapbox'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { countyCoordinates } from './county-data'
 

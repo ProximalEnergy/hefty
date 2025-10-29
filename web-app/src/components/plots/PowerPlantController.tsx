@@ -1,5 +1,5 @@
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import PlotlyPlot from './PlotlyPlot'
 

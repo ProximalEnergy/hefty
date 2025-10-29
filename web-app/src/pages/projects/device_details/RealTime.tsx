@@ -28,7 +28,7 @@ import {
 } from '@tabler/icons-react'
 import { Data, Layout, PlotMouseEvent } from 'plotly.js'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 // Constants
 const IS_LARGE_THRESHOLD = 200

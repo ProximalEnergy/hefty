@@ -19,7 +19,7 @@ import {
 import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const SystemPerformance = () => {
   const { projectId } = useParams()
