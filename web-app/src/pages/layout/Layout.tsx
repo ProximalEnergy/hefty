@@ -20,7 +20,6 @@ import {
 import React, { useEffect, useState } from 'react'
 import { Outlet, useLocation, useParams } from 'react-router-dom'
 
-import SmartNav from './SmartNav'
 import Header from './header/Header'
 import { NavbarNested } from './navbar/NavbarNested'
 
@@ -155,7 +154,6 @@ export function Layout() {
         )}
         <SpotlightSearch />
         <ProjectSpotlight />
-        <SmartNav />
         {isOutdated && (
           <Modal
             opened={isOutdated}
