@@ -7,18 +7,12 @@ import jwt
 import sqlalchemy as sa
 
 # Import core database functions
-from core.dependencies import (
-    get_project_name_short as core_get_project_name_short,
-)
+from core.dependencies import get_project_name_short as core_get_project_name_short
 from core.dependencies import (
     get_project_name_short_async as core_get_project_name_short_async,
 )
-from core.dependencies import (
-    with_db as _with_db,
-)
-from core.dependencies import (
-    with_db_async as _with_async_db,
-)
+from core.dependencies import with_db as _with_db
+from core.dependencies import with_db_async as _with_async_db
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +20,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, settings
+from app.integrations.token_manager import TokenManager, get_tps_token_manager
 from core import models
 
 # Note: _with_db and _with_async_db are now imported from core.dependencies
@@ -417,3 +412,8 @@ def requires_superadmin_async(
     """
     if not is_superadmin:
         raise HTTPException(status_code=403, detail="Forbidden")
+
+
+## TOKEN MANAGERS ##
+def tps_token_mgr_async() -> TokenManager:
+    return get_tps_token_manager()
