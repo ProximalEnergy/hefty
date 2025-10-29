@@ -29,15 +29,6 @@
       matchDatasources: ["uses-with"],
       enabled: false,
     },
-    // =========== Don't Upgrade Certain Packages ============
-    {
-      matchPackageNames: ["polars", "plotly.js"],
-      enabled: false,
-    },
-    {
-      matchPackagePatterns: ["^@mantine/", "^mantine$"],
-      enabled: false,
-    },
     // =========== Group Upgrades by Service ============
     {
       matchFileNames: ["api/**"],
