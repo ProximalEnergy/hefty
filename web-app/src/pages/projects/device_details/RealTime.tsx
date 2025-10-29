@@ -1,5 +1,5 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
 import CustomCard from '@/components/CustomCard'
@@ -157,12 +157,9 @@ const Page = () => {
   // showStaleWarnings will control whether to display warning symbols
   const [showStaleWarnings, setShowStaleWarnings] = useState<boolean>(true)
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
-  const projectData = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const projectData = useSelectProject(projectId!)
 
   useEffect(() => {
     if (projectData.data) {
@@ -213,7 +210,7 @@ const Page = () => {
     queryParams: {
       sensor_type_ids: usedSensorIds,
     },
-    queryOptions: { enabled: !!projectId && !!usedSensorIds },
+    queryOptions: { enabled: !!projectId && usedSensorIds.length > 0 },
   })
 
   // Get the device type name_long for the selected device type

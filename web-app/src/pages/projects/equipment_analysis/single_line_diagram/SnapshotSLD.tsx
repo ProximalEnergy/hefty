@@ -1,6 +1,6 @@
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import { SensorType } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
@@ -1051,11 +1051,11 @@ const CircuitLabelNode = ({ data }: NodeProps<Node<CircuitLabelData>>) => {
 }
 
 function SnapshotSLDContent() {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { data: project, isLoading: isProjectLoading } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const { data: project, isLoading: isProjectLoading } = useSelectProject(
+    projectId!,
+  )
   const { data: blockDevices, isLoading: areBlockDevicesLoading } =
     useGetDevicesV2({
       pathParams: { projectId: projectId || '-1' },

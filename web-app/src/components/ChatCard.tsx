@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import {
   ActionIcon,
@@ -95,7 +95,7 @@ export function ChatCard({
   firstQuestionAsked: boolean
   setFirstQuestionAsked: React.Dispatch<React.SetStateAction<boolean>>
 }) {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { user } = useUser()
   const [inputValue, setInputValue] = useState('')
   const [isLoading] = useState(false)
@@ -105,12 +105,7 @@ export function ChatCard({
   const ws = useRef<WebSocket | null>(null)
   const { getToken } = useAuth()
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const project = useSelectProject(projectId!)
 
   const markdown = useMemo(() => new MarkdownIt(), [])
 
@@ -222,9 +217,9 @@ export function ChatCard({
     return (
       <Stack align="flex-start">
         {INITIAL_QUESTION_OPTIONS.filter((question) => {
-          if (project.data.project_type_id === ProjectTypeId.PV) {
+          if (project.data?.project_type_id === ProjectTypeId.PV) {
             return question.type !== 'bess'
-          } else if (project.data.project_type_id === ProjectTypeId.BESS) {
+          } else if (project.data?.project_type_id === ProjectTypeId.BESS) {
             return question.type !== 'pv'
           } else {
             return true

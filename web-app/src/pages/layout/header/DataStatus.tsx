@@ -1,6 +1,6 @@
 import { useGetDataLastUpdated } from '@/api/v1/operational/project/project_data_last_updated'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { Box, Indicator, Tooltip } from '@mantine/core'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
@@ -122,10 +122,7 @@ export const DataStatusContainer = ({
     projectId = projectIdProp
   }
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const lastUpdated = useGetDataLastUpdated({
     pathParams: { projectId: projectId || '-1' },

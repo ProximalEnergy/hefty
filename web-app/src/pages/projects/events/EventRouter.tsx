@@ -6,7 +6,7 @@ import DcFieldEventPage from './DcFieldEventPage'
 import EventPage from './EventPage'
 
 const EventRouter = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const eventId = parseInt(
     new URLSearchParams(location.search).get('eventId') || '-1',
   )

@@ -4,7 +4,7 @@ import { Anchor, Paper, Stack, Text } from '@mantine/core'
 import { useParams } from 'react-router'
 
 export default function Observations() {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const observations = useGetObservations({
     pathParams: { projectId: projectId || '-1' },

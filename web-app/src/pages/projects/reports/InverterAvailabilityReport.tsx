@@ -3,7 +3,7 @@ import {
   useGetPresignedUrl,
 } from '@/api/v1/operational/aws'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetReportType } from '@/api/v1/operational/report_types'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
@@ -45,7 +45,7 @@ const Page: React.FC = () => {
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const reportTypeId = 6
   const reportDocUrl = 'reports/inverter-availability.html'
 
@@ -55,10 +55,7 @@ const Page: React.FC = () => {
   const [isFetching, setIsFetching] = useState(false)
   const hasDocs = false
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const reportType = useGetReportType({
     pathParams: {

@@ -1,6 +1,6 @@
 import { useGetBlockDropdown } from '@/api/ui'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
@@ -22,7 +22,7 @@ const Page = () => {
   })
 
   const navigate = useNavigate()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
   const [checked, setChecked] = useState(false)
 
@@ -73,9 +73,7 @@ const Page = () => {
     }
   })
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,
   })

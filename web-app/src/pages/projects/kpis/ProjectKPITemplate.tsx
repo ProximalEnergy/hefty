@@ -7,8 +7,8 @@ import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { KPIType, useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
 import {
   Project,
-  useGetProject,
   useGetProjects,
+  useSelectProject,
 } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -87,10 +87,7 @@ const Page = () => {
   const endQuery = end?.add(1, 'day').format('YYYY-MM-DD')
 
   // Query Project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const kpiTypesWithContracts = useGetProjectKPITypes({
     pathParams: { projectId: projectId || '-1' },

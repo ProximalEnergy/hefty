@@ -1,4 +1,4 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUtilityExpected } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -21,7 +21,7 @@ import { useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const deviceId = searchParams.get('deviceId')
   const { start, end } = useValidateDateRange({})
@@ -30,12 +30,7 @@ const Page = () => {
   let endQuery: string | undefined = undefined
   const theme = useMantineTheme()
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const project = useSelectProject(projectId!)
 
   if (project.data) {
     if (start) {

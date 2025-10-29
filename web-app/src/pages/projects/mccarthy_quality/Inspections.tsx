@@ -4,7 +4,7 @@ import { Anchor, Paper, Stack, Text } from '@mantine/core'
 import { useParams } from 'react-router'
 
 export default function Inspections() {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const inspections = useGetInspections({
     pathParams: { projectId: projectId || '-1' },

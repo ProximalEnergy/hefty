@@ -1,6 +1,6 @@
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import DocsButton from '@/components/DocsButton'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -1176,7 +1176,7 @@ const ModuleDegradation: React.FC = () => {
   })
 
   // Variables and states
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [viewDate, setViewDate] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('graphs')
   const [excludedDates, setExcludedDates] = useState<string[]>([])
@@ -1184,12 +1184,7 @@ const ModuleDegradation: React.FC = () => {
   const computedColorScheme = useComputedColorScheme('dark')
 
   // API calls
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const { data: project } = useSelectProject(projectId!)
   const timezone = project?.time_zone || 'America/Chicago'
 
   let startQuery: string | undefined = undefined

@@ -2,7 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import {
   ProjectUpdate,
-  useGetProject,
+  useSelectProject,
   useUpdateProject,
 } from '@/api/v1/operational/projects'
 import {
@@ -56,12 +56,7 @@ const US_ISO_OPTIONS = [
 ]
 
 export default function ProjectInfo({ projectId }: ProjectInfoProps) {
-  const { data: project, isLoading } = useGetProject({
-    pathParams: { projectId },
-    queryParams: { deep: true },
-    // Force fresh data on this page to avoid stale cache after updates
-    queryOptions: { staleTime: 0 },
-  })
+  const { data: project, isLoading } = useSelectProject(projectId!)
 
   const updateProject = useUpdateProject()
   const { data: userType } = useGetUserType({})

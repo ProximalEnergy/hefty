@@ -1,6 +1,6 @@
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import EventGISCard from '@/components/EventGISCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
@@ -81,15 +81,7 @@ const TrackerRowDetail = React.memo(() => {
     .sort((a, b) => (a.name_short || '').localeCompare(b.name_short || ''))
 
   // Get project data for timezone
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      staleTime: Infinity, // Never expires
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-    },
-  })
+  const { data: project } = useSelectProject(projectId!)
 
   const { start: urlStart, end: urlEnd } = useValidateDateRange({
     maxDays: 30, // Limit to 30 days max

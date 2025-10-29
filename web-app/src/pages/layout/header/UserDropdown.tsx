@@ -16,7 +16,7 @@ import { Link, useParams } from 'react-router'
 const UserDropdown = () => {
   const { signOut } = useClerk()
   const userType = useGetUserType({})
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { user } = useUser()
 
   const initials =

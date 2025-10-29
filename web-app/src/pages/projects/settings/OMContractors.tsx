@@ -7,7 +7,7 @@ import {
   useGetOMContractorScopes,
   useUpdateOMContractorScope,
 } from '@/api/v1/operational/project/om_contractors'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CompanyLookup from '@/components/CompanyLookup'
 import {
   ActionIcon,
@@ -35,11 +35,7 @@ const DEVICE_TYPE_ORDER = [
 ]
 
 export default function OMContractors({ projectId }: { projectId: string }) {
-  const project = useGetProject({
-    pathParams: { projectId },
-    queryParams: { deep: true },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const deviceTypes = useGetDeviceTypes({})
 

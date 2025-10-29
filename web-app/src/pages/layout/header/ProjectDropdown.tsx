@@ -42,7 +42,7 @@ const ProjectDropdown = () => {
       deep: true,
     },
   })
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
   const ref = useRef<HTMLInputElement>(null)

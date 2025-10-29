@@ -1,5 +1,5 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import {
   DataAvailability,
@@ -33,7 +33,7 @@ import { useParams } from 'react-router'
 const Page = () => {
   const theme = useMantineTheme()
   const { colorScheme } = useMantineColorScheme()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [selectedDeviceType, setSelectedDeviceType] = useState<string | null>(
     null,
   )
@@ -61,10 +61,7 @@ const Page = () => {
     setHasMoreDevicesByType({})
   }, [])
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId ?? '' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const usedDeviceTypeIds = (
     project.data?.spec.used_device_type_ids ?? []

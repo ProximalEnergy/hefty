@@ -1,4 +1,4 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   DeviceDetailsSingle,
   useGetDeviceDetailsSingle,
@@ -17,12 +17,13 @@ import { Link, useParams, useSearchParams } from 'react-router'
 const MAX_DAYS = 7
 
 const Page = () => {
-  const { deviceId, projectId } = useParams()
+  const { deviceId, projectId } = useParams<{
+    deviceId: string
+    projectId: string
+  }>()
   const [searchParams] = useSearchParams()
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,

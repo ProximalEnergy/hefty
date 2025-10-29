@@ -27,7 +27,7 @@ const ProjectEquipmentAnalysisTracker = () => {
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [view, setView] = useState<'block' | 'row'>('block')
 

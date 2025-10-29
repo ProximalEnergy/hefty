@@ -9,7 +9,7 @@ import {
   useCreateContract,
   useGetContractCategories,
 } from '@/api/v1/operational/project/contracts'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateCompany } from '@/hooks/api'
 import {
   ActionIcon,
@@ -162,7 +162,7 @@ const SourceReferenceHoverCard = ({
 }
 
 const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const computedColorScheme = useComputedColorScheme('light')
   const isDarkMode = computedColorScheme === 'dark'
@@ -186,9 +186,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const { data: project } = useSelectProject(projectId!)
 
   const { data: currentUser } = useGetUserSelf({})
 

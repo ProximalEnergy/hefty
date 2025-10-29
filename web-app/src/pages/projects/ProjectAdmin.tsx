@@ -18,7 +18,7 @@ import {
 import { useParams } from 'react-router'
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const updatePermission = useUpdateUserPermissionMutation()
 
   const allPermissions = useGetAllPermissions({})

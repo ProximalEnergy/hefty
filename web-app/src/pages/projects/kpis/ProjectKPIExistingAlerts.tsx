@@ -25,7 +25,7 @@ const ProjectKPIExistingAlerts = ({
 }: {
   kpi_type_id?: number
 }) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const comparisonOptions = [
     { value: 'gte', label: 'Greater than or equal to' },

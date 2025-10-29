@@ -1,7 +1,7 @@
 import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { Box, Center, SimpleGrid, Stack, Text } from '@mantine/core'
 
@@ -9,7 +9,7 @@ import styles from '../PortfolioHome.module.css'
 import { PortfolioProjectCard } from '../components/PortfolioProjectCard'
 
 interface ActiveProjectsTabProps {
-  projects: NonNullable<ReturnType<typeof useGetProject>['data']>[]
+  projects: NonNullable<ReturnType<typeof useSelectProject>['data']>[]
   portfolioHomeData: NonNullable<ReturnType<typeof useGetPortfolioHome>['data']>
   projectDataLastUpdated?: ProjectDataLastUpdated[]
   userProjects: NonNullable<ReturnType<typeof useGetUserProjects>['data']>

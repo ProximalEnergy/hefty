@@ -52,7 +52,7 @@ const dateOptions = ['Yesterday', 'Last 7 days']
 const ProjectKPIAlerts = () => {
   const navigate = useNavigate()
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { mutate } = useAddKPIAlert()
 
   const [statisticDisabled, setStatisticDisabled] = useState<boolean>(false)

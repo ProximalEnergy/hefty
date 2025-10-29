@@ -3,7 +3,7 @@ import {
   useDeletePVBudgetedSeries,
   useGetPVBudgetedSeries,
 } from '@/api/v1/operational/project/pv_budgeted_data'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import ConfirmationModal from '@/components/modals/ConfirmationModal'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -226,10 +226,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
   const userSelf = useGetUserSelf({})
-  const project = useGetProject({
-    pathParams: { projectId },
-    queryParams: { deep: true },
-  })
+  const project = useSelectProject(projectId!)
   const existingSeries = useGetPVBudgetedSeries({
     pathParams: { projectId },
   })

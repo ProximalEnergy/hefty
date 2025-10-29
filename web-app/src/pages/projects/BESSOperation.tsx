@@ -99,7 +99,7 @@ const BESSOperationDataPage = () => {
     projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
 
   const start = searchParams.get('start')

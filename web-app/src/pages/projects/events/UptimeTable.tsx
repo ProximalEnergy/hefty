@@ -1,5 +1,5 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import UptimeGIS from '@/components/UptimeGIS'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
@@ -27,7 +27,7 @@ function ViewDataButton({
   endQuery: string
   tags: Tag[]
 }) {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const filteredTags = tags
     .filter((tag) => tag.device_id === deviceId)
     .filter((tag) => tag.sensor_type_id != 0)
@@ -58,7 +58,7 @@ const UptimeTable = () => {
     hasEventIntegration: true,
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const pcsRef = useRef<MapRef>(null)
   const blockRef = useRef<MapRef>(null)
   const pcsModuleRef = useRef<MapRef>(null)
@@ -70,12 +70,7 @@ const UptimeTable = () => {
   const [blockBounds, setBlockBounds] = useState<any>(null)
   const [combinerBounds, setCombinerBounds] = useState<any>(null)
 
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const { data: project } = useSelectProject(projectId!)
 
   let startQuery: string | undefined = undefined
   let endQuery: string | undefined = undefined

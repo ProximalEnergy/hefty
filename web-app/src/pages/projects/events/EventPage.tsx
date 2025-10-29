@@ -7,7 +7,7 @@ import {
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useGetStatusTimeSeries } from '@/api/v1/operational/project/project_status'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import AriaRecommendation from '@/components/AriaRecommendation'
 import CustomCard from '@/components/CustomCard'
 import EventGISCard from '@/components/EventGISCard'
@@ -84,12 +84,7 @@ function stringToInt(str: string) {
 
 // Custom hook for event data fetching
 const useEventData = (projectId: string | undefined, eventId: number) => {
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const project = useSelectProject(projectId!)
 
   const eventData = useGetEvents({
     pathParams: {
@@ -391,7 +386,7 @@ const RootCauseSelection = ({
 }
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const eventId = parseInt(
     new URLSearchParams(location.search).get('eventId') || '-1',
   )

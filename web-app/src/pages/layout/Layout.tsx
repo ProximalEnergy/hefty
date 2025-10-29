@@ -83,7 +83,7 @@ export function Layout() {
   const [messages, setMessages] = useState<IStep[]>([])
   const [firstQuestionAsked, setFirstQuestionAsked] = useState(false)
   const location = useLocation()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const isDesktop = useMediaQuery('(min-width: 768px)') // sm breakpoint
 
   // Clear chat when projectId changes

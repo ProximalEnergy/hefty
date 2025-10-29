@@ -12,7 +12,7 @@ const DeviceSunburst = ({
   depth: number
   style: PlotType
 }) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const { data, isLoading } = useGetSunburstData({
     pathParams: { projectId: projectId || '-1' },

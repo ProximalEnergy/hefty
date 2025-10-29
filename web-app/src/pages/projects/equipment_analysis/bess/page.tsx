@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisBESS } from '@/api/v1/protected/web-application/projects/equipment-analysis/bess'
 import CustomCard from '@/components/CustomCard'
 import { PageError } from '@/components/Error'
@@ -18,11 +18,9 @@ const Page = () => {
     projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,

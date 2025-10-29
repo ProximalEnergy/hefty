@@ -4,7 +4,7 @@ import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   useGetPVBudgetedData,
   useGetPVBudgetedDataBySeries,
@@ -91,17 +91,8 @@ const DailyEnergyComparison = ({
   const colorScheme = useComputedColorScheme('light')
 
   // Get project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
-      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  })
+  const project = useSelectProject(projectId!)
+  if (!project.data) return null
 
   // Calculate start and end times for the selected date in project timezone
   const startTime =
@@ -170,7 +161,7 @@ const DailyEnergyComparison = ({
     const hourlyAverages: Record<number, number[]> = {}
 
     budgetedDataQuery.data.forEach((dataPoint) => {
-      const timestamp = dayjs.utc(dataPoint.time).tz(project.data.time_zone)
+      const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
       const hour = timestamp.hour()
 
       if (!hourlyAverages[hour]) {
@@ -748,7 +739,7 @@ const Page: React.FC = () => {
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const reportRef = useRef<HTMLDivElement>(null)
   const [isPdfLoading, setIsPdfLoading] = useState(false)
   const [isMapIdle, setIsMapIdle] = useState(false)
@@ -783,17 +774,7 @@ const Page: React.FC = () => {
     }
   }, [isMapIdle, pdfExportRequested])
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '' },
-    queryOptions: {
-      enabled: !!projectId,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
-      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  })
+  const project = useSelectProject(projectId!)
 
   const colorScheme = useComputedColorScheme('light')
 
@@ -1226,7 +1207,7 @@ const Page: React.FC = () => {
     // Filter budgeted data for the selected date, ignoring the year
     const selectedDateData = budgetedDataQuery.data.filter(
       (item) =>
-        dayjs.utc(item.time).tz(project.data.time_zone).format('MM-DD') ===
+        dayjs.utc(item.time).tz(project.data?.time_zone).format('MM-DD') ===
         dayjs(selectedDateStr).format('MM-DD'),
     )
 

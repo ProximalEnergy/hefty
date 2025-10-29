@@ -8,7 +8,7 @@ import { useGetCountOpenEvents } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject, useGetProjects } from '@/api/v1/operational/projects'
+import { useGetProjects, useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -79,7 +79,7 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const PowerPlotBESS = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const [startTime, setStartTime] = useState<string>(
     dayjs()
@@ -178,9 +178,7 @@ const PowerPlotBESS = () => {
     }
   }
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const data = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },
@@ -327,7 +325,7 @@ const CurrentTime = ({ timezone }: { timezone: string }) => {
 }
 
 const KPICards = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const container = useElementSize()
   const content = useElementSize()
   const [rotationOffset, setRotationOffset] = useState(0)
@@ -336,9 +334,7 @@ const KPICards = () => {
 
   const { data: user } = useGetUserSelf({})
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const favoritedKPITypes = useGetUserFavoriteKPITypes({
     userId: user?.user_id,
@@ -431,7 +427,7 @@ const KPICards = () => {
 }
 
 const EventTable = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [sortBy, setSortBy] = useState('loss_daily')
   const theme = useMantineTheme()
 
@@ -598,7 +594,7 @@ function KioskMode({
   enabled: boolean
   setEnabled: (enabled: boolean) => void
 }) {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
   // Query data for all projects
@@ -659,7 +655,7 @@ function KioskMode({
 }
 
 const BatteryHealth = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const [showCycleData, setShowCycleData] = useState(false)
@@ -667,9 +663,7 @@ const BatteryHealth = () => {
   const [showRestSocData, setShowRestSocData] = useState(false)
 
   // Get project data to access COD
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Battery Health KPI IDs - using string KPIs instead of bank KPIs
   const batteryHealthKpiIds = [54, 55, 32, 25, 30, 49] // String SOH, Module SOH, String cycles, String SOC, String Rest SOC, String DOD
@@ -1462,7 +1456,7 @@ const ContractualKPIOverview = ({
 }: {
   onExpandedChange?: (expanded: boolean) => void
 }) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const [contractModalOpen, setContractModalOpen] = useState(false)
@@ -1878,18 +1872,13 @@ const ContractualKPIOverview = ({
 }
 
 const ProjectHome = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const stackRef = useElementSize()
   const [_contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: {
-      deep: true,
-    },
-  })
+  const project = useSelectProject(projectId!)
   const [kioskModeEnabled, setKioskModeEnabled] = useState(false)
 
   if (project.isLoading) return <PageLoader />

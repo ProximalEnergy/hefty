@@ -1,7 +1,7 @@
 import { useSuggestRootCauses } from '@/api/v1/ai/root-cause'
 import { DroneAnomaly } from '@/api/v1/operational/drone_integrations'
 import { useBulkCreateEvents } from '@/api/v1/operational/project/events'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -130,7 +130,7 @@ const DroneInspectionsMap = ({
   anomalies,
   inspectionTime,
 }: DroneInspectionsMapProps) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const computedColorScheme = useComputedColorScheme('dark')
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
     feature: null,
@@ -225,9 +225,7 @@ const DroneInspectionsMap = ({
   })
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Calculate project bounds
   const projectBounds = useMemo(() => {

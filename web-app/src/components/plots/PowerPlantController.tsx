@@ -4,7 +4,7 @@ import { useParams } from 'react-router'
 import PlotlyPlot from './PlotlyPlot'
 
 const PowerPlantController = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const { data, isLoading, error } = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },

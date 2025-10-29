@@ -1,5 +1,5 @@
 import { useGetProjectContracts } from '@/api/v1/operational/project/contracts'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateFeedbackMutation } from '@/hooks/api'
 import { useAuth } from '@clerk/clerk-react'
 import {
@@ -22,7 +22,7 @@ interface RequestKPIModalProps {
 }
 
 const RequestKPIModal = ({ opened, onClose }: RequestKPIModalProps) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [kpiName, setKpiName] = useState('')
   const [selectedContract, setSelectedContract] = useState<string | null>(null)
   const [description, setDescription] = useState('')
@@ -38,9 +38,9 @@ const RequestKPIModal = ({ opened, onClose }: RequestKPIModalProps) => {
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const { data: project } = useSelectProject(projectId!)
+
+  if (!projectId) return null
 
   const contractOptions = [
     { value: 'new', label: 'Add New...' },

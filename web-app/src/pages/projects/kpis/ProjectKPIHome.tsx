@@ -469,7 +469,7 @@ const KpiTable = ({
 }
 
 const ProjectKPIHome = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { data: user } = useGetUserSelf({})
   const { data: favoriteKpis } = useGetUserFavoriteKPITypes({
     userId: user?.user_id,

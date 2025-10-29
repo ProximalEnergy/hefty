@@ -1,4 +1,4 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 // Import an icon for the success message
 
 import { useSubmitBackfill } from '@/api/v1/protected/pv-expected-energy/backfill/backfill'
@@ -66,11 +66,9 @@ interface BackfillFormValues {
 }
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '' },
-  })
+  const { data: project } = useSelectProject(projectId!)
 
   // --- Get date values from the hook used by AdvancedDatePicker ---
   // start and end should be Dayjs objects or null

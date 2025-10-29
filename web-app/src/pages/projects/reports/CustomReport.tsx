@@ -1,7 +1,7 @@
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import KPICard from '@/components/KPICard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetTags } from '@/hooks/api'
@@ -39,17 +39,14 @@ type Item = {
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
 const MyFirstGrid = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const [items, setItems] = useState<Item[]>([])
   const [editing, setEditing] = useState(false)
   const [previousLayout, setPreviousLayout] = useState<Item[]>([])
   const nextKeyRef = useRef(0)
 
-  const { data: project, isLoading: isProjectLoading } = useGetProject({
-    pathParams: { projectId: projectId || '' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const { data: project } = useSelectProject(projectId!)
 
   const { data: tags, isLoading: isTagsLoading } = useGetTags({
     pathParams: { projectId: projectId || '' },
@@ -162,7 +159,7 @@ const MyFirstGrid = () => {
     setEditing(false)
   }
 
-  if (isProjectLoading || isTagsLoading || isKpiInstancesLoading) {
+  if (isTagsLoading || isKpiInstancesLoading) {
     return <LoadingOverlay visible={true} />
   }
 

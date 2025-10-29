@@ -1,6 +1,6 @@
 import { HexLoaderInline } from '@/HexLoaderInline'
 import { useGetDevicesInViewport } from '@/api/v1/analytics/gis'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -105,7 +105,7 @@ export function AdaptiveGisMap() {
   const context = useContext(GISContext)
 
   // URL params
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
   const computedColorScheme = useComputedColorScheme('dark')
@@ -132,9 +132,7 @@ export function AdaptiveGisMap() {
   const [lockedViewName, setLockedViewName] = useState<string | null>(null) // State for locked view name
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Calculate project bounds from project polygon if available
   const projectBounds = useMemo(() => {

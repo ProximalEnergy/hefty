@@ -33,7 +33,7 @@ export default function ProjectInfoModal({
   projectData,
 }: ProjectInfoModalProps) {
   const navigate = useNavigate()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
   const { data: projectTypes } = useGetProjectTypes({})
   const { data: deviceTypes } = useGetDeviceTypes({

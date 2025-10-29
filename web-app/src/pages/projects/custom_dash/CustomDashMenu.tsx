@@ -2,7 +2,7 @@ import {
   useDeleteUserDashboard,
   useGetUserDashboards,
 } from '@/api/v1/operational/project/custom_dash'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import {
   ActionIcon,
@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 const CustomDashMenu = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
   const [dashboardToDelete, setDashboardToDelete] = useState<{
@@ -29,9 +29,7 @@ const CustomDashMenu = () => {
   } | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const userDashboards = useGetUserDashboards({
     pathParams: {

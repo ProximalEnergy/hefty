@@ -1,7 +1,7 @@
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2 } from '@/hooks/api'
@@ -112,9 +112,9 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   const [showDCEnergy, setShowDCEnergy] = useState(false)
 
   // Get project data for capacity information
-  const { data: projectData, isLoading: projectLoading } = useGetProject({
-    pathParams: { projectId: projectId! },
-  })
+  const { data: projectData, isLoading: projectLoading } = useSelectProject(
+    projectId!,
+  )
 
   // Get KPI types for reference
   const { data: kpiTypes, isLoading: kpiTypesLoading } = useGetProjectKPITypes({

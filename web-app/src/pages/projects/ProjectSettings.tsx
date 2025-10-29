@@ -8,7 +8,7 @@ import ProjectInfo from './settings/ProjectInfo'
 import Documents from './settings/documents'
 
 const ProjectSettings = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId?: string }>()
   const [searchParams] = useSearchParams()
   const defaultTab = searchParams.get('tab') || 'project-info'
 

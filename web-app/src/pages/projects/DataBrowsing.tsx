@@ -3,7 +3,7 @@
 // - Add units display to lower ScrollArea
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -365,7 +365,7 @@ const Page = () => {
   ])
 
   // API Data
-  const project = useGetProject({ pathParams: { projectId } })
+  const project = useSelectProject(projectId!)
 
   let startQuery: string | undefined = undefined
   let endQuery: string | undefined = undefined

@@ -4,7 +4,7 @@ import {
   DroneProvider,
   useOrderDroneInspection,
 } from '@/api/v1/operational/drone_integrations'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useUser } from '@clerk/clerk-react'
 import {
   Alert,
@@ -88,10 +88,7 @@ export const OrderDroneInspectionModal: React.FC<
 > = ({ opened, onClose, projectId, currentProvider }) => {
   const { data: self } = useGetUserSelf({})
   const { user: clerkUser } = useUser()
-  const { data: project } = useGetProject({
-    pathParams: { projectId },
-    queryParams: { deep: true },
-  })
+  const { data: project } = useSelectProject(projectId!)
   const { data: companies } = useGetCompanies({
     queryParams: { company_ids: self?.company_id ? [self.company_id] : [] },
     queryOptions: { enabled: !!self?.company_id },

@@ -1,5 +1,5 @@
 import { DeviceType } from '@/api/enumerations'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevice, useGetDevicesV2 } from '@/hooks/api'
@@ -50,9 +50,7 @@ const EventGISCard = ({
     data: projectData,
     isLoading: isProjectLoading,
     error: projectError,
-  } = useGetProject({
-    pathParams: { projectId },
-  })
+  } = useSelectProject(projectId!)
 
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },

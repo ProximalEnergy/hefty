@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import { projectDescription } from '@/utils/projectDescription'
 import {
@@ -21,7 +21,7 @@ const ProjectPicture = ({
   showText,
   collapsed,
 }: {
-  project: ReturnType<typeof useGetProject>['data']
+  project: ReturnType<typeof useSelectProject>['data']
   showText: boolean
   collapsed: boolean
 }) => {

@@ -13,7 +13,7 @@ const LossWaterfall = ({
   startQuery: string
   endQuery: string
 }) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const data = useGetWaterfall({
     pathParams: { projectId: projectId || '-1' },

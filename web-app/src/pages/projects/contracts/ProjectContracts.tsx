@@ -5,7 +5,7 @@ import {
 } from '@/api/v1/operational/project/contracts'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -687,7 +687,7 @@ const ContractCard = ({
 }
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [modalOpen, setModalOpen] = useState(false)
   const [voiceChatModalOpen, setVoiceChatModalOpen] = useState(false)
@@ -696,10 +696,7 @@ const Page = () => {
   const [contractToDelete, setContractToDelete] = useState<number | null>(null)
 
   // Get project data to determine project type for example contract filtering
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const contracts = useGetProjectContracts({
     pathParams: { projectId: projectId || '-1' },

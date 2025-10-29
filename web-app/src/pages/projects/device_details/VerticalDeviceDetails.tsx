@@ -1,4 +1,4 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   useGetDeviceDetailsVertical,
   useGetDeviceDetailsVerticalController,
@@ -31,7 +31,7 @@ const VerticalDeviceDetails = () => {
   useProjectDropdownToggle()
 
   // Path and search params
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
 
   // Viewport height, to be used for card rendering
@@ -49,9 +49,7 @@ const VerticalDeviceDetails = () => {
 
   // --- Start data fetching ---
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Fetch controller data
   const device_id = searchParams.get('device_id')
@@ -294,7 +292,7 @@ function DeviceTypeCard({
   selectedCards: number
 }) {
   const navigate = useNavigate()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
 
   const deviceDetails = useGetDeviceDetailsVertical({

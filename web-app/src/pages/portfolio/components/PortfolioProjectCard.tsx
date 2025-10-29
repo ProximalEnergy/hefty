@@ -1,7 +1,7 @@
 import { useUpdateProjectFavorite } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { projectDescription } from '@/utils/projectDescription'
@@ -38,7 +38,7 @@ export function PortfolioProjectCard({
   projectDataLastUpdated,
   isFavorited = false,
 }: {
-  project: NonNullable<ReturnType<typeof useGetProject>['data']>
+  project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   portfolioHomeProject:
     | NonNullable<ReturnType<typeof useGetPortfolioHome>['data']>[number]
     | undefined
@@ -330,7 +330,7 @@ const RingProgressStat = ({
   type,
   value,
 }: {
-  project: NonNullable<ReturnType<typeof useGetProject>['data']>
+  project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   type: 'power' | 'poa' | 'soc'
   value?: number
 }) => {

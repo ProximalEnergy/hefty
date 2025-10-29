@@ -1,6 +1,6 @@
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
@@ -18,17 +18,14 @@ const Page = () => {
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
 
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,
   })
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const { data, isLoading, error } = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },

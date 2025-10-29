@@ -8,7 +8,7 @@ import { Link, useParams } from 'react-router'
 import styles from './ProjectReports.module.css'
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const { data: reportData, isLoading: isReportDataLoading } =
     useGetProjectReportInstances({

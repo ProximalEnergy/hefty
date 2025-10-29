@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -103,7 +103,7 @@ export function PCSGISMap({
   const context = useContext(GISContext)
 
   // URL params
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
   const searchParamsObj = Object.fromEntries([...searchParams])
 
@@ -117,9 +117,7 @@ export function PCSGISMap({
   const blankMapStyle = gisUtils.useBlankMapStyle()
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Parse query params
   let start = searchParams.get('start')

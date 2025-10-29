@@ -1,5 +1,5 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   SensorType,
   useCreateSensorTypeMutation,
@@ -53,7 +53,7 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const ProjectTagExplorer = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   // Query parameters state
   // Removed legacy sensor type filter; use table filters instead
@@ -242,9 +242,7 @@ const ProjectTagExplorer = () => {
   // })
   const sensorTypes = useGetSensorTypes({})
   const deviceTypes = useGetDeviceTypes({})
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const assignPatternSensorType = useAssignPatternSensorTypeMutation()
 

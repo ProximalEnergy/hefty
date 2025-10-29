@@ -47,7 +47,7 @@ const ProjectKPIAlertModal = ({
   onSuccessfulUpdate, // Add this line
 }: ProjectKPIAlertModalProps) => {
   const [statisticDisabled, setStatisticDisabled] = useState<boolean>(false)
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { mutate } = useUpdateKPIAlert()
   const [thresholdSuffix, setThresholdSuffix] = useState<string | null>('')
   const [loadState, setLoadState] = useState<boolean>(false)
