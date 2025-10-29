@@ -239,7 +239,7 @@ export function PortfolioProjectCard({
                       text:
                         portfolioHomeProject.max_charge_power ||
                         portfolioHomeProject.max_discharge_power
-                          ? `Power (MW)<br><sub style="color: ${theme.colors.orange[7]}; font-size: 10px;">Available Charge Power (MW)</sub>`
+                          ? `Power (MW)<br><sub style="color: ${theme.colors.orange[7]}; font-size: 10px;">Available Power (MW)</sub>`
                           : 'Power (MW)',
                       font: {
                         color: theme.colors.green[7],

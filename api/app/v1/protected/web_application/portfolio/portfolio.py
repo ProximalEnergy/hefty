@@ -209,9 +209,8 @@ async def get_home(
                 c for c in df_project.columns if c[1] == 80
             ]  # max_charge_power
             if max_charge_columns:
-                poi = pd.to_numeric(
-                    projects_df.loc[str(project_id), "poi"], errors="coerce"
-                )
+                poi_value = projects_df.loc[project_id]["poi"]  # type: ignore
+                poi = pd.to_numeric(poi_value, errors="coerce")
                 max_charge_power = (
                     (df_project[max_charge_columns].sum(axis=1) / -1_000)
                     .clip(lower=-poi)
@@ -223,9 +222,8 @@ async def get_home(
                 c for c in df_project.columns if c[1] == 81
             ]  # max_discharge_power
             if max_discharge_columns:
-                poi = pd.to_numeric(
-                    projects_df.loc[str(project_id), "poi"], errors="coerce"
-                )
+                poi_value = projects_df.loc[project_id]["poi"]  # type: ignore
+                poi = pd.to_numeric(poi_value, errors="coerce")
                 max_discharge_power = (
                     (df_project[max_discharge_columns].sum(axis=1) / 1_000)
                     .clip(upper=poi)
