@@ -16,17 +16,12 @@
     },
     {
       matchPackageNames: ["python"],
-      matchDatasources: ["docker", "github-tags"],
+      matchDatasources: ["docker", "github-tags", "github-runners"],
       enabled: false,
     },
     {
       matchPackageNames: ["python/cpython"],
       matchDatasources: ["github-tags"],
-      enabled: false,
-    },
-    {
-      matchPackageNames: ["python"],
-      matchDatasources: ["uses-with"],
       enabled: false,
     },
     // =========== Group Upgrades by Service ============
