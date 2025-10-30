@@ -24,7 +24,7 @@ const ProjectSettings = () => {
       >
         Project Settings
       </PageTitle>
-      <Tabs defaultValue={defaultTab} flex={1}>
+      <Tabs defaultValue={defaultTab} flex={1} keepMounted={false}>
         <Tabs.List>
           <Tabs.Tab value="project-info">Project Info</Tabs.Tab>
           <Tabs.Tab value="documents">Documents</Tabs.Tab>
