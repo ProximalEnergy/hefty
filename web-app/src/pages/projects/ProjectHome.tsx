@@ -8,7 +8,7 @@ import { useGetCountOpenEvents } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject, useGetProjects } from '@/api/v1/operational/projects'
+import { useSelectProject, useGetProjects } from '@/api/v1/operational/projects'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -179,9 +179,7 @@ const PowerPlotBESS = () => {
     }
   }
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const data = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },
@@ -337,9 +335,7 @@ const KPICards = () => {
 
   const { data: user } = useGetUserSelf({})
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const favoritedKPITypes = useGetUserFavoriteKPITypes({
     userId: user?.user_id,
@@ -668,9 +664,7 @@ const BatteryHealth = () => {
   const [showRestSocData, setShowRestSocData] = useState(false)
 
   // Get project data to access COD
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Battery Health KPI IDs - using string KPIs instead of bank KPIs
   const batteryHealthKpiIds = [54, 55, 32, 25, 30, 49] // String SOH, Module SOH, String cycles, String SOC, String Rest SOC, String DOD
@@ -1886,12 +1880,7 @@ const ProjectHome = () => {
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: {
-      deep: true,
-    },
-  })
+  const project = useSelectProject(projectId!)
   const [kioskModeEnabled, setKioskModeEnabled] = useState(false)
 
   if (project.isLoading) return <PageLoader />
