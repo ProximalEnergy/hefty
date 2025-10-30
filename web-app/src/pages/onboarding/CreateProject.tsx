@@ -267,7 +267,7 @@ function CreateProject() {
                   <Title order={1}>Create New Project</Title>
                   <Text c="dimmed">
                     Create a new project within the Platform. Project will be
-                    created with a status of "Currently Onboarding"
+                    created with a status of &quot;Currently Onboarding&quot;
                   </Text>
                 </div>
               </Group>

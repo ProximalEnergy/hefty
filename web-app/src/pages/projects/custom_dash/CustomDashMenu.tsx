@@ -139,8 +139,8 @@ const CustomDashMenu = () => {
       <Modal opened={opened} onClose={close} title="Delete Dashboard" centered>
         <Stack>
           <Text>
-            Are you sure you want to delete the dashboard "
-            {dashboardToDelete?.name}"? This action cannot be undone.
+            Are you sure you want to delete the dashboard &quot;
+            {dashboardToDelete?.name}&quot;? This action cannot be undone.
           </Text>
           <Group justify="flex-end">
             <Button variant="outline" onClick={close}>

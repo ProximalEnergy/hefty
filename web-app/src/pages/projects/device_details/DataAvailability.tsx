@@ -505,7 +505,7 @@ const Page = () => {
               <Text span c="orange">
                 Orange
               </Text>
-              : Stale data - sensor hasn't reported recently and may need
+              : Stale data - sensor hasn&apos;t reported recently and may need
               attention.
               <br />
               <Text span c="gray">
@@ -516,15 +516,15 @@ const Page = () => {
               <br />
               <Text fw={600}>How Stale Values Are Calculated:</Text>
               <br />
-              A sensor reading is marked as 'stale' when it's older than
-              expected. The system calculates this by:
+              A sensor reading is marked as &apos;stale&apos; when it&apos;s
+              older than expected. The system calculates this by:
               <br />
               1. Taking the typical age for similar sensors (median age) and
               doubling it
               <br />
               2. Making sure this threshold is at least 1 hour (3600 seconds)
               <br />
-              3. If a reading is older than this calculated threshold, it's
+              3. If a reading is older than this calculated threshold, it&apos;s
               marked as stale
               <br />
               <br />

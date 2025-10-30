@@ -368,8 +368,9 @@ const BESSOperationDataPage = () => {
           </Text>
           <Text size="sm" c="#856404" mt={4}>
             The tags to display this data are not yet configured. Reach out to
-            the Proximal team about setting up tags for "String Total Charged
-            Energy", "String Total Discharged Energy", and "String SOC".
+            the Proximal team about setting up tags for &quot;String Total
+            Charged Energy&quot;, &quot;String Total Discharged Energy&quot;,
+            and &quot;String SOC&quot;.
           </Text>
         </div>
       </Group>

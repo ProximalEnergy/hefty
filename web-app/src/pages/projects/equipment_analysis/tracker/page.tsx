@@ -194,8 +194,8 @@ const ProjectEquipmentAnalysisTracker = () => {
           <Stack gap="xs">
             <Text fw={600}>Understanding Position Deviation</Text>
             <Text size="sm">
-              This chart shows how much each tracker's actual position deviates
-              from its setpoint.
+              This chart shows how much each tracker&apos;s actual position
+              deviates from its setpoint.
             </Text>
             <Text size="sm">
               <Text component="span" fw={500}>
@@ -274,29 +274,30 @@ const ProjectEquipmentAnalysisTracker = () => {
           <Stack gap="xs">
             <Text fw={600}>Understanding Setpoint Deviation from Median</Text>
             <Text size="sm">
-              This chart shows how much each tracker's setpoint deviates from
-              the median setpoint of all trackers in the same group.
+              This chart shows how much each tracker&apos;s setpoint deviates
+              from the median setpoint of all trackers in the same group.
             </Text>
             <Text size="sm">
               <Text component="span" fw={500}>
                 What is the median?
               </Text>{' '}
               The median is the middle value when all tracker setpoints are
-              sorted from lowest to highest. It represents the "typical"
-              setpoint that most trackers should be following.
+              sorted from lowest to highest. It represents the
+              &quot;typical&quot; setpoint that most trackers should be
+              following.
             </Text>
             <Text size="sm">
               <Text component="span" fw={500}>
                 Lower values:
               </Text>{' '}
-              This tracker's setpoint is close to the typical setpoint (good
-              alignment)
+              This tracker&apos;s setpoint is close to the typical setpoint
+              (good alignment)
             </Text>
             <Text size="sm">
               <Text component="span" fw={500}>
                 Higher values:
               </Text>{' '}
-              This tracker's setpoint is significantly different from the
+              This tracker&apos;s setpoint is significantly different from the
               typical setpoint (potential controller issue)
             </Text>
             <List size="sm" spacing="xs">

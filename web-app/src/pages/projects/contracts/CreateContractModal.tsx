@@ -134,7 +134,7 @@ const SourceReferenceHoverCard = ({
                 : undefined
             }
           >
-            "{quoted_text}"
+            &quot;{quoted_text}&quot;
             {onReferenceClick && (
               <IconSearch size={12} style={{ opacity: 0.7 }} />
             )}
@@ -1038,8 +1038,8 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
 
                   {contractDates.length === 0 && (
                     <Text c="dimmed" size="sm" ta="center" py="md">
-                      No important dates added yet. Click "Add Date" to include
-                      key contract milestones.
+                      No important dates added yet. Click &quot;Add Date&quot;
+                      to include key contract milestones.
                     </Text>
                   )}
                 </Stack>

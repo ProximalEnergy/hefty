@@ -601,8 +601,8 @@ const Page = () => {
               <Text component="span" fw={500}>
                 Colors:
               </Text>{' '}
-              Each cell represents the tracker's angle with a legend provided.
-              Colors range from{' '}
+              Each cell represents the tracker&apos;s angle with a legend
+              provided. Colors range from{' '}
               <Text component="span" c="#b5d6e0">
                 blue
               </Text>{' '}

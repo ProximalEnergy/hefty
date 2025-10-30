@@ -428,7 +428,7 @@ const Page = () => {
               <Stack>
                 <Text>
                   This page allows you to manage the PV inverters in your
-                  company's component library.
+                  company&apos;s component library.
                 </Text>
                 <Text>
                   You can add new inverters by uploading an OND file or by
@@ -441,15 +441,16 @@ const Page = () => {
             PV Inverters
           </PageTitle>
           <Text c="dimmed" size="sm" mb="md">
-            Add or edit components in your company's component library.
+            Add or edit components in your company&apos;s component library.
             Equipment can be assigned to specific projects via the projectlevel
             google sheet. If you need access to a project google sheet, please
             contact your Proximal support contact.
           </Text>
           <Text c="dimmed" size="sm" mb="md">
-            Choose "Edit Equipment" to modify existing inverter specifications,
-            "New Equipment (OND File)" to upload an OND file, or "New Equipment
-            (Manual)" to enter your own values.
+            Choose &quot;Edit Equipment&quot; to modify existing inverter
+            specifications, &quot;New Equipment (OND File)&quot; to upload an
+            OND file, or &quot;New Equipment (Manual)&quot; to enter your own
+            values.
           </Text>
           <Select
             label="Source"
@@ -572,8 +573,8 @@ const Page = () => {
                   mt="md"
                 >
                   No PV inverter equipment is available for your company in edit
-                  mode. Please use "New (Manual)" or "New (OND File)" to add
-                  equipment to your company's inventory.
+                  mode. Please use &quot;New (Manual)&quot; or &quot;New (OND
+                  File)&quot; to add equipment to your company&apos;s inventory.
                 </Alert>
               ) : (
                 <EquipmentFilter
@@ -651,7 +652,8 @@ const Page = () => {
                       >
                         No existing inverter found for {selectedManufacturer} -{' '}
                         {selectedModel}. You can create a new inverter with
-                        these specifications, or switch to "New (Manual)" mode.
+                        these specifications, or switch to &quot;New
+                        (Manual)&quot; mode.
                       </Alert>
                     )}
                   <Title order={3} mt="md">

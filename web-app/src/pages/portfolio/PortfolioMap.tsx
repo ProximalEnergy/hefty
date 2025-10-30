@@ -298,9 +298,9 @@ const PortfolioMap = () => {
               },
             }}
           >
-            You have "Favorites Only" selected but haven't favorited any
-            projects yet. You can favorite projects on the Portfolio Home
-            screen.
+            You have &quot;Favorites Only&quot; selected but haven&apos;t
+            favorited any projects yet. You can favorite projects on the
+            Portfolio Home screen.
           </Alert>
         </div>
       )}
@@ -656,9 +656,9 @@ const PortfolioMap = () => {
                         <HoverCard.Dropdown maw="300px">
                           <Stack gap="xs">
                             <Text size="sm">
-                              Hail forecast probabilities are provided by NOAA's
-                              Storm Prediction Center and represent the
-                              likelihood of severe hail (≥1 inch diameter)
+                              Hail forecast probabilities are provided by
+                              NOAA&apos;s Storm Prediction Center and represent
+                              the likelihood of severe hail (≥1 inch diameter)
                               occurring within 25 miles of any point during the
                               forecast period.
                             </Text>
@@ -713,9 +713,9 @@ const PortfolioMap = () => {
                           <Stack gap="xs">
                             <Text size="sm">
                               Tornado outlook probabilities are provided by
-                              NOAA's Storm Prediction Center and represent the
-                              likelihood of a tornado occurring within 25 miles
-                              of any point during the forecast period.
+                              NOAA&apos;s Storm Prediction Center and represent
+                              the likelihood of a tornado occurring within 25
+                              miles of any point during the forecast period.
                             </Text>
                             <Anchor
                               href="https://www.spc.noaa.gov/products/outlook/day1otlk.html"
@@ -767,9 +767,9 @@ const PortfolioMap = () => {
                         <HoverCard.Dropdown maw="300px">
                           <Stack gap="xs">
                             <Text size="sm">
-                              Wind outlook probabilities are provided by NOAA's
-                              Storm Prediction Center and represent the
-                              likelihood of severe wind (≥58 mph) occurring
+                              Wind outlook probabilities are provided by
+                              NOAA&apos;s Storm Prediction Center and represent
+                              the likelihood of severe wind (≥58 mph) occurring
                               within 25 miles of any point during the forecast
                               period.
                             </Text>
@@ -824,8 +824,8 @@ const PortfolioMap = () => {
                           <Stack gap="xs">
                             <Text size="sm">
                               Fire weather outlook categories are provided by
-                              NOAA's Storm Prediction Center and indicate areas
-                              where weather conditions could contribute to
+                              NOAA&apos;s Storm Prediction Center and indicate
+                              areas where weather conditions could contribute to
                               dangerous fire behavior.
                             </Text>
                             <Anchor

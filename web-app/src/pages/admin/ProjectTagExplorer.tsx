@@ -802,10 +802,10 @@ const ProjectTagExplorer = () => {
                   Best Practice:
                 </Text>
                 <Text size="xs" c="dimmed">
-                  Keep the Google Sheet called "_operational" and any
-                  "[project].tags" manually updated in parallel with this method
-                  for the time being. This way they will stay in sync until
-                  we've fully transitioned.
+                  Keep the Google Sheet called &quot;_operational&quot; and any
+                  &quot;[project].tags&quot; manually updated in parallel with
+                  this method for the time being. This way they will stay in
+                  sync until we&apos;ve fully transitioned.
                 </Text>
               </Stack>
             }
@@ -863,8 +863,8 @@ const ProjectTagExplorer = () => {
                     <Text fw={600}>No precomputed patterns found</Text>
                     <Text size="sm" c="dimmed">
                       This project has no rows in the unique patterns table yet.
-                      Click "Populate Patterns" to generate them. This may take
-                      a minute.
+                      Click &quot;Populate Patterns&quot; to generate them. This
+                      may take a minute.
                     </Text>
                   </Stack>
                 </Card>
@@ -1516,13 +1516,14 @@ const ProjectTagExplorer = () => {
       >
         <Stack gap="md">
           <Text>
-            Are you sure you want to assign the sensor type "
+            Are you sure you want to assign the sensor type &quot;
             {
               sensorTypes.data?.find(
                 (st) => st.sensor_type_id.toString() === patternSensorTypeId,
               )?.name_short
             }
-            " to all tags matching the pattern "{selectedTagPattern}"?
+            &quot; to all tags matching the pattern &quot;{selectedTagPattern}
+            &quot;?
           </Text>
           {patternUnitScale && (
             <Text size="sm" c="dimmed">

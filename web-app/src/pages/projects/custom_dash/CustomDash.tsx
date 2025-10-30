@@ -2096,8 +2096,8 @@ const Page = () => {
               No dashboard components yet
             </Text>
             <Text size="sm" c="dimmed">
-              Click "Edit Layout" and then "Add Component" to create your first
-              dashboard component
+              Click &quot;Edit Layout&quot; and then &quot;Add Component&quot;
+              to create your first dashboard component
             </Text>
           </Stack>
         </Paper>

@@ -1405,9 +1405,9 @@ const ModuleDegradation: React.FC = () => {
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Text size="sm">
-                    Use this tab to view individual days' clearsky and combiner
-                    performance data. Entire days can be excluded from the
-                    analysis as applicable.{' '}
+                    Use this tab to view individual days&apos; clearsky and
+                    combiner performance data. Entire days can be excluded from
+                    the analysis as applicable.{' '}
                   </Text>
                 </HoverCard.Dropdown>
               </HoverCard>

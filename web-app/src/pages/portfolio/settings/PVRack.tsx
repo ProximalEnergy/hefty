@@ -285,8 +285,8 @@ const Page = () => {
             info={
               <Stack>
                 <Text>
-                  This page allows you to manage the PV racks in your company's
-                  component library.
+                  This page allows you to manage the PV racks in your
+                  company&apos;s component library.
                 </Text>
                 <Text>
                   You can add new racks by entering the parameters manually. You
@@ -298,14 +298,15 @@ const Page = () => {
             PV Racks
           </PageTitle>
           <Text c="dimmed" size="sm" mb="md">
-            Add or edit components in your company's component library.
+            Add or edit components in your company&apos;s component library.
             Equipment can be assigned to specific projects via the projectlevel
             google sheet. If you need access to a project google sheet, please
             contact your Proximal support contact.
           </Text>
           <Text c="dimmed" size="sm" mb="md">
-            Choose "Edit Equipment" to modify existing rack specifications, or
-            "New Equipment (Manual)" to enter your own values.
+            Choose &quot;Edit Equipment&quot; to modify existing rack
+            specifications, or &quot;New Equipment (Manual)&quot; to enter your
+            own values.
           </Text>
           <Select
             label="Source"
@@ -337,8 +338,8 @@ const Page = () => {
               mt="md"
             >
               No PV rack equipment is available for your company in edit mode.
-              Please use "New (Manual)" to add equipment to your company's
-              inventory.
+              Please use &quot;New (Manual)&quot; to add equipment to your
+              company&apos;s inventory.
             </Alert>
           )}
 
@@ -587,8 +588,9 @@ const Page = () => {
                   withCloseButton
                 >
                   No rack details found for the selected manufacturer and model
-                  in your company's inventory. You can enter values manually by
-                  switching to "New (Manual)" mode or select a different model.
+                  in your company&apos;s inventory. You can enter values
+                  manually by switching to &quot;New (Manual)&quot; mode or
+                  select a different model.
                 </Alert>
               )}
           </>

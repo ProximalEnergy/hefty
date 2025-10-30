@@ -856,7 +856,7 @@ const VoiceChatModal = ({
                   {aiResponse && (
                     <Paper p="sm" withBorder>
                       <Text size="sm" fw={500} mb={4}>
-                        Aria's Response
+                        Aria&apos;s Response
                       </Text>
                       <Text size="sm">{aiResponse}</Text>
                     </Paper>
