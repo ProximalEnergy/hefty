@@ -1,7 +1,7 @@
 import { useUpdateProjectFavorite } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { projectDescription } from '@/utils/projectDescription'
@@ -27,7 +27,7 @@ import {
   IconInfoCircle,
   IconSolarPanel,
 } from '@tabler/icons-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import DataStatus from '../../layout/header/DataStatus'
 import styles from '../PortfolioHome.module.css'
@@ -38,7 +38,7 @@ export function PortfolioProjectCard({
   projectDataLastUpdated,
   isFavorited = false,
 }: {
-  project: NonNullable<ReturnType<typeof useGetProject>['data']>
+  project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   portfolioHomeProject:
     | NonNullable<ReturnType<typeof useGetPortfolioHome>['data']>[number]
     | undefined
@@ -197,6 +197,37 @@ export function PortfolioProjectCard({
                         yaxis: 'y2',
                       }
                     : {},
+                  portfolioHomeProject.max_charge_power
+                    ? {
+                        x,
+                        y: project.has_real_time_data
+                          ? portfolioHomeProject.max_charge_power.slice(-288)
+                          : portfolioHomeProject.max_charge_power.slice(0, 288),
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {
+                          color: theme.colors.orange[7],
+                          dash: 'dash',
+                        },
+                      }
+                    : {},
+                  portfolioHomeProject.max_discharge_power
+                    ? {
+                        x,
+                        y: project.has_real_time_data
+                          ? portfolioHomeProject.max_discharge_power.slice(-288)
+                          : portfolioHomeProject.max_discharge_power.slice(
+                              0,
+                              288,
+                            ),
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {
+                          color: theme.colors.orange[7],
+                          dash: 'dash',
+                        },
+                      }
+                    : {},
                 ]}
                 layout={{
                   xaxis: {
@@ -205,7 +236,11 @@ export function PortfolioProjectCard({
                   },
                   yaxis: {
                     title: {
-                      text: 'Power (MW)',
+                      text:
+                        portfolioHomeProject.max_charge_power ||
+                        portfolioHomeProject.max_discharge_power
+                          ? `Power (MW)<br><sub style="color: ${theme.colors.orange[7]}; font-size: 10px;">Available Power (MW)</sub>`
+                          : 'Power (MW)',
                       font: {
                         color: theme.colors.green[7],
                       },
@@ -295,7 +330,7 @@ const RingProgressStat = ({
   type,
   value,
 }: {
-  project: NonNullable<ReturnType<typeof useGetProject>['data']>
+  project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   type: 'power' | 'poa' | 'soc'
   value?: number
 }) => {

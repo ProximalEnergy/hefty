@@ -2,7 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import {
   ProjectUpdate,
-  useGetProject,
+  useSelectProject,
   useUpdateProject,
 } from '@/api/v1/operational/projects'
 import {
@@ -56,12 +56,7 @@ const US_ISO_OPTIONS = [
 ]
 
 export default function ProjectInfo({ projectId }: ProjectInfoProps) {
-  const { data: project, isLoading } = useGetProject({
-    pathParams: { projectId },
-    queryParams: { deep: true },
-    // Force fresh data on this page to avoid stale cache after updates
-    queryOptions: { staleTime: 0 },
-  })
+  const { data: project, isLoading } = useSelectProject(projectId!)
 
   const updateProject = useUpdateProject()
   const { data: userType } = useGetUserType({})
@@ -179,7 +174,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
         ),
       })
     }
-  }, [project])
+  }, [project]) // eslint-disable-line react-hooks/exhaustive-deps
+  // NOTE: At the time of writing, `form` was included in the dependency array which caused infinite re-renders. This page probably needs to be refactored to use a more stable solution. See https://v7.mantine.dev/form/recipes/#set-initial-values-with-async-request for an example on how to set the form with initial values from an async request.
 
   const handleSubmit = (values: ProjectUpdate) => {
     // Only allow admins to submit changes

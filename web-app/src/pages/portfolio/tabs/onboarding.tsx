@@ -10,7 +10,7 @@ import {
   type MRT_Row,
   MantineReactTable,
 } from 'mantine-react-table'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface OnboardingProjectsTabProps {
   projects: Project[]

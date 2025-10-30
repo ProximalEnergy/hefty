@@ -18,7 +18,7 @@ import {
 import { IconInfoCircle } from '@tabler/icons-react'
 import { Data } from 'plotly.js'
 import { useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
@@ -27,7 +27,7 @@ const ProjectEquipmentAnalysisTracker = () => {
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [view, setView] = useState<'block' | 'row'>('block')
 

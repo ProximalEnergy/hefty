@@ -1,6 +1,6 @@
 import { HexLoaderInline } from '@/HexLoaderInline'
 import { useGetDevicesInViewport } from '@/api/v1/analytics/gis'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -25,16 +25,14 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { Feature, FeatureCollection } from 'geojson'
-import { LngLatBoundsLike } from 'mapbox-gl'
 import { useCallback, useContext, useMemo, useRef, useState } from 'react'
-import {
+import MapboxMap, {
   Layer,
   MapMouseEvent,
   MapRef,
-  Map as ReactMapGL,
   Source,
-} from 'react-map-gl'
-import { useNavigate, useParams } from 'react-router-dom'
+} from 'react-map-gl/mapbox'
+import { useNavigate, useParams } from 'react-router'
 
 import { HoverInfo } from './utils'
 
@@ -107,7 +105,7 @@ export function AdaptiveGisMap() {
   const context = useContext(GISContext)
 
   // URL params
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
   const computedColorScheme = useComputedColorScheme('dark')
@@ -122,16 +120,6 @@ export function AdaptiveGisMap() {
   const mapRef = useRef<MapRef>(null)
   const mouseDownPos = useRef<{ x: number; y: number } | null>(null)
 
-  // --- Add Controlled ViewState ---
-  const [viewState, setViewState] = useState({
-    longitude: -98, // Default center (approx US)
-    latitude: 39,
-    zoom: 4, // Default zoom
-    pitch: 0,
-    bearing: 0,
-  })
-  const initialFitDoneRef = useRef(false) // Ref to track initial bounds fitting
-
   // --- Lock State ---
   const [isViewLocked, setIsViewLocked] = useState(false)
   const [lockedDeviceTypeIds, setLockedDeviceTypeIds] = useState<
@@ -144,9 +132,7 @@ export function AdaptiveGisMap() {
   const [lockedViewName, setLockedViewName] = useState<string | null>(null) // State for locked view name
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Calculate project bounds from project polygon if available
   const projectBounds = useMemo(() => {
@@ -240,7 +226,7 @@ export function AdaptiveGisMap() {
       enabled:
         !!project.data &&
         !!(viewportBounds ?? projectBounds) &&
-        (zoom >= LOW_ZOOM || isViewLocked), // Keep original zoom logic for *initial* enabling
+        (zoom >= LOW_ZOOM || isViewLocked),
       placeholderData: keepPreviousData,
     },
   })
@@ -661,61 +647,28 @@ export function AdaptiveGisMap() {
 
           {geojsonData && (
             <>
-              <ReactMapGL
-                key={projectId} // Simplified key
-                {...viewState} // Spread the controlled view state
-                onMove={(evt) => {
-                  setViewState(evt.viewState)
-                  // Update zoom state regardless of lock for map rendering expressions
-                  // Data fetching lock is handled separately
-                  setZoom(evt.viewState.zoom)
+              <MapboxMap
+                key={projectId}
+                initialViewState={{
+                  bounds: projectBounds
+                    ? [
+                        projectBounds.west,
+                        projectBounds.south,
+                        projectBounds.east,
+                        projectBounds.north,
+                      ]
+                    : undefined,
+                  fitBoundsOptions: {
+                    padding: {
+                      top: 25,
+                      bottom: 25,
+                      left: 65,
+                      right: 65,
+                    },
+                  },
                 }}
-                onLoad={(evt) => {
-                  // Fit to bounds only on the initial load
-                  if (
-                    !initialFitDoneRef.current &&
-                    (projectBounds || geojsonData)
-                  ) {
-                    const map = evt.target
-                    const boundsToFit: LngLatBoundsLike | undefined =
-                      projectBounds
-                        ? [
-                            projectBounds.west,
-                            projectBounds.south,
-                            projectBounds.east,
-                            projectBounds.north,
-                          ]
-                        : geojsonData
-                          ? gisUtils.findBoundingBox(geojsonData)
-                          : undefined
-
-                    if (boundsToFit) {
-                      map.fitBounds(boundsToFit, {
-                        padding: {
-                          top: 25, // Removed showTitleCard logic, default to smaller padding
-                          bottom: 25,
-                          left: 65,
-                          right: 65,
-                        },
-                        duration: 0, // No animation for initial fit
-                      })
-                      // Update state immediately after fitting bounds using correct map methods
-                      const center = map.getCenter()
-                      const currentZoom = map.getZoom()
-                      const currentPitch = map.getPitch()
-                      const currentBearing = map.getBearing()
-
-                      setViewState({
-                        longitude: center.lng,
-                        latitude: center.lat,
-                        zoom: currentZoom,
-                        pitch: currentPitch,
-                        bearing: currentBearing,
-                      })
-                      setZoom(currentZoom) // Sync separate zoom state too
-                      initialFitDoneRef.current = true // Mark initial fit as done
-                    }
-                  }
+                onMove={(evt) => {
+                  setZoom(evt.viewState.zoom)
                 }}
                 style={{
                   borderBottomLeftRadius: 'inherit',
@@ -764,7 +717,11 @@ export function AdaptiveGisMap() {
                   <Layer
                     id="data-polygons"
                     type="fill" // Explicit type
-                    filter={['==', ['geometry-type'], 'Polygon']}
+                    filter={[
+                      'any',
+                      ['==', ['geometry-type'], 'Polygon'],
+                      ['==', ['geometry-type'], 'MultiPolygon'],
+                    ]}
                     paint={{
                       // Dynamic fill color based on zoom and device type
                       'fill-color': [
@@ -951,7 +908,7 @@ export function AdaptiveGisMap() {
                   )}
                 </Source>
                 {hoverInfo.feature && <CustomHoverCard hoverInfo={hoverInfo} />}
-              </ReactMapGL>
+              </MapboxMap>
               <Box
                 style={{
                   position: 'absolute',

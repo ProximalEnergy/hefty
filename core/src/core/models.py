@@ -2390,3 +2390,51 @@ class PVBudgetedData(Base):
     series = relationship("PVBudgetedSeries", back_populates="data_points")
 
     __table_args__ = {"schema": "operational"}
+
+
+class QSEProvider(Base):
+    __tablename__ = "qse_providers"
+
+    qse_provider_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    name_short: Mapped[str] = mapped_column(unique=True)
+    name_long: Mapped[str]
+
+    __table_args__ = {"schema": "operational"}
+
+
+class QSEIntegration(Base):
+    __tablename__ = "qse_integrations"
+
+    qse_integration_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=False
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("operational.projects.project_id")
+    )
+    qse_provider_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.qse_providers.qse_provider_id")
+    )
+    qse_project_identifier: Mapped[str]
+
+    qse_provider = relationship("QSEProvider")
+
+    project = relationship("Project")
+
+    __table_args__ = {"schema": "operational"}
+
+
+class QSEPermission(Base):
+    __tablename__ = "qse_permissions"
+
+    qse_integration_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.qse_integrations.qse_integration_id"),
+        primary_key=True,
+    )
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("admin.companies.company_id"), primary_key=True
+    )
+    can_view: Mapped[bool] = mapped_column(server_default="FALSE")
+
+    qse_integration = relationship("QSEIntegration")
+
+    __table_args__ = {"schema": "operational"}

@@ -1,7 +1,7 @@
 import { useSuggestRootCauses } from '@/api/v1/ai/root-cause'
 import { DroneAnomaly } from '@/api/v1/operational/drone_integrations'
 import { useBulkCreateEvents } from '@/api/v1/operational/project/events'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -55,8 +55,13 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Layer, MapMouseEvent, Map as ReactMapGL, Source } from 'react-map-gl'
-import { Link, useParams } from 'react-router-dom'
+import {
+  Layer,
+  MapMouseEvent,
+  Map as MapboxMap,
+  Source,
+} from 'react-map-gl/mapbox'
+import { Link, useParams } from 'react-router'
 
 interface DroneInspectionsMapProps {
   anomalies: DroneAnomaly[]
@@ -125,7 +130,7 @@ const DroneInspectionsMap = ({
   anomalies,
   inspectionTime,
 }: DroneInspectionsMapProps) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const computedColorScheme = useComputedColorScheme('dark')
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
     feature: null,
@@ -220,9 +225,7 @@ const DroneInspectionsMap = ({
   })
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Calculate project bounds
   const projectBounds = useMemo(() => {
@@ -931,7 +934,9 @@ const DroneInspectionsMap = ({
         project_id: projectId,
         time_start: openDate.toISOString(),
         time_end: closeDate ? closeDate.toISOString() : null,
-        items: batchItems.map(({ root_cause_id, ...item }) => item), // Remove root_cause_id from items
+        items: batchItems.map(
+          ({ root_cause_id, ...item }) => (void root_cause_id, item),
+        ), // Remove root_cause_id from items
         root_cause_id: rootCauseId,
       }
 
@@ -1252,7 +1257,7 @@ const DroneInspectionsMap = ({
   return (
     <>
       <Box style={{ position: 'relative', height: '100%', width: '100%' }}>
-        <ReactMapGL
+        <MapboxMap
           {...viewState}
           onMove={(evt) => {
             setViewState(evt.viewState)
@@ -1398,9 +1403,14 @@ const DroneInspectionsMap = ({
                       }
                     }
 
+                    // Skip if geometry is null
+                    if (!polygonGeometry) {
+                      return null
+                    }
+
                     return {
                       type: 'Feature' as const,
-                      geometry: polygonGeometry,
+                      geometry: polygonGeometry as GeoJSON.MultiPolygon,
                       properties: {
                         device_id: device.device_id,
                         device_type_id: device.device_type_id,
@@ -1410,14 +1420,21 @@ const DroneInspectionsMap = ({
                       },
                     }
                   })
-                  .filter(Boolean), // Remove any null entries from failed parsing
+                  .filter(
+                    (feature): feature is NonNullable<typeof feature> =>
+                      feature !== null,
+                  ), // Remove any null entries from failed parsing
               }}
             >
               <Layer
                 id="device-polygons"
                 type="fill"
                 {...(anomalyGeoJSON && { beforeId: 'anomaly-points' })} // Only set beforeId if anomalies exist
-                filter={['==', ['geometry-type'], 'Polygon']}
+                filter={[
+                  'any',
+                  ['==', ['geometry-type'], 'Polygon'],
+                  ['==', ['geometry-type'], 'MultiPolygon'],
+                ]}
                 paint={{
                   'fill-color': [
                     'case',
@@ -1441,7 +1458,11 @@ const DroneInspectionsMap = ({
                 id="device-outlines"
                 type="line"
                 {...(anomalyGeoJSON && { beforeId: 'anomaly-points' })} // Only set beforeId if anomalies exist
-                filter={['==', ['geometry-type'], 'Polygon']}
+                filter={[
+                  'any',
+                  ['==', ['geometry-type'], 'Polygon'],
+                  ['==', ['geometry-type'], 'MultiPolygon'],
+                ]}
                 paint={{
                   'line-color': [
                     'case',
@@ -1463,7 +1484,11 @@ const DroneInspectionsMap = ({
                   id="device-labels"
                   type="symbol"
                   {...(anomalyGeoJSON && { beforeId: 'anomaly-points' })} // Only set beforeId if anomalies exist
-                  filter={['==', ['geometry-type'], 'Polygon']}
+                  filter={[
+                    'any',
+                    ['==', ['geometry-type'], 'Polygon'],
+                    ['==', ['geometry-type'], 'MultiPolygon'],
+                  ]}
                   layout={{
                     'text-field': ['get', 'name'],
                     'text-size': 15,
@@ -1669,7 +1694,7 @@ const DroneInspectionsMap = ({
           )}
 
           <Attribution />
-        </ReactMapGL>
+        </MapboxMap>
 
         {/* Legend and Filter Controls - Underneath StatsGrid */}
         <Box
@@ -2198,7 +2223,7 @@ const DroneInspectionsMap = ({
                               }
                           })
                           setPairSelections((prev) => ({ ...prev, ...next }))
-                        } catch (e) {
+                        } catch {
                           // optional helper: ignore errors silently
                         }
                       }}

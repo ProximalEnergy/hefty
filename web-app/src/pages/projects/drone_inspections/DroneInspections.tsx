@@ -42,7 +42,7 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import DroneInspectionsMap from './DroneInspectionsMap'
 

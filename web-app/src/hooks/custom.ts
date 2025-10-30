@@ -2,7 +2,7 @@ import { Project } from '@/api/v1/operational/projects'
 import {
   ProjectFilterCriteria,
   useProjectDropdown,
-} from '@/providers/ProjectDropdownProvider'
+} from '@/providers/ProjectDropdownContext'
 import { useEffect, useMemo } from 'react'
 
 // Custom hook for enabling/disabling the dropdown

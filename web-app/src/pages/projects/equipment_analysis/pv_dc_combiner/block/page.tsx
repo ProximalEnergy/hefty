@@ -1,6 +1,6 @@
 import { useGetBlockDropdown } from '@/api/ui'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
 import { MapSettings } from '@/components/GIS'
@@ -50,8 +50,8 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { useContext, useEffect, useState } from 'react'
-import { Layer, Map, Source } from 'react-map-gl'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Layer, Map, Source } from 'react-map-gl/mapbox'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -72,7 +72,7 @@ const Page = () => {
   const theme = useMantineTheme()
   const computedColorScheme = useComputedColorScheme('dark')
   const blankMapStyle = gisUtils.useBlankMapStyle()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [indexArray, setIndexArray] = useState<number[]>([])
   const [searchParams, setSearchParams] = useSearchParams()
   const blockDeviceId = searchParams.get('deviceId')
@@ -87,9 +87,7 @@ const Page = () => {
   }
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Fetch block dropdown data
   const blockDropdown = useGetBlockDropdown({

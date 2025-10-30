@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import ClearskyFilter from '@/components/ClearskyFilter'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -25,7 +25,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -43,10 +43,10 @@ const DCAmperageReport: React.FC = () => {
 
   const theme = useComputedColorScheme()
   const colors = useMantineTheme()
-  const { projectId } = useParams()
-  const { data: project, isLoading: projectLoading } = useGetProject({
-    pathParams: { projectId: projectId || '' },
-  })
+  const { projectId } = useParams<{ projectId: string }>()
+  const { data: project, isLoading: projectLoading } = useSelectProject(
+    projectId!,
+  )
 
   const timezone = project?.time_zone
 
@@ -333,7 +333,7 @@ const processDcAmperageData = (
 }
 
 function DCAmperageReportWrapper() {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   return <DCAmperageReport key={projectId} />
 }
 

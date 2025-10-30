@@ -184,36 +184,6 @@ export const useUpdateProject = () => {
   })
 }
 
-export const useGetProject = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: object
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<Project>({
-    axiosConfig,
-    queryName: 'getProject',
-    pathParams,
-    queryParams,
-    queryOptions: queryOptions,
-  })
-}
-
 export const useGetProjects = ({
   queryParams = {},
   queryOptions = {},
@@ -264,4 +234,15 @@ export const useGetProjects = ({
     queryParams,
     queryOptions: queryOptions,
   })
+}
+
+export const useSelectProject = (projectId: string) => {
+  const { data: projects, ...rest } = useGetProjects({
+    queryParams: {},
+    queryOptions: { enabled: !!projectId },
+  })
+
+  const project = projects?.find((p) => p.project_id === projectId)
+
+  return { data: project, ...rest }
 }

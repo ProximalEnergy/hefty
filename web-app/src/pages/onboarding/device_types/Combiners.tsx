@@ -1,5 +1,5 @@
 import { AppShell, Container, Stack } from '@mantine/core'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { OnboardingPageHeader } from '../components/OnboardingPageHeader'
 

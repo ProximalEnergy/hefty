@@ -1,6 +1,6 @@
 import { ActionIcon, Group, Text, Title, Tooltip } from '@mantine/core'
 import { IconArrowLeft } from '@tabler/icons-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface OnboardingPageHeaderProps {
   title: string

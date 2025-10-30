@@ -2,7 +2,7 @@ import {
   useGetEventDevices,
   useGetEventsSummary,
 } from '@/api/v1/operational/project/events'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsEventsTable } from '@/components/Tips'
@@ -33,7 +33,7 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 dayjs.extend(timezone)
 dayjs.extend(relativeTime)
@@ -46,7 +46,7 @@ const ProjectEvents = () => {
     hasEventIntegration: true,
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([])
   const [selectedDevices, setSelectedDevices] = useState<string[]>([])
@@ -62,12 +62,9 @@ const ProjectEvents = () => {
   const startQuery = urlStart?.format('YYYY-MM-DD HH:mm:ss')
   const endQuery = urlEnd?.format('YYYY-MM-DD HH:mm:ss')
 
-  const { data: project, isLoading: isProjectLoading } = useGetProject({
-    pathParams: { projectId: projectId as string },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const { data: project, isLoading: isProjectLoading } = useSelectProject(
+    projectId!,
+  )
 
   const { data: eventDevices, isLoading: isEventDevicesLoading } =
     useGetEventDevices({

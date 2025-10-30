@@ -1,6 +1,6 @@
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import DocsButton from '@/components/DocsButton'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -46,8 +46,13 @@ import { FeatureCollection } from 'geojson'
 import { groupBy } from 'lodash'
 import { Data, Layout, PlotData, Shape } from 'plotly.js'
 import React, { memo, useCallback, useContext, useMemo, useState } from 'react'
-import { Layer, MapMouseEvent, Map as ReactMap, Source } from 'react-map-gl'
-import { useParams } from 'react-router-dom'
+import {
+  Layer,
+  MapMouseEvent,
+  Map as ReactMap,
+  Source,
+} from 'react-map-gl/mapbox'
+import { useParams } from 'react-router'
 
 import { HoverInfo } from '../gis/utils'
 
@@ -1171,7 +1176,7 @@ const ModuleDegradation: React.FC = () => {
   })
 
   // Variables and states
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [viewDate, setViewDate] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('graphs')
   const [excludedDates, setExcludedDates] = useState<string[]>([])
@@ -1179,12 +1184,7 @@ const ModuleDegradation: React.FC = () => {
   const computedColorScheme = useComputedColorScheme('dark')
 
   // API calls
-  const { data: project } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const { data: project } = useSelectProject(projectId!)
   const timezone = project?.time_zone || 'America/Chicago'
 
   let startQuery: string | undefined = undefined

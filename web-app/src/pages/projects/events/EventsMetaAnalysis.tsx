@@ -1,6 +1,6 @@
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetKPITypes } from '@/api/v1/operational/kpi_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   EventMetrics,
   useGetEventsMetaAnalysis,
@@ -25,7 +25,7 @@ import { IconAlertTriangle } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { PlotMouseEvent } from 'plotly.js/dist/plotly-custom.min.js'
 import { useCallback, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 type DateRangeOption =
   | 'Week to Date'
@@ -40,19 +40,14 @@ const DATE_RANGE_OPTIONS: DateRangeOption[] = [
 ]
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [selectedDateRange, setSelectedDateRange] =
     useState<DateRangeOption>('Month to Date')
   const [modalOpened, setModalOpened] = useState(false)
   const [selectedDeviceType, setSelectedDeviceType] =
     useState<EventMetrics | null>(null)
 
-  const project = useGetProject({
-    pathParams: {
-      projectId: projectId || '-1',
-    },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   // ---- Window calculation (unchanged semantics) ----
   const { startDate, endDate } = useMemo(() => {

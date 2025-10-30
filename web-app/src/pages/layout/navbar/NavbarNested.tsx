@@ -6,7 +6,7 @@ import {
   useGetDronePermissions,
 } from '@/api/v1/operational/drone_integrations'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateFeedbackMutation } from '@/hooks/api'
 import * as types from '@/hooks/types'
 import { useUser } from '@clerk/clerk-react'
@@ -33,7 +33,7 @@ import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconArrowBackUp, IconMessageChatbot, IconX } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router'
 
 import { LinksGroup } from './NavbarLinksGroup'
 import ProjectPicture from './ProjectPicture'
@@ -97,15 +97,11 @@ export function NavbarNested({
 }) {
   const [modalOpened, { open, close }] = useDisclosure(false)
   const location = useLocation()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { user, isLoaded } = useUser()
   const userType = useGetUserType({})
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: { deep: true },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
   const { data: integrations } = useGetDroneIntegrations()
   const { data: dronePermissions } = useGetDronePermissions()
   const self = useGetUserSelf({})
@@ -138,7 +134,7 @@ export function NavbarNested({
         integrations.some(
           (i: DroneIntegration) =>
             i.drone_integration_id === p.drone_integration_id &&
-            i.project_id === project.data.project_id &&
+            i.project_id === project.data?.project_id &&
             p.can_view,
         ),
     )

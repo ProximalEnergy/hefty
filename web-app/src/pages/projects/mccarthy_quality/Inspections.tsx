@@ -1,10 +1,10 @@
 import { PageLoader } from '@/components/Loading'
 import { useGetInspections } from '@/hooks/api'
-import { Paper, Stack, Text } from '@mantine/core'
-import { Link, useParams } from 'react-router-dom'
+import { Anchor, Paper, Stack, Text } from '@mantine/core'
+import { useParams } from 'react-router'
 
 export default function Inspections() {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const inspections = useGetInspections({
     pathParams: { projectId: projectId || '-1' },
@@ -27,13 +27,12 @@ export default function Inspections() {
           <Text>ID: {inspection.id}</Text>
           {inspection.date && <Text>Date: {inspection.date.slice(0, 10)}</Text>}
           <Text>Status: {inspection.status}</Text>
-          <Link
-            to={`https://app.procore.com/2000024/project/checklists/lists/${inspection.id}`}
+          <Anchor
+            href={`https://app.procore.com/2000024/project/checklists/lists/${inspection.id}`}
             target="_blank"
-            style={{ color: 'inherit' }}
           >
             Procore
-          </Link>
+          </Anchor>
         </Paper>
       ))}
     </Stack>

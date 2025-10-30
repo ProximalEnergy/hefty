@@ -1,6 +1,6 @@
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { Center, Paper, SimpleGrid, Text } from '@mantine/core'
 
@@ -8,7 +8,7 @@ import styles from '../PortfolioHome.module.css'
 import { PortfolioProjectCard } from '../components/PortfolioProjectCard'
 
 interface ArchivedProjectsTabProps {
-  projects: NonNullable<ReturnType<typeof useGetProject>['data']>[]
+  projects: NonNullable<ReturnType<typeof useSelectProject>['data']>[]
   portfolioHomeData: NonNullable<ReturnType<typeof useGetPortfolioHome>['data']>
   projectDataLastUpdated?: ProjectDataLastUpdated[]
   searchTerm: string

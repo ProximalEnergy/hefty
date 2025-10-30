@@ -1,8 +1,8 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { Box, Stack, Tabs, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 // Import all equipment analysis components
 import EquipmentAnalysisBESS from './bess/page'
@@ -88,16 +88,12 @@ const tabConfigs: TabConfig[] = [
 ]
 
 export default function EquipmentAnalysis() {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: { deep: true },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   // Filter tabs based on project capabilities
   const availableTabs = tabConfigs.filter((tab) => {

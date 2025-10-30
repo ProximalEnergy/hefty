@@ -3,7 +3,7 @@ import {
   useGetCalendarEventCategories,
   useGetCalendarEvents,
 } from '@/api/v1/operational/calendar'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
 import { DateSelectArg, EventClickArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -14,7 +14,7 @@ import rrulePlugin from '@fullcalendar/rrule'
 import { Box, Paper, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { CalendarItemModal } from './CalendarItemModal'
 import { DetachAndEditOccurrenceModal } from './DetachAndEditOccurrenceModal'
@@ -22,21 +22,18 @@ import classes from './ProjectCalendar.module.css'
 import { ViewCalendarItemModal } from './ViewCalendarItemModal'
 
 export const ProjectCalendar = () => {
-  const { projectId } = useParams()
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: { deep: true },
-  })
+  const { projectId } = useParams<{ projectId: string }>()
+  const project = useSelectProject(projectId!)
 
   const {
     data: calendarItems,
     isLoading: isLoadingCalendarItems,
     refetch: refetchCalendarItems,
   } = useGetCalendarEvents({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { projectId: projectId! },
   })
   const { data: categories } = useGetCalendarEventCategories({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { projectId: projectId! },
   })
 
   const [modalOpened, { open: openModal, close: closeModal }] =

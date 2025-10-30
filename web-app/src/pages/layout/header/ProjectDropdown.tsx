@@ -3,11 +3,11 @@ import { evaluateFilterCriteria } from '@/hooks/custom'
 import {
   ProjectFilterCriteria,
   useProjectDropdown,
-} from '@/providers/ProjectDropdownProvider'
+} from '@/providers/ProjectDropdownContext'
 import { Select, Tooltip } from '@mantine/core'
 import { useDidUpdate, useOs } from '@mantine/hooks'
 import { useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 export const isDisabled = (
   projectId: string,
@@ -42,7 +42,7 @@ const ProjectDropdown = () => {
       deep: true,
     },
   })
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
   const ref = useRef<HTMLInputElement>(null)

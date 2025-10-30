@@ -1,4 +1,4 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
@@ -19,18 +19,16 @@ import {
 import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const SystemPerformance = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [showLevel, setShowLevel] = useState('device_type')
   const [sunburstDepth, setSunburstDepth] = useState<string>('3')
   const [sunburstStyle, setSunburstStyle] = useState<PlotType>('sunburst')
   const { start, end } = useValidateDateRange({})
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   let startQuery: string | undefined = undefined
   let endQuery: string | undefined = undefined

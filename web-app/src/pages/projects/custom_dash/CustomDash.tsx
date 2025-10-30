@@ -10,7 +10,7 @@ import {
   useGetScatterData,
   useUpdateUserDashboard,
 } from '@/api/v1/operational/project/custom_dash'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   SensorType,
   useGetSensorTypes,
@@ -60,7 +60,7 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
-} from 'react-router-dom'
+} from 'react-router'
 
 import BarConfig from './BarConfig'
 import GaugeConfig from './GaugeConfig'
@@ -1235,9 +1235,7 @@ const Page = () => {
   const navigate = useNavigate()
   const colorScheme = useComputedColorScheme('dark')
   useProjectDropdownToggle()
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Get dashboard data when dashboardId is present
   const dashboard = useGetDashboard({

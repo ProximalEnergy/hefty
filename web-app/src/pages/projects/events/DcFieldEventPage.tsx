@@ -1,5 +1,5 @@
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUtilityExpected } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -33,7 +33,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { IconClock } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import DcFieldAnomaliesMap from './DcFieldAnomaliesMap'
 import DeviceEventsTimeline from './DeviceEventsTimeline'
@@ -73,12 +73,7 @@ const useDcFieldEventData = (
   projectId: string | undefined,
   eventId: number,
 ) => {
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
+  const project = useSelectProject(projectId!)
 
   const eventData = useGetEvents({
     pathParams: {
@@ -344,7 +339,7 @@ const DcFieldRootCauseSelection = ({
 }
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const eventId = parseInt(
     new URLSearchParams(location.search).get('eventId') || '-1',
   )

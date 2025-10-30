@@ -330,7 +330,8 @@ async def get_line(
             if aggregation_type == "none":
                 device_name = str(
                     devices.loc[
-                        tags.find(tag_id=temp_df.columns[j])[0].device_id, "name_long"
+                        tags.find(tag_id=int(temp_df.columns[j]))[0].device_id,
+                        "name_long",
                     ]
                 )
                 if device_name != "None":

@@ -5,13 +5,13 @@ import {
 import { useGetProjects } from '@/api/v1/operational/projects'
 // import { useGetProjectReportInstances } from '@/hooks/api'
 import { isDisabled } from '@/pages/layout/header/ProjectDropdown'
-import { useProjectDropdown } from '@/providers/ProjectDropdownProvider'
+import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import {
   Spotlight,
   SpotlightActionData,
   createSpotlight,
 } from '@mantine/spotlight'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 export const [searchStore, searchActions] = createSpotlight()
 const [projectStore] = createSpotlight()

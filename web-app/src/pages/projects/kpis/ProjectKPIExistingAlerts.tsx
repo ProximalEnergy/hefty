@@ -16,7 +16,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import ProjectKPIAlertModal from './ProjectKPIAlertModal'
 
@@ -25,7 +25,7 @@ const ProjectKPIExistingAlerts = ({
 }: {
   kpi_type_id?: number
 }) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const comparisonOptions = [
     { value: 'gte', label: 'Greater than or equal to' },

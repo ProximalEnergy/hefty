@@ -66,9 +66,14 @@ def format_pan_to_pvmodule(
                 "beta_voc": ("muVocSpec", float),
             }
 
-        # Build the formatted data dictionary
+    # Build the formatted data dictionary
     formatted_data = {}
     for output_key, (pan_key, target_type) in output_mapping.items():
-        formatted_data[output_key] = target_type(pan_data[pan_key])
+        if pan_key in pan_data:
+            formatted_data[output_key] = target_type(pan_data[pan_key])
+        elif output_key == "bifaciality_factor":
+            formatted_data[output_key] = 0.0
+        else:
+            formatted_data[output_key] = target_type(pan_data[pan_key])
 
     return formatted_data

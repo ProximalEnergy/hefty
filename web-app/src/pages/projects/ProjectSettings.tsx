@@ -1,6 +1,6 @@
 import { PageTitle } from '@/components/PageTitle'
 import { Stack, Tabs, Text } from '@mantine/core'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 
 import OMContractors from './settings/OMContractors'
 import PVBudgeted from './settings/PVBudgeted'
@@ -8,7 +8,7 @@ import ProjectInfo from './settings/ProjectInfo'
 import Documents from './settings/documents'
 
 const ProjectSettings = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId?: string }>()
   const [searchParams] = useSearchParams()
   const defaultTab = searchParams.get('tab') || 'project-info'
 
@@ -24,7 +24,7 @@ const ProjectSettings = () => {
       >
         Project Settings
       </PageTitle>
-      <Tabs defaultValue={defaultTab} flex={1}>
+      <Tabs defaultValue={defaultTab} flex={1} keepMounted={false}>
         <Tabs.List>
           <Tabs.Tab value="project-info">Project Info</Tabs.Tab>
           <Tabs.Tab value="documents">Documents</Tabs.Tab>

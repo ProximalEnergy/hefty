@@ -30,7 +30,7 @@ import {
   IconInfoCircle,
 } from '@tabler/icons-react'
 import { memo, useEffect, useMemo, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 import RequestKPIModal from './RequestKPIModal'
 
@@ -469,7 +469,7 @@ const KpiTable = ({
 }
 
 const ProjectKPIHome = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { data: user } = useGetUserSelf({})
   const { data: favoriteKpis } = useGetUserFavoriteKPITypes({
     userId: user?.user_id,

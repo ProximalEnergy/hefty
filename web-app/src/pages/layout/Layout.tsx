@@ -18,9 +18,8 @@ import {
   IconMessageChatbot,
 } from '@tabler/icons-react'
 import React, { useEffect, useState } from 'react'
-import { Outlet, useLocation, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useParams } from 'react-router'
 
-import SmartNav from './SmartNav'
 import Header from './header/Header'
 import { NavbarNested } from './navbar/NavbarNested'
 
@@ -84,7 +83,7 @@ export function Layout() {
   const [messages, setMessages] = useState<IStep[]>([])
   const [firstQuestionAsked, setFirstQuestionAsked] = useState(false)
   const location = useLocation()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const isDesktop = useMediaQuery('(min-width: 768px)') // sm breakpoint
 
   // Clear chat when projectId changes
@@ -155,7 +154,6 @@ export function Layout() {
         )}
         <SpotlightSearch />
         <ProjectSpotlight />
-        <SmartNav />
         {isOutdated && (
           <Modal
             opened={isOutdated}

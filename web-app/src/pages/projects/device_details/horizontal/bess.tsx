@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetDeviceDetailsHorizontalBESS } from '@/api/v1/protected/web-application/projects/device-details/horizontal/bess'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -11,7 +11,7 @@ import { useProjectFilter } from '@/hooks/custom'
 import { Stack } from '@mantine/core'
 import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
 import { useCallback, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
@@ -21,16 +21,14 @@ const Page = () => {
   })
   const navigate = useNavigate()
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
 
   const [sharedXRange, setSharedXRange] = useState<
     [string, string] | undefined
   >(undefined)
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,

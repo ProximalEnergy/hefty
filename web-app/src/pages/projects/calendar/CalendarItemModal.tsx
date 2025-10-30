@@ -30,7 +30,7 @@ import { UseFormReturnType, useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { IconUsers } from '@tabler/icons-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { ByWeekday, Frequency, Options, RRule, rrulestr } from 'rrule'
 
 interface CalendarItemModalProps {

@@ -19,7 +19,7 @@ import {
   Title,
   useComputedColorScheme,
 } from '@mantine/core'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 interface ProjectInfoModalProps {
   opened: boolean
@@ -33,7 +33,7 @@ export default function ProjectInfoModal({
   projectData,
 }: ProjectInfoModalProps) {
   const navigate = useNavigate()
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
   const { data: projectTypes } = useGetProjectTypes({})
   const { data: deviceTypes } = useGetDeviceTypes({

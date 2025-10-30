@@ -30,7 +30,7 @@ import {
   Route,
   Routes,
   useLocation,
-} from 'react-router-dom'
+} from 'react-router'
 
 import { ErrorBoundary } from './ErrorBoundary'
 import { HexLoader } from './HexLoader'

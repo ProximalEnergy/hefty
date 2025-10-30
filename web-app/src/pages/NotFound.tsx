@@ -1,6 +1,6 @@
 import { Button, Container, Group, Text, Title } from '@mantine/core'
 import { IconHome } from '@tabler/icons-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export default function NotFound() {
   return (

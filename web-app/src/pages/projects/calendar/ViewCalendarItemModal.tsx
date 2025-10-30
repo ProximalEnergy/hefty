@@ -21,7 +21,7 @@ import {
 import { notifications } from '@mantine/notifications'
 import { IconUsers } from '@tabler/icons-react'
 import { useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 import { rrulestr } from 'rrule'
 
 interface ViewCalendarItemModalProps {

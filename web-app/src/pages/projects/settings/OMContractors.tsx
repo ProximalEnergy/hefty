@@ -7,7 +7,7 @@ import {
   useGetOMContractorScopes,
   useUpdateOMContractorScope,
 } from '@/api/v1/operational/project/om_contractors'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CompanyLookup from '@/components/CompanyLookup'
 import {
   ActionIcon,
@@ -29,12 +29,13 @@ import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 
+// Desired ordering (PV + Storage combined order covers PV-only and BESS-only subsets)
+const DEVICE_TYPE_ORDER = [
+  1, 5, 7, 16, 15, 2, 3, 9, 28, 29, 35, 17, 12, 25, 13, 32, 33, 11, 27, 34,
+]
+
 export default function OMContractors({ projectId }: { projectId: string }) {
-  const project = useGetProject({
-    pathParams: { projectId },
-    queryParams: { deep: true },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const deviceTypes = useGetDeviceTypes({})
 
@@ -58,11 +59,6 @@ export default function OMContractors({ projectId }: { projectId: string }) {
     (dt) =>
       usedDeviceTypeIds.includes(dt.device_type_id) && dt.device_type_id !== 0,
   )
-
-  // Desired ordering (PV + Storage combined order covers PV-only and BESS-only subsets)
-  const DEVICE_TYPE_ORDER = [
-    1, 5, 7, 16, 15, 2, 3, 9, 28, 29, 35, 17, 12, 25, 13, 32, 33, 11, 27, 34,
-  ]
 
   const orderedDeviceTypes = useMemo(() => {
     const indexOf = (id: number) => {

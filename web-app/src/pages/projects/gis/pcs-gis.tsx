@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -31,8 +31,8 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { FeatureCollection } from 'geojson'
 import { useCallback, useContext, useState } from 'react'
-import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl/mapbox'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { z } from 'zod'
 
 import { HoverInfo } from './utils'
@@ -103,7 +103,7 @@ export function PCSGISMap({
   const context = useContext(GISContext)
 
   // URL params
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
   const searchParamsObj = Object.fromEntries([...searchParams])
 
@@ -117,9 +117,7 @@ export function PCSGISMap({
   const blankMapStyle = gisUtils.useBlankMapStyle()
 
   // Fetch project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // Parse query params
   let start = searchParams.get('start')

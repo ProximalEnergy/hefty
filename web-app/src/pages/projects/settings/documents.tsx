@@ -28,7 +28,7 @@ import {
 import { notifications } from '@mantine/notifications'
 import { IconInfoCircle, IconTrash } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 function AdminContactInfo() {
   const label =
@@ -194,7 +194,7 @@ const Documents = ({ projectId }: DocumentsProps) => {
       })
       uploadMutation.reset()
     }
-  }, [uploadMutation.error])
+  }, [uploadMutation, uploadMutation.error])
 
   const handleDeleteDocument = (documentId: string) => {
     deleteDocumentMutation.mutate({ projectId, documentId })

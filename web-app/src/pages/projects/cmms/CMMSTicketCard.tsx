@@ -13,7 +13,7 @@ import {
   IconUserSearch,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 const ICON_PROPS = {
   style: {

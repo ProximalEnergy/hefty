@@ -179,7 +179,12 @@ async def get_pv_budgeted_series_daily_data(
 ):
     """
     Get daily aggregated budgeted data for a specific series within a date range.
-    This aggregates hourly data to daily values and applies degradation adjustment.
+    This aggregates hourly data to daily values and applies degradation adjustment
+    based on the project's Commercial Operation Date (COD).
+
+    The budgeted data is from 2019 (one full year), and this function maps any requested
+    date to the corresponding date in 2019, handling year-over-year ranges properly.
+    Degradation is calculated as years since COD * degradation_rate.
 
     Args:
         db: Database session
@@ -190,74 +195,41 @@ async def get_pv_budgeted_series_daily_data(
         degradation_rate: Annual degradation rate percentage (default 0.5%)
 
     Returns:
-        List of daily aggregated budgeted data
+        List of daily aggregated budgeted data with proper degradation applied
     """
     try:
-        # First verify the series belongs to this project
-        series_query = select(models.PVBudgetedSeries).filter(
-            and_(
-                models.PVBudgetedSeries.project_id == project_id,
-                models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id,
+        # First verify the series belongs to this project and get the COD date
+        series_query = (
+            select(models.PVBudgetedSeries, models.Project.cod)
+            .join(
+                models.Project,
+                models.PVBudgetedSeries.project_id == models.Project.project_id,
+            )
+            .filter(
+                and_(
+                    models.PVBudgetedSeries.project_id == project_id,
+                    models.PVBudgetedSeries.pv_budgeted_series_id
+                    == pv_budgeted_series_id,
+                )
             )
         )
 
         series_result = await db.execute(series_query)
-        series = series_result.scalar_one_or_none()
+        series_data = series_result.first()
 
-        if not series:
+        if not series_data:
             return []
 
-        # Get data for this series with month/day filtering to reduce data size
-        from sqlalchemy import extract, or_
+        series, cod_date = series_data
 
-        # Create month/day range conditions
-        start_month = start_date.month
-        start_day = start_date.day
-        end_month = end_date.month
-        end_day = end_date.day
-
-        # Build month/day filter conditions
-        month_day_conditions = []
-
-        if start_month == end_month:
-            # Same month, filter by day range
-            month_day_conditions.append(
-                and_(
-                    extract("month", models.PVBudgetedData.time) == start_month,
-                    extract("day", models.PVBudgetedData.time) >= start_day,
-                    extract("day", models.PVBudgetedData.time) <= end_day,
-                )
-            )
-        else:
-            # Different months, need more complex logic
-            # Start month: from start_day to end of month
-            month_day_conditions.append(
-                and_(
-                    extract("month", models.PVBudgetedData.time) == start_month,
-                    extract("day", models.PVBudgetedData.time) >= start_day,
-                )
-            )
-            # End month: from start of month to end_day
-            month_day_conditions.append(
-                and_(
-                    extract("month", models.PVBudgetedData.time) == end_month,
-                    extract("day", models.PVBudgetedData.time) <= end_day,
-                )
-            )
-            # Months in between (if any)
-            for month in range(start_month + 1, end_month):
-                month_day_conditions.append(
-                    extract("month", models.PVBudgetedData.time) == month
-                )
-
+        # Get ALL budgeted data for this series (it's only one year from 2019)
+        # We'll filter and map it in Python to handle year-over-year ranges properly
         data_query = (
             select(models.PVBudgetedData)
             .filter(
                 models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id
             )
-            .filter(or_(*month_day_conditions))
             .order_by(models.PVBudgetedData.time)
-            .limit(10000)  # Limit to prevent memory issues
         )
 
         result = await db.execute(data_query)
@@ -269,43 +241,40 @@ async def get_pv_budgeted_series_daily_data(
         # Process and aggregate data
         from collections import defaultdict
 
-        # Group data by date (normalized to current year)
-        daily_data = defaultdict(list)
-        current_year = datetime.datetime.now().year
+        # Group budgeted data by month-day (from 2019)
+        budgeted_data_by_month_day = defaultdict(list)
 
         for point in all_data:
-            # Normalize the time to current year for display, handling leap year issues
-            try:
-                # Try to replace the year, but handle invalid dates (like Feb 29 in non-leap years)
-                point_time = point.time.replace(year=current_year)
-            except ValueError:
-                # If the date is invalid (e.g., Feb 29 in non-leap year),
-                # adjust to the closest valid date
-                original_date = point.time.date()
-                try:
-                    # Try Feb 28 instead of Feb 29
-                    adjusted_date = original_date.replace(month=2, day=28)
-                    point_time = datetime.datetime.combine(
-                        adjusted_date, point.time.time()
-                    )
-                    point_time = point_time.replace(year=current_year)
-                except ValueError:
-                    # If still invalid, use the original time
-                    point_time = point.time
+            # Group by month-day from the budgeted data (2019)
+            month_day_key = (point.time.month, point.time.day)
+            budgeted_data_by_month_day[month_day_key].append(point)
 
-            # Check if this date falls within our range
-            point_date = point_time.date()
-            if start_date <= point_date <= end_date:
-                daily_data[point_date].append(point)
+        # Now map requested dates to budgeted data
+        daily_data = defaultdict(list)
+
+        # Generate all dates in the requested range
+        current_date = start_date
+        while current_date <= end_date:
+            # Map this date to the corresponding date in 2019 budgeted data
+            month_day_key = (current_date.month, current_date.day)
+
+            if month_day_key in budgeted_data_by_month_day:
+                # Use the budgeted data for this month-day
+                daily_data[current_date] = budgeted_data_by_month_day[month_day_key]
+
+            current_date += datetime.timedelta(days=1)
 
         # Aggregate to daily values and apply degradation
         aggregated_data = []
 
         for date, hourly_points in daily_data.items():
-            # Calculate years since project COD (if available)
+            # Calculate years since project COD
             years_since_cod = 0
-            # Note: We would need to join with Project table to get COD date
-            # For now, we'll use 0 years since COD
+            if cod_date:
+                # Calculate the difference between the current date and COD
+                # Use the year of the current date for calculation
+                current_year_date = datetime.date(date.year, date.month, date.day)
+                years_since_cod = (current_year_date - cod_date).days / 365.25
 
             # Apply degradation factor
             degradation_factor = (1 - degradation_rate / 100) ** years_since_cod

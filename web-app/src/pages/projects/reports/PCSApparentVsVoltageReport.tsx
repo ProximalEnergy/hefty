@@ -1,17 +1,17 @@
 import { useGetPCSApparentVsVoltage } from '@/api/v1/operational/project/project_reports'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { Group, NumberInput, Stack, Title } from '@mantine/core'
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 const MAX_DAYS = 3
 
 const Page: React.FC = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,
   })
@@ -24,10 +24,7 @@ const Page: React.FC = () => {
   let startQuery: string | undefined = undefined
   let endQuery: string | undefined = undefined
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   if (project.data) {
     if (start) {

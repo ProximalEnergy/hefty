@@ -21,7 +21,7 @@ import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { IconArrowLeft } from '@tabler/icons-react'
 import { useCallback, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface CreateProjectForm {
   project_name: string

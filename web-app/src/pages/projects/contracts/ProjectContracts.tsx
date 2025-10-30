@@ -4,6 +4,9 @@ import {
   useGetProjectContracts,
 } from '@/api/v1/operational/project/contracts'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
+import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { useSelectProject } from '@/api/v1/operational/projects'
+import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { VoiceChatModal } from '@/components/VoiceChat'
@@ -13,7 +16,6 @@ import {
   Box,
   Button,
   Card,
-  Container,
   Grid,
   Group,
   Modal,
@@ -36,8 +38,8 @@ import {
   IconTrash,
   IconUser,
 } from '@tabler/icons-react'
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
 
 import CreateContractModal from './CreateContractModal'
 
@@ -69,49 +71,54 @@ const placeholderKPIs = [
   },
 ]
 
-// Example contracts for demo purposes
-const exampleContracts = [
-  {
-    contract_id: 1,
-    project_id: 'demo',
-    document_id: 'doc_001',
-    company_id_provider: 'provider_001',
-    company_id_counter: 'counter_001',
-    execution_date: '2024-01-15',
-    name_short: 'BESS Warranty',
-    name_long: 'Tesla Energy Solutions',
-    document_url: null,
-    s3_key: null,
-    contract_summary:
-      'This warranty document outlines the Technical Availability Guarantee (TAG) for the BESS project, including reporting responsibilities and liquidated damages. The Supplier guarantees specific availability percentages based on the project site zone. In the case of defects, the Customer must provide detailed reports and grant access for maintenance. The document details the calculation for the Availability Percentage and establishes conditions under which liquidated damages apply if the guaranteed availability is not met. The contract also specifies limits on the Warranty and conditions for extended TAG periods.',
-    term_start_date: '2024-01-15',
-    term_end_date: '2029-01-15',
-    category_name_long: 'Battery Energy Storage System Warranty',
-    counter_contact_addressee: 'Sarah Johnson, Customer Success',
-    counter_contact_email: 'sarah.johnson@tesla.com',
-    counter_contact_address: '123 Energy Plaza, Suite 400\nHouston, TX 77002',
-  },
-  {
-    contract_id: 2,
-    project_id: 'demo',
-    document_id: 'doc_002',
-    company_id_provider: 'provider_002',
-    company_id_counter: 'counter_002',
-    execution_date: '2024-03-20',
-    name_short: 'Service Contract',
-    name_long: 'First Solar Operations',
-    document_url: null,
-    s3_key: null,
-    contract_summary:
-      'This Operations and Maintenance (O&M) service contract establishes comprehensive maintenance and operational support for the solar photovoltaic system. The contract includes routine inspections, preventive maintenance schedules, performance monitoring, and emergency response protocols. The service provider is responsible for maintaining optimal system performance, conducting regular equipment assessments, and ensuring compliance with manufacturer warranties. The agreement outlines performance guarantees, response time requirements, and detailed reporting procedures for system health and energy production metrics.',
-    term_start_date: '2024-03-20',
-    term_end_date: '2034-03-20',
-    category_name_long: 'Operations and Maintenance Services',
-    counter_contact_addressee: 'Michael Chen, Operations Director',
-    counter_contact_email: 'mchen@firstsolar.com',
-    counter_contact_address: '350 West Washington Street\nTempe, AZ 85281',
-  },
-]
+// Example contracts for demo purposes - organized by project type
+const PV_EXAMPLE_CONTRACT = {
+  contract_id: 2,
+  project_id: 'demo',
+  document_id: 'doc_002',
+  company_id_provider: 'provider_002',
+  company_id_counter: 'counter_002',
+  execution_date: '2024-03-20',
+  name_short: 'O&M Services Agreement',
+  name_long: 'Upsolar, Inc.',
+  document_url: null,
+  s3_key: null,
+  contract_summary:
+    'This Operations and Maintenance (O&M) service contract establishes comprehensive maintenance and operational support for the solar photovoltaic system. The contract includes routine inspections, preventive maintenance schedules, performance monitoring, and emergency response protocols. The service provider is responsible for maintaining optimal system performance, conducting regular equipment assessments, and ensuring compliance with manufacturer warranties. The agreement outlines performance guarantees, response time requirements, and detailed reporting procedures for system health and energy production metrics.',
+  term_start_date: '2024-03-20',
+  term_end_date: '2034-03-20',
+  category_name_long: 'Operations and Maintenance Services',
+  counter_contact_addressee: 'Michael Chen, Operations Director',
+  counter_contact_email: 'mchen@upsolar.com',
+  counter_contact_address: '350 Bugbear Drive\nCincinnati, OH 42931',
+}
+
+const BESS_EXAMPLE_CONTRACT = {
+  contract_id: 83,
+  project_id: 'demo',
+  document_id: 'doc_083',
+  company_id_provider: 'provider_083',
+  company_id_counter: 'c86dadfa-1eb6-4ea9-b9c0-bf285a490ccb',
+  execution_date: '2025-10-02',
+  name_short: 'Capacity Payment/Tolling Agreement',
+  name_long: 'San Diego Gas & Electric',
+  document_url: '/SDGE - KNERT contract.pdf',
+  s3_key: null,
+  contract_summary:
+    'This Energy Storage System Power Purchase Tolling Agreement is established between San Diego Gas & Electric Company (Buyer) and KNERT IPP, Inc. (Seller). The agreement outlines the terms under which the Seller will develop, construct, and operate the Energy Storage System, providing capacity, energy, and ancillary services to the Buyer. The term of the agreement begins on October 2, 2025, and continues for ten years, concluding on October 2, 2035. The Seller is responsible for ensuring the project meets all regulatory requirements and performance guarantees. The Buyer will manage the charging energy requirements and is entitled to all revenues from the energy produced. Key milestones and performance metrics are defined to ensure compliance and optimal system performance throughout the contract term.',
+  term_start_date: '2025-10-01',
+  term_end_date: '2035-10-01',
+  category_name_long: 'Energy Storage System Power Purchase Tolling Agreement',
+  counter_contact_addressee: 'Legal Dept. SDGE',
+  counter_contact_email: 'legal@sdge.com',
+  counter_contact_address: '1251 Partridge Road, Fulton, CA 90124',
+}
+
+const exampleContractsByType = {
+  [ProjectTypeId.PV]: [PV_EXAMPLE_CONTRACT],
+  [ProjectTypeId.BESS]: [BESS_EXAMPLE_CONTRACT],
+  [ProjectTypeId.PV_BESS]: [PV_EXAMPLE_CONTRACT, BESS_EXAMPLE_CONTRACT],
+}
 
 interface ContractCardProps {
   contract: any
@@ -301,6 +308,11 @@ const ContractCard = ({
     >
       {/* Header */}
       <Group justify="space-between" mb="md">
+        {isExample && (
+          <Badge color="orange" variant="light" size="sm">
+            Example
+          </Badge>
+        )}
         <Title order={3} size="h4" style={{ flex: 1 }}>
           {contractType} - {contract.name_long}
         </Title>
@@ -318,11 +330,6 @@ const ContractCard = ({
             >
               <IconTrash size={16} />
             </ActionIcon>
-          )}
-          {isExample && (
-            <Badge color="orange" variant="light" size="sm">
-              Example
-            </Badge>
           )}
         </Group>
       </Group>
@@ -680,7 +687,7 @@ const ContractCard = ({
 }
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const [modalOpen, setModalOpen] = useState(false)
   const [voiceChatModalOpen, setVoiceChatModalOpen] = useState(false)
@@ -688,23 +695,33 @@ const Page = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [contractToDelete, setContractToDelete] = useState<number | null>(null)
 
-  if (!projectId) {
-    return <Text>Error: Project ID is missing.</Text>
-  }
-  const {
-    data: contracts,
-    isLoading,
-    error,
-  } = useGetProjectContracts({
+  // Get project data to determine project type for example contract filtering
+  const project = useSelectProject(projectId!)
+
+  const contracts = useGetProjectContracts({
     pathParams: { projectId: projectId || '-1' },
+    queryOptions: { enabled: !!projectId },
   })
 
   const deleteContract = useDeleteContract()
 
-  if (isLoading) return <PageLoader />
-  if (error) return <Text>Error loading contracts: {error.message}</Text>
+  const exampleContracts = useMemo(() => {
+    if (!project.data) return []
+    return project.data.project_type_id
+      ? exampleContractsByType[project.data.project_type_id] || []
+      : Object.values(exampleContractsByType).flat()
+  }, [project.data])
 
-  const contractList = Array.isArray(contracts) ? contracts : []
+  if (project.isLoading || contracts.isLoading) return <PageLoader />
+
+  if (project.error) return <PageError error={project.error} />
+  if (contracts.error) return <PageError error={contracts.error} />
+
+  if (!projectId) {
+    return <PageError text="Project ID is missing" />
+  }
+
+  const contractList = Array.isArray(contracts.data) ? contracts.data : []
 
   const handleRowClick = (contractId: number) => {
     navigate(`/projects/${projectId}/contracts/${contractId}`)
@@ -747,133 +764,128 @@ const Page = () => {
   }
 
   return (
-    <Container fluid pt="md">
-      <Stack p="sm" gap="lg">
-        <Group justify="space-between" align="center">
-          <PageTitle
-            order={1}
-            info="With Aria, you can summarize and chat with your contracts. You can also create contract-based KPIs that Proximal will monitor for you."
-          >
-            Contracts
-          </PageTitle>
-          <Button
-            size="sm"
-            onClick={() => setModalOpen(true)}
-            leftSection={<IconPlus size={16} />}
-          >
-            Add Contract
-          </Button>
-        </Group>
-
-        <CreateContractModal
-          opened={modalOpen}
-          onClose={() => setModalOpen(false)}
-        />
-
-        <VoiceChatModal
-          opened={voiceChatModalOpen}
-          onClose={() => setVoiceChatModalOpen(false)}
-          contractData={selectedContract}
-        />
-
-        {/* Delete Confirmation Modal */}
-        <Modal
-          opened={deleteModalOpen}
-          onClose={() => {
-            setDeleteModalOpen(false)
-            setContractToDelete(null)
-          }}
-          title="Delete Contract"
-          size="sm"
+    <Stack p="md">
+      <Group justify="space-between" align="center">
+        <PageTitle
+          order={1}
+          info="With Aria, you can summarize and chat with your contracts. You can also create contract-based KPIs that Proximal will monitor for you."
         >
-          <Stack gap="md">
-            <Text>
-              Are you sure you want to delete this contract? This action cannot
-              be undone.
-            </Text>
-            <Text size="sm" c="dimmed">
-              Note: Contracts can only be deleted if they have no associated
-              Contractual KPIs.
-            </Text>
-            <Group justify="flex-end" gap="sm">
-              <Button
-                variant="light"
-                onClick={() => {
-                  setDeleteModalOpen(false)
-                  setContractToDelete(null)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                color="red"
-                loading={deleteContract.isPending}
-                onClick={confirmDeleteContract}
-              >
-                Delete Contract
-              </Button>
-            </Group>
-          </Stack>
-        </Modal>
+          Contracts
+        </PageTitle>
+        <Button
+          size="sm"
+          onClick={() => setModalOpen(true)}
+          leftSection={<IconPlus size={16} />}
+        >
+          Add Contract
+        </Button>
+      </Group>
 
-        {contractList.length === 0 ? (
-          <Stack gap="lg">
-            <Paper
-              p="md"
-              withBorder
-              style={{
-                textAlign: 'center',
-                backgroundColor: 'var(--mantine-color-blue-0)',
-                borderColor: 'var(--mantine-color-blue-2)',
+      <CreateContractModal
+        opened={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
+
+      <VoiceChatModal
+        opened={voiceChatModalOpen}
+        onClose={() => setVoiceChatModalOpen(false)}
+        contractData={selectedContract}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        opened={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setContractToDelete(null)
+        }}
+        title="Delete Contract"
+        size="sm"
+      >
+        <Stack gap="md">
+          <Text>
+            Are you sure you want to delete this contract? This action cannot be
+            undone.
+          </Text>
+          <Text size="sm" c="dimmed">
+            Note: Contracts can only be deleted if they have no associated
+            Contractual KPIs.
+          </Text>
+          <Group justify="flex-end" gap="sm">
+            <Button
+              variant="light"
+              onClick={() => {
+                setDeleteModalOpen(false)
+                setContractToDelete(null)
               }}
             >
-              <Stack align="center" gap="sm">
-                <IconFileText size={48} color="var(--mantine-color-blue-6)" />
-                <Title order={4} c="blue">
-                  No Contracts Found
-                </Title>
-                <Text c="dimmed" size="sm">
-                  No contracts have been added to this project yet. Here are
-                  some examples of what contracts will look like:
-                </Text>
-                <Button
-                  variant="light"
-                  color="blue"
-                  onClick={() => setModalOpen(true)}
-                  mt="sm"
-                >
-                  Add Your First Contract
-                </Button>
-              </Stack>
-            </Paper>
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              loading={deleteContract.isPending}
+              onClick={confirmDeleteContract}
+            >
+              Delete Contract
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
-            <Stack gap="lg">
-              {exampleContracts.map((contract) => (
-                <ContractCard
-                  key={contract.contract_id}
-                  contract={contract}
-                  onContractClick={() => {}} // Disable click for examples
-                  isExample={true}
-                  onVoiceChat={handleVoiceChat}
-                />
-              ))}
+      {contractList.length === 0 ? (
+        <>
+          <Paper
+            p="md"
+            withBorder
+            style={{
+              textAlign: 'center',
+              backgroundColor: 'var(--mantine-color-blue-0)',
+              borderColor: 'var(--mantine-color-blue-2)',
+            }}
+          >
+            <Stack align="center" gap="sm">
+              <IconFileText size={48} color="var(--mantine-color-blue-6)" />
+              <Title order={4} c="blue">
+                No Contracts Found
+              </Title>
+              <Text c="dimmed" size="sm">
+                No contracts have been added to this project yet. Here are some
+                examples of what contracts will look like:
+              </Text>
+              <Button
+                variant="light"
+                color="blue"
+                onClick={() => setModalOpen(true)}
+              >
+                Add Your First Contract
+              </Button>
             </Stack>
-          </Stack>
-        ) : (
-          <Stack gap="lg">
-            {contractList.map((contract) => (
-              <ContractCard
-                key={contract.contract_id}
-                contract={contract}
-                onContractClick={handleRowClick}
-                onVoiceChat={handleVoiceChat}
-                onDeleteContract={handleDeleteContract}
-              />
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </Container>
+          </Paper>
+
+          {exampleContracts.map((contract) => (
+            <ContractCard
+              key={contract.contract_id}
+              contract={contract}
+              onContractClick={() => {}} // Disable click for examples
+              isExample={true}
+              onVoiceChat={handleVoiceChat}
+            />
+          ))}
+        </>
+      ) : (
+        <>
+          {contractList.map((contract) => (
+            <ContractCard
+              key={contract.contract_id}
+              contract={contract}
+              onContractClick={handleRowClick}
+              onVoiceChat={handleVoiceChat}
+              onDeleteContract={handleDeleteContract}
+            />
+          ))}
+        </>
+      )}
+    </Stack>
   )
 }
 

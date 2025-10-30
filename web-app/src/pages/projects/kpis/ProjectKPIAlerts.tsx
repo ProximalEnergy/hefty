@@ -23,7 +23,7 @@ import {
 import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 
 import ProjectKPIExistingAlerts from './ProjectKPIExistingAlerts'
 
@@ -52,7 +52,7 @@ const dateOptions = ['Yesterday', 'Last 7 days']
 const ProjectKPIAlerts = () => {
   const navigate = useNavigate()
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const { mutate } = useAddKPIAlert()
 
   const [statisticDisabled, setStatisticDisabled] = useState<boolean>(false)

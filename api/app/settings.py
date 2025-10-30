@@ -32,5 +32,10 @@ WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 # File paths
 EXCEL_PATH = os.getenv("EXCEL_PATH")
 
+# Tenaska token manager
+TENASKA_TOKEN_URL = os.getenv("TENASKA_TOKEN_URL")
+TENASKA_CLIENT_ID = os.getenv("TENASKA_CLIENT_ID")
+TENASKA_CLIENT_SECRET = os.getenv("TENASKA_CLIENT_SECRET")
+
 
 VERSION = 3

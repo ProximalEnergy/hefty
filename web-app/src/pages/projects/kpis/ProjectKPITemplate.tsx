@@ -7,8 +7,8 @@ import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { KPIType, useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
 import {
   Project,
-  useGetProject,
   useGetProjects,
+  useSelectProject,
 } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -53,14 +53,14 @@ import dayjs from 'dayjs'
 import { FeatureCollection } from 'geojson'
 import { Data, PlotMouseEvent } from 'plotly.js'
 import { ReactNode, useCallback, useContext, useState } from 'react'
-import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl'
+import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl/mapbox'
 import {
   Link,
   NavigateFunction,
   useNavigate,
   useParams,
   useSearchParams,
-} from 'react-router-dom'
+} from 'react-router'
 
 import { HoverInfo } from '../gis/utils'
 
@@ -87,10 +87,7 @@ const Page = () => {
   const endQuery = end?.add(1, 'day').format('YYYY-MM-DD')
 
   // Query Project data
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   const kpiTypesWithContracts = useGetProjectKPITypes({
     pathParams: { projectId: projectId || '-1' },

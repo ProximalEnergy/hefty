@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -17,8 +17,13 @@ import {
   useComputedColorScheme,
 } from '@mantine/core'
 import { useCallback, useContext, useState } from 'react'
-import { Layer, Map, MapMouseEvent, Source } from 'react-map-gl'
-import { useParams } from 'react-router-dom'
+import {
+  Layer,
+  MapMouseEvent,
+  Map as ReactMap,
+  Source,
+} from 'react-map-gl/mapbox'
+import { useParams } from 'react-router'
 
 import { HoverInfo } from './utils'
 
@@ -35,7 +40,7 @@ export const BESSEnclosureGIS = ({
 }: {
   showTitleCard?: boolean
 }) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const computedColorScheme = useComputedColorScheme('dark')
   const context = useContext(GISContext)
   const blankMapStyle = gisUtils.useBlankMapStyle()
@@ -50,9 +55,7 @@ export const BESSEnclosureGIS = ({
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const onHover = useCallback((event: MapMouseEvent) => {
     const {
@@ -99,7 +102,7 @@ export const BESSEnclosureGIS = ({
           width: '100%',
         }}
       >
-        <Map
+        <ReactMap
           key={projectId}
           initialViewState={{
             bounds: gisUtils.findBoundingBox(data.data),
@@ -149,7 +152,7 @@ export const BESSEnclosureGIS = ({
               </Text>
             </Paper>
           )}
-        </Map>
+        </ReactMap>
         <Box
           style={{ position: 'absolute', bottom: 0, left: 0, zIndex: 1 }}
           p="md"

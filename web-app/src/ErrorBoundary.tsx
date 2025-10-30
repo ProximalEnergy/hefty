@@ -1,7 +1,7 @@
 import { Button, Stack, Text, rem } from '@mantine/core'
 import { IconBoltOff } from '@tabler/icons-react'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode

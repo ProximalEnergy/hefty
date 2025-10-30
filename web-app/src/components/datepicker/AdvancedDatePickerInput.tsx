@@ -21,7 +21,7 @@ import duration from 'dayjs/plugin/duration'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import updateLocale from 'dayjs/plugin/updateLocale'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 
 import DateCombobox, { DurationUnit, Limits } from './CustomCombobox'
 

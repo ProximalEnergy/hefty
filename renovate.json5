@@ -5,7 +5,7 @@
   minimumReleaseAge: "30 days",
   internalChecksFilter: "strict",
   reviewers: ["kurt-rhee"],
-  schedule: ["0 5 * * 1"],
+  schedule: ["* 5 * * 1"],
   timezone: "America/Los_Angeles",
   description: "Schedule Monday at 5 AM Pacific",
   packageRules: [
@@ -16,26 +16,12 @@
     },
     {
       matchPackageNames: ["python"],
-      matchDatasources: ["docker", "github-tags"],
+      matchDatasources: ["docker", "github-tags", "github-runners", "github-releases"],
       enabled: false,
     },
     {
       matchPackageNames: ["python/cpython"],
       matchDatasources: ["github-tags"],
-      enabled: false,
-    },
-    {
-      matchPackageNames: ["python"],
-      matchDatasources: ["uses-with"],
-      enabled: false,
-    },
-    // =========== Don't Upgrade Certain Packages ============
-    {
-      matchPackageNames: ["polars", "plotly.js"],
-      enabled: false,
-    },
-    {
-      matchPackagePatterns: ["^@mantine/", "^mantine$"],
       enabled: false,
     },
     // =========== Group Upgrades by Service ============

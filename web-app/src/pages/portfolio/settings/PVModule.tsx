@@ -92,7 +92,11 @@ const Page = () => {
   const populateFormWithPANData = (panData: PVModuleFromPAN) => {
     form.setValues({
       technology: panData.technology || 'c_Si',
-      bifacialityFactor: panData.bifaciality_factor || 0.0,
+      bifacialityFactor:
+        panData.bifaciality_factor !== null &&
+        panData.bifaciality_factor !== undefined
+          ? panData.bifaciality_factor
+          : 0.0,
       pmax: panData.pmax || 400,
       isc: panData.isc || 10,
       voc: panData.voc || 40,

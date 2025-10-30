@@ -1,5 +1,5 @@
 import { AppShell, Burger, Group } from '@mantine/core'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { DataStatusContainer } from './DataStatus'
 import Logo from './Logo'

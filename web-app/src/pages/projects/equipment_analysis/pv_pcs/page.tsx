@@ -1,6 +1,6 @@
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_pcs'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -29,7 +29,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -162,7 +162,7 @@ const PCSEquipmentAnalysis = () => {
     projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
   })
 
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [sliderValue, setSliderValue] = useState(0)
   const [initialSliderValueSet, setInitialSliderValueSet] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -175,9 +175,7 @@ const PCSEquipmentAnalysis = () => {
   let startQuery: string | undefined = undefined
   let endQuery: string | undefined = undefined
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   if (project.data) {
     if (start) {

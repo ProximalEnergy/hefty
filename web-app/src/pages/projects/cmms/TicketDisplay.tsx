@@ -13,13 +13,13 @@ import {
   Text,
 } from '@mantine/core'
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import CMMSTicketCard from './CMMSTicketCard'
 import PlaceholderTicket from './PlaceholderTicket'
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [showClosed, setShowClosed] = useState(false)
 

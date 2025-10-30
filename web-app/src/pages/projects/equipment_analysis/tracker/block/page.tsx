@@ -1,5 +1,5 @@
 import { useGetBlockDropdown } from '@/api/ui'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisTrackerBlock } from '@/api/v1/protected/web-application/projects/equipment-analysis/tracker_block'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
@@ -10,12 +10,12 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Button, Group, Stack, Title } from '@mantine/core'
 import { IconArrowBackUp } from '@tabler/icons-react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
 const Page = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
 
   useProjectDropdownToggle()
@@ -24,9 +24,7 @@ const Page = () => {
   const startURI = searchParams.get('start')
   const endURI = searchParams.get('end')
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,

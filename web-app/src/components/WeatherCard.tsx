@@ -1,12 +1,12 @@
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetForecast, useGetWeather } from '@/hooks/api'
 import { Group, HoverCard, Image, Stack, Text, Tooltip } from '@mantine/core'
 import { IconSunOff } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 const WeatherCard = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const {
     data: weatherData,
     isLoading: weatherLoading,
@@ -21,9 +21,9 @@ const WeatherCard = () => {
   } = useGetForecast({
     pathParams: { projectId: projectId || '-1' },
   })
-  const { data: projectData, isLoading: projectLoading } = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const { data: projectData, isLoading: projectLoading } = useSelectProject(
+    projectId!,
+  )
 
   if (weatherLoading) return
   if (forecastLoading) return

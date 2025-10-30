@@ -2,7 +2,7 @@ import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetDeviceTypePowerSummary } from '@/api/v1/protected/web-application/device-type-overview'
 import {
   useGetDataTimeseriesLast,
@@ -29,7 +29,7 @@ import {
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 
 interface DeviceTypeOverviewProps {
   className?: string
@@ -161,7 +161,7 @@ const DeviceTypeOverview = ({
   className,
   onDeviceTypeClick,
 }: DeviceTypeOverviewProps) => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme()
   const cardRef = useRef<HTMLDivElement>(null)
@@ -185,10 +185,7 @@ const DeviceTypeOverview = ({
     return () => window.removeEventListener('resize', updateCardWidth)
   }, [])
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
+  const project = useSelectProject(projectId!)
 
   // Get device types used in this project
   const usedDeviceTypeIds = project.data?.spec?.used_device_type_ids || []

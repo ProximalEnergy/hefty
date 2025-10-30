@@ -4,7 +4,7 @@ import { Box, Button, Group, Select, Stack, Text, Title } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 const CompanyView = () => {
   const queryClient = useQueryClient()

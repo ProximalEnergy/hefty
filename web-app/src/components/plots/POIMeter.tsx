@@ -1,11 +1,11 @@
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { DataTimeSeries } from '@/hooks/types'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import PlotlyPlot from './PlotlyPlot'
 
 const POIMeter = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
 
   const { data, isLoading, error } = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },

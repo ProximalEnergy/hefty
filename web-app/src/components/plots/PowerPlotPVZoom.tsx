@@ -1,5 +1,5 @@
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProject } from '@/api/v1/operational/projects'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
@@ -33,14 +33,14 @@ import type * as Plotly from 'plotly.js'
 // Import Plotly namespace for type assertion
 import type { PlotRelayoutEvent } from 'plotly.js'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const PowerPlotPVZoom = () => {
-  const { projectId } = useParams()
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const [startTime, setStartTime] = useState<string>(
     dayjs()
@@ -101,9 +101,7 @@ const PowerPlotPVZoom = () => {
     'Interconnection Limit': theme.colors.gray[7],
   }
 
-  const project = useGetProject({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const project = useSelectProject(projectId!)
 
   // TODO: Remove this in favor of a new database table.
   const includeSoiling = !['sigurd'].includes(project.data?.name_short || '')
