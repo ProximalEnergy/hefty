@@ -5,11 +5,9 @@ applications:
       phases:
         preBuild:
           commands:
-            # Specify the Node.js version
             - nvm use 22
-            # Install dependencies
-            - npm ci
-            # Write the latest commit hash to version.json
+            - rm -rf node_modules package-lock.json
+            - npm install
             - 'echo "{\"version\": \"$(git rev-parse HEAD)\"}" > ./public/version.json'
         build:
           commands:
