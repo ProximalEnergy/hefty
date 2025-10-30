@@ -5,7 +5,7 @@ import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfoli
 import { Center, Paper, SimpleGrid, Text } from '@mantine/core'
 
 import styles from '../PortfolioHome.module.css'
-import { PortfolioProjectCard } from '../components/PortfolioProjectCard'
+import { PortfolioProjectCard } from '../components/PortfolioProjectCard/PortfolioProjectCard'
 
 interface ArchivedProjectsTabProps {
   projects: NonNullable<ReturnType<typeof useSelectProject>['data']>[]
