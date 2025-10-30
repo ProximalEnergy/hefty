@@ -21,13 +21,15 @@ export const useGetTimeSeries = ({
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {
-  if (queryParams?.tag_ids && queryParams.tag_ids.length > 500) {
-    queryParams.tag_ids = queryParams.tag_ids.slice(0, 500)
-  }
+  const hasExcessTags = queryParams?.tag_ids && queryParams.tag_ids.length > 500
+
+  const limitedQueryParams = hasExcessTags
+    ? { ...queryParams, tag_ids: queryParams?.tag_ids?.slice(0, 500) }
+    : queryParams
 
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/time-series`,
-    params: queryParams,
+    params: limitedQueryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -35,13 +37,16 @@ export const useGetTimeSeries = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+  const mergedQueryOptions = {
+    ...defaultQueryOptions,
+    ...queryOptions,
+  }
 
   return useCustomQuery<types.DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getTimeSeries',
     pathParams,
-    queryParams,
-    queryOptions: queryOptions,
+    queryParams: limitedQueryParams,
+    queryOptions: mergedQueryOptions,
   })
 }

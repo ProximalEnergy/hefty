@@ -207,13 +207,16 @@ export const useGetProjects = ({
     defaultValue: [],
   })
 
-  if (personalPortfolio) {
-    queryParams['project_ids_excluded'] = excludedProjectIds
-  }
+  const paramsWithExclusions = personalPortfolio
+    ? {
+        ...queryParams,
+        project_ids_excluded: excludedProjectIds,
+      }
+    : queryParams
 
   const axiosConfig = {
     url: '/v1/operational/projects',
-    params: queryParams,
+    params: paramsWithExclusions,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -221,7 +224,7 @@ export const useGetProjects = ({
     staleTime: Infinity,
   }
 
-  queryOptions = {
+  const mergedQueryOptions = {
     ...defaultQueryOptions,
     ...queryOptions,
     enabled: queryOptions.enabled !== false && excludedProjectIds !== undefined,
@@ -231,8 +234,8 @@ export const useGetProjects = ({
     axiosConfig,
     queryName: queryName,
     pathParams: {},
-    queryParams,
-    queryOptions: queryOptions,
+    queryParams: paramsWithExclusions,
+    queryOptions: mergedQueryOptions,
   })
 }
 
