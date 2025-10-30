@@ -24,6 +24,10 @@
       matchDatasources: ["github-tags"],
       enabled: false,
     },
+    {
+      matchPackageNames: ["actions/python-versions"],
+      enabled: false
+    },
     // =========== Group Upgrades by Service ============
     {
       matchFileNames: ["api/**"],
