@@ -2438,3 +2438,22 @@ class QSEPermission(Base):
     qse_integration = relationship("QSEIntegration")
 
     __table_args__ = {"schema": "operational"}
+
+
+class QSEField(Base):
+    __tablename__ = "qse_fields"
+
+    qse_provider_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.qse_providers.qse_provider_id"), primary_key=True
+    )
+    qse_field_name: Mapped[str] = mapped_column(primary_key=True)
+    name_short: Mapped[str]
+    name_long: Mapped[str]
+    description: Mapped[str]
+    unit: Mapped[str]
+    unit_offset: Mapped[float | None] = mapped_column(sa.Double)
+    unit_scale: Mapped[float | None] = mapped_column(sa.Double)
+
+    qse_provider = relationship("QSEProvider")
+
+    __table_args__ = {"schema": "operational"}
