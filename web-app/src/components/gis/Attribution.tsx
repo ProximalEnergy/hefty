@@ -45,16 +45,22 @@ const Attribution = () => {
                 <Anchor
                   href="https://www.mapbox.com/about/maps"
                   inherit={true}
+                  rel="noopener noreferrer"
                   fz="sm"
                 >
                   © Mapbox
                 </Anchor>
-                <Anchor href="http://www.openstreetmap.org/copyright" fz="sm">
+                <Anchor
+                  href="http://www.openstreetmap.org/copyright"
+                  rel="noopener noreferrer"
+                  fz="sm"
+                >
                   © OpenStreetMap
                 </Anchor>
                 <Anchor
                   href="https://apps.mapbox.com/feedback/"
                   target="_blank"
+                  rel="noopener noreferrer"
                   fz="sm"
                 >
                   <strong>Improve this map</strong>
