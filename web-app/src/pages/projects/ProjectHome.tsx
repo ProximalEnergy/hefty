@@ -8,7 +8,7 @@ import { useGetCountOpenEvents } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProjects, useSelectProject } from '@/api/v1/operational/projects'
+import { useGetProject, useGetProjects } from '@/api/v1/operational/projects'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -20,6 +20,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
 import { useGetPaginatedEvents } from '@/hooks/api'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
+import AdaptiveGisBESS from '@/pages/projects/gis/adaptive-gis-bess'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome'
@@ -72,14 +73,14 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const PowerPlotBESS = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const theme = useMantineTheme()
   const [startTime, setStartTime] = useState<string>(
     dayjs()
@@ -178,7 +179,9 @@ const PowerPlotBESS = () => {
     }
   }
 
-  const project = useSelectProject(projectId!)
+  const project = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+  })
 
   const data = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },
@@ -325,7 +328,7 @@ const CurrentTime = ({ timezone }: { timezone: string }) => {
 }
 
 const KPICards = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const container = useElementSize()
   const content = useElementSize()
   const [rotationOffset, setRotationOffset] = useState(0)
@@ -334,7 +337,9 @@ const KPICards = () => {
 
   const { data: user } = useGetUserSelf({})
 
-  const project = useSelectProject(projectId!)
+  const project = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+  })
 
   const favoritedKPITypes = useGetUserFavoriteKPITypes({
     userId: user?.user_id,
@@ -427,7 +432,7 @@ const KPICards = () => {
 }
 
 const EventTable = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const [sortBy, setSortBy] = useState('loss_daily')
   const theme = useMantineTheme()
 
@@ -594,7 +599,7 @@ function KioskMode({
   enabled: boolean
   setEnabled: (enabled: boolean) => void
 }) {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const navigate = useNavigate()
 
   // Query data for all projects
@@ -655,7 +660,7 @@ function KioskMode({
 }
 
 const BatteryHealth = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const [showCycleData, setShowCycleData] = useState(false)
@@ -663,7 +668,9 @@ const BatteryHealth = () => {
   const [showRestSocData, setShowRestSocData] = useState(false)
 
   // Get project data to access COD
-  const project = useSelectProject(projectId!)
+  const project = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+  })
 
   // Battery Health KPI IDs - using string KPIs instead of bank KPIs
   const batteryHealthKpiIds = [54, 55, 32, 25, 30, 49] // String SOH, Module SOH, String cycles, String SOC, String Rest SOC, String DOD
@@ -1129,6 +1136,7 @@ const BatteryHealth = () => {
         </Link>
       }
       allowFullscreen={false}
+      style={{ flex: 0.75 }}
     >
       <Stack gap="md">
         {/* SOH Degradation Chart */}
@@ -1456,7 +1464,7 @@ const ContractualKPIOverview = ({
 }: {
   onExpandedChange?: (expanded: boolean) => void
 }) => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const [contractModalOpen, setContractModalOpen] = useState(false)
@@ -1872,13 +1880,18 @@ const ContractualKPIOverview = ({
 }
 
 const ProjectHome = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const stackRef = useElementSize()
   const [_contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
-  const project = useSelectProject(projectId!)
+  const project = useGetProject({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      deep: true,
+    },
+  })
   const [kioskModeEnabled, setKioskModeEnabled] = useState(false)
 
   if (project.isLoading) return <PageLoader />
@@ -2089,7 +2102,12 @@ const ProjectHome = () => {
           )}
           {/* Battery Health Section for BESS projects */}
           {project.data.project_type_id === ProjectTypeId.BESS && (
-            <BatteryHealth />
+            <>
+              <BatteryHealth />
+              <CustomCard title="System Map" fill style={{ flex: 1 }}>
+                <AdaptiveGisBESS />
+              </CustomCard>
+            </>
           )}
         </Stack>
         <Stack h="100%" flex={1}>
