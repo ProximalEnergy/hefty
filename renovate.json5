@@ -16,7 +16,7 @@
     },
     {
       matchPackageNames: ["python"],
-      matchDatasources: ["docker", "github-tags", "github-runners"],
+      matchDatasources: ["docker", "github-tags", "github-runners", "github-releases"],
       enabled: false,
     },
     {
