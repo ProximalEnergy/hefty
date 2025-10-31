@@ -650,35 +650,6 @@ export const useGetPaginatedEvents = ({
   })
 }
 
-export const useGetEventLosses = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    event_ids?: number[]
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events/event-losses`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
-  return useCustomQuery<types.EventLoss[]>({
-    axiosConfig,
-    queryName: 'getEventLosses',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: queryOptions,
-  })
-}
-
 export const useGetUptimeTable = ({
   pathParams,
   queryParams = {

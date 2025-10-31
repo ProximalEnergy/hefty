@@ -1,4 +1,5 @@
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
+import { useGetEventLossesSummary } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUtilityExpected } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
@@ -6,7 +7,6 @@ import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
   useGetDevicesV2,
-  useGetEventLosses,
   useGetEvents,
   useGetFailureModes,
   useGetRootCauses,
@@ -88,16 +88,10 @@ const useDcFieldEventData = (
     },
   })
 
-  const eventLosses = useGetEventLosses({
-    pathParams: {
-      projectId: projectId || '-1',
-    },
-    queryParams: {
-      event_ids: [eventId],
-    },
-    queryOptions: {
-      enabled: !!eventId && !!projectId,
-    },
+  const eventLossesSummary = useGetEventLossesSummary({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: { event_id: eventId },
+    queryOptions: { enabled: !!eventId && !!projectId },
   })
 
   const event = eventData.data?.[0]
@@ -177,7 +171,7 @@ const useDcFieldEventData = (
   return {
     project,
     event,
-    eventLosses,
+    eventLossesSummary,
     eventsHistorical,
     CMMSTickets,
     rootCauses,
@@ -185,7 +179,7 @@ const useDcFieldEventData = (
     dcCombinerDevice,
     expectedPower,
     isLoading:
-      project.isLoading || eventData.isLoading || eventLosses.isLoading,
+      project.isLoading || eventData.isLoading || eventLossesSummary.isLoading,
   }
 }
 
@@ -358,7 +352,7 @@ const Page = () => {
   const {
     project,
     event,
-    eventLosses,
+    eventLossesSummary,
     eventsHistorical,
     CMMSTickets,
     rootCauses,
@@ -368,19 +362,6 @@ const Page = () => {
     isLoading: isPageLoading,
   } = useDcFieldEventData(projectId, eventId)
   const projectTz = project.data?.time_zone || 'UTC'
-
-  const lossTotalFinancial = eventLosses.data?.reduce(
-    (acc, curr) => (curr.event_loss_type_id === 2 ? acc + curr.loss : acc),
-    0,
-  )
-  const lossTotalEnergetic = eventLosses.data?.reduce(
-    (acc, curr) => (curr.event_loss_type_id === 1 ? acc + curr.loss : acc),
-    0,
-  )
-  const lossTotalCapacity = eventLosses.data?.reduce(
-    (acc, curr) => (curr.event_loss_type_id === 3 ? acc + curr.loss : acc),
-    0,
-  )
 
   const mutation = useUpdateRootCause()
   const updateRootCause = (rootCauseId: number | null) => {
@@ -414,11 +395,6 @@ const Page = () => {
   // Calculate trace date range for the plot
   const traceEnd = eventStartTime.add(2, 'days').endOf('day')
 
-  const today = dayjs()
-  const days = event?.time_end
-    ? dayjs(event.time_end).diff(dayjs(event.time_start), 'days') + 1
-    : today.diff(dayjs(event?.time_start), 'days') + 1
-
   // Calculate moving average for power difference data
   const powerDifferenceMovingAverage = useMemo(() => {
     if (!expectedPower.data?.expected_soiled?.difference) return []
@@ -436,17 +412,27 @@ const Page = () => {
   const losses = {
     financial: {
       title: 'Daily Impact',
-      value: ((lossTotalFinancial || 0) / days)?.toFixed(2) || ' N/A',
+      value:
+        eventLossesSummary.data?.loss_daily_financial != null
+          ? eventLossesSummary.data.loss_daily_financial.toFixed(2)
+          : 'N/A',
       unit: '$',
     },
     energetic: {
       title: '',
-      value: ((lossTotalEnergetic || 0) / days)?.toFixed(2) || ' N/A',
+      value:
+        eventLossesSummary.data?.loss_daily_energy != null
+          ? eventLossesSummary.data.loss_daily_energy.toFixed(2)
+          : 'N/A',
       unit: 'MWh',
     },
     capacity: {
       title: 'PV DC Capacity Loss',
-      value: (lossTotalCapacity || 0)?.toFixed(2) || ' N/A',
+      value:
+        eventLossesSummary.data?.loss_capacity !== null &&
+        eventLossesSummary.data?.loss_capacity !== undefined
+          ? eventLossesSummary.data.loss_capacity?.toFixed(2)
+          : (event?.device.capacity_dc || 0)?.toFixed(2),
       unit: 'kW DC',
     },
   }
