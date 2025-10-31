@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from typing import Annotated
 
@@ -8,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.dependencies import get_user_data_async
 from app.interfaces import UserData
+from app.logger import logger
 
 try:
     from openai import OpenAI
@@ -16,7 +16,6 @@ except Exception:  # pragma: no cover - optional import surface
 
 
 router = APIRouter(prefix="/ai", tags=["ai"])
-logger = logging.getLogger(__name__)
 
 
 class SignalPair(BaseModel):

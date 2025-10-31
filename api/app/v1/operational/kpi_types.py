@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import Annotated
 
@@ -13,11 +12,10 @@ from app._crud.operational.contracts import (
     get_kpi_type_by_name_with_contracts as crud_get_kpi_type_by_name_with_contracts,
 )
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
+from app.logger import logger
 from app.v1.operational.project.project_contracts import generate_presigned_url
 
 router = APIRouter(prefix="/kpi-types", tags=["kpi_types"])
-
-logger = logging.getLogger(__name__)
 
 
 @router.get("/by-name/{name_short}", response_model=interfaces.KPITypeWithContracts)

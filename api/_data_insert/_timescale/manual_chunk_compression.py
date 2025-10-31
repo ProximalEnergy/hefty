@@ -31,19 +31,14 @@ Note: This script requires appropriate database permissions to execute
 compress_chunk() and access hypertable statistics.
 """
 
-import logging
 from time import time
 
 import pandas as pd
 import psycopg2
 
-from .. import utils
+from app.logger import logger
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from .. import utils
 
 PROJECT_NAME_SHORT = "double_black_diamond"
 HYPERTABLE_NAME = "data_timeseries"

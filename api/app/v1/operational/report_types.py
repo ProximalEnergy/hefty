@@ -1,4 +1,3 @@
-import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -11,8 +10,6 @@ router = APIRouter(prefix="/report-types", tags=["report_types"])
 deprecated_router = APIRouter(
     prefix="/report_types", tags=["report_types"], deprecated=True
 )
-
-logger = logging.getLogger(__name__)
 
 
 @router.get(

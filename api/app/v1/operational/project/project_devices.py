@@ -1,6 +1,5 @@
 import io
 import json
-import logging
 from typing import Annotated
 
 import polars as pl
@@ -16,10 +15,9 @@ from sqlalchemy.orm import Session
 import core
 from app import custom_types, interfaces, utils
 from app.dependencies import get_project_db
+from app.logger import logger
 
 DESCRIPTION_404 = "Device not found"
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}/devices", tags=["project_devices"])
 

@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import cast
 from uuid import UUID
@@ -7,9 +6,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.logger import logger
 from core import models
-
-logger = logging.getLogger(__name__)
 
 
 async def get_users_with_project_access(

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app import dependencies, utils
 from app._crud.projects import tags as crud_tags
+from app.logger import logger
 from core import models
 
 
@@ -563,9 +564,8 @@ async def get_tag_pattern_samples(
                 except Exception as e:
                     # Continue with empty data
                     # Log error for debugging but don't fail the request
-                    import logging
 
-                    logging.getLogger(__name__).warning(
+                    logger.warning(
                         f"Error getting timeseries data for tag {tag.tag_id}: {e}"
                     )
 

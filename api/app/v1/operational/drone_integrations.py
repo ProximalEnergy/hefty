@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import Annotated
 
@@ -31,9 +30,9 @@ from app.interfaces import (
     DroneIntegrationUpdate,
     UserData,
 )
+from app.logger import logger
 
 router = APIRouter(prefix="/drone-integrations")
-logger = logging.getLogger(__name__)
 
 
 class DroneInspectionOrderRequest(BaseModel):

@@ -1,13 +1,11 @@
-import logging
 import uuid
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
+from app.logger import logger
 from core import models
-
-logger = logging.getLogger(__name__)
 
 
 async def get_inverters(

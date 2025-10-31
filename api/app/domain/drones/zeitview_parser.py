@@ -1,11 +1,9 @@
 import asyncio
-import logging
 from typing import Any
 
 import httpx
 from app._utils.aws import get_secret
-
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 
 class ZeitviewAPI:

@@ -1,4 +1,3 @@
-import logging
 from collections import defaultdict
 from typing import Annotated
 from uuid import UUID
@@ -17,11 +16,11 @@ from app._crud.operational.projects import create_project as crud_create_project
 from app._crud.operational.report_instances import (
     get_report_instances as crud_get_report_instances,
 )
+from app.logger import logger
 from core import enumerations
 
 DESCRIPTION_404 = "Project not found"
 
-logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
