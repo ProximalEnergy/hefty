@@ -3,6 +3,9 @@ from fastapi import APIRouter, Depends
 from app.dependencies import get_user_data_async
 from app.v1 import auth_test
 from app.v1.admin import admin
+from app.v1.ai.battery_settlement_analysis import (
+    router as battery_settlement_analysis_router,
+)
 from app.v1.ai.daily_performance_summary import (
     router as daily_performance_summary_router,
 )
@@ -20,6 +23,7 @@ from app.v1.ui import ui
 router = APIRouter(prefix="/v1", dependencies=[Depends(get_user_data_async)])
 router.include_router(admin.router)
 router.include_router(analytics.router)
+router.include_router(battery_settlement_analysis_router)
 router.include_router(daily_performance_summary_router)
 router.include_router(voice_chat_router)
 router.include_router(root_cause_router)

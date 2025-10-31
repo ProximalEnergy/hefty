@@ -2,6 +2,9 @@ from fastapi import APIRouter
 
 import app.v1.protected.web_application.projects.project_tag_explorer as project_tag_explorer
 from app import utils
+from app.v1.protected.web_application.projects.battery_settlement import (
+    battery_settlement,
+)
 from app.v1.protected.web_application.projects.custom_dash import custom_dash
 from app.v1.protected.web_application.projects.device_details import device_details
 from app.v1.protected.web_application.projects.equipment_analysis import (
@@ -22,3 +25,4 @@ router.include_router(project_tag_explorer.router)
 router.include_router(real_time.router)
 router.include_router(events.router)
 router.include_router(custom_dash.router)
+router.include_router(battery_settlement.router)
