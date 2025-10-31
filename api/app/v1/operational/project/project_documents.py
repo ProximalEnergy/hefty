@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from openai import OpenAI
 from sqlalchemy.ext.asyncio import AsyncSession

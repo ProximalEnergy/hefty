@@ -1,8 +1,11 @@
 import json
+from collections.abc import Generator
 from typing import Any
 
 import boto3
 from botocore.exceptions import ClientError
+
+from app.logger import logger
 
 
 def get_secret(
@@ -36,3 +39,45 @@ def get_secret(
     # Return the secret value
     result = json.loads(get_secret_value_response["SecretString"])
     return dict(result)
+
+
+def _iterate_parameter_pages(
+    *,
+    client: Any,
+    path: str,
+    recursive: bool,
+) -> Generator[dict[str, Any], None, None]:
+    try:
+        paginator = client.get_paginator("get_parameters_by_path")
+        yield from paginator.paginate(
+            Path=path,
+            Recursive=recursive,
+            WithDecryption=True,
+        )
+    except ClientError as e:
+        logger.error(f"Error retrieving parameters from SSM: {e}")
+        raise
+
+
+def get_parameters_by_path(
+    *,
+    path: str,
+    region_name: str | None = "us-east-2",
+    recursive: bool = False,
+) -> dict[str, str]:
+    """Retrieve decrypted parameters stored under an SSM parameter path."""
+
+    session = boto3.session.Session()
+    client = session.client(service_name="ssm", region_name=region_name)
+
+    parameters: dict[str, str] = {}
+    for page in _iterate_parameter_pages(
+        client=client,
+        path=path,
+        recursive=recursive,
+    ):
+        for parameter in page.get("Parameters", []):
+            name = parameter["Name"].rsplit("/", maxsplit=1)[-1]
+            parameters[name] = parameter["Value"]
+
+    return parameters

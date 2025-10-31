@@ -113,17 +113,25 @@ When running locally the following environment variables are required
   - `AWS_S3_BUCKET_NAME`
 - `COMMISSIONING_KEY_JSON`: Used for google sheets
 
-You can pull the environment variables from AWS Secrets with
+Environment variables are stored in AWS Systems Manager Parameter Store as
+`SecureString` entries under the `/proximal/api/` path. You can pull the values
+locally with
 
 ```
 >>> mise run get_env
 ```
 
-which creates a `.env.from_secrets` file whose contents can be copied into your actual `.env` file. This command requires AWS authentication which can be setup with
+which creates a `.env.from_parameter_store` file whose contents can be copied
+into your actual `.env` file. This command requires AWS authentication (with
+`ssm:GetParametersByPath` access) which can be setup with
 
 ```
 >>> aws configure
 ```
+
+At runtime the FastAPI application loads the same parameters during
+`app/settings.py` import, so the Elastic Beanstalk configuration stays well
+under the 4 KB option payload limit.
 
 Staging and production environment variables are hosted on Elastic Beanstalk.
 

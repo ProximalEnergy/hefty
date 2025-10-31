@@ -276,9 +276,9 @@ dir = "api"
 run = "uv run uvicorn app.main:app --reload --timeout-graceful-shutdown 0"
 
 [tasks."api:get_env"]
-description = "Generate .env file from AWS Secrets Manager"
+description = "Generate .env file from AWS Systems Manager Parameter Store"
 dir = "api"
-run = "uv run _scripts/generate_env_from_secrets.py"
+run = "uv run _scripts/generate_env_from_parameter_store.py"
 
 [tasks."api:uv"]
 description = "Run uv wrapper script"
