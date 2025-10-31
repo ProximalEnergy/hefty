@@ -7,12 +7,14 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP
+from pydantic.json_schema import PydanticJsonSchemaWarning
 
 from app import settings
 from app.logger import logger
 from app.v1 import v1
 
 warnings.simplefilter("always", DeprecationWarning)
+warnings.filterwarnings("error", category=PydanticJsonSchemaWarning)
 
 if settings.ENVIRONMENT in ["staging", "production"]:
     sentry_config = {
