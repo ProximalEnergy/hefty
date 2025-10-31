@@ -6,6 +6,7 @@ on:
       - dev
       - staging
       - main
+      - sandbox
     paths:
       - "core/src/core/**"
       - "core/pyproject.toml"
