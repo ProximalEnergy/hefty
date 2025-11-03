@@ -27,6 +27,27 @@ const simpleLineLayout: Partial<Layout> = {
   margin: { l: 30, r: 10, t: 10, b: 30 },
 }
 
+const AddButton = ({
+  device_type_id,
+  label,
+  onAdd,
+}: {
+  device_type_id: number
+  label: string
+  onAdd: (device_type_id: number) => void
+}) => {
+  return (
+    <Button
+      onClick={() => onAdd(device_type_id)}
+      variant="default"
+      size="compact-xs"
+      leftSection={<IconPlus size={12} stroke={ICON_STROKE} />}
+    >
+      {label}
+    </Button>
+  )
+}
+
 const VerticalDeviceDetails = () => {
   useProjectDropdownToggle()
 
@@ -78,13 +99,15 @@ const VerticalDeviceDetails = () => {
   useEffect(() => {
     if (controller.data) {
       // Initialize controllerData to keep track of selected devices
-      setControllerData(controller.data)
+      queueMicrotask(() => setControllerData(controller.data))
 
       // Set selectedDeviceTypes to the initially requested device type
-      setSelectedDeviceTypes(
-        controller.data.device_tree
-          .filter((d) => d.initially_requested)
-          .map((d) => d.id),
+      queueMicrotask(() =>
+        setSelectedDeviceTypes(
+          controller.data.device_tree
+            .filter((d) => d.initially_requested)
+            .map((d) => d.id),
+        ),
       )
     }
   }, [controller.data])
@@ -129,25 +152,6 @@ const VerticalDeviceDetails = () => {
   const isFillMode =
     viewportHeight / selectedDeviceTypes.length > THRESHOLD_HEIGHT
 
-  const AddButton = ({
-    device_type_id,
-    label,
-  }: {
-    device_type_id: number
-    label: string
-  }) => {
-    return (
-      <Button
-        onClick={() => addDeviceType(device_type_id)}
-        variant="default"
-        size="compact-xs"
-        leftSection={<IconPlus size={12} stroke={ICON_STROKE} />}
-      >
-        {label}
-      </Button>
-    )
-  }
-
   // Build the UI: for each device, if selected, render; if not, collect add buttons for missing devices in the right spot.
   const elements: React.ReactNode[] = []
   let lastIdx = -1
@@ -165,6 +169,7 @@ const VerticalDeviceDetails = () => {
               key={`add-${missingDeviceType.id}`}
               device_type_id={missingDeviceType.id}
               label={missingDeviceType.label}
+              onAdd={addDeviceType}
             />,
           )
         }
@@ -210,6 +215,7 @@ const VerticalDeviceDetails = () => {
           key={`add-${missingDeviceType.id}`}
           device_type_id={missingDeviceType.id}
           label={missingDeviceType.label}
+          onAdd={addDeviceType}
         />,
       )
     }

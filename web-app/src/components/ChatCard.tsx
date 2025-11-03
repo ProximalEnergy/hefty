@@ -367,18 +367,18 @@ export function ChatCard({
   const renderMessage = (message: IStep) => {
     const isUserMessage = message.type === 'user_message'
     function determineTextColor(hex: string) {
-      hex = hex.replace(/^#/, '')
+      const sanitizedHex = hex.replace(/^#/, '')
 
-      const bigint = parseInt(hex, 16)
+      const bigint = parseInt(sanitizedHex, 16)
       const r = (bigint >> 16) & 255
       const g = (bigint >> 8) & 255
       const b = bigint & 255
 
       const linearize = (value: number): number => {
-        value /= 255 // Normalize to 0-1
-        return value <= 0.03928
-          ? value / 12.92
-          : Math.pow((value + 0.055) / 1.055, 2.4)
+        const normalizedValue = value / 255 // Normalize to 0-1
+        return normalizedValue <= 0.03928
+          ? normalizedValue / 12.92
+          : Math.pow((normalizedValue + 0.055) / 1.055, 2.4)
       }
 
       const rLin = linearize(r)

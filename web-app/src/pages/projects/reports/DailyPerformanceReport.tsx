@@ -92,7 +92,6 @@ const DailyEnergyComparison = ({
 
   // Get project data
   const project = useSelectProject(projectId!)
-  if (!project.data) return null
 
   // Calculate start and end times for the selected date in project timezone
   const startTime =
@@ -346,6 +345,8 @@ const DailyEnergyComparison = ({
     return finalData
   }, [plotData, project.data, powerData.data, colorMap, averageBudgetedHourly])
 
+  if (!project.data) return null
+
   if (!selectedDate) {
     return (
       <Text c="dimmed" ta="center" py="xl">
@@ -497,6 +498,7 @@ const MapCard = ({
 
   // If no KPI data but we have devices, show them with default values
   if (!data) {
+    return null
   }
 
   if (!context) {
@@ -1527,7 +1529,7 @@ const Page: React.FC = () => {
             line: { width: 2, dash: 'dash' },
           })
         }
-      } catch (error) {
+      } catch {
         // Continue without budgeted data rather than breaking the chart
       }
     }

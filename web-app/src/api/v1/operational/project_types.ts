@@ -34,13 +34,11 @@ export const useGetProjectTypes = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ProjectType[]>({
     axiosConfig,
     queryName: 'getProjectTypes',
     pathParams: {},
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

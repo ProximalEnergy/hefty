@@ -35,14 +35,12 @@ export const useGetSensorTypes = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<SensorType[]>({
     axiosConfig,
     queryName: 'getSensorTypes',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

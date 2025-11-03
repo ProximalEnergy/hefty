@@ -28,13 +28,11 @@ export const useGetTrackingAngles = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<TrackingAngles>({
     axiosConfig,
     queryName: 'getTrackingAngles',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

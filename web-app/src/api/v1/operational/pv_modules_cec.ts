@@ -20,14 +20,12 @@ export const useGetCECPVModuleManufacturers = ({
     staleTime: 1000 * 60 * 1, // 1 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: 'cec-pv-module-manufacturers',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -50,13 +48,11 @@ export const useGetCECPVModuleModels = ({
     enabled: !!queryParams?.manufacturer,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `models-${queryParams.manufacturer}`,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -87,14 +83,12 @@ export const useGetCECPVModuleIdsByManufacturerAndModel = ({
       manufacturers.length === models.length,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: 'cec-pv-module-ids-lookup',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -122,13 +116,11 @@ export const useGetCECPVModuleInProximalFormat = ({
     enabled: !!cec_pv_module_id,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVModule>({
     axiosConfig,
     queryName: `cec-module-proximal-${cec_pv_module_id}`,
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

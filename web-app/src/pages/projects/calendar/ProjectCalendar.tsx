@@ -120,7 +120,7 @@ export const ProjectCalendar = () => {
           exdate: item.exdates,
         }
       })
-      setCurrentCalendarEvents(events)
+      queueMicrotask(() => setCurrentCalendarEvents(events))
 
       // Restore calendar view
       if (calendarRef.current && calendarViewInfo) {

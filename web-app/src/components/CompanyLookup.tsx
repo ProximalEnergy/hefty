@@ -51,10 +51,10 @@ export default function CompanyLookup({
 
     // Basic Levenshtein distance
     const levenshtein = (a: string, b: string) => {
-      a = a.toLowerCase()
-      b = b.toLowerCase()
-      const m = a.length
-      const n = b.length
+      const lowerA = a.toLowerCase()
+      const lowerB = b.toLowerCase()
+      const m = lowerA.length
+      const n = lowerB.length
       if (m === 0) return n
       if (n === 0) return m
       const dp = Array.from({ length: m + 1 }, () =>
@@ -64,7 +64,7 @@ export default function CompanyLookup({
       for (let j = 0; j <= n; j++) dp[0][j] = j
       for (let i = 1; i <= m; i++) {
         for (let j = 1; j <= n; j++) {
-          const cost = a[i - 1] === b[j - 1] ? 0 : 1
+          const cost = lowerA[i - 1] === lowerB[j - 1] ? 0 : 1
           dp[i][j] = Math.min(
             dp[i - 1][j] + 1,
             dp[i][j - 1] + 1,

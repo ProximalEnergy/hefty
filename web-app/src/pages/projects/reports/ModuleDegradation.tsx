@@ -146,6 +146,35 @@ function exportToCsv(
   link.click()
 }
 
+function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
+  if (hoverInfo.feature === null) {
+    return null
+  }
+
+  return (
+    <Paper
+      p="xs"
+      withBorder
+      style={{
+        left: hoverInfo.x,
+        top: hoverInfo.y,
+        position: 'absolute',
+        zIndex: 9,
+        pointerEvents: 'none',
+      }}
+      radius="xs"
+    >
+      <Text fw={700}>Combiner {hoverInfo.feature.properties?.name}</Text>
+      {hoverInfo.feature.properties?.performance && (
+        <Text>
+          Performance:{' '}
+          {(hoverInfo.feature.properties?.performance * 100).toFixed(1) + '%'}
+        </Text>
+      )}
+    </Paper>
+  )
+}
+
 const GisTab: React.FC<{
   averagePerCombiner: { [deviceId: string]: number | null }
   devices?: Device[]
@@ -159,35 +188,6 @@ const GisTab: React.FC<{
     y: 0,
   })
   const computedColorScheme = useComputedColorScheme('dark')
-
-  function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
-    if (hoverInfo.feature === null) {
-      return null
-    }
-
-    return (
-      <Paper
-        p="xs"
-        withBorder
-        style={{
-          left: hoverInfo.x,
-          top: hoverInfo.y,
-          position: 'absolute',
-          zIndex: 9,
-          pointerEvents: 'none',
-        }}
-        radius="xs"
-      >
-        <Text fw={700}>Combiner {hoverInfo.feature.properties?.name}</Text>
-        {hoverInfo.feature.properties?.performance && (
-          <Text>
-            Performance:{' '}
-            {(hoverInfo.feature.properties?.performance * 100).toFixed(1) + '%'}
-          </Text>
-        )}
-      </Paper>
-    )
-  }
 
   const features = {
     type: 'FeatureCollection',

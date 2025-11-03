@@ -219,7 +219,7 @@ const DCAmperageReport: React.FC = () => {
                     max={100}
                     value={acceptanceThreshold}
                     onChange={(value) =>
-                      setAcceptanceThreshold(Number(value) ?? 0)
+                      setAcceptanceThreshold(Number(value) || 0)
                     }
                     suffix="%"
                   />

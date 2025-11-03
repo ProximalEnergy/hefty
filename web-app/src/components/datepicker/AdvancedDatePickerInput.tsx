@@ -272,9 +272,9 @@ export function AdvancedDatePicker({
   useEffect(() => {
     // If no start and end are present, set them based on defaultRange
     if (!startParam && !endParam && defaultRange) {
-      setDateRangeByTerm(defaultRange)
+      queueMicrotask(() => setDateRangeByTerm(defaultRange))
     } else {
-      setDateRange([start, end])
+      queueMicrotask(() => setDateRange([start, end]))
     }
   }, [startParam, endParam, defaultRange, setDateRangeByTerm])
 

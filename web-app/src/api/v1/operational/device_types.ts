@@ -2,10 +2,10 @@ import * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const COMPONENT_NAME = 'DeviceType'
+const _COMPONENT_NAME = 'DeviceType'
 const URL = '/v1/operational/device-types/'
 
-export type DeviceType = types.components['schemas'][typeof COMPONENT_NAME]
+export type DeviceType = types.components['schemas'][typeof _COMPONENT_NAME]
 type get = types.paths[typeof URL]['get']
 type getQueryParams = get['parameters']['query']
 
@@ -26,13 +26,11 @@ export const useGetDeviceTypes = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DeviceType[]>({
     axiosConfig,
     queryName: 'getDeviceTypes',
     pathParams: {},
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

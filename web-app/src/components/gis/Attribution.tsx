@@ -21,6 +21,7 @@ const Attribution = () => {
         <a
           href="https://mapbox.com/"
           target="_blank"
+          rel="noreferrer"
           style={{
             height: '20px',
             width: '65px',

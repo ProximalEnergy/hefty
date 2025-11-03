@@ -4,7 +4,7 @@ import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
-import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome'
+import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import {
   Box,
   Button,
@@ -809,7 +809,11 @@ const ProjectKPIContractual = () => {
                           .map((contractKpi) => {
                             if (!contractKpi.liquidated_damages?.description) {
                               return (
-                                <Text>No liquidated damages specified</Text>
+                                <Text
+                                  key={`${contractKpi.contract_id}-no-damages`}
+                                >
+                                  No liquidated damages specified
+                                </Text>
                               )
                             }
 
@@ -838,7 +842,13 @@ const ProjectKPIContractual = () => {
                           )
                           .map((contractKpi) => {
                             if (!contractKpi.claim_howto?.description) {
-                              return <Text>No Description Provided</Text>
+                              return (
+                                <Text
+                                  key={`${contractKpi.contract_id}-no-claim`}
+                                >
+                                  No Description Provided
+                                </Text>
+                              )
                             }
 
                             const { method, timeframe, data_contents } =

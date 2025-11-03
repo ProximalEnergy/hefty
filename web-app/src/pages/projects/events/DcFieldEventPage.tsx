@@ -332,6 +332,39 @@ const DcFieldRootCauseSelection = ({
   )
 }
 
+// Confirm Root Cause Modal Component
+const ConfirmRootModal = ({
+  opened,
+  onClose,
+  selectedRootCause,
+  rootCauses,
+  onConfirm,
+}: {
+  opened: boolean
+  onClose: () => void
+  selectedRootCause: number | null
+  rootCauses: { data?: RootCause[] }
+  onConfirm: () => void
+}) => (
+  <Modal
+    opened={opened}
+    onClose={onClose}
+    title={`Confirm Root Cause: ${
+      rootCauses?.data?.find((fm) => fm.root_cause_id === selectedRootCause)
+        ?.name_long ?? 'Unknown'
+    }`}
+    transitionProps={{ transition: 'rotate-left' }}
+  >
+    <Stack>
+      <Text>Are you sure you want to change the root cause?</Text>
+      <Group grow>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onConfirm}>Confirm</Button>
+      </Group>
+    </Stack>
+  </Modal>
+)
+
 const Page = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const eventId = parseInt(
@@ -374,15 +407,15 @@ const Page = () => {
 
   useEffect(() => {
     if (event) {
-      setSelectedRootCause(event.root_cause_id)
+      queueMicrotask(() => setSelectedRootCause(event.root_cause_id))
     }
   }, [event])
 
   useEffect(() => {
     if (event?.time_end) {
-      setEventStatus('closed')
+      queueMicrotask(() => setEventStatus('closed'))
     } else {
-      setEventStatus('open')
+      queueMicrotask(() => setEventStatus('open'))
     }
   }, [event?.time_end])
 
@@ -437,46 +470,21 @@ const Page = () => {
     },
   }
 
-  const ConfirmRootModal = () => (
-    <Modal
-      opened={opened}
-      onClose={() => {
-        close()
-        setSelectedRootCause(event?.root_cause_id ?? null)
-      }}
-      title={`Confirm Root Cause: ${
-        rootCauses?.data?.find((fm) => fm.root_cause_id === selectedRootCause)
-          ?.name_long ?? 'Unknown'
-      }`}
-      transitionProps={{ transition: 'rotate-left' }}
-    >
-      <Stack>
-        <Text>Are you sure you want to change the root cause?</Text>
-        <Group grow>
-          <Button
-            onClick={() => {
-              close()
-              setSelectedRootCause(event?.root_cause_id ?? null)
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              updateRootCause(selectedRootCause)
-              close()
-            }}
-          >
-            Confirm
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
-  )
-
   return (
     <>
-      <ConfirmRootModal />
+      <ConfirmRootModal
+        opened={opened}
+        onClose={() => {
+          close()
+          setSelectedRootCause(event?.root_cause_id ?? null)
+        }}
+        selectedRootCause={selectedRootCause}
+        rootCauses={rootCauses}
+        onConfirm={() => {
+          updateRootCause(selectedRootCause)
+          close()
+        }}
+      />
       <Group h="100%" gap="md" p="md">
         <Stack h="100%" flex={1}>
           <Group h="100%" align="flex-start">

@@ -30,13 +30,11 @@ export const useGetPCSApparentVsVoltage = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PCSApparentVsVoltage[]>({
     axiosConfig,
     queryName: 'getPCSApparentVsVoltage',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

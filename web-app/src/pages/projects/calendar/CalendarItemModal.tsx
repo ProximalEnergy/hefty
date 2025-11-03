@@ -288,6 +288,7 @@ const renderCategoryOption = (
     color_code: string
   }
   if (!option.color_code) {
+    return null
   }
   return (
     <Group gap="xs" wrap="nowrap">

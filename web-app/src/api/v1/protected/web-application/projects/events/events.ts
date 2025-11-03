@@ -49,13 +49,11 @@ export const useGetEventsMetaAnalysis = ({
     staleTime: 1000 * 60,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<EventsMetaAnalysis>({
     axiosConfig,
     queryName: 'getEventsMetaAnalysis',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

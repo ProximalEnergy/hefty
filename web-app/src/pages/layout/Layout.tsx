@@ -88,8 +88,8 @@ export function Layout() {
 
   // Clear chat when projectId changes
   useEffect(() => {
-    setMessages([])
-    setFirstQuestionAsked(false)
+    queueMicrotask(() => setMessages([]))
+    queueMicrotask(() => setFirstQuestionAsked(false))
   }, [projectId, setMessages])
 
   // Function to expand navbar when needed

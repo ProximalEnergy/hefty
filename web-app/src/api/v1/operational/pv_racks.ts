@@ -40,14 +40,12 @@ export const useGetProximalPVRackManufacturers = ({
     staleTime: 1000 * 60 * 1, // 1 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: 'pvRackingManufacturers',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -70,13 +68,11 @@ export const useGetProximalPVRackModels = ({
     enabled: !!queryParams?.manufacturer,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `modelsFor${queryParams.manufacturer}`,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -105,14 +101,12 @@ export const useGetPVRackingIdsByManufacturerAndModel = ({
     enabled: manufacturers.length > 0 && models.length > 0,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: 'pvRackingIdsLookup',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -141,14 +135,12 @@ export const useGetProximalPVRackDetails = ({
     enabled: racking_ids.length > 0,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVRackings[]>({
     axiosConfig,
     queryName: `rackDetailsFor${racking_ids.join('-')}`,
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

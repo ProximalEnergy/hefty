@@ -39,14 +39,12 @@ export const useGetEventsSummary = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.EventSummary[]>({
     axiosConfig,
     queryName: 'getEventsTwo',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -63,14 +61,12 @@ export const useGetEventDevices = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.EventDeviceInfo>({
     axiosConfig,
     queryName: 'getEventDevices',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -92,14 +88,12 @@ export const useGetEventTraceTags = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Tag[]>({
     axiosConfig,
     queryName: 'getEventTraceTags',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -116,14 +110,12 @@ export const useGetCountOpenEvents = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<number>({
     axiosConfig,
     queryName: 'getCountOpenEvents',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -158,14 +150,12 @@ export const useGetEventAnomalies = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DroneAnomaly[]>({
     axiosConfig,
     queryName: 'getEventAnomalies',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -232,13 +222,11 @@ export const useGetEventLossesSummary = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<EventLossesSummary>({
     axiosConfig,
     queryName: 'getEventLossesSummary',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

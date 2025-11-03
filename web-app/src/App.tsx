@@ -38,7 +38,7 @@ import { CompanyThemeManager } from './components/CompanyThemeManager'
 import { PageLoader } from './components/Loading'
 // Development
 import RequiresUserType from './components/admin/RequiresUserType'
-import { useTheme } from './contexts/ThemeContext'
+import { useTheme } from './contexts/ThemeContext.utils'
 // Profile
 import AccountSettings from './pages/AccountSettings'
 import Api from './pages/Api'

@@ -33,14 +33,14 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext } from 'react'
 
+const TeamsGate = ({ children }: { children: React.ReactNode }) => (
+  <RequiresUserType requiredUserType="admin" silent>
+    {children}
+  </RequiresUserType>
+)
+
 const ApplicationSettings = () => {
   // const { user } = useUser()
-  // Use shared gate to check visibility to reduce duplicate logic
-  const TeamsGate = ({ children }: { children: React.ReactNode }) => (
-    <RequiresUserType requiredUserType="admin" silent>
-      {children}
-    </RequiresUserType>
-  )
   return (
     <Stack p="md">
       <Title order={1}>Application Settings</Title>

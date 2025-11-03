@@ -321,6 +321,49 @@ const useEventTraces = (
 }
 
 // Root Cause Selection Component
+interface ConfirmRootModalProps {
+  opened: boolean
+  onClose: () => void
+  onCancel: () => void
+  selectedRootCause: number | null
+  rootCauses?: { data?: RootCause[] }
+  updateRootCause: (rootCauseId: number | null) => void
+}
+
+const ConfirmRootModal = ({
+  opened,
+  onClose,
+  onCancel,
+  selectedRootCause,
+  rootCauses,
+  updateRootCause,
+}: ConfirmRootModalProps) => (
+  <Modal
+    opened={opened}
+    onClose={onCancel}
+    title={`Confirm Root Cause: ${
+      rootCauses?.data?.find((fm) => fm.root_cause_id === selectedRootCause)
+        ?.name_long ?? 'Unknown'
+    }`}
+    transitionProps={{ transition: 'rotate-left' }}
+  >
+    <Stack>
+      <Text>Are you sure you want to change the root cause?</Text>
+      <Group grow>
+        <Button onClick={onCancel}>Cancel</Button>
+        <Button
+          onClick={() => {
+            updateRootCause(selectedRootCause)
+            onClose()
+          }}
+        >
+          Confirm
+        </Button>
+      </Group>
+    </Stack>
+  </Modal>
+)
+
 const RootCauseSelection = ({
   event,
   showAllCauses,
@@ -453,7 +496,7 @@ const Page = () => {
 
   useEffect(() => {
     if (event) {
-      setSelectedRootCause(event.root_cause_id)
+      queueMicrotask(() => setSelectedRootCause(event.root_cause_id))
     }
   }, [event])
 
@@ -539,9 +582,9 @@ const Page = () => {
 
   useEffect(() => {
     if (event?.time_end) {
-      setEventStatus('closed')
+      queueMicrotask(() => setEventStatus('closed'))
     } else {
-      setEventStatus('open')
+      queueMicrotask(() => setEventStatus('open'))
     }
   }, [event?.time_end])
 
@@ -670,43 +713,6 @@ const Page = () => {
     {} as Record<string, string>,
   )
 
-  const ConfirmRootModal = () => (
-    <Modal
-      opened={opened}
-      onClose={() => {
-        close()
-        setSelectedRootCause(event?.root_cause_id ?? null)
-      }}
-      title={`Confirm Root Cause: ${
-        rootCauses?.data?.find((fm) => fm.root_cause_id === selectedRootCause)
-          ?.name_long ?? 'Unknown'
-      }`}
-      transitionProps={{ transition: 'rotate-left' }}
-    >
-      <Stack>
-        <Text>Are you sure you want to change the root cause?</Text>
-        <Group grow>
-          <Button
-            onClick={() => {
-              close()
-              setSelectedRootCause(event?.root_cause_id ?? null)
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              updateRootCause(selectedRootCause)
-              close()
-            }}
-          >
-            Confirm
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
-  )
-
   let mapComponent
   if (project.data?.project_type_id === ProjectTypeId.BESS) {
     mapComponent = <BESSEnclosureGIS showTitleCard={false} />
@@ -754,7 +760,17 @@ const Page = () => {
 
   return (
     <Group h="100%" gap="md" p="md">
-      <ConfirmRootModal />
+      <ConfirmRootModal
+        opened={opened}
+        onClose={close}
+        onCancel={() => {
+          close()
+          setSelectedRootCause(event?.root_cause_id ?? null)
+        }}
+        selectedRootCause={selectedRootCause}
+        rootCauses={rootCauses}
+        updateRootCause={updateRootCause}
+      />
       <Stack h="100%" flex={4}>
         <Group>
           <Stack>

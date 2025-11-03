@@ -29,13 +29,11 @@ export const useGetDeviceDetailsSingle = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DeviceDetailsSingle>({
     axiosConfig,
     queryName: 'getDeviceDetailsSingle',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

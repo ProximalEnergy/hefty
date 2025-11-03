@@ -48,13 +48,11 @@ export const useGetCMMSTickets = ({
     staleTime: 1000 * 60 * 5,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<CMMSResponse>({
     axiosConfig,
     queryName: 'getCMMSTickets',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

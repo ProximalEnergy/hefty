@@ -113,7 +113,7 @@ const ProjectKPIAlertModal = ({
     form.setFieldValue('alert_name', alert.config.alert_name)
     form.setFieldValue('kpi_type_id', alert.config.kpi_type_id)
     form.setFieldValue('statistic', alert.config.statistic)
-    handleKpiChange(alert.config.kpi_type_id)
+    queueMicrotask(() => handleKpiChange(alert.config.kpi_type_id))
     form.setFieldValue('comparison', alert.config.comparison)
 
     // Multiply threshold_value by 100 if the KPI's unit is "%"

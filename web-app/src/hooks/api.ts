@@ -127,14 +127,12 @@ export const useGetApiKey = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.ApiKey>({
     axiosConfig,
     queryName: 'getApiKey',
     pathParams: {},
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -218,14 +216,12 @@ export const useGetProjectReportInstances = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.ReportInstance[]>({
     axiosConfig,
     queryName: 'getReportInstances',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -240,12 +236,10 @@ export const useGetSubscriptions = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.UserSubscription[]>({
     axiosConfig,
     queryName: 'getSubscriptions',
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -398,14 +392,12 @@ export const useGetDevice = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Device>({
     axiosConfig,
     queryName: 'getDevice',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -478,14 +470,12 @@ export const useGetPvModules = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.PvModule[]>({
     axiosConfig,
     queryName: 'getPvModules',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -508,14 +498,12 @@ export const useGetTags = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Tag[]>({
     axiosConfig,
     queryName: 'getTags',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -535,14 +523,12 @@ export const useGetKPIAlerts = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.KPIAlertProps[]>({
     axiosConfig,
     queryName: 'getKPIAlerts',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -571,14 +557,12 @@ export const useGetDCAmperageReportV2 = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.DCAmperageDataV2>({
     axiosConfig,
     queryName: 'getDCAmperageReportV2',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -602,14 +586,12 @@ export const useGetEvents = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Event[]>({
     axiosConfig,
     queryName: 'getEvents',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -639,14 +621,12 @@ export const useGetPaginatedEvents = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.PaginatedEvent[]>({
     axiosConfig,
     queryName: 'getPaginatedEvents',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -674,14 +654,12 @@ export const useGetUptimeTable = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.UptimeData[]>({
     axiosConfig,
     queryName: 'getUptimeTable',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -703,14 +681,12 @@ export const useGetFailureModes = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.FailureMode[]>({
     axiosConfig,
     queryName: 'getFailureModes',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -733,14 +709,12 @@ export const useGetRootCauses = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.RootCause[]>({
     axiosConfig,
     queryName: 'getRootCauses',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -849,14 +823,12 @@ export const useGetWeather = ({
     staleTime: 15 * 60 * 1000, // 15 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.WeatherResponse>({
     axiosConfig,
     queryName: 'getWeather',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -876,14 +848,12 @@ export const useGetForecast = ({
     staleTime: 15 * 60 * 1000, // 15 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.ForecastResponse>({
     axiosConfig,
     queryName: 'getForecast',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -903,14 +873,12 @@ export const useGetHeatmap = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.DataHeatmap>({
     axiosConfig,
     queryName: 'getHeatmap',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -933,14 +901,12 @@ export const useGetGISPCS = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.GISPCS>({
     axiosConfig,
     queryName: 'getPCSPerformance',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -959,14 +925,12 @@ export const useGetGISCombinerBlock = ({
     staleTime: 60 * 1000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<FeatureCollection>({
     axiosConfig,
     queryName: 'getGISCombinerBlock',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -992,14 +956,12 @@ export const useGetGISTrackerByBlock = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<FeatureCollection>({
     axiosConfig,
     queryName: 'getGISTrackerByBlock',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1016,14 +978,12 @@ export const useGetGISBessEnclosure = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<FeatureCollection>({
     axiosConfig,
     queryName: 'getGISBessEnclosure',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1046,14 +1006,12 @@ export const useGetEquipmentAnalysisCombiner = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.EquipmentAnalysisCombiner>({
     axiosConfig,
     queryName: 'getEquipmentAnalysisCombiner',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1074,14 +1032,12 @@ export const useGetResources = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Resource[]>({
     axiosConfig,
     queryName: 'getResources',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1104,14 +1060,12 @@ export const useGetResource = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Resource>({
     axiosConfig,
     queryName: 'getResource',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1128,14 +1082,12 @@ export const useGetResourceNetPower = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getResourceNetPower',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1155,14 +1107,12 @@ export const useGetInspections = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Inspection[]>({
     axiosConfig,
     queryName: 'getInspections',
     pathParams,
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1182,14 +1132,12 @@ export const useGetObservations = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.Observation[]>({
     axiosConfig,
     queryName: 'getObservations',
     pathParams,
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1342,13 +1290,11 @@ export const useGetTriggeredKPIAlerts = ({
     staleTime: 1000 * 60 * 60,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.KPIAlertProps[]>({
     axiosConfig,
     queryName: 'getUserTriggeredAlerts',
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1368,14 +1314,12 @@ export const useGetKPIType = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<KPIType>({
     axiosConfig,
     queryName: 'getKPIType',
     pathParams,
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1394,14 +1338,12 @@ export const useGetSunburstData = ({
     staleTime: 5 * 60 * 1000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.SunburstProps>({
     axiosConfig,
     queryName: 'getSunburstData',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1426,14 +1368,12 @@ export const useGetClearskyPOA = ({
     staleTime: 5 * 60 * 1000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.DataTimeSeries[]>({
     axiosConfig,
     queryName: 'getClearskyPOA',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1457,14 +1397,12 @@ export const useGetDegradationPOA = ({
     staleTime: 5 * 60 * 1000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.DegradationPOA>({
     axiosConfig,
     queryName: 'getDegradationPOA',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -1542,14 +1480,12 @@ export const useValidateCombinerData = ({
     ),
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<{ isValid: boolean; message?: string }>({
     axiosConfig,
     queryName: 'validateCombinerData',
     pathParams,
     queryParams: transformedParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

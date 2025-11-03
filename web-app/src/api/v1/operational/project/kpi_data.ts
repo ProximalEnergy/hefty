@@ -41,14 +41,12 @@ export const useGetKPISummaryCards = ({
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
   return useCustomQuery<KPISummaryCard[]>({
     axiosConfig,
     queryName: 'getKPISummaryCards',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -77,13 +75,11 @@ export const useGetRoundTripEfficiency = ({
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
   return useCustomQuery<RoundTripEfficiencyData>({
     axiosConfig,
     queryName: 'getRoundTripEfficiency',
     pathParams,
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

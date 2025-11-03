@@ -246,12 +246,14 @@ const DcFieldAnomaliesMap = ({
   // Set initial view to fit the combiner bounds
   useEffect(() => {
     if (mapBounds) {
-      setViewState((prev) => ({
-        ...prev,
-        longitude: (mapBounds.west + mapBounds.east) / 2,
-        latitude: (mapBounds.south + mapBounds.north) / 2,
-        zoom: 17,
-      }))
+      queueMicrotask(() =>
+        setViewState((prev) => ({
+          ...prev,
+          longitude: (mapBounds.west + mapBounds.east) / 2,
+          latitude: (mapBounds.south + mapBounds.north) / 2,
+          zoom: 17,
+        })),
+      )
     }
   }, [mapBounds])
 

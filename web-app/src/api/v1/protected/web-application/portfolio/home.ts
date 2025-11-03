@@ -31,12 +31,10 @@ export const useGetPortfolioHome = ({
     staleTime: 1000 * 60 * 5,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PortfolioHomeProject[]>({
     axiosConfig,
     queryName: 'getPortfolioHome',
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

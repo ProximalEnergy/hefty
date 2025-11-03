@@ -60,7 +60,8 @@ export function useProjectFilter(criteria: ProjectFilterCriteria) {
   const { setFilterCriteria, clearFilterCriteria } = useProjectDropdown()
 
   // Memoize the criteria to prevent infinite re-renders
-  const memoizedCriteria = useMemo(() => criteria, [JSON.stringify(criteria)])
+  const jsonCriteria = JSON.stringify(criteria)
+  const memoizedCriteria = useMemo(() => criteria, [jsonCriteria])
 
   useEffect(() => {
     setFilterCriteria(memoizedCriteria)

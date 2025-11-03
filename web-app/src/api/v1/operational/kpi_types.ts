@@ -62,13 +62,11 @@ export const useGetKPITypes = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<KPIType[]>({
     axiosConfig,
     queryName: 'getKPITypes',
     queryParams: queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -88,14 +86,12 @@ export const useGetProjectKPITypes = ({
     staleTime: 5 * 60 * 1000, // 5 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<KPITypeWithContractInfo[]>({
     axiosConfig,
     queryName: `getProjectKPITypes-${pathParams.projectId}`,
     pathParams,
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

@@ -17,13 +17,11 @@ export const useGetCompanyUsers = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<User[]>({
     axiosConfig,
     queryName: 'getCompanyUsers',
     pathParams: {},
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

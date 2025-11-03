@@ -20,13 +20,11 @@ export const useGetPVBudgetedSeries = ({
     refetchOnMount: 'always',
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<unknown[]>({
     axiosConfig,
     queryName: 'pvBudgetedSeries',
     pathParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

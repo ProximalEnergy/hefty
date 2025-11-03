@@ -38,14 +38,12 @@ export const useGetERCOTSettlementPoints = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<SettlementPoint[]>({
     axiosConfig,
     queryName: 'getERCOTSettlementPoints',
     pathParams: {},
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -72,13 +70,11 @@ export const useGetERCOTPrices = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ERCOTPrices[]>({
     axiosConfig,
     queryName: 'getERCOTPrices',
     pathParams: {},
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

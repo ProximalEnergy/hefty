@@ -33,12 +33,10 @@ export const useGetKPIInstances = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<KPIInstance[]>({
     axiosConfig,
     queryName: 'getKPIInstances',
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -23,10 +23,13 @@ const Page = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [showClosed, setShowClosed] = useState(false)
 
-  // Calculate start date for last 90 days
-  const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split('T')[0]
+  // Calculate start date for last 90 days (computed once on mount)
+  const [startDate] = useState(
+    () =>
+      new Date(new Date().getTime() - 90 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
+  )
 
   const tickets = useGetCMMSTickets({
     pathParams: { projectId: projectId || '' },

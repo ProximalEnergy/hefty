@@ -208,8 +208,8 @@ const PCSEquipmentAnalysis = () => {
   const startISO = start?.toISOString()
 
   useEffect(() => {
-    setInitialSliderValueSet(false)
-    setSliderValue(0)
+    queueMicrotask(() => setInitialSliderValueSet(false))
+    queueMicrotask(() => setSliderValue(0))
   }, [startISO])
 
   useEffect(() => {
@@ -217,7 +217,7 @@ const PCSEquipmentAnalysis = () => {
       return
     }
     if (!dataLength) {
-      setSliderValue(0)
+      queueMicrotask(() => setSliderValue(0))
       return
     }
 
@@ -226,21 +226,23 @@ const PCSEquipmentAnalysis = () => {
 
     if (isToday) {
       // For today, show the most current available time
-      setSliderValue(dataLength - 1)
+      queueMicrotask(() => setSliderValue(dataLength - 1))
     } else {
       // For previous days, show middle of the day
-      setSliderValue(Math.floor(dataLength / 2))
+      queueMicrotask(() => setSliderValue(Math.floor(dataLength / 2)))
     }
-    setInitialSliderValueSet(true)
+    queueMicrotask(() => setInitialSliderValueSet(true))
   }, [dataLength, data.isLoading, initialSliderValueSet, start, startISO])
 
   useEffect(() => {
     if (dataLength === 1) {
-      setSliderValue(0)
+      queueMicrotask(() => setSliderValue(0))
     }
     if (isPlaying && dataLength) {
       intervalRef.current = window.setInterval(() => {
-        setSliderValue((prevValue) => (prevValue + 1) % dataLength)
+        queueMicrotask(() =>
+          setSliderValue((prevValue) => (prevValue + 1) % dataLength),
+        )
       }, 5000 / dataLength)
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current)

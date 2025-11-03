@@ -70,21 +70,6 @@ const PlotlyPlot = ({
   /////// that the plot type exists in the build-plotly-custom.js file /////////
   //////////////////////////////////////////////////////////////////////////////
 
-  if (isLoading) {
-    return <LoadingOverlay visible />
-  }
-
-  if (error) {
-    return (
-      <Center h={'100%'} w={'100%'}>
-        <Stack align="center">
-          <IconAlertTriangle size={48} />
-          <Text>{error.response?.data.detail}</Text>
-        </Stack>
-      </Center>
-    )
-  }
-
   const theme = useMantineTheme()
   const computedColorScheme = useComputedColorScheme('dark')
   const context = useContext(GISContext)
@@ -99,6 +84,8 @@ const PlotlyPlot = ({
   }
 
   const { colorsGoodBad } = context
+
+  let processedData = data
 
   const gridAlpha = 0.25
   const zeroAlpha = 0.75
@@ -212,7 +199,7 @@ const PlotlyPlot = ({
     [allowPinning, theme],
   )
 
-  if (colorscale && data) {
+  if (colorscale && processedData.length > 0) {
     if (colorscale === 'primary') {
       const primary =
         theme.colors[theme.primaryColor][computedColorScheme === 'dark' ? 7 : 7]
@@ -225,7 +212,10 @@ const PlotlyPlot = ({
         i / (colors.length - 1),
         color,
       ])
-      data = data.map((d) => ({ ...d, colorscale: colorscale }))
+      processedData = processedData.map((d) => ({
+        ...d,
+        colorscale: colorscale,
+      }))
     } else if (colorscale === 'good-bad') {
       const colors = chroma
         .scale(colorsGoodBad.map((c) => c.value))
@@ -235,7 +225,10 @@ const PlotlyPlot = ({
         i / (colors.length - 1),
         color,
       ])
-      data = data.map((d) => ({ ...d, colorscale: colorscale }))
+      processedData = processedData.map((d) => ({
+        ...d,
+        colorscale: colorscale,
+      }))
     } else if (colorscale === 'good-bad-reversed') {
       const reversedColors = [...colorsGoodBad].reverse()
       const colors = chroma
@@ -246,7 +239,10 @@ const PlotlyPlot = ({
         i / (colors.length - 1),
         color,
       ])
-      data = data.map((d) => ({ ...d, colorscale: colorscale }))
+      processedData = processedData.map((d) => ({
+        ...d,
+        colorscale: colorscale,
+      }))
     } else if (colorscale === 'tracker') {
       const trackerColors = [
         { id: 0, value: '#b5d6e0' }, // Sunrise (-60)
@@ -263,7 +259,10 @@ const PlotlyPlot = ({
         i / (colors.length - 1),
         color,
       ])
-      data = data.map((d) => ({ ...d, colorscale: colorscale }))
+      processedData = processedData.map((d) => ({
+        ...d,
+        colorscale: colorscale,
+      }))
     }
   }
 
@@ -306,7 +305,7 @@ const PlotlyPlot = ({
     }
   }, [annotations, shapes, allowPinning, onAnnotationClick])
 
-  const plotType = data.length > 0 ? data[0].type : null
+  const plotType = processedData.length > 0 ? processedData[0].type : null
 
   let conditionalLayout: Partial<Layout> = {}
   if (plotType === 'heatmap') {
@@ -414,12 +413,12 @@ const PlotlyPlot = ({
       setAnnotations((prev) => [...prev, newAnnotation])
       setShapes((prev) => [...prev, newShape])
     }
-    onClick && onClick(e)
+    onClick?.(e)
   }
 
   const handleHover = (e: Readonly<PlotHoverEvent>) => {
     lastHoverEvent.current = e
-    onHover && onHover(e)
+    onHover?.(e)
   }
 
   // Update modebar button active state via CSS
@@ -448,10 +447,25 @@ const PlotlyPlot = ({
     }
   }, [pinModeActive])
 
+  if (isLoading) {
+    return <LoadingOverlay visible />
+  }
+
+  if (error) {
+    return (
+      <Center h={'100%'} w={'100%'}>
+        <Stack align="center">
+          <IconAlertTriangle size={48} />
+          <Text>{error.response?.data.detail}</Text>
+        </Stack>
+      </Center>
+    )
+  }
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Plot
-        data={data}
+        data={processedData}
         layout={merge({}, layoutTemplate, conditionalLayout, layout)}
         config={merge({}, configTemplate, config)}
         style={{ width: '100%', height: '100%', overflow: 'hidden' }}

@@ -128,9 +128,9 @@ export default function EquipmentAnalysis() {
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab')
     if (tabFromUrl && availableTabs.some((tab) => tab.value === tabFromUrl)) {
-      setActiveTab(tabFromUrl)
+      queueMicrotask(() => setActiveTab(tabFromUrl))
     } else if (availableTabs.length > 0 && !activeTab) {
-      setActiveTab(availableTabs[0].value)
+      queueMicrotask(() => setActiveTab(availableTabs[0].value))
     }
   }, [searchParams, availableTabs, activeTab])
 

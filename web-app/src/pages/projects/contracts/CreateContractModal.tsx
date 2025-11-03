@@ -186,7 +186,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const { data: project } = useSelectProject(projectId!)
+  const { data: project } = useSelectProject(projectId ?? '')
 
   const { data: currentUser } = useGetUserSelf({})
 
@@ -445,8 +445,8 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       categories
     ) {
       // Reset analysis state when selecting a new document
-      setAnalysisCompleted(false)
-      handleDocumentAnalysis(selectedDocument)
+      queueMicrotask(() => setAnalysisCompleted(false))
+      queueMicrotask(() => handleDocumentAnalysis(selectedDocument))
     }
   }, [
     selectedDocument,
@@ -471,7 +471,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       date: null,
       description: '',
     }
-    setContractDates([...contractDates, newDate])
+    queueMicrotask(() => setContractDates([...contractDates, newDate]))
   }
 
   const removeContractDate = (id: string) => {
@@ -602,7 +602,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       await createContract.mutateAsync({
         project_id: projectId,
         document_id: selectedDocument,
-        company_id_provider: currentUser?.company_id!,
+        company_id_provider: currentUser?.company_id || '',
         company_id_counter: companyResponse.data.company_id,
         execution_date: formattedExecutionDate,
         contract_category_name_short: contractCategory || undefined,

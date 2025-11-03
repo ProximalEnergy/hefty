@@ -23,7 +23,7 @@ import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
 import AdaptiveGisBESS from '@/pages/projects/gis/adaptive-gis-bess'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
-import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome'
+import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { getInterval, roundTime } from '@/utils/interval'
 import { projectDescription } from '@/utils/projectDescription'
 import {
@@ -1475,7 +1475,9 @@ const ContractualKPIOverview = ({
   // Update expanded state when projectId changes
   useEffect(() => {
     const saved = localStorage.getItem(`contractRisksExpanded_${projectId}`)
-    setIsExpanded(saved !== null ? JSON.parse(saved) : true)
+    queueMicrotask(() =>
+      setIsExpanded(saved !== null ? JSON.parse(saved) : true),
+    )
   }, [projectId])
 
   // Save expanded state to localStorage whenever it changes

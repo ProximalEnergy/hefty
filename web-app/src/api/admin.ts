@@ -67,14 +67,12 @@ export const useGetUserType = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<UserType>({
     axiosConfig,
     queryName: 'getUserType',
     pathParams: {},
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -92,14 +90,12 @@ export const useGetAllPermissions = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Permission[]>({
     axiosConfig,
     queryName: 'getAllPermissions',
     pathParams: {},
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -119,14 +115,12 @@ export const useGetCompanyPermissions = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Permission[]>({
     axiosConfig,
     queryName: 'getCompanyPermissions',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -146,14 +140,12 @@ export const useGetCompanyUsersPermissions = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<UserWithPermissions[]>({
     axiosConfig,
     queryName: 'getCompanyUsersPermissions',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -173,14 +165,12 @@ export const useGetUserPermissions = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Permission[]>({
     axiosConfig,
     queryName: 'getUserPermissions',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -287,14 +277,12 @@ export const useGetUsers = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<User[]>({
     axiosConfig,
     queryName: 'getUsers',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -312,14 +300,12 @@ export const useGetUserSelf = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<User>({
     axiosConfig,
     queryName: 'getUserSelf',
     pathParams: {},
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -340,14 +326,12 @@ export const useGetCompanies = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Company[]>({
     axiosConfig,
     queryName: 'getCompanies',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -365,14 +349,12 @@ export const useGetCompanyTeams = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Team[]>({
     axiosConfig,
     queryName: 'getCompanyTeams',
     pathParams: {},
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -390,14 +372,12 @@ export const useGetCompanyTeamsWithMembers = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<TeamWithMembers[]>({
     axiosConfig,
     queryName: 'getCompanyTeamsWithMembers',
     pathParams: {},
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -440,14 +420,12 @@ export const useGetTeamsWithMembers = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<TeamWithMembers[]>({
     axiosConfig,
     queryName: 'getTeamsWithMembers',
     pathParams: {},
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

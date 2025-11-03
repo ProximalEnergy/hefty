@@ -62,14 +62,12 @@ export const useGetCalendarEvents = ({
     staleTime: 1000 * 60, // 1 minute
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<CalendarEvent[]>({
     axiosConfig,
     queryName: 'getCalendarEvents',
     pathParams,
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -93,15 +91,13 @@ export const useGetCalendarEventCategories = ({
     staleTime: 1000 * 60 * 5, // 5 minutes, categories are not expected to change often
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<CalendarEventCategory[]>({
     // Expecting an array of categories
     axiosConfig,
     queryName: 'getCalendarEventCategories',
     pathParams, // Pass projectId here
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

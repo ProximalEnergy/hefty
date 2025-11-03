@@ -31,14 +31,12 @@ export const useGetProjectDocuments = ({
     staleTime: 5 * 60 * 1000, // 5 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ProjectDocument[]>({
     axiosConfig,
     queryName: 'getProjectDocuments',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
