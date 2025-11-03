@@ -1259,131 +1259,176 @@ const ProjectTagExplorer = () => {
                                   </Tabs.List>
 
                                   <Tabs.Panel value="timeseries" pt="xs">
-                                    <Plot
-                                      data={numericTags.map((tag: any) => ({
-                                        x: tag.timestamps.map(
-                                          (timestamp: string) => {
-                                            // Convert UTC timestamp to project's local timezone
-                                            const projectTimezone =
-                                              project.data?.time_zone || 'UTC'
-                                            return dayjs
-                                              .utc(timestamp)
-                                              .tz(projectTimezone)
-                                              .format('MM-DD HH:mm')
-                                          },
-                                        ),
-                                        y: tag.sample_values.map(
-                                          (value: number) => {
-                                            let transformedValue = value
-                                            if (patternUnitScale) {
-                                              transformedValue =
-                                                transformedValue *
-                                                patternUnitScale
-                                            }
-                                            if (patternUnitOffset) {
-                                              transformedValue =
-                                                transformedValue +
-                                                patternUnitOffset
-                                            }
-
-                                            return transformedValue
-                                          },
-                                        ),
-                                        type: 'scatter',
-                                        mode: 'lines+markers',
-                                        name: tag.tag_name,
-                                        opacity: 0.7,
-                                        hovertemplate:
-                                          `<b>${tag.tag_name}</b><br>` +
-                                          `Time: %{x}<br>` +
-                                          `Value: %{y}<br>` +
-                                          `<extra></extra>`,
-                                      }))}
-                                      layout={{
-                                        width: 600,
-                                        height: 400,
-                                        showlegend: false,
-                                        margin: { l: 50, r: 20, t: 20, b: 100 },
-                                        xaxis: {
-                                          title: {
-                                            text: 'Time (Project Local)',
-                                            standoff: 20,
-                                          },
-                                          type: 'category',
-                                          tickmode: 'auto',
-                                        },
-                                        yaxis: {
-                                          title: {
-                                            text: selectedSensorTypeUnit
-                                              ? `Values (${selectedSensorTypeUnit})`
-                                              : 'Values',
-                                          },
-                                          tickformat:
-                                            selectedSensorTypeUnit &&
-                                            selectedSensorTypeUnit
-                                              .toLowerCase()
-                                              .includes('%')
-                                              ? ',.0%'
-                                              : undefined,
-                                        },
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        minHeight: '400px',
+                                        position: 'relative',
                                       }}
-                                      config={{ displayModeBar: false }}
-                                    />
+                                    >
+                                      <Plot
+                                        data={numericTags.map((tag: any) => ({
+                                          x: tag.timestamps.map(
+                                            (timestamp: string) => {
+                                              // Convert UTC timestamp to project's local timezone
+                                              // Keep as Date object for Plotly to handle chronologically
+                                              const projectTimezone =
+                                                project.data?.time_zone || 'UTC'
+                                              return dayjs
+                                                .utc(timestamp)
+                                                .tz(projectTimezone)
+                                                .toDate()
+                                            },
+                                          ),
+                                          y: tag.sample_values.map(
+                                            (value: number) => {
+                                              let transformedValue = value
+                                              if (patternUnitScale) {
+                                                transformedValue =
+                                                  transformedValue *
+                                                  patternUnitScale
+                                              }
+                                              if (patternUnitOffset) {
+                                                transformedValue =
+                                                  transformedValue +
+                                                  patternUnitOffset
+                                              }
+
+                                              return transformedValue
+                                            },
+                                          ),
+                                          type: 'scatter',
+                                          mode: 'lines+markers',
+                                          name: tag.tag_name,
+                                          opacity: 0.7,
+                                          hovertemplate:
+                                            `<b>${tag.tag_name}</b><br>` +
+                                            `Time: %{x|%m-%d %H:%M}<br>` +
+                                            `Value: %{y}<br>` +
+                                            `<extra></extra>`,
+                                        }))}
+                                        layout={{
+                                          autosize: true,
+                                          showlegend: false,
+                                          margin: {
+                                            l: 60,
+                                            r: 30,
+                                            t: 20,
+                                            b: 100,
+                                            pad: 4,
+                                          },
+                                          xaxis: {
+                                            title: {
+                                              text: 'Time (Project Local)',
+                                              standoff: 20,
+                                            },
+                                            type: 'date',
+                                            tickformat: '%m-%d %H:%M',
+                                          },
+                                          yaxis: {
+                                            title: {
+                                              text: selectedSensorTypeUnit
+                                                ? `Values (${selectedSensorTypeUnit})`
+                                                : 'Values',
+                                            },
+                                            tickformat:
+                                              selectedSensorTypeUnit &&
+                                              selectedSensorTypeUnit
+                                                .toLowerCase()
+                                                .includes('%')
+                                                ? ',.0%'
+                                                : undefined,
+                                          },
+                                        }}
+                                        config={{
+                                          displayModeBar: false,
+                                          responsive: true,
+                                        }}
+                                        style={{
+                                          width: '100%',
+                                          height: '100%',
+                                        }}
+                                        useResizeHandler={true}
+                                      />
+                                    </div>
                                   </Tabs.Panel>
 
                                   <Tabs.Panel value="histogram" pt="xs">
-                                    <Plot
-                                      data={numericTags.map((tag: any) => ({
-                                        x: tag.sample_values.map(
-                                          (value: number) => {
-                                            let transformedValue = value
-                                            if (patternUnitScale) {
-                                              transformedValue =
-                                                transformedValue *
-                                                patternUnitScale
-                                            }
-                                            if (patternUnitOffset) {
-                                              transformedValue =
-                                                transformedValue +
-                                                patternUnitOffset
-                                            }
-
-                                            return transformedValue
-                                          },
-                                        ),
-                                        type: 'histogram',
-                                        name: tag.tag_name,
-                                        opacity: 0.7,
-                                        nbinsx: 20,
-                                        hovertemplate:
-                                          `<b>${tag.tag_name}</b><br>` +
-                                          `Value: %{x}<br>` +
-                                          `Count: %{y}<br>` +
-                                          `<extra></extra>`,
-                                      }))}
-                                      layout={{
-                                        width: 600,
-                                        height: 400,
-                                        showlegend: false,
-                                        margin: { l: 50, r: 20, t: 20, b: 100 },
-                                        xaxis: {
-                                          title: {
-                                            text: selectedSensorTypeUnit
-                                              ? `Values (${selectedSensorTypeUnit})`
-                                              : 'Values',
-                                          },
-                                          tickformat:
-                                            selectedSensorTypeUnit &&
-                                            selectedSensorTypeUnit
-                                              .toLowerCase()
-                                              .includes('%')
-                                              ? ',.0%'
-                                              : undefined,
-                                        },
-                                        yaxis: { title: { text: 'Frequency' } },
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        minHeight: '400px',
+                                        position: 'relative',
                                       }}
-                                      config={{ displayModeBar: false }}
-                                    />
+                                    >
+                                      <Plot
+                                        data={numericTags.map((tag: any) => ({
+                                          x: tag.sample_values.map(
+                                            (value: number) => {
+                                              let transformedValue = value
+                                              if (patternUnitScale) {
+                                                transformedValue =
+                                                  transformedValue *
+                                                  patternUnitScale
+                                              }
+                                              if (patternUnitOffset) {
+                                                transformedValue =
+                                                  transformedValue +
+                                                  patternUnitOffset
+                                              }
+
+                                              return transformedValue
+                                            },
+                                          ),
+                                          type: 'histogram',
+                                          name: tag.tag_name,
+                                          opacity: 0.7,
+                                          nbinsx: 20,
+                                          hovertemplate:
+                                            `<b>${tag.tag_name}</b><br>` +
+                                            `Value: %{x}<br>` +
+                                            `Count: %{y}<br>` +
+                                            `<extra></extra>`,
+                                        }))}
+                                        layout={{
+                                          autosize: true,
+                                          showlegend: false,
+                                          margin: {
+                                            l: 60,
+                                            r: 30,
+                                            t: 20,
+                                            b: 100,
+                                            pad: 4,
+                                          },
+                                          xaxis: {
+                                            title: {
+                                              text: selectedSensorTypeUnit
+                                                ? `Values (${selectedSensorTypeUnit})`
+                                                : 'Values',
+                                            },
+                                            tickformat:
+                                              selectedSensorTypeUnit &&
+                                              selectedSensorTypeUnit
+                                                .toLowerCase()
+                                                .includes('%')
+                                                ? ',.0%'
+                                                : undefined,
+                                          },
+                                          yaxis: {
+                                            title: { text: 'Frequency' },
+                                          },
+                                        }}
+                                        config={{
+                                          displayModeBar: false,
+                                          responsive: true,
+                                        }}
+                                        style={{
+                                          width: '100%',
+                                          height: '100%',
+                                        }}
+                                        useResizeHandler={true}
+                                      />
+                                    </div>
                                   </Tabs.Panel>
                                 </Tabs>
                               )}
