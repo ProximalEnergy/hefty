@@ -91,16 +91,25 @@ async def get_battery_settlement_details(
     user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    (
-        qse_integration,
-        has_permission,
-    ) = await core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
-        db=db_async,
-        project_id=project.project_id,
-        user=user,
+    qse_integration = (
+        await core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
+            db=db_async,
+            project_id=project.project_id,
+        )
     )
     if qse_integration is None:
         raise HTTPException(status_code=404, detail="QSE integration not found")
+
+    permissions = (
+        await core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
+            db=db_async,
+            company_id=user.company_id,
+        )
+    )
+    has_permission = any(
+        perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view
+        for perm in permissions
+    )
     if not has_permission:
         raise HTTPException(status_code=403, detail="Forbidden")
     fields = await core.crud.operational.qse_integrations.get_qse_fields_by_provider_id(
@@ -161,95 +170,89 @@ async def get_battery_settlement_details(
     # ---------- Derived metrics ----------
     out = pd.DataFrame(index=df.index)
 
-    # Net positions & deviation (MWh)
+    # Net positions & deviation
     if (RT_GEN in df.columns) or (RT_CON in df.columns):
-        out["Net Position (MWh)"] = s(RT_GEN) - s(RT_CON)
+        out["Net Position"] = s(RT_GEN) - s(RT_CON)
 
     if (DA_SALES in df.columns) or (DA_PURCH in df.columns):
-        out["DA Net Position (MWh)"] = s(DA_SALES) - s(DA_PURCH)
+        out["DA Net Position"] = s(DA_SALES) - s(DA_PURCH)
 
-    if ("Net Position (MWh)" in out.columns) and (
-        "DA Net Position (MWh)" in out.columns
-    ):
-        out["DA vs RT Deviation (MWh)"] = (
-            out["Net Position (MWh)"] - out["DA Net Position (MWh)"]
-        )
+    if ("Net Position" in out.columns) and ("DA Net Position" in out.columns):
+        out["DA vs RT Deviation"] = out["Net Position"] - out["DA Net Position"]
 
-    # Price spread ($/MWh)
+    # Price spread
     if (RT_SPP in df.columns) and (DA_SPP in df.columns):
-        out["RT - DA Price Spread ($/MWh)"] = s(RT_SPP) - s(DA_SPP)
+        out["RT - DA Price Spread"] = s(RT_SPP) - s(DA_SPP)
 
-    # Throughput (MWh)
+    # Throughput
     if (RT_GEN in df.columns) or (RT_CON in df.columns):
-        out["Throughput (MWh)"] = s(RT_GEN) + s(RT_CON)
+        out["Throughput"] = s(RT_GEN) + s(RT_CON)
 
-    # Energy revenues ($): prefer settlement amounts; fallback to qty×price
+    # Energy revenues: prefer settlement amounts; fallback to qty×price
     # RT
     if RT_EN_AMT in df.columns:
-        out["RT Energy Revenue ($)"] = s(RT_EN_AMT)
-    elif (RT_SPP in df.columns) and ("Net Position (MWh)" in out.columns):
-        out["RT Energy Revenue ($)"] = out["Net Position (MWh)"] * s(RT_SPP)
+        out["RT Energy Revenue"] = s(RT_EN_AMT)
+    elif (RT_SPP in df.columns) and ("Net Position" in out.columns):
+        out["RT Energy Revenue"] = out["Net Position"] * s(RT_SPP)
 
     # DA
     if DA_EN_AMT in df.columns:
-        out["DA Energy Revenue ($)"] = s(DA_EN_AMT)
-    elif (DA_SPP in df.columns) and ("DA Net Position (MWh)" in out.columns):
-        out["DA Energy Revenue ($)"] = out["DA Net Position (MWh)"] * s(DA_SPP)
+        out["DA Energy Revenue"] = s(DA_EN_AMT)
+    elif (DA_SPP in df.columns) and ("DA Net Position" in out.columns):
+        out["DA Energy Revenue"] = out["DA Net Position"] * s(DA_SPP)
 
-    # Total energy revenue ($)
-    if ("RT Energy Revenue ($)" in out.columns) or (
-        "DA Energy Revenue ($)" in out.columns
-    ):
-        out["Total Energy Revenue ($)"] = out.get(
-            "RT Energy Revenue ($)", zero_series()
-        ).fillna(0.0) + out.get("DA Energy Revenue ($)", zero_series()).fillna(0.0)
+    # Total energy revenue
+    if ("RT Energy Revenue" in out.columns) or ("DA Energy Revenue" in out.columns):
+        out["Total Energy Revenue"] = out.get(
+            "RT Energy Revenue", zero_series()
+        ).fillna(0.0) + out.get("DA Energy Revenue", zero_series()).fillna(0.0)
 
-    # Imbalance totals ($)
+    # Imbalance totals
     if (
         (BP_DEV in df.columns)
         or (RT_AS_IMB in df.columns)
         or (RT_REL_IMB in df.columns)
     ):
-        out["Total Imbalance Amount ($)"] = s(BP_DEV) + s(RT_AS_IMB) + s(RT_REL_IMB)
+        out["Total Imbalance Amount"] = s(BP_DEV) + s(RT_AS_IMB) + s(RT_REL_IMB)
 
-    # Net Profit ($) = energy revenue + imbalances (signs assumed native)
-    if ("Total Energy Revenue ($)" in out.columns) or (
-        "Total Imbalance Amount ($)" in out.columns
+    # Net Profit = energy revenue + imbalances (signs assumed native)
+    if ("Total Energy Revenue" in out.columns) or (
+        "Total Imbalance Amount" in out.columns
     ):
-        out["Net Profit ($)"] = out.get(
-            "Total Energy Revenue ($)", zero_series()
-        ).fillna(0.0) + out.get("Total Imbalance Amount ($)", zero_series()).fillna(0.0)
+        out["Net Profit"] = out.get("Total Energy Revenue", zero_series()).fillna(
+            0.0
+        ) + out.get("Total Imbalance Amount", zero_series()).fillna(0.0)
 
-    # Profit per Throughput ($/MWh)
-    if ("Net Profit ($)" in out.columns) and ("Throughput (MWh)" in out.columns):
-        denom = out["Throughput (MWh)"].replace({0.0: np.nan})
-        out["Profit per Throughput ($/MWh)"] = out["Net Profit ($)"] / denom
+    # Profit per Throughput
+    if ("Net Profit" in out.columns) and ("Throughput" in out.columns):
+        denom = out["Throughput"].replace({0.0: np.nan})
+        out["Profit per Throughput"] = out["Net Profit"] / denom
 
-    # Cumulative $ metrics
+    # Cumulative metrics
     for col in [
-        "Net Profit ($)",
-        "Total Energy Revenue ($)",
-        "Total Imbalance Amount ($)",
+        "Net Profit",
+        "Total Energy Revenue",
+        "Total Imbalance Amount",
     ]:
         if col in out.columns:
             out[f"Cumulative {col}"] = out[col].fillna(0.0).cumsum()
 
     # Units for calculated series
     calculated_units = {
-        "RT - DA Price Spread ($/MWh)": "$/MWh",
-        "Net Position (MWh)": "MWh",
-        "DA Net Position (MWh)": "MWh",
-        "DA vs RT Deviation (MWh)": "MWh",
-        "Throughput (MWh)": "MWh",
-        "RT Energy Revenue ($)": "$",
-        "DA Energy Revenue ($)": "$",
-        "Total Energy Revenue ($)": "$",
-        "Total Imbalance Amount ($)": "$",
-        "Net Profit ($)": "$",
-        "Profit per Throughput ($/MWh)": "$/MWh",
-        "Cumulative Net Profit ($)": "$",
-        "Cumulative Total Energy Revenue ($)": "$",
-        "Cumulative Total Imbalance Amount ($)": "$",
+        "RT - DA Price Spread": "$/MWh",
+        "Net Position": "MWh",
+        "DA Net Position": "MWh",
+        "DA vs RT Deviation": "MWh",
+        "Throughput": "MWh",
+        "RT Energy Revenue": "$",
+        "DA Energy Revenue": "$",
+        "Total Energy Revenue": "$",
+        "Total Imbalance Amount": "$",
+        "Net Profit": "$",
+        "Profit per Throughput": "$/MWh",
+        "Cumulative Net Profit": "$",
+        "Cumulative Total Energy Revenue": "$",
+        "Cumulative Total Imbalance Amount": "$",
     }
 
     # Keep only computed columns

@@ -41,7 +41,7 @@ const ZOOM_LEVEL_1 = 13
 const COLOR_NON_COMM = '#1C7ED6'
 const OPACITY_NON_COMM = 0.5
 
-export function AdaptiveGisBESS() {
+function AdaptiveGisBESS() {
   const context = useContext(GISContext)
   const { projectId } = useParams()
   const navigate = useNavigate()
