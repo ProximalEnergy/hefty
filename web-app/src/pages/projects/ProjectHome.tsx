@@ -1377,7 +1377,7 @@ const BatteryHealth = () => {
                   c={theme.colors.green[6]}
                   style={{ cursor: 'pointer' }}
                   onClick={() =>
-                    navigate(`/projects/${projectId}/kpis/type/24`)
+                    navigate(`/projects/${projectId}/kpis/type/25`)
                   }
                   onMouseEnter={() => {
                     setShowSocData(true)
