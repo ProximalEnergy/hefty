@@ -8,6 +8,7 @@ import boto3
 import numpy as np
 import pandas as pd
 from core.crud.operational.device_types import get_device_types
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +26,6 @@ from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import (
     get_async_db,
-    get_db,
     get_project,
     get_project_db,
     get_user_data_async,

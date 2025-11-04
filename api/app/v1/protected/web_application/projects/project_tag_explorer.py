@@ -5,6 +5,7 @@ from typing import Annotated, Any, cast
 import pandas as pd
 from core.crud.operational import projects as crud_projects
 from core.crud.project import tags as crud_project_tags
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -200,7 +201,7 @@ async def assign_sensor_type_to_tag(
     project_id: str,
     tag_name_short: str,
     sensor_type_id: int,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Assign a sensor type to a specific tag in a project.
@@ -263,7 +264,7 @@ async def assign_sensor_type_to_pattern(
     request: AssignPatternSensorTypeRequest,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Assign a sensor type to all tags matching a pattern in a project.

@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
+from core.dependencies import get_db
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,7 +36,6 @@ from app._crud.projects.events import (
 from app._crud.projects.events import get_paginated_events as crud_get_paginated_events
 from app.dependencies import (
     get_async_db,
-    get_db,
     get_project,
     get_project_db,
     get_project_db_async,

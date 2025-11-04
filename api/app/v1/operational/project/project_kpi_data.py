@@ -5,6 +5,7 @@ from typing import Annotated, Any
 import numpy as np
 import pandas as pd
 from core.crud.operational.projects import get_project_async
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
@@ -26,7 +27,6 @@ from app._crud.projects.kpi_data import (
 )
 from app.dependencies import (
     get_async_db,
-    get_db,
     get_is_superadmin_async,
     get_project,
     get_project_db,

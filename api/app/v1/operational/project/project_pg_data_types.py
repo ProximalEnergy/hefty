@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,6 @@ from app._crud.operational.pg_data_types import (
 from app._crud.operational.pg_data_types import (
     get_pg_data_types as crud_get_pg_data_types,
 )
-from app.dependencies import get_db
 
 DESCRIPTION_404 = "PG data type not found"
 router = APIRouter(prefix="/pg-data-types", tags=["pg_data_types"])

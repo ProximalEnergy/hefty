@@ -1,10 +1,12 @@
 from typing import Annotated
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app._crud.operational.report_types as _crud
-from app import dependencies, interfaces
+from app import interfaces
+from app.dependencies import get_async_db
 
 router = APIRouter(prefix="/report-types", tags=["report_types"])
 deprecated_router = APIRouter(
@@ -18,7 +20,7 @@ deprecated_router = APIRouter(
     operation_id="get_report_types",
 )
 async def get_report_types(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
     return await _crud.get_report_types(db=db)
 
@@ -28,9 +30,7 @@ async def get_report_types(
     response_model=list[interfaces.ReportType],
     operation_id="get_report_types_legacy",
 )
-def get_report_types_legacy(
-    *, db: Annotated[AsyncSession, Depends(dependencies.get_db)]
-):
+def get_report_types_legacy(*, db: Annotated[AsyncSession, Depends(get_db)]):
     return get_report_types(db=db)
 
 
@@ -40,7 +40,7 @@ def get_report_types_legacy(
     operation_id="get_report_type_by_id",
 )
 async def get_report_type(
-    report_type_id: int, db: Annotated[AsyncSession, Depends(dependencies.get_async_db)]
+    report_type_id: int, db: Annotated[AsyncSession, Depends(get_async_db)]
 ):
     return await _crud.get_report_type(db=db, report_type_id=report_type_id)
 
@@ -51,6 +51,6 @@ async def get_report_type(
     operation_id="get_report_type_by_id_legacy",
 )
 def get_report_type_legacy(
-    *, report_type_id: int, db: Annotated[AsyncSession, Depends(dependencies.get_db)]
+    *, report_type_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ):
     return get_report_type(report_type_id, db)

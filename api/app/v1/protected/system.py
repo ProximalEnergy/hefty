@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Any
 
 import pandas as pd
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
@@ -24,7 +25,7 @@ def get_meter_power_and_expected_power_v2(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project),
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
     include_storage: bool = False,
     include_setpoint: bool = False,

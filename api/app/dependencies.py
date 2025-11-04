@@ -1,12 +1,11 @@
 import asyncio
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 from uuid import UUID
 
 import httpx
 import jwt
 import sqlalchemy as sa
-
-# Import core database functions
+from core.dependencies import get_db
 from core.dependencies import get_project_name_short as core_get_project_name_short
 from core.dependencies import (
     get_project_name_short_async as core_get_project_name_short_async,
@@ -22,14 +21,6 @@ import core
 from app import interfaces, settings
 from app.integrations.token_manager import TokenManager, get_tps_token_manager
 from core import models
-
-# Note: _with_db and _with_async_db are now imported from core.dependencies
-# They are aliased above for backward compatibility
-
-
-def get_db() -> Generator[Session, None, None]:
-    with _with_db(schema=None) as db:
-        yield db
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:

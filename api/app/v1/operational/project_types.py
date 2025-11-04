@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,6 @@ from app._crud.operational.project_types import (
 from app._crud.operational.project_types import (
     get_project_types as crud_get_project_types,
 )
-from app.dependencies import get_db
 
 DESCRIPTION_404 = "Project type not found"
 

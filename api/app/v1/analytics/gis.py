@@ -4,6 +4,7 @@ from uuid import UUID
 
 import numpy as np
 import pandas as pd
+from core.dependencies import get_db
 from core.enumerations import ProjectStatusType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
@@ -24,7 +25,7 @@ def get_pcs(
     project_id: UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project),
 ):

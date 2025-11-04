@@ -5,6 +5,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,7 +65,7 @@ class UpdateDashboardRequest(BaseModel):
 @router.get("/bar")
 async def get_bar(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     sensor_type_id: int,
@@ -160,7 +161,7 @@ async def get_bar(
 @router.get("/gauge")
 async def get_gauge(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     measured_variable: str,
@@ -235,7 +236,7 @@ async def get_gauge(
 @router.get("/line")
 async def get_line(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     sensor_type_ids: Annotated[list[int], Query()],
@@ -354,7 +355,7 @@ async def get_line(
 @router.get("/scatter")
 async def get_scatter(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
     x_axis_sensor_type_id: int,

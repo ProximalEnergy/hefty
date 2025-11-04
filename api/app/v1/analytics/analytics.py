@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import requests
 from botocore.config import Config
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
@@ -157,7 +158,7 @@ def get_combiner_block_performance(
 @router.get("/geo", response_model=interfaces.GeoJSON)
 def get_project_geo(
     project_id: UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: models.Project = Depends(dependencies.get_project),
 ):
@@ -464,7 +465,7 @@ def get_time_series(
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project),
     include_ghost_tags: Annotated[bool, Query()] = False,
@@ -571,7 +572,7 @@ def get_time_series(
 def get_heatmap(
     project_id: UUID,
     sensor_type_name_short: str,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: models.Project = Depends(dependencies.get_project),
     start: datetime.datetime | None = None,
@@ -667,7 +668,7 @@ def get_expected_power_endpoint(
     project_id: UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project),
 ):
@@ -688,7 +689,7 @@ def get_meter_power_and_expected_power(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project),
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     # If start and end are not provided, get today's data
@@ -759,7 +760,7 @@ def get_equipment_analysis_combiner(
 @router.get("/project-weather")
 def get_project_weather(
     project_id: UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     project_data = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
@@ -779,7 +780,7 @@ def get_project_weather(
 @router.get("/project-weather-forecast")
 def get_project_weather_forecast(
     project_id: UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     project_data = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True

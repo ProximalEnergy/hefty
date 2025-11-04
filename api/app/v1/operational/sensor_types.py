@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,7 @@ from app._crud.operational.sensor_types import (
 from app._crud.operational.sensor_types import (
     update_sensor_type as crud_update_sensor_type,
 )
-from app.dependencies import get_db, get_user_data_async
+from app.dependencies import get_user_data_async
 
 DESCRIPTION_404 = "Sensor type not found"
 
