@@ -287,7 +287,7 @@ const ProjectEvents = () => {
         ),
       },
     ],
-    [project?.time_zone],
+    [project?.time_zone, projectId],
   )
   const table = useMantineReactTable({
     columns: columns as MRT_ColumnDef<EventSummary>[],
