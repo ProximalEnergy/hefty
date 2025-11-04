@@ -20,7 +20,6 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
 import { useGetPaginatedEvents } from '@/hooks/api'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
-import AdaptiveGisBESS from '@/pages/projects/gis/adaptive-gis-bess'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
@@ -2095,9 +2094,6 @@ const ProjectHome = () => {
           {project.data.project_type_id === ProjectTypeId.BESS && (
             <>
               <BatteryHealth />
-              <CustomCard title="System Map" fill style={{ flex: 1 }}>
-                <AdaptiveGisBESS />
-              </CustomCard>
             </>
           )}
         </Stack>
