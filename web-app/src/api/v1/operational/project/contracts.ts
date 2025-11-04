@@ -48,14 +48,12 @@ export const useGetProjectContracts = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Contract[]>({
     axiosConfig,
     queryName: 'getProjectContracts',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -173,14 +171,12 @@ export const useGetContractKPIs = ({
     staleTime: 30_000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<any[]>({
     axiosConfig,
     queryName: 'getContractKPIs',
     pathParams,
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -204,14 +200,12 @@ export const useGetContractCategories = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ContractCategory[]>({
     axiosConfig,
     queryName: 'getContractCategories',
     pathParams: {},
     queryParams: {},
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

@@ -253,8 +253,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
           title="Read-Only Access"
           color="blue"
         >
-          You don't have permission to edit project information. Please contact
-          an administrator to make changes to this project.
+          You don&apos;t have permission to edit project information. Please
+          contact an administrator to make changes to this project.
         </Alert>
       )}
       <form onSubmit={form.onSubmit(handleSubmit)}>

@@ -39,13 +39,11 @@ export const useGetOMContractorScopes = ({
     staleTime: 1000 * 60 * 5,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<OMContractorScope[]>({
     axiosConfig,
     queryName: 'getOMContractorScopes',
     pathParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

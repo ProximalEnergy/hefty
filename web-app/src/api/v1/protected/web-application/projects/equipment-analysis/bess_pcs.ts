@@ -23,13 +23,11 @@ export const useGetEquipmentAnalysisBESSPCS = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<EquipmentAnalysisBESSPCS[]>({
     axiosConfig,
     queryName: 'getEquipmentAnalysisBESSPCS',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -66,13 +66,11 @@ export const useGetEquipmentAnalysisPCSv2 = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<EquipmentAnalysisPCSv2>({
     axiosConfig,
     queryName: 'getEquipmentAnalysisPCS',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

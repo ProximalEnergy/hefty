@@ -2,8 +2,60 @@ import os
 
 from dotenv import load_dotenv
 
+from app._utils.aws import get_parameters_by_path
+from app.logger import logger
+
 # Load environment variables once at module import
 load_dotenv(override=True)
+
+
+_PARAMETER_STORE_SENTINEL = "_PARAMETER_STORE_LOADED"
+
+
+def _populate_env_from_parameter_store() -> None:
+    if os.environ.get(_PARAMETER_STORE_SENTINEL) == "1":
+        return
+
+    # Allow deployments to opt out entirely.
+    if os.getenv("DISABLE_PARAMETER_STORE_BOOTSTRAP", "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
+        return
+
+    parameter_path = os.getenv("AWS_PARAMETER_STORE_PATH", "/proximal/api/")
+    if not parameter_path:
+        return
+
+    region = (
+        os.getenv("AWS_PARAMETER_STORE_REGION")
+        or os.getenv("AWS_REGION")
+        or os.getenv("AWS_DEFAULT_REGION")
+        or "us-east-2"
+    )
+
+    try:
+        parameters = get_parameters_by_path(
+            path=parameter_path,
+            region_name=region,
+            recursive=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Unable to load parameters from SSM path '%s': %s",
+            parameter_path,
+            exc,
+        )
+        return
+
+    for key, value in parameters.items():
+        os.environ.setdefault(key, value)
+
+    os.environ[_PARAMETER_STORE_SENTINEL] = "1"
+
+
+_populate_env_from_parameter_store()
 
 # Environment settings
 ENVIRONMENT = os.getenv("ENVIRONMENT")

@@ -1,0 +1,83 @@
+[project]
+name = "sql-admin"
+version = "0.1.0"
+description = "SQLAdmin application for FastAPI"
+readme = "README.md"
+requires-python = ">=3.12.8,<3.13.0"
+dependencies = [
+    "fastapi>=0.116,<0.117",
+    "sqladmin>=0.20.0,<0.21",
+    "sqlalchemy>=2.0.43,<3",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv>=1.0.1,<2",
+    "uvicorn>=0.35,<0.36",
+    "core",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.0",
+    "mypy>=1.15.0",
+    "types-psycopg2>=2.9.21.20250318",
+]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "admin_views", "test_database_connection", "test_setup"]
+
+[tool.uv.sources]
+core = { path = "../core", editable = true }
+
+[tool.ruff]
+line-length = 88
+fix = true
+
+[tool.ruff.lint]
+select = [
+    "ANN002",  # checks that *args are typed
+    "ASYNC",   # async python checks
+    "COM",     # Ending commas
+    "EXE",     # Executables
+    "FA",      # Future Annotations
+    "F401",    # Remove unused imports
+    "FAST001", # FastAPI
+    "FAST003", # FastAPI
+    "FURB",    # Code modernization
+    "I",       # isort: Sort all imports
+    "ISC",     # Implicit string concat
+    "ICN",     # Import alias
+    "PIE",     # Code simplification
+    "S101",    # Look for assert
+    "S102",    # Look for exec
+    "S103",    # Look for os.chmod
+    "S104",    # hardcoded bind all interfaces
+    "S105",    # hardcoded password string
+    "S106",    # hardcoded password func arg
+    "S107",    # hardcoded password defaults
+    "S108",    # hardcoded temp files
+    "S110",    # try-except-pass
+    "T",       # debugger checks
+    "T20",     # Lint print and pprint Statements
+    "UP",      # pyupgrade
+]
+fixable = ["ALL"]
+unfixable = []
+ignore = [
+    "COM812",
+    "COM819",
+    "FAST002",
+    "FURB162",
+    "E501",    # E501 line too long
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+namespace_packages = true
+explicit_package_bases = true
+disable_error_code = ["import-untyped"]

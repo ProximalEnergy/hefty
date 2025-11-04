@@ -1,4 +1,3 @@
-import logging
 from uuid import UUID
 
 from core.enumerations import ProjectStatusType
@@ -9,8 +8,7 @@ from sqlalchemy.sql.expression import select
 
 from app._crud.admin.user_projects import deep_delete_project
 from app.dependencies import get_async_db, requires_superadmin_async
-
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 router = APIRouter()
 

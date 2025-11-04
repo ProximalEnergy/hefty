@@ -538,11 +538,11 @@ const DeviceTypeModal = ({
   deviceTypeData,
   deviceTotalsData,
 }: DeviceTypeModalProps) => {
-  if (!deviceTypeData) return null
-
   const [selectedTotalType, setSelectedTotalType] = useState<
     'total_failures' | 'total_hours'
   >('total_failures')
+
+  if (!deviceTypeData) return null
 
   return (
     <Modal

@@ -180,11 +180,12 @@ const DescriptionText = () => {
           Daily calculated availability, responsive to user-defined parameters
         </List.Item>
         <List.Item>
-          Raw 5-minute data for each inverter & inverter module's production
+          Raw 5-minute data for each inverter & inverter module&apos;s
+          production
         </List.Item>
         <List.Item>
-          Raw 5-minute data for each met station's POA sensor and calculated
-          mean irradiance across all sensors
+          Raw 5-minute data for each met station&apos;s POA sensor and
+          calculated mean irradiance across all sensors
         </List.Item>
       </List>
     </Stack>

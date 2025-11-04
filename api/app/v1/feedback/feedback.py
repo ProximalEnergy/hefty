@@ -22,11 +22,11 @@ router = APIRouter(
 
 @router.post("/")
 async def create_feedback(
-    user_id: Annotated[str, Form()] = ...,  # type: ignore
-    email: Annotated[str, Form()] = ...,  # type: ignore
-    subject: Annotated[str, Form()] = ...,  # type: ignore
-    url: Annotated[str, Form()] = ...,  # type: ignore
-    comment: Annotated[str, Form()] = ...,  # type: ignore
+    user_id: Annotated[str, Form(...)],
+    email: Annotated[str, Form(...)],
+    subject: Annotated[str, Form(...)],
+    url: Annotated[str, Form(...)],
+    comment: Annotated[str, Form(...)],
     screenshot: Annotated[UploadFile | None, File()] = None,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):

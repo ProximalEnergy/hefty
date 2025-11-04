@@ -372,6 +372,9 @@ class DeviceType(Base):
 
     __table_args__ = {"schema": "operational"}
 
+    def __str__(self):
+        return self.name_long
+
 
 class DeviceModel(Base):
     __tablename__ = "device_models"
@@ -394,6 +397,9 @@ class DeviceModel(Base):
         ),
         {"schema": "operational"},
     )
+
+    def __str__(self):
+        return f"{self.brand} {self.model}"
 
 
 class Document(Base):
@@ -691,6 +697,7 @@ class KPIInstance(Base):
     is_visible: Mapped[bool] = mapped_column(server_default="FALSE")
 
     kpi_type = relationship("KPIType")
+    project = relationship("Project")
 
     __table_args__ = {"schema": "operational"}
 
@@ -712,6 +719,9 @@ class KPIType(Base):
 
     device_type = relationship("DeviceType")
     __table_args__ = {"schema": "operational"}
+
+    def __str__(self):
+        return self.name_long
 
 
 class OperationalDataTimeseries(Base):
@@ -909,6 +919,9 @@ class Project(Base):
     project_type = relationship("ProjectType")
 
     __table_args__ = {"schema": "operational"}
+
+    def __str__(self):
+        return self.name_long
 
 
 class CalendarItem(Base):
@@ -1273,6 +1286,9 @@ class SensorType(Base):
     description: Mapped[str | None]
 
     __table_args__ = {"schema": "operational"}
+
+    def __str__(self):
+        return self.name_long
 
 
 ##### END OPERATIONAL SCHEMA #####

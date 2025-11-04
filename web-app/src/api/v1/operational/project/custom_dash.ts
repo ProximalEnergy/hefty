@@ -82,14 +82,12 @@ export const useGetUserDashboards = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<UserDashboard[]>({
     axiosConfig,
     queryName: 'getUserDashboards',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -191,14 +189,12 @@ export const useGetDashboard = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Dashboard>({
     axiosConfig,
     queryName: 'getDashboard',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -226,14 +222,12 @@ export const useGetBarData = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DataCustomBar>({
     axiosConfig,
     queryName: 'getBarData',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -261,14 +255,12 @@ export const useGetGaugeData = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DataCustomGauge>({
     axiosConfig,
     queryName: 'getGaugeData',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -296,14 +288,12 @@ export const useGetLineData = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DataCustomLine[]>({
     axiosConfig,
     queryName: 'getLineData',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -331,14 +321,12 @@ export const useGetScatterData = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DataCustomScatter>({
     axiosConfig,
     queryName: 'getScatterData',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

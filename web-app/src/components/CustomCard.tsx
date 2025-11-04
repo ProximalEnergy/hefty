@@ -133,9 +133,10 @@ const CustomCard = ({
             toggle={toggle}
             fullscreen={fullscreen}
             showDownload={showDownload}
-            children={headerChildren}
             allowFullscreen={allowFullscreen}
-          />
+          >
+            {headerChildren}
+          </CardTitle>
         </Card.Section>
       )}
       <Card.Section p={padding} style={{ height: '100%' }}>

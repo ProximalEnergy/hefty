@@ -54,14 +54,12 @@ export const useGetPVBudgetedSeries = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVBudgetedSeries[]>({
     axiosConfig,
     queryName: 'getPVBudgetedSeries',
     pathParams: {},
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -87,14 +85,12 @@ export const useGetPVBudgetedData = ({
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVBudgetedData[]>({
     axiosConfig,
     queryName: 'getPVBudgetedData',
     pathParams: {},
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -124,14 +120,12 @@ export const useGetPVBudgetedDataBySeries = ({
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVBudgetedData[]>({
     axiosConfig,
     queryName: 'getPVBudgetedDataBySeries',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -162,13 +156,11 @@ export const useGetPVBudgetedSeriesDailyData = ({
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVBudgetedDailyData[]>({
     axiosConfig,
     queryName: 'getPVBudgetedSeriesDailyData',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

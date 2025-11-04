@@ -62,12 +62,12 @@ import {
   useSearchParams,
 } from 'react-router'
 
-import BarConfig from './BarConfig'
-import GaugeConfig from './GaugeConfig'
-import KPIConfig from './KPIConfig'
-import LineConfig from './LineConfig'
-import RichTextConfig from './RichTextConfig'
-import ScatterConfig from './ScatterConfig'
+import BarConfigComp from './BarConfig'
+import GaugeConfigComp from './GaugeConfig'
+import KPIConfigComp from './KPIConfig'
+import LineConfigComp from './LineConfig'
+import RichTextConfigComp from './RichTextConfig'
+import ScatterConfigComp from './ScatterConfig'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -1271,6 +1271,10 @@ const Page = () => {
   const [dashboardName, setDashboardName] = useState('')
   const [defaultTimeRange, setDefaultTimeRange] = useState(1)
   const [defaultKPITimeRange, setDefaultKPITimeRange] = useState(1)
+  // Sample data for scatter plot preview (computed once on mount)
+  const [scatterPreviewY] = useState(() =>
+    Array.from({ length: 10 }, () => Math.random() * 10),
+  )
   const [searchParams, setSearchParams] = useSearchParams()
   const prevDefaultTimeRangeRef = useRef(defaultTimeRange)
   const { start: startURL, end: endURL } = useValidateDateRange({
@@ -1749,7 +1753,7 @@ const Page = () => {
                     data={[
                       {
                         x: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                        y: Array.from({ length: 10 }, () => Math.random() * 10),
+                        y: scatterPreviewY,
                         type: 'scatter' as PlotType,
                         mode: 'markers' as const,
                       },
@@ -1785,10 +1789,10 @@ const Page = () => {
           </Stack>
         </Drawer>
         <Drawer {...stack.register('gauge-config')} position="left">
-          <GaugeConfig stack={stack} onAdd={addGaugeComponent} />
+          <GaugeConfigComp stack={stack} onAdd={addGaugeComponent} />
         </Drawer>
         <Drawer {...stack.register('kpi-config')} position="left">
-          <KPIConfig
+          <KPIConfigComp
             stack={stack}
             kpiTypes={kpiTypes}
             onAdd={addKPIComponent}
@@ -1798,28 +1802,28 @@ const Page = () => {
           <GISConfig stack={stack} onAdd={addGISComponent} />
         </Drawer> */}
         <Drawer {...stack.register('bar-config')} position="left">
-          <BarConfig
+          <BarConfigComp
             stack={stack}
             sensorTypes={sensorTypes}
             onAdd={addBarComponent}
           />
         </Drawer>
         <Drawer size="lg" {...stack.register('line-config')} position="left">
-          <LineConfig
+          <LineConfigComp
             stack={stack}
             sensorTypes={sensorTypes}
             onAdd={addLineComponent}
           />
         </Drawer>
         <Drawer {...stack.register('scatter-config')} position="left">
-          <ScatterConfig
+          <ScatterConfigComp
             stack={stack}
             sensorTypes={sensorTypes}
             onAdd={addScatterComponent}
           />
         </Drawer>
         <Drawer {...stack.register('rich-text-config')} position="left">
-          <RichTextConfig stack={stack} onAdd={addRichTextComponent} />
+          <RichTextConfigComp stack={stack} onAdd={addRichTextComponent} />
         </Drawer>
       </Drawer.Stack>
       <Group justify="space-between" align="center">
@@ -2096,8 +2100,8 @@ const Page = () => {
               No dashboard components yet
             </Text>
             <Text size="sm" c="dimmed">
-              Click "Edit Layout" and then "Add Component" to create your first
-              dashboard component
+              Click &quot;Edit Layout&quot; and then &quot;Add Component&quot;
+              to create your first dashboard component
             </Text>
           </Stack>
         </Paper>

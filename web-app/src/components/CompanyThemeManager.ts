@@ -1,5 +1,5 @@
-import { useTheme } from '@/contexts/ThemeContext'
 import { KnownMantineColor } from '@/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext.utils'
 import { CustomColors } from '@/utils/themes'
 import { useUser } from '@clerk/clerk-react'
 import { useEffect } from 'react'

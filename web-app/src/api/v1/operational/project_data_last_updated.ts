@@ -25,12 +25,10 @@ export const useGetProjectDataLastUpdated = ({
     refetchInterval: 1000 * 30,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ProjectDataLastUpdated[]>({
     axiosConfig,
     queryName: 'getProjectDataLastUpdated',
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -772,10 +772,10 @@ const DroneInspectionsMap = ({
 
   useEffect(() => {
     const all = new Set<string>(Array.from(combinerAggregation.keys()))
-    setSelected(all)
+    queueMicrotask(() => setSelected(all))
     const rs: Record<string, boolean> = {}
     all.forEach((key) => (rs[key] = true))
-    setRowSelection(rs)
+    queueMicrotask(() => setRowSelection(rs))
   }, [combinerAggregation])
 
   const combinerRows = useMemo(() => {
@@ -985,7 +985,7 @@ const DroneInspectionsMap = ({
 
     // Don't allow event creation if there are no DC Fields
     if (dcFields.length === 0) {
-      setIsMapping(false)
+      queueMicrotask(() => setIsMapping(false))
       notifications.show({
         title: 'DC Fields Required',
         message:
@@ -1182,7 +1182,7 @@ const DroneInspectionsMap = ({
     if (addEventsOpen && !openDate && inspectionTime) {
       const dt = new Date(inspectionTime)
       if (!isNaN(dt.getTime())) {
-        setOpenDate(dt)
+        queueMicrotask(() => setOpenDate(dt))
       }
     }
   }, [addEventsOpen, inspectionTime, openDate])

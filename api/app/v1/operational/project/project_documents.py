@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from openai import OpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,7 +95,7 @@ async def upload_project_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
     project: Annotated[models.Project, Depends(dependencies.get_project)],
-    file: Annotated[UploadFile, File()] = ...,  # type: ignore
+    file: UploadFile,
 ):
     # Get company from user.company_id
     try:

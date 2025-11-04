@@ -385,8 +385,8 @@ const Page = () => {
         <Group justify="center">
           <Text c="dimmed">
             Looking for more details? This KPI includes a large number of
-            devices which cannot be displayed online. Click 'Download' to view
-            all device data.
+            devices which cannot be displayed online. Click &apos;Download&apos;
+            to view all device data.
           </Text>
         </Group>
       )}

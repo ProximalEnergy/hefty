@@ -199,7 +199,7 @@ const DroneInspections: React.FC = () => {
   useEffect(() => {
     if (sortedInspections && sortedInspections.length > 0) {
       // Always set to the latest inspection (first in sorted array)
-      setSelectedInspection(sortedInspections[0])
+      queueMicrotask(() => setSelectedInspection(sortedInspections[0]))
     }
   }, [sortedInspections])
 

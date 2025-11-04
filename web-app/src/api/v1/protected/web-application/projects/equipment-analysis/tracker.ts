@@ -34,13 +34,11 @@ export const useGetTrackerEquipmentAnalysis = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<TrackerEquipmentAnalysisData>({
     axiosConfig,
     queryName: 'getTrackerEquipmentAnalysis',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

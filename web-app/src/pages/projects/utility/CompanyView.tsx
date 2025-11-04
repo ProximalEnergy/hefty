@@ -110,11 +110,11 @@ const CompanyView = () => {
       <Title order={1}>Company View</Title>
       <Group>
         <Text style={{ flex: 1 }}>
-          This page allows you to quickly proxy to a company's view for the
+          This page allows you to quickly proxy to a company&apos;s view for the
           platform. This action will override your theme to the selected
-          company's theme, and change your personal portfolio to the selected
-          company's projects. You will be redirected to the portfolio homepage
-          after selecting a company.
+          company&apos;s theme, and change your personal portfolio to the
+          selected company&apos;s projects. You will be redirected to the
+          portfolio homepage after selecting a company.
         </Text>
         <Box style={{ flex: 1 }} />
       </Group>

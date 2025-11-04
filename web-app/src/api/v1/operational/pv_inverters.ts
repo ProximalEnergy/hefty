@@ -86,13 +86,11 @@ export const useGetInverters = ({
     enabled: inverter_ids.length > 0,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<Inverter[]>({
     axiosConfig,
     queryName: `${INVERTERS_QUERY_NAME}For${inverter_ids.join('-')}`,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -113,13 +111,11 @@ export const useGetInverterIdsByManufacturerAndModel = ({
     enabled: manufacturers.length > 0 && models.length > 0,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: INVERTER_IDS_QUERY_NAME,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -143,7 +139,7 @@ export const useGetProximalInverterManufacturers = ({
     enabled: !!company_id,
   }
 
-  queryOptions = {
+  const mergedQueryOptions: Partial<UseQueryOptions> = {
     ...defaultQueryOptions,
     ...queryOptions,
     enabled: !!company_id && queryOptions.enabled !== false,
@@ -153,7 +149,7 @@ export const useGetProximalInverterManufacturers = ({
     axiosConfig,
     queryName: `${INVERTER_MANUFACTURERS_QUERY_NAME}For${company_id || 'none'}`,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: mergedQueryOptions,
   })
 }
 
@@ -177,13 +173,11 @@ export const useGetProximalInverterModels = ({
     enabled: !!manufacturer && !!company_id,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `${INVERTER_MODELS_QUERY_NAME}For${manufacturer || 'all'}Company${company_id || 'all'}`,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

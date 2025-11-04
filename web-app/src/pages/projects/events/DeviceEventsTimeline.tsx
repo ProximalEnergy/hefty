@@ -41,29 +41,31 @@ const DeviceEventsTimeline = ({
   const [eventsAndTickets, setEventsAndTickets] = useState<EventOrTicket[]>([])
 
   useEffect(() => {
-    setEventsAndTickets(
-      [
-        ...events.map((event) => ({
-          type: 'event',
-          event: event,
-          ticket: undefined,
-        })),
-        ...(tickets || []).map((ticket) => ({
-          type: 'ticket',
-          event: undefined,
-          ticket: ticket,
-        })),
-      ].sort((a, b) => {
-        const aTime =
-          a.type === 'event'
-            ? dayjs(a.event?.time_start).unix()
-            : dayjs(a.ticket?.created_at).unix()
-        const bTime =
-          b.type === 'event'
-            ? dayjs(b.event?.time_start).unix()
-            : dayjs(b.ticket?.created_at).unix()
-        return bTime - aTime // Sort in descending order (newest first)
-      }),
+    queueMicrotask(() =>
+      setEventsAndTickets(
+        [
+          ...events.map((event) => ({
+            type: 'event',
+            event: event,
+            ticket: undefined,
+          })),
+          ...(tickets || []).map((ticket) => ({
+            type: 'ticket',
+            event: undefined,
+            ticket: ticket,
+          })),
+        ].sort((a, b) => {
+          const aTime =
+            a.type === 'event'
+              ? dayjs(a.event?.time_start).unix()
+              : dayjs(a.ticket?.created_at).unix()
+          const bTime =
+            b.type === 'event'
+              ? dayjs(b.event?.time_start).unix()
+              : dayjs(b.ticket?.created_at).unix()
+          return bTime - aTime // Sort in descending order (newest first)
+        }),
+      ),
     )
   }, [events, tickets])
   if (isLoading) {

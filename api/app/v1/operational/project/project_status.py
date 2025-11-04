@@ -273,6 +273,18 @@ def get_status_time_series(
     df_timeseries = core.utils.pivot.pivot_timeseries_by_tag(
         df=data_to_df, tags=tags_model_list
     )
+    df_timeseries = df_timeseries.ffill()
+
+    # Create full time range index for alignment
+    time_index = pd.date_range(
+        pd.Timestamp(start).tz_convert(project.time_zone),
+        pd.Timestamp(end).tz_convert(project.time_zone),
+        freq="5min",
+    )
+
+    # Reindex df_timeseries to full time range and forward-fill for MQTT
+    df_timeseries = df_timeseries.reindex(time_index).ffill()
+
     keys, vals = [], []
     for col in df_timeseries.columns:
         v = df_timeseries[col].dropna().unique()
@@ -302,6 +314,7 @@ def get_status_time_series(
             lambda x: lookup.get((tag, x), np.nan) if pd.notnull(x) else np.nan
         )
 
+    # Create status_strings_df from reindexed df_timeseries
     status_strings_df = df_timeseries.apply(map_status)
 
     status_lookup = core.crud.project.statuses.get_status_lookup(
@@ -309,8 +322,9 @@ def get_status_time_series(
         status_lookup_ids=tags["status_lookup_id"].values.tolist(),
     )
 
+    # Create alert_df from same reindexed df_timeseries for alignment
     alert_df = pd.DataFrame()
-    for col in status_strings_df.columns:
+    for col in df_timeseries.columns:
         alert_replace = {
             s["value"]: s.get("alert", False)
             for s in status_interpret
@@ -318,28 +332,6 @@ def get_status_time_series(
         }
         alert_series = df_timeseries[col].replace(alert_replace).fillna(False)
         alert_df[col] = alert_series
-    status_strings_df = (
-        status_strings_df.reindex(
-            pd.date_range(
-                pd.Timestamp(start).tz_convert(project.time_zone),
-                pd.Timestamp(end).tz_convert(project.time_zone),
-                freq="5min",
-            )
-        )
-        .ffill()
-        .bfill()
-    )
-    alert_df = (
-        alert_df.reindex(
-            pd.date_range(
-                pd.Timestamp(start).tz_convert(project.time_zone),
-                pd.Timestamp(end).tz_convert(project.time_zone),
-                freq="5min",
-            )
-        )
-        .ffill()
-        .bfill()
-    )
 
     data_out = [
         {
@@ -426,6 +418,18 @@ def get_status_time_series_python(
     df_timeseries = core.utils.pivot.pivot_timeseries_by_tag(
         df=data_to_df, tags=tags_model_list
     )
+    df_timeseries = df_timeseries.ffill()
+
+    # Create full time range index for alignment
+    time_index = pd.date_range(
+        pd.Timestamp(start).tz_convert(project.time_zone),
+        pd.Timestamp(end).tz_convert(project.time_zone),
+        freq="5min",
+    )
+
+    # Reindex df_timeseries to full time range and forward-fill for MQTT
+    df_timeseries = df_timeseries.reindex(time_index).ffill()
+
     keys, vals = [], []
     for col in df_timeseries.columns:
         v = df_timeseries[col].dropna().unique()

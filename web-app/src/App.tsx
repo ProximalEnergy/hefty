@@ -38,7 +38,7 @@ import { CompanyThemeManager } from './components/CompanyThemeManager'
 import { PageLoader } from './components/Loading'
 // Development
 import RequiresUserType from './components/admin/RequiresUserType'
-import { useTheme } from './contexts/ThemeContext'
+import { useTheme } from './contexts/ThemeContext.utils'
 // Profile
 import AccountSettings from './pages/AccountSettings'
 import Api from './pages/Api'
@@ -117,6 +117,7 @@ import EquipmentAnalysisTrackerBlock from './pages/projects/equipment_analysis/t
 import EventRouter from './pages/projects/events/EventRouter'
 import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
+import BatterySettlement from './pages/projects/finances/BatterySettlement'
 // GIS
 import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
 import PCSGIS from './pages/projects/gis/pcs-gis'
@@ -503,6 +504,14 @@ const ClerkProviderWithRoutes = () => {
                       <CompanyView />
                     </RequiresUserType>
                   }
+                />
+              </Route>
+
+              {/* Finances */}
+              <Route path="finances">
+                <Route
+                  path="battery-settlement"
+                  element={<BatterySettlement />}
                 />
               </Route>
 

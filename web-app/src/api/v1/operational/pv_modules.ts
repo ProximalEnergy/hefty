@@ -63,14 +63,12 @@ export const useGetProximalPVModuleManufacturers = ({
     staleTime: 1000 * 60 * 1, // 1 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: 'pvModuleManufacturers',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -93,13 +91,11 @@ export const useGetProximalPVModuleModels = ({
     enabled: !!queryParams?.manufacturer,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `modelsFor${queryParams.manufacturer}`,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -127,14 +123,12 @@ export const useGetPVModuleIdsByManufacturerAndModel = ({
     enabled: manufacturers.length > 0 && models.length > 0,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: 'pvModuleIdsLookup',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -160,14 +154,12 @@ export const useGetPVModuleDetails = ({
     enabled: queryParams.pv_module_ids.length > 0,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<PVModule[]>({
     axiosConfig,
     queryName: `moduleDetailsFor${queryParams.pv_module_ids.join('-')}`,
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

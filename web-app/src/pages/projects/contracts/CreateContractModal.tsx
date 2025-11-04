@@ -40,7 +40,7 @@ import {
   IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import PdfViewer, { PdfViewerHandle } from '../../../components/PdfViewer'
@@ -134,7 +134,7 @@ const SourceReferenceHoverCard = ({
                 : undefined
             }
           >
-            "{quoted_text}"
+            &quot;{quoted_text}&quot;
             {onReferenceClick && (
               <IconSearch size={12} style={{ opacity: 0.7 }} />
             )}
@@ -186,7 +186,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const { data: project } = useSelectProject(projectId!)
+  const { data: project } = useSelectProject(projectId ?? '')
 
   const { data: currentUser } = useGetUserSelf({})
 
@@ -207,72 +207,234 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   })
 
   // Helper function to map backend category response to dropdown value
-  const mapBackendCategoryToValue = (
-    backendCategory: string,
-  ): string | null => {
-    if (!backendCategory || !categories || categories.length === 0) {
-      console.warn('No categories available for mapping:', {
-        backendCategory,
-        categories,
+  const mapBackendCategoryToValue = useCallback(
+    (backendCategory: string): string | null => {
+      if (!backendCategory || !categories || categories.length === 0) {
+        console.warn('No categories available for mapping:', {
+          backendCategory,
+          categories,
+        })
+        return null
+      }
+
+      // First try exact match
+      const exactMatch = categories.find(
+        (cat) => cat.name_long === backendCategory,
+      )
+      if (exactMatch) {
+        return exactMatch.name_short
+      }
+
+      // If no exact match, try partial match (in case AI returns something slightly different)
+      const partialMatch = categories.find(
+        (cat) =>
+          backendCategory.includes(cat.name_long) ||
+          cat.name_long.includes(backendCategory),
+      )
+      if (partialMatch) {
+        return partialMatch.name_short
+      }
+
+      // If still no match, try to find by common variations
+      const normalizedBackend = backendCategory
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+      const normalizedMatch = categories.find((cat) => {
+        const normalizedLabel = cat.name_long
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+        return (
+          normalizedLabel.includes(normalizedBackend) ||
+          normalizedBackend.includes(normalizedLabel)
+        )
       })
+      if (normalizedMatch) {
+        return normalizedMatch.name_short
+      }
+
+      // Last resort: try to match against short names
+      const shortNameMatch = categories.find((cat) => {
+        const normalizedShort = cat.name_short
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+        const normalizedInput = backendCategory
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+        return (
+          normalizedShort.includes(normalizedInput) ||
+          normalizedInput.includes(normalizedShort)
+        )
+      })
+      if (shortNameMatch) {
+        return shortNameMatch.name_short
+      }
+
+      // If no match found, return null
       return null
-    }
+    },
+    [categories],
+  )
 
-    // First try exact match
-    const exactMatch = categories.find(
-      (cat) => cat.name_long === backendCategory,
-    )
-    if (exactMatch) {
-      return exactMatch.name_short
-    }
+  const createCompany = useCreateCompany()
+  const createContract = useCreateContract()
+  const analyzeContract = useAnalyzeContractDocument()
 
-    // If no exact match, try partial match (in case AI returns something slightly different)
-    const partialMatch = categories.find(
-      (cat) =>
-        backendCategory.includes(cat.name_long) ||
-        cat.name_long.includes(backendCategory),
-    )
-    if (partialMatch) {
-      return partialMatch.name_short
-    }
+  const handleDocumentAnalysis = useCallback(
+    async (documentId: string) => {
+      if (!projectId) return
 
-    // If still no match, try to find by common variations
-    const normalizedBackend = backendCategory
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '')
-    const normalizedMatch = categories.find((cat) => {
-      const normalizedLabel = cat.name_long
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-      return (
-        normalizedLabel.includes(normalizedBackend) ||
-        normalizedBackend.includes(normalizedLabel)
-      )
-    })
-    if (normalizedMatch) {
-      return normalizedMatch.name_short
-    }
+      try {
+        const response = await analyzeContract.mutateAsync({
+          projectId,
+          documentId,
+        })
 
-    // Last resort: try to match against short names
-    const shortNameMatch = categories.find((cat) => {
-      const normalizedShort = cat.name_short
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-      const normalizedInput = backendCategory
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-      return (
-        normalizedShort.includes(normalizedInput) ||
-        normalizedInput.includes(normalizedShort)
-      )
-    })
-    if (shortNameMatch) {
-      return shortNameMatch.name_short
-    }
+        if (response.data.success && response.data.analysis) {
+          const analysis = response.data.analysis
 
-    // If no match found, return null
-    return null
-  }
+          // Extract source references for tooltips
+          if (analysis.source_references) {
+            setSourceReferences(analysis.source_references)
+          }
+
+          // Helper function to safely parse dates
+          const safeParseDate = (
+            dateString: string | null | undefined,
+          ): Date | null => {
+            if (!dateString || typeof dateString !== 'string') return null
+
+            try {
+              // Check if it's a valid date format (YYYY-MM-DD)
+              const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+              if (!dateRegex.test(dateString)) return null
+
+              const [year, month, day] = dateString.split('-').map(Number)
+
+              // Validate year, month, day ranges
+              if (
+                year < 1900 ||
+                year > 2100 ||
+                month < 1 ||
+                month > 12 ||
+                day < 1 ||
+                day > 31
+              ) {
+                return null
+              }
+
+              const date = new Date(year, month - 1, day) // month is 0-indexed
+
+              // Check if the date is valid (handles edge cases like Feb 30)
+              if (isNaN(date.getTime())) return null
+
+              return date
+            } catch (error) {
+              console.warn('Failed to parse date:', dateString, error)
+              return null
+            }
+          }
+
+          // Auto-fill form fields based on LLM analysis
+
+          if (analysis.contract_category) {
+            const mappedCategory = mapBackendCategoryToValue(
+              analysis.contract_category,
+            )
+
+            if (!mappedCategory) {
+              console.warn(
+                'No category match found. Available categories:',
+                categories?.map((c) => `${c.name_short} -> ${c.name_long}`),
+              )
+            }
+
+            setContractCategory(mappedCategory)
+          }
+
+          if (analysis.counterparty_name) {
+            setCounterpartyName(analysis.counterparty_name)
+          }
+
+          if (analysis.execution_date) {
+            const parsedDate = safeParseDate(analysis.execution_date)
+            setExecutionDate(parsedDate)
+          }
+
+          if (analysis.term_start_date) {
+            const parsedDate = safeParseDate(analysis.term_start_date)
+            setTermStartDate(parsedDate)
+          }
+
+          if (analysis.term_end_date) {
+            const parsedDate = safeParseDate(analysis.term_end_date)
+            setTermEndDate(parsedDate)
+          }
+
+          if (analysis.counter_contact_addressee) {
+            setCounterContactAddressee(analysis.counter_contact_addressee)
+          }
+
+          if (analysis.counter_contact_email) {
+            setCounterContactEmail(analysis.counter_contact_email)
+          }
+
+          if (analysis.counter_contact_address) {
+            setCounterContactAddress(analysis.counter_contact_address)
+          }
+
+          if (analysis.contract_summary) {
+            setContractSummary(analysis.contract_summary)
+          }
+          if (
+            analysis.important_dates &&
+            Array.isArray(analysis.important_dates)
+          ) {
+            const formattedDates = analysis.important_dates.map(
+              (date: any, index: number) => ({
+                id: `ai-generated-${index}`,
+                title: date.title || '',
+                date: safeParseDate(date.date),
+                description: date.description || '',
+              }),
+            )
+
+            setContractDates(formattedDates)
+          }
+          setAnalysisCompleted(true)
+
+          // Show success notification
+          notifications.show({
+            title: 'Analysis Complete',
+            message:
+              'Contract analysis completed successfully! Some fields may need manual review.',
+            color: 'green',
+          })
+        } else {
+          // Handle case where analysis failed or returned unexpected data
+          console.warn(
+            'Contract analysis failed or returned unexpected data:',
+            response.data,
+          )
+          notifications.show({
+            title: 'Analysis Warning',
+            message:
+              "Contract analysis completed but some information couldn't be extracted. Please review and fill in missing details manually.",
+            color: 'yellow',
+          })
+        }
+      } catch (error) {
+        console.error('Error analyzing contract document:', error)
+        // Show user-friendly error message
+        notifications.show({
+          title: 'Analysis Failed',
+          message:
+            'Something went wrong analyzing the contract. Please fill in the information yourself.',
+          color: 'red',
+        })
+      }
+    },
+    [analyzeContract, categories, mapBackendCategoryToValue, projectId],
+  )
 
   // Auto-analyze document when selected
   useEffect(() => {
@@ -283,14 +445,16 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       categories
     ) {
       // Reset analysis state when selecting a new document
-      setAnalysisCompleted(false)
-      handleDocumentAnalysis(selectedDocument)
+      queueMicrotask(() => setAnalysisCompleted(false))
+      queueMicrotask(() => handleDocumentAnalysis(selectedDocument))
     }
-  }, [selectedDocument, categories])
-
-  const createCompany = useCreateCompany()
-  const createContract = useCreateContract()
-  const analyzeContract = useAnalyzeContractDocument()
+  }, [
+    selectedDocument,
+    categories,
+    analysisCompleted,
+    analyzeContract.isPending,
+    handleDocumentAnalysis,
+  ])
 
   // Function to handle reference clicks and search in PDF
   const handleReferenceClick = (searchText: string) => {
@@ -307,7 +471,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       date: null,
       description: '',
     }
-    setContractDates([...contractDates, newDate])
+    queueMicrotask(() => setContractDates([...contractDates, newDate]))
   }
 
   const removeContractDate = (id: string) => {
@@ -324,161 +488,6 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
         date.id === id ? { ...date, [field]: value } : date,
       ),
     )
-  }
-
-  const handleDocumentAnalysis = async (documentId: string) => {
-    if (!projectId) return
-
-    try {
-      const response = await analyzeContract.mutateAsync({
-        projectId,
-        documentId,
-      })
-
-      if (response.data.success && response.data.analysis) {
-        const analysis = response.data.analysis
-
-        // Extract source references for tooltips
-        if (analysis.source_references) {
-          setSourceReferences(analysis.source_references)
-        }
-
-        // Helper function to safely parse dates
-        const safeParseDate = (
-          dateString: string | null | undefined,
-        ): Date | null => {
-          if (!dateString || typeof dateString !== 'string') return null
-
-          try {
-            // Check if it's a valid date format (YYYY-MM-DD)
-            const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-            if (!dateRegex.test(dateString)) return null
-
-            const [year, month, day] = dateString.split('-').map(Number)
-
-            // Validate year, month, day ranges
-            if (
-              year < 1900 ||
-              year > 2100 ||
-              month < 1 ||
-              month > 12 ||
-              day < 1 ||
-              day > 31
-            ) {
-              return null
-            }
-
-            const date = new Date(year, month - 1, day) // month is 0-indexed
-
-            // Check if the date is valid (handles edge cases like Feb 30)
-            if (isNaN(date.getTime())) return null
-
-            return date
-          } catch (error) {
-            console.warn('Failed to parse date:', dateString, error)
-            return null
-          }
-        }
-
-        // Auto-fill form fields based on LLM analysis
-
-        if (analysis.contract_category) {
-          const mappedCategory = mapBackendCategoryToValue(
-            analysis.contract_category,
-          )
-
-          if (!mappedCategory) {
-            console.warn(
-              'No category match found. Available categories:',
-              categories?.map((c) => `${c.name_short} -> ${c.name_long}`),
-            )
-          }
-
-          setContractCategory(mappedCategory)
-        }
-
-        if (analysis.counterparty_name) {
-          setCounterpartyName(analysis.counterparty_name)
-        }
-
-        if (analysis.execution_date) {
-          const parsedDate = safeParseDate(analysis.execution_date)
-          setExecutionDate(parsedDate)
-        }
-
-        if (analysis.term_start_date) {
-          const parsedDate = safeParseDate(analysis.term_start_date)
-          setTermStartDate(parsedDate)
-        }
-
-        if (analysis.term_end_date) {
-          const parsedDate = safeParseDate(analysis.term_end_date)
-          setTermEndDate(parsedDate)
-        }
-
-        if (analysis.counter_contact_addressee) {
-          setCounterContactAddressee(analysis.counter_contact_addressee)
-        }
-
-        if (analysis.counter_contact_email) {
-          setCounterContactEmail(analysis.counter_contact_email)
-        }
-
-        if (analysis.counter_contact_address) {
-          setCounterContactAddress(analysis.counter_contact_address)
-        }
-
-        if (analysis.contract_summary) {
-          setContractSummary(analysis.contract_summary)
-        }
-        if (
-          analysis.important_dates &&
-          Array.isArray(analysis.important_dates)
-        ) {
-          const formattedDates = analysis.important_dates.map(
-            (date: any, index: number) => ({
-              id: `ai-generated-${index}`,
-              title: date.title || '',
-              date: safeParseDate(date.date),
-              description: date.description || '',
-            }),
-          )
-
-          setContractDates(formattedDates)
-        } else {
-        }
-        setAnalysisCompleted(true)
-
-        // Show success notification
-        notifications.show({
-          title: 'Analysis Complete',
-          message:
-            'Contract analysis completed successfully! Some fields may need manual review.',
-          color: 'green',
-        })
-      } else {
-        // Handle case where analysis failed or returned unexpected data
-        console.warn(
-          'Contract analysis failed or returned unexpected data:',
-          response.data,
-        )
-        notifications.show({
-          title: 'Analysis Warning',
-          message:
-            "Contract analysis completed but some information couldn't be extracted. Please review and fill in missing details manually.",
-          color: 'yellow',
-        })
-      }
-    } catch (error) {
-      console.error('Error analyzing contract document:', error)
-      // Show user-friendly error message
-      notifications.show({
-        title: 'Analysis Failed',
-        message:
-          'Something went wrong analyzing the contract. Please fill in the information yourself.',
-        color: 'red',
-      })
-    }
   }
 
   const resetForm = () => {
@@ -593,7 +602,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
       await createContract.mutateAsync({
         project_id: projectId,
         document_id: selectedDocument,
-        company_id_provider: currentUser?.company_id!,
+        company_id_provider: currentUser?.company_id || '',
         company_id_counter: companyResponse.data.company_id,
         execution_date: formattedExecutionDate,
         contract_category_name_short: contractCategory || undefined,
@@ -1038,8 +1047,8 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
 
                   {contractDates.length === 0 && (
                     <Text c="dimmed" size="sm" ta="center" py="md">
-                      No important dates added yet. Click "Add Date" to include
-                      key contract milestones.
+                      No important dates added yet. Click &quot;Add Date&quot;
+                      to include key contract milestones.
                     </Text>
                   )}
                 </Stack>

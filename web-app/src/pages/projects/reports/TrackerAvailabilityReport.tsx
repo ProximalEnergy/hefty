@@ -183,7 +183,7 @@ const DescriptionText = ({ reportTypeId }: { reportTypeId: string }) => {
           Daily calculated availability, responsive to user-defined parameters
         </List.Item>
         <List.Item>
-          Raw 5-minute data for each tracker's position
+          Raw 5-minute data for each tracker&apos;s position
           {reportTypeId === '4'
             ? ', setpoint, and stow command'
             : ' and stow command'}
@@ -195,8 +195,8 @@ const DescriptionText = ({ reportTypeId }: { reportTypeId: string }) => {
           </List.Item>
         )}
         <List.Item>
-          Raw 5-minute data for each met station's POA sensor and calculated
-          mean irradiance across all sensors
+          Raw 5-minute data for each met station&apos;s POA sensor and
+          calculated mean irradiance across all sensors
         </List.Item>
       </List>
     </Stack>

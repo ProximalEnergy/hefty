@@ -1,4 +1,3 @@
-import logging
 import uuid
 from datetime import timedelta
 
@@ -23,8 +22,7 @@ from app.domain.internal_comms.comms import (
     send_project_creation_notification,
 )
 from app.interfaces import Project, ProjectCreate
-
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 
 def _get_operational_and_project_metadata():

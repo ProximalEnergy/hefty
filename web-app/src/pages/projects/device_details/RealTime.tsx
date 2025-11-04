@@ -163,7 +163,9 @@ const Page = () => {
 
   useEffect(() => {
     if (projectData.data) {
-      setDeviceTypeId(projectData.data.project_type_id == 1 ? 2 : 13)
+      queueMicrotask(() =>
+        setDeviceTypeId(projectData.data?.project_type_id == 1 ? 2 : 13),
+      )
     }
   }, [projectData.data])
 
@@ -294,7 +296,7 @@ const Page = () => {
 
   useEffect(() => {
     if (realTimeData?.traces?.length) {
-      setTraceName(realTimeData?.traces[0].name)
+      queueMicrotask(() => setTraceName(realTimeData?.traces?.[0]?.name ?? ''))
     }
   }, [realTimeData?.traces])
 
@@ -601,8 +603,8 @@ const Page = () => {
               <Text component="span" fw={500}>
                 Colors:
               </Text>{' '}
-              Each cell represents the tracker's angle with a legend provided.
-              Colors range from{' '}
+              Each cell represents the tracker&apos;s angle with a legend
+              provided. Colors range from{' '}
               <Text component="span" c="#b5d6e0">
                 blue
               </Text>{' '}
@@ -828,12 +830,12 @@ const Page = () => {
 
   useEffect(() => {
     if (!canGroup) {
-      setGroupBy(null)
+      queueMicrotask(() => setGroupBy(null))
     }
   }, [canGroup])
 
   useEffect(() => {
-    setGroupBy(null)
+    queueMicrotask(() => setGroupBy(null))
   }, [deviceTypeId])
 
   if (projectData.isLoading) {

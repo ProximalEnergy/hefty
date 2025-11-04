@@ -807,6 +807,16 @@ def get_event_trace_tags(
                 48,  # Tracker Zone Status
                 49,  # Tracker Row Status
             ]
+        case 33:  # BESS PCS Module
+            sensor_type_ids = [
+                99,  # BESS PCS Module Available Charge Power
+                100,  # BESS PCS Module Available Discharge Power
+                106,  # BESS PCS Module AC Power
+                108,  # BESS PCS Module Cabinet Temperature
+                110,  # BESS PCS Module DC Voltage
+                137,  # BESS PCS Module Status
+                140,  # BESS PCS Module Alarm
+            ]
         case _:
             sentry_sdk.capture_exception(
                 ValueError(f"Device type {device.device_type_id} not supported.")

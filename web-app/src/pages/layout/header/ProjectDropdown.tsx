@@ -1,34 +1,11 @@
-import { Project, useGetProjects } from '@/api/v1/operational/projects'
-import { evaluateFilterCriteria } from '@/hooks/custom'
-import {
-  ProjectFilterCriteria,
-  useProjectDropdown,
-} from '@/providers/ProjectDropdownContext'
+import { useGetProjects } from '@/api/v1/operational/projects'
+import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import { Select, Tooltip } from '@mantine/core'
 import { useDidUpdate, useOs } from '@mantine/hooks'
 import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
-export const isDisabled = (
-  projectId: string,
-  filterCriteria: ProjectFilterCriteria | null,
-  project: Project,
-) => {
-  // The current project is always disabled
-  if (project.project_id === projectId) {
-    return true
-  }
-
-  // If filter criteria is provided, evaluate if the project passes the filter
-  // Disable if the project does not pass the filter
-  if (filterCriteria) {
-    const passesFilter = evaluateFilterCriteria(project, filterCriteria)
-    return !passesFilter
-  }
-
-  // If no filter criteria is provided and the project is not the current project, enable the project
-  return false
-}
+import { isDisabled } from './ProjectDropdown.utils'
 
 const ProjectDropdown = () => {
   // Detect if the user is on macOS

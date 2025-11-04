@@ -54,13 +54,11 @@ export const useGetOperationalKPIData = ({
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
-
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
   return useCustomQuery<OperationalKPIData[]>({
     axiosConfig,
     queryName: 'getOperationalKPIData',
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -95,14 +93,12 @@ export const useGetContractKPIs = ({
     staleTime: 5 * 60 * 1000, // 5 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ContractKPI[]>({
     axiosConfig,
     queryName: 'getContractKPIs',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -130,13 +126,11 @@ export const useGetKPIExcel = ({
     staleTime: 5 * 60 * 1000, // 5 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string>({
     axiosConfig,
     queryName: 'getKPIExcel',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

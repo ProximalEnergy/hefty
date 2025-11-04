@@ -274,7 +274,7 @@ const EnergyWaterfall = () => {
         color="yellow"
         radius="md"
       >
-        Some critical tags are missing from the project SCADA Feed. We're
+        Some critical tags are missing from the project SCADA Feed. We&apos;re
         working with the SCADA vendor to get the tags. Showing placeholder data
         until the tags are available, including but not limited to: BESS MV
         Circuit Active Power, BESS Meter Energy Charged Total, BESS Meter Energy

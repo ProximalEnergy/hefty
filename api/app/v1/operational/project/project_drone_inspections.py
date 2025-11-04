@@ -1,6 +1,5 @@
 import datetime
 import json
-import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -29,8 +28,7 @@ from app.interfaces import (
     DroneInspectionCreate,
     ZeitviewInspection,
 )
-
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 router = APIRouter(
     prefix="/projects/{project_id}/drone-inspections",

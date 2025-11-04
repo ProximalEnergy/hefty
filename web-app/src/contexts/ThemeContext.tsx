@@ -1,6 +1,8 @@
 import { CustomColors } from '@/utils/themes'
 import { DefaultMantineColor } from '@mantine/core'
-import React, { ReactNode, createContext, useContext, useState } from 'react'
+import React, { ReactNode, useState } from 'react'
+
+import { ThemeContext } from './ThemeContext.utils'
 
 // Remove the generic string
 type LiteralColorsOnly<T> = T extends string
@@ -10,21 +12,6 @@ type LiteralColorsOnly<T> = T extends string
   : never
 
 export type KnownMantineColor = LiteralColorsOnly<DefaultMantineColor>
-
-interface ThemeContextType {
-  primaryColor: KnownMantineColor | CustomColors
-  setPrimaryColor: (color: KnownMantineColor | CustomColors) => void
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
-
-export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
-}
 
 interface ThemeProviderProps {
   children: ReactNode

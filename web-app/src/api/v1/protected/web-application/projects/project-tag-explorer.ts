@@ -52,13 +52,11 @@ export const useGetTagsByPattern = ({
     enabled: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<any[]>({
     axiosConfig,
     queryName: 'getTagsByPattern',
     pathParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -84,14 +82,12 @@ export const useGetUniqueTagTypes = ({
     staleTime: 300000, // 5 minutes
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<any[]>({
     axiosConfig,
     queryName: 'getUniqueTagTypes',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -114,14 +110,12 @@ export const useGetTagPatternSamples = ({
     enabled: false, // Don't fetch automatically, only when called
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<any>({
     axiosConfig,
     queryName: 'getTagPatternSamples',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

@@ -18,12 +18,10 @@ export const useGetDataLastUpdated = ({
     refetchInterval: 1000 * 30,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ProjectDataLastUpdated>({
     axiosConfig,
     queryName: 'getDataLastUpdated',
     pathParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

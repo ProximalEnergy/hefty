@@ -239,6 +239,16 @@ export function NavbarNested({
       !(link.requiresRealTimeData && !project.data?.has_real_time_data) &&
       !(
         link.requiresPV && project.data?.project_type_id === ProjectTypeId.BESS
+      ) &&
+      !(
+        link.requiresQSEIntegration &&
+        ![
+          '1e86f87d-da60-40b9-b21e-6a6700801c32',
+          '623ddc81-ed4c-4e56-b9ca-a4a9be238a8b',
+          'fe1f0db0-c492-49a0-8502-ffc6eee22e55',
+          'cba2690a-03cf-4878-bf0b-dd3801da6fb2',
+          '5662003f-4d3a-4ed1-ba7c-781981a0f0b1',
+        ].includes(project.data?.project_id ?? '')
       ),
   )
 

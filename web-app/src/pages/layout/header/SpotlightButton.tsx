@@ -1,4 +1,4 @@
-import { searchActions } from '@/components/Spotlight'
+import { searchActions } from '@/components/Spotlight.search.store'
 import { ActionIcon, Tooltip } from '@mantine/core'
 import { useOs } from '@mantine/hooks'
 import { IconSearch } from '@tabler/icons-react'

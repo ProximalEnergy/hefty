@@ -17,6 +17,7 @@ type Link = {
   requiresReportIntegration?: boolean
   requiresQualityIntegration?: boolean
   requiresDroneIntegration?: boolean
+  requiresQSEIntegration?: boolean
   underDevelopment?: boolean
   userTypeRequired?: string
 }
@@ -31,6 +32,7 @@ export type DropdownLink = {
   requiresRealTimeData?: boolean
   requiresDroneIntegration?: boolean
   requiresPV?: boolean
+  requiresQSEIntegration?: boolean
   links?: Link[]
   underDevelopment?: boolean
   userTypeRequired?: string
@@ -176,6 +178,18 @@ export const projectLinks: DropdownLink[] = [
     to: (projectId: string) => `/projects/${projectId}/contracts`,
     label: 'Contracts',
     icon: icons.IconFileText,
+  },
+  {
+    label: 'Finances',
+    icon: icons.IconCurrencyDollar,
+    requiresQSEIntegration: true,
+    links: [
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/finances/battery-settlement`,
+        label: 'Battery Settlement',
+      },
+    ],
   },
   {
     to: (projectId: string) => `/projects/${projectId}/data-browsing`,

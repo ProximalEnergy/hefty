@@ -38,14 +38,12 @@ export const useGetDeviceDetailsVertical = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DeviceDetailsVertical>({
     axiosConfig,
     queryName: 'getDeviceDetailsVertical',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -80,13 +78,11 @@ export const useGetDeviceDetailsVerticalController = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<ControllerResponse>({
     axiosConfig,
     queryName: 'getDeviceDetailsVerticalController',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

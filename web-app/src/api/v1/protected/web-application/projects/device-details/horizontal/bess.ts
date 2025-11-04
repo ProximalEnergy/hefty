@@ -29,13 +29,11 @@ export const useGetDeviceDetailsHorizontalBESS = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DeviceDetailsHorizontalBESS>({
     axiosConfig,
     queryName: 'getDeviceDetailsHorizontalBESS',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

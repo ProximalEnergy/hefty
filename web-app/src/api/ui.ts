@@ -18,13 +18,11 @@ export const useGetBlockDropdown = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<types.BlockDropdownItem[]>({
     axiosConfig,
     queryName: 'getBlockDropdown',
     pathParams,
     queryParams: {},
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

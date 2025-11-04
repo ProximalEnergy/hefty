@@ -32,13 +32,11 @@ export const useGetStatusTimeSeries = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<StatusTimeSeries[]>({
     axiosConfig,
     queryName: 'getStatusTimeSeries',
     pathParams,
     queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

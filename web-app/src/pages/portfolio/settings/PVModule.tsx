@@ -676,7 +676,7 @@ const Page = () => {
               <Stack>
                 <Text>
                   This page allows you to manage the PV modules in your
-                  company's component library.
+                  company&apos;s component library.
                 </Text>
                 <Text>
                   You can add new modules by uploading a PAN file, importing
@@ -689,15 +689,15 @@ const Page = () => {
             PV Modules
           </PageTitle>
           <Text c="dimmed" size="sm" mb="md">
-            Add or edit components in your company's component library.
+            Add or edit components in your company&apos;s component library.
             Equipment can be assigned to specific projects via the projectlevel
             google sheet. If you need access to a project google sheet, please
             contact your Proximal support contact.
           </Text>
           <Text c="dimmed" size="sm" mb="md">
-            Choose "Edit Equipment" to modify existing module specifications,
-            "CEC Database" to load from CEC database, or "New Equipment
-            (Manual)" to enter your own values.
+            Choose &quot;Edit Equipment&quot; to modify existing module
+            specifications, &quot;CEC Database&quot; to load from CEC database,
+            or &quot;New Equipment (Manual)&quot; to enter your own values.
           </Text>
           <Select
             label="Source"
@@ -732,8 +732,9 @@ const Page = () => {
                   mt="md"
                 >
                   No PV module equipment is available for your company in edit
-                  mode. Please use "New (CEC Database)" or "New (Manual)" to add
-                  equipment to your company's inventory.
+                  mode. Please use &quot;New (CEC Database)&quot; or &quot;New
+                  (Manual)&quot; to add equipment to your company&apos;s
+                  inventory.
                 </Alert>
               ) : (
                 <EquipmentFilter

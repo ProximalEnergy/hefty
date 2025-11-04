@@ -189,17 +189,21 @@ const Page = () => {
   // Add validation check when combiner data changes
   useEffect(() => {
     if (!combinerData.data || combinerData.data.length === 0) {
-      setDataValidation({ isValid: false, message: 'No data available' })
+      queueMicrotask(() =>
+        setDataValidation({ isValid: false, message: 'No data available' }),
+      )
       return
     }
 
     // Get the first combiner's data to check time range
     const firstCombiner = combinerData.data[0]
     if (!firstCombiner.x || firstCombiner.x.length === 0) {
-      setDataValidation({
-        isValid: false,
-        message: 'No time series data available',
-      })
+      queueMicrotask(() =>
+        setDataValidation({
+          isValid: false,
+          message: 'No time series data available',
+        }),
+      )
       return
     }
   }, [combinerData.data])
@@ -207,18 +211,22 @@ const Page = () => {
   // Separate effect for validation API call
   useEffect(() => {
     if (validation.data) {
-      setDataValidation(validation.data)
+      queueMicrotask(() => setDataValidation(validation.data))
     }
   }, [validation.data])
 
   // Update the validation effect
   useEffect(() => {
     if (validation.isLoading) {
-      setDataValidation({ isValid: false, message: 'Validating data...' })
+      queueMicrotask(() =>
+        setDataValidation({ isValid: false, message: 'Validating data...' }),
+      )
     } else if (validation.error) {
-      setDataValidation({ isValid: false, message: 'Error validating data' })
+      queueMicrotask(() =>
+        setDataValidation({ isValid: false, message: 'Error validating data' }),
+      )
     } else if (validation.data) {
-      setDataValidation(validation.data)
+      queueMicrotask(() => setDataValidation(validation.data))
     }
   }, [validation.isLoading, validation.data, validation.error])
 
@@ -286,8 +294,8 @@ const Page = () => {
 
   // Add effect to reset indexArray when blockDeviceId changes
   useEffect(() => {
-    setIndexArray([])
-    setAnalysisResult(null)
+    queueMicrotask(() => setIndexArray([]))
+    queueMicrotask(() => setAnalysisResult(null))
   }, [blockDeviceId])
 
   const gisData = useGetGISCombinerBlock({

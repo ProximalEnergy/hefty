@@ -20,7 +20,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 
 interface ProjectKPIAlertModalProps {
@@ -80,12 +80,40 @@ const ProjectKPIAlertModal = ({
       notify: alert.config.notify,
     },
   })
+  // This is some duplicated code from ProjectKPIAlerts.tsx, but I'm not sure how to avoid it
+  const handleKpiChange = useCallback(
+    (value: any) => {
+      form.setFieldValue('kpi_type_id', value ?? null)
+      const selectedKpi = data?.find(
+        (item) => item.kpi_type_id.toString() === value,
+      )
+      if (selectedKpi?.unit === '%') {
+        setThresholdSuffix('%')
+      } else if (selectedKpi?.unit === 'MWh') {
+        setThresholdSuffix(' MWh')
+      } else if (selectedKpi?.unit === 'deg') {
+        setThresholdSuffix('°')
+      } else {
+        setThresholdSuffix(null)
+      }
+
+      // If the KPI is a project level KPI, disable the statistic dropdown
+      if (selectedKpi?.device_type_id === 1) {
+        setStatisticDisabled(true)
+        form.setFieldValue('statistic', null)
+      } else {
+        setStatisticDisabled(false)
+      }
+    },
+    [data, form],
+  )
+
   useEffect(() => {
     form.setFieldValue('kpi_alert_id', alert.kpi_alert_id)
     form.setFieldValue('alert_name', alert.config.alert_name)
     form.setFieldValue('kpi_type_id', alert.config.kpi_type_id)
     form.setFieldValue('statistic', alert.config.statistic)
-    handleKpiChange(alert.config.kpi_type_id)
+    queueMicrotask(() => handleKpiChange(alert.config.kpi_type_id))
     form.setFieldValue('comparison', alert.config.comparison)
 
     // Multiply threshold_value by 100 if the KPI's unit is "%"
@@ -100,32 +128,7 @@ const ProjectKPIAlertModal = ({
 
     form.setFieldValue('duration_value', alert.config.duration_value)
     form.setFieldValue('notify', alert.config.notify)
-  }, [opened, alert])
-
-  // This is some duplicated code from ProjectKPIAlerts.tsx, but I'm not sure how to avoid it
-  const handleKpiChange = (value: any) => {
-    form.setFieldValue('kpi_type_id', value ?? null)
-    const selectedKpi = data?.find(
-      (item) => item.kpi_type_id.toString() === value,
-    )
-    if (selectedKpi?.unit === '%') {
-      setThresholdSuffix('%')
-    } else if (selectedKpi?.unit === 'MWh') {
-      setThresholdSuffix(' MWh')
-    } else if (selectedKpi?.unit === 'deg') {
-      setThresholdSuffix('°')
-    } else {
-      setThresholdSuffix(null)
-    }
-
-    // If the KPI is a project level KPI, disable the statistic dropdown
-    if (selectedKpi?.device_type_id === 1) {
-      setStatisticDisabled(true)
-      form.setFieldValue('statistic', null)
-    } else {
-      setStatisticDisabled(false)
-    }
-  }
+  }, [opened, alert, data, handleKpiChange])
 
   const handleSubmit = (values: any) => {
     values.project_id = projectId ?? '-1'

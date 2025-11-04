@@ -28,13 +28,11 @@ export const useGetDeviceDetailsHorizontalPV = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DeviceDetailsHorizontalPV>({
     axiosConfig,
     queryName: 'getDeviceDetailsHorizontalPV',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

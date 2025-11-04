@@ -26,14 +26,12 @@ export const useGetPresignedUrl = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<string>({
     axiosConfig,
     queryName: 'getPresignedUrl',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -54,13 +52,11 @@ export const useGetBucketListdir = ({
     staleTime: Infinity,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<BucketItem[]>({
     axiosConfig,
     queryName: 'getPresignedUrl',
     pathParams: {},
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

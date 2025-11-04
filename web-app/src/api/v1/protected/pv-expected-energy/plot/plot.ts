@@ -50,14 +50,12 @@ export const useGetUtilityExpected = ({
     staleTime: 5 * 60 * 1000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<UtilityExpected>({
     axiosConfig,
     queryName: 'getUtilityExpected',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -89,8 +87,6 @@ export const useGetMeterPowerAndExpectedPower = ({
     refetchOnWindowFocus: false,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   // Ensure the return type matches what the hook expects
   // Assuming it's still types.MeterPowerAndExpected
   return useCustomQuery<MeterPowerAndExpected>({
@@ -98,6 +94,6 @@ export const useGetMeterPowerAndExpectedPower = ({
     queryName: 'getMeterPowerAndExpectedPower',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

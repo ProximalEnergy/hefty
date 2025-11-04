@@ -51,14 +51,14 @@ const Page = () => {
 
   // Reset state when component mounts (handles same-project navigation)
   useEffect(() => {
-    setSelectedDeviceType(null)
-    setIsAllDataLoaded(false)
-    setPrefetchIndex(0)
-    setDevicesOffset(0)
-    setAllDevices([])
-    setHasMoreDevices(true)
-    setDevicesByType({})
-    setHasMoreDevicesByType({})
+    queueMicrotask(() => setSelectedDeviceType(null))
+    queueMicrotask(() => setIsAllDataLoaded(false))
+    queueMicrotask(() => setPrefetchIndex(0))
+    queueMicrotask(() => setDevicesOffset(0))
+    queueMicrotask(() => setAllDevices([]))
+    queueMicrotask(() => setHasMoreDevices(true))
+    queueMicrotask(() => setDevicesByType({}))
+    queueMicrotask(() => setHasMoreDevicesByType({}))
   }, [])
 
   const project = useSelectProject(projectId!)
@@ -85,25 +85,29 @@ const Page = () => {
     if (devicesQuery.data && devicesQuery.isSuccess && selectedDeviceType) {
       const devices = devicesQuery.data as types.Device[]
 
-      setDevicesByType((prev) => {
-        const currentDevices = prev[selectedDeviceType] || []
-        if (devicesOffset === 0) {
-          // First load - replace all devices for this type
-          return { ...prev, [selectedDeviceType]: devices }
-        } else {
-          // Load more - append to existing devices for this type
-          return {
-            ...prev,
-            [selectedDeviceType]: [...currentDevices, ...devices],
+      queueMicrotask(() =>
+        setDevicesByType((prev) => {
+          const currentDevices = prev[selectedDeviceType] || []
+          if (devicesOffset === 0) {
+            // First load - replace all devices for this type
+            return { ...prev, [selectedDeviceType]: devices }
+          } else {
+            // Load more - append to existing devices for this type
+            return {
+              ...prev,
+              [selectedDeviceType]: [...currentDevices, ...devices],
+            }
           }
-        }
-      })
+        }),
+      )
 
       // Check if we have more devices to load for this type
-      setHasMoreDevicesByType((prev) => ({
-        ...prev,
-        [selectedDeviceType]: devices.length === 1000,
-      }))
+      queueMicrotask(() =>
+        setHasMoreDevicesByType((prev) => ({
+          ...prev,
+          [selectedDeviceType]: devices.length === 1000,
+        })),
+      )
     }
   }, [
     devicesQuery.data,
@@ -117,11 +121,13 @@ const Page = () => {
     if (selectedDeviceType) {
       // Load devices from cache for this device type
       const cachedDevices = devicesByType[selectedDeviceType] || []
-      setAllDevices(cachedDevices)
-      setHasMoreDevices(hasMoreDevicesByType[selectedDeviceType] ?? true)
+      queueMicrotask(() => setAllDevices(cachedDevices))
+      queueMicrotask(() =>
+        setHasMoreDevices(hasMoreDevicesByType[selectedDeviceType] ?? true),
+      )
 
       // Reset offset for new loads
-      setDevicesOffset(0)
+      queueMicrotask(() => setDevicesOffset(0))
     }
   }, [selectedDeviceType, devicesByType, hasMoreDevicesByType])
 
@@ -165,16 +171,18 @@ const Page = () => {
       // try next device type
       const next = prefetchIndex + 1
       if (next < (usedDeviceTypeIds.length ?? 0)) {
-        setPrefetchIndex(next)
+        queueMicrotask(() => setPrefetchIndex(next))
       } else {
         // none had data; surface an empty page state by ending loading, but without a selected type
-        setIsAllDataLoaded(true)
-        setSelectedDeviceType(null)
+        queueMicrotask(() => setIsAllDataLoaded(true))
+        queueMicrotask(() => setSelectedDeviceType(null))
       }
     } else {
       // lock in the first device type that actually has data
       if (prefetchDeviceTypeId != null) {
-        setSelectedDeviceType(prefetchDeviceTypeId.toString())
+        queueMicrotask(() =>
+          setSelectedDeviceType(prefetchDeviceTypeId.toString()),
+        )
       }
     }
   }, [
@@ -263,7 +271,7 @@ const Page = () => {
       deviceTypesAll.isSuccess &&
       selectedDeviceType
     ) {
-      setIsAllDataLoaded(true)
+      queueMicrotask(() => setIsAllDataLoaded(true))
     }
   }, [
     dataAvailabilityDataQuery,
@@ -505,7 +513,7 @@ const Page = () => {
               <Text span c="orange">
                 Orange
               </Text>
-              : Stale data - sensor hasn't reported recently and may need
+              : Stale data - sensor hasn&apos;t reported recently and may need
               attention.
               <br />
               <Text span c="gray">
@@ -516,15 +524,15 @@ const Page = () => {
               <br />
               <Text fw={600}>How Stale Values Are Calculated:</Text>
               <br />
-              A sensor reading is marked as 'stale' when it's older than
-              expected. The system calculates this by:
+              A sensor reading is marked as &apos;stale&apos; when it&apos;s
+              older than expected. The system calculates this by:
               <br />
               1. Taking the typical age for similar sensors (median age) and
               doubling it
               <br />
               2. Making sure this threshold is at least 1 hour (3600 seconds)
               <br />
-              3. If a reading is older than this calculated threshold, it's
+              3. If a reading is older than this calculated threshold, it&apos;s
               marked as stale
               <br />
               <br />

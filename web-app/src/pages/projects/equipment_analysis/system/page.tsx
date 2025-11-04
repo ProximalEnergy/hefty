@@ -105,8 +105,8 @@ const SystemPerformance = () => {
               <br />
               Note: A child device can be colored green even when its parent
               device is red. This is intentional — if a parent device has an
-              active Event causing a child device to go offline, the child won't
-              always show an active Event.
+              active Event causing a child device to go offline, the child
+              won&apos;t always show an active Event.
             </>
           }
           headerChildren={

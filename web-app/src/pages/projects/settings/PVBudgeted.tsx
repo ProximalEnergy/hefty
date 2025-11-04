@@ -941,9 +941,9 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
               <Text c="dimmed" size="sm">
                 Copy-paste your 8760s into the respective columns based on
                 Standard Time. The timestamps will be automatically generated as
-                Standard Time at the site's local timezone for the year 2019. A
-                preview of the top rows will be shown below. The remaining rows
-                are hidden but will be saved to the database.
+                Standard Time at the site&apos;s local timezone for the year
+                2019. A preview of the top rows will be shown below. The
+                remaining rows are hidden but will be saved to the database.
               </Text>
             </Stack>
 

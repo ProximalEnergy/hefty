@@ -20,7 +20,7 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import quarterOfYear from 'dayjs/plugin/quarterOfYear'
 import updateLocale from 'dayjs/plugin/updateLocale'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import DateCombobox, { DurationUnit, Limits } from './CustomCombobox'
@@ -164,29 +164,119 @@ export function AdvancedDatePicker({
       .toDate()
   }
 
+  const defaultQuickActions: DurationTerms[] = [
+    'past-week',
+    'past-month',
+    'last-week',
+    'last-month',
+    'last-quarter',
+    'last-year',
+    'ytd',
+  ]
+
+  const quickActions =
+    disableQuickActions === true
+      ? []
+      : Array.isArray(disableQuickActions)
+        ? defaultQuickActions.filter(
+            (term) => !disableQuickActions.includes(term),
+          )
+        : defaultQuickActions
+
+  const setDateParams = useCallback(
+    ([startDate, endDate]: [Date | null, Date | null]) => {
+      const nextParams = new URLSearchParams(searchParams)
+      if (startDate) {
+        nextParams.set('start', dayjs(startDate).format('YYYY-MM-DD'))
+      } else {
+        nextParams.delete('start')
+      }
+      if (endDate) {
+        nextParams.set('end', dayjs(endDate).format('YYYY-MM-DD'))
+      } else {
+        nextParams.delete('end')
+      }
+
+      setSearchParams(nextParams, { replace: true })
+    },
+    [searchParams, setSearchParams],
+  )
+
+  const setDateRangeByTerm = useCallback(
+    (term: DurationTerms) => {
+      let today = dayjs().startOf('day')
+      if (!includeTodayInDateRange) {
+        today = today.subtract(1, 'day')
+      }
+      let startValue: Date | null = null
+      let endValue: Date | null = null
+
+      switch (term) {
+        case 'today':
+          startValue = today.toDate()
+          endValue = today.toDate()
+          break
+        case 'yesterday':
+          startValue = today.subtract(1, 'day').toDate()
+          endValue = today.subtract(1, 'day').toDate()
+          break
+        case 'past-2-days':
+          // Explicitly set to yesterday through today, regardless of includeTodayInDateRange
+          startValue = today.subtract(1, 'day').toDate()
+          endValue = today.toDate()
+          break
+        case 'past-3-days':
+          startValue = today.subtract(3, 'day').add(1, 'day').toDate()
+          endValue = today.toDate()
+          break
+        case 'past-week':
+          startValue = today.subtract(1, 'week').add(1, 'day').toDate()
+          endValue = today.toDate()
+          break
+        case 'past-month':
+          startValue = today.subtract(1, 'month').add(1, 'day').toDate()
+          endValue = today.toDate()
+          break
+        case 'past-year':
+          startValue = today.subtract(1, 'year').add(1, 'day').toDate()
+          endValue = today.toDate()
+          break
+        case 'last-week':
+          startValue = today.subtract(1, 'week').startOf('week').toDate()
+          endValue = today.subtract(1, 'week').endOf('week').toDate()
+          break
+        case 'last-month':
+          startValue = today.subtract(1, 'month').startOf('month').toDate()
+          endValue = today.subtract(1, 'month').endOf('month').toDate()
+          break
+        case 'last-quarter':
+          startValue = today.subtract(1, 'quarter').startOf('quarter').toDate()
+          endValue = today.subtract(1, 'quarter').endOf('quarter').toDate()
+          break
+        case 'last-year':
+          startValue = today.subtract(1, 'year').startOf('year').toDate()
+          endValue = today.subtract(1, 'year').endOf('year').toDate()
+          break
+        case 'ytd':
+          startValue = today.startOf('year').toDate()
+          endValue = today.toDate()
+          break
+      }
+
+      setPopoverOpened(false)
+      setDateParams([startValue, endValue])
+    },
+    [includeTodayInDateRange, setDateParams],
+  )
+
   useEffect(() => {
     // If no start and end are present, set them based on defaultRange
     if (!startParam && !endParam && defaultRange) {
-      setDateRangeByTerm(defaultRange)
+      queueMicrotask(() => setDateRangeByTerm(defaultRange))
     } else {
-      setDateRange([start, end])
+      queueMicrotask(() => setDateRange([start, end]))
     }
-  }, [startParam, endParam, defaultRange])
-
-  function setDateParams([start, end]: [Date | null, Date | null]) {
-    if (start) {
-      searchParams.set('start', dayjs(start).format('YYYY-MM-DD'))
-    } else {
-      searchParams.delete('start')
-    }
-    if (end) {
-      searchParams.set('end', dayjs(end).format('YYYY-MM-DD'))
-    } else {
-      searchParams.delete('end')
-    }
-
-    setSearchParams(searchParams, { replace: true })
-  }
+  }, [startParam, endParam, defaultRange, setDateRangeByTerm])
 
   function onDateRangeChange(value: [Date | null, Date | null]) {
     setDateRange(value)
@@ -203,93 +293,6 @@ export function AdvancedDatePicker({
     if (newStart && newEnd) {
       setDateParams([newStart, newEnd])
     }
-  }
-
-  // Dynamically create a default quickActions array from the DurationTerms
-  const defaultQuickActions: DurationTerms[] = [
-    'past-week',
-    'past-month',
-    'last-week',
-    'last-month',
-    'last-quarter',
-    'last-year',
-    'ytd',
-  ]
-
-  // If disableQuickActions is true, set quickActions to an empty array
-  // If disableQuickActions is an array, set quickActions to the difference between the defaultQuickActions and the disableQuickActions
-  // Otherwise, set quickActions to the defaultQuickActions
-  const quickActions =
-    disableQuickActions === true
-      ? []
-      : Array.isArray(disableQuickActions)
-        ? defaultQuickActions.filter(
-            (term) => !disableQuickActions.includes(term),
-          )
-        : defaultQuickActions
-
-  function setDateRangeByTerm(term: DurationTerms) {
-    let today = dayjs().startOf('day')
-    if (!includeTodayInDateRange) {
-      today = today.subtract(1, 'day')
-    }
-    let start = null
-    let end = null
-
-    switch (term) {
-      case 'today':
-        start = today.toDate()
-        end = today.toDate()
-        break
-      case 'yesterday':
-        start = today.subtract(1, 'day').toDate()
-        end = today.subtract(1, 'day').toDate()
-        break
-      case 'past-2-days':
-        // Explicitly set to yesterday through today, regardless of includeTodayInDateRange
-        start = today.subtract(1, 'day').toDate()
-        end = today.toDate()
-        break
-      case 'past-3-days':
-        start = today.subtract(3, 'day').add(1, 'day').toDate()
-        end = today.toDate()
-        break
-      case 'past-week':
-        start = today.subtract(1, 'week').add(1, 'day').toDate()
-        end = today.toDate()
-        break
-      case 'past-month':
-        start = today.subtract(1, 'month').add(1, 'day').toDate()
-        end = today.toDate()
-        break
-      case 'past-year':
-        start = today.subtract(1, 'year').add(1, 'day').toDate()
-        end = today.toDate()
-        break
-      case 'last-week':
-        start = today.subtract(1, 'week').startOf('week').toDate()
-        end = today.subtract(1, 'week').endOf('week').toDate()
-        break
-      case 'last-month':
-        start = today.subtract(1, 'month').startOf('month').toDate()
-        end = today.subtract(1, 'month').endOf('month').toDate()
-        break
-      case 'last-quarter':
-        start = today.subtract(1, 'quarter').startOf('quarter').toDate()
-        end = today.subtract(1, 'quarter').endOf('quarter').toDate()
-        break
-      case 'last-year':
-        start = today.subtract(1, 'year').startOf('year').toDate()
-        end = today.subtract(1, 'year').endOf('year').toDate()
-        break
-      case 'ytd':
-        start = today.startOf('year').toDate()
-        end = today.toDate()
-        break
-    }
-
-    setPopoverOpened(false)
-    setDateParams([start, end])
   }
 
   const handleComboboxSubmit = (value: string) => {

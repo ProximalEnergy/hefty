@@ -1,5 +1,4 @@
 import datetime
-import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -16,9 +15,8 @@ from app._crud.projects.data_timeseries_latest import (
     get_data_timeseries_latest_by_device_type,
 )
 from app.dependencies import get_project_db
+from app.logger import logger
 from core import models
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/real-time",

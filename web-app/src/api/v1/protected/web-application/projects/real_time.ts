@@ -63,14 +63,12 @@ export const useGetRealTimeByDeviceTypeID = ({
     staleTime: 1000 * 60,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<RealTimeData>({
     axiosConfig,
     queryName: 'getRealTimeByDeviceTypeID',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -97,14 +95,12 @@ export const useGetDataAvailabilityV2 = ({
     staleTime: 1000 * 60,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQueryArrow({
     axiosConfig,
     queryName: 'getDataAvailabilityV2',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -134,13 +130,11 @@ export const useGetDataTimeseriesLast = ({
     staleTime: 1000 * 60,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<DataTimeSeriesLast[]>({
     axiosConfig,
     queryName: 'getDataTimeseriesLast',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

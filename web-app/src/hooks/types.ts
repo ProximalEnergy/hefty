@@ -189,13 +189,6 @@ export interface EventSummary {
   loss_daily_energy: number | null
 }
 
-export interface EventLoss {
-  event_id: number
-  time: string
-  event_loss_type_id: number
-  loss: number
-}
-
 export interface UptimeData {
   device_id: number
   device_type_id: number

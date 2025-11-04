@@ -29,13 +29,11 @@ export const useGetWaterfall = ({
     staleTime: 5 * 60 * 1000,
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
-
   return useCustomQuery<WaterfallData>({
     axiosConfig,
     queryName: 'getWaterfall',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

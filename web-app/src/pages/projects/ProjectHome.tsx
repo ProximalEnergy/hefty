@@ -22,7 +22,7 @@ import { useGetPaginatedEvents } from '@/hooks/api'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
-import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome'
+import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { getInterval, roundTime } from '@/utils/interval'
 import { projectDescription } from '@/utils/projectDescription'
 import {
@@ -79,7 +79,7 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 const PowerPlotBESS = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const theme = useMantineTheme()
   const [startTime, setStartTime] = useState<string>(
     dayjs()
@@ -325,7 +325,7 @@ const CurrentTime = ({ timezone }: { timezone: string }) => {
 }
 
 const KPICards = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const container = useElementSize()
   const content = useElementSize()
   const [rotationOffset, setRotationOffset] = useState(0)
@@ -427,7 +427,7 @@ const KPICards = () => {
 }
 
 const EventTable = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const [sortBy, setSortBy] = useState('loss_daily')
   const theme = useMantineTheme()
 
@@ -594,7 +594,7 @@ function KioskMode({
   enabled: boolean
   setEnabled: (enabled: boolean) => void
 }) {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const navigate = useNavigate()
 
   // Query data for all projects
@@ -655,7 +655,7 @@ function KioskMode({
 }
 
 const BatteryHealth = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const [showCycleData, setShowCycleData] = useState(false)
@@ -1129,6 +1129,7 @@ const BatteryHealth = () => {
         </Link>
       }
       allowFullscreen={false}
+      style={{ flex: 0.75 }}
     >
       <Stack gap="md">
         {/* SOH Degradation Chart */}
@@ -1375,7 +1376,7 @@ const BatteryHealth = () => {
                   c={theme.colors.green[6]}
                   style={{ cursor: 'pointer' }}
                   onClick={() =>
-                    navigate(`/projects/${projectId}/kpis/type/24`)
+                    navigate(`/projects/${projectId}/kpis/type/25`)
                   }
                   onMouseEnter={() => {
                     setShowSocData(true)
@@ -1456,7 +1457,7 @@ const ContractualKPIOverview = ({
 }: {
   onExpandedChange?: (expanded: boolean) => void
 }) => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const theme = useMantineTheme()
   const navigate = useNavigate()
   const [contractModalOpen, setContractModalOpen] = useState(false)
@@ -1473,7 +1474,9 @@ const ContractualKPIOverview = ({
   // Update expanded state when projectId changes
   useEffect(() => {
     const saved = localStorage.getItem(`contractRisksExpanded_${projectId}`)
-    setIsExpanded(saved !== null ? JSON.parse(saved) : true)
+    queueMicrotask(() =>
+      setIsExpanded(saved !== null ? JSON.parse(saved) : true),
+    )
   }, [projectId])
 
   // Save expanded state to localStorage whenever it changes
@@ -1872,7 +1875,7 @@ const ContractualKPIOverview = ({
 }
 
 const ProjectHome = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const stackRef = useElementSize()
   const [_contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
@@ -2089,7 +2092,9 @@ const ProjectHome = () => {
           )}
           {/* Battery Health Section for BESS projects */}
           {project.data.project_type_id === ProjectTypeId.BESS && (
-            <BatteryHealth />
+            <>
+              <BatteryHealth />
+            </>
           )}
         </Stack>
         <Stack h="100%" flex={1}>
