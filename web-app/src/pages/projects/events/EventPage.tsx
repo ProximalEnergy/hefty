@@ -849,7 +849,10 @@ const Page = () => {
                   const tag = eventTraceTags.data?.find(
                     (tag) => tag.name_scada === trace.tag_name_scada,
                   )
-                  if (trace.sensor_type_name.includes('status')) {
+                  if (
+                    trace.sensor_type_name.includes('status') ||
+                    trace.sensor_type_name.includes('alarm')
+                  ) {
                     return acc
                   }
 
