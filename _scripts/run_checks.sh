@@ -50,7 +50,73 @@ check_root_for_package_json() {
     fi
 }
 
+# Function to check for core documentation and version bump
+check_core_documentation_and_version() {
+    echo "Checking for core documentation and version bump..."
+
+    # Check for documentation changes
+    if ! git diff --name-only dev...HEAD -- 'core/' | grep -q '^core/_docs/releases/'; then
+        if git diff --name-only dev...HEAD -- 'core/' | grep -q -v '^core/_docs/releases/'; then
+            echo "::error::Changes were made to 'core/' source files, but no corresponding documentation update was found in 'core/_docs/releases/'. Please add a release note for your changes."
+            return 1
+        fi
+    fi
+    echo "Documentation check passed."
+
+    # Check for version bump
+    # Ensure jq is installed
+    if ! command -v jq &> /dev/null
+    then
+        echo "jq could not be found, please install it."
+        return 1
+    fi
+
+    current_version=$(uv run python -c "import tomllib; print(tomllib.load(open('core/pyproject.toml', 'rb'))['project']['version'])")
+    echo "Current version in pyproject.toml: $current_version"
+
+    # Configure AWS credentials if not already configured. This assumes the user has configured their AWS CLI.
+    # The user might need to run `aws configure` or `aws sso login`.
+    # For CI, this would be handled by the CI environment.
+    if ! aws sts get-caller-identity &> /dev/null; then
+        echo "AWS credentials not configured. Skipping version check."
+        return 0
+    fi
+
+
+    aws_output=$(aws codeartifact list-package-versions --domain proximal-code-artifact-domain --repository proximal-hub --format pypi --package core --sort-by PUBLISHED_TIME 2>/dev/null || echo '{"versions":[]}')
+    latest_version=$(echo $aws_output | jq -r '.versions[0].version')
+    echo "Latest published version from CodeArtifact: $latest_version"
+
+    if [ -z "$latest_version" ] || [ "$latest_version" == "null" ]; then
+        echo "Could not determine the latest version from CodeArtifact. Assuming this is the first release."
+        latest_version="0.0.0"
+    fi
+
+
+    (cd core && uv run python - <<EOF
+from packaging.version import parse as V
+
+current = "$current_version"
+latest = "$latest_version"
+
+if V(current) <= V(latest):
+    print(f"::error::Version check failed. The current version ({current}) must be greater than the latest published version ({latest}). Please bump the version in core/pyproject.toml.")
+    exit(1)
+
+print(f"Version check passed. Current version ({current}) > Latest version ({latest}).")
+EOF
+    )
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+
+    return 0
+}
+
+
 # Run all checks
+run_check "Core: Documentation and Version" "check_core_documentation_and_version"
 run_check "Core: Type Checking (mypy)" "mise run core:types"
 run_check "Core: Ruff Linting" "mise run core:ruff_check"
 run_check "Core: Ruff Formatting" "mise run core:ruff_format"
