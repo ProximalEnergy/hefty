@@ -1489,15 +1489,7 @@ const ContractualKPIOverview = ({
     onExpandedChange?.(isExpanded)
   }, [isExpanded, onExpandedChange, projectId])
 
-  // Get all KPI summary cards
-  const kpiData = useGetKPISummaryCards({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
-
-  // Get contract KPI data with thresholds
+  // Get contract KPI data with thresholds first (lightweight query)
   const contractKPIData = useGetContractKPIs({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
@@ -1505,9 +1497,26 @@ const ContractualKPIOverview = ({
     },
   })
 
-  // Filter for only contractual KPIs (those with contract_id)
-  const contractualKPIs =
-    kpiData.data?.filter((kpi) => kpi.contract_id !== null) || []
+  // Extract contractual KPI type IDs from contract data
+  const contractualKpiTypeIds = useMemo(() => {
+    if (!contractKPIData.data) return []
+    return contractKPIData.data.map((ck) => ck.kpi_type_id)
+  }, [contractKPIData.data])
+
+  // Only fetch KPI summary cards for contractual KPIs (not all KPIs)
+  const kpiData = useGetKPISummaryCards({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      kpi_type_ids:
+        contractualKpiTypeIds.length > 0 ? contractualKpiTypeIds : undefined,
+    },
+    queryOptions: {
+      enabled: !!projectId && contractualKpiTypeIds.length > 0,
+    },
+  })
+
+  // All fetched KPIs are contractual (no need to filter)
+  const contractualKPIs = kpiData.data || []
 
   // Create a map of KPI type ID to contract KPI data for easy lookup
   const contractKPIMap = useMemo(() => {
