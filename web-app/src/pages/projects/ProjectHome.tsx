@@ -326,8 +326,8 @@ const CurrentTime = ({ timezone }: { timezone: string }) => {
 
 const KPICards = () => {
   const { projectId } = useParams()
-  const container = useElementSize()
-  const content = useElementSize()
+  const { ref: containerRef, width: containerWidth } = useElementSize()
+  const { ref: contentRef, width: contentWidth } = useElementSize()
   const [rotationOffset, setRotationOffset] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const [queryDate, setQueryDate] = useState(dayjs().format('YYYY-MM-DD'))
@@ -365,7 +365,7 @@ const KPICards = () => {
     }
   }, [data.isSuccess, data.data, queryDate])
 
-  const contentIsGreaterThanContainer = content.width > container.width
+  const contentIsGreaterThanContainer = contentWidth > containerWidth
 
   const filteredData = data.data?.filter(
     (kpi) => kpi.value !== null && kpi.value !== undefined,
@@ -407,13 +407,13 @@ const KPICards = () => {
 
   return (
     <Group
-      ref={container.ref}
+      ref={containerRef}
       style={{ overflow: 'hidden' }}
       w="100%"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Group wrap="nowrap" ref={content.ref}>
+      <Group wrap="nowrap" ref={contentRef}>
         {rotatedItems?.map((kpi) => (
           <KPICard
             key={kpi.kpi_type_id}
@@ -1876,7 +1876,7 @@ const ContractualKPIOverview = ({
 
 const ProjectHome = () => {
   const { projectId } = useParams()
-  const stackRef = useElementSize()
+  const { ref: stackRef } = useElementSize()
   const [_contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
@@ -1901,7 +1901,7 @@ const ProjectHome = () => {
   }
 
   return (
-    <Stack p="md" h="100%" ref={stackRef.ref}>
+    <Stack p="md" h="100%" ref={stackRef}>
       <Group align="start">
         <Group gap="xs" flex={1}>
           <Title order={1} lh={1}>
