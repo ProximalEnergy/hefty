@@ -177,7 +177,13 @@ const PlotlyPlot = ({
                   transform: 'matrix(-1 0 0 1 384 0)',
                 },
                 click: function () {
-                  setPinModeActive((prev) => !prev)
+                  setPinModeActive((prev) => {
+                    if (prev) {
+                      setAnnotations([])
+                      setShapes([])
+                    }
+                    return !prev
+                  })
                 },
               },
             ],
@@ -438,14 +444,6 @@ const PlotlyPlot = ({
       }
     }
   }, [pinModeActive, allowPinning, theme])
-
-  // Clear pins when pin mode is toggled off
-  useEffect(() => {
-    if (!pinModeActive) {
-      setAnnotations([])
-      setShapes([])
-    }
-  }, [pinModeActive])
 
   if (isLoading) {
     return <LoadingOverlay visible />

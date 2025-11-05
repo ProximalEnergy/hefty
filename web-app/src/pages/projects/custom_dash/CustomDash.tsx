@@ -51,7 +51,13 @@ import utc from 'dayjs/plugin/utc'
 import DOMPurify from 'dompurify'
 // import { FeatureCollection } from 'geojson'
 import { PlotType } from 'plotly.js'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 // import { Layer, LngLatBoundsLike, Map, Source } from 'react-map-gl'
@@ -1293,7 +1299,6 @@ const Page = () => {
   // Load dashboard data when available
   useEffect(() => {
     if (dashboard.data && !isNewDashboard) {
-      // Parse components and ensure config is properly parsed
       const components = dashboard.data.components.map((component) => ({
         ...component,
         config:
@@ -1302,16 +1307,18 @@ const Page = () => {
             : component.config,
       }))
 
-      setDashboardComponents(components)
-      setDashboardName(dashboard.data.dashboard_name)
+      startTransition(() => {
+        setDashboardComponents(components)
+        setDashboardName(dashboard.data.dashboard_name)
 
-      // Set time range values from dashboard data
-      if (dashboard.data.default_time_range) {
-        setDefaultTimeRange(Number(dashboard.data.default_time_range))
-      }
-      if (dashboard.data.default_kpi_time_range) {
-        setDefaultKPITimeRange(Number(dashboard.data.default_kpi_time_range))
-      }
+        if (dashboard.data.default_time_range) {
+          setDefaultTimeRange(Number(dashboard.data.default_time_range))
+        }
+
+        if (dashboard.data.default_kpi_time_range) {
+          setDefaultKPITimeRange(Number(dashboard.data.default_kpi_time_range))
+        }
+      })
     }
   }, [dashboard.data, isNewDashboard])
 
