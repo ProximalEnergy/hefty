@@ -24,7 +24,7 @@ router = APIRouter(
 def get_meter_power_and_expected_power_v2(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
     include_storage: bool = False,

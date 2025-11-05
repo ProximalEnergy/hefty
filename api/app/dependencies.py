@@ -39,7 +39,7 @@ def get_project_db(*, project_id: UUID = Path(...)):
         yield project_db
 
 
-def get_project(*, project_id: UUID, db: Session = Depends(get_db)):
+def get_project_api(*, project_id: UUID, db: Session = Depends(get_db)):
     project_model = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
     ).model()

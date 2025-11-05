@@ -67,7 +67,7 @@ async def get_bar(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     sensor_type_id: int,
     aggregation_type: str,
     start: datetime.datetime,
@@ -163,7 +163,7 @@ async def get_gauge(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     measured_variable: str,
     maximum_value: str,
     start: datetime.datetime,
@@ -238,7 +238,7 @@ async def get_line(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     sensor_type_ids: Annotated[list[int], Query()],
     aggregation_types: Annotated[list[str], Query()],
     start: datetime.datetime,
@@ -357,7 +357,7 @@ async def get_scatter(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     x_axis_sensor_type_id: int,
     y_axis_sensor_type_id: int,
     start: datetime.datetime,
@@ -460,7 +460,7 @@ async def get_scatter(
 async def get_user_dashboards(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     user_dashboards = await crud_get_user_dashboards(
         db=db,
@@ -475,7 +475,7 @@ async def create_user_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: CreateDashboardRequest,
 ):
     new_dashboard = await crud_create_user_dashboard(
@@ -495,7 +495,7 @@ async def update_user_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: UpdateDashboardRequest,
 ):
     try:
@@ -520,7 +520,7 @@ async def get_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
@@ -545,7 +545,7 @@ async def delete_dashboard(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)

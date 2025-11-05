@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 import core
-from app.dependencies import get_project, get_project_db
+from app.dependencies import get_project_api, get_project_db
 from core import models
 
 DESCRIPTION_404 = "Status not found"
@@ -211,7 +211,7 @@ def interpret(
 def get_status_time_series(
     db: Annotated[Session, Depends(get_project_db)],
     *,
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
     project_db: Annotated[Session, Depends(get_project_db)],
     start: datetime.datetime,
     end: datetime.datetime,
@@ -361,7 +361,7 @@ def get_status_time_series(
 def get_status_time_series_python(
     db: Annotated[Session, Depends(get_project_db)],
     *,
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
     project_db: Annotated[Session, Depends(get_project_db)],
     start: datetime.datetime,
     end: datetime.datetime,

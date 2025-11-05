@@ -74,7 +74,7 @@ router = APIRouter(prefix="/project-tag-explorer", tags=["project_tag_explorer"]
 )
 async def get_unique_tag_types(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     limit: int = 500,
     include_null_sensor_types: bool = False,
     only_null_sensor_types: bool = False,
@@ -163,7 +163,7 @@ async def get_unique_tag_types(
 )
 async def get_sensor_type_assignments(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """
     Get sensor types and their current assignments for the current project.
@@ -263,7 +263,7 @@ class AssignPatternSensorTypeRequest(BaseModel):
 async def assign_sensor_type_to_pattern(
     request: AssignPatternSensorTypeRequest,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """
@@ -337,7 +337,7 @@ async def assign_sensor_type_to_pattern(
 async def get_tag_samples(
     tag_id: int,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     Get sample values for a specific tag by tag_id.
@@ -397,7 +397,7 @@ async def get_tag_samples(
 )
 async def populate_unique_tag_patterns(
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     Populate the UniqueTagPatterns table with all tag patterns for the current
@@ -493,7 +493,7 @@ async def get_tag_pattern_samples(
     start: str | None = None,
     end: str | None = None,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     Get sample values for all tags in a specific pattern.

@@ -33,7 +33,7 @@ router = APIRouter(
 def get_horizontal_bess(
     start: datetime.datetime,
     end: datetime.datetime,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     # Determine what is the "highest" level of battery storage data
@@ -124,7 +124,7 @@ def get_horizontal_bess(
 def get_horizontal_pv(
     start: datetime.datetime,
     end: datetime.datetime,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     sensor_type_ids: list[int] = [
@@ -197,7 +197,7 @@ def get_single_by_device_id(
     device_id: int,
     start: datetime.datetime,
     end: datetime.datetime,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     tags = core.crud.project.tags.get_project_tags(
@@ -243,7 +243,7 @@ async def get_vertical_controller(
     device_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Manually define the device type IDs that are supported for each technology (e.g. PV or BESS).
     # If the user selects a device that is not of a supported type, they will get an error letting them know.
@@ -383,7 +383,7 @@ async def get_vertical_controller(
     response_class=ORJSONResponse,
 )
 def get_vertical(
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     device_ids: Annotated[list[int], Query()],
     start: datetime.datetime,

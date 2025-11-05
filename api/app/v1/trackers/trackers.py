@@ -15,7 +15,7 @@ router = APIRouter(prefix="/trackers", tags=["trackers"])
 def get_tracking_angles(
     start: datetime.datetime,
     end: datetime.datetime,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Convert to project timezone
     start = pd.to_datetime(start).tz_localize("UTC").tz_convert(project.time_zone)

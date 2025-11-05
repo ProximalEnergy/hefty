@@ -27,7 +27,7 @@ def get_pcs(
     end: datetime.datetime | None = None,
     db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     devices_block = core.crud.project.devices.get_project_devices(
         project_db,
@@ -233,7 +233,7 @@ def get_tracker(
     start: datetime.date,
     end: datetime.date,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Get PV Block devices
     devices = core.crud.project.devices.get_project_devices(
@@ -301,7 +301,7 @@ def get_tracker_by_block(
     start: datetime.date,
     end: datetime.date,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Get tracker rows which are descendents of the block
     devices = core.crud.project.devices.get_project_devices(
@@ -408,7 +408,7 @@ def get_devices_in_viewport_legacy(
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     power_device_type_id: Annotated[int | None, Query()] = None,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     return get_devices_in_viewport(
         north=north,
@@ -431,7 +431,7 @@ def get_devices_in_viewport(
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     power_device_type_id: Annotated[int | None, Query()] = None,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
@@ -608,7 +608,7 @@ def utility_expected(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     This function facilitates backend data required for GIS viewport.

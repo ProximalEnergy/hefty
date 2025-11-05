@@ -66,7 +66,7 @@ async def create_contract(
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Create contract data
     contract_data = contract.model_dump()
@@ -415,14 +415,14 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
     ]
 
     system_prompt = f"""
-       Extract the contract fields. If unknown, use null. 
+       Extract the contract fields. If unknown, use null.
        For `counterparty_name`, make it the name of the company that provides the services. IMPORTANT: The counterparty should NOT be the user's company. The user's company is: {user_company_name or "not specified"}. The counterparty is the OTHER party in the contract that provides services TO the user's company.
        For `term_end_date`, you may have to calculate it based on the `term_start_date` and the length of the term.
-       For `contract_summary`, make it 8-10 sentences. 
+       For `contract_summary`, make it 8-10 sentences.
        For `important_dates`, extract only such dates that involved parties would want to put on their calendars. For example, the end of term, the first renewal date, payment deadlines, etc.
 
-       For `source_references`, provide both a document location description and the exact quoted paragraph (max 3 sentences). 
-       - For location, use descriptive references like: 'in section 2.1', 'on page 3', 'in the introduction', 'in the terms section', 'in the contact information', etc. 
+       For `source_references`, provide both a document location description and the exact quoted paragraph (max 3 sentences).
+       - For location, use descriptive references like: 'in section 2.1', 'on page 3', 'in the introduction', 'in the terms section', 'in the contact information', etc.
        - For quoted_text, provide the exact text from the document that supports your extraction. Example: location: 'in section 1.5', quoted_text: 'This Agreement shall commence on January 1, 2024'.",
     """
 
@@ -556,7 +556,7 @@ async def delete_contract(
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """
     Delete a contract if it has no associated Contractual KPIs.

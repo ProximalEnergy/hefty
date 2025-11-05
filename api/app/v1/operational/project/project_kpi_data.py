@@ -28,7 +28,7 @@ from app._crud.projects.kpi_data import (
 from app.dependencies import (
     get_async_db,
     get_is_superadmin_async,
-    get_project,
+    get_project_api,
     get_project_db,
     get_user_data_async,
 )
@@ -58,7 +58,7 @@ def get_project_kpi_summary(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
     device_type_id: int | None = None,

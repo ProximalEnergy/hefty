@@ -174,7 +174,7 @@ class DeviceTypePowerSummary(BaseModel):
 )
 def get_device_type_power_summary(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """
     Get power summary for all device types in the project.

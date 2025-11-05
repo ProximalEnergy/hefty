@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import utils
-from app.dependencies import get_project, get_project_db, get_project_db_async
+from app.dependencies import get_project_api, get_project_db, get_project_db_async
 
 router = APIRouter(
     prefix="/events",
@@ -71,7 +71,7 @@ async def get_meta_analysis(
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
     project_db_async: AsyncSession = Depends(get_project_db_async),
-    project: models.Project = Depends(get_project),
+    project: models.Project = Depends(get_project_api),
 ):
     # -----------------------
     # Window setup (unchanged outputs)

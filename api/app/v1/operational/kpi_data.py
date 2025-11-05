@@ -26,7 +26,7 @@ from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import (
     get_async_db,
-    get_project,
+    get_project_api,
     get_project_db,
     get_user_data_async,
 )
@@ -209,7 +209,7 @@ async def get_kpi_excel(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     sync_db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
 ):
     kpi_data = get_kpi_data_helper(
         db=sync_db,

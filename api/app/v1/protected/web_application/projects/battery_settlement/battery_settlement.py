@@ -86,7 +86,7 @@ def get_battery_settlement_details_dataframe(
 async def get_battery_settlement_details(
     start: datetime.datetime,
     end: datetime.datetime,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
     user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),

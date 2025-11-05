@@ -36,7 +36,7 @@ from app._crud.projects.events import (
 from app._crud.projects.events import get_paginated_events as crud_get_paginated_events
 from app.dependencies import (
     get_async_db,
-    get_project,
+    get_project_api,
     get_project_db,
     get_project_db_async,
     get_project_name_short,
@@ -424,7 +424,7 @@ async def get_events_summary(
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     device_ids: Annotated[list[int] | None, Query()] = None,
     project_id: uuid.UUID | None = None,
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
 ) -> list[interfaces.EventSummary]:
     """
     Generate a summary of events with associated device/failure/root-cause and loss info.
@@ -582,7 +582,7 @@ async def get_uptime(
     end: datetime.datetime,
     project_db: Annotated[Session, Depends(get_project_db)],
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
 ):
     # Query events from the database
     events = core.crud.project.events.get_windowed_events(

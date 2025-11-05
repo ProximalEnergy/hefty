@@ -14,7 +14,7 @@ import core
 from app import interfaces
 from app._crud.operational.sensor_types import get_sensor_types
 from app._crud.projects.data import get_project_data as crud_get_project_data
-from app.dependencies import get_project, get_project_db
+from app.dependencies import get_project_api, get_project_db
 from app.utils import data_df
 from core import models
 
@@ -147,7 +147,7 @@ def get_llm_time_series(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     interval: str = "base",
@@ -223,7 +223,7 @@ def get_project_dataframe_endpoint(
     end: datetime.datetime | None = None,
     db: Session = Depends(get_db),
     project_db: Session = Depends(get_project_db),
-    project=Depends(get_project),
+    project=Depends(get_project_api),
     fillna_zero: bool = True,
     get_last: bool = False,
     start_offset: str = "5min",
@@ -265,7 +265,7 @@ def get_time_series(
     end: datetime.datetime | None = None,
     db: Session = Depends(get_db),
     project_db: Session = Depends(get_project_db),
-    project: models.Project = Depends(get_project),
+    project: models.Project = Depends(get_project_api),
     include_ghost_tags: Annotated[bool, Query()] = False,
     interval: Annotated[str, Query()] = "5min",
 ):
