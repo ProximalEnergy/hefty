@@ -37,12 +37,12 @@ export const useGetBatterySettlementDetails = ({
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
 
-  queryOptions = { ...defaultQueryOptions, ...queryOptions }
+  const mergedQueryOptions = { ...defaultQueryOptions, ...queryOptions }
   return useCustomQuery<BatterySettlementDetails>({
     axiosConfig,
     queryName: 'getBatterySettlementDetails',
     pathParams,
     queryParams: queryParams,
-    queryOptions: queryOptions,
+    queryOptions: mergedQueryOptions,
   })
 }
