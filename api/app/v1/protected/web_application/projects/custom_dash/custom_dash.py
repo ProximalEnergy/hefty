@@ -433,8 +433,8 @@ async def get_scatter(
     tmp = tmp.dropna(subset=["x", "y"]).round(3).drop_duplicates()
 
     k = max(1, int(MAX_POINTS / max(1, tmp["timestamp"].nunique())))
-    tmp = tmp.groupby("timestamp", group_keys=False).apply(
-        lambda g: g.sample(n=min(k, len(g)))
+    tmp = tmp.groupby("timestamp", group_keys=False)[["x", "y"]].apply(
+        lambda group: group.sample(n=min(k, len(group)))
     )
 
     out = tmp[["x", "y"]].reset_index(drop=True)
