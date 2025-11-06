@@ -6,6 +6,7 @@ import {
   Stack,
   Switch,
   Text,
+  TextProps,
   rem,
 } from '@mantine/core'
 import { IconSettings } from '@tabler/icons-react'
@@ -22,10 +23,20 @@ export function ColorBar({
   middleLabel?: string | number
   lowLabel: string | number
 }) {
-  const textColor = 'black'
-  const textSize = 'md'
-  const textWeight = 500
-  const writingMode = 'vertical-rl'
+  const textProps: TextProps = {
+    size: 'md',
+    fw: 500,
+    c: 'black',
+    style: {
+      writingMode: 'vertical-rl',
+      textAlign: 'center',
+      borderRadius: '3px',
+    },
+    bg: 'rgba(255, 255, 255, 0.75)',
+    py: 'xs',
+    px: 3,
+    lh: 0,
+  }
 
   return (
     <Paper h="100%" p={0} bg={gradient} withBorder>
@@ -37,50 +48,9 @@ export function ColorBar({
         ff="monospace"
         pos="relative"
       >
-        <Text
-          size={textSize}
-          fw={textWeight}
-          c={textColor}
-          style={{
-            writingMode,
-            textAlign: 'center',
-            borderRadius: '3px',
-          }}
-          bg="rgba(255, 255, 255, 0.75)"
-          py="xs"
-          px={3}
-          lh={0}
-        >
-          {highLabel}
-        </Text>
-        {middleLabel && (
-          <Text
-            size={textSize}
-            c={textColor}
-            style={{
-              writingMode,
-              textAlign: 'center',
-            }}
-          >
-            {middleLabel}
-          </Text>
-        )}
-        <Text
-          size={textSize}
-          fw={textWeight}
-          c={textColor}
-          style={{
-            writingMode,
-            textAlign: 'center',
-            borderRadius: '3px',
-          }}
-          bg="rgba(255, 255, 255, 0.5)"
-          py="xs"
-          px={3}
-          lh={0}
-        >
-          {lowLabel}
-        </Text>
+        <Text {...textProps}>{highLabel}</Text>
+        {middleLabel && <Text {...textProps}>{middleLabel}</Text>}
+        <Text {...textProps}>{lowLabel}</Text>
       </Stack>
     </Paper>
   )
