@@ -198,6 +198,7 @@ async def get_gauge(
             df_real = data_real.df.to_pandas().set_index("time", drop=True)
             df_real.columns = df_real.columns.astype(int)
             series_real = df_real.sum(axis=1)
+    series_expected = None
     match maximum_value:
         case "expected_energy":
             metrics_priority_order = [12, 11, 6, 5]
@@ -214,18 +215,27 @@ async def get_gauge(
             df_expected = data_expected.pandas_dataframe(
                 index="time", as_datetime=True, tz=project.time_zone
             )
-            for metric_id in metrics_priority_order:
-                df_exp_temp = df_expected[
-                    df_expected["expected_metric_id"] == metric_id
-                ].copy()
-                if df_exp_temp.empty:
-                    continue
-                df_expected = df_exp_temp.copy().sort_index()
-                series_expected = df_expected["value"] / 1_000_000
-                series_expected.reindex_like(series_real).fillna(0)
-                break
+            if not df_expected.empty:
+                for metric_id in metrics_priority_order:
+                    df_exp_temp = df_expected[
+                        df_expected["expected_metric_id"] == metric_id
+                    ].copy()
+                    if df_exp_temp.empty:
+                        continue
+                    df_expected = df_exp_temp.copy().sort_index()
+                    series_expected = df_expected["value"] / 1_000_000
+                    series_expected = series_expected.reindex_like(series_real).fillna(
+                        0
+                    )
+                    break
         case "contract_capacity":
             pass
+    if series_expected is None:
+        return {
+            "value": 0,
+            "value_raw": series_real.sum() * 5 / 60,
+            "max": 0,
+        }
     return {
         "value": series_real.sum() / series_expected.sum() * 100,
         "value_raw": series_real.sum() * 5 / 60,
