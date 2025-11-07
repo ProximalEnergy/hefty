@@ -59,9 +59,10 @@ async def get_portfolio_home_short_term(
     if len(project_ids) == 0:
         return []
 
-    projects = await core.crud.operational.projects.get_projects_async(
-        db, project_ids=project_ids
+    projects_ml = await core.crud.operational.projects.get_projects_async(
+        db=db, project_ids=project_ids
     )
+    projects = projects_ml.models()
     projects_df = pd.DataFrame([x.__dict__ for x in projects]).set_index("project_id")
 
     real_time_project_ids = [x.project_id for x in projects if x.has_real_time_data]

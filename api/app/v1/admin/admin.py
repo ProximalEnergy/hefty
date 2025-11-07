@@ -46,10 +46,14 @@ async def get_user_type(
 ):
     user_type_id = user_data.user_type_id
 
-    user_type = await crud.admin.user_types.get_user_type(
-        db=db,
+    model_list = crud.admin.user_types.get_user_type(
         user_type_id=user_type_id,
+        return_query=True,
     )
+    if model_list.query is None:
+        raise ValueError("Query cannot be None")
+    result = await db.execute(model_list.query)
+    user_type = result.scalar_one_or_none()
 
     return user_type
 
