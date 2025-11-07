@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Iterable, Mapping
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import sqlalchemy as sa
 from sqlalchemy import func, or_
@@ -9,6 +9,7 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session, noload, selectinload
 
 from core import models
+from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
 from core.model_list import ModelList
 
 
@@ -207,3 +208,63 @@ def get_events_by_id(db: Session, *, event_ids: list[int]) -> ModelList[models.E
         query=db.query(models.Event).filter(models.Event.event_id.in_(event_ids)),
         return_query=False,
     )
+
+
+def get_homepage_summary(
+    db: Session, *, project_name: str, sort_by: Literal["daily", "total"] = "daily"
+) -> dict[str, Any]:
+    query = (
+        db.query(models.Event)
+        .filter(models.Event.time_end.is_(None))
+        .options(
+            selectinload(models.Event.device).selectinload(models.Device.device_type)
+        )
+    )
+    total_number_of_open_events = query.count()
+    if total_number_of_open_events == 0:
+        return {
+            "top_events": [],
+            "total_daily_loss": 0,
+            "total_number_of_open_events": 0,
+        }
+    if sort_by == "daily":
+        query = query.order_by(models.Event.loss_daily_financial.desc())
+    elif sort_by == "total":
+        query = query.order_by(models.Event.loss_total_financial.desc())
+    else:
+        raise ValueError(f"Invalid sort_by: {sort_by}")
+    top_events = query.limit(5).all()
+
+    # Build enriched top_events with device_name_full and loss_daily_financial
+    enriched_top_events = []
+    for event in top_events:
+        device = event.device
+        device_type = device.device_type if device else None
+        device_type_name = device_type.name_long if device_type else "Unknown"
+        device_name_full = f"{device_type_name} {device.name_long or ''}"
+
+        # Convert event to dict and add new fields
+        event_dict = {
+            "event_id": event.event_id,
+            "device_id": event.device_id,
+            "failure_mode_id": event.failure_mode_id,
+            "root_cause_id": event.root_cause_id,
+            "time_start": event.time_start,
+            "time_end": event.time_end,
+            "time_detected": event.time_detected,
+            "time_last_analyzed": event.time_last_analyzed,
+            "loss_total_financial": event.loss_total_financial,
+            "version": event.version,
+            "device_name_full": device_name_full,
+            "loss_daily_financial": event.loss_daily_financial,
+        }
+        enriched_top_events.append(event_dict)
+
+    total_daily_loss = get_total_daily_type2_loss_open_events(
+        db, project_name=project_name
+    )
+    return {
+        "top_events": enriched_top_events,
+        "total_daily_loss": total_daily_loss,
+        "total_number_of_open_events": total_number_of_open_events,
+    }

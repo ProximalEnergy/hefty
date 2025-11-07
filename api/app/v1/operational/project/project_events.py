@@ -464,27 +464,36 @@ async def get_events_summary(
     root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
 
     # Build per-event loss map with NaN -> None coercion
-    losses_map: dict[uuid.UUID, dict[str, float | None]] = {}
-    losses_df = core.crud.project.event_losses.get_event_losses(
-        project_db, event_ids=event_ids
-    ).pandas_dataframe()
+    losses_map: dict[int, dict[str, float | None]] = {}
+    losses = core.crud.project.event_losses.get_event_losses_summary_in_sql(
+        db=project_db, project_name=project.name_short, event_ids=event_ids
+    )
+    # Convert Row objects to dicts for proper DataFrame column names
+    # SQLAlchemy Row objects use _mapping attribute (2.0+) or _asdict() (older)
+    try:
+        losses_dicts = [dict(row._mapping) for row in losses]
+    except AttributeError:
+        # Fallback for older SQLAlchemy versions
+        losses_dicts = [row._asdict() for row in losses]
+    losses_df = pd.DataFrame(losses_dicts)
 
     # If no losses, keep existing behavior
     if losses_df.empty:
         losses_map = {}
     else:
-        # Ensure expected columns exist
-        cols_needed = {"event_id", "event_loss_type_id", "loss", "time"}
+        # Ensure expected columns exist (SQL already aggregated)
+        cols_needed = {"event_id", "time_min", "time_max", "loss_1", "loss_2"}
         missing = cols_needed - set(losses_df.columns)
         if missing:
             raise RuntimeError(f"event_losses missing columns: {missing}")
 
-        # 1) per (event, type) totals + data-span
-        g = losses_df.groupby(["event_id", "event_loss_type_id"], as_index=False).agg(
-            total_loss=("loss", "sum"), tmin=("time", "min"), tmax=("time", "max")
-        )
+        # SQL already aggregated, so we have one row per event_id
+        g = losses_df.copy()
+
+        # 1) Calculate days_data_span from SQL-aggregated time_min/time_max
         g["days_data_span"] = (
-            g["tmax"].dt.floor("D") - g["tmin"].dt.floor("D")
+            pd.to_datetime(g["time_max"]).dt.floor("D")
+            - pd.to_datetime(g["time_min"]).dt.floor("D")
         ).dt.days + 1
 
         # 2) per event duration (event-based denominator)
@@ -508,43 +517,21 @@ async def get_events_summary(
         g = g.merge(ev[["event_id", "days_event"]], on="event_id", how="left")
         denom = g["days_event"]  # or g["days_data_span"] for original behavior
 
-        g["avg_loss_per_day"] = g["total_loss"] / denom.replace({0: pd.NA})
-
-        # 4) pivot once
-        totals = g.pivot(
-            index="event_id", columns="event_loss_type_id", values="total_loss"
-        )
-        dailies = g.pivot(
-            index="event_id", columns="event_loss_type_id", values="avg_loss_per_day"
-        )
+        # 4) Calculate daily averages from SQL-aggregated totals
+        # loss_1 = energy (event_loss_type_id == 1)
+        # loss_2 = financial (event_loss_type_id == 2)
+        g["avg_loss_per_day_1"] = g["loss_1"] / denom.replace({0: pd.NA})
+        g["avg_loss_per_day_2"] = g["loss_2"] / denom.replace({0: pd.NA})
 
         # 5) build losses_map in O(E)
         losses_map = {}
-        has = lambda frame, col: (frame is not None) and (
-            col in getattr(frame, "columns", [])
-        )
-        for ev_id in set(g["event_id"]):
+        for _, row in g.iterrows():
+            ev_id = row["event_id"]
             losses_map[ev_id] = {
-                "loss_total_energy": _none_if_nan(
-                    totals.at[ev_id, 1]
-                    if has(totals, 1) and ev_id in totals.index
-                    else None
-                ),
-                "loss_total_financial": _none_if_nan(
-                    totals.at[ev_id, 2]
-                    if has(totals, 2) and ev_id in totals.index
-                    else None
-                ),
-                "loss_daily_energy": _none_if_nan(
-                    dailies.at[ev_id, 1]
-                    if has(dailies, 1) and ev_id in dailies.index
-                    else None
-                ),
-                "loss_daily_financial": _none_if_nan(
-                    dailies.at[ev_id, 2]
-                    if has(dailies, 2) and ev_id in dailies.index
-                    else None
-                ),
+                "loss_total_energy": _none_if_nan(row.get("loss_1")),
+                "loss_total_financial": _none_if_nan(row.get("loss_2")),
+                "loss_daily_energy": _none_if_nan(row.get("avg_loss_per_day_1")),
+                "loss_daily_financial": _none_if_nan(row.get("avg_loss_per_day_2")),
             }
 
     unknown = "Unknown"
@@ -556,7 +543,7 @@ async def get_events_summary(
         device_type_name = device_type.name_long if device_type else unknown
         device_name_full = f"{device_type_name} {device.name_long or ''}"
 
-        losses = losses_map.get(e.event_id, {})
+        event_losses = losses_map.get(e.event_id, {})
         out.append(
             interfaces.EventSummary(
                 event_id=e.event_id,
@@ -566,10 +553,10 @@ async def get_events_summary(
                 time_end=e.time_end,
                 failure_mode=failure_mode_id_to_name.get(e.failure_mode_id, unknown),
                 root_cause=root_cause_id_to_name.get(e.root_cause_id, unknown),
-                loss_total_financial=losses.get("loss_total_financial"),
-                loss_total_energy=losses.get("loss_total_energy"),
-                loss_daily_financial=losses.get("loss_daily_financial"),
-                loss_daily_energy=losses.get("loss_daily_energy"),
+                loss_total_financial=event_losses.get("loss_total_financial"),
+                loss_total_energy=event_losses.get("loss_total_energy"),
+                loss_daily_financial=event_losses.get("loss_daily_financial"),
+                loss_daily_energy=event_losses.get("loss_daily_energy"),
             )
         )
 

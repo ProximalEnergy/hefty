@@ -97,28 +97,6 @@ export const useGetEventTraceTags = ({
   })
 }
 
-export const useGetCountOpenEvents = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events/count-open`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<number>({
-    axiosConfig,
-    queryName: 'getCountOpenEvents',
-    pathParams,
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export interface DroneAnomaly {
   anomaly_uuid: string
   inspection_uuid: string

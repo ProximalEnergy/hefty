@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 
 import core.models as models
 import pandas as pd
@@ -329,3 +330,15 @@ async def get_meta_analysis(
         },
         device_totals=device_totals,
     )
+
+
+@router.get("/home-page-summary")
+def get_events_home_page_summary(
+    project_db: Session = Depends(get_project_db),
+    project: models.Project = Depends(get_project_api),
+    sort_by: Literal["daily", "total"] = "daily",
+):
+    data = core.crud.project.events.get_homepage_summary(
+        project_db, project_name=project.name_short, sort_by=sort_by
+    )
+    return data

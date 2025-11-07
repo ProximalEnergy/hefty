@@ -4,7 +4,6 @@ import {
   useGetContractKPIs,
   useGetOperationalKPIData,
 } from '@/api/v1/operational/kpi_data'
-import { useGetCountOpenEvents } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
@@ -13,6 +12,7 @@ import {
   useGetProjects,
   useSelectProject,
 } from '@/api/v1/operational/projects'
+import { useGetHomepageSummary } from '@/api/v1/protected/web-application/projects/events/events'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -22,7 +22,6 @@ import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
-import { useGetPaginatedEvents } from '@/hooks/api'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
@@ -435,84 +434,24 @@ const KPICards = () => {
 
 const EventTable = () => {
   const { projectId } = useParams()
-  const [sortBy, setSortBy] = useState('loss_daily')
-  const theme = useMantineTheme()
+  const [sortBy, setSortBy] = useState<'daily' | 'total'>('daily')
 
-  const { data: topEvents, isLoading: isLoadingTopEvents } =
-    useGetPaginatedEvents({
-      pathParams: { projectId: projectId || '-1' },
-      queryParams: {
-        page: 0,
-        page_size: 5,
-        open: true,
-        sort_column: sortBy,
-        sort_direction: 'desc',
-        device_type_ids: [],
-      },
-      queryOptions: {
-        staleTime: 60 * 1000,
-      },
-    })
-
-  const countOpenEvents = useGetCountOpenEvents({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
-
-  // Get all open events to calculate total daily loss
-  const { data: allOpenEvents } = useGetPaginatedEvents({
+  const homepageSummary = useGetHomepageSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      page: 0,
-      page_size: 10000, // Large number to get all open events
-      open: true,
-      sort_column: 'loss_daily',
-      sort_direction: 'desc',
-      device_type_ids: [],
-    },
-    queryOptions: {
-      enabled: !!projectId,
-      staleTime: 60 * 1000,
+      sort_by: sortBy,
     },
   })
 
-  const formatLoss = (value: number | null) => {
-    if (value === 0 || value === null) {
-      return '-'
-    }
-    return `$${value.toFixed(2)}`
-  }
-
-  // Calculate total daily loss from all open events
-  const totalDailyLoss = useMemo(() => {
-    if (!allOpenEvents || allOpenEvents.length === 0) {
-      return 0
-    }
-    return allOpenEvents.reduce((total, event) => {
-      const dailyLoss = event.loss_daily_financial || 0
-      return total + dailyLoss
-    }, 0)
-  }, [allOpenEvents])
-
   const cardTitle = useMemo(() => {
-    const baseTitle = 'Top Events'
-    // Add the count of open events and total daily loss if available
-    if (countOpenEvents.data) {
-      const count = countOpenEvents.data
-      const countText = count >= 1000 ? '1000+' : count // Show 1000+ if count is 1000 or more
-      const totalLossText =
-        totalDailyLoss > 0 ? ` | $${totalDailyLoss.toFixed(2)}/day` : ''
-      return (
-        <>
-          {baseTitle}
-          <span style={{ color: theme.colors[theme.primaryColor][6] }}>
-            {` (${countText} Open${totalLossText})`}
-          </span>
-        </>
-      )
+    if (
+      homepageSummary.data &&
+      homepageSummary.data?.total_number_of_open_events > 0
+    ) {
+      return `Top Events (${homepageSummary.data?.total_number_of_open_events} Open | $${homepageSummary.data?.total_daily_loss.toFixed(2)}/day)`
     }
-    return baseTitle // Return only base title if no events data
-  }, [countOpenEvents.data, totalDailyLoss, theme])
+    return 'Top Events'
+  }, [homepageSummary.data])
 
   return (
     <CustomCard
@@ -525,71 +464,85 @@ const EventTable = () => {
         </Link>
       }
       fill
+      style={{ flex: 1 }}
       headerChildren={
-        <Popover>
+        <Popover position="bottom" withArrow shadow="md">
           <Popover.Target>
             <ActionIcon variant="default">
-              <IconSettings size={iconSize} stroke={iconStroke} />
+              <IconSettings size={20} stroke={1.5} />
             </ActionIcon>
           </Popover.Target>
           <Popover.Dropdown>
-            <Text>Sort By</Text>
-            <SegmentedControl
-              data={[
-                { label: 'Daily Loss', value: 'loss_daily' },
-                { label: 'Total Loss', value: 'loss_total_financial' },
-              ]}
-              value={sortBy}
-              onChange={(value) => setSortBy(value ?? 'loss_daily')}
-            />
+            <Group>
+              <Text>Sort by</Text>
+              <SegmentedControl
+                data={[
+                  { label: 'Daily Loss', value: 'daily' },
+                  { label: 'Total Loss', value: 'total' },
+                ]}
+                value={sortBy}
+                onChange={(value) => setSortBy(value as 'daily' | 'total')}
+              />
+            </Group>
           </Popover.Dropdown>
         </Popover>
       }
-      style={{ flex: 1 }}
     >
-      <LoadingOverlay
-        visible={isLoadingTopEvents || countOpenEvents.isLoading}
-      />
-      {topEvents && topEvents.length > 0 && (
-        <ScrollArea h="100%">
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Device</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>
-                  Loss - Daily
-                </Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>
-                  Loss - Total
-                </Table.Th>
+      <LoadingOverlay visible={homepageSummary.isLoading} />
+
+      {homepageSummary.data &&
+      homepageSummary.data.top_events &&
+      homepageSummary.data.top_events.length > 0 ? (
+        <Table striped>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Device</Table.Th>
+              <Table.Th>Loss - Daily</Table.Th>
+              <Table.Th>Loss - Total</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {homepageSummary.data.top_events.map((event) => (
+              <Table.Tr key={event.event_id}>
+                <Table.Td>
+                  <Link
+                    to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
+                    style={{ color: 'inherit' }}
+                  >
+                    {event.device_name_full}
+                  </Link>
+                </Table.Td>
+                <Table.Td>
+                  {event.loss_daily_financial
+                    ? `$${event.loss_daily_financial.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : '-'}
+                </Table.Td>
+                <Table.Td>
+                  {event.loss_total_financial
+                    ? `$${event.loss_total_financial.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : '-'}
+                </Table.Td>
               </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {topEvents.map((event) => (
-                <Table.Tr key={event.event_id}>
-                  <Table.Td>
-                    <Link
-                      to={`/projects/${projectId}/events/event/?eventId=${event.event_id}`}
-                      style={{ color: 'inherit' }}
-                    >
-                      {event.device_name_full}
-                    </Link>
-                  </Table.Td>
-                  <Table.Td style={{ textAlign: 'center' }}>
-                    {formatLoss(event.loss_daily_financial)}
-                  </Table.Td>
-                  <Table.Td style={{ textAlign: 'center' }}>
-                    {formatLoss(event.loss_total_financial)}
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
-      )}
-      {topEvents && topEvents.length === 0 && (
-        <Center h="100%">No active events!</Center>
-      )}
+            ))}
+          </Table.Tbody>
+        </Table>
+      ) : homepageSummary.data &&
+        homepageSummary.data.top_events &&
+        homepageSummary.data.top_events.length === 0 ? (
+        <Box h="100%" w="100%">
+          <Center h="100%" w="100%">
+            <Text size="xl" fw={500}>
+              No active events
+            </Text>
+          </Center>
+        </Box>
+      ) : null}
     </CustomCard>
   )
 }

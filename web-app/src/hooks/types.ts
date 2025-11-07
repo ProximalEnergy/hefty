@@ -147,7 +147,8 @@ export interface Event {
   failure_mode_id: number | null
   failure_mode: FailureMode | null
   root_cause_id: number | null
-  loss_total_financial: number
+  loss_total_financial: number | null
+  loss_daily_financial: number | null
 }
 
 export interface EventDeviceInfo {
