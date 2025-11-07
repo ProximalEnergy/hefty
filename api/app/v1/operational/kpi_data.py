@@ -151,17 +151,34 @@ def get_kpi_data_helper(
             # device_values_df = pd.DataFrame(device_values, dtype=np.float64).T
 
             # Pandas handled statistics
-            device_agg_df = device_values_df.T.agg(
-                ["sum", "mean", "std", "min", "max", "median", "count"]
-            ).T
-
-            # Manually calculated statistics
-            device_agg_df["range"] = device_agg_df["max"] - device_agg_df["min"]
-            total_devices = device_values_df.shape[0]
-            if total_devices > 0:
-                device_agg_df["available_data"] = device_agg_df["count"] / total_devices
+            if device_values_df.empty:
+                device_agg_df = pd.DataFrame(
+                    columns=[
+                        "sum",
+                        "mean",
+                        "std",
+                        "min",
+                        "max",
+                        "median",
+                        "count",
+                        "range",
+                        "available_data",
+                    ]
+                )
             else:
-                device_agg_df["available_data"] = np.nan
+                device_agg_df = device_values_df.T.agg(
+                    ["sum", "mean", "std", "min", "max", "median", "count"]
+                ).T
+
+                # Manually calculated statistics
+                device_agg_df["range"] = device_agg_df["max"] - device_agg_df["min"]
+                total_devices = device_values_df.shape[0]
+                if total_devices > 0:
+                    device_agg_df["available_data"] = (
+                        device_agg_df["count"] / total_devices
+                    )
+                else:
+                    device_agg_df["available_data"] = np.nan
 
             data["data"]["device_aggregation_obj"] = device_agg_df.to_dict(
                 orient="list",
