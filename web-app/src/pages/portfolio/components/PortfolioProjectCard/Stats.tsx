@@ -20,14 +20,14 @@ export function Stats({
       <RingProgressStat
         project={project}
         type="power"
-        value={portfolioHomeProject?.power}
+        value={portfolioHomeProject?.power ?? undefined}
       />
       {(project.project_type_id === ProjectTypeId.PV ||
         project.project_type_id === ProjectTypeId.PV_BESS) && (
         <RingProgressStat
           project={project}
           type="poa"
-          value={portfolioHomeProject?.poa}
+          value={portfolioHomeProject?.poa ?? undefined}
         />
       )}
       {(project.project_type_id === ProjectTypeId.BESS ||
@@ -35,7 +35,7 @@ export function Stats({
         <RingProgressStat
           project={project}
           type="soc"
-          value={portfolioHomeProject?.soc}
+          value={portfolioHomeProject?.soc ?? undefined}
         />
       )}
     </Stack>

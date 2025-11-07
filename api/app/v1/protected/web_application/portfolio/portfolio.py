@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -11,6 +12,7 @@ import core
 from app import dependencies, interfaces, utils
 from app._crud.operational import calendar as crud_calendar
 from app._crud.operational.data_timeseries import get_operational_data_timeseries
+from app._crud.operational.kpi_data import get_kpi_data_async
 from app.interfaces import CalendarItem, UserData
 
 router = APIRouter(
@@ -20,7 +22,7 @@ router = APIRouter(
 )
 
 
-class PortfolioHome(BaseModel):
+class PortfolioHomeShortTerm(BaseModel):
     project_id: UUID
     power: float | None
     poa: float | None
@@ -32,23 +34,28 @@ class PortfolioHome(BaseModel):
     max_discharge_power: list[Any] | None
 
 
-@router.get(
-    "/home",
-    response_model=list[PortfolioHome],
-    response_class=ORJSONResponse,
-)
-async def get_home(
-    project_ids: Annotated[list[UUID] | None, Query()] = None,
-    db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
-):
-    # If project_ids is not provided, default to all projects the user has access to
-    if project_ids is None:
-        project_ids = user_data.operational_project_ids
-    # If project_ids is provided, ensure they are within the user's access list
-    else:
-        project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
+class PortfolioHomeLongTerm(BaseModel):
+    project_id: UUID
+    times: list[Any] | None
+    cycle_count_string: list[Any] | None
+    state_of_health: list[Any] | None
+    pcs_mechanical_availability: list[Any] | None
+    energy_production: list[Any] | None
 
+
+class PortfolioHome(PortfolioHomeShortTerm, PortfolioHomeLongTerm):
+    pass
+
+
+class TimeFrame(StrEnum):
+    H24 = "24h"
+    D30 = "30d"
+
+
+async def get_portfolio_home_short_term(
+    project_ids: list[UUID],
+    db: AsyncSession,
+) -> list[PortfolioHomeShortTerm]:
     if len(project_ids) == 0:
         return []
 
@@ -149,7 +156,7 @@ async def get_home(
 
         if df_project.empty:
             return_data.append(
-                PortfolioHome(
+                PortfolioHomeShortTerm(
                     project_id=project_id,
                     power=None,
                     poa=None,
@@ -233,7 +240,7 @@ async def get_home(
                 max_discharge_power = None
 
             return_data.append(
-                PortfolioHome(
+                PortfolioHomeShortTerm(
                     project_id=project_id,
                     power=power,
                     poa=poa,
@@ -245,6 +252,178 @@ async def get_home(
                     max_discharge_power=max_discharge_power,
                 ),
             )
+
+    return return_data
+
+
+async def get_portfolio_home_long_term(
+    project_ids: list[UUID],
+    db: AsyncSession,
+) -> list[PortfolioHomeLongTerm]:
+    if len(project_ids) == 0:
+        return []
+
+    # KPI type IDs for long-term data
+    # 32 = cycle_count_string (BESS_STRING_CYCLE_COUNT)
+    # 54 = state_of_health (BESS_STRING_SOH)
+    # 1 = pcs_mechanical_availability
+    # 2 = energy_production
+    kpi_type_ids = [32, 54, 1, 2]
+
+    # end equal to current date in UTC
+    end_date = pd.Timestamp.utcnow().floor("D").date()
+
+    # start equal to end minus 30 days
+    start_date = (pd.Timestamp.utcnow().floor("D") - pd.Timedelta(days=30)).date()
+
+    # Query KPI data
+    kpi_df = await get_kpi_data_async(
+        db,
+        start=start_date,
+        end=end_date,
+        project_ids=project_ids,
+        kpi_type_ids=kpi_type_ids,
+        include_device_data=False,
+    )
+
+    if kpi_df.empty:
+        return [
+            PortfolioHomeLongTerm(
+                project_id=project_id,
+                times=None,
+                cycle_count_string=None,
+                state_of_health=None,
+                pcs_mechanical_availability=None,
+                energy_production=None,
+            )
+            for project_id in project_ids
+        ]
+
+    # Create date range for 30 days
+    date_range = pd.date_range(
+        start=start_date, end=end_date, freq="D", inclusive="left"
+    )
+
+    return_data = []
+
+    for project_id in project_ids:
+        df_project = kpi_df[kpi_df["project_id"] == project_id]
+
+        if df_project.empty:
+            return_data.append(
+                PortfolioHomeLongTerm(
+                    project_id=project_id,
+                    times=None,
+                    cycle_count_string=None,
+                    state_of_health=None,
+                    pcs_mechanical_availability=None,
+                    energy_production=None,
+                ),
+            )
+        else:
+            # Pivot the DataFrame to have kpi_type_id as columns
+            df_pivot = df_project.pivot(
+                index="date",
+                columns="kpi_type_id",
+                values="project_data",
+            )
+
+            # Reindex to include all dates in the range
+            df_pivot = df_pivot.reindex(date_range)
+
+            # Sort by date
+            df_pivot = df_pivot.sort_index()
+
+            # Convert dates to list
+            times = df_pivot.index.tolist()
+
+            # Extract values for each KPI type
+            cycle_count_string = (
+                df_pivot[32].tolist() if 32 in df_pivot.columns else None
+            )
+            state_of_health = df_pivot[54].tolist() if 54 in df_pivot.columns else None
+            pcs_mechanical_availability = (
+                df_pivot[1].tolist() if 1 in df_pivot.columns else None
+            )
+            energy_production = df_pivot[2].tolist() if 2 in df_pivot.columns else None
+
+            return_data.append(
+                PortfolioHomeLongTerm(
+                    project_id=project_id,
+                    times=times,
+                    cycle_count_string=cycle_count_string,
+                    state_of_health=state_of_health,
+                    pcs_mechanical_availability=pcs_mechanical_availability,
+                    energy_production=energy_production,
+                ),
+            )
+
+    return return_data
+
+
+@router.get(
+    "/home",
+    response_model=list[PortfolioHome],
+    response_class=ORJSONResponse,
+)
+async def get_home(
+    project_ids: Annotated[list[UUID] | None, Query()] = None,
+    db: AsyncSession = Depends(dependencies.get_async_db),
+    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+    time: TimeFrame = Query(default=TimeFrame.H24),  # new parameter
+):
+    # If project_ids is not provided, default to all projects the user has access to
+    if project_ids is None:
+        project_ids = user_data.operational_project_ids
+    # If project_ids is provided, ensure they are within the user's access list
+    else:
+        project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
+
+    if time.value == TimeFrame.H24.value:
+        short_term_data = await get_portfolio_home_short_term(project_ids, db)
+        # Convert short-term data to PortfolioHome format
+        return_data = [
+            PortfolioHome(
+                project_id=item.project_id,
+                power=item.power,
+                poa=item.poa,
+                soc=item.soc,
+                times=item.times,
+                meter_active_power=item.meter_active_power,
+                meter_soc_percent=item.meter_soc_percent,
+                max_charge_power=item.max_charge_power,
+                max_discharge_power=item.max_discharge_power,
+                # Long-term fields set to None
+                cycle_count_string=None,
+                state_of_health=None,
+                pcs_mechanical_availability=None,
+                energy_production=None,
+            )
+            for item in short_term_data
+        ]
+    else:
+        long_term_data = await get_portfolio_home_long_term(project_ids, db)
+        # Convert long-term data to PortfolioHome format
+        return_data = [
+            PortfolioHome(
+                project_id=item.project_id,
+                # Short-term fields set to None
+                power=None,
+                poa=None,
+                soc=None,
+                times=item.times,
+                meter_active_power=None,
+                meter_soc_percent=None,
+                max_charge_power=None,
+                max_discharge_power=None,
+                # Long-term fields
+                cycle_count_string=item.cycle_count_string,
+                state_of_health=item.state_of_health,
+                pcs_mechanical_availability=item.pcs_mechanical_availability,
+                energy_production=item.energy_production,
+            )
+            for item in long_term_data
+        ]
 
     return return_data
 

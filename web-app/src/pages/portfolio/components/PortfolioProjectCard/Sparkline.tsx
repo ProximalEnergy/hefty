@@ -8,15 +8,18 @@ import { usePortfolioPlotData } from './usePortfolioPlotData'
 export function Sparkline({
   project,
   portfolioHomeProject,
+  time,
 }: {
   project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   portfolioHomeProject:
     | NonNullable<ReturnType<typeof useGetPortfolioHome>['data']>[number]
     | undefined
+  time: '24h' | '30d'
 }) {
   const { data, layout, config, hasData } = usePortfolioPlotData({
     project,
     portfolioHomeProject,
+    time,
   })
 
   if (!hasData) {
@@ -29,5 +32,7 @@ export function Sparkline({
     )
   }
 
-  return <PlotlyPlot data={data as any} layout={layout} config={config} />
+  return (
+    <PlotlyPlot key={time} data={data as any} layout={layout} config={config} />
+  )
 }

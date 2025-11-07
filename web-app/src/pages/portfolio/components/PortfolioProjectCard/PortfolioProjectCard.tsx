@@ -14,6 +14,7 @@ export function PortfolioProjectCard({
   portfolioHomeProject,
   projectDataLastUpdated,
   isFavorited = false,
+  time,
 }: {
   project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   portfolioHomeProject:
@@ -21,6 +22,7 @@ export function PortfolioProjectCard({
     | undefined
   projectDataLastUpdated?: ProjectDataLastUpdated
   isFavorited?: boolean
+  time: '24h' | '30d'
 }) {
   return (
     <Link
@@ -44,12 +46,15 @@ export function PortfolioProjectCard({
             <Sparkline
               project={project}
               portfolioHomeProject={portfolioHomeProject}
+              time={time}
             />
           </Box>
-          <Stats
-            project={project}
-            portfolioHomeProject={portfolioHomeProject}
-          />
+          {time === '24h' && (
+            <Stats
+              project={project}
+              portfolioHomeProject={portfolioHomeProject}
+            />
+          )}
         </Group>
       </Card>
     </Link>

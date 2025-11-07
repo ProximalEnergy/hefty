@@ -3,14 +3,20 @@ import { UseQueryOptions } from '@tanstack/react-query'
 
 type PortfolioHomeProject = {
   project_id: string
-  power?: number
-  poa?: number
-  soc?: number
-  times?: string[]
-  meter_active_power?: number[]
-  meter_soc_percent?: number[]
-  max_charge_power?: number[]
-  max_discharge_power?: number[]
+  // Short-term fields (24h)
+  power?: number | null
+  poa?: number | null
+  soc?: number | null
+  times?: string[] | null
+  meter_active_power?: number[] | null
+  meter_soc_percent?: number[] | null
+  max_charge_power?: number[] | null
+  max_discharge_power?: number[] | null
+  // Long-term fields (30d)
+  cycle_count_string?: number[] | null
+  state_of_health?: number[] | null
+  pcs_mechanical_availability?: number[] | null
+  energy_production?: number[] | null
 }
 
 export const useGetPortfolioHome = ({
@@ -19,6 +25,7 @@ export const useGetPortfolioHome = ({
 }: {
   queryParams?: {
     project_ids?: string[]
+    time?: '24h' | '30d'
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

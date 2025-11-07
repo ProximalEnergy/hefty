@@ -12,6 +12,7 @@ interface ArchivedProjectsTabProps {
   portfolioHomeData: NonNullable<ReturnType<typeof useGetPortfolioHome>['data']>
   projectDataLastUpdated?: ProjectDataLastUpdated[]
   searchTerm: string
+  time: '24h' | '30d'
 }
 
 export function ArchivedProjectsTab({
@@ -19,6 +20,7 @@ export function ArchivedProjectsTab({
   portfolioHomeData,
   projectDataLastUpdated,
   searchTerm,
+  time,
 }: ArchivedProjectsTabProps) {
   const archivedProjects = projects
     .filter(
@@ -46,6 +48,7 @@ export function ArchivedProjectsTab({
                 projectDataLastUpdated={projectDataLastUpdated?.find(
                   (data) => data.project_id === project.project_id,
                 )}
+                time={time}
               />
             ))}
         </SimpleGrid>
