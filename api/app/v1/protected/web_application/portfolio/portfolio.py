@@ -32,6 +32,7 @@ class PortfolioHomeShortTerm(BaseModel):
     meter_soc_percent: list[Any] | None
     max_charge_power: list[Any] | None
     max_discharge_power: list[Any] | None
+    expected_power: list[Any] | None
 
 
 class PortfolioHomeLongTerm(BaseModel):
@@ -167,6 +168,7 @@ async def get_portfolio_home_short_term(
                     meter_soc_percent=None,
                     max_charge_power=None,
                     max_discharge_power=None,
+                    expected_power=None,
                 ),
             )
         else:
@@ -240,6 +242,14 @@ async def get_portfolio_home_short_term(
             else:
                 max_discharge_power = None
 
+            expected_columns = [
+                c for c in df_project.columns if c[0] == -1
+            ]  # -1 will always be the expected power tag_id
+            if expected_columns != []:
+                expected_power = df_project[expected_columns].mean(axis=1).tolist()
+            else:
+                expected_power = None
+
             return_data.append(
                 PortfolioHomeShortTerm(
                     project_id=project_id,
@@ -251,6 +261,7 @@ async def get_portfolio_home_short_term(
                     meter_soc_percent=meter_soc_percent,
                     max_charge_power=max_charge_power,
                     max_discharge_power=max_discharge_power,
+                    expected_power=expected_power,
                 ),
             )
 
@@ -399,6 +410,7 @@ async def get_home(
                 state_of_health=None,
                 pcs_mechanical_availability=None,
                 energy_production=None,
+                expected_power=item.expected_power,
             )
             for item in short_term_data
         ]
@@ -412,6 +424,7 @@ async def get_home(
                 power=None,
                 poa=None,
                 soc=None,
+                expected_power=None,
                 times=item.times,
                 meter_active_power=None,
                 meter_soc_percent=None,

@@ -17,6 +17,7 @@ type PortfolioHomeProject = {
   state_of_health?: number[] | null
   pcs_mechanical_availability?: number[] | null
   energy_production?: number[] | null
+  expected_power?: number[] | null
 }
 
 export const useGetPortfolioHome = ({

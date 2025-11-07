@@ -39,7 +39,7 @@ export function usePortfolioPlotData({
  * Long-term plot data for BESS projects.
  * Shows State of Health and Cycle Count on primary axis.
  */
-export function usePortfolioPlotDataLongTermBess({
+function usePortfolioPlotDataLongTermBess({
   portfolioHomeProject,
 }: {
   portfolioHomeProject:
@@ -143,7 +143,7 @@ export function usePortfolioPlotDataLongTermBess({
  * Long-term plot data for PV and PV+BESS projects.
  * Shows Energy Production on primary axis and PCS Availability on secondary axis.
  */
-export function usePortfolioPlotDataLongTermPV({
+function usePortfolioPlotDataLongTermPV({
   portfolioHomeProject,
 }: {
   portfolioHomeProject:
@@ -246,7 +246,7 @@ export function usePortfolioPlotDataLongTermPV({
   }, [portfolioHomeProject, theme.colors])
 }
 
-export function usePortfolioPlotDataShortTerm({
+function usePortfolioPlotDataShortTerm({
   project,
   portfolioHomeProject,
 }: {
@@ -338,6 +338,18 @@ export function usePortfolioPlotDataShortTerm({
                 type: 'scatter',
                 mode: 'lines',
                 line: { color: theme.colors.orange[7], dash: 'dash' },
+              }
+            : {},
+          portfolioHomeProject?.expected_power
+            ? {
+                x,
+                y: hasRT
+                  ? portfolioHomeProject.expected_power.slice(-288)
+                  : portfolioHomeProject.expected_power.slice(0, 288),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: theme.colors.orange[7] },
+                fill: 'none',
               }
             : {},
         ]
