@@ -74,6 +74,7 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import type { Data } from 'plotly.js'
 import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -899,15 +900,15 @@ const BatteryHealth = () => {
 
     const defaultZoomRange = getDefaultZoomRange()
 
-    const chartData: any[] = [
+    const chartData: Data[] = [
       {
         x: expectedSohData.x,
         y: expectedSohData.y,
         name: 'Expected SOH',
-        line: { color: theme.colors.gray[4], dash: 'dash' as const, width: 3 },
-        type: 'scatter' as const,
+        line: { color: theme.colors.gray[4], dash: 'dash', width: 3 },
+        type: 'scatter',
         hovertemplate: '%{y:.2f}%<extra></extra>',
-      },
+      } satisfies Data,
     ]
 
     if (actualSohData && actualSohData.x.length > 0) {
@@ -916,9 +917,9 @@ const BatteryHealth = () => {
         y: actualSohData.y,
         name: 'Actual SOH',
         line: { color: theme.colors.blue[6], width: 3 },
-        type: 'scatter' as const,
+        type: 'scatter',
         hovertemplate: '%{y:.2f}%<extra></extra>',
-      })
+      } satisfies Data)
     }
 
     // Add cycle data if enabled
@@ -941,11 +942,11 @@ const BatteryHealth = () => {
           x: dates,
           y: values,
           name: 'Cycle Count',
-          type: 'bar' as const,
+          type: 'bar',
           yaxis: 'y2',
           hovertemplate: '%{y:.0f}<extra></extra>',
           marker: { color: theme.colors.blue[6] },
-        })
+        } satisfies Data)
       }
     }
 
@@ -964,10 +965,10 @@ const BatteryHealth = () => {
           y: values,
           name: 'String SOC',
           line: { color: theme.colors.green[6] },
-          type: 'scatter' as const,
+          type: 'scatter',
           yaxis: 'y2',
           hovertemplate: '%{y:.1f}%<extra></extra>',
-        })
+        } satisfies Data)
       }
     }
 
@@ -992,10 +993,10 @@ const BatteryHealth = () => {
           y: values,
           name: 'String Rest SOC',
           line: { color: theme.colors.violet[6] },
-          type: 'scatter' as const,
+          type: 'scatter',
           yaxis: 'y2',
           hovertemplate: '%{y:.1f}%<extra></extra>',
-        })
+        } satisfies Data)
       }
     }
 
