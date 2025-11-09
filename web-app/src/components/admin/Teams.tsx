@@ -28,6 +28,7 @@ import {
 } from '@mantine/core'
 import { useDisclosure, useLocalStorage } from '@mantine/hooks'
 import { useQueryClient } from '@tanstack/react-query'
+import type { AxiosResponse } from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export function Teams() {
@@ -319,9 +320,8 @@ export function Teams() {
                 setCreating(true)
                 try {
                   const res = await createTeam.mutateAsync({ name_long })
-                  const newId = (res as any)?.data?.team_id as
-                    | string
-                    | undefined
+                  const newId = (res as AxiosResponse<{ team_id: string }>)
+                    ?.data?.team_id
                   await queryClient.refetchQueries({
                     queryKey: ['getTeamsWithMembers'],
                   })

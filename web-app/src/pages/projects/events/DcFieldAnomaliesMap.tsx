@@ -4,6 +4,7 @@ import {
 } from '@/api/v1/operational/project/events'
 import Attribution from '@/components/gis/Attribution'
 import { useGetDevicesV2 } from '@/hooks/api'
+import { Event } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import {
   Badge,
@@ -23,7 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import MapboxMap, { Layer, MapMouseEvent, Source } from 'react-map-gl/mapbox'
 
 interface DcFieldAnomaliesMapProps {
-  event: any // Event object
+  event: Event | null
   projectId: string
 }
 
@@ -94,7 +95,7 @@ const DcFieldAnomaliesMap = ({
     useGetEventAnomalies({
       pathParams: {
         projectId,
-        eventId: event?.event_id,
+        eventId: event?.event_id ?? -1,
       },
       queryOptions: {
         enabled: !!projectId && !!event?.event_id,
@@ -443,7 +444,8 @@ const DcFieldAnomaliesMap = ({
             {...viewState}
             onMove={(evt) => setViewState(evt.viewState)}
             onClick={(evt) => {
-              const feature = (evt as any).features?.[0]
+              const feature = (evt as MapMouseEvent & { features?: Feature[] })
+                .features?.[0]
               const anomalyUuid = feature?.properties?.anomaly_uuid
               if (anomalyUuid) {
                 onAnomalyClick(anomalyUuid)

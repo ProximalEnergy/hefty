@@ -12,7 +12,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { IconBrain, IconRefresh } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface AICardProps {
   stats: DailyPerformanceStats | null
@@ -27,7 +27,7 @@ const AICard = ({ stats, isLoading = false }: AICardProps) => {
 
   const generateSummary = useDailyPerformanceSummary()
 
-  const handleGenerateSummary = async () => {
+  const handleGenerateSummary = useCallback(async () => {
     if (!stats) return
 
     setIsGenerating(true)
@@ -40,14 +40,14 @@ const AICard = ({ stats, isLoading = false }: AICardProps) => {
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [stats, generateSummary])
 
   // Auto-generate summary when stats change and data is fully loaded
   useEffect(() => {
     if (stats && !isLoading && !summary && !isGenerating) {
       handleGenerateSummary()
     }
-  }, [stats, isLoading])
+  }, [stats, isLoading, summary, isGenerating, handleGenerateSummary])
 
   const cardBgColor =
     colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0]

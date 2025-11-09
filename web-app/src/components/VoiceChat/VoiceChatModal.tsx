@@ -18,6 +18,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { tool } from '@openai/agents-realtime'
+import type { RealtimeSession } from '@openai/agents-realtime'
 import {
   IconChevronDown,
   IconChevronUp,
@@ -31,10 +32,39 @@ import {
 import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 
+interface ContractData {
+  contract_id: number
+  project_id: string
+  document_id?: string | null
+  name_long?: string | null
+  name_short?: string | null
+  category_name_long?: string | null
+  execution_date?: string | null
+  contract_summary?: string | null
+  openai_vector_store_id?: string | null
+  vector_store_id?: string | null
+  openai_file_id?: string | null
+}
+
+interface ContractSearchResult {
+  text?: string | null
+  score?: number | string | null
+  [key: string]: unknown
+}
+
+type VoiceChatSession = RealtimeSession & {
+  mute?: (shouldMute: boolean) => void
+  disconnect?: () => Promise<void> | void
+  close?: () => Promise<void> | void
+  end?: () => Promise<void> | void
+  stop?: () => Promise<void> | void
+  connection?: { close?: () => void }
+}
+
 interface VoiceChatModalProps {
   opened: boolean
   onClose: () => void
-  contractData?: any
+  contractData?: ContractData
 }
 
 const VoiceChatModal = ({
@@ -58,8 +88,10 @@ const VoiceChatModal = ({
   const [transcript, setTranscript] = useState('')
   const [aiResponse, setAiResponse] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [session, setSession] = useState<any>(null)
-  const [contractSearchResults, setContractSearchResults] = useState<any[]>([])
+  const [session, setSession] = useState<VoiceChatSession | null>(null)
+  const [contractSearchResults, setContractSearchResults] = useState<
+    ContractSearchResult[]
+  >([])
   const [showContractReferences, setShowContractReferences] = useState(false)
   const [expandedExcerpts, setExpandedExcerpts] = useState<Set<number>>(
     new Set(),
@@ -124,16 +156,27 @@ const VoiceChatModal = ({
     }
   }, [opened])
 
-  const searchContractContent = async (query: string): Promise<any[]> => {
+  const isContractSearchResultArray = (
+    value: unknown,
+  ): value is ContractSearchResult[] =>
+    Array.isArray(value) &&
+    value.every((item) => item !== null && typeof item === 'object')
+
+  const searchContractContent = async (
+    query: string,
+  ): Promise<ContractSearchResult[]> => {
     if (!contractData?.document_id) {
       return []
     }
 
     // Get the vector store ID from cache, contract data, or ensure we have one
-    let vectorStoreId =
-      cachedVectorStoreId ||
-      contractData?.openai_vector_store_id ||
-      contractData?.vector_store_id
+    const initialVectorStoreId =
+      cachedVectorStoreId ??
+      contractData?.openai_vector_store_id ??
+      contractData?.vector_store_id ??
+      undefined
+
+    let vectorStoreId: string | undefined = initialVectorStoreId
 
     // If we don't have a vector store ID, try to ensure one exists
     if (!vectorStoreId && contractData?.openai_file_id) {
@@ -144,7 +187,7 @@ const VoiceChatModal = ({
         })
         vectorStoreId = vs.vector_store_id
         // Cache the vector store ID for future searches
-        setCachedVectorStoreId(vectorStoreId)
+        setCachedVectorStoreId(vectorStoreId ?? null)
       } catch (e) {
         console.error('Failed to ensure vector store:', e)
         return []
@@ -161,7 +204,11 @@ const VoiceChatModal = ({
 
     try {
       const token = await getCachedToken()
-      const url = `${baseURL}/v1/operational/projects/${contractData.project_id}/documents/search-contract/${contractData.document_id}?query=${encodeURIComponent(query)}&vector_store_id=${encodeURIComponent(vectorStoreId)}`
+      const url =
+        `${baseURL}/v1/operational/projects/${contractData.project_id}` +
+        `/documents/search-contract/${contractData.document_id}` +
+        `?query=${encodeURIComponent(query)}` +
+        `&vector_store_id=${encodeURIComponent(vectorStoreId)}`
 
       // Show contract references panel when making the search request
       setShowContractReferences(true)
@@ -177,14 +224,19 @@ const VoiceChatModal = ({
       clearTimeout(timeoutId)
 
       if (response.ok) {
-        const data = await response.json()
+        const data: unknown = await response.json()
 
-        // Return raw results for UI formatting
         if (
-          Array.isArray(data.search_results) &&
-          data.search_results.length > 0
+          typeof data === 'object' &&
+          data !== null &&
+          'search_results' in data
         ) {
-          return data.search_results
+          const { search_results: searchResults } = data as {
+            search_results?: unknown
+          }
+          if (isContractSearchResultArray(searchResults)) {
+            return searchResults
+          }
         }
 
         // Handle empty results
@@ -216,12 +268,18 @@ const VoiceChatModal = ({
             clearTimeout(retryTimeoutId)
 
             if (retryResponse.ok) {
-              const retryData = await retryResponse.json()
+              const retryData: unknown = await retryResponse.json()
               if (
-                Array.isArray(retryData.search_results) &&
-                retryData.search_results.length > 0
+                typeof retryData === 'object' &&
+                retryData !== null &&
+                'search_results' in retryData
               ) {
-                return retryData.search_results
+                const { search_results: retryResults } = retryData as {
+                  search_results?: unknown
+                }
+                if (isContractSearchResultArray(retryResults)) {
+                  return retryResults
+                }
               }
             }
           } catch (retryError) {
@@ -266,8 +324,11 @@ const VoiceChatModal = ({
   // Define the contract search tool using the correct format for RealtimeAgent
   const searchContractTool = tool({
     name: 'search_contract',
-    description:
-      'Search for relevant information in the contract document. Use this tool when users ask questions about contract terms, clauses, obligations, or any contract details.',
+    description: [
+      'Search for relevant information in the contract document.',
+      'Use this tool when users ask questions about contract terms, clauses,',
+      'obligations, or any contract details.',
+    ].join(' '),
     parameters: z.object({
       query: z
         .string()
@@ -325,36 +386,56 @@ const VoiceChatModal = ({
         '@openai/agents-realtime'
       )
 
+      const contractType = contractData?.category_name_long || 'Unknown'
+      const counterpartyName = contractData?.name_long || 'Unknown'
+      const executionDate = contractData?.execution_date || 'Unknown'
+      const contractSummary = contractData?.contract_summary || 'Unknown'
+      const greetingName = user?.firstName || 'there'
+      const greetingCounterparty = contractData?.name_long || 'the counterparty'
+
       const contractContext = contractData
-        ? `
-        You are Aria, a helpful AI assistant specializing in contract analysis and energy project management.
-
-        You are helping a user understand a contract with the following details:
-        - Contract Type: ${contractData.category_name_long || 'Unknown'}
-        - Counterparty: ${contractData.name_long || 'Unknown'}
-        - Execution Date: ${contractData.execution_date || 'Unknown'}
-        - Contract Summary: ${contractData.contract_summary ? contractData.contract_summary : 'Unknown'}
-
-        IMPORTANT: Greet the user by saying something like: "Hi ${user?.firstName || 'there'}, how can I help you with this ${contractData.name_long || 'the counterparty'} contract?".
-
-        You have access to a search_contract tool that can find relevant information in the contract document. When users ask questions about contract terms, clauses, obligations, or any contract details, you should automatically use the search_contract tool to find the relevant information first, then provide a comprehensive answer based on the search results.
-
-        Your role is to:
-        1. Greet the user by name and ask about their contract questions
-        2. When a user finishes asking their question, respond immediately by saying that you're searching through the document to help answer their question. While you do that, already initiate your search_contract tool and say that you'll show any related paragraphs where you found the information in the Contract References box.
-        3. Answer questions about contract terms, obligations, and requirements based on the search results. If a one word answer is enough, just answer that immediately and then elaborate briefly.
-        4. Explain technical language and legal concepts in simple terms
-
-        Always use the search_contract tool when users ask about specific contract details. .
-        Speak quickly and professionally, like an experienced attorney. But keep your answers short - if someone wants to know a small detail about the contract, just answer that immediately and then elaborate briefly.
-      `
-        : `
-        You are Aria, a helpful AI assistant specializing in contract analysis and energy project management.
-        However, you do not know anything about the contract the user wants to know about because you don't have access to it. Tell the user something must've gone wrong.
-      `
+        ? [
+            'You are Aria, a helpful AI assistant with expertise in contract analysis.',
+            'You also focus on energy project management.',
+            '',
+            'You are helping a user understand a contract with the following details:',
+            `- Contract Type: ${contractType}`,
+            `- Counterparty: ${counterpartyName}`,
+            `- Execution Date: ${executionDate}`,
+            `- Contract Summary: ${contractSummary}`,
+            '',
+            'IMPORTANT: Greet the user by name and invite contract questions.',
+            [
+              'Say:',
+              `"Hi ${greetingName},`,
+              `how can I help you with this ${greetingCounterparty} contract?"`,
+            ].join(' '),
+            '',
+            'Use the search_contract tool to find information inside the document.',
+            'Run it whenever users ask about contract terms, clauses, or obligations.',
+            'Launch the search first so you can cite referenced excerpts.',
+            '',
+            'Your role is to:',
+            '1. Greet the user by name and prompt them for contract questions.',
+            "2. After each question, say you're searching the document.",
+            '   Immediately start the search_contract tool.',
+            '3. Answer with the concise result first, then add a brief explanation.',
+            '4. Explain technical language and legal concepts in plain words.',
+            '',
+            'Always use the search_contract tool for specific contract details.',
+            'Speak quickly and professionally like an experienced attorney.',
+            'Keep answers short.',
+          ].join('\n')
+        : [
+            'You are Aria, a helpful AI assistant with expertise in contract analysis.',
+            'However, you cannot access the contract, so you do not know its details.',
+            'Tell the user that something must have gone wrong.',
+          ].join('\n')
 
       let vectorStoreId: string | undefined =
-        contractData?.openai_vector_store_id || contractData?.vector_store_id
+        contractData?.openai_vector_store_id ??
+        contractData?.vector_store_id ??
+        undefined
 
       // If we have a file id but no vector store id, request one from backend
       if (!vectorStoreId && contractData?.openai_file_id) {
@@ -380,7 +461,7 @@ const VoiceChatModal = ({
         model: 'gpt-realtime',
       })
 
-      setSession(newSession)
+      setSession(newSession as VoiceChatSession)
     } catch (err) {
       console.error('Failed to initialize voice chat:', err)
       setError('Failed to initialize voice chat. Please try again.')
@@ -412,9 +493,8 @@ const VoiceChatModal = ({
         setIsListening(true)
 
         // Use the mute method to unmute (start listening)
-        const s = session as any
-        if (typeof s.mute === 'function') {
-          s.mute(false) // false = unmute (start listening)
+        if (typeof session.mute === 'function') {
+          session.mute(false) // false = unmute (start listening)
         } else {
           console.error('❌ No mute method found on session during connect')
         }
@@ -445,26 +525,27 @@ const VoiceChatModal = ({
     if (!session) return
 
     try {
-      const s: any = session
-
       // Stop listening first
-      if (typeof s.mute === 'function') {
-        s.mute(true) // true = mute (stop listening)
+      if (typeof session.mute === 'function') {
+        session.mute(true) // true = mute (stop listening)
       } else {
         console.error('❌ No mute method found on session during disconnect')
       }
 
       // Then disconnect
-      if (typeof s.disconnect === 'function') {
-        await s.disconnect()
-      } else if (typeof s.close === 'function') {
-        await s.close()
-      } else if (typeof s.end === 'function') {
-        await s.end()
-      } else if (typeof s.stop === 'function') {
-        await s.stop()
-      } else if (s.connection && typeof s.connection.close === 'function') {
-        s.connection.close()
+      if (typeof session.disconnect === 'function') {
+        await session.disconnect()
+      } else if (typeof session.close === 'function') {
+        await session.close()
+      } else if (typeof session.end === 'function') {
+        await session.end()
+      } else if (typeof session.stop === 'function') {
+        await session.stop()
+      } else if (
+        session.connection &&
+        typeof session.connection.close === 'function'
+      ) {
+        session.connection.close()
       }
     } catch (err) {
       console.error('Failed to disconnect:', err)
@@ -494,9 +575,8 @@ const VoiceChatModal = ({
         setIsListening(false)
 
         // Use the mute method to mute (stop listening)
-        const s = session as any
-        if (typeof s.mute === 'function') {
-          s.mute(true) // true = mute (stop listening)
+        if (typeof session.mute === 'function') {
+          session.mute(true) // true = mute (stop listening)
         } else {
           console.error('❌ No mute method found on session')
         }
@@ -505,9 +585,8 @@ const VoiceChatModal = ({
         setIsListening(true)
 
         // Use the mute method to unmute (start listening)
-        const s = session as any
-        if (typeof s.mute === 'function') {
-          s.mute(false) // false = unmute (start listening)
+        if (typeof session.mute === 'function') {
+          session.mute(false) // false = unmute (start listening)
         } else {
           console.error('❌ No mute method found on session')
         }
@@ -621,8 +700,10 @@ const VoiceChatModal = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background:
-                    'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)',
+                  background: [
+                    'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%,',
+                    'rgba(0,0,0,0.7) 100%)',
+                  ].join(' '),
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -792,17 +873,22 @@ const VoiceChatModal = ({
                     {contractSearchResults &&
                     contractSearchResults.length > 0 ? (
                       <Stack gap="md">
-                        {contractSearchResults.map((res: any, idx: number) => {
-                          const score =
+                        {contractSearchResults.map((res, idx: number) => {
+                          const rawScore =
                             typeof res.score === 'number'
                               ? res.score
-                              : parseFloat(res.score || '0')
-                          const relevance = Number.isFinite(score)
-                            ? score.toFixed(2)
+                              : Number.parseFloat(
+                                  res.score !== null && res.score !== undefined
+                                    ? String(res.score)
+                                    : '0',
+                                )
+                          const relevance = Number.isFinite(rawScore)
+                            ? rawScore.toFixed(2)
                             : 'N/A'
-                          const fullText = (res.text || '')
-                            .replace(/\n{2,}/g, '\n')
-                            .trim()
+                          const fullText =
+                            typeof res.text === 'string'
+                              ? res.text.replace(/\n{2,}/g, '\n').trim()
+                              : ''
                           const isExpanded = expandedExcerpts.has(idx)
                           const displayText = isExpanded
                             ? fullText

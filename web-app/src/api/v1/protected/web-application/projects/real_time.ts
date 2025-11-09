@@ -15,7 +15,7 @@ interface RealTimeData {
   }[]
 }
 
-interface DataTimeSeriesLast {
+export interface DataTimeSeriesLast {
   tag_id: number
   time: string
   value_integer: number | null

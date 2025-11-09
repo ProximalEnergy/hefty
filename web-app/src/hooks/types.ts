@@ -510,10 +510,10 @@ interface ContractKPI {
     }
   } | null
   liquidated_damages: {
-    [key: string]: any
+    [key: string]: unknown
   } | null
   claim_howto: {
-    [key: string]: any
+    [key: string]: unknown
   } | null
   provider_responsible: boolean | null
 }
@@ -522,7 +522,7 @@ export interface KPITypeWithContracts extends KPIType {
   contracts: ContractWithCompany[]
   contract_kpis: ContractKPI[]
 }
-interface ContractWithCompany {
+export interface ContractWithCompany {
   contract_id: number
   project_id: string
   document_id: string
@@ -533,4 +533,5 @@ interface ContractWithCompany {
   name_short: string
   document_url?: string
   s3_key: string | null
+  counter_company?: string
 }

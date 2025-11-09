@@ -12,7 +12,7 @@ import { IconAlertTriangle } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
 import chroma from 'chroma-js'
 import { merge } from 'lodash'
-import { Annotations, Shape } from 'plotly.js'
+import { Annotations, Shape, YAxisName } from 'plotly.js'
 import Plotly, {
   Config,
   Data,
@@ -273,9 +273,14 @@ const PlotlyPlot = ({
   }
 
   const onAnnotationClick = useCallback(
-    (e: any) => {
-      const { index } = e.currentTarget.dataset
-      const numericIndex = parseInt(index, 10)
+    (event: MouseEvent) => {
+      const currentTarget = event.currentTarget
+      if (!(currentTarget instanceof HTMLElement)) {
+        return
+      }
+
+      const { index } = currentTarget.dataset
+      const numericIndex = index ? parseInt(index, 10) : NaN
       if (isNaN(numericIndex)) {
         return
       }
@@ -293,19 +298,21 @@ const PlotlyPlot = ({
   useEffect(() => {
     if (allowPinning) {
       // Find all annotations and add click handlers
-      const as = document.getElementsByClassName('annotation-text')
-      for (let i = 0; i < as.length; i++) {
-        const a = as[i]
-        a.setAttribute('data-index', i.toString())
-        a.addEventListener('click', onAnnotationClick)
-        ;(a as HTMLElement).style.cursor = 'pointer'
+      const annotationElements =
+        document.getElementsByClassName('annotation-text')
+      for (let i = 0; i < annotationElements.length; i++) {
+        const annotationElement = annotationElements[i] as HTMLElement
+        annotationElement.setAttribute('data-index', i.toString())
+        annotationElement.addEventListener('click', onAnnotationClick)
+        annotationElement.style.cursor = 'pointer'
       }
       return () => {
         // Find all annotations and remove click handlers
-        const as = document.getElementsByClassName('annotation-text')
-        for (let i = 0; i < as.length; i++) {
-          const a = as[i]
-          a.removeEventListener('click', onAnnotationClick)
+        const annotationElements =
+          document.getElementsByClassName('annotation-text')
+        for (let i = 0; i < annotationElements.length; i++) {
+          const annotationElement = annotationElements[i] as HTMLElement
+          annotationElement.removeEventListener('click', onAnnotationClick)
         }
       }
     }
@@ -346,6 +353,22 @@ const PlotlyPlot = ({
         return val
       }
 
+      const toColorString = (value: unknown): string | null => {
+        if (typeof value === 'string' || typeof value === 'number') {
+          return String(value)
+        }
+        if (Array.isArray(value) && value.length > 0) {
+          const [firstValue] = value
+          if (
+            typeof firstValue === 'string' ||
+            typeof firstValue === 'number'
+          ) {
+            return String(firstValue)
+          }
+        }
+        return null
+      }
+
       const groupId = uuidv4()
       const points = lastHoverEvent.current.points
 
@@ -357,11 +380,29 @@ const PlotlyPlot = ({
       if (xVal === null || xVal === undefined) {
         return // Cannot create annotation without a valid x value
       }
+      const extractNestedColor = (
+        traceRecord: Record<string, unknown>,
+        key: 'line' | 'marker',
+      ) => {
+        const nestedValue = traceRecord[key]
+        if (
+          nestedValue &&
+          typeof nestedValue === 'object' &&
+          'color' in nestedValue
+        ) {
+          return (nestedValue as { color?: unknown }).color
+        }
+        return null
+      }
+
       const annotationText = points
         .map((point) => {
-          const trace = point.data as any
+          const traceRecord = point.data as unknown as Record<string, unknown>
+
           const traceColor =
-            trace.line?.color || trace.marker?.color || layoutSettings.fontcolor
+            toColorString(extractNestedColor(traceRecord, 'line')) ??
+            toColorString(extractNestedColor(traceRecord, 'marker')) ??
+            layoutSettings.fontcolor
           const yVal = getVal(point.y)
           const yDisplay =
             typeof yVal === 'number' ? yVal.toFixed(2) : String(yVal)
@@ -378,10 +419,27 @@ const PlotlyPlot = ({
         return // Cannot create annotation without a valid y value
       }
 
+      const resolveYAxisRef = (value: unknown): YAxisName | 'paper' => {
+        if (typeof value === 'string' && /^y\d*$/.test(value)) {
+          return value as YAxisName
+        }
+        if (value === 'paper') {
+          return 'paper'
+        }
+        return 'y'
+      }
+
       const newAnnotation: Annotation = {
         x: xVal,
         y: yValTopPoint,
-        yref: (topPoint.data as any).yaxis || 'y',
+        yref: (() => {
+          const traceRecord = topPoint.data as unknown as Record<
+            string,
+            unknown
+          >
+          const yAxisValue = traceRecord.yaxis
+          return resolveYAxisRef(yAxisValue)
+        })(),
         text: annotationText,
         name: groupId,
         showarrow: true,

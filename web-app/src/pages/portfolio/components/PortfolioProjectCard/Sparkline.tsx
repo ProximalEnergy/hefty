@@ -2,6 +2,7 @@ import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { Center, Text } from '@mantine/core'
+import { Data } from 'plotly.js'
 
 import { usePortfolioPlotData } from './usePortfolioPlotData'
 
@@ -33,6 +34,11 @@ export function Sparkline({
   }
 
   return (
-    <PlotlyPlot key={time} data={data as any} layout={layout} config={config} />
+    <PlotlyPlot
+      key={time}
+      data={data as Data[]}
+      layout={layout}
+      config={config}
+    />
   )
 }

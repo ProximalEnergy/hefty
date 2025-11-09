@@ -847,25 +847,30 @@ const BusNode = ({ data }: NodeProps<Node<BusData>>) => {
 
     // Handle for traditional block layout with transformers
     if (data.block_layouts) {
-      data.block_layouts.forEach((layout: any, i: number) => {
-        const transformer = layout.transformer_node
-        if (transformer.position) {
-          const handle_x_abs = transformer.position.x + 50 // center of transformer
-          const busStartX = data.project_bus_x_start || 0
-          const position_percent =
-            ((handle_x_abs - busStartX) / (data.project_bus_width || 1)) * 100
+      data.block_layouts.forEach(
+        (
+          layout: { x_offset: number; transformer_node: CustomNode },
+          i: number,
+        ) => {
+          const transformer = layout.transformer_node
+          if (transformer.position) {
+            const handle_x_abs = transformer.position.x + 50 // center of transformer
+            const busStartX = data.project_bus_x_start || 0
+            const position_percent =
+              ((handle_x_abs - busStartX) / (data.project_bus_width || 1)) * 100
 
-          handles.push(
-            <Handle
-              key={`proj-bus-source-${i}`}
-              type="source"
-              id={`proj-bus-source-${i}`}
-              position={Position.Bottom}
-              style={{ left: `${position_percent}%` }}
-            />,
-          )
-        }
-      })
+            handles.push(
+              <Handle
+                key={`proj-bus-source-${i}`}
+                type="source"
+                id={`proj-bus-source-${i}`}
+                position={Position.Bottom}
+                style={{ left: `${position_percent}%` }}
+              />,
+            )
+          }
+        },
+      )
     } else {
       // Handle for multi-row PCS layout - add handles for each row
       // We'll add handles dynamically based on the row buses that connect to this main bus
@@ -1160,8 +1165,7 @@ function SnapshotSLDContent() {
     },
     queryOptions: {
       enabled: !!selectedBlockId,
-      keepPreviousData: true,
-    } as any,
+    },
   })
 
   const { data: timeSeriesData, isFetching: isTimeSeriesFetching } =
@@ -2893,7 +2897,15 @@ function SnapshotSLDContent() {
     }
 
     return { nodes: [], edges: [] }
-  }, [devices, blockDevices, selectedBlockId, deviceDataMap, sensorTypeMap])
+  }, [
+    devices,
+    blockDevices,
+    selectedBlockId,
+    deviceDataMap,
+    sensorTypeMap,
+    busColor,
+    mainBusColor,
+  ])
 
   useEffect(() => {
     if (nodes.length > 0) {

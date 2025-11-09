@@ -52,7 +52,7 @@ export const useCreateOMContractorScope = ({
 }: {
   projectId: string
 }): UseMutationResult<
-  any,
+  OMContractorScope,
   unknown,
   {
     company_id: string
@@ -96,7 +96,7 @@ export const useUpdateOMContractorScope = ({
 }: {
   projectId: string
 }): UseMutationResult<
-  any,
+  OMContractorScope,
   unknown,
   {
     om_contractor_scope_id: number
@@ -139,7 +139,7 @@ export const useDeleteOMContractorScope = ({
 }: {
   projectId: string
 }): UseMutationResult<
-  any,
+  void,
   unknown,
   {
     om_contractor_scope_id: number

@@ -475,10 +475,14 @@ const KPIComponent = ({
 }) => {
   const { start, end } = calculateKPITimeRange(defaultKPITimeRange, timeZone)
 
+  const parsedKpiTypeId = component.config.kpiTypeId
+    ? Number(component.config.kpiTypeId)
+    : -1
+
   const kpi = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [component.config.kpiTypeId],
+      kpi_type_ids: [parsedKpiTypeId],
       include_device_data: false,
       start,
       end,
@@ -489,7 +493,7 @@ const KPIComponent = ({
   })
   const kpiType = useGetKPIType({
     pathParams: {
-      kpiTypeId: component.config.kpiTypeId,
+      kpiTypeId: parsedKpiTypeId,
     },
     queryOptions: {
       enabled: !!component.config.kpiTypeId,
@@ -818,8 +822,12 @@ const ScatterComponent = ({
   const scatter = useGetScatterData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      x_axis_sensor_type_id: component.config.xAxisSensorTypeId,
-      y_axis_sensor_type_id: component.config.yAxisSensorTypeId,
+      x_axis_sensor_type_id: component.config.xAxisSensorTypeId
+        ? Number(component.config.xAxisSensorTypeId)
+        : -1,
+      y_axis_sensor_type_id: component.config.yAxisSensorTypeId
+        ? Number(component.config.yAxisSensorTypeId)
+        : -1,
       start: startQuery,
       end: endQuery,
     },
@@ -887,8 +895,10 @@ const BarComponent = ({
   const barData = useGetBarData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      sensor_type_id: component.config.sensorTypeId,
-      aggregation_type: component.config.aggregationMethod,
+      sensor_type_id: component.config.sensorTypeId
+        ? Number(component.config.sensorTypeId)
+        : -1,
+      aggregation_type: component.config.aggregationMethod ?? '',
       start: startQuery,
       end: endQuery,
     },

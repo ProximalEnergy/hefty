@@ -480,7 +480,7 @@ export const DetachAndEditOccurrenceModal = ({
           <MultiSelect
             label="Assign to users or teams"
             placeholder="Select assignees"
-            data={combinedAssigneeOptions as any}
+            data={combinedAssigneeOptions as ComboboxItem[]}
             searchable
             clearable
             renderOption={renderAssigneeOption}

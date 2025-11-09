@@ -5,6 +5,17 @@
 
 set +e  # Don't exit on first error - we want to run all checks
 
+# Parse command line arguments
+SKIP_HURL=false
+for arg in "$@"; do
+    case $arg in
+        --static)
+            SKIP_HURL=true
+            shift
+            ;;
+    esac
+done
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -131,7 +142,9 @@ run_check "API: Ruff Formatting" "mise run api:format"
 run_check "API: Unused Import Check" "mise run api:deptry"
 run_check "API: Dead Code Check" "mise run api:vulture"
 run_check "API: Pytest" "mise run api:pytest"
-run_check "API: Hurl Tests" "mise run api:hurl"
+if [ "$SKIP_HURL" != "true" ]; then
+    run_check "API: Hurl Tests" "mise run api:hurl"
+fi
 run_check "Root: No package.json" "check_root_for_package_json"
 run_check "Web-App: TypeScript & Format Check" "mise run web:check"
 run_check "Web-App: ESLint" "mise run web:lint"

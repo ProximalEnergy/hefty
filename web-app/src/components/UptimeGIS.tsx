@@ -24,7 +24,7 @@ interface UptimeGISProps {
   uptimeData: UptimeData[]
   mapRef?: React.Ref<MapRef>
   deviceTypeName: string
-  onBoundsChange?: (bounds: any) => void
+  onBoundsChange?: (bounds: LngLatBoundsLike) => void
 }
 
 const UptimeGIS = ({

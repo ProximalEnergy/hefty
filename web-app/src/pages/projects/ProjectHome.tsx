@@ -805,8 +805,6 @@ const BatteryHealth = () => {
       : `${sohDifference.toFixed(2)}%`
   const sohDifferenceText = sohDifference > 0 ? 'above' : 'below'
 
-  const projectAge = 2 // This would need to come from project commissioning date
-
   // Create SOH degradation chart data and zoom range
   const { chartData: sohChartData, defaultZoomRange } = useMemo(() => {
     // Generate expected SOH data with proper dates (20 years from start date)
@@ -1003,8 +1001,6 @@ const BatteryHealth = () => {
 
     return { chartData, defaultZoomRange }
   }, [
-    currentSoh,
-    projectAge,
     theme,
     dailyKpiData.data,
     project.data?.cod,

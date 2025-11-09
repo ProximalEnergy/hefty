@@ -27,6 +27,7 @@ import {
 import { isEmail, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
+import { AxiosError } from 'axios'
 import { useMemo, useState } from 'react'
 
 // Desired ordering (PV + Storage combined order covers PV-only and BESS-only subsets)
@@ -145,7 +146,7 @@ export default function OMContractors({ projectId }: { projectId: string }) {
           }}
         />
       )),
-    [orderedDeviceTypes, form.values.selectedDeviceTypeIds],
+    [orderedDeviceTypes, form],
   )
 
   const handleSubmit = form.onSubmit(async (values) => {
@@ -171,10 +172,14 @@ export default function OMContractors({ projectId }: { projectId: string }) {
           contractor_phone: values.phone || undefined,
         })
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Best-effort message from axios error
       const apiMsg =
-        err?.response?.data?.detail || err?.message || 'Submit failed'
+        err instanceof AxiosError
+          ? err.response?.data?.detail || err.message
+          : err instanceof Error
+            ? err.message
+            : 'Submit failed'
       setSubmitError(String(apiMsg))
       return
     }
@@ -520,11 +525,13 @@ export default function OMContractors({ projectId }: { projectId: string }) {
                   ) {
                     handleClose()
                   }
-                } catch (err: any) {
+                } catch (err: unknown) {
                   const apiMsg =
-                    err?.response?.data?.detail ||
-                    err?.message ||
-                    'Delete failed'
+                    err instanceof AxiosError
+                      ? err.response?.data?.detail || err.message
+                      : err instanceof Error
+                        ? err.message
+                        : 'Delete failed'
                   setSubmitError(String(apiMsg))
                 }
               }}

@@ -268,7 +268,7 @@ export const BlockHeader = ({
     }
 
     return marksArray
-  }, [viewStartDate, viewEndDate, isLive, timezone])
+  }, [viewStartDate, viewEndDate, isLive])
 
   const blockOptions = useMemo(() => {
     return (

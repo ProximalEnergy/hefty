@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-interface Contract {
+export interface Contract {
   contract_id: number
   project_id: string
   document_id: string
@@ -17,9 +17,9 @@ interface Contract {
   execution_date: string
   name_short: string
   name_long: string
-  document_url?: string
-  s3_key?: string
-  openai_file_id?: string
+  document_url?: string | null
+  s3_key?: string | null
+  openai_file_id?: string | null
   // New optional fields
   contract_category_id?: number | null
   category_name_short?: string | null

@@ -574,6 +574,7 @@ function AdaptiveGisBESS() {
     zoom,
     isViewLocked,
     lockedZoom,
+    lockedDeviceTypeIds,
     pcsRealtimeByDevice,
     stringSocByDevice,
     enclosureSocByDevice,
@@ -589,7 +590,7 @@ function AdaptiveGisBESS() {
     }
     const bounds = { north: maxLat, east: maxLng, south: minLat, west: minLng }
     return bounds
-  }, [geojsonData, projectBounds])
+  }, [geojsonData])
 
   // Fit bounds to GeoJSON data when it becomes available
   useEffect(() => {
