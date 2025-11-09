@@ -51,7 +51,13 @@ import utc from 'dayjs/plugin/utc'
 import DOMPurify from 'dompurify'
 // import { FeatureCollection } from 'geojson'
 import { PlotType } from 'plotly.js'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 // import { Layer, LngLatBoundsLike, Map, Source } from 'react-map-gl'
@@ -469,10 +475,14 @@ const KPIComponent = ({
 }) => {
   const { start, end } = calculateKPITimeRange(defaultKPITimeRange, timeZone)
 
+  const parsedKpiTypeId = component.config.kpiTypeId
+    ? Number(component.config.kpiTypeId)
+    : -1
+
   const kpi = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [component.config.kpiTypeId],
+      kpi_type_ids: [parsedKpiTypeId],
       include_device_data: false,
       start,
       end,
@@ -483,7 +493,7 @@ const KPIComponent = ({
   })
   const kpiType = useGetKPIType({
     pathParams: {
-      kpiTypeId: component.config.kpiTypeId,
+      kpiTypeId: parsedKpiTypeId,
     },
     queryOptions: {
       enabled: !!component.config.kpiTypeId,
@@ -812,8 +822,12 @@ const ScatterComponent = ({
   const scatter = useGetScatterData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      x_axis_sensor_type_id: component.config.xAxisSensorTypeId,
-      y_axis_sensor_type_id: component.config.yAxisSensorTypeId,
+      x_axis_sensor_type_id: component.config.xAxisSensorTypeId
+        ? Number(component.config.xAxisSensorTypeId)
+        : -1,
+      y_axis_sensor_type_id: component.config.yAxisSensorTypeId
+        ? Number(component.config.yAxisSensorTypeId)
+        : -1,
       start: startQuery,
       end: endQuery,
     },
@@ -881,8 +895,10 @@ const BarComponent = ({
   const barData = useGetBarData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      sensor_type_id: component.config.sensorTypeId,
-      aggregation_type: component.config.aggregationMethod,
+      sensor_type_id: component.config.sensorTypeId
+        ? Number(component.config.sensorTypeId)
+        : -1,
+      aggregation_type: component.config.aggregationMethod ?? '',
       start: startQuery,
       end: endQuery,
     },
@@ -1293,7 +1309,6 @@ const Page = () => {
   // Load dashboard data when available
   useEffect(() => {
     if (dashboard.data && !isNewDashboard) {
-      // Parse components and ensure config is properly parsed
       const components = dashboard.data.components.map((component) => ({
         ...component,
         config:
@@ -1302,16 +1317,18 @@ const Page = () => {
             : component.config,
       }))
 
-      setDashboardComponents(components)
-      setDashboardName(dashboard.data.dashboard_name)
+      startTransition(() => {
+        setDashboardComponents(components)
+        setDashboardName(dashboard.data.dashboard_name)
 
-      // Set time range values from dashboard data
-      if (dashboard.data.default_time_range) {
-        setDefaultTimeRange(Number(dashboard.data.default_time_range))
-      }
-      if (dashboard.data.default_kpi_time_range) {
-        setDefaultKPITimeRange(Number(dashboard.data.default_kpi_time_range))
-      }
+        if (dashboard.data.default_time_range) {
+          setDefaultTimeRange(Number(dashboard.data.default_time_range))
+        }
+
+        if (dashboard.data.default_kpi_time_range) {
+          setDefaultKPITimeRange(Number(dashboard.data.default_kpi_time_range))
+        }
+      })
     }
   }, [dashboard.data, isNewDashboard])
 

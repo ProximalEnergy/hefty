@@ -147,7 +147,8 @@ export interface Event {
   failure_mode_id: number | null
   failure_mode: FailureMode | null
   root_cause_id: number | null
-  loss_total_financial: number
+  loss_total_financial: number | null
+  loss_daily_financial: number | null
 }
 
 export interface EventDeviceInfo {
@@ -509,10 +510,10 @@ interface ContractKPI {
     }
   } | null
   liquidated_damages: {
-    [key: string]: any
+    [key: string]: unknown
   } | null
   claim_howto: {
-    [key: string]: any
+    [key: string]: unknown
   } | null
   provider_responsible: boolean | null
 }
@@ -521,7 +522,7 @@ export interface KPITypeWithContracts extends KPIType {
   contracts: ContractWithCompany[]
   contract_kpis: ContractKPI[]
 }
-interface ContractWithCompany {
+export interface ContractWithCompany {
   contract_id: number
   project_id: string
   document_id: string
@@ -532,4 +533,5 @@ interface ContractWithCompany {
   name_short: string
   document_url?: string
   s3_key: string | null
+  counter_company?: string
 }

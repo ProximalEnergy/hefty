@@ -5,8 +5,21 @@
 
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
-depends = ["sync", "api:switch-core", "install"]
-run = "./_scripts/run_dev.sh"
+usage = '''
+  flag "--no-sync" help="Skip syncing with dev branch"
+'''
+run = """
+if [ "${usage_no_sync:-false}" = "true" ]; then
+  mise run api:switch-core && \
+  mise run install && \
+  ./_scripts/run_dev.sh
+else
+  mise run sync && \
+  mise run api:switch-core && \
+  mise run install && \
+  ./_scripts/run_dev.sh
+fi
+"""
 
 [tasks.preview]
 description = "Run API and web-app preview servers concurrently"
@@ -20,7 +33,16 @@ run = [
 [tasks.check]
 description = "Run all quality checks across the entire monorepo"
 depends = ["api:switch-core"]
-run = "./_scripts/run_checks.sh"
+usage = '''
+  flag "--static" help="Skip non-static tests (like hurl)"
+'''
+run = """
+if [ "${usage_static:-false}" = "true" ]; then
+  ./_scripts/run_checks.sh --static
+else
+  ./_scripts/run_checks.sh
+fi
+"""
 
 [tasks.install]
 description = "Install and sync all dependencies across the monorepo"

@@ -7,6 +7,7 @@ import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { ContractWithCompany } from '@/hooks/types'
 import {
   ActionIcon,
   Button,
@@ -34,6 +35,22 @@ import { Link, useParams, useSearchParams } from 'react-router'
 
 import { getKPIThresholdbyDate } from './ProjectKPIHome.utils'
 import RequestKPIModal from './RequestKPIModal'
+
+interface ProcessedKPI {
+  kpi_type_id: number
+  contract_id: number | null
+  title: string
+  unit: string
+  is_visible: boolean
+  is_favorited: boolean
+  link: string
+  trendData: { value: number | null; timestamp: string; threshold?: number }[]
+  threshold: { values: { [key: string]: number } } | null | undefined
+  thresholdValue?: number
+  value: number | null
+  ytd_value: number | null
+  change: number | null
+}
 
 const TrendSparkline = memo(
   ({
@@ -161,10 +178,10 @@ const KpiTable = ({
   type,
   title,
 }: {
-  kpis: any[]
+  kpis: ProcessedKPI[]
   projectId: string | undefined
-  handleFavoriteClick: (kpi: any) => void
-  contractsMap: Map<any, any>
+  handleFavoriteClick: (kpi: ProcessedKPI) => void
+  contractsMap: Map<number, ContractWithCompany>
   type: 'benchmark' | 'contractual'
   title: string
 }) => {
@@ -297,7 +314,9 @@ const KpiTable = ({
         <Table.Tbody>
           {kpis.map((kpi, index) => {
             const contract =
-              type === 'contractual' ? contractsMap.get(kpi.contract_id) : null
+              type === 'contractual' && kpi.contract_id !== null
+                ? contractsMap.get(kpi.contract_id)
+                : null
             return (
               <Table.Tr key={index}>
                 <Table.Td>
@@ -596,8 +615,8 @@ const ProjectKPIHome = () => {
         return acc
       },
       { contractual: [], benchmark: [] } as {
-        contractual: any[]
-        benchmark: any[]
+        contractual: ProcessedKPI[]
+        benchmark: ProcessedKPI[]
       },
     )
 
@@ -613,7 +632,7 @@ const ProjectKPIHome = () => {
       benchmark,
       favorited,
     }
-  }, [kpiTypesWithContracts, allKPIData, deviceTypeId, favoriteKpis])
+  }, [kpiTypesWithContracts, allKPIData, deviceTypeId, favoriteKpis, projectId])
 
   // Add this memoized helper to check if there are any hidden KPIs
   const hasHiddenKPIs = useMemo(() => {
@@ -621,7 +640,7 @@ const ProjectKPIHome = () => {
     return kpiTypesWithContracts.some((kpi) => !kpi.is_visible)
   }, [kpiTypesWithContracts])
 
-  const handleFavoriteClick = (kpi: any) => {
+  const handleFavoriteClick = (kpi: ProcessedKPI) => {
     if (user) {
       updateUserKPITypeFavorite.mutate({
         userId: user.user_id,

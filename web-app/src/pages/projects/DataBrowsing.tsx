@@ -262,11 +262,14 @@ const Page = () => {
   }
   const [interval, setInterval] = useState<string>('5min')
 
+  // Retrieve parameters from the URL
+  const params = useMemo(() => new URLSearchParams(window.location.search), [])
+
   useEffect(() => {
     setCheckedParents({})
     setCheckedChildren({})
     params.delete('selectedTagIds')
-  }, [projectId])
+  }, [projectId, params])
 
   const [expandedIds, setExpandedIds] = useState<number[]>([])
   const [checkedParents, setCheckedParents] = useState<Record<number, boolean>>(
@@ -278,9 +281,6 @@ const Page = () => {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [debouncedSearchTerm] = useDebouncedValue(searchTerm, 300)
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true)
-
-  // Retrieve parameters from the URL
-  const params = new URLSearchParams(window.location.search)
   const urlTagDisplay = params.get('tagDisplay')
   const urlParentType = params.get('parentType')
   const urlSelectedDeviceType = params.get('selectedDeviceType')
@@ -326,43 +326,6 @@ const Page = () => {
   }, [initialSelectedTagIds])
 
   const { start, end } = useValidateDateRange({})
-  // Update URL params whenever these dependencies change
-  useEffect(() => {
-    const updateParams = new URLSearchParams(window.location.search)
-    updateParams.set('tagDisplay', tagDisplay)
-    updateParams.set('parentType', parentType)
-    updateParams.set('showAllTags', showAllTags.toString())
-    if (selectedDeviceType) {
-      updateParams.set('selectedDeviceType', selectedDeviceType)
-    } else {
-      updateParams.delete('selectedDeviceType')
-    }
-
-    if (tags) {
-      const selectedTagIds = Object.keys(checkedChildren)
-        .filter((key) => checkedChildren[Number(key)])
-        .map(Number)
-      if (selectedTagIds.length > 0) {
-        updateParams.set('selectedTagIds', selectedTagIds.join(','))
-      } else {
-        updateParams.delete('selectedTagIds')
-      }
-    }
-
-    window.history.replaceState(
-      {},
-      '',
-      `${window.location.pathname}?${updateParams}`,
-    )
-  }, [
-    tagDisplay,
-    parentType,
-    selectedDeviceType,
-    checkedChildren,
-    start,
-    end,
-    showAllTags,
-  ])
 
   // API Data
   const project = useSelectProject(projectId!)
@@ -406,6 +369,45 @@ const Page = () => {
     },
     queryOptions: { enabled: !isLoading },
   })
+
+  // Update URL params whenever these dependencies change
+  useEffect(() => {
+    const updateParams = new URLSearchParams(window.location.search)
+    updateParams.set('tagDisplay', tagDisplay)
+    updateParams.set('parentType', parentType)
+    updateParams.set('showAllTags', showAllTags.toString())
+    if (selectedDeviceType) {
+      updateParams.set('selectedDeviceType', selectedDeviceType)
+    } else {
+      updateParams.delete('selectedDeviceType')
+    }
+
+    if (tags) {
+      const selectedTagIds = Object.keys(checkedChildren)
+        .filter((key) => checkedChildren[Number(key)])
+        .map(Number)
+      if (selectedTagIds.length > 0) {
+        updateParams.set('selectedTagIds', selectedTagIds.join(','))
+      } else {
+        updateParams.delete('selectedTagIds')
+      }
+    }
+
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}?${updateParams}`,
+    )
+  }, [
+    tagDisplay,
+    parentType,
+    selectedDeviceType,
+    checkedChildren,
+    start,
+    end,
+    showAllTags,
+    tags,
+  ])
 
   const filteredDeviceTypes = useMemo(
     () =>
@@ -846,6 +848,7 @@ const Page = () => {
   const parentRef = React.useRef(null)
 
   // rawTags virtualizer
+  /* eslint-disable react-hooks/incompatible-library */
   const rawRowVirtualizer = useVirtualizer({
     count: rawTags.length,
     getScrollElement: () => parentRef.current,

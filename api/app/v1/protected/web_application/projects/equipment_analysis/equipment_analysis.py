@@ -35,7 +35,7 @@ def get_bess(
     project_id,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     return get_bess_data(
@@ -54,7 +54,7 @@ def get_bess_pcs(
     project_id,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     return get_bess_pcs_data(
@@ -72,7 +72,7 @@ def get_bess_pcs(
 )
 def get_equipment_analysis_combiner(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
@@ -92,7 +92,7 @@ def get_tracker(
     start: datetime.date,
     end: datetime.date,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_id,
 ):
     return get_tracker_data(
@@ -112,7 +112,7 @@ def get_tracker_by_pv_block_id(
     project_id,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     return get_tracker_by_pv_block_id_data(
@@ -129,7 +129,7 @@ def get_equipment_analysis_pcs(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     return get_equipment_analysis_pcs_data(
         start=start,

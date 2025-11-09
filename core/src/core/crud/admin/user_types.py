@@ -1,15 +1,14 @@
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
 from core.enumerations import UserTypeEnum
+from core.model_list import ModelList
 
 
-async def get_user_type(
+def get_user_type(
     *,
-    db: AsyncSession,
     user_type_id: UserTypeEnum,
-):
+    return_query: bool = True,
+) -> ModelList[models.UserType]:
     query = select(models.UserType).filter(models.UserType.user_type_id == user_type_id)
-    result = await db.execute(query)
-    return result.scalars().first()
+    return ModelList(query=query, return_query=return_query)

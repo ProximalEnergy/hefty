@@ -1,6 +1,7 @@
 import { useGetCompanyTeams } from '@/api/admin'
 import { useGetCompanyUsers } from '@/api/operational'
 import {
+  CalendarEvent,
   CalendarEventCategory,
   useCreateCalendarEvent,
   useDeleteCalendarEvent,
@@ -33,10 +34,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 import { ByWeekday, Frequency, Options, RRule, rrulestr } from 'rrule'
 
+// Extended type to include optional category property that may be added by calendar libraries
+type CalendarItem = CalendarEvent & {
+  category?: string
+}
+
 interface CalendarItemModalProps {
   opened: boolean
   onClose: () => void
-  item?: any
+  item?: CalendarItem
   startDate?: Date
   endDate?: Date
   onSuccessRefetch: () => void
@@ -98,7 +104,7 @@ const weekOrdinalOptions = [
   { label: 'Last', value: '-1' },
 ]
 
-const rruleWeekdays: { [key: string]: any } = {
+const rruleWeekdays: { [key: string]: ByWeekday } = {
   '0': RRule.MO,
   '1': RRule.TU,
   '2': RRule.WE,
@@ -148,7 +154,7 @@ const parseRRule = (rruleString?: string): RecurrenceFormValues => {
     let monthWeekday: string | undefined = defaultValues.monthWeekday
 
     if (freq === Frequency.WEEKLY) {
-      weekdays = rule.byweekday?.map((day: any) => day.toString()) || []
+      weekdays = rule.byweekday?.map((day: ByWeekday) => day.toString()) || []
     } else if (freq === Frequency.MONTHLY) {
       if (
         rule.bymonthday &&
@@ -267,7 +273,7 @@ const generateRRule = (values: FormValues): string | undefined => {
     if (!options.dtstart) {
       return undefined
     }
-    const rule = new RRule(options as any)
+    const rule = new RRule(options as Options)
     if (options.until && options.until < options.dtstart) {
       return undefined
     }
@@ -477,10 +483,10 @@ export const CalendarItemModal = ({
 
       const initialEnableNotifications = !!(
         item?.notify_method?.includes('email') &&
-        item?.notify_offsets?.length > 0
+        (item?.notify_offsets?.length ?? 0) > 0
       )
       const initialNotifyOffsets = initialEnableNotifications
-        ? item.notify_offsets
+        ? (item?.notify_offsets ?? [])
         : []
 
       form.setValues({
@@ -621,6 +627,7 @@ export const CalendarItemModal = ({
     fetchedCategories,
     item,
     contextualProjectId,
+    form,
     form.setFieldValue,
     prevItemId,
   ])
@@ -1030,7 +1037,7 @@ export const CalendarItemModal = ({
           <MultiSelect
             label="Assign to users or teams"
             placeholder="Select assignees"
-            data={combinedAssigneeOptions as any}
+            data={combinedAssigneeOptions as ComboboxItem[]}
             searchable
             clearable
             renderOption={renderAssigneeOption}

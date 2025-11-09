@@ -1,5 +1,5 @@
 import { type MRT_ColumnDef, MantineReactTable } from 'mantine-react-table'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 interface DeviceTypeSummary {
@@ -30,10 +30,13 @@ export function DeviceTypeSummaryTable({
     return routeMap[deviceType] || deviceType.toLowerCase().replace(/\s+/g, '-')
   }
 
-  const handleRowClick = (row: DeviceTypeSummary) => {
-    const route = getDeviceTypeRoute(row.deviceType)
-    navigate(`/onboarding/${projectId}/device-types/${route}`)
-  }
+  const handleRowClick = useCallback(
+    (row: DeviceTypeSummary) => {
+      const route = getDeviceTypeRoute(row.deviceType)
+      navigate(`/onboarding/${projectId}/device-types/${route}`)
+    },
+    [navigate, projectId],
+  )
 
   const columns = useMemo<MRT_ColumnDef<DeviceTypeSummary>[]>(
     () => [
@@ -93,7 +96,7 @@ export function DeviceTypeSummaryTable({
         }),
       },
     ],
-    [],
+    [data, handleRowClick, onDataChange],
   )
 
   return (

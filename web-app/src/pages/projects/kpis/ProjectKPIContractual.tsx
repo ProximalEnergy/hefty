@@ -4,6 +4,7 @@ import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
+import { KPITypeWithContracts } from '@/hooks/types'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import {
   Box,
@@ -22,8 +23,8 @@ import {
   Title,
 } from '@mantine/core'
 import dayjs from 'dayjs'
-import { Data } from 'plotly.js'
-import { useMemo, useState } from 'react'
+import { Data, Layout } from 'plotly.js'
+import { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 interface Threshold {
@@ -41,7 +42,7 @@ const BarAndHeatmapCard = ({
 }: {
   parsedData: Data[] | undefined
   isLoading: boolean
-  kpiTypeData: any
+  kpiTypeData: KPITypeWithContracts | undefined
   selectedYear: string
   setSelectedYear: (value: string) => void
   yearOptions: { value: string; label: string }[]
@@ -120,28 +121,30 @@ const AnnualAveragesCard = ({
   isLoading,
   kpiTypeData,
 }: {
-  parsedData: { data: Data[]; layout: any } | undefined
+  parsedData: { data: Data[]; layout: Partial<Layout> } | undefined
   isLoading: boolean
-  kpiTypeData: any
+  kpiTypeData: KPITypeWithContracts | undefined
 }) => {
   // Determine y-axis label based on aggregation method and unit
   const yAxisTitle = kpiTypeData?.unit
     ? `${
         kpiTypeData.aggregation_method === 'sum' ? 'Total' : 'Average'
       } Value (${kpiTypeData.unit})`
-    : `${kpiTypeData.aggregation_method === 'sum' ? 'Total' : 'Average'} Value`
+    : `${kpiTypeData?.aggregation_method === 'sum' ? 'Total' : 'Average'} Value`
 
   return (
     <CustomCard title="Annual Performance" style={{ height: '30vh' }}>
       <PlotlyPlot
         data={parsedData?.data}
-        layout={{
-          ...parsedData?.layout,
-          yaxis: {
-            ...parsedData?.layout?.yaxis,
-            title: yAxisTitle,
-          },
-        }}
+        layout={
+          {
+            ...parsedData?.layout,
+            yaxis: {
+              ...parsedData?.layout?.yaxis,
+              title: yAxisTitle,
+            },
+          } as Partial<Layout>
+        }
         config={{ displayModeBar: false }}
         colorscale="primary"
         isLoading={isLoading}
@@ -199,7 +202,7 @@ const ProjectKPIContractual = () => {
   }, [allKPIData])
 
   // Filter data for the selected year
-  const getFilteredYearData = () => {
+  const getFilteredYearData = useCallback(() => {
     if (!allKPIData?.length || !allKPIData[0]?.data) {
       return undefined
     }
@@ -233,7 +236,7 @@ const ProjectKPIContractual = () => {
           }
         : undefined,
     }
-  }
+  }, [allKPIData, selectedYear])
 
   // Use filtered data for performance chart
   const filteredData = useMemo(() => {
@@ -244,7 +247,7 @@ const ProjectKPIContractual = () => {
         data: getFilteredYearData(),
       },
     ]
-  }, [allKPIData, selectedYear])
+  }, [allKPIData, getFilteredYearData])
 
   const parseData = (data: any, kpiTypeData: any) => {
     if (!data?.length || !data[0]?.data) {
@@ -852,7 +855,11 @@ const ProjectKPIContractual = () => {
                             }
 
                             const { method, timeframe, data_contents } =
-                              contractKpi.claim_howto.description
+                              contractKpi.claim_howto.description as {
+                                method?: { type?: string; details?: string }
+                                timeframe?: string
+                                data_contents?: string
+                              }
 
                             return (
                               <Stack key={`${contractKpi.contract_id}-claims`}>

@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Annotated
 from uuid import UUID
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +40,7 @@ async def get_projects(
     kpi_instance_kpi_type_ids: Annotated[list[int] | None, Query()] = None,
     report_instance_report_type_ids: Annotated[list[int] | None, Query()] = None,
     deep: custom_types.AnnotatedDeep = False,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
@@ -149,7 +150,7 @@ async def get_projects(
 def get_project(
     project_id: UUID,
     deep: custom_types.AnnotatedDeep = False,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     project = core.crud.operational.projects.get_project(

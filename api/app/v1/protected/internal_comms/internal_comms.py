@@ -1,3 +1,4 @@
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -22,7 +23,7 @@ def send_project_creation_notification_endpoint(
     *,
     request: dict,
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
 ) -> dict:
     """
     Send a notification that a new project has been created.

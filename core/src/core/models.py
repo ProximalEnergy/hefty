@@ -1509,6 +1509,7 @@ class Event(Base):
         sa.DateTime(timezone=True),
     )
     loss_total_financial: Mapped[float | None] = mapped_column(sa.Double)
+    loss_daily_financial: Mapped[float | None] = mapped_column(sa.Double)
     version: Mapped[str | None]
 
     device = relationship("Device")

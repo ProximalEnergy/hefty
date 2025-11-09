@@ -27,7 +27,7 @@ def validate_combiner_data(
     start: datetime.datetime,
     end: datetime.datetime,
     device_ids: Annotated[list[int] | None, Query()] = None,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     """

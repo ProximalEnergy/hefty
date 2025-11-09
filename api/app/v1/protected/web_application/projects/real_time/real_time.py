@@ -1,6 +1,7 @@
 import datetime
 from typing import Annotated
 
+from core.crud.operational.sensor_types import get_sensor_types
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
@@ -10,7 +11,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from app._crud.operational.sensor_types import get_sensor_types
 from app._crud.projects.data_timeseries_latest import (
     get_data_timeseries_latest_by_device_type,
 )
@@ -125,7 +125,7 @@ def get_by_device_type_id(
     sensor_types = get_sensor_types(
         db=project_db,
         sensor_type_ids=sensor_type_ids,
-    )
+    ).models()
     sensor_type_names = {st.sensor_type_id: st.name_short for st in sensor_types}
 
     # ── convert to front-end "traces" shape -------------------------------------
@@ -174,7 +174,7 @@ class DeviceTypePowerSummary(BaseModel):
 )
 def get_device_type_power_summary(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """
     Get power summary for all device types in the project.

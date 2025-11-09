@@ -41,7 +41,7 @@ async def utility_expected(
     warranted_degradation: Annotated[bool, Query()] = False,
     db: AsyncSession = Depends(dependencies.get_async_db),
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.

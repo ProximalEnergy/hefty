@@ -91,6 +91,8 @@ const CustomCard = ({
   headerChildren,
   children,
   allowFullscreen = true,
+  hideBody = false,
+  bodyStyle,
 }: {
   beta?: boolean
   title?: React.ReactNode
@@ -103,6 +105,8 @@ const CustomCard = ({
   headerChildren?: React.ReactNode
   children: React.ReactNode
   allowFullscreen?: boolean
+  hideBody?: boolean
+  bodyStyle?: React.CSSProperties
 }) => {
   const { ref, toggle, fullscreen } = useFullscreen()
 
@@ -139,9 +143,14 @@ const CustomCard = ({
           </CardTitle>
         </Card.Section>
       )}
-      <Card.Section p={padding} style={{ height: '100%' }}>
-        {children}
-      </Card.Section>
+      {!hideBody && (
+        <Card.Section
+          p={padding}
+          style={{ height: '100%', ...(bodyStyle || {}) }}
+        >
+          {children}
+        </Card.Section>
+      )}
     </Card>
   )
 }

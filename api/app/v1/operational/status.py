@@ -1,10 +1,10 @@
 from typing import Annotated
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 import core
-from app.dependencies import get_db
 
 router = APIRouter(prefix="/status", tags=["status"])
 

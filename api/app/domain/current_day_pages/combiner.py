@@ -14,7 +14,7 @@ from core import models
 def get_equipment_analysis_combiner_data(
     *,
     project_db: Session,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):

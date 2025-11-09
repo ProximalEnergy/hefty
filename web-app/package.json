@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
     "build": "node build-plotly-custom.js && tsc && NODE_OPTIONS=--max_old_space_size=8192 vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 1000",
     "preview": "vite preview",

@@ -355,13 +355,18 @@ const Page = () => {
   }
 
   // Custom wrapper for form input props that tracks manual edits
-  const getInputPropsWithTracking = (fieldName: string, options?: any) => {
+  const getInputPropsWithTracking = (
+    fieldName: string,
+    options?: { type?: 'checkbox' },
+  ) => {
     const inputProps = form.getInputProps(fieldName, options)
     const originalOnChange = inputProps.onChange
 
     return {
       ...inputProps,
-      onChange: (event: any) => {
+      onChange: (
+        event: Parameters<NonNullable<typeof originalOnChange>>[0],
+      ) => {
         setHasManualEdits(true)
         if (originalOnChange) {
           originalOnChange(event)
@@ -488,7 +493,7 @@ const Page = () => {
       return
     }
 
-    let moduleData: any = null
+    let moduleData: PVModule | null = null
 
     // For CEC data source, use the CEC proximal format data (single object)
     if (dataSource === 'cec' && cecModuleDetails) {
@@ -556,7 +561,13 @@ const Page = () => {
         halfCut: moduleData.half_cut,
       })
     }
-  }, [cecModuleDetails, proximalModuleDetails, dataSource, hasManualEdits])
+  }, [
+    cecModuleDetails,
+    proximalModuleDetails,
+    dataSource,
+    hasManualEdits,
+    form,
+  ])
 
   // Create or Update PV Module mutation
   const createOrUpdatePVModuleMutation = useCreateOrUpdatePVModuleMutation()

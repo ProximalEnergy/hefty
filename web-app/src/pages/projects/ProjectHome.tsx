@@ -4,11 +4,15 @@ import {
   useGetContractKPIs,
   useGetOperationalKPIData,
 } from '@/api/v1/operational/kpi_data'
-import { useGetCountOpenEvents } from '@/api/v1/operational/project/events'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
-import { useGetProjects, useSelectProject } from '@/api/v1/operational/projects'
+import {
+  Project,
+  useGetProjects,
+  useSelectProject,
+} from '@/api/v1/operational/projects'
+import { useGetHomepageSummary } from '@/api/v1/protected/web-application/projects/events/events'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -18,7 +22,6 @@ import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
-import { useGetPaginatedEvents } from '@/hooks/api'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
@@ -34,6 +37,7 @@ import {
   Center,
   Grid,
   Group,
+  List,
   LoadingOverlay,
   Menu,
   Modal,
@@ -70,9 +74,12 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import type { Data } from 'plotly.js'
 import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+
+import AdaptiveGisBESS from './gis/adaptive-gis-bess'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)
@@ -326,8 +333,8 @@ const CurrentTime = ({ timezone }: { timezone: string }) => {
 
 const KPICards = () => {
   const { projectId } = useParams()
-  const container = useElementSize()
-  const content = useElementSize()
+  const { ref: containerRef, width: containerWidth } = useElementSize()
+  const { ref: contentRef, width: contentWidth } = useElementSize()
   const [rotationOffset, setRotationOffset] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const [queryDate, setQueryDate] = useState(dayjs().format('YYYY-MM-DD'))
@@ -365,7 +372,7 @@ const KPICards = () => {
     }
   }, [data.isSuccess, data.data, queryDate])
 
-  const contentIsGreaterThanContainer = content.width > container.width
+  const contentIsGreaterThanContainer = contentWidth > containerWidth
 
   const filteredData = data.data?.filter(
     (kpi) => kpi.value !== null && kpi.value !== undefined,
@@ -407,13 +414,13 @@ const KPICards = () => {
 
   return (
     <Group
-      ref={container.ref}
+      ref={containerRef}
       style={{ overflow: 'hidden' }}
       w="100%"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Group wrap="nowrap" ref={content.ref}>
+      <Group wrap="nowrap" ref={contentRef}>
         {rotatedItems?.map((kpi) => (
           <KPICard
             key={kpi.kpi_type_id}
@@ -428,84 +435,24 @@ const KPICards = () => {
 
 const EventTable = () => {
   const { projectId } = useParams()
-  const [sortBy, setSortBy] = useState('loss_daily')
-  const theme = useMantineTheme()
+  const [sortBy, setSortBy] = useState<'daily' | 'total'>('daily')
 
-  const { data: topEvents, isLoading: isLoadingTopEvents } =
-    useGetPaginatedEvents({
-      pathParams: { projectId: projectId || '-1' },
-      queryParams: {
-        page: 0,
-        page_size: 5,
-        open: true,
-        sort_column: sortBy,
-        sort_direction: 'desc',
-        device_type_ids: [],
-      },
-      queryOptions: {
-        staleTime: 60 * 1000,
-      },
-    })
-
-  const countOpenEvents = useGetCountOpenEvents({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: { enabled: !!projectId },
-  })
-
-  // Get all open events to calculate total daily loss
-  const { data: allOpenEvents } = useGetPaginatedEvents({
+  const homepageSummary = useGetHomepageSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      page: 0,
-      page_size: 10000, // Large number to get all open events
-      open: true,
-      sort_column: 'loss_daily',
-      sort_direction: 'desc',
-      device_type_ids: [],
-    },
-    queryOptions: {
-      enabled: !!projectId,
-      staleTime: 60 * 1000,
+      sort_by: sortBy,
     },
   })
 
-  const formatLoss = (value: number | null) => {
-    if (value === 0 || value === null) {
-      return '-'
-    }
-    return `$${value.toFixed(2)}`
-  }
-
-  // Calculate total daily loss from all open events
-  const totalDailyLoss = useMemo(() => {
-    if (!allOpenEvents || allOpenEvents.length === 0) {
-      return 0
-    }
-    return allOpenEvents.reduce((total, event) => {
-      const dailyLoss = event.loss_daily_financial || 0
-      return total + dailyLoss
-    }, 0)
-  }, [allOpenEvents])
-
   const cardTitle = useMemo(() => {
-    const baseTitle = 'Top Events'
-    // Add the count of open events and total daily loss if available
-    if (countOpenEvents.data) {
-      const count = countOpenEvents.data
-      const countText = count >= 1000 ? '1000+' : count // Show 1000+ if count is 1000 or more
-      const totalLossText =
-        totalDailyLoss > 0 ? ` | $${totalDailyLoss.toFixed(2)}/day` : ''
-      return (
-        <>
-          {baseTitle}
-          <span style={{ color: theme.colors[theme.primaryColor][6] }}>
-            {` (${countText} Open${totalLossText})`}
-          </span>
-        </>
-      )
+    if (
+      homepageSummary.data &&
+      homepageSummary.data?.total_number_of_open_events > 0
+    ) {
+      return `Top Events (${homepageSummary.data?.total_number_of_open_events} Open | $${homepageSummary.data?.total_daily_loss.toFixed(2)}/day)`
     }
-    return baseTitle // Return only base title if no events data
-  }, [countOpenEvents.data, totalDailyLoss, theme])
+    return 'Top Events'
+  }, [homepageSummary.data])
 
   return (
     <CustomCard
@@ -518,71 +465,85 @@ const EventTable = () => {
         </Link>
       }
       fill
+      style={{ flex: 1 }}
       headerChildren={
-        <Popover>
+        <Popover position="bottom" withArrow shadow="md">
           <Popover.Target>
             <ActionIcon variant="default">
-              <IconSettings size={iconSize} stroke={iconStroke} />
+              <IconSettings size={20} stroke={1.5} />
             </ActionIcon>
           </Popover.Target>
           <Popover.Dropdown>
-            <Text>Sort By</Text>
-            <SegmentedControl
-              data={[
-                { label: 'Daily Loss', value: 'loss_daily' },
-                { label: 'Total Loss', value: 'loss_total_financial' },
-              ]}
-              value={sortBy}
-              onChange={(value) => setSortBy(value ?? 'loss_daily')}
-            />
+            <Group>
+              <Text>Sort by</Text>
+              <SegmentedControl
+                data={[
+                  { label: 'Daily Loss', value: 'daily' },
+                  { label: 'Total Loss', value: 'total' },
+                ]}
+                value={sortBy}
+                onChange={(value) => setSortBy(value as 'daily' | 'total')}
+              />
+            </Group>
           </Popover.Dropdown>
         </Popover>
       }
-      style={{ flex: 1 }}
     >
-      <LoadingOverlay
-        visible={isLoadingTopEvents || countOpenEvents.isLoading}
-      />
-      {topEvents && topEvents.length > 0 && (
-        <ScrollArea h="100%">
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Device</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>
-                  Loss - Daily
-                </Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>
-                  Loss - Total
-                </Table.Th>
+      <LoadingOverlay visible={homepageSummary.isLoading} />
+
+      {homepageSummary.data &&
+      homepageSummary.data.top_events &&
+      homepageSummary.data.top_events.length > 0 ? (
+        <Table striped>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Device</Table.Th>
+              <Table.Th>Loss - Daily</Table.Th>
+              <Table.Th>Loss - Total</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {homepageSummary.data.top_events.map((event) => (
+              <Table.Tr key={event.event_id}>
+                <Table.Td>
+                  <Link
+                    to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
+                    style={{ color: 'inherit' }}
+                  >
+                    {event.device_name_full}
+                  </Link>
+                </Table.Td>
+                <Table.Td>
+                  {event.loss_daily_financial
+                    ? `$${event.loss_daily_financial.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : '-'}
+                </Table.Td>
+                <Table.Td>
+                  {event.loss_total_financial
+                    ? `$${event.loss_total_financial.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : '-'}
+                </Table.Td>
               </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {topEvents.map((event) => (
-                <Table.Tr key={event.event_id}>
-                  <Table.Td>
-                    <Link
-                      to={`/projects/${projectId}/events/event/?eventId=${event.event_id}`}
-                      style={{ color: 'inherit' }}
-                    >
-                      {event.device_name_full}
-                    </Link>
-                  </Table.Td>
-                  <Table.Td style={{ textAlign: 'center' }}>
-                    {formatLoss(event.loss_daily_financial)}
-                  </Table.Td>
-                  <Table.Td style={{ textAlign: 'center' }}>
-                    {formatLoss(event.loss_total_financial)}
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
-      )}
-      {topEvents && topEvents.length === 0 && (
-        <Center h="100%">No active events!</Center>
-      )}
+            ))}
+          </Table.Tbody>
+        </Table>
+      ) : homepageSummary.data &&
+        homepageSummary.data.top_events &&
+        homepageSummary.data.top_events.length === 0 ? (
+        <Box h="100%" w="100%">
+          <Center h="100%" w="100%">
+            <Text size="xl" fw={500}>
+              No active events
+            </Text>
+          </Center>
+        </Box>
+      ) : null}
     </CustomCard>
   )
 }
@@ -845,8 +806,6 @@ const BatteryHealth = () => {
       : `${sohDifference.toFixed(2)}%`
   const sohDifferenceText = sohDifference > 0 ? 'above' : 'below'
 
-  const projectAge = 2 // This would need to come from project commissioning date
-
   // Create SOH degradation chart data and zoom range
   const { chartData: sohChartData, defaultZoomRange } = useMemo(() => {
     // Generate expected SOH data with proper dates (20 years from start date)
@@ -941,15 +900,15 @@ const BatteryHealth = () => {
 
     const defaultZoomRange = getDefaultZoomRange()
 
-    const chartData: any[] = [
+    const chartData: Data[] = [
       {
         x: expectedSohData.x,
         y: expectedSohData.y,
         name: 'Expected SOH',
-        line: { color: theme.colors.gray[4], dash: 'dash' as const, width: 3 },
-        type: 'scatter' as const,
+        line: { color: theme.colors.gray[4], dash: 'dash', width: 3 },
+        type: 'scatter',
         hovertemplate: '%{y:.2f}%<extra></extra>',
-      },
+      } satisfies Data,
     ]
 
     if (actualSohData && actualSohData.x.length > 0) {
@@ -958,9 +917,9 @@ const BatteryHealth = () => {
         y: actualSohData.y,
         name: 'Actual SOH',
         line: { color: theme.colors.blue[6], width: 3 },
-        type: 'scatter' as const,
+        type: 'scatter',
         hovertemplate: '%{y:.2f}%<extra></extra>',
-      })
+      } satisfies Data)
     }
 
     // Add cycle data if enabled
@@ -983,11 +942,11 @@ const BatteryHealth = () => {
           x: dates,
           y: values,
           name: 'Cycle Count',
-          type: 'bar' as const,
+          type: 'bar',
           yaxis: 'y2',
           hovertemplate: '%{y:.0f}<extra></extra>',
           marker: { color: theme.colors.blue[6] },
-        })
+        } satisfies Data)
       }
     }
 
@@ -1006,10 +965,10 @@ const BatteryHealth = () => {
           y: values,
           name: 'String SOC',
           line: { color: theme.colors.green[6] },
-          type: 'scatter' as const,
+          type: 'scatter',
           yaxis: 'y2',
           hovertemplate: '%{y:.1f}%<extra></extra>',
-        })
+        } satisfies Data)
       }
     }
 
@@ -1034,17 +993,15 @@ const BatteryHealth = () => {
           y: values,
           name: 'String Rest SOC',
           line: { color: theme.colors.violet[6] },
-          type: 'scatter' as const,
+          type: 'scatter',
           yaxis: 'y2',
           hovertemplate: '%{y:.1f}%<extra></extra>',
-        })
+        } satisfies Data)
       }
     }
 
     return { chartData, defaultZoomRange }
   }, [
-    currentSoh,
-    projectAge,
     theme,
     dailyKpiData.data,
     project.data?.cod,
@@ -1068,6 +1025,7 @@ const BatteryHealth = () => {
             Battery Health
           </Link>
         }
+        style={{ height: 350, minHeight: 350 }}
       >
         <LoadingOverlay visible={true} />
       </CustomCard>
@@ -1110,6 +1068,7 @@ const BatteryHealth = () => {
             Battery Health
           </Link>
         }
+        style={{ height: 350, minHeight: 350 }}
       >
         <Center h={200}>
           <Text c="dimmed">No battery health data available</Text>
@@ -1129,7 +1088,7 @@ const BatteryHealth = () => {
         </Link>
       }
       allowFullscreen={false}
-      style={{ flex: 0.75 }}
+      style={{ height: 350, minHeight: 350 }}
     >
       <Stack gap="md">
         {/* SOH Degradation Chart */}
@@ -1453,8 +1412,10 @@ const BatteryHealth = () => {
 }
 
 const ContractualKPIOverview = ({
+  project,
   onExpandedChange,
 }: {
+  project: Project | null | undefined
   onExpandedChange?: (expanded: boolean) => void
 }) => {
   const { projectId } = useParams()
@@ -1464,6 +1425,14 @@ const ContractualKPIOverview = ({
   const [selectedContractUrl, setSelectedContractUrl] = useState<string | null>(
     null,
   )
+
+  // Size values based on project type - BESS projects get larger sizes
+  const isBESSProject =
+    project?.project_type_id === ProjectTypeId.BESS ||
+    project?.project_type_id === ProjectTypeId.PV_BESS
+  const expandedFlex = isBESSProject ? 0.5 : 0.3
+  const expandedMinHeight = isBESSProject ? 180 : 80
+  const expandedMaxHeight = isBESSProject ? 250 : 150
 
   // Initialize expanded state from localStorage, default to true (expanded)
   const [isExpanded, setIsExpanded] = useState(() => {
@@ -1489,15 +1458,7 @@ const ContractualKPIOverview = ({
     onExpandedChange?.(isExpanded)
   }, [isExpanded, onExpandedChange, projectId])
 
-  // Get all KPI summary cards
-  const kpiData = useGetKPISummaryCards({
-    pathParams: { projectId: projectId || '-1' },
-    queryOptions: {
-      enabled: !!projectId,
-    },
-  })
-
-  // Get contract KPI data with thresholds
+  // Get contract KPI data with thresholds first (lightweight query)
   const contractKPIData = useGetContractKPIs({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
@@ -1505,9 +1466,26 @@ const ContractualKPIOverview = ({
     },
   })
 
-  // Filter for only contractual KPIs (those with contract_id)
-  const contractualKPIs =
-    kpiData.data?.filter((kpi) => kpi.contract_id !== null) || []
+  // Extract contractual KPI type IDs from contract data
+  const contractualKpiTypeIds = useMemo(() => {
+    if (!contractKPIData.data) return []
+    return contractKPIData.data.map((ck) => ck.kpi_type_id)
+  }, [contractKPIData.data])
+
+  // Only fetch KPI summary cards for contractual KPIs (not all KPIs)
+  const kpiData = useGetKPISummaryCards({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      kpi_type_ids:
+        contractualKpiTypeIds.length > 0 ? contractualKpiTypeIds : undefined,
+    },
+    queryOptions: {
+      enabled: !!projectId && contractualKpiTypeIds.length > 0,
+    },
+  })
+
+  // All fetched KPIs are contractual (no need to filter)
+  const contractualKPIs = kpiData.data || []
 
   // Create a map of KPI type ID to contract KPI data for easy lookup
   const contractKPIMap = useMemo(() => {
@@ -1651,76 +1629,88 @@ const ContractualKPIOverview = ({
             </Tooltip>
           </Group>
         }
-        style={{ flex: isExpanded ? 0.6 : 0.1 }}
+        style={{
+          flex: isExpanded ? expandedFlex : '0 0 auto',
+          minHeight: isExpanded ? expandedMinHeight : undefined,
+        }}
+        hideBody={!isExpanded}
       >
         {isExpanded && (
           <>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>KPI</Table.Th>
-                  <Table.Th style={{ textAlign: 'center' }}>
-                    Counterparty
-                  </Table.Th>
-                  <Table.Th style={{ textAlign: 'center' }}>YTD Value</Table.Th>
-                  <Table.Th style={{ textAlign: 'center' }}>Threshold</Table.Th>
-                  <Table.Th style={{ textAlign: 'center' }}>Status</Table.Th>
-                  <Table.Th style={{ textAlign: 'center' }}>Contract</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {placeholderKPIs.map((kpi, index) => {
-                  const statusColor =
-                    kpi.ytd_value >= kpi.threshold
-                      ? theme.colors.green[6]
-                      : theme.colors.red[6]
+            <ScrollArea h="100%">
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>KPI</Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>
+                      Counterparty
+                    </Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>
+                      YTD Value
+                    </Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>
+                      Threshold
+                    </Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>Status</Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>
+                      Contract
+                    </Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {placeholderKPIs.map((kpi, index) => {
+                    const statusColor =
+                      kpi.ytd_value >= kpi.threshold
+                        ? theme.colors.green[6]
+                        : theme.colors.red[6]
 
-                  return (
-                    <Table.Tr key={index} style={{ opacity: 0.6 }}>
-                      <Table.Td>
-                        <Text fw={500} c="dimmed">
-                          {kpi.title}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          Example placeholder
-                        </Text>
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'center' }}>
-                        <Text size="sm" c="dimmed">
-                          {kpi.counterparty}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'center' }}>
-                        <Text c="dimmed">
-                          {kpi.ytd_value} {kpi.unit}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'center' }}>
-                        <Text c="dimmed">
-                          {kpi.threshold} {kpi.unit}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'center' }}>
-                        <Box
-                          w={12}
-                          h={12}
-                          style={{
-                            backgroundColor: statusColor,
-                            borderRadius: '50%',
-                            display: 'inline-block',
-                          }}
-                        />
-                      </Table.Td>
-                      <Table.Td style={{ textAlign: 'center' }}>
-                        <Button variant="light" size="xs" disabled c="dimmed">
-                          View
-                        </Button>
-                      </Table.Td>
-                    </Table.Tr>
-                  )
-                })}
-              </Table.Tbody>
-            </Table>
+                    return (
+                      <Table.Tr key={index} style={{ opacity: 0.6 }}>
+                        <Table.Td>
+                          <Text fw={500} c="dimmed">
+                            {kpi.title}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            Example placeholder
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: 'center' }}>
+                          <Text size="sm" c="dimmed">
+                            {kpi.counterparty}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: 'center' }}>
+                          <Text c="dimmed">
+                            {kpi.ytd_value} {kpi.unit}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: 'center' }}>
+                          <Text c="dimmed">
+                            {kpi.threshold} {kpi.unit}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: 'center' }}>
+                          <Box
+                            w={12}
+                            h={12}
+                            style={{
+                              backgroundColor: statusColor,
+                              borderRadius: '50%',
+                              display: 'inline-block',
+                            }}
+                          />
+                        </Table.Td>
+                        <Table.Td style={{ textAlign: 'center' }}>
+                          <Button variant="light" size="xs" disabled c="dimmed">
+                            View
+                          </Button>
+                        </Table.Td>
+                      </Table.Tr>
+                    )
+                  })}
+                </Table.Tbody>
+              </Table>
+            </ScrollArea>
             <Text size="sm" c="dimmed" ta="center" mt="md">
               Click Add New to request a KPI to be added
             </Text>
@@ -1760,90 +1750,96 @@ const ContractualKPIOverview = ({
           </Tooltip>
         </Group>
       }
-      style={{ flex: isExpanded ? 0.6 : 0.1 }}
+      style={{
+        flex: isExpanded ? expandedFlex : 0.1,
+        minHeight: isExpanded ? expandedMinHeight : undefined,
+      }}
+      bodyStyle={{ maxHeight: expandedMaxHeight, overflowY: 'auto' }}
     >
       {isExpanded && (
         <>
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>KPI</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>
-                  Counterparty
-                </Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>YTD Value</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>Threshold</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>Status</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>Contract</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {contractualKPIs.map((kpi) => {
-                const threshold = getCurrentThreshold(kpi.kpi_type_id)
-                const statusColor = getStatusColor(
-                  kpi.ytd_value,
-                  threshold,
-                  kpi.unit,
-                )
+          <ScrollArea h="100%">
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>KPI</Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>
+                    Counterparty
+                  </Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>YTD Value</Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>Threshold</Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>Status</Table.Th>
+                  <Table.Th style={{ textAlign: 'center' }}>Contract</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {contractualKPIs.map((kpi) => {
+                  const threshold = getCurrentThreshold(kpi.kpi_type_id)
+                  const statusColor = getStatusColor(
+                    kpi.ytd_value,
+                    threshold,
+                    kpi.unit,
+                  )
 
-                // Get counterparty information from contract KPI data
-                const contractKPI = contractKPIMap.get(kpi.kpi_type_id)
-                const counterparty = contractKPI?.counter_company || 'N/A'
+                  // Get counterparty information from contract KPI data
+                  const contractKPI = contractKPIMap.get(kpi.kpi_type_id)
+                  const counterparty = contractKPI?.counter_company || 'N/A'
 
-                return (
-                  <Table.Tr
-                    key={kpi.kpi_type_id}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(
-                        `/projects/${projectId}/kpis/contractual/${kpi.link}`,
-                      )
-                    }
-                  >
-                    <Table.Td>
-                      <Text fw={500}>{kpi.title}</Text>
-                    </Table.Td>
-                    <Table.Td style={{ textAlign: 'center' }}>
-                      <Text size="sm">{counterparty}</Text>
-                    </Table.Td>
-                    <Table.Td style={{ textAlign: 'center' }}>
-                      {formatValue(kpi.ytd_value, kpi.unit)}
-                    </Table.Td>
-                    <Table.Td style={{ textAlign: 'center' }}>
-                      {formatValue(threshold, kpi.unit, true)}
-                    </Table.Td>
-                    <Table.Td style={{ textAlign: 'center' }}>
-                      <Box
-                        w={12}
-                        h={12}
-                        style={{
-                          backgroundColor: statusColor,
-                          borderRadius: '50%',
-                          display: 'inline-block',
-                        }}
-                      />
-                    </Table.Td>
-                    <Table.Td style={{ textAlign: 'center' }}>
-                      <Button
-                        variant="light"
-                        size="xs"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (contractKPI?.document_url) {
-                            setSelectedContractUrl(contractKPI.document_url)
-                            setContractModalOpen(true)
-                          }
-                        }}
-                        disabled={!contractKPI?.document_url}
-                      >
-                        View
-                      </Button>
-                    </Table.Td>
-                  </Table.Tr>
-                )
-              })}
-            </Table.Tbody>
-          </Table>
+                  return (
+                    <Table.Tr
+                      key={kpi.kpi_type_id}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() =>
+                        navigate(
+                          `/projects/${projectId}/kpis/contractual/${kpi.link}`,
+                        )
+                      }
+                    >
+                      <Table.Td>
+                        <Text fw={500}>{kpi.title}</Text>
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'center' }}>
+                        <Text size="sm">{counterparty}</Text>
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'center' }}>
+                        {formatValue(kpi.ytd_value, kpi.unit)}
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'center' }}>
+                        {formatValue(threshold, kpi.unit, true)}
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'center' }}>
+                        <Box
+                          w={12}
+                          h={12}
+                          style={{
+                            backgroundColor: statusColor,
+                            borderRadius: '50%',
+                            display: 'inline-block',
+                          }}
+                        />
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'center' }}>
+                        <Button
+                          variant="light"
+                          size="xs"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (contractKPI?.document_url) {
+                              setSelectedContractUrl(contractKPI.document_url)
+                              setContractModalOpen(true)
+                            }
+                          }}
+                          disabled={!contractKPI?.document_url}
+                        >
+                          View
+                        </Button>
+                      </Table.Td>
+                    </Table.Tr>
+                  )
+                })}
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
 
           {/* Contract Document Modal */}
           <Modal
@@ -1876,8 +1872,8 @@ const ContractualKPIOverview = ({
 
 const ProjectHome = () => {
   const { projectId } = useParams()
-  const stackRef = useElementSize()
-  const [_contractRisksExpanded, setContractRisksExpanded] = useState(true)
+  const { ref: stackRef } = useElementSize()
+  const [contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
@@ -1901,7 +1897,7 @@ const ProjectHome = () => {
   }
 
   return (
-    <Stack p="md" h="100%" ref={stackRef.ref}>
+    <Stack p="md" h="100%" ref={stackRef}>
       <Group align="start">
         <Group gap="xs" flex={1}>
           <Title order={1} lh={1}>
@@ -1951,7 +1947,6 @@ const ProjectHome = () => {
               title="Performance"
               fill
               style={{ flex: 1 }}
-              key={projectId}
               info={
                 <Stack gap="xs">
                   <Text fw={600}>Understanding Performance Values</Text>
@@ -2082,23 +2077,222 @@ const ProjectHome = () => {
               {mapComponent}
             </CustomCard>
           )}
-          {/* Contractual KPI Overview for PV, PV_BESS, and BESS projects */}
-          {(project.data.project_type_id === ProjectTypeId.PV ||
-            project.data.project_type_id === ProjectTypeId.PV_BESS ||
-            project.data.project_type_id === ProjectTypeId.BESS) && (
-            <ContractualKPIOverview
-              onExpandedChange={setContractRisksExpanded}
-            />
-          )}
-          {/* Battery Health Section for BESS projects */}
+          {/* Battery Health + System Map for BESS projects */}
           {project.data.project_type_id === ProjectTypeId.BESS && (
             <>
+              <CustomCard
+                title="Performance Map"
+                info={
+                  <Stack gap="xs">
+                    <Text fw={600}>Understanding Performance Values</Text>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Data is realtime
+                      </Text>{' '}
+                      and updated every 30 seconds. This map displays BESS
+                      (Battery Energy Storage System) performance metrics.
+                    </Text>
+                    <Text size="sm" fw={500}>
+                      PCS (Power Conversion System) - Left Color Scale:
+                    </Text>
+                    <List spacing={4} withPadding>
+                      <List.Item>
+                        <Text size="sm">
+                          <Text component="span" fw={500} c="green.7">
+                            Bright Green:
+                          </Text>{' '}
+                          Higher power output from PCS
+                        </Text>
+                      </List.Item>
+                      <List.Item>
+                        <Text size="sm">
+                          <Text component="span" fw={500} c="gray.7">
+                            Gray:
+                          </Text>{' '}
+                          Low/idle power output
+                        </Text>
+                      </List.Item>
+                      <List.Item>
+                        <Text size="sm">
+                          <Text component="span" fw={500}>
+                            Glow:
+                          </Text>{' '}
+                          Charging shows a subtle white inner glow; discharging
+                          shows a green outline glow. Glow intensity scales with
+                          power magnitude.
+                        </Text>
+                      </List.Item>
+                    </List>
+                    <Text size="sm" fw={500}>
+                      SOC (State of Charge) - Right Color Scale:
+                    </Text>
+                    <List spacing={4} withPadding>
+                      <List.Item>
+                        <Text size="sm">
+                          <Text component="span" fw={500} c="green.7">
+                            Green:
+                          </Text>{' '}
+                          High SOC (75-100%) - Battery is well charged
+                        </Text>
+                      </List.Item>
+                      <List.Item>
+                        <Text size="sm">
+                          <Text component="span" fw={500} c="yellow.7">
+                            Yellow:
+                          </Text>{' '}
+                          Medium SOC (50-75%) - Moderate charge level
+                        </Text>
+                      </List.Item>
+                      <List.Item>
+                        <Text size="sm">
+                          <Text component="span" fw={500} c="red.7">
+                            Red:
+                          </Text>{' '}
+                          Low SOC (0-50%) - Battery charge is low
+                        </Text>
+                      </List.Item>
+                    </List>
+                    <Text size="sm" fw={500}>
+                      Device Types:
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <Text component="span" fw={500}>
+                        PCS:
+                      </Text>{' '}
+                      Shows normalized AC power (-1 = full charge, 0 = idle, 1 =
+                      full discharge)
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <Text component="span" fw={500}>
+                        DC Enclosures:
+                      </Text>{' '}
+                      Shows SOC percentage (0-100%)
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <Text component="span" fw={500}>
+                        BESS Strings:
+                      </Text>{' '}
+                      Shows SOC percentage (0-100%)
+                    </Text>
+                    <Text size="sm" fw={500}>
+                      Map Controls:
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <IconZoomIn
+                        size={14}
+                        style={{
+                          display: 'inline',
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      <Text component="span" fw={500}>
+                        {' '}
+                        Zoom:
+                      </Text>{' '}
+                      Changes device detail level (PCS + DC Enclosures → PCS +
+                      Strings)
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <IconMouse
+                        size={14}
+                        style={{
+                          display: 'inline',
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      <Text component="span" fw={500}>
+                        {' '}
+                        Hover:
+                      </Text>{' '}
+                      View device name, power values, and SOC
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <IconLock
+                        size={14}
+                        style={{
+                          display: 'inline',
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      <Text component="span" fw={500}>
+                        {' '}
+                        Lock View:
+                      </Text>{' '}
+                      Pin current zoom level to specific device type
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <IconCursorText
+                        size={14}
+                        style={{
+                          display: 'inline',
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      <Text component="span" fw={500}>
+                        {' '}
+                        Labels:
+                      </Text>{' '}
+                      Toggle device name labels on/off
+                    </Text>
+                    <Text size="sm">
+                      •{' '}
+                      <IconSatellite
+                        size={14}
+                        style={{
+                          display: 'inline',
+                          verticalAlign: 'middle',
+                        }}
+                      />
+                      <Text component="span" fw={500}>
+                        {' '}
+                        Satellite:
+                      </Text>{' '}
+                      Switch between map and satellite view
+                    </Text>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Note:
+                      </Text>{' '}
+                      PCS charging shows a white glow effect, discharging shows
+                      a green outline glow. Click on devices to view detailed
+                      information.
+                    </Text>
+                  </Stack>
+                }
+                fill
+                style={{ flex: 1 }}
+                key={`${projectId}-${contractRisksExpanded}`}
+              >
+                <AdaptiveGisBESS />
+              </CustomCard>
               <BatteryHealth />
             </>
+          )}
+          {/* Contractual KPI Overview for PV-only projects in left pane */}
+          {project.data.project_type_id === ProjectTypeId.PV && (
+            <ContractualKPIOverview
+              project={project.data}
+              onExpandedChange={setContractRisksExpanded}
+            />
           )}
         </Stack>
         <Stack h="100%" flex={1}>
           {project.data.has_event_integration && <EventTable />}
+          {/* Contractual KPI Overview for PV_BESS and BESS projects */}
+          {(project.data.project_type_id === ProjectTypeId.PV_BESS ||
+            project.data.project_type_id === ProjectTypeId.BESS) && (
+            <ContractualKPIOverview
+              project={project.data}
+              onExpandedChange={setContractRisksExpanded}
+            />
+          )}
           <PowerPlot projectType={project.data.project_type_id} />
         </Stack>
       </Group>

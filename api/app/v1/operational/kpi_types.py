@@ -1,17 +1,19 @@
 import uuid
 from typing import Annotated
 
+from core.dependencies import get_db
 from core.models import Company, Contract, ContractKPI, DeviceType, KPIInstance, KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
-from app import dependencies, interfaces
+from app import interfaces
 from app._crud.operational.contracts import (
     get_kpi_type_by_name_with_contracts as crud_get_kpi_type_by_name_with_contracts,
 )
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
+from app.dependencies import get_async_db
 from app.logger import logger
 from app.v1.operational.project.project_contracts import generate_presigned_url
 
@@ -21,7 +23,7 @@ router = APIRouter(prefix="/kpi-types", tags=["kpi_types"])
 @router.get("/by-name/{name_short}", response_model=interfaces.KPITypeWithContracts)
 async def get_kpi_type_by_name(
     name_short: str,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
     try:
         # Convert hyphens to underscores for database lookup
@@ -81,7 +83,7 @@ async def get_kpi_type_by_name(
 
 @router.get("/", response_model=list[interfaces.KPIType], operation_id="get_kpi_types")
 def get_kpi_types(
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
     return crud_get_kpi_types(db, kpi_type_ids=kpi_type_ids)
@@ -94,7 +96,7 @@ def get_kpi_types(
 )
 def get_kpi_type(
     kpi_type_id: int,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     return crud_get_kpi_types(db, kpi_type_ids=[kpi_type_id])[0]
 
@@ -106,7 +108,7 @@ def get_kpi_type(
 )
 def get_kpi_types_by_project(
     project_id: uuid.UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     try:
         # Create alias for the counter company

@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 
 import core.models as models
 import pandas as pd
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import utils
-from app.dependencies import get_project, get_project_db, get_project_db_async
+from app.dependencies import get_project_api, get_project_db, get_project_db_async
 
 router = APIRouter(
     prefix="/events",
@@ -71,7 +72,7 @@ async def get_meta_analysis(
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
     project_db_async: AsyncSession = Depends(get_project_db_async),
-    project: models.Project = Depends(get_project),
+    project: models.Project = Depends(get_project_api),
 ):
     # -----------------------
     # Window setup (unchanged outputs)
@@ -329,3 +330,15 @@ async def get_meta_analysis(
         },
         device_totals=device_totals,
     )
+
+
+@router.get("/home-page-summary")
+def get_events_home_page_summary(
+    project_db: Session = Depends(get_project_db),
+    project: models.Project = Depends(get_project_api),
+    sort_by: Literal["daily", "total"] = "daily",
+):
+    data = core.crud.project.events.get_homepage_summary(
+        project_db, project_name=project.name_short, sort_by=sort_by
+    )
+    return data

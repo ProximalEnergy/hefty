@@ -429,13 +429,12 @@ const Page = () => {
   const traceEnd = eventStartTime.add(2, 'days').endOf('day')
 
   // Calculate moving average for power difference data
+  const powerDifference =
+    expectedPower.data?.expected_soiled?.difference ?? null
   const powerDifferenceMovingAverage = useMemo(() => {
-    if (!expectedPower.data?.expected_soiled?.difference) return []
-    return calculateMovingAverage(
-      expectedPower.data.expected_soiled.difference,
-      20,
-    )
-  }, [expectedPower.data?.expected_soiled?.difference ?? null])
+    if (!powerDifference) return []
+    return calculateMovingAverage(powerDifference, 20)
+  }, [powerDifference])
 
   if (isPageLoading) {
     return <PageLoader />
@@ -513,7 +512,7 @@ const Page = () => {
             </Stack>
             <Stack flex={1} h="100%">
               <DcFieldAnomaliesMap
-                event={event}
+                event={event ?? null}
                 projectId={projectId || '-1'}
               />
             </Stack>

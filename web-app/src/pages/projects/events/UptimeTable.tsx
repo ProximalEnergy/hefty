@@ -11,7 +11,7 @@ import { Button, Group, Stack, Tabs, Text, Title } from '@mantine/core'
 import { IconArrowRight } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'
 import { useEffect, useRef, useState } from 'react'
-import { MapRef } from 'react-map-gl/mapbox'
+import { LngLatBoundsLike, MapRef } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router'
 
 function ViewDataButton({
@@ -66,9 +66,11 @@ const UptimeTable = () => {
 
   const [selectedGIS, setSelectedGIS] = useState<string | null>(null)
   const [selectedTab, setSelectedTab] = useState<string | null>(null)
-  const [pcsBounds, setPcsBounds] = useState<any>(null)
-  const [blockBounds, setBlockBounds] = useState<any>(null)
-  const [combinerBounds, setCombinerBounds] = useState<any>(null)
+  const [pcsBounds, setPcsBounds] = useState<LngLatBoundsLike | null>(null)
+  const [blockBounds, setBlockBounds] = useState<LngLatBoundsLike | null>(null)
+  const [combinerBounds, setCombinerBounds] = useState<LngLatBoundsLike | null>(
+    null,
+  )
 
   const { data: project } = useSelectProject(projectId!)
 
@@ -130,7 +132,14 @@ const UptimeTable = () => {
     if (combinerBounds) {
       combinerRef.current?.fitBounds(combinerBounds, { duration: 0 })
     }
-  }, [selectedGIS, selectedTab, uptimeData])
+  }, [
+    selectedGIS,
+    selectedTab,
+    uptimeData,
+    blockBounds,
+    combinerBounds,
+    pcsBounds,
+  ])
 
   if (isUptimeDataLoading || isDeviceTypesLoading || isTagsLoading) {
     return <PageLoader />

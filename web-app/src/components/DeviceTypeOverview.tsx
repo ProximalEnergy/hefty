@@ -8,9 +8,10 @@ import {
   useGetDataTimeseriesLast,
   useGetRealTimeByDeviceTypeID,
 } from '@/api/v1/protected/web-application/projects/real_time'
+import type { DataTimeSeriesLast } from '@/api/v1/protected/web-application/projects/real_time'
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import { useGetDevicesV2, useGetPaginatedEvents, useGetTags } from '@/hooks/api'
-import type { Device } from '@/hooks/types'
+import type { Device, Tag } from '@/hooks/types'
 import {
   Badge,
   Box,
@@ -528,10 +529,10 @@ const DeviceTypeOverview = ({
     const substationTagIds: number[] =
       deviceTypeId === 1 && Array.isArray(substationTags.data)
         ? substationTags.data
-            .filter((t: any) =>
+            .filter((t: Tag) =>
               substationSensorTypeIds.includes(Number(t.sensor_type_id)),
             )
-            .map((t: any) => Number(t.tag_id))
+            .map((t: Tag) => Number(t.tag_id))
         : []
 
     const substationData = useGetDataTimeseriesLast({
@@ -548,15 +549,15 @@ const DeviceTypeOverview = ({
 
     // Generic calculation function for sensor data
     const calculateSensorValues = (
-      data: any[],
-      tags: any[],
+      data: DataTimeSeriesLast[],
+      tags: Tag[],
       sensorTypeIds: number[],
       conversions: Record<number, number> = {},
     ) => {
       if (!data?.length || !tags?.length) return {}
 
       const tagToSensorType: Record<number, number> = {}
-      tags.forEach((tag: any) => {
+      tags.forEach((tag: Tag) => {
         if (tag.tag_id && tag.sensor_type_id) {
           tagToSensorType[tag.tag_id] = tag.sensor_type_id
         }
@@ -575,7 +576,8 @@ const DeviceTypeOverview = ({
         }
       })
 
-      const result: Record<string, any> = {}
+      const result: Record<string, { avg: number; min: number; max: number }> =
+        {}
       sensorTypeIds.forEach((id) => {
         const values = dataBySensorType[id] || []
         if (values.length > 0) {
@@ -718,7 +720,7 @@ const DeviceTypeOverview = ({
     // Calculate Substation operation values
     const calculateSubstationValues = () => {
       const tagToSensorType: Record<number, number> = {}
-      ;(substationTags.data || []).forEach((tag: any) => {
+      ;(substationTags.data || []).forEach((tag: Tag) => {
         if (tag.tag_id && tag.sensor_type_id) {
           tagToSensorType[tag.tag_id] = tag.sensor_type_id
         }
@@ -1152,7 +1154,7 @@ const DeviceTypeOverview = ({
                         {substationValues[
                           key as keyof typeof substationValues
                         ] !== null
-                          ? `${(substationValues[key as keyof typeof substationValues] as any)?.avg?.toFixed(1)} ${unit}`
+                          ? `${(substationValues[key as keyof typeof substationValues] as { avg: number })?.avg?.toFixed(1)} ${unit}`
                           : 'N/A'}
                       </Text>
                     </Flex>

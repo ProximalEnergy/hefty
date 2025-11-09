@@ -20,7 +20,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 interface ProjectKPIAlertModalProps {
@@ -61,8 +61,11 @@ const ProjectKPIAlertModal = ({
     },
   })
 
-  const data = (instanceData?.map((item) => item.kpi_type) ??
-    []) as KPIInstanceProps[]
+  const data = useMemo(
+    () =>
+      (instanceData?.map((item) => item.kpi_type) ?? []) as KPIInstanceProps[],
+    [instanceData],
+  )
 
   const kpiOptions = data?.map((item) => ({
     value: item.kpi_type_id.toString(),
@@ -128,7 +131,7 @@ const ProjectKPIAlertModal = ({
 
     form.setFieldValue('duration_value', alert.config.duration_value)
     form.setFieldValue('notify', alert.config.notify)
-  }, [opened, alert, data, handleKpiChange])
+  }, [opened, alert, data, handleKpiChange, form])
 
   const handleSubmit = (values: any) => {
     values.project_id = projectId ?? '-1'

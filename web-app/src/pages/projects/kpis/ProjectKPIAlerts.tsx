@@ -85,7 +85,7 @@ const ProjectKPIAlerts = () => {
     label: item.name_long,
   }))
 
-  const form = useForm({
+  const form = useForm<alertProps>({
     initialValues: {
       project_id: projectId ?? '',
       alert_name: '',
@@ -107,7 +107,7 @@ const ProjectKPIAlerts = () => {
     },
   })
 
-  const handleKpiChange = (value: any) => {
+  const handleKpiChange = (value: string | null) => {
     form.setFieldValue('kpi_type_id', value ?? null)
     const selectedKpi = data?.find(
       (item) => item.kpi_type_id.toString() === value,
@@ -131,13 +131,18 @@ const ProjectKPIAlerts = () => {
     }
   }
 
-  const handleStatisticChange = (value: any) => {
-    form.setFieldValue('statistic', value ?? null)
+  const handleStatisticChange = (value: string | null) => {
+    const statisticValue =
+      value && statisticOptions.some((option) => option.value === value)
+        ? (value as StatisticType)
+        : null
+
+    form.setFieldValue('statistic', statisticValue)
     handleKpiChange(form.getValues().kpi_type_id)
-    if (value === 'count') {
+    if (statisticValue === 'count') {
       setThresholdSuffix(null)
     }
-    if (value === 'available_data') {
+    if (statisticValue === 'available_data') {
       setThresholdSuffix('%')
     }
   }

@@ -1,12 +1,13 @@
 import uuid
 from typing import Annotated
 
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 import core
 from app import interfaces
-from app.dependencies import get_db, get_is_superadmin_async
+from app.dependencies import get_is_superadmin_async
 
 router = APIRouter(
     prefix="/projects/{project_id}/report-instances",

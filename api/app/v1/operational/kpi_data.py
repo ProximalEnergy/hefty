@@ -8,6 +8,7 @@ import boto3
 import numpy as np
 import pandas as pd
 from core.crud.operational.device_types import get_device_types
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,8 +26,7 @@ from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import (
     get_async_db,
-    get_db,
-    get_project,
+    get_project_api,
     get_project_db,
     get_user_data_async,
 )
@@ -151,17 +151,34 @@ def get_kpi_data_helper(
             # device_values_df = pd.DataFrame(device_values, dtype=np.float64).T
 
             # Pandas handled statistics
-            device_agg_df = device_values_df.T.agg(
-                ["sum", "mean", "std", "min", "max", "median", "count"]
-            ).T
-
-            # Manually calculated statistics
-            device_agg_df["range"] = device_agg_df["max"] - device_agg_df["min"]
-            total_devices = device_values_df.shape[0]
-            if total_devices > 0:
-                device_agg_df["available_data"] = device_agg_df["count"] / total_devices
+            if device_values_df.empty:
+                device_agg_df = pd.DataFrame(
+                    columns=[
+                        "sum",
+                        "mean",
+                        "std",
+                        "min",
+                        "max",
+                        "median",
+                        "count",
+                        "range",
+                        "available_data",
+                    ]
+                )
             else:
-                device_agg_df["available_data"] = np.nan
+                device_agg_df = device_values_df.T.agg(
+                    ["sum", "mean", "std", "min", "max", "median", "count"]
+                ).T
+
+                # Manually calculated statistics
+                device_agg_df["range"] = device_agg_df["max"] - device_agg_df["min"]
+                total_devices = device_values_df.shape[0]
+                if total_devices > 0:
+                    device_agg_df["available_data"] = (
+                        device_agg_df["count"] / total_devices
+                    )
+                else:
+                    device_agg_df["available_data"] = np.nan
 
             data["data"]["device_aggregation_obj"] = device_agg_df.to_dict(
                 orient="list",
@@ -209,7 +226,7 @@ async def get_kpi_excel(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     sync_db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
 ):
     kpi_data = get_kpi_data_helper(
         db=sync_db,

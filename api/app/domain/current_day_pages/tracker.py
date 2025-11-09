@@ -16,7 +16,7 @@ def get_tracker_data(
     start: datetime.date,
     end: datetime.date,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """
     Retrieves tracker data for a given project.

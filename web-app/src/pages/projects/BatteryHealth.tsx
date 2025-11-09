@@ -32,6 +32,7 @@ import {
   IconTemperature,
   IconThermometer,
 } from '@tabler/icons-react'
+import { Shape } from 'plotly.js'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
@@ -127,7 +128,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   const endOfYear = (y: number) => new Date(y, 11, 31)
 
   // Date range by selectedTimeRange (respects COD as lower bound)
-  const getDateRange = (kpiData: any) => {
+  const getDateRange = (kpiData: OperationalKPIData[] | undefined) => {
     const today = new Date()
     const endDateISO = toISO(today)
     const currentYear = today.getFullYear()
@@ -188,12 +189,12 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   }
 
   // Helper function to find the earliest date from all KPI data
-  const getEarliestDataDate = (kpiData: any) => {
+  const getEarliestDataDate = (kpiData: OperationalKPIData[] | undefined) => {
     if (!kpiData || kpiData.length === 0) return null
 
     let earliestDate: string | null = null
 
-    kpiData.forEach((kpi: any) => {
+    kpiData.forEach((kpi: OperationalKPIData) => {
       if (kpi.data?.dates && kpi.data.dates.length > 0) {
         const firstDate = kpi.data.dates[0]
         if (!earliestDate || firstDate < earliestDate) {
@@ -206,7 +207,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   }
 
   // Determine the actual start date for the project
-  const getProjectStartDate = (kpiData: any) => {
+  const getProjectStartDate = (kpiData: OperationalKPIData[] | undefined) => {
     // First try to use project COD
     if (projectData?.cod) {
       return new Date(projectData.cod)
@@ -223,7 +224,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   }
 
   // Generate dynamic dropdown options based on available data
-  const getTimeRangeOptions = (kpiData: any) => {
+  const getTimeRangeOptions = (kpiData: OperationalKPIData[] | undefined) => {
     const currentYear = new Date().getFullYear()
     const projectStart = getProjectStartDate(kpiData)
     const minYear = Math.max(projectStart.getFullYear(), 2020)
@@ -473,24 +474,27 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
       : null
 
     // Helper function to convert dates to daily time series
-    const createTimeSeriesData = (data: any) => {
+    const createTimeSeriesData = (
+      data: OperationalKPIData | undefined,
+    ): { x: string[]; y: number[] } => {
       if (!data?.data?.dates || !data?.data?.project_data) {
         return { x: [], y: [] }
       }
 
-      const timeData = data.data.dates
+      type TimeDataItem = { date: string; value: number }
+      const timeData: TimeDataItem[] = data.data.dates
         .map((date: string, index: number) => {
           const value = data.data.project_data[index]
           return { date, value }
         })
-        .filter((item: any) => item.value !== null)
+        .filter((item): item is TimeDataItem => item.value !== null)
 
       if (timeData.length === 0) {
         return { x: [], y: [] }
       }
 
-      const dates = timeData.map((item: any) => item.date)
-      const values = timeData.map((item: any) => item.value)
+      const dates = timeData.map((item: TimeDataItem) => item.date)
+      const values = timeData.map((item: TimeDataItem) => item.value)
 
       return { x: dates, y: values }
     }
@@ -1463,7 +1467,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
 
                         // Find the earliest date from all KPI data
                         let earliestDate: string | null = null
-                        kpiData.forEach((kpi: any) => {
+                        kpiData.forEach((kpi: OperationalKPIData) => {
                           if (kpi.data?.dates && kpi.data.dates.length > 0) {
                             const firstDate = kpi.data.dates[0]
                             if (!earliestDate || firstDate < earliestDate) {
@@ -1942,7 +1946,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                       ? parseBoxPlotData(tempData, { minGood: 1, maxBad: 5 })
                       : []
 
-                    const shapes: any[] = []
+                    const shapes: Partial<Shape>[] = []
                     if (codDateStr) {
                       shapes.push({
                         type: 'line' as const,

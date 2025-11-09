@@ -136,15 +136,18 @@ const DailyEnergyComparison = ({
   })
 
   // Color map similar to PowerPlotPVZoom
-  const colorMap: Record<string, string> = {
-    'Meter Active Power': theme.colors.green[7],
-    'Power Expected at Full Health': theme.colors.orange[7],
-    'PPC Active Power Setpoint': theme.colors.blue[7],
-    'PV Active Power': theme.colors.cyan[7],
-    'BESS Active Power': theme.colors.yellow[7],
-    'Interconnection Limit': theme.colors.gray[7],
-    'Budgeted Average (+-15 days)': theme.colors.violet[7],
-  }
+  const colorMap = useMemo<Record<string, string>>(
+    () => ({
+      'Meter Active Power': theme.colors.green[7],
+      'Power Expected at Full Health': theme.colors.orange[7],
+      'PPC Active Power Setpoint': theme.colors.blue[7],
+      'PV Active Power': theme.colors.cyan[7],
+      'BESS Active Power': theme.colors.yellow[7],
+      'Interconnection Limit': theme.colors.gray[7],
+      'Budgeted Average (+-15 days)': theme.colors.violet[7],
+    }),
+    [theme],
+  )
 
   // Calculate average hourly budgeted output from ±15 days
   const averageBudgetedHourly = useMemo(() => {
@@ -245,7 +248,7 @@ const DailyEnergyComparison = ({
         visible: true,
       }
     })
-  }, [powerData.data, colorMap, theme])
+  }, [powerData.data, colorMap, theme, project.data?.time_zone])
 
   // Add interconnection limit and budgeted series if available
   const finalPlotData = useMemo(() => {
@@ -343,7 +346,14 @@ const DailyEnergyComparison = ({
     }
 
     return finalData
-  }, [plotData, project.data, powerData.data, colorMap, averageBudgetedHourly])
+  }, [
+    plotData,
+    project.data,
+    powerData.data,
+    colorMap,
+    averageBudgetedHourly,
+    selectedDate,
+  ])
 
   if (!project.data) return null
 
@@ -802,15 +812,18 @@ const Page: React.FC = () => {
   const [customRateModalOpen, setCustomRateModalOpen] = useState(false)
   const [customRate, setCustomRate] = useState<number | string>(degradationRate)
 
-  const presetDegradationRates = [
-    { value: '0', label: '0.0%/yr' },
-    { value: '0.25', label: '0.25%/yr' },
-    { value: '0.5', label: '0.5%/yr' },
-    { value: '0.75', label: '0.75%/yr' },
-    { value: '1.0', label: '1.0%/yr' },
-    { value: '1.5', label: '1.5%/yr' },
-    { value: '2.0', label: '2.0%/yr' },
-  ]
+  const presetDegradationRates = useMemo(
+    () => [
+      { value: '0', label: '0.0%/yr' },
+      { value: '0.25', label: '0.25%/yr' },
+      { value: '0.5', label: '0.5%/yr' },
+      { value: '0.75', label: '0.75%/yr' },
+      { value: '1.0', label: '1.0%/yr' },
+      { value: '1.5', label: '1.5%/yr' },
+      { value: '2.0', label: '2.0%/yr' },
+    ],
+    [],
+  )
 
   const degradationRateOptions = useMemo(() => {
     const isCustom = !presetDegradationRates.some(
@@ -825,7 +838,7 @@ const Page: React.FC = () => {
       ...presetDegradationRates,
       { value: 'custom', label: customOptionLabel },
     ]
-  }, [degradationRate])
+  }, [degradationRate, presetDegradationRates])
 
   const selectedPresetRateValue =
     presetDegradationRates.find(
@@ -1145,7 +1158,7 @@ const Page: React.FC = () => {
       dates,
       budgetedData,
     }
-  }, [dailyBudgetedDataQuery.data, project.data?.cod, degradationRate])
+  }, [dailyBudgetedDataQuery.data, project.data, degradationRate])
 
   // Fetch budgeted hourly data for ±15 days around selected date
   const budgetedDataQuery = useGetPVBudgetedDataBySeries({
@@ -1348,6 +1361,9 @@ const Page: React.FC = () => {
     generationBudgetInfo,
     irradianceBudgetInfo,
     calculatedIrradiance,
+    mtdKpiData.data,
+    project.data?.ppa?.rate,
+    projectId,
   ])
 
   // Create 30-day energy chart data

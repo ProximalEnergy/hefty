@@ -44,7 +44,7 @@ async def get_project_waterfall(
     async_project_db: Annotated[
         AsyncSession, Depends(dependencies.get_project_db_async)
     ],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     level: str = "device_type",
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,

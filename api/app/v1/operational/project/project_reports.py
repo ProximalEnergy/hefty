@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 import core
 from app import interfaces
 from app._crud.operational.cec_pv_inverters import get_cec_pv_inverters
-from app.dependencies import get_async_db, get_project, get_project_db
+from app.dependencies import get_async_db, get_project_api, get_project_db
 from app.utils import data_df
 from core import models
 
@@ -26,7 +26,7 @@ async def get_pcs_apparent_vs_voltage(
     *,
     db: Annotated[AsyncSession, Depends(get_async_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime,
     end: datetime.datetime,
 ):

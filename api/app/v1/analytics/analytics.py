@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import requests
 from botocore.config import Config
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
@@ -62,7 +63,7 @@ router.include_router(gis_router)
 def get_combiner_block_performance(
     block_device_id: int,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Query data for the last 30 minutes (offset by 5 minutes)
     end = pd.Timestamp.utcnow().floor("5min")
@@ -157,9 +158,9 @@ def get_combiner_block_performance(
 @router.get("/geo", response_model=interfaces.GeoJSON)
 def get_project_geo(
     project_id: UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     device_type_id = 6  # block
     devices = core.crud.project.devices.get_project_devices(
@@ -464,9 +465,9 @@ def get_time_series(
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
     if parent_device_id:
@@ -571,9 +572,9 @@ def get_time_series(
 def get_heatmap(
     project_id: UUID,
     sensor_type_name_short: str,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     agg: str = "instantaneous",
@@ -667,9 +668,9 @@ def get_expected_power_endpoint(
     project_id: UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(dependencies.get_db),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     df = funcs.get_expected_power(
         project_id=project_id,
@@ -687,8 +688,8 @@ def get_expected_power_endpoint(
 def get_meter_power_and_expected_power(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    project: models.Project = Depends(dependencies.get_project),
-    db: Session = Depends(dependencies.get_db),
+    project: models.Project = Depends(dependencies.get_project_api),
+    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     # If start and end are not provided, get today's data
@@ -744,7 +745,7 @@ def get_meter_power_and_expected_power(
 )
 def get_equipment_analysis_combiner(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
@@ -759,7 +760,7 @@ def get_equipment_analysis_combiner(
 @router.get("/project-weather")
 def get_project_weather(
     project_id: UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     project_data = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
@@ -779,7 +780,7 @@ def get_project_weather(
 @router.get("/project-weather-forecast")
 def get_project_weather_forecast(
     project_id: UUID,
-    db: Annotated[Session, Depends(dependencies.get_db)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     project_data = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
@@ -799,7 +800,7 @@ def get_project_weather_forecast(
 @router.get("/clearsky-poa", response_class=ORJSONResponse)
 def get_clearsky_poa(
     project_id: UUID,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(dependencies.get_project_db),
@@ -911,7 +912,7 @@ def get_degradation_poa(
     project_id: UUID,
     start: datetime.datetime,
     end: datetime.datetime,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     min_poa = 250
@@ -1042,7 +1043,7 @@ async def dc_amperage_report(
     rolling_window: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     logger.logger.info("DC Amperage Report Endpoint Starting")
     UUID(project_id)
@@ -1604,7 +1605,7 @@ async def dc_amperage_report_v2(
     db: AsyncSession = Depends(dependencies.get_async_db),
     project_db: Session = Depends(dependencies.get_project_db),
     async_project_db: AsyncSession = Depends(dependencies.get_project_db_async),
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     logger.logger.info("DC Amperage Report V2 Endpoint Starting")
 
@@ -2317,7 +2318,7 @@ async def dc_amperage_report_v2(
 async def combiner_correlation_analysis(
     analysis_date: datetime.datetime | None = None,
     block_names: Annotated[list[str] | None, Query()] = None,
-    project: models.Project = Depends(dependencies.get_project),
+    project: models.Project = Depends(dependencies.get_project_api),
 ):
     """
     Analyze combiner box correlations to identify potential sensor swaps using AWS Lambda.
@@ -2375,7 +2376,7 @@ async def combiner_correlation_analysis(
 def get_tracking_angles(
     start: datetime.datetime,
     end: datetime.datetime,
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Convert to project timezone
     start = pd.to_datetime(start).tz_localize("UTC").tz_convert(project.time_zone)

@@ -1,9 +1,13 @@
 import {
+  Contract,
   useDeleteContract,
   useGetContractKPIs,
   useGetProjectContracts,
 } from '@/api/v1/operational/project/contracts'
-import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
+import {
+  KPISummaryCard,
+  useGetKPISummaryCards,
+} from '@/api/v1/operational/project/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
@@ -121,10 +125,10 @@ const exampleContractsByType = {
 }
 
 interface ContractCardProps {
-  contract: any
+  contract: Contract
   onContractClick: (contractId: number) => void
   isExample?: boolean
-  onVoiceChat: (contract: any) => void
+  onVoiceChat: (contract: Contract) => void
   onDeleteContract?: (contractId: number) => void
 }
 
@@ -190,14 +194,22 @@ const ContractCard = ({
 
   // Filter for only contractual KPIs (those with contract_id) for this specific contract
   const contractualKPIs =
-    allKpis?.filter((kpi: any) => kpi.contract_id === contract.contract_id) ||
-    []
+    allKpis?.filter(
+      (kpi: KPISummaryCard) => kpi.contract_id === contract.contract_id,
+    ) || []
 
   // Function to get threshold value for current date (simplified version)
   const getCurrentThreshold = (kpiTypeId: number) => {
     if (!kpis) return null
 
-    const contractKPI = kpis.find((kpi: any) => kpi.kpi_type_id === kpiTypeId)
+    type ContractKPIWithThreshold = {
+      kpi_type_id: number
+      threshold?: { values: Record<string, number> } | null
+    }
+
+    const contractKPI = kpis.find(
+      (kpi: ContractKPIWithThreshold) => kpi.kpi_type_id === kpiTypeId,
+    )
     if (!contractKPI?.threshold?.values) return null
 
     // Get the current year's threshold value
@@ -587,60 +599,67 @@ const ContractCard = ({
                             </Table.Tr>
                           ))
                         : contractualKPIs.length > 0
-                          ? contractualKPIs.map((row: any, idx: number) => (
-                              <Table.Tr
-                                key={`kpi-${idx}`}
-                                style={{ cursor: 'pointer' }}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  navigate(
-                                    `/projects/${contract.project_id}/kpis/contractual/${row.link}`,
-                                  )
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    theme.colors.gray[1]
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    'transparent'
-                                }}
-                              >
-                                <Table.Td>
-                                  <Text fw={500}>{row.title || 'Unknown'}</Text>
-                                </Table.Td>
-                                <Table.Td style={{ textAlign: 'center' }}>
-                                  <Text size="sm">
-                                    {contract.name_long || 'Unknown'}
-                                  </Text>
-                                </Table.Td>
-                                <Table.Td style={{ textAlign: 'center' }}>
-                                  {formatValue(row.ytd_value, row.unit)}
-                                </Table.Td>
-                                <Table.Td style={{ textAlign: 'center' }}>
-                                  {formatValue(
-                                    getCurrentThreshold(row.kpi_type_id),
-                                    row.unit,
-                                    true,
-                                  )}
-                                </Table.Td>
-                                <Table.Td style={{ textAlign: 'center' }}>
-                                  <Box
-                                    w={12}
-                                    h={12}
-                                    style={{
-                                      backgroundColor: getStatusColorFromValue(
-                                        row.ytd_value,
-                                        getCurrentThreshold(row.kpi_type_id),
-                                        row.unit,
-                                      ),
-                                      borderRadius: '50%',
-                                      display: 'inline-block',
-                                    }}
-                                  />
-                                </Table.Td>
-                              </Table.Tr>
-                            ))
+                          ? contractualKPIs.map(
+                              (row: KPISummaryCard, idx: number) => (
+                                <Table.Tr
+                                  key={`kpi-${idx}`}
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigate(
+                                      `/projects/${contract.project_id}/kpis/contractual/${row.link}`,
+                                    )
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                      theme.colors.gray[1]
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                      'transparent'
+                                  }}
+                                >
+                                  <Table.Td>
+                                    <Text fw={500}>
+                                      {row.title || 'Unknown'}
+                                    </Text>
+                                  </Table.Td>
+                                  <Table.Td style={{ textAlign: 'center' }}>
+                                    <Text size="sm">
+                                      {contract.name_long || 'Unknown'}
+                                    </Text>
+                                  </Table.Td>
+                                  <Table.Td style={{ textAlign: 'center' }}>
+                                    {formatValue(row.ytd_value, row.unit)}
+                                  </Table.Td>
+                                  <Table.Td style={{ textAlign: 'center' }}>
+                                    {formatValue(
+                                      getCurrentThreshold(row.kpi_type_id),
+                                      row.unit,
+                                      true,
+                                    )}
+                                  </Table.Td>
+                                  <Table.Td style={{ textAlign: 'center' }}>
+                                    <Box
+                                      w={12}
+                                      h={12}
+                                      style={{
+                                        backgroundColor:
+                                          getStatusColorFromValue(
+                                            row.ytd_value,
+                                            getCurrentThreshold(
+                                              row.kpi_type_id,
+                                            ),
+                                            row.unit,
+                                          ),
+                                        borderRadius: '50%',
+                                        display: 'inline-block',
+                                      }}
+                                    />
+                                  </Table.Td>
+                                </Table.Tr>
+                              ),
+                            )
                           : // Show placeholder data only when not loading and no real data
                             placeholderKPIs.map((kpi, index) => (
                               <Table.Tr
@@ -691,7 +710,9 @@ const Page = () => {
   const navigate = useNavigate()
   const [modalOpen, setModalOpen] = useState(false)
   const [voiceChatModalOpen, setVoiceChatModalOpen] = useState(false)
-  const [selectedContract, setSelectedContract] = useState<any>(null)
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(
+    null,
+  )
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [contractToDelete, setContractToDelete] = useState<number | null>(null)
 
@@ -727,7 +748,7 @@ const Page = () => {
     navigate(`/projects/${projectId}/contracts/${contractId}`)
   }
 
-  const handleVoiceChat = (contract: any) => {
+  const handleVoiceChat = (contract: Contract) => {
     setSelectedContract(contract)
     setVoiceChatModalOpen(true)
   }
@@ -754,10 +775,15 @@ const Page = () => {
 
       setDeleteModalOpen(false)
       setContractToDelete(null)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { data?: { detail?: string } } }).response
+              ?.data?.detail || 'Failed to delete contract.'
+          : 'Failed to delete contract.'
       notifications.show({
         title: 'Delete Failed',
-        message: error.response?.data?.detail || 'Failed to delete contract.',
+        message: errorMessage,
         color: 'red',
       })
     }
@@ -789,7 +815,7 @@ const Page = () => {
       <VoiceChatModal
         opened={voiceChatModalOpen}
         onClose={() => setVoiceChatModalOpen(false)}
-        contractData={selectedContract}
+        contractData={selectedContract || undefined}
       />
 
       {/* Delete Confirmation Modal */}

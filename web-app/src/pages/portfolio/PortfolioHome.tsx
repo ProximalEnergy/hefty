@@ -8,7 +8,15 @@ import { NoData, PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { useTipsPersonalPortfolio } from '@/components/Tips'
 import { useUser } from '@clerk/clerk-react'
-import { Box, Stack, Tabs, TextInput, Title } from '@mantine/core'
+import {
+  Box,
+  Group,
+  SegmentedControl,
+  Stack,
+  Tabs,
+  TextInput,
+  Title,
+} from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
@@ -26,6 +34,13 @@ function PortfolioHome() {
 
   // Get active tab from URL params or default to 'active'
   const activeTab = searchParams.get('tab') || 'active'
+
+  // Get time parameter from URL params or default to '24h'
+  // Valid values: '24h' or '30d'
+  const timeParam = (() => {
+    const param = searchParams.get('time') || '24h'
+    return param === '24h' || param === '30d' ? param : '24h'
+  })()
 
   const { user } = useUser()
 
@@ -65,6 +80,7 @@ function PortfolioHome() {
             project.project_status_type_id === ProjectStatusTypeId.ACTIVE,
         )
         ?.map((project) => project.project_id),
+      time: timeParam as '24h' | '30d',
     },
     // Only run query when projects data is available
     queryOptions: { enabled: !!projects.data },
@@ -123,7 +139,9 @@ function PortfolioHome() {
         value={activeTab}
         onChange={(value) => {
           if (value) {
-            setSearchParams({ tab: value })
+            const newParams = new URLSearchParams(searchParams)
+            newParams.set('tab', value)
+            setSearchParams(newParams)
           }
         }}
         variant="default"
@@ -152,9 +170,23 @@ function PortfolioHome() {
 
         {/* Project Search */}
         <Stack pt="md">
-          <Title order={4} size="h5">
-            Project Search
-          </Title>
+          <Group justify="space-between" align="center">
+            <Title order={4} size="h5">
+              Project Search
+            </Title>
+            <SegmentedControl
+              value={timeParam}
+              data={[
+                { label: '24 hours', value: '24h' },
+                { label: '30 days', value: '30d' },
+              ]}
+              onChange={(value) => {
+                const newParams = new URLSearchParams(searchParams)
+                newParams.set('time', value)
+                setSearchParams(newParams)
+              }}
+            />
+          </Group>
           <TextInput
             placeholder="Search by project name"
             value={searchTerm}
@@ -170,6 +202,7 @@ function PortfolioHome() {
             projectDataLastUpdated={projectDataLastUpdated.data}
             userProjects={userProjects.data || []}
             searchTerm={debouncedSearchTerm}
+            time={timeParam as '24h' | '30d'}
           />
         </Tabs.Panel>
 
@@ -191,6 +224,7 @@ function PortfolioHome() {
               portfolioHomeData={portfolioHome.data}
               projectDataLastUpdated={projectDataLastUpdated.data}
               searchTerm={debouncedSearchTerm}
+              time={timeParam as '24h' | '30d'}
             />
           </Tabs.Panel>
         )}

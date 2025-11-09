@@ -9,7 +9,7 @@ import pandas as pd
 import polars as pl
 import sqlalchemy as sa
 from pandas.api import types as pdt
-from sqlalchemy import TextClause, create_engine
+from sqlalchemy import Select, TextClause, create_engine
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Result
 from sqlalchemy.inspection import inspect
@@ -153,15 +153,17 @@ class ModelList[T]:
     def __init__(
         self,
         *,
-        query: Query[T] | TextClause | None = None,
+        query: Query[T] | TextClause | Select | None = None,
         result: Result | None = None,
         model_cls: type[T] | None = None,
         return_query: bool = False,
     ):
         if query is not None:
-            self.query: Query[T] | TextClause | None = query
+            self.query: Query[T] | TextClause | Select | None = query
             self.items: list[T] | None = (
-                None if return_query or isinstance(query, TextClause) else query.all()
+                None
+                if return_query or isinstance(query, (TextClause, Select))
+                else query.all()
             )
         elif result is not None and model_cls is not None:
             self.query = None  # No ORM query
@@ -207,8 +209,13 @@ class ModelList[T]:
                 "Converting TextClause to .items has not been implemented."
                 "Please feel free to add this functionality if you would like."
             )
+        elif isinstance(self.query, Select):
+            raise TypeError(
+                "Converting Select to .items has not been implemented."
+                "Please feel free to add this functionality if you would like."
+            )
         else:
-            raise TypeError("query must be an instance of Query")
+            raise TypeError("query must be an instance of Query | TextClause | Select")
 
     def sql_string(self) -> str:
         """Return the raw SQL string of the underlying SQLAlchemy query."""
@@ -218,8 +225,14 @@ class ModelList[T]:
             return _sql_string(query=self.query)
         elif isinstance(self.query, TextClause):
             return str(self.query)
+        elif isinstance(self.query, Select):
+            compiled = self.query.compile(
+                dialect=postgresql.dialect(),
+                compile_kwargs={"literal_binds": True},
+            )
+            return str(compiled)
         else:
-            raise TypeError("query must be an instance of Query | TextClause")
+            raise TypeError("query must be an instance of Query | TextClause | Select")
 
     def models(self) -> list[T]:
         """Return a list of SQLAlchemy model instances."""

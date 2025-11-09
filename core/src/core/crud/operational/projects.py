@@ -1,7 +1,8 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, noload, selectinload
 from sqlalchemy.orm.query import Query
@@ -74,8 +75,8 @@ def get_project(
 
 # --- ASYNC SECTION ---
 async def get_projects_async(
-    db: AsyncSession,
     *,
+    db: AsyncSession,
     deep: bool = False,
     project_ids: list[UUID] | None = None,
     project_type_ids: list[int] | None = None,
@@ -86,7 +87,40 @@ async def get_projects_async(
     name_shorts: list[str] | None = None,
     name_long: str | None = None,
     has_pv_pcs_modules: bool | None = None,
-) -> list[models.Project]:
+    return_query: bool = False,
+) -> ModelList[models.Project]:
+    """
+    Retrieve projects from the database as a ModelList.
+
+    Args:
+        db (AsyncSession): The database session to use for the query.
+        deep (bool, optional): Whether to load related objects. Defaults to False.
+        project_ids (list[UUID], optional): Filter by project IDs.
+        project_type_ids (list[int], optional): Filter by project type IDs.
+        project_status_type_ids (list[ProjectStatusType], optional): Filter by
+            project status types. Defaults to ACTIVE only.
+        name_short (str, optional): Filter by exact name_short match.
+        name_shorts (list[str], optional): Filter by multiple name_short values.
+        name_long (str, optional): Filter by exact name_long match.
+        has_pv_pcs_modules (bool, optional): Filter by pv_pcs_modules presence.
+        return_query (bool, optional): If True, returns ModelList with
+            unexecuted query for use with polars_dataframe_async().
+            Defaults to False.
+
+    Returns:
+        ModelList[models.Project]: A ModelList that can be converted
+            to a list of models via .models() or to a polars DataFrame
+            via await .polars_dataframe_async().
+
+    Example:
+        # Get as list of models
+        ml = await get_projects_async(db=db, deep=True)
+        projects = ml.models()
+
+        # Get as polars DataFrame
+        ml = await get_projects_async(db=db, return_query=True)
+        df = await ml.polars_dataframe_async()
+    """
     options = get_project_options(deep=deep)
 
     stmt = select(models.Project).options(options)
@@ -109,8 +143,18 @@ async def get_projects_async(
     if has_pv_pcs_modules is not None:
         stmt = stmt.where(models.Project.has_pv_pcs_modules == has_pv_pcs_modules)
 
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
+    if return_query:
+        # Return ModelList with TextClause for polars execution
+        compiled = stmt.compile(
+            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+        )
+        text_clause = text(str(compiled))
+        return ModelList(query=text_clause)
+    else:
+        # Execute immediately and return ModelList with items
+        result = await db.execute(stmt)
+        items = list(result.scalars().all())
+        return ModelList.from_items(items)
 
 
 async def get_project_async(

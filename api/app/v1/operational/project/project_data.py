@@ -3,6 +3,8 @@ from typing import Annotated
 from uuid import UUID
 
 import pandas as pd
+from core.crud.operational.sensor_types import get_sensor_types
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsorted
@@ -10,10 +12,9 @@ from sqlalchemy.orm import Session
 
 import app.utils as utils
 import core
-from app import dependencies, interfaces
-from app._crud.operational.sensor_types import get_sensor_types
+from app import interfaces
 from app._crud.projects.data import get_project_data as crud_get_project_data
-from app.dependencies import get_db, get_project, get_project_db
+from app.dependencies import get_project_api, get_project_db
 from app.utils import data_df
 from core import models
 
@@ -115,16 +116,23 @@ def get_project_dataframe(
         sensor_type_ids=[
             tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None
         ],
-    )
+    ).models()
 
     sensor_type_id_to_name_short = {
         sensor_type.sensor_type_id: sensor_type.name_short
         for sensor_type in sensor_types
     }
 
-    tag_id_to_sensor_type_name_short = {
-        tag.tag_id: sensor_type_id_to_name_short.get(tag.sensor_type_id) for tag in tags
-    }
+    tag_id_to_sensor_type_name_short: dict[int, str] = {}
+    for tag in tags:
+        sensor_type_id = tag.sensor_type_id
+        if sensor_type_id is None:
+            tag_id_to_sensor_type_name_short[tag.tag_id] = ""
+            continue
+
+        tag_id_to_sensor_type_name_short[tag.tag_id] = sensor_type_id_to_name_short.get(
+            sensor_type_id, ""
+        )
 
     # Create MultiIndex for columns
     arrays = [
@@ -146,7 +154,7 @@ def get_llm_time_series(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
-    project: Annotated[models.Project, Depends(get_project)],
+    project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     interval: str = "base",
@@ -222,7 +230,7 @@ def get_project_dataframe_endpoint(
     end: datetime.datetime | None = None,
     db: Session = Depends(get_db),
     project_db: Session = Depends(get_project_db),
-    project=Depends(get_project),
+    project=Depends(get_project_api),
     fillna_zero: bool = True,
     get_last: bool = False,
     start_offset: str = "5min",
@@ -262,9 +270,9 @@ def get_time_series(
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(dependencies.get_db),
-    project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project),
+    db: Session = Depends(get_db),
+    project_db: Session = Depends(get_project_db),
+    project: models.Project = Depends(get_project_api),
     include_ghost_tags: Annotated[bool, Query()] = False,
     interval: Annotated[str, Query()] = "5min",
 ):

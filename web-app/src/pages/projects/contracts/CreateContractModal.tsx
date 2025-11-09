@@ -390,7 +390,10 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
             Array.isArray(analysis.important_dates)
           ) {
             const formattedDates = analysis.important_dates.map(
-              (date: any, index: number) => ({
+              (
+                date: { title: string; date: string; description: string },
+                index: number,
+              ) => ({
                 id: `ai-generated-${index}`,
                 title: date.title || '',
                 date: safeParseDate(date.date),
@@ -481,7 +484,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const updateContractDate = (
     id: string,
     field: keyof ContractDate,
-    value: any,
+    value: string | Date | null,
   ) => {
     setContractDates(
       contractDates.map((date) =>

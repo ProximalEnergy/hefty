@@ -9,6 +9,48 @@ import {
 import axios from 'axios'
 
 // Type definitions for dashboard components
+interface GaugeDashboardConfig {
+  measuredVariable: string
+  maximumValue: string
+}
+
+interface KPIDashboardConfig {
+  kpiTypeId: string
+}
+
+interface LineDashboardConfig {
+  traces: Array<{
+    id: string
+    sensorTypeId: string | null
+    aggregationMethod: string | null
+  }>
+}
+
+interface ScatterDashboardConfig {
+  xAxisSensorTypeId: string | null
+  yAxisSensorTypeId: string | null
+}
+
+interface BarDashboardConfig {
+  sensorTypeId: string | null
+  aggregationMethod: string | null
+}
+
+interface RichTextDashboardConfig {
+  content: string
+}
+
+type GISDashboardConfig = Record<string, unknown>
+
+type DashboardComponentConfig =
+  | GaugeDashboardConfig
+  | KPIDashboardConfig
+  | LineDashboardConfig
+  | ScatterDashboardConfig
+  | BarDashboardConfig
+  | RichTextDashboardConfig
+  | GISDashboardConfig
+
 export interface DashboardComponent {
   component_id: string
   component_type:
@@ -19,7 +61,7 @@ export interface DashboardComponent {
     | 'line'
     | 'scatter'
     | 'rich_text'
-  config: any
+  config: DashboardComponentConfig
   x: number
   y: number
   w: number

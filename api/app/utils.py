@@ -8,13 +8,13 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from core.crud.operational.sensor_types import get_sensor_types
 from fastapi import HTTPException
 from pvlib import irradiance, location, tracking
 from sqlalchemy.orm import Session
 
 import core
 from app import settings
-from app._crud.operational.sensor_types import get_sensor_types
 from app._crud.projects.data import get_project_data, get_project_data_latest
 from app._crud.projects.data_raw import (
     get_project_data_raw,
@@ -551,10 +551,15 @@ def get_tag_id_to_tag_name(
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
-    sensor_type_ids = list(set([tag.sensor_type_id for tag in tags]))
+    sensor_type_ids = list(
+        {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
+    )
 
     # Get list of sensor types
-    sensor_types = get_sensor_types(db, sensor_type_ids=sensor_type_ids)  # type: ignore
+    sensor_types = get_sensor_types(
+        db,
+        sensor_type_ids=sensor_type_ids,
+    ).models()
 
     # Create mapping from sensor type id to sensor type name
     sensor_type_id_to_name_metric = {
@@ -563,9 +568,16 @@ def get_tag_id_to_tag_name(
     }
 
     # Create mapping from tag id to sensor type name metric
-    tag_id_to_name_metric = {
-        tag.tag_id: sensor_type_id_to_name_metric[tag.sensor_type_id] for tag in tags
-    }
+    tag_id_to_name_metric: dict[int, str] = {}
+    for tag in tags:
+        sensor_type_id = tag.sensor_type_id
+        if sensor_type_id is None:
+            tag_id_to_name_metric[tag.tag_id] = ""
+            continue
+
+        tag_id_to_name_metric[tag.tag_id] = sensor_type_id_to_name_metric[
+            sensor_type_id
+        ]
 
     return tag_id_to_name_metric
 
@@ -576,10 +588,15 @@ def get_tag_id_to_sensor_type_name(
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
-    sensor_type_ids = list(set([tag.sensor_type_id for tag in tags]))
+    sensor_type_ids = list(
+        {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
+    )
 
     # Get list of sensor types
-    sensor_types = get_sensor_types(db, sensor_type_ids=sensor_type_ids)  # type: ignore
+    sensor_types = get_sensor_types(
+        db,
+        sensor_type_ids=sensor_type_ids,
+    ).models()
 
     # Create mapping from sensor type id to sensor type name
     sensor_type_id_to_name_short = {
@@ -588,9 +605,14 @@ def get_tag_id_to_sensor_type_name(
     }
 
     # Create mapping from tag id to sensor type name metric
-    tag_id_to_name_short = {
-        tag.tag_id: sensor_type_id_to_name_short[tag.sensor_type_id] for tag in tags
-    }
+    tag_id_to_name_short: dict[int, str] = {}
+    for tag in tags:
+        sensor_type_id = tag.sensor_type_id
+        if sensor_type_id is None:
+            tag_id_to_name_short[tag.tag_id] = ""
+            continue
+
+        tag_id_to_name_short[tag.tag_id] = sensor_type_id_to_name_short[sensor_type_id]
 
     return tag_id_to_name_short
 

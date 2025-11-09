@@ -5,7 +5,7 @@ import {
 } from '@/api/v1/operational/calendar'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
-import { DateSelectArg, EventClickArg } from '@fullcalendar/core'
+import { DateSelectArg, EventClickArg, EventInput } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
@@ -38,11 +38,13 @@ export const ProjectCalendar = () => {
 
   const [modalOpened, { open: openModal, close: closeModal }] =
     useDisclosure(false)
-  const [selectedItem, setSelectedItem] = useState<any | undefined>()
+  const [selectedItem, setSelectedItem] = useState<CalendarEvent | undefined>()
   const [selectedDates, setSelectedDates] = useState<
     { start: Date; end: Date } | undefined
   >()
-  const [currentCalendarEvents, setCurrentCalendarEvents] = useState<any[]>([])
+  const [currentCalendarEvents, setCurrentCalendarEvents] = useState<
+    EventInput[]
+  >([])
   const [selectedOccurrenceDate, setSelectedOccurrenceDate] =
     useState<Date | null>(null)
   const [selectedOccurrenceEndDate, setSelectedOccurrenceEndDate] =
@@ -302,7 +304,7 @@ export const ProjectCalendar = () => {
         onClose={closeViewModal}
         onEdit={handleEditClick}
         onDeleteSuccess={refetchCalendarItems}
-        item={selectedItem as CalendarEvent | undefined}
+        item={selectedItem}
         occurrenceDate={selectedOccurrenceDate}
         categories={categories}
       />

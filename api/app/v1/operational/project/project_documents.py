@@ -94,7 +94,7 @@ async def get_project_documents(
 async def upload_project_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
-    project: Annotated[models.Project, Depends(dependencies.get_project)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     file: UploadFile,
 ):
     # Get company from user.company_id

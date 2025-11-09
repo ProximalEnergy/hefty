@@ -132,7 +132,6 @@ import InspectionsGIS from './pages/projects/mccarthy_quality/InspectionsGIS'
 import Observations from './pages/projects/mccarthy_quality/Observations'
 import ObservationsGIS from './pages/projects/mccarthy_quality/ObservationsGIS'
 import QualityHome from './pages/projects/mccarthy_quality/QualityHome'
-import CustomReport from './pages/projects/reports/CustomReport'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
 import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
 import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
@@ -430,8 +429,6 @@ const ClerkProviderWithRoutes = () => {
                 path="reports/daily-performance"
                 element={<DailyPerformanceReport />}
               />
-
-              <Route path="reports/custom" element={<CustomReport />} />
 
               {/* Contracts */}
               <Route path="contracts">

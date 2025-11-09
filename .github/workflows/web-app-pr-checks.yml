@@ -29,24 +29,48 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
       - name: Set up Node.js
+        id: setup-node
         uses: actions/setup-node@v5
         with:
-          node-version: 22 # Or your preferred Node.js version
+          node-version: 22
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/node-gyp
+            web-app/node_modules
+          key: >-
+            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-${{
+            hashFiles('web-app/package-lock.json', 'web-app/build-plotly-custom.js') }}
+          restore-keys: |
+            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-
+            npm-${{ runner.os }}-
+
       - name: Install system dependencies for canvas
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev libpixman-1-dev pkg-config
+
       - name: Install dependencies
-        run: npm ci # Or yarn install if you use Yarn
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
         working-directory: web-app
+
       - name: Build custom Plotly bundle
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         run: node build-plotly-custom.js
         working-directory: web-app
+
       - name: TypeScript Check
-        run: npx tsc --noEmit #  `--noEmit`  prevents actual file generation, for type checking only
+        run: npx tsc --noEmit
         working-directory: web-app
-      - name: Upload diagnostics (if applicable) # Optional: Upload the tsconfig.json
+
+      - name: Upload diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -62,9 +86,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 'lts/*'
+          node-version: 22  # Match the other jobs
+
+      - name: Cache dependencies
+        id: cache-prettier-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            web-app/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('web-app/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
 
       - name: Install dependencies
+        if: steps.cache-prettier-deps.outputs.cache-hit != 'true'
         run: npm ci
         working-directory: web-app
 

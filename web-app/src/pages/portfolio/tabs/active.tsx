@@ -14,6 +14,7 @@ interface ActiveProjectsTabProps {
   projectDataLastUpdated?: ProjectDataLastUpdated[]
   userProjects: NonNullable<ReturnType<typeof useGetUserProjects>['data']>
   searchTerm: string
+  time: '24h' | '30d'
 }
 
 export function ActiveProjectsTab({
@@ -22,6 +23,7 @@ export function ActiveProjectsTab({
   projectDataLastUpdated,
   userProjects,
   searchTerm,
+  time,
 }: ActiveProjectsTabProps) {
   const activeProjects = projects
     .filter(
@@ -83,6 +85,7 @@ export function ActiveProjectsTab({
               (data) => data.project_id === project.project_id,
             )}
             isFavorited={favoritedMap.get(project.project_id) === true}
+            time={time}
           />
         ))}
       </SimpleGrid>

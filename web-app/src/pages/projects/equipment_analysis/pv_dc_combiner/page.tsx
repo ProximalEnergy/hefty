@@ -50,10 +50,14 @@ const Page = () => {
   // Helper function to find the parent device recursively
   const findParentDeviceId = (
     deviceId: string,
-    devicesMap: Record<string, any>,
+    devicesMap: Record<string, Device>,
   ) => {
     let currentDevice = devicesMap[deviceId]
-    while (currentDevice && currentDevice.device_type_id !== 2) {
+    while (
+      currentDevice &&
+      currentDevice.device_type_id !== 2 &&
+      currentDevice.parent_device_id !== null
+    ) {
       currentDevice = devicesMap[currentDevice.parent_device_id]
     }
     return currentDevice ? currentDevice.parent_device_id : null
@@ -69,7 +73,7 @@ const Page = () => {
   devices.data?.forEach((device) => {
     const parentId = findParentDeviceId(String(device.device_id), deviceMap)
     if (parentId && device.name_long) {
-      deviceMapping[device.name_long] = parentId
+      deviceMapping[device.name_long] = String(parentId)
     }
   })
 

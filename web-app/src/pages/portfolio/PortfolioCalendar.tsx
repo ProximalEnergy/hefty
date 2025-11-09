@@ -8,6 +8,7 @@ import {
 } from '@/api/v1/protected/web-application/portfolio/calendar'
 import { PageTitle } from '@/components/PageTitle'
 import { useUser } from '@clerk/clerk-react'
+import type { CalendarApi, EventApi, EventClickArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
@@ -77,7 +78,7 @@ export const PortfolioCalendar = () => {
     const myUserAssignment = `user:${user?.id}`
     const myTeamAssignments = (teamsWithMembers || [])
       .filter((team) =>
-        team.members?.some((member: any) => member.user_id === user?.id),
+        team.members?.some((member) => member.user_id === user?.id),
       )
       .map((team) => `team:${team.team_id}`)
 
@@ -88,7 +89,7 @@ export const PortfolioCalendar = () => {
 
   const [modalOpened, { open: openModal, close: closeModal }] =
     useDisclosure(false)
-  const [selectedItem, setSelectedItem] = useState<any | undefined>()
+  const [selectedItem, setSelectedItem] = useState<CalendarEvent | null>(null)
   const [selectedDates, setSelectedDates] = useState<
     { start: Date; end: Date } | undefined
   >()
@@ -99,6 +100,7 @@ export const PortfolioCalendar = () => {
   const todayClickedRef = useRef(false)
 
   const calendarRef = useRef<FullCalendar>(null)
+  const calendarContainerRef = useRef<HTMLDivElement>(null)
 
   const [viewModalOpened, { open: openViewModal, close: closeViewModal }] =
     useDisclosure(false)
@@ -269,9 +271,10 @@ export const PortfolioCalendar = () => {
     selectedProjects,
   ])
 
-  const handleEventsSet = () => {
-    const calendarApi = calendarRef.current?.getApi()
-    if (!calendarApi) return
+  const handleEventsSet = (_events: EventApi[]) => {
+    const calendarApi: CalendarApi | undefined = calendarRef.current?.getApi()
+    const calendarElement = calendarContainerRef.current
+    if (!calendarApi || !calendarElement) return
 
     const isInitialLoad = !initialScrollDone
     const isTodayClick = todayClickedRef.current
@@ -281,15 +284,13 @@ export const PortfolioCalendar = () => {
       const todayString = today.toISOString().split('T')[0]
 
       // First try to find today's element
-      let targetElement = (calendarApi as any).el.querySelector(
+      let targetElement = calendarElement.querySelector(
         `tr[data-date="${todayString}"]`,
       )
 
       // If today's element is not found, look for the first future day
       if (!targetElement) {
-        const futureDayElement = (calendarApi as any).el.querySelector(
-          '.fc-day-future',
-        )
+        const futureDayElement = calendarElement.querySelector('.fc-day-future')
         if (futureDayElement) {
           targetElement = futureDayElement
         }
@@ -308,7 +309,7 @@ export const PortfolioCalendar = () => {
     }
   }
 
-  const handleItemClick = (info: any) => {
+  const handleItemClick = (info: EventClickArg) => {
     const clickedItem = (calendarItems || []).find(
       (e) => info.event.id === e.calendar_item_id,
     )
@@ -330,7 +331,7 @@ export const PortfolioCalendar = () => {
 
   const handleModalClose = () => {
     closeModal()
-    setSelectedItem(undefined)
+    setSelectedItem(null)
     setSelectedDates(undefined)
     setSelectedOccurrenceDate(null)
   }
@@ -449,59 +450,61 @@ export const PortfolioCalendar = () => {
               <Loader />
             </Stack>
           ) : (
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[
-                dayGridPlugin,
-                interactionPlugin,
-                rrulePlugin,
-                listPlugin,
-              ]}
-              initialView="list"
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,list',
-              }}
-              customButtons={{
-                today: {
-                  text: 'Today',
-                  click: () => {
-                    todayClickedRef.current = true
-                    calendarRef.current?.getApi()?.today()
+            <div ref={calendarContainerRef} style={{ height: '100%' }}>
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[
+                  dayGridPlugin,
+                  interactionPlugin,
+                  rrulePlugin,
+                  listPlugin,
+                ]}
+                initialView="list"
+                headerToolbar={{
+                  left: 'prev,next today',
+                  center: 'title',
+                  right: 'dayGridMonth,list',
+                }}
+                customButtons={{
+                  today: {
+                    text: 'Today',
+                    click: () => {
+                      todayClickedRef.current = true
+                      calendarRef.current?.getApi()?.today()
+                    },
                   },
-                },
-              }}
-              views={{
-                dayGridMonth: {
-                  buttonText: 'Month',
-                },
-                timeGridWeek: {
-                  buttonText: 'Week',
-                },
-                list: {
-                  duration: { months: 3 },
-                  buttonText: 'List',
-                  dayCellClassNames: getListDayClassNames,
-                },
-              }}
-              dayMaxEvents={true}
-              weekends={true}
-              events={currentCalendarEvents}
-              dayCellClassNames={getDayCellClassNames}
-              height="100%"
-              eventClick={handleItemClick}
-              firstDay={1}
-              timeZone="UTC"
-              eventsSet={handleEventsSet}
-            />
+                }}
+                views={{
+                  dayGridMonth: {
+                    buttonText: 'Month',
+                  },
+                  timeGridWeek: {
+                    buttonText: 'Week',
+                  },
+                  list: {
+                    duration: { months: 3 },
+                    buttonText: 'List',
+                    dayCellClassNames: getListDayClassNames,
+                  },
+                }}
+                dayMaxEvents={true}
+                weekends={true}
+                events={currentCalendarEvents}
+                dayCellClassNames={getDayCellClassNames}
+                height="100%"
+                eventClick={handleItemClick}
+                firstDay={1}
+                timeZone="UTC"
+                eventsSet={handleEventsSet}
+              />
+            </div>
           )}
         </Box>
       </Paper>
       <CalendarItemModal
         opened={modalOpened}
         onClose={handleModalClose}
-        item={selectedItem}
+        item={selectedItem ?? undefined}
         startDate={selectedDates?.start}
         endDate={selectedDates?.end}
         onSuccessRefetch={refetchCalendarItems}
@@ -513,7 +516,7 @@ export const PortfolioCalendar = () => {
         onClose={closeViewModal}
         onEdit={handleEditClick}
         onDeleteSuccess={refetchCalendarItems}
-        item={selectedItem as CalendarEvent | undefined}
+        item={selectedItem ?? undefined}
         occurrenceDate={selectedOccurrenceDate}
         categories={categories}
       />

@@ -1,5 +1,12 @@
 from typing import Annotated
 
+from core.crud.operational.sensor_types import (
+    get_sensor_type as core_get_sensor_type,
+)
+from core.crud.operational.sensor_types import (
+    get_sensor_types as core_get_sensor_types,
+)
+from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -11,15 +18,9 @@ from app._crud.operational.sensor_types import (
     get_next_sensor_type_id as crud_get_next_sensor_type_id,
 )
 from app._crud.operational.sensor_types import (
-    get_sensor_type as crud_get_sensor_type,
-)
-from app._crud.operational.sensor_types import (
-    get_sensor_types as crud_get_sensor_types,
-)
-from app._crud.operational.sensor_types import (
     update_sensor_type as crud_update_sensor_type,
 )
-from app.dependencies import get_db, get_user_data_async
+from app.dependencies import get_user_data_async
 
 DESCRIPTION_404 = "Sensor type not found"
 
@@ -40,14 +41,14 @@ def get_sensor_types(
     unit: str = "",
     db: Session = Depends(get_db),
 ):
-    return crud_get_sensor_types(
+    return core_get_sensor_types(
         db,
         sensor_type_ids=sensor_type_ids,
         name_short=name_short,
         name_long=name_long,
         name_metric=name_metric,
         unit=unit,
-    )
+    ).models()
 
 
 @deprecated_router.get(
@@ -81,7 +82,10 @@ def get_sensor_types_legacy(
     operation_id="get_sensor_type",
 )
 def get_sensor_type(sensor_type_id: int, db: Annotated[Session, Depends(get_db)]):
-    sensor_type = crud_get_sensor_type(db=db, sensor_type_id=sensor_type_id)
+    sensor_type = core_get_sensor_type(
+        db=db,
+        sensor_type_id=sensor_type_id,
+    ).item
     utils.check_404(value=sensor_type, detail=DESCRIPTION_404)
     return sensor_type
 

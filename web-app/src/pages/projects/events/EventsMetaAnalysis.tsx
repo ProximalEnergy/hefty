@@ -118,7 +118,10 @@ const Page = () => {
   }, [availabilityData.data, kpiTypeData.data])
 
   // Convenience refs
-  const metrics: EventMetrics[] = eventsMetaAnalysis.data?.metrics ?? []
+  const metrics = useMemo<EventMetrics[]>(
+    () => eventsMetaAnalysis.data?.metrics ?? [],
+    [eventsMetaAnalysis.data?.metrics],
+  )
   const metricsByName = useMemo(() => {
     const map = new Map<string, EventMetrics>()
     metrics.forEach((m) => map.set(m.device_type_name, m))

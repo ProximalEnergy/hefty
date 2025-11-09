@@ -8,6 +8,7 @@ import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2, useGetRootCauses } from '@/hooks/api'
+import type { Device } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
@@ -40,9 +41,10 @@ import {
   IconLockOpen,
   IconRobot,
 } from '@tabler/icons-react'
-import { Feature } from 'geojson'
+import { type Feature, type GeoJsonProperties, type Geometry } from 'geojson'
 import {
   type MRT_ColumnDef,
+  type MRT_TableInstance,
   MantineReactTable,
   useMantineReactTable,
 } from 'mantine-react-table'
@@ -68,10 +70,49 @@ interface DroneInspectionsMapProps {
   inspectionTime?: string
 }
 
+type DeviceFeatureProperties = GeoJsonProperties & {
+  anomaly_uuid?: string
+  device_id?: number | string
+  device_type_name?: string
+  name?: string
+}
+
+type DeviceFeature = Feature<Geometry | null, DeviceFeatureProperties>
+
 interface HoverInfo {
-  feature: Feature | null
+  feature: DeviceFeature | null
   x: number
   y: number
+}
+
+type CombinerAggregationEntry = {
+  dcFieldId: number
+  dcFieldName: string
+  combinerName: string
+  signalPairKey: string
+  signalPairIr: string
+  signalPairRgb: string
+  lossKw: number
+  anomalyCount: number
+  anomalyUuids: string[]
+}
+
+type CombinerRow = {
+  key: string
+  device_id: number
+  name: string
+  combinerName: string
+  signalPairKey: string
+  signalPairIr: string
+  signalPairRgb: string
+  count: number
+  loss: number
+}
+
+type TableWithSelection = MRT_TableInstance<CombinerRow> & {
+  getIsAllPageRowsSelected?: () => boolean
+  getIsAllRowsSelected?: () => boolean
+  toggleAllRowsSelected?: (value?: boolean) => void
 }
 
 // --- Zoom Level Definitions ---
@@ -98,6 +139,47 @@ const calculatePowerDeviceTypeId = (zoom: number): number => {
   } else {
     return 2 // PCS
   }
+}
+
+const isCoordinatePair = (value: unknown): value is [number, number] =>
+  Array.isArray(value) &&
+  value.length >= 2 &&
+  typeof value[0] === 'number' &&
+  typeof value[1] === 'number'
+
+const parsePolygonCoordinates = (polygon: unknown): number[][] | null => {
+  let polygonData: unknown = polygon
+
+  if (typeof polygon === 'string') {
+    try {
+      polygonData = JSON.parse(polygon)
+    } catch {
+      return null
+    }
+  }
+
+  const coordinates = (polygonData as { coordinates?: unknown })?.coordinates
+  if (!Array.isArray(coordinates) || coordinates.length === 0) {
+    return null
+  }
+
+  const firstElement = coordinates[0]
+  if (!Array.isArray(firstElement) || firstElement.length === 0) {
+    return null
+  }
+
+  const firstSubElement = firstElement[0]
+  if (
+    Array.isArray(firstSubElement) &&
+    firstSubElement.length > 0 &&
+    Array.isArray(firstSubElement[0])
+  ) {
+    const ring = (firstSubElement as unknown[]).filter(isCoordinatePair)
+    return ring.length > 0 ? ring : null
+  }
+
+  const ring = (firstElement as unknown[]).filter(isCoordinatePair)
+  return ring.length > 0 ? ring : null
 }
 
 // --- Mapping for Locked View Name ---
@@ -597,7 +679,7 @@ const DroneInspectionsMap = ({
           anomalyLat <= bounds.maxLat + buffer,
       )
 
-      let closestDevice: any = null
+      let closestDevice: Device | null = null
       let closestDistance = Infinity
       let isInsideAnyPolygon = false
 
@@ -640,9 +722,9 @@ const DroneInspectionsMap = ({
 
   // Create device lookup map for reverse mapping
   const deviceLookup = useMemo(() => {
-    if (!deviceData.data) return new Map<string, any>()
+    if (!deviceData.data) return new Map<string, Device>()
 
-    const lookup = new Map<string, any>()
+    const lookup = new Map<string, Device>()
     deviceData.data.forEach((device) => {
       lookup.set(device.device_id.toString(), device)
     })
@@ -661,20 +743,7 @@ const DroneInspectionsMap = ({
 
   // Deferred aggregation state (computed on-demand when opening modal)
   const [combinerAggregation, setCombinerAggregation] = useState(
-    new Map<
-      string, // Key format: "dc_field_id|signal_pair_key"
-      {
-        dcFieldId: number
-        dcFieldName: string
-        combinerName: string
-        signalPairKey: string
-        signalPairIr: string
-        signalPairRgb: string
-        lossKw: number
-        anomalyCount: number
-        anomalyUuids: string[]
-      }
-    >(),
+    new Map<string, CombinerAggregationEntry>(),
   )
   // --- Summary metrics ---
   const totalFiltered = filteredAnomalies?.length ?? 0
@@ -699,7 +768,10 @@ const DroneInspectionsMap = ({
     queryParams: { device_type_ids: [9, 29, 30] },
     queryOptions: { enabled: !!projectId },
   })
-  const allowedRootCauses = rootCausesQuery.data || []
+  const allowedRootCauses = useMemo(
+    () => rootCausesQuery.data || [],
+    [rootCausesQuery.data],
+  )
 
   // Build unique IR and RGB signal groups from filteredAnomalies
   const signalPairs = useMemo(() => {
@@ -727,7 +799,7 @@ const DroneInspectionsMap = ({
   >({})
   const rootCauseOptions = useMemo(
     () =>
-      allowedRootCauses.map((rc: any) => ({
+      allowedRootCauses.map((rc) => ({
         value: String(rc.root_cause_id),
         label: rc.name_full || rc.name_long || rc.name_short,
       })),
@@ -778,7 +850,7 @@ const DroneInspectionsMap = ({
     queueMicrotask(() => setRowSelection(rs))
   }, [combinerAggregation])
 
-  const combinerRows = useMemo(() => {
+  const combinerRows = useMemo<CombinerRow[]>(() => {
     const rows = Array.from(combinerAggregation.entries()).map(([key, v]) => ({
       key,
       device_id: v.dcFieldId,
@@ -807,60 +879,61 @@ const DroneInspectionsMap = ({
   // Legacy flags removed
 
   // MantineReactTable setup (unconditional to preserve hook order)
-  const combinerColumns = useMemo(() => {
+  const combinerColumns = useMemo<MRT_ColumnDef<CombinerRow>[]>(() => {
     return [
       {
         accessorKey: 'name',
         header: 'DC Field',
-        Cell: ({ row }: any) => (
+        Cell: ({ row }) => (
           <Text size="sm" fw={500}>
             {row.original.name}
           </Text>
         ),
-      } as MRT_ColumnDef<any>,
+      },
       {
         accessorKey: 'signalPairIr',
         header: 'IR Signal',
-        Cell: ({ row }: any) => (
-          <Text size="sm">{row.original.signalPairIr}</Text>
-        ),
-      } as MRT_ColumnDef<any>,
+        Cell: ({ row }) => <Text size="sm">{row.original.signalPairIr}</Text>,
+      },
       {
         accessorKey: 'signalPairRgb',
         header: 'RGB Signal',
-        Cell: ({ row }: any) => (
-          <Text size="sm">{row.original.signalPairRgb}</Text>
-        ),
-      } as MRT_ColumnDef<any>,
+        Cell: ({ row }) => <Text size="sm">{row.original.signalPairRgb}</Text>,
+      },
       {
         accessorKey: 'count',
         header: '# Anomalies',
-        Cell: ({ cell }: any) => (
+        Cell: ({ cell }) => (
           <Text size="sm">
             {Number(cell.getValue())?.toLocaleString?.() ?? 0}
           </Text>
         ),
-      } as MRT_ColumnDef<any>,
+      },
       {
         accessorKey: 'loss',
         header: 'Total DC Loss (kW)',
-        Cell: ({ cell }: any) => (
+        Cell: ({ cell }) => (
           <Text size="sm">{Number(cell.getValue()).toFixed(2)}</Text>
         ),
-      } as MRT_ColumnDef<any>,
-    ] as MRT_ColumnDef<any>[]
+      },
+    ]
   }, [])
 
-  const combinerTable = useMantineReactTable({
+  const combinerTable = useMantineReactTable<CombinerRow>({
     columns: combinerColumns,
     data: combinerRows,
     getRowId: (row) => row.key,
     enableRowSelection: true,
     enableMultiRowSelection: true,
     positionToolbarAlertBanner: 'top',
-    renderToolbarAlertBannerContent: ({ table }) => {
-      const allPageSelected = (table as any).getIsAllPageRowsSelected?.()
-      const allSelected = (table as any).getIsAllRowsSelected?.()
+    renderToolbarAlertBannerContent: ({
+      table,
+    }: {
+      table: MRT_TableInstance<CombinerRow>
+    }) => {
+      const tableWithSelection = table as TableWithSelection
+      const allPageSelected = tableWithSelection.getIsAllPageRowsSelected?.()
+      const allSelected = tableWithSelection.getIsAllRowsSelected?.()
       if (allPageSelected && !allSelected) {
         return (
           <Group gap={8}>
@@ -868,7 +941,7 @@ const DroneInspectionsMap = ({
             <Button
               variant="subtle"
               size="compact-sm"
-              onClick={() => (table as any).toggleAllRowsSelected?.(true)}
+              onClick={() => tableWithSelection.toggleAllRowsSelected?.(true)}
             >
               Select All from All Pages
             </Button>
@@ -999,29 +1072,7 @@ const DroneInspectionsMap = ({
     const id = setTimeout(() => {
       const combinerPolys = combiners
         .map((device) => {
-          let polygonData = device.polygon as any
-          if (typeof device.polygon === 'string') {
-            try {
-              polygonData = JSON.parse(device.polygon)
-            } catch {
-              return null
-            }
-          }
-
-          let coordinates: number[][] | null = null
-          const coords = polygonData?.coordinates
-          if (
-            Array.isArray(coords?.[0]) &&
-            Array.isArray(coords?.[0]?.[0]) &&
-            Array.isArray(coords?.[0]?.[0]?.[0])
-          ) {
-            coordinates = (coords as unknown as number[][][][])[0][0]
-          } else if (
-            Array.isArray(coords?.[0]) &&
-            Array.isArray(coords?.[0]?.[0])
-          ) {
-            coordinates = (coords as unknown as number[][][])[0]
-          }
+          const coordinates = parsePolygonCoordinates(device.polygon)
           if (!coordinates) return null
 
           const centroidLon =
@@ -1189,10 +1240,13 @@ const DroneInspectionsMap = ({
 
   // Function to get anomalies for a specific device
   const getDeviceAnomalies = useCallback(
-    (deviceFeature: any) => {
-      if (!filteredAnomalies || !deviceFeature?.properties?.device_id) return []
+    (deviceFeature: DeviceFeature | null) => {
+      if (!filteredAnomalies) return []
 
-      const deviceId = deviceFeature.properties.device_id.toString()
+      const deviceIdRaw = deviceFeature?.properties?.device_id
+      if (deviceIdRaw == null) return []
+
+      const deviceId = String(deviceIdRaw)
 
       return filteredAnomalies.filter(
         (anomaly) =>
@@ -1209,8 +1263,8 @@ const DroneInspectionsMap = ({
       point: { x, y },
     } = event
 
-    const hoveredFeature = features?.[0]
-    setHoverInfo({ feature: hoveredFeature || null, x, y })
+    const hoveredFeature = features?.[0] as DeviceFeature | undefined
+    setHoverInfo({ feature: hoveredFeature ?? null, x, y })
   }, [])
 
   // --- Current View Name ---
@@ -1264,7 +1318,7 @@ const DroneInspectionsMap = ({
             setZoom(evt.viewState.zoom)
           }}
           onClick={(evt) => {
-            const feature = (evt as any).features?.[0]
+            const feature = evt.features?.[0] as DeviceFeature | undefined
             const anomalyUuid = feature?.properties?.anomaly_uuid
             if (!anomalyUuid) return
 
@@ -2195,14 +2249,12 @@ const DroneInspectionsMap = ({
                             ir_signal: p.ir === '(none)' ? null : p.ir,
                             rgb_signal: p.rgb === '(none)' ? null : p.rgb,
                           }))
-                          const candidates = allowedRootCauses.map(
-                            (rc: any) => ({
-                              root_cause_id: rc.root_cause_id,
-                              name_short: rc.name_short,
-                              name_long: rc.name_long,
-                              device_type_id: rc.device_type_id,
-                            }),
-                          )
+                          const candidates = allowedRootCauses.map((rc) => ({
+                            root_cause_id: rc.root_cause_id,
+                            name_short: rc.name_short,
+                            name_long: rc.name_long,
+                            device_type_id: rc.device_type_id,
+                          }))
                           const res = await suggestRootCauses.mutateAsync({
                             pairs,
                             candidates,
