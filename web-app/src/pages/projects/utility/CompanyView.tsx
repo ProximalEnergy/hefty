@@ -41,6 +41,10 @@ const CompanyView = () => {
         'sinton_pirate',
       ],
     },
+    LydianEnergy: {
+      theme: 'lydian_energy',
+      projects: ['headcamp'],
+    },
     McCarthy: {
       theme: 'mccarthy',
       projects: [

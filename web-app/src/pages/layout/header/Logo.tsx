@@ -103,6 +103,8 @@ const Logo = () => {
         return <Image src="/logo_lightsource_bp.png" h="70%" />
       case 'oriden':
         return <OdenLogo />
+      case 'lydian_energy':
+        return <Image src="/logo_lydian_energy.webp" h="70%" />
     }
   }
 
