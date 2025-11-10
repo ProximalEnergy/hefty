@@ -3,6 +3,7 @@ import { useUpdateKPIAlert } from '@/hooks/api'
 import {
   KPIAlertProps,
   KPIInstanceProps,
+  StatisticType,
   statisticOptions,
 } from '@/hooks/types'
 import {
@@ -39,6 +40,19 @@ const comparisonOptions = [
 ]
 
 const dateOptions = ['Yesterday', 'Last 7 days']
+
+interface KPIAlertFormValues {
+  kpi_alert_id: number
+  project_id: string
+  alert_name: string
+  kpi_type_id: string | null
+  statistic: StatisticType | null
+  comparison: string | null
+  threshold_value: number | null | string
+  duration_value: string | null
+  notify: boolean
+  triggered: boolean | null
+}
 
 const ProjectKPIAlertModal = ({
   opened,
@@ -85,7 +99,7 @@ const ProjectKPIAlertModal = ({
   })
   // This is some duplicated code from ProjectKPIAlerts.tsx, but I'm not sure how to avoid it
   const handleKpiChange = useCallback(
-    (value: any) => {
+    (value: string | null) => {
       form.setFieldValue('kpi_type_id', value ?? null)
       const selectedKpi = data?.find(
         (item) => item.kpi_type_id.toString() === value,
@@ -133,16 +147,22 @@ const ProjectKPIAlertModal = ({
     form.setFieldValue('notify', alert.config.notify)
   }, [opened, alert, data, handleKpiChange, form])
 
-  const handleSubmit = (values: any) => {
-    values.project_id = projectId ?? '-1'
+  const handleSubmit = (
+    values: Omit<KPIAlertFormValues, 'project_id' | 'triggered'>,
+  ) => {
+    const submitValues: KPIAlertFormValues = {
+      ...values,
+      project_id: projectId ?? '-1',
+      triggered: null,
+    }
     if (thresholdSuffix === '%') {
-      values.threshold_value =
-        typeof values.threshold_value === 'number'
-          ? values.threshold_value / 100
+      submitValues.threshold_value =
+        typeof submitValues.threshold_value === 'number'
+          ? submitValues.threshold_value / 100
           : null
     }
     setLoadState(true)
-    mutate(values, {
+    mutate(submitValues, {
       onSuccess: () => {
         onSuccessfulUpdate() // Call this on successful update
       },

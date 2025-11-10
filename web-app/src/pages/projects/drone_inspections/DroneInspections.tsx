@@ -37,7 +37,9 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconDrone, IconPlus, IconRefresh } from '@tabler/icons-react'
 import {
+  MRT_Cell,
   MRT_ColumnDef,
+  MRT_Row,
   MantineReactTable,
   useMantineReactTable,
 } from 'mantine-react-table'
@@ -170,11 +172,11 @@ const DroneInspections: React.FC = () => {
         header: 'DC Power Loss (kW)',
         accessorKey: 'power_loss_kw',
         aggregationFn: 'sum',
-        Cell: ({ cell }: { cell: any }) => (
-          <Text>{cell.getValue()?.toFixed(2) || '0.00'}</Text>
+        Cell: ({ cell }: { cell: MRT_Cell<DroneAnomaly> }) => (
+          <Text>{cell.getValue<number>()?.toFixed(2) || '0.00'}</Text>
         ),
-        AggregatedCell: ({ cell }: { cell: any }) => (
-          <Text fw={600}>{cell.getValue()?.toFixed(2) || '0.00'}</Text>
+        AggregatedCell: ({ cell }: { cell: MRT_Cell<DroneAnomaly> }) => (
+          <Text fw={600}>{cell.getValue<number>()?.toFixed(2) || '0.00'}</Text>
         ),
       },
       {
@@ -234,17 +236,13 @@ const DroneInspections: React.FC = () => {
       grouping: ['subsystem'],
       sorting: [{ id: 'power_loss_kw', desc: true }],
     },
-    mantineTableBodyRowProps: ({
-      row,
-    }: {
-      row: { original: DroneAnomaly }
-    }) => {
+    mantineTableBodyRowProps: ({ row }: { row: MRT_Row<DroneAnomaly> }) => {
       const anomaly = row.original
       const imgSrc = anomaly.ir_image_url || anomaly.rgb_image_url
       return {
         style: { cursor: 'default' },
         title: imgSrc ? 'Hover to preview anomaly image' : undefined,
-        onMouseEnter: (e: any) => {
+        onMouseEnter: (e: React.MouseEvent<HTMLTableRowElement>) => {
           if (!imgSrc) return
           const preview = document.createElement('div')
           preview.style.position = 'fixed'
@@ -269,12 +267,20 @@ const DroneInspections: React.FC = () => {
             }
           }
           document.addEventListener('mousemove', move)
-          ;(e.currentTarget as any)._previewMove = move
+          ;(
+            e.currentTarget as HTMLTableRowElement & {
+              _previewMove?: (ev: MouseEvent) => void
+            }
+          )._previewMove = move
         },
-        onMouseLeave: (e: any) => {
+        onMouseLeave: (e: React.MouseEvent<HTMLTableRowElement>) => {
           const el = document.getElementById('anomaly-row-preview')
           if (el) el.remove()
-          const move = (e.currentTarget as any)._previewMove
+          const move = (
+            e.currentTarget as HTMLTableRowElement & {
+              _previewMove?: (ev: MouseEvent) => void
+            }
+          )._previewMove
           if (move) document.removeEventListener('mousemove', move)
         },
       }

@@ -32,6 +32,18 @@ export interface Contract {
   contract_summary?: string | null
 }
 
+export interface ContractKPI {
+  contract_id: number
+  kpi_type_id: number
+  threshold: Record<string, unknown> | null
+  liquidated_damages: Record<string, unknown> | null
+  claim_howto: Record<string, unknown> | null
+  provider_responsible: boolean | null
+  kpi_name_long: string
+  kpi_name_short: string
+  unit: string | null
+}
+
 export const useGetProjectContracts = ({
   pathParams,
   queryOptions = {},
@@ -171,7 +183,7 @@ export const useGetContractKPIs = ({
     staleTime: 30_000,
   }
 
-  return useCustomQuery<any[]>({
+  return useCustomQuery<ContractKPI[]>({
     axiosConfig,
     queryName: 'getContractKPIs',
     pathParams,

@@ -202,40 +202,43 @@ const ContractCard = ({
   const getCurrentThreshold = (kpiTypeId: number) => {
     if (!kpis) return null
 
-    type ContractKPIWithThreshold = {
-      kpi_type_id: number
-      threshold?: { values: Record<string, number> } | null
-    }
+    const contractKPI = kpis.find((kpi) => kpi.kpi_type_id === kpiTypeId)
+    if (!contractKPI?.threshold) return null
 
-    const contractKPI = kpis.find(
-      (kpi: ContractKPIWithThreshold) => kpi.kpi_type_id === kpiTypeId,
-    )
-    if (!contractKPI?.threshold?.values) return null
+    // Type guard: check if threshold has the expected structure
+    const threshold = contractKPI.threshold
+    if (
+      typeof threshold !== 'object' ||
+      threshold === null ||
+      !('values' in threshold) ||
+      typeof threshold.values !== 'object' ||
+      threshold.values === null
+    ) {
+      return null
+    }
 
     // Get the current year's threshold value
     const currentYear = new Date().getFullYear()
-    const thresholdValues = contractKPI.threshold.values
+    const thresholdValues = threshold.values as Record<string, number>
 
     // Look for the current year's threshold
-    if (thresholdValues && typeof thresholdValues === 'object') {
-      const currentYearKey = `${currentYear}-01-01`
-      if (thresholdValues[currentYearKey] !== undefined) {
-        return thresholdValues[currentYearKey]
-      }
+    const currentYearKey = `${currentYear}-01-01`
+    if (thresholdValues[currentYearKey] !== undefined) {
+      return thresholdValues[currentYearKey]
+    }
 
-      // Fallback: get the most recent threshold value
-      const yearKeys = Object.keys(thresholdValues).filter((key) =>
-        key.startsWith(`${currentYear}`),
-      )
-      if (yearKeys.length > 0) {
-        return thresholdValues[yearKeys[0]]
-      }
+    // Fallback: get the most recent threshold value
+    const yearKeys = Object.keys(thresholdValues).filter((key) =>
+      key.startsWith(`${currentYear}`),
+    )
+    if (yearKeys.length > 0) {
+      return thresholdValues[yearKeys[0]]
+    }
 
-      // Last resort: get any available threshold value
-      const availableValues = Object.values(thresholdValues)
-      if (availableValues.length > 0) {
-        return availableValues[0]
-      }
+    // Last resort: get any available threshold value
+    const availableValues = Object.values(thresholdValues)
+    if (availableValues.length > 0) {
+      return availableValues[0]
     }
 
     return null

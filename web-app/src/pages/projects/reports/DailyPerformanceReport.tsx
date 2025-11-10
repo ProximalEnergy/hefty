@@ -1,6 +1,7 @@
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
 import type { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
+import { KPIType } from '@/api/v1/operational/kpi_types'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
@@ -21,7 +22,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import type { Device, EventSummary } from '@/hooks/types'
+import type { DataTimeSeries, Device, EventSummary } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
@@ -59,6 +60,7 @@ import utc from 'dayjs/plugin/utc'
 import { FeatureCollection } from 'geojson'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import type * as Plotly from 'plotly.js'
 import React, {
   useCallback,
   useContext,
@@ -197,7 +199,7 @@ const DailyEnergyComparison = ({
   const plotData = useMemo(() => {
     if (!powerData.data?.data) return []
 
-    return powerData.data.data.map((d: any) => {
+    return powerData.data.data.map((d: DataTimeSeries) => {
       const numericY = d.y.map((val: number | null) =>
         val === null ? null : parseFloat(String(val)),
       )
@@ -283,7 +285,7 @@ const DailyEnergyComparison = ({
           color: colorMap['Interconnection Limit'],
           width: 2,
           dash: 'dash',
-        } as any,
+        } as { color: string; width: number; dash: string },
         marker: {
           size: 0,
           opacity: 1,
@@ -333,7 +335,7 @@ const DailyEnergyComparison = ({
           color: colorMap['Budgeted Average (+-15 days)'],
           width: 2,
           dash: 'dot',
-        } as any,
+        } as { color: string; width: number; dash: string },
         marker: {
           size: 0,
           opacity: 1,
@@ -443,7 +445,7 @@ const MapCard = ({
   onMapIdle,
 }: {
   data: OperationalKPIData | undefined
-  kpiType: any
+  kpiType: KPIType
   cardTitle: string
   devices: Device[]
   isLoading: boolean
@@ -720,7 +722,7 @@ function MapHoverCard({
   kpiType,
 }: {
   hoverInfo: HoverInfo
-  kpiType: any
+  kpiType: KPIType
 }) {
   return (
     <Paper
@@ -1092,10 +1094,12 @@ const Page: React.FC = () => {
   })
 
   // Create KPI type for DC combiner health
-  const combinerKpiType = {
+  const combinerKpiType: KPIType = {
     kpi_type_id: 8,
     name_long: 'DC Combiner Field Health',
+    name_short: 'DC Combiner Field Health',
     name_metric: 'DC Combiner Field Health',
+    description: 'DC Combiner Field Health',
     unit: '%',
     aggregation_method: 'average',
     device_type_id: 9,
@@ -1406,7 +1410,7 @@ const Page: React.FC = () => {
           )
         }
 
-        const traces: any[] = []
+        const traces: Partial<Plotly.Data>[] = []
         if (energyView === 'daily') {
           traces.push({
             x: dates,
@@ -1465,7 +1469,7 @@ const Page: React.FC = () => {
       )
     }
 
-    const traces: any[] = []
+    const traces: Partial<Plotly.Data>[] = []
 
     if (energyView === 'daily') {
       // For daily view, use column chart for actual data
@@ -1567,19 +1571,31 @@ const Page: React.FC = () => {
 
     // Find the actual and budgeted traces
     const actualTrace = energyChartData.find(
-      (trace: any) => trace.name === 'Actual',
+      (trace: Partial<Plotly.Data>) => trace.name === 'Actual',
     )
     const budgetedTrace = energyChartData.find(
-      (trace: any) => trace.name === 'Budgeted',
+      (trace: Partial<Plotly.Data>) => trace.name === 'Budgeted',
     )
 
-    if (!actualTrace || !budgetedTrace || !actualTrace.y || !budgetedTrace.y) {
+    if (!actualTrace || !budgetedTrace) {
+      return null
+    }
+
+    const actualY = (actualTrace as { y?: unknown[] }).y
+    const budgetedY = (budgetedTrace as { y?: unknown[] }).y
+
+    if (
+      !Array.isArray(actualY) ||
+      !Array.isArray(budgetedY) ||
+      actualY.length === 0 ||
+      budgetedY.length === 0
+    ) {
       return null
     }
 
     // Get the final values (last point in the cumulative data)
-    const actualFinal = actualTrace.y[actualTrace.y.length - 1] as number
-    const budgetedFinal = budgetedTrace.y[budgetedTrace.y.length - 1] as number
+    const actualFinal = actualY[actualY.length - 1] as number
+    const budgetedFinal = budgetedY[budgetedY.length - 1] as number
 
     if (!actualFinal || !budgetedFinal || budgetedFinal === 0) {
       return null
@@ -1897,7 +1913,7 @@ const Page: React.FC = () => {
                   <Skeleton height={14} mt={5} width="80%" />
                 </Card>
               ))
-            : stats.map((stat: any, index: number) => {
+            : stats.map((stat, index: number) => {
                 const Icon = stat.icon
                 const cardContent = (
                   <Card
@@ -2040,27 +2056,37 @@ const Page: React.FC = () => {
                   margin: { l: 60, r: 30, t: 30, b: 60 },
                   annotations:
                     performanceSummary && energyView === 'cumulative'
-                      ? [
-                          {
-                            x: energyChartData[0]?.x?.[
-                              energyChartData[0]?.x?.length - 1
-                            ],
-                            y:
-                              (performanceSummary.actual +
-                                performanceSummary.budgeted) /
-                              2,
-                            text: `${performanceSummary.isExceeded ? '+' : '-'}${performanceSummary.percent.toFixed(1)}%`,
-                            showarrow: false,
-                            font: {
-                              color: performanceSummary.isExceeded
-                                ? '#00C853'
-                                : '#FF5722',
-                              size: 40,
-                              family: 'Arial, sans-serif',
-                              weight: 900,
+                      ? (() => {
+                          const firstTrace = energyChartData[0] as {
+                            x?: unknown[]
+                          }
+                          const firstTraceX = firstTrace?.x
+                          const xValue =
+                            Array.isArray(firstTraceX) && firstTraceX.length > 0
+                              ? (firstTraceX[firstTraceX.length - 1] as
+                                  | string
+                                  | number)
+                              : undefined
+                          return [
+                            {
+                              x: xValue,
+                              y:
+                                (performanceSummary.actual +
+                                  performanceSummary.budgeted) /
+                                2,
+                              text: `${performanceSummary.isExceeded ? '+' : '-'}${performanceSummary.percent.toFixed(1)}%`,
+                              showarrow: false,
+                              font: {
+                                color: performanceSummary.isExceeded
+                                  ? '#00C853'
+                                  : '#FF5722',
+                                size: 40,
+                                family: 'Arial, sans-serif',
+                                weight: 900,
+                              },
                             },
-                          },
-                        ]
+                          ]
+                        })()
                       : [],
                 }}
                 isLoading={
@@ -2078,7 +2104,7 @@ const Page: React.FC = () => {
               <Text c="dimmed">No events for this day</Text>
             ) : (
               <Stack gap="xs">
-                {eventsByDeviceType.map((item: any, idx: number) => (
+                {eventsByDeviceType.map((item, idx: number) => (
                   <Paper key={idx} p="sm" withBorder>
                     <Group justify="space-between">
                       <Text fw={500}>{item.device_type_name}</Text>
