@@ -1,9 +1,10 @@
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
 import type { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
-import { KPIType } from '@/api/v1/operational/kpi_types'
+import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
+import { useGetWaterfall } from '@/api/v1/operational/project/waterfall'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
@@ -17,6 +18,7 @@ import AICard from '@/components/AICard'
 import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
+import { PageTitle } from '@/components/PageTitle'
 import Attribution from '@/components/gis/Attribution'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
@@ -30,6 +32,7 @@ import {
   Button,
   Card,
   Group,
+  List,
   Modal,
   NumberInput,
   Paper,
@@ -39,7 +42,6 @@ import {
   Skeleton,
   Stack,
   Text,
-  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineTheme,
@@ -51,6 +53,7 @@ import {
   IconChartBar,
   IconCurrencyDollar,
   IconExclamationCircle,
+  IconExternalLink,
   IconFileTypePdf,
   IconSun,
 } from '@tabler/icons-react'
@@ -60,6 +63,12 @@ import utc from 'dayjs/plugin/utc'
 import { FeatureCollection } from 'geojson'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import {
+  type MRT_Cell,
+  MRT_ColumnDef,
+  MantineReactTable,
+  useMantineReactTable,
+} from 'mantine-react-table'
 import type * as Plotly from 'plotly.js'
 import React, {
   useCallback,
@@ -70,7 +79,7 @@ import React, {
 } from 'react'
 import type { MapMouseEvent } from 'react-map-gl/mapbox'
 import Map, { Layer, Source } from 'react-map-gl/mapbox'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 
 import { HoverInfo } from '../gis/utils'
 
@@ -83,11 +92,13 @@ const DailyEnergyComparison = ({
   projectId,
   degradationRate,
   budgetedDataQuery,
+  comparisonMode,
 }: {
   selectedDate: Date | null
   projectId: string | undefined
   degradationRate: number
   budgetedDataQuery: ReturnType<typeof useGetPVBudgetedData>
+  comparisonMode: '15days' | 'dayof'
 }) => {
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme('light')
@@ -146,25 +157,41 @@ const DailyEnergyComparison = ({
       'PV Active Power': theme.colors.cyan[7],
       'BESS Active Power': theme.colors.yellow[7],
       'Interconnection Limit': theme.colors.gray[7],
-      'Budgeted Average (+-15 days)': theme.colors.violet[7],
+      'Budgeted Avg (+-15 days)': theme.colors.violet[7],
     }),
     [theme],
   )
 
-  // Calculate average hourly budgeted output from ±15 days
+  // Calculate average hourly budgeted output from ±15 days or Day of
   const averageBudgetedHourly = useMemo(() => {
     if (
       !budgetedDataQuery.data ||
       budgetedDataQuery.data.length === 0 ||
-      !project.data?.time_zone
+      !project.data?.time_zone ||
+      !selectedDate
     ) {
+      return null
+    }
+
+    // Filter data based on comparison mode
+    let filteredData = budgetedDataQuery.data
+    if (comparisonMode === 'dayof') {
+      // Only use data from the selected date (ignoring year)
+      const selectedMonthDay = dayjs(selectedDate).format('MM-DD')
+      filteredData = budgetedDataQuery.data.filter((dataPoint) => {
+        const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
+        return timestamp.format('MM-DD') === selectedMonthDay
+      })
+    }
+
+    if (filteredData.length === 0) {
       return null
     }
 
     // Group by hour of day (0-23) and calculate average for each hour
     const hourlyAverages: Record<number, number[]> = {}
 
-    budgetedDataQuery.data.forEach((dataPoint) => {
+    filteredData.forEach((dataPoint) => {
       const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
       const hour = timestamp.hour()
 
@@ -173,10 +200,12 @@ const DailyEnergyComparison = ({
       }
 
       // Apply degradation if COD is available
+      // Degradation should be calculated from COD to the selected date, not the budgeted data timestamp
       let degradedPower = dataPoint.poi_ac_power
-      if (project.data?.cod) {
+      if (project.data?.cod && selectedDate) {
         const codDate = dayjs(project.data.cod)
-        const yearsSinceCOD = timestamp.diff(codDate, 'year', true) // true for decimal years
+        const selectedDateDayjs = dayjs(selectedDate)
+        const yearsSinceCOD = selectedDateDayjs.diff(codDate, 'year', true) // true for decimal years
         const degradationFactor = 1 - (degradationRate / 100) * yearsSinceCOD
         degradedPower = dataPoint.poi_ac_power * Math.max(0, degradationFactor) // Ensure non-negative
       }
@@ -193,7 +222,13 @@ const DailyEnergyComparison = ({
         values.reduce((sum, val) => sum + val, 0) / values.length
     })
     return result
-  }, [budgetedDataQuery.data, project.data, degradationRate])
+  }, [
+    budgetedDataQuery.data,
+    project.data,
+    degradationRate,
+    comparisonMode,
+    selectedDate,
+  ])
 
   // Process plot data similar to PowerPlotPVZoom
   const plotData = useMemo(() => {
@@ -326,13 +361,16 @@ const DailyEnergyComparison = ({
       finalData.push({
         x: budgetedTimestamps,
         y: budgetedY,
-        name: 'Budgeted Average (+-15 days)',
+        name:
+          comparisonMode === 'dayof'
+            ? 'Budgeted (Day of)'
+            : 'Budgeted Avg (+-15 days)',
         type: 'scatter' as const,
         mode: 'lines' as const,
         connectgaps: true,
         fill: 'none' as const,
         line: {
-          color: colorMap['Budgeted Average (+-15 days)'],
+          color: colorMap['Budgeted Avg (+-15 days)'],
           width: 2,
           dash: 'dot',
         } as { color: string; width: number; dash: string },
@@ -355,6 +393,7 @@ const DailyEnergyComparison = ({
     colorMap,
     averageBudgetedHourly,
     selectedDate,
+    comparisonMode,
   ])
 
   if (!project.data) return null
@@ -409,11 +448,11 @@ const DailyEnergyComparison = ({
         legend: {
           xref: 'paper',
           yref: 'paper',
-          x: 0.01,
-          y: 0.99,
-          xanchor: 'left',
+          x: 0.5,
+          y: -0.25,
+          xanchor: 'center',
           yanchor: 'top',
-          orientation: 'v',
+          orientation: 'h',
           bgcolor:
             colorScheme === 'dark'
               ? 'rgba(37,38,43,0.8)'
@@ -424,8 +463,9 @@ const DailyEnergyComparison = ({
               : 'rgba(0,0,0,0.2)',
           borderwidth: 1,
           itemsizing: 'constant',
+          tracegroupgap: 10,
         },
-        margin: { l: 60, r: 30, t: 30, b: 60 },
+        margin: { l: 60, r: 30, t: 10, b: 20 },
       }}
       isLoading={powerData.isLoading || project.isLoading}
       error={powerData.error}
@@ -789,7 +829,7 @@ const Page: React.FC = () => {
   }, [isMapIdle, pdfExportRequested])
 
   const project = useSelectProject(projectId!)
-
+  const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme('light')
 
   // Single date selector
@@ -802,6 +842,11 @@ const Page: React.FC = () => {
   const [energyView, setEnergyView] = useState<'cumulative' | 'daily'>(
     'cumulative',
   )
+
+  // Toggle for budgeted comparison: '+/- 15 days' vs 'Day of'
+  const [budgetedComparisonMode, setBudgetedComparisonMode] = useState<
+    '15days' | 'dayof'
+  >('15days')
 
   // Trailing period selection for the energy chart
   const [trailingPeriod, setTrailingPeriod] = useState<number>(30)
@@ -877,14 +922,20 @@ const Page: React.FC = () => {
 
   // Auto-select the first series when data is loaded
   React.useEffect(() => {
-    if (
-      budgetedSeriesQuery.data &&
-      budgetedSeriesQuery.data.length > 0 &&
-      !selectedSeriesId
-    ) {
-      setSelectedSeriesId(
-        budgetedSeriesQuery.data[0].pv_budgeted_series_id.toString(),
-      )
+    if (budgetedSeriesQuery.data && budgetedSeriesQuery.data.length > 0) {
+      // If no series is selected, or the selected series is no longer available, select the first one
+      const selectedSeriesExists = selectedSeriesId
+        ? budgetedSeriesQuery.data.some(
+            (series) =>
+              series.pv_budgeted_series_id.toString() === selectedSeriesId,
+          )
+        : false
+
+      if (!selectedSeriesId || !selectedSeriesExists) {
+        setSelectedSeriesId(
+          budgetedSeriesQuery.data[0].pv_budgeted_series_id.toString(),
+        )
+      }
     }
   }, [budgetedSeriesQuery.data, selectedSeriesId])
 
@@ -1005,16 +1056,34 @@ const Page: React.FC = () => {
     },
   })
 
-  // Fetch events for the selected day (including closed events)
+  // Fetch events for the selected day (including both open and closed events)
   const eventsData = useGetEventsSummary({
     pathParams: { projectId: projectId || '' },
     queryParams: {
       start: selectedDateStr ? `${selectedDateStr} 00:00:00` : undefined,
       end: selectedDateStr ? `${selectedDateStr} 23:59:59` : undefined,
-      open: undefined, // Include both open and closed events
+      open: false, // false means no filter, so returns both open and closed events
     },
     queryOptions: {
       enabled: !!projectId && !!selectedDateStr,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 24 * 60 * 60 * 1000, // 24 hours
+      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
+  })
+
+  // Fetch waterfall loss data for the selected day
+  const waterfallData = useGetWaterfall({
+    pathParams: { projectId: projectId || '' },
+    queryParams: {
+      level: 'device_type',
+      start: startTime || undefined,
+      end: endTime || undefined,
+    },
+    queryOptions: {
+      enabled: !!projectId && !!startTime && !!endTime,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -1106,6 +1175,7 @@ const Page: React.FC = () => {
   }
 
   // Fetch daily aggregated budgeted series data
+  // Ensure we include the selected date by using it as end_date (API is inclusive)
   const dailyBudgetedDataQuery = useGetPVBudgetedSeriesDailyData({
     pathParams: {
       pv_budgeted_series_id: stableSelectedSeriesId
@@ -1115,7 +1185,7 @@ const Page: React.FC = () => {
     queryParams: {
       project_id: projectId || '',
       start_date: trailingStart || '',
-      end_date: selectedDateStr || '',
+      end_date: selectedDateStr || '', // API is inclusive, so this includes selectedDateStr
       degradation_rate: degradationRate,
     },
     queryOptions: {
@@ -1188,17 +1258,70 @@ const Page: React.FC = () => {
     },
   })
 
+  // Fetch KPI types for Performance Ratio (34) and PCS Mechanical Availability (1)
+  const kpiTypesQuery = useGetKPITypes({
+    queryParams: {
+      kpi_type_ids: [1, 34],
+    },
+    queryOptions: {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
+    },
+  })
+
+  // Create a map of KPI type ID to description
+  const kpiTypeDescriptions = useMemo(() => {
+    if (!kpiTypesQuery.data) return {} as Record<number, string>
+    const map: Record<number, string> = {}
+    kpiTypesQuery.data.forEach((kpiType) => {
+      if (kpiType.description) {
+        map[kpiType.kpi_type_id] = kpiType.description
+      }
+    })
+    return map
+  }, [kpiTypesQuery.data])
+
   // Calculate budgeted percentage for generation (energy)
   const generationBudgetInfo = useMemo(() => {
     if (!processedBudgetedData || !selectedDateStr) return null
 
-    const selectedDateIndex = processedBudgetedData.dates.findIndex(
-      (date: string) => date === selectedDateStr,
-    )
+    let budgetedMWh: number | null = null
 
-    if (selectedDateIndex === -1) return null
+    if (budgetedComparisonMode === '15days') {
+      // Calculate average of +/- 15 days around selected date
+      const selectedDateIndex = processedBudgetedData.dates.findIndex(
+        (date: string) => date === selectedDateStr,
+      )
+      if (selectedDateIndex === -1) return null
 
-    const budgetedMWh = processedBudgetedData.budgetedData[selectedDateIndex]
+      // Get +/- 15 days around the selected date
+      const startIndex = Math.max(0, selectedDateIndex - 15)
+      const endIndex = Math.min(
+        processedBudgetedData.dates.length - 1,
+        selectedDateIndex + 15,
+      )
+
+      const budgetedValues = processedBudgetedData.budgetedData
+        .slice(startIndex, endIndex + 1)
+        .filter((val): val is number => val !== null && val !== undefined)
+
+      if (budgetedValues.length === 0) return null
+
+      budgetedMWh =
+        budgetedValues.reduce((sum, val) => sum + val, 0) /
+        budgetedValues.length
+    } else {
+      // Use Day of comparison
+      const selectedDateIndex = processedBudgetedData.dates.findIndex(
+        (date: string) => date === selectedDateStr,
+      )
+
+      if (selectedDateIndex === -1) return null
+
+      budgetedMWh = processedBudgetedData.budgetedData[selectedDateIndex]
+    }
+
     if (!budgetedMWh || budgetedMWh === 0) return null
 
     // Get the actual generation for the selected day
@@ -1211,7 +1334,12 @@ const Page: React.FC = () => {
       percentage: (generationMWh / budgetedMWh) * 100,
       budgetedMWh,
     }
-  }, [processedBudgetedData, selectedDateStr, dailyKpiData.data])
+  }, [
+    processedBudgetedData,
+    selectedDateStr,
+    dailyKpiData.data,
+    budgetedComparisonMode,
+  ])
 
   // Calculate budgeted percentage for irradiance (POA)
   const irradianceBudgetInfo = useMemo(() => {
@@ -1223,24 +1351,65 @@ const Page: React.FC = () => {
       return null
     }
 
-    // Filter budgeted data for the selected date, ignoring the year
-    const selectedDateData = budgetedDataQuery.data.filter(
-      (item) =>
-        dayjs.utc(item.time).tz(project.data?.time_zone).format('MM-DD') ===
-        dayjs(selectedDateStr).format('MM-DD'),
-    )
+    let budgetedPOASumkWh: number
 
-    if (selectedDateData.length === 0) {
-      return null
+    if (budgetedComparisonMode === '15days') {
+      // Calculate average daily irradiation for +/- 15 days around selected date
+      // Note: budgeted data may be from a different year, so we match by MM-DD
+      const selectedDate = dayjs(selectedDateStr)
+
+      // Create array of MM-DD dates within +/- 15 days
+      const targetMMDDs = new Set<string>()
+      for (let i = -15; i <= 15; i++) {
+        const date = selectedDate.add(i, 'days')
+        targetMMDDs.add(date.format('MM-DD'))
+      }
+
+      const filteredData = budgetedDataQuery.data.filter((item) => {
+        const itemDate = dayjs.utc(item.time).tz(project.data?.time_zone)
+        const itemMMDD = itemDate.format('MM-DD')
+        return targetMMDDs.has(itemMMDD)
+      })
+
+      if (filteredData.length === 0) {
+        return null
+      }
+
+      // Get all hourly POA values and calculate average
+      const poaValues = filteredData
+        .map((item) => item.poa as number | null)
+        .filter((val): val is number => val !== null && val !== undefined)
+
+      if (poaValues.length === 0) {
+        return null
+      }
+
+      // Calculate average hourly POA, then multiply by 24 to get daily average
+      const averageHourlyPOAWh =
+        poaValues.reduce((sum, val) => sum + val, 0) / poaValues.length
+      const averageDailyPOAWh = averageHourlyPOAWh * 24
+
+      budgetedPOASumkWh = averageDailyPOAWh / 1000
+    } else {
+      // Use Day of comparison - filter budgeted data for the selected date, ignoring the year
+      const selectedDateData = budgetedDataQuery.data.filter(
+        (item) =>
+          dayjs.utc(item.time).tz(project.data?.time_zone).format('MM-DD') ===
+          dayjs(selectedDateStr).format('MM-DD'),
+      )
+
+      if (selectedDateData.length === 0) {
+        return null
+      }
+
+      // Sum all hourly POA irradiance for the selected date
+      const budgetedPOASumWh = selectedDateData.reduce((sum, item) => {
+        const originalPOA = item.poa as number | null
+        return sum + (originalPOA || 0)
+      }, 0)
+
+      budgetedPOASumkWh = budgetedPOASumWh / 1000
     }
-
-    // Sum all hourly POA irradiance for the selected date
-    const budgetedPOASumWh = selectedDateData.reduce((sum, item) => {
-      const originalPOA = item.poa as number | null
-      return sum + (originalPOA || 0)
-    }, 0)
-
-    const budgetedPOASumkWh = budgetedPOASumWh / 1000
 
     if (budgetedPOASumkWh === 0) {
       return null
@@ -1258,6 +1427,7 @@ const Page: React.FC = () => {
     selectedDateStr,
     calculatedIrradiance,
     project.data?.time_zone,
+    budgetedComparisonMode,
   ])
 
   // Calculate stats for StatsGrid
@@ -1311,7 +1481,7 @@ const Page: React.FC = () => {
         link: `/projects/${projectId}/kpis/type/2`,
       },
       {
-        title: 'Resource (Irradiation)',
+        title: 'Solar Resource (Insolation)',
         value: `${irradianceKWhM2.toFixed(2)} kWh/m²`,
         subtitle: irradianceBudgetInfo
           ? `${irradianceBudgetInfo.percentage.toFixed(0)}% of Budgeted (${irradianceBudgetInfo.budgetedPOASumkWh.toFixed(2)} kWh/m²)`
@@ -1337,7 +1507,8 @@ const Page: React.FC = () => {
         value: `${(performanceRatio * 100).toFixed(2)}%`,
         subtitle: 'Daily performance ratio',
         icon: IconChartBar,
-        description: 'Performance ratio for the selected day',
+        description:
+          kpiTypeDescriptions[34] || 'Performance ratio for the selected day',
         kpiTypeId: 34,
         link: `/projects/${projectId}/kpis/type/34`,
       },
@@ -1354,7 +1525,9 @@ const Page: React.FC = () => {
         value: `${(availability * 100).toFixed(2)}%`,
         subtitle: 'Daily mechanical availability',
         icon: IconCash,
-        description: 'PCS mechanical availability for the selected day',
+        description:
+          kpiTypeDescriptions[1] ||
+          'PCS mechanical availability for the selected day',
         kpiTypeId: 1,
         link: `/projects/${projectId}/kpis/type/1`,
       },
@@ -1368,6 +1541,7 @@ const Page: React.FC = () => {
     mtdKpiData.data,
     project.data?.ppa?.rate,
     projectId,
+    kpiTypeDescriptions,
   ])
 
   // Create 30-day energy chart data
@@ -1497,10 +1671,19 @@ const Page: React.FC = () => {
     if (processedBudgetedData) {
       try {
         // Align budgeted data with actual data dates
+        // If exact date match fails, try MM-DD match (for historical dates)
         const budgetedData = dates.map((date) => {
           const budgetedIndex = processedBudgetedData.dates.indexOf(date)
-          return budgetedIndex >= 0
-            ? processedBudgetedData.budgetedData[budgetedIndex]
+          if (budgetedIndex >= 0) {
+            return processedBudgetedData.budgetedData[budgetedIndex]
+          }
+          // Try MM-DD match for historical dates
+          const dateMMDD = dayjs(date).format('MM-DD')
+          const mmddMatchIndex = processedBudgetedData.dates.findIndex(
+            (bd) => dayjs(bd).format('MM-DD') === dateMMDD,
+          )
+          return mmddMatchIndex >= 0
+            ? processedBudgetedData.budgetedData[mmddMatchIndex]
             : null
         })
 
@@ -1511,8 +1694,9 @@ const Page: React.FC = () => {
           budgetedDisplayData = budgetedData.reduce(
             (acc: (number | null)[], val: number | null) => {
               if (val === null) {
-                // If current value is null, keep it as null to create a gap
-                acc.push(null)
+                // If current value is null, use the last cumulative value to maintain continuity
+                // This ensures the final point has a value for the annotation
+                acc.push(lastCumulativeValue > 0 ? lastCumulativeValue : null)
               } else {
                 // Add to the last cumulative value (not reset to 0)
                 lastCumulativeValue += val
@@ -1613,38 +1797,173 @@ const Page: React.FC = () => {
     }
   }, [energyChartData, energyView])
 
-  // Group events by device type (including closed events)
-  const eventsByDeviceType = useMemo(() => {
-    if (!eventsData.data) return []
+  const navigate = useNavigate()
+  const [navigateType, setNavigateType] = useState<'newTab' | 'navigate'>(
+    'navigate',
+  )
 
-    const grouped = eventsData.data.reduce(
-      (
-        acc: Record<
-          string,
-          { device_type_name: string; count: number; revenue_loss: number }
-        >,
-        event: EventSummary,
-      ) => {
-        const deviceTypeName = event.device_type_name || 'Unknown'
-        if (!acc[deviceTypeName]) {
-          acc[deviceTypeName] = {
-            device_type_name: deviceTypeName,
-            count: 0,
-            revenue_loss: 0,
-          }
-        }
-        acc[deviceTypeName].count++
-        // Use daily loss instead of total loss
-        acc[deviceTypeName].revenue_loss += event.loss_daily_financial || 0
-        return acc
+  // Table columns for events (similar to ProjectEvents.tsx)
+  const eventsColumns = useMemo<MRT_ColumnDef<EventSummary>[]>(
+    () => [
+      {
+        header: '',
+        accessorKey: 'actions',
+        enableSorting: false,
+        enableColumnFilter: false,
+        enableColumnActions: false,
+        size: 24,
+        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <ActionIcon
+            onMouseEnter={() => {
+              setNavigateType('newTab')
+            }}
+            onMouseLeave={() => {
+              setNavigateType('navigate')
+            }}
+            variant="transparent"
+            onClick={() => {
+              window.open(
+                `${window.location.origin}/projects/${projectId}/events/event/?eventId=${cell.row.original.event_id}`,
+              )
+            }}
+          >
+            <IconExternalLink size={16} />
+          </ActionIcon>
+        ),
       },
-      {},
-    )
+      {
+        header: 'Device Type',
+        accessorKey: 'device_type_name',
+      },
+      {
+        header: 'Device',
+        accessorKey: 'device_name_full',
+      },
+      {
+        header: 'Daily Loss ($)',
+        accessorKey: 'loss_daily_financial',
+        aggregationFn: 'sum',
+        mantineTableHeadCellProps: {
+          align: 'right',
+        },
+        mantineTableBodyCellProps: {
+          align: 'right',
+        },
+        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <Text size="sm">
+            {cell.getValue<number | null>() !== null
+              ? cell.getValue<number>().toLocaleString('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                })
+              : ''}
+          </Text>
+        ),
+        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <Text size="sm">
+            {cell.getValue<number | null>() !== null &&
+            cell.getValue<number>() !== 0
+              ? cell.getValue<number>().toLocaleString('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                })
+              : ''}
+          </Text>
+        ),
+      },
+      {
+        header: 'Start Time',
+        accessorKey: 'time_start',
+        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <Text size="sm">
+            {dayjs(cell.getValue<string>())
+              .tz(project.data?.time_zone)
+              .format('MM/DD/YYYY HH:mm:ss')}
+          </Text>
+        ),
+      },
+      {
+        header: 'End Time',
+        accessorKey: 'time_end',
+        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <Text size="sm">
+            {cell.getValue<string | null>() !== null
+              ? dayjs(cell.getValue<string>())
+                  .tz(project.data?.time_zone)
+                  .format('MM/DD/YYYY HH:mm:ss')
+              : ''}
+          </Text>
+        ),
+      },
+      {
+        header: 'Failure Mode',
+        accessorKey: 'failure_mode',
+      },
+      {
+        header: 'Root Cause',
+        accessorKey: 'root_cause',
+      },
+      {
+        header: 'Daily Loss (MWh)',
+        accessorKey: 'loss_daily_energy',
+        aggregationFn: 'sum',
+        mantineTableHeadCellProps: {
+          align: 'right',
+        },
+        mantineTableBodyCellProps: {
+          align: 'right',
+        },
+        Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <Text size="sm">
+            {cell.getValue<number | null>() !== null
+              ? `${cell.getValue<number>().toLocaleString('en-US', {
+                  style: 'decimal',
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2,
+                })} MWh`
+              : ''}
+          </Text>
+        ),
+        AggregatedCell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => (
+          <Text size="sm">
+            {cell.getValue<number | null>() !== null &&
+            cell.getValue<number>() !== 0
+              ? `${cell.getValue<number>().toLocaleString('en-US', {
+                  style: 'decimal',
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2,
+                })} MWh`
+              : ''}
+          </Text>
+        ),
+      },
+    ],
+    [project.data?.time_zone, projectId],
+  )
 
-    return Object.values(grouped).sort(
-      (a, b) => b.revenue_loss - a.revenue_loss,
-    )
-  }, [eventsData.data])
+  const eventsTable = useMantineReactTable({
+    columns: eventsColumns,
+    data: eventsData.data ?? [],
+    enableGrouping: true,
+    enableColumnDragging: false,
+    initialState: {
+      density: 'xs',
+      grouping: ['device_type_name'],
+      sorting: [{ id: 'loss_daily_financial', desc: true }],
+    },
+    mantineTableBodyRowProps: ({ row }) => ({
+      onClick: () => {
+        if (row.subRows?.length == 0 && navigateType == 'navigate') {
+          navigate(
+            `/projects/${projectId}/events/event/?eventId=${row.original.event_id}`,
+          )
+        }
+      },
+      style: {
+        cursor: row.subRows?.length == 0 ? 'pointer' : 'default',
+      },
+    }),
+  })
 
   // Calculate AI statistics for daily performance summary
   const aiStats = useMemo((): DailyPerformanceStats | null => {
@@ -1798,7 +2117,8 @@ const Page: React.FC = () => {
     dailyBudgetedDataQuery.isLoading ||
     budgetedDataQuery.isLoading ||
     mtdKpiData.isLoading ||
-    trailingKpiData.isLoading
+    trailingKpiData.isLoading ||
+    waterfallData.isLoading
 
   // Prepare series options for dropdown (must be before early return)
   const seriesOptions = useMemo(() => {
@@ -1831,7 +2151,154 @@ const Page: React.FC = () => {
       <Stack p="md" gap="md" ref={reportRef}>
         <Group justify="space-between" align="center">
           <Group align="center" gap="md">
-            <Title order={2}>PV Performance Daily Report</Title>
+            <PageTitle
+              order={2}
+              info={
+                <Stack gap="xs">
+                  <Text fw={600}>PV Performance Daily Report</Text>
+                  <Text size="sm">
+                    This page provides a comprehensive daily performance
+                    analysis for PV projects, comparing actual performance
+                    against budgeted expectations with customizable degradation
+                    adjustments.
+                  </Text>
+                  <Text size="sm" fw={500} mt="xs">
+                    User Inputs:
+                  </Text>
+                  <List spacing={4} withPadding>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Date Selector:
+                        </Text>{' '}
+                        Select the date to analyze. All metrics, charts, and
+                        events are filtered to show data for this specific day.
+                        The date cannot be in the future.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Budgeted Series:
+                        </Text>{' '}
+                        Choose which budgeted performance series to use for
+                        comparisons. Series can be managed in the{' '}
+                        <Link
+                          to={`/projects/${projectId}/settings?tab=pv-budgeted`}
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          Settings page
+                        </Link>
+                        . This affects all budgeted comparisons throughout the
+                        report.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Budgeted Degradation Rate:
+                        </Text>{' '}
+                        Set the annual degradation percentage (default 0.5%/yr)
+                        applied to budgeted data. Degradation is calculated from
+                        the project&apos;s Commercial Operation Date (COD) to
+                        the selected date. This affects all budgeted values in
+                        charts and statistics.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Budgeted Comparison Toggle:
+                        </Text>{' '}
+                        Switch between two comparison modes:
+                        <List spacing={2} withPadding mt={4}>
+                          <List.Item>
+                            <Text size="sm">
+                              <Text component="span" fw={500}>
+                                ± 15 days:
+                              </Text>{' '}
+                              Uses the average hourly meter power from the
+                              budgeted series across ±15 days around the
+                              selected date, providing seasonal context. This
+                              affects the Meter Power chart, Stats Grid
+                              percentages, and Trailing Period chart.
+                            </Text>
+                          </List.Item>
+                          <List.Item>
+                            <Text size="sm">
+                              <Text component="span" fw={500}>
+                                Day of:
+                              </Text>{' '}
+                              Uses budgeted data for the exact same calendar
+                              date (MM-DD) from the budgeted year, adjusted for
+                              degradation. This provides a direct year-over-year
+                              comparison.
+                            </Text>
+                          </List.Item>
+                        </List>
+                      </Text>
+                    </List.Item>
+                  </List>
+                  <Text size="sm" fw={500} mt="xs">
+                    Page Components:
+                  </Text>
+                  <List spacing={4} withPadding>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Stats Grid:
+                        </Text>{' '}
+                        Shows key metrics (Generation, Resource, Revenue,
+                        Performance Ratio, Events, Availability) with budgeted
+                        comparisons based on the selected comparison mode.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Meter Power Chart:
+                        </Text>{' '}
+                        Displays hourly actual vs. budgeted power, optionally
+                        including PPC Active Power Setpoint. Budgeted line
+                        reflects the selected comparison mode and degradation
+                        rate.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Trailing Period Energy Chart:
+                        </Text>{' '}
+                        Shows cumulative or daily energy over a trailing period
+                        (default 30 days) with budgeted comparison. Degradation
+                        rate affects budgeted values.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Events Table:
+                        </Text>{' '}
+                        Lists all events (open and closed) for the selected
+                        date, grouped by device type with financial and energy
+                        loss details.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Daily Loss Waterfall:
+                        </Text>{' '}
+                        Visualizes energy losses for the selected day in a
+                        waterfall format.
+                      </Text>
+                    </List.Item>
+                  </List>
+                </Stack>
+              }
+            >
+              PV Performance Daily Report
+            </PageTitle>
             <Tooltip
               label="Select a date to view daily performance metrics and power generation data"
               withArrow
@@ -1889,6 +2356,28 @@ const Page: React.FC = () => {
                 }}
                 style={{ minWidth: '140px' }}
               />
+            </Tooltip>
+            <Tooltip
+              label="Toggle between +/- 15 days average or Day of comparison for budgeted data in charts and stats"
+              withArrow
+              multiline
+              w={300}
+            >
+              <Stack gap={4}>
+                <Text size="sm" fw={500}>
+                  Budgeted Comparison
+                </Text>
+                <SegmentedControl
+                  value={budgetedComparisonMode}
+                  onChange={(value) =>
+                    setBudgetedComparisonMode(value as '15days' | 'dayof')
+                  }
+                  data={[
+                    { label: '± 15 days', value: '15days' },
+                    { label: 'Day of', value: 'dayof' },
+                  ]}
+                />
+              </Stack>
             </Tooltip>
             <ActionIcon
               size="lg"
@@ -1963,18 +2452,82 @@ const Page: React.FC = () => {
           {/* Left Column: AI Performance Summary and Daily Energy */}
           <Stack gap="md">
             {/* AI Performance Summary Card - Much shorter */}
-            <AICard stats={aiStats} isLoading={isStatsLoading} />
+            <AICard
+              stats={aiStats}
+              isLoading={isStatsLoading}
+              hasBudgetedSeries={seriesOptions.length > 0}
+              hasSelectedDate={!!selectedDate}
+            />
 
             {/* Daily Energy Comparison Card */}
             <CustomCard
-              title={`Daily Energy Output - ${selectedDate ? dayjs(selectedDate).format('MMM DD, YYYY') : 'Select Date'}`}
+              title={`Meter Power - ${selectedDate ? dayjs(selectedDate).format('MMM DD, YYYY') : 'Select Date'}`}
               style={{ minHeight: '300px' }}
+              info={
+                <Stack gap="xs">
+                  <Text fw={600}>Understanding Meter Power</Text>
+                  <Text size="sm">
+                    This chart displays the actual meter power output compared
+                    to budgeted power for the selected date. The chart may also
+                    show the{' '}
+                    <Text component="span" fw={500}>
+                      PPC Active Power Setpoint
+                    </Text>{' '}
+                    if available for the project. Use the{' '}
+                    <Text component="span" fw={500}>
+                      Budgeted Comparison
+                    </Text>{' '}
+                    toggle at the top of the page to switch between comparison
+                    modes:
+                  </Text>
+                  <List spacing={4} withPadding>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          ± 15 days:
+                        </Text>{' '}
+                        Shows the average hourly meter power based on the
+                        budgeted series uploaded in the{' '}
+                        <Link
+                          to={`/projects/${projectId}/settings?tab=pv-budgeted`}
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          Settings page
+                        </Link>
+                        , averaged across ±15 days around the selected date and
+                        adjusted for the selected degradation rate.
+                      </Text>
+                    </List.Item>
+                    <List.Item>
+                      <Text size="sm">
+                        <Text component="span" fw={500}>
+                          Day of:
+                        </Text>{' '}
+                        Shows the budgeted power for the exact same calendar
+                        date (MM-DD) from the budgeted year, adjusted for
+                        degradation.
+                      </Text>
+                    </List.Item>
+                  </List>
+                  <Text size="sm">
+                    The{' '}
+                    <Text component="span" fw={500}>
+                      Budgeted Degradation Rate
+                    </Text>{' '}
+                    selector at the top controls how much degradation is applied
+                    to the budgeted data based on the project&apos;s Commercial
+                    Operation Date (COD) to account for expected performance
+                    decline over time.
+                  </Text>
+                </Stack>
+              }
             >
               <DailyEnergyComparison
                 selectedDate={selectedDate}
                 projectId={projectId}
                 degradationRate={degradationRate}
                 budgetedDataQuery={budgetedDataQuery}
+                comparisonMode={budgetedComparisonMode}
               />
             </CustomCard>
           </Stack>
@@ -1982,6 +2535,49 @@ const Page: React.FC = () => {
           {/* Trailing Period Energy Chart */}
           <CustomCard
             title={`Trailing ${trailingPeriod}-Day Project Energy (${degradationRate}%/yr degradation)`}
+            info={
+              <Stack gap="xs">
+                <Text fw={600}>Understanding Trailing Period Energy</Text>
+                <Text size="sm">
+                  This chart shows cumulative or daily energy production over
+                  the trailing period (default 30 days) ending on the selected
+                  date.
+                </Text>
+                <Text size="sm" fw={500}>
+                  View Modes:
+                </Text>
+                <List spacing={4} withPadding>
+                  <List.Item>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Cumulative:
+                      </Text>{' '}
+                      Shows the running total of energy production over the
+                      period, with a percentage delta annotation comparing
+                      actual vs. budgeted at the end of the period.
+                    </Text>
+                  </List.Item>
+                  <List.Item>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Daily:
+                      </Text>{' '}
+                      Shows daily energy production as individual bars, allowing
+                      you to see day-to-day variations.
+                    </Text>
+                  </List.Item>
+                </List>
+                <Text size="sm">
+                  The budgeted energy is adjusted for degradation using the{' '}
+                  <Text component="span" fw={500}>
+                    Budgeted Degradation Rate
+                  </Text>{' '}
+                  selector at the top of the page, based on the project&apos;s
+                  COD. The percentage delta shows how actual performance
+                  compares to the degraded budgeted values.
+                </Text>
+              </Stack>
+            }
           >
             <Group justify="space-between" mb="md">
               <Group>
@@ -2099,31 +2695,62 @@ const Page: React.FC = () => {
 
         {/* Events Table and Pie Chart */}
         <SimpleGrid cols={{ base: 1, md: 2 }}>
-          <CustomCard title="Events by Device Type">
-            {eventsByDeviceType.length === 0 ? (
-              <Text c="dimmed">No events for this day</Text>
-            ) : (
+          <CustomCard
+            title="Events by Device Type"
+            info={
               <Stack gap="xs">
-                {eventsByDeviceType.map((item, idx: number) => (
-                  <Paper key={idx} p="sm" withBorder>
-                    <Group justify="space-between">
-                      <Text fw={500}>{item.device_type_name}</Text>
-                      <Group gap="md">
-                        <Text size="sm" c="dimmed">
-                          {item.count} event{item.count !== 1 ? 's' : ''}
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                          $
-                          {item.revenue_loss.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </Text>
-                      </Group>
-                    </Group>
-                  </Paper>
-                ))}
+                <Text fw={600}>Understanding Events by Device Type</Text>
+                <Text size="sm">
+                  This table displays all events (both open and closed) that
+                  occurred on the selected date, grouped by device type.
+                </Text>
+                <Text size="sm" fw={500}>
+                  Event Information:
+                </Text>
+                <List spacing={4} withPadding>
+                  <List.Item>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Daily Loss ($):
+                      </Text>{' '}
+                      The financial impact of the event for the selected day.
+                    </Text>
+                  </List.Item>
+                  <List.Item>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Daily Loss (MWh):
+                      </Text>{' '}
+                      The energy loss associated with the event for the selected
+                      day.
+                    </Text>
+                  </List.Item>
+                  <List.Item>
+                    <Text size="sm">
+                      <Text component="span" fw={500}>
+                        Failure Mode & Root Cause:
+                      </Text>{' '}
+                      Classification of the event type and underlying cause.
+                    </Text>
+                  </List.Item>
+                </List>
+                <Text size="sm">
+                  Events are automatically grouped by device type. Click on any
+                  row to view detailed event information, or use the external
+                  link icon to open the event in a new tab. Aggregated values
+                  are shown for each device type group.
+                </Text>
               </Stack>
+            }
+          >
+            {eventsData.isLoading ? (
+              <Skeleton height={200} />
+            ) : !eventsData.data || eventsData.data.length === 0 ? (
+              <Text c="dimmed" ta="center" py="xl">
+                No events for this day
+              </Text>
+            ) : (
+              <MantineReactTable table={eventsTable} />
             )}
           </CustomCard>
 
@@ -2140,6 +2767,62 @@ const Page: React.FC = () => {
             onMapIdle={setIsMapIdle}
           />
         </SimpleGrid>
+
+        {/* Waterfall Loss Chart */}
+        <CustomCard title="Daily Loss Waterfall">
+          {waterfallData.isLoading ? (
+            <Skeleton height={300} />
+          ) : waterfallData.error ? (
+            <Text c="dimmed" ta="center" py="xl">
+              Error loading waterfall data
+            </Text>
+          ) : !waterfallData.data ||
+            !waterfallData.data.value ||
+            waterfallData.data.value.length === 0 ? (
+            <Text c="dimmed" ta="center" py="xl">
+              No waterfall data available for the selected day
+            </Text>
+          ) : (
+            <PlotlyPlot
+              data={[
+                {
+                  type: 'waterfall',
+                  name: 'Loss Waterfall',
+                  measure: waterfallData.data.measure,
+                  x: waterfallData.data.name,
+                  y: waterfallData.data.value,
+                  marker: {
+                    line: { color: 'black', width: 2 },
+                  },
+                  connector: {
+                    line: {
+                      color: 'rgb(63, 63, 63)',
+                    },
+                  },
+                  increasing: {
+                    marker: { color: theme.colors.gray[7] },
+                  },
+                  decreasing: {
+                    marker: { color: theme.colors.red[7] },
+                  },
+                  totals: {
+                    marker: { color: theme.colors.green[7] },
+                  },
+                } as Partial<Plotly.PlotData>,
+              ]}
+              layout={{
+                height: 300,
+                yaxis: {
+                  title: { text: 'Energy (MWh)' },
+                },
+                margin: { l: 60, r: 30, t: 30, b: 60 },
+                showlegend: false,
+              }}
+              isLoading={waterfallData.isLoading}
+              error={waterfallData.error}
+            />
+          )}
+        </CustomCard>
       </Stack>
       <Modal
         opened={customRateModalOpen}

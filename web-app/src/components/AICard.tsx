@@ -13,13 +13,22 @@ import {
 } from '@mantine/core'
 import { IconBrain, IconRefresh } from '@tabler/icons-react'
 import { useCallback, useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router'
 
 interface AICardProps {
   stats: DailyPerformanceStats | null
   isLoading?: boolean
+  hasBudgetedSeries?: boolean
+  hasSelectedDate?: boolean
 }
 
-const AICard = ({ stats, isLoading = false }: AICardProps) => {
+const AICard = ({
+  stats,
+  isLoading = false,
+  hasBudgetedSeries = true,
+  hasSelectedDate = false,
+}: AICardProps) => {
+  const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme()
   const [summary, setSummary] = useState<string | null>(null)
@@ -85,7 +94,22 @@ const AICard = ({ stats, isLoading = false }: AICardProps) => {
       <Box>
         {!stats ? (
           <Text c="dimmed" size="sm">
-            Select a date to generate AI performance summary
+            {!hasSelectedDate ? (
+              'Select a date to generate AI performance summary'
+            ) : !hasBudgetedSeries ? (
+              <>
+                No budgeted series available. Upload a budgeted series in{' '}
+                <Link
+                  to={`/projects/${projectId}/settings?tab=pv-budgeted`}
+                  style={{ textDecoration: 'underline' }}
+                >
+                  Settings
+                </Link>{' '}
+                to generate AI performance summary
+              </>
+            ) : (
+              'Select a date to generate AI performance summary'
+            )}
           </Text>
         ) : isLoading ? (
           <Group align="center" gap="xs">
