@@ -151,7 +151,8 @@ export function PCSGISMap({
     },
     queryOptions: {
       enabled: project.data !== undefined,
-      staleTime: dataType === 'energy' ? Infinity : undefined,
+      staleTime: dataType === 'energy' ? Infinity : 30 * 1000,
+      refetchInterval: dataType === 'energy' ? undefined : 60 * 1000, // Refetch every 60 seconds for live data
     },
   })
 

@@ -102,22 +102,22 @@ const PowerPlotBESS = () => {
       .toISOString(),
   )
   const [interval, setInterval] = useState<string>('5min')
+  const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
 
   const handleDefaultView = () => {
-    setEndTime(
-      dayjs()
-        .minute(Math.floor(dayjs().minute() / 5) * 5)
-        .second(0)
-        .toISOString(),
-    )
-    setStartTime(
-      dayjs()
-        .minute(Math.floor(dayjs().minute() / 5) * 5)
-        .second(0)
-        .subtract(24, 'hours')
-        .toISOString(),
-    )
-    setInterval(getInterval(startTime, endTime))
+    const newEndTime = dayjs()
+      .minute(Math.floor(dayjs().minute() / 5) * 5)
+      .second(0)
+      .toISOString()
+    const newStartTime = dayjs()
+      .minute(Math.floor(dayjs().minute() / 5) * 5)
+      .second(0)
+      .subtract(24, 'hours')
+      .toISOString()
+    setEndTime(newEndTime)
+    setStartTime(newStartTime)
+    setInterval(getInterval(newStartTime, newEndTime))
+    setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
   }
 
   const handleTimeRangeChange = (range: '48h' | '7d' | 'yesterday') => {
@@ -130,6 +130,9 @@ const PowerPlotBESS = () => {
       start = end.subtract(7, 'days')
     } else if (range === 'yesterday') {
       start = dayjs().subtract(1, 'day').startOf('day')
+      setIsAutoUpdating(false) // Disable auto-update for "yesterday" view
+    } else {
+      setIsAutoUpdating(true) // Enable auto-update for relative time ranges
     }
 
     setStartTime(start.toISOString())
@@ -149,6 +152,7 @@ const PowerPlotBESS = () => {
         : dayjs(endTime).add(range, 'minute').toISOString()
     setStartTime(newStartTime)
     setEndTime(newEndTime)
+    setIsAutoUpdating(false) // Disable auto-update when user manually pans
   }
 
   const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
@@ -181,11 +185,42 @@ const PowerPlotBESS = () => {
         setStartTime(newStartTimeStr)
         setEndTime(newEndTimeStr)
         setInterval(getInterval(newStartTimeStr, newEndTimeStr))
+        setIsAutoUpdating(false) // Disable auto-update when user manually zooms
       }
     }
   }
 
   const project = useSelectProject(projectId!)
+
+  // Auto-update time range for "last 24 hours" view
+  useEffect(() => {
+    if (!isAutoUpdating) return
+
+    const updateTimeRange = () => {
+      const now = dayjs()
+      const newEndTime = now
+        .minute(Math.floor(now.minute() / 5) * 5)
+        .second(0)
+        .toISOString()
+      const newStartTime = now
+        .minute(Math.floor(now.minute() / 5) * 5)
+        .second(0)
+        .subtract(24, 'hours')
+        .toISOString()
+
+      setEndTime(newEndTime)
+      setStartTime(newStartTime)
+      setInterval(getInterval(newStartTime, newEndTime))
+    }
+
+    // Update immediately
+    updateTimeRange()
+
+    // Then update every minute to keep the range current
+    const intervalId = window.setInterval(updateTimeRange, 60 * 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [isAutoUpdating])
 
   const data = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },
@@ -198,7 +233,8 @@ const PowerPlotBESS = () => {
     queryOptions: {
       enabled: !!project.data && !!startTime && !!endTime,
       refetchOnWindowFocus: false,
-      staleTime: 60 * 1000, // 1 minute
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -359,6 +395,8 @@ const KPICards = () => {
     },
     queryOptions: {
       enabled: !!projectId && !!favoritedKPITypes.data,
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -441,6 +479,10 @@ const EventTable = () => {
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       sort_by: sortBy,
+    },
+    queryOptions: {
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -636,6 +678,8 @@ const BatteryHealth = () => {
     },
     queryOptions: {
       enabled: !!projectId,
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -653,6 +697,8 @@ const BatteryHealth = () => {
     },
     queryOptions: {
       enabled: !!projectId,
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -1463,6 +1509,8 @@ const ContractualKPIOverview = ({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
       enabled: !!projectId,
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -1481,6 +1529,8 @@ const ContractualKPIOverview = ({
     },
     queryOptions: {
       enabled: !!projectId && contractualKpiTypeIds.length > 0,
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
