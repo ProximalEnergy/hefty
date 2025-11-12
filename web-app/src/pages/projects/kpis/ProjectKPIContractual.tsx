@@ -1,4 +1,7 @@
-import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
+import {
+  OperationalKPIData,
+  useGetOperationalKPIData,
+} from '@/api/v1/operational/kpi_data'
 import { useGetKPITypeByName } from '@/api/v1/operational/kpi_types'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
@@ -241,16 +244,21 @@ const ProjectKPIContractual = () => {
   // Use filtered data for performance chart
   const filteredData = useMemo(() => {
     if (!allKPIData) return undefined
+    const yearData = getFilteredYearData()
+    if (!yearData) return undefined
     return [
       {
         ...allKPIData[0],
-        data: getFilteredYearData(),
+        data: yearData,
       },
     ]
   }, [allKPIData, getFilteredYearData])
 
-  const parseData = (data: any, kpiTypeData: any) => {
-    if (!data?.length || !data[0]?.data) {
+  const parseData = (
+    data: OperationalKPIData[] | undefined,
+    kpiTypeData: KPITypeWithContracts | undefined,
+  ) => {
+    if (!data?.length || !data[0]?.data || !kpiTypeData) {
       return []
     }
 
@@ -273,7 +281,7 @@ const ProjectKPIContractual = () => {
         if (!kpiTypeData?.contracts) return null
         for (const contract of kpiTypeData.contracts) {
           const contractKpi = kpiTypeData.contract_kpis?.find(
-            (ck: any) => ck.contract_id === contract.contract_id,
+            (ck) => ck.contract_id === contract.contract_id,
           )
           if (contractKpi?.threshold) {
             const threshold = getKPIThresholdbyDate(
@@ -292,8 +300,8 @@ const ProjectKPIContractual = () => {
       let yValues = [...kpiData.project_data]
       if (isCumulative) {
         let sum = 0
-        yValues = yValues.map((value: number) => {
-          sum += value
+        yValues = yValues.map((value) => {
+          sum += value || 0
           return sum
         })
       }
@@ -329,20 +337,17 @@ const ProjectKPIContractual = () => {
 
       // For non-cumulative KPIs, calculate and add YTD average trace
       if (!isCumulative) {
-        const ytdAverages = kpiData.project_data.map(
-          (_: any, index: number) => {
-            const valuesUpToIndex = kpiData.project_data.slice(0, index + 1)
-            // Filter out null/undefined values before calculating average
-            const validValues = valuesUpToIndex.filter(
-              (val: number) => val != null,
-            )
-            if (validValues.length === 0) return null
-            const average =
-              validValues.reduce((sum: number, val: number) => sum + val, 0) /
-              validValues.length
-            return isPercentage ? average : average
-          },
-        )
+        const ytdAverages = kpiData.project_data.map((_, index: number) => {
+          const valuesUpToIndex = kpiData.project_data.slice(0, index + 1)
+          // Filter out null/undefined values before calculating average
+          const validValues = valuesUpToIndex.filter(
+            (val): val is number => val != null,
+          )
+          if (validValues.length === 0) return null
+          const average =
+            validValues.reduce((sum, val) => sum + val, 0) / validValues.length
+          return isPercentage ? average : average
+        })
 
         traces.push({
           x: kpiData.dates.map((date: string) =>
@@ -375,7 +380,7 @@ const ProjectKPIContractual = () => {
       if (!kpiTypeData?.contracts) return null
       for (const contract of kpiTypeData.contracts) {
         const contractKpi = kpiTypeData.contract_kpis?.find(
-          (ck: any) => ck.contract_id === contract.contract_id,
+          (ck) => ck.contract_id === contract.contract_id,
         )
         if (contractKpi?.threshold) {
           const threshold = getKPIThresholdbyDate(
@@ -391,14 +396,15 @@ const ProjectKPIContractual = () => {
     })
 
     // For non-cumulative KPIs, calculate YTD average
-    const ytdAverages = kpiData.project_data.map((_: any, index: number) => {
+    const ytdAverages = kpiData.project_data.map((_, index: number) => {
       const valuesUpToIndex = kpiData.project_data.slice(0, index + 1)
       // Filter out null/undefined values before calculating average
-      const validValues = valuesUpToIndex.filter((val: number) => val != null)
+      const validValues = valuesUpToIndex.filter(
+        (val): val is number => val != null,
+      )
       if (validValues.length === 0) return null
       const average =
-        validValues.reduce((sum: number, val: number) => sum + val, 0) /
-        validValues.length
+        validValues.reduce((sum, val) => sum + val, 0) / validValues.length
       return isPercentage ? average : average
     })
 
@@ -449,8 +455,11 @@ const ProjectKPIContractual = () => {
     ] as Data[]
   }
 
-  const parseAnnualData = (data: any, kpiTypeData: any) => {
-    if (!data?.length || !data[0]?.data) {
+  const parseAnnualData = (
+    data: OperationalKPIData[] | undefined,
+    kpiTypeData: KPITypeWithContracts | undefined,
+  ) => {
+    if (!data?.length || !data[0]?.data || !kpiTypeData) {
       return { data: [], layout: {} }
     }
 
@@ -485,7 +494,7 @@ const ProjectKPIContractual = () => {
     if (kpiTypeData?.contracts) {
       for (const contract of kpiTypeData.contracts) {
         const contractKpi = kpiTypeData.contract_kpis?.find(
-          (ck: any) => ck.contract_id === contract.contract_id,
+          (ck) => ck.contract_id === contract.contract_id,
         )
         if (contractKpi?.threshold?.values) {
           // Get all threshold dates and find the earliest one
@@ -531,7 +540,7 @@ const ProjectKPIContractual = () => {
     if (kpiTypeData?.contracts) {
       for (const contract of kpiTypeData.contracts) {
         const contractKpi = kpiTypeData.contract_kpis?.find(
-          (ck: any) => ck.contract_id === contract.contract_id,
+          (ck) => ck.contract_id === contract.contract_id,
         )
         if (contractKpi?.threshold?.values) {
           const thresholdYears = Object.keys(contractKpi.threshold.values)
@@ -573,7 +582,7 @@ const ProjectKPIContractual = () => {
 
       for (const contract of kpiTypeData.contracts) {
         const contractKpi = kpiTypeData.contract_kpis?.find(
-          (ck: any) => ck.contract_id === contract.contract_id,
+          (ck) => ck.contract_id === contract.contract_id,
         )
         if (contractKpi?.threshold) {
           const threshold = getKPIThresholdbyDate(
