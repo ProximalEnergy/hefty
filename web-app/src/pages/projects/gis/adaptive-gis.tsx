@@ -24,7 +24,12 @@ import { keepPreviousData } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import { Feature, FeatureCollection } from 'geojson'
+import {
+  Feature,
+  FeatureCollection,
+  GeoJsonProperties,
+  Geometry,
+} from 'geojson'
 import { useCallback, useContext, useMemo, useRef, useState } from 'react'
 import MapboxMap, {
   Layer,
@@ -48,6 +53,102 @@ const VERY_HIGH_ZOOM = 16
 const HIGH_ZOOM = 14.6
 const LOW_ZOOM = 13
 // Medium zoom is implicitly between LOW_ZOOM and HIGH_ZOOM
+
+type NullableNumber = number | null
+
+type MetStationValues = {
+  poa?: NullableNumber
+  ghi?: NullableNumber
+  ambient_temp?: NullableNumber
+  wind_speed?: NullableNumber
+} | null
+
+type AdaptiveGisFeatureProperties = {
+  device_id: number
+  name: string | null
+  capacity_dc: number | null
+  capacity_ac: number | null
+  power: NullableNumber
+  power_expected: NullableNumber
+  device_type_id: number
+  actual_vs_expected: NullableNumber
+  ratio_label: string
+  tracker_angle: NullableNumber
+  effective_zoom: number
+  met_station_values?: MetStationValues | string
+  renderType: 'polygon' | 'point'
+}
+
+type AdaptiveGisBaseProperties = Omit<
+  AdaptiveGisFeatureProperties,
+  'renderType'
+>
+
+const isNullableNumber = (value: unknown): value is NullableNumber =>
+  typeof value === 'number' || value === null
+
+const coerceMetStationValues = (
+  value: unknown,
+): MetStationValues | undefined => {
+  if (value === null || value === undefined) {
+    return undefined
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return coerceMetStationValues(JSON.parse(value))
+    } catch (error) {
+      console.warn('Failed to parse met station values:', error)
+      return undefined
+    }
+  }
+
+  if (typeof value !== 'object') {
+    return undefined
+  }
+
+  const record = value as Record<string, unknown>
+  const parsed: MetStationValues = {}
+
+  const maybePoa = record.poa
+  if (isNullableNumber(maybePoa)) {
+    parsed.poa = maybePoa
+  }
+
+  const maybeGhi = record.ghi
+  if (isNullableNumber(maybeGhi)) {
+    parsed.ghi = maybeGhi
+  }
+
+  const maybeAmbient = record.ambient_temp
+  if (isNullableNumber(maybeAmbient)) {
+    parsed.ambient_temp = maybeAmbient
+  }
+
+  const maybeWind = record.wind_speed
+  if (isNullableNumber(maybeWind)) {
+    parsed.wind_speed = maybeWind
+  }
+
+  return Object.keys(parsed).length > 0 ? parsed : undefined
+}
+
+const isAdaptiveGisFeatureProperties = (
+  properties: GeoJsonProperties,
+): properties is AdaptiveGisFeatureProperties => {
+  if (!properties || typeof properties !== 'object') {
+    return false
+  }
+
+  const candidate = properties as Record<string, unknown>
+
+  return (
+    typeof candidate.device_id === 'number' &&
+    typeof candidate.device_type_id === 'number' &&
+    typeof candidate.effective_zoom === 'number' &&
+    typeof candidate.ratio_label === 'string'
+  )
+}
 
 // --- Helper Functions for Device Type Calculation ---
 const calculateDeviceTypeIds = (zoom: number): number[] => {
@@ -234,13 +335,17 @@ export function AdaptiveGisMap() {
   })
 
   // --- Generate GeoJSON data from viewportDevices ---
-  const geojsonData: FeatureCollection | null = useMemo(() => {
+  const geojsonData: FeatureCollection<
+    Geometry,
+    AdaptiveGisFeatureProperties
+  > | null = useMemo(() => {
     if (!viewportDevices.data) return null
 
     // Determine the zoom level to use for geometry and rendering logic
     const effectiveZoom = isViewLocked ? (lockedZoom ?? zoom) : zoom
 
-    const features: Feature[] = [] // Initialize empty features array
+    // Initialize empty features array
+    const features: Feature<Geometry, AdaptiveGisFeatureProperties>[] = []
 
     viewportDevices.data.forEach((device) => {
       // Common properties extraction
@@ -304,7 +409,7 @@ export function AdaptiveGisMap() {
         // Keep label as "Actual/Expected" in this specific 0/0 case
       }
 
-      const baseProperties = {
+      const baseProperties: AdaptiveGisBaseProperties = {
         device_id: device.device_id,
         name: device.name_long,
         capacity_dc: device.capacity_dc,
@@ -316,10 +421,7 @@ export function AdaptiveGisMap() {
         ratio_label: ratio_label,
         tracker_angle: device.tracker_data?.tracker_angle ?? null,
         effective_zoom: effectiveZoom,
-        met_station_values:
-          typeof device.met_station_values === 'string'
-            ? JSON.parse(device.met_station_values)
-            : device.met_station_values,
+        met_station_values: coerceMetStationValues(device.met_station_values),
       }
 
       // --- Zoom-based Logic with Geometry Validation ---
@@ -513,7 +615,7 @@ export function AdaptiveGisMap() {
     return {
       type: 'FeatureCollection',
       features: features,
-    } as FeatureCollection
+    } as FeatureCollection<Geometry, AdaptiveGisFeatureProperties>
   }, [viewportDevices.data, zoom, isViewLocked, lockedZoom]) // Update dependencies
   // --- End GeoJSON Generation ---
 
@@ -524,10 +626,14 @@ export function AdaptiveGisMap() {
     } = event
 
     const hoveredFeature =
-      features?.find((f) => {
-        const props = (f.properties || {}) as any
-        const isCombiner = props?.device_type_id === 9
-        const atVeryHighZoom = (props?.effective_zoom ?? 0) >= VERY_HIGH_ZOOM
+      features?.find((feature) => {
+        if (!isAdaptiveGisFeatureProperties(feature.properties)) {
+          return false
+        }
+
+        const isCombiner = feature.properties.device_type_id === 9
+        const atVeryHighZoom =
+          feature.properties.effective_zoom >= VERY_HIGH_ZOOM
         // Ignore combiner hovers only at highest (tracker) zoom level
         if (isCombiner && atVeryHighZoom) return false
         return true
@@ -1038,35 +1144,27 @@ export function AdaptiveGisMap() {
 }
 
 function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
-  if (
-    hoverInfo.feature?.properties === null ||
-    hoverInfo.feature?.properties === undefined
-  ) {
+  if (!hoverInfo.feature?.properties) {
     return null
   }
 
-  // Add type definition for the props
-  type DeviceProps = {
-    device_type_id: number
-    device_id: number
-    name: string
-    power?: number
-    power_expected?: number
-    actual_vs_expected?: number
-    ratio_label?: string
-    capacity_dc?: number
-    tracker_angle?: number
-    met_station_values: any
+  if (!isAdaptiveGisFeatureProperties(hoverInfo.feature.properties)) {
+    return null
   }
 
-  // Adjust property access with type
-  const props = {
+  type NormalizedFeatureProperties = Omit<
+    AdaptiveGisFeatureProperties,
+    'met_station_values'
+  > & {
+    met_station_values?: MetStationValues
+  }
+
+  const props: NormalizedFeatureProperties = {
     ...hoverInfo.feature.properties,
-    met_station_values:
-      typeof hoverInfo.feature.properties.met_station_values === 'string'
-        ? JSON.parse(hoverInfo.feature.properties.met_station_values)
-        : hoverInfo.feature.properties.met_station_values,
-  } as DeviceProps
+    met_station_values: coerceMetStationValues(
+      hoverInfo.feature.properties.met_station_values,
+    ),
+  }
 
   // Determine device type string
   let deviceTypeString = 'Device'
@@ -1144,7 +1242,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
             POA:{' '}
             {(() => {
               const values = props.met_station_values
-              return values?.poa !== undefined && values?.poa !== null
+              return values && values.poa !== undefined && values.poa !== null
                 ? values.poa.toFixed(1) + ' W/m²'
                 : 'No Data'
             })()}
@@ -1153,7 +1251,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
             GHI:{' '}
             {(() => {
               const values = props.met_station_values
-              return values?.ghi !== undefined && values?.ghi !== null
+              return values && values.ghi !== undefined && values.ghi !== null
                 ? values.ghi.toFixed(1) + ' W/m²'
                 : 'No Data'
             })()}
@@ -1162,8 +1260,9 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
             Ambient Temp:{' '}
             {(() => {
               const values = props.met_station_values
-              return values?.ambient_temp !== undefined &&
-                values?.ambient_temp !== null
+              return values &&
+                values.ambient_temp !== undefined &&
+                values.ambient_temp !== null
                 ? values.ambient_temp.toFixed(1) + ' °C'
                 : 'No Data'
             })()}
@@ -1172,8 +1271,9 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
             Wind Speed:{' '}
             {(() => {
               const values = props.met_station_values
-              return values?.wind_speed !== undefined &&
-                values?.wind_speed !== null
+              return values &&
+                values.wind_speed !== undefined &&
+                values.wind_speed !== null
                 ? values.wind_speed.toFixed(1) + ' m/s'
                 : 'No Data'
             })()}
