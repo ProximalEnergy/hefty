@@ -349,27 +349,29 @@ const UserManagement = () => {
         </Stack>
       </Modal>
 
-      <Modal title="Create New User" opened={isModalOpen} onClose={close}>
+      <Modal title="Create User" opened={isModalOpen} onClose={close}>
         <form onSubmit={handleSubmit}>
-          <Stack p="md">
-            <Group>
-              <TextInput
-                label="First Name"
-                placeholder="First Name"
-                {...form.getInputProps('first_name')}
-              />
-              <TextInput
-                label="Last Name"
-                placeholder="Last Name"
-                {...form.getInputProps('last_name')}
-              />
-            </Group>
+          <Stack>
             <TextInput
+              required
+              label="First Name"
+              placeholder="First Name"
+              {...form.getInputProps('first_name')}
+            />
+            <TextInput
+              required
+              label="Last Name"
+              placeholder="Last Name"
+              {...form.getInputProps('last_name')}
+            />
+            <TextInput
+              required
               label="Email"
               placeholder="Email"
               {...form.getInputProps('email')}
             />
             <Select
+              required
               label="Company"
               placeholder="Select Company"
               data={companies.data?.map((company) => ({
@@ -381,7 +383,7 @@ const UserManagement = () => {
             <Button type="submit" loading={createUser.isPending}>
               Create User
             </Button>
-            {createUser.isError && <Text color="red">{createUserError}</Text>}
+            {createUser.isError && <Text c="red">{createUserError}</Text>}
           </Stack>
         </form>
       </Modal>

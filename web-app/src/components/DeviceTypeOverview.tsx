@@ -714,6 +714,7 @@ const DeviceTypeOverview = ({
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 1,
         staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000, // Refetch every 60 seconds
       },
     })
 

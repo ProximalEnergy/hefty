@@ -228,6 +228,8 @@ export function AdaptiveGisMap() {
         !!(viewportBounds ?? projectBounds) &&
         (zoom >= LOW_ZOOM || isViewLocked),
       placeholderData: keepPreviousData,
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 

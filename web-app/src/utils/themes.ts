@@ -153,6 +153,18 @@ export const themes = {
     '#00A29D',
     '#009A95',
   ],
+  'lydian-energy-blue': [
+    '#EDEFF5',
+    '#D5DAE9',
+    '#BEC5DC',
+    '#A6B0CF',
+    '#8F9CC3',
+    '#7787B6',
+    '#6072AA',
+    '#485D9D',
+    '#445895',
+    '#41548D',
+  ],
 } satisfies Record<string, StringArray10 & MantineColorsTuple>
 
 // Extract the keys from the themes object

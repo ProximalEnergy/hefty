@@ -32,7 +32,7 @@ import utc from 'dayjs/plugin/utc'
 import type * as Plotly from 'plotly.js'
 // Import Plotly namespace for type assertion
 import type { PlotRelayoutEvent } from 'plotly.js'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 
 // Extend dayjs with timezone support
@@ -56,22 +56,22 @@ const PowerPlotPVZoom = () => {
       .toISOString(),
   )
   const [interval, setInterval] = useState<string>('5min')
+  const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
 
   const handleDefaultView = () => {
-    setEndTime(
-      dayjs()
-        .minute(Math.floor(dayjs().minute() / 5) * 5)
-        .second(0)
-        .toISOString(),
-    )
-    setStartTime(
-      dayjs()
-        .minute(Math.floor(dayjs().minute() / 5) * 5)
-        .second(0)
-        .subtract(24, 'hours')
-        .toISOString(),
-    )
-    setInterval(getInterval(startTime, endTime))
+    const newEndTime = dayjs()
+      .minute(Math.floor(dayjs().minute() / 5) * 5)
+      .second(0)
+      .toISOString()
+    const newStartTime = dayjs()
+      .minute(Math.floor(dayjs().minute() / 5) * 5)
+      .second(0)
+      .subtract(24, 'hours')
+      .toISOString()
+    setEndTime(newEndTime)
+    setStartTime(newStartTime)
+    setInterval(getInterval(newStartTime, newEndTime))
+    setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
   }
 
   const handleTimeRangeChange = (range: '48h' | '7d' | 'yesterday') => {
@@ -80,10 +80,13 @@ const PowerPlotPVZoom = () => {
 
     if (range === '48h') {
       start = end.subtract(48, 'hours')
+      setIsAutoUpdating(true) // Enable auto-update for relative time ranges
     } else if (range === '7d') {
       start = end.subtract(7, 'days')
+      setIsAutoUpdating(true) // Enable auto-update for relative time ranges
     } else if (range === 'yesterday') {
       start = dayjs().subtract(1, 'day').startOf('day')
+      setIsAutoUpdating(false) // Disable auto-update for "yesterday" view
     }
 
     setStartTime(start.toISOString())
@@ -102,6 +105,36 @@ const PowerPlotPVZoom = () => {
   }
 
   const project = useSelectProject(projectId!)
+
+  // Auto-update time range for "last 24 hours" view
+  useEffect(() => {
+    if (!isAutoUpdating) return
+
+    const updateTimeRange = () => {
+      const now = dayjs()
+      const newEndTime = now
+        .minute(Math.floor(now.minute() / 5) * 5)
+        .second(0)
+        .toISOString()
+      const newStartTime = now
+        .minute(Math.floor(now.minute() / 5) * 5)
+        .second(0)
+        .subtract(24, 'hours')
+        .toISOString()
+
+      setEndTime(newEndTime)
+      setStartTime(newStartTime)
+      setInterval(getInterval(newStartTime, newEndTime))
+    }
+
+    // Update immediately
+    updateTimeRange()
+
+    // Then update every minute to keep the range current
+    const intervalId = window.setInterval(updateTimeRange, 60 * 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [isAutoUpdating])
 
   // TODO: Remove this in favor of a new database table.
   const includeSoiling = !['sigurd'].includes(project.data?.name_short || '')
@@ -125,7 +158,8 @@ const PowerPlotPVZoom = () => {
     queryOptions: {
       enabled: !!project.data && !!startTime && !!endTime,
       refetchOnWindowFocus: false,
-      staleTime: 60 * 1000, // 1 minute
+      refetchInterval: 60 * 1000, // Refetch every 60 seconds
+      staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
 
@@ -159,6 +193,7 @@ const PowerPlotPVZoom = () => {
         setStartTime(newStartTimeStr)
         setEndTime(newEndTimeStr)
         setInterval(getInterval(newStartTimeStr, newEndTimeStr))
+        setIsAutoUpdating(false) // Disable auto-update when user manually zooms
       }
     }
   }
@@ -175,6 +210,7 @@ const PowerPlotPVZoom = () => {
         : dayjs(endTime).add(range, 'minute').toISOString()
     setStartTime(newStartTime)
     setEndTime(newEndTime)
+    setIsAutoUpdating(false) // Disable auto-update when user manually pans
   }
 
   // Map data from the MeterPowerAndExpected type

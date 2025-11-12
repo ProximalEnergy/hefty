@@ -18,6 +18,7 @@ const COMPANY_THEME_CONFIG: Record<string, KnownMantineColor | CustomColors> = {
   terabase_energy: 'terabase-blue',
   lightsource_bp: 'lightsource-bp-orange',
   oriden: 'oriden-green',
+  lydian_energy: 'lydian-energy-blue',
 }
 
 export const CompanyThemeManager = () => {

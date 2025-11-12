@@ -8,6 +8,45 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
+interface TagPatternTag {
+  tag_id: number
+  name_scada: string
+  name_short: string | null
+  device_id: number
+  sensor_type_id: number | null
+}
+
+interface UniqueTagType {
+  project_id: string
+  project_name: string
+  project_name_short: string
+  sensor_type_id: number
+  scada_type: string | null
+  unit_scada: string | null
+  unit_offset: number | null
+  unit_scale: number | null
+  tag_pattern: string
+  count: number
+  examples: unknown[]
+  sample_tag_id: number | null
+}
+
+interface TagPatternSample {
+  tag_name: string
+  tag_id: number
+  sample_values: (number | string)[]
+  timestamps: string[]
+  is_numeric: boolean
+  value_range: string
+  total_unique_values: number
+}
+
+interface TagPatternSamplesResponse {
+  tag_pattern: string
+  sample_tags: TagPatternSample[]
+  total_sample_tags: number
+}
+
 export const usePopulateUniqueTagPatterns = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
@@ -52,7 +91,7 @@ export const useGetTagsByPattern = ({
     enabled: false,
   }
 
-  return useCustomQuery<any[]>({
+  return useCustomQuery<TagPatternTag[]>({
     axiosConfig,
     queryName: 'getTagsByPattern',
     pathParams,
@@ -82,7 +121,7 @@ export const useGetUniqueTagTypes = ({
     staleTime: 300000, // 5 minutes
   }
 
-  return useCustomQuery<any[]>({
+  return useCustomQuery<UniqueTagType[]>({
     axiosConfig,
     queryName: 'getUniqueTagTypes',
     pathParams,
@@ -110,7 +149,7 @@ export const useGetTagPatternSamples = ({
     enabled: false, // Don't fetch automatically, only when called
   }
 
-  return useCustomQuery<any>({
+  return useCustomQuery<TagPatternSamplesResponse>({
     axiosConfig,
     queryName: 'getTagPatternSamples',
     pathParams,

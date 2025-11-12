@@ -52,6 +52,34 @@ import { useParams } from 'react-router'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
+type TagPatternRow = {
+  tag_pattern: string
+  sensor_type_id: number | null
+  sensor_type_name_short: string | null
+  sensor_type_name_long: string | null
+  scada_type: string | null
+  unit_scada: string | null
+  unit_offset: number | null
+  unit_scale: number | null
+  total_count: number
+  examples: unknown[]
+  sample_tag_id: number | null
+  project_id: string
+  project_name: string
+  project_name_short: string
+}
+
+type AssignedSensorTypeRow = {
+  sensor_type_id: number
+  device_type_id: number
+  name_short: string
+  name_long: string
+  name_metric: string | null
+  unit: string | null
+  assigned: boolean
+  device_type_name: string | null
+}
+
 const ProjectTagExplorer = () => {
   const { projectId } = useParams<{ projectId: string }>()
 
@@ -60,7 +88,8 @@ const ProjectTagExplorer = () => {
   const [executionTime, setExecutionTime] = useState<number | null>(null)
   const [isTableRefreshing, setIsTableRefreshing] = useState(false)
   const [showColumnHandles, setShowColumnHandles] = useState(false)
-  const [tagPatternAlignRight, setTagPatternAlignRight] = useState(true)
+  const [tagPatternAlignRight, setTagPatternAlignRight] = useState(false)
+  const [showOnlyUnassigned, setShowOnlyUnassigned] = useState(false)
   const [isDetailsModalOpen, { open: openDetails, close: closeDetails }] =
     useDisclosure(false)
   const [isConfirmOpen, { open: openConfirm, close: closeConfirm }] =
@@ -137,6 +166,10 @@ const ProjectTagExplorer = () => {
     },
   })
 
+  const sensorTypes = useGetSensorTypes({})
+  const deviceTypes = useGetDeviceTypes({})
+  const project = useSelectProject(projectId!)
+
   const populateUniqueTagPatterns = usePopulateUniqueTagPatterns()
 
   // No automatic execution time tracking - only manual refresh measurements
@@ -183,7 +216,7 @@ const ProjectTagExplorer = () => {
     if (!uniqueTagTypes.data && !uniqueTagTypes.isFetching) {
       handleRefresh()
     }
-  }, []) // Only run once on mount
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-refresh when project changes (e.g., via project dropdown)
   React.useEffect(() => {
@@ -200,7 +233,7 @@ const ProjectTagExplorer = () => {
   React.useEffect(() => {
     if (selectedTagPattern && uniqueTagTypes.data) {
       const patternData = uniqueTagTypes.data.find(
-        (t: any) => t.tag_pattern === selectedTagPattern,
+        (t) => t.tag_pattern === selectedTagPattern,
       )
 
       if (patternData) {
@@ -235,14 +268,11 @@ const ProjectTagExplorer = () => {
       setPatternUnitOffset(null)
       setSelectedSensorTypeUnit(null)
     }
-  }, [selectedTagPattern, uniqueTagTypes.data])
+  }, [selectedTagPattern, uniqueTagTypes.data, sensorTypes.data])
   // Temporarily disabled due to performance issues with large datasets
   // const sensorTypeAssignments = useGetSensorTypeAssignments({
   //   pathParams: { projectId: projectId || '-1' },
   // })
-  const sensorTypes = useGetSensorTypes({})
-  const deviceTypes = useGetDeviceTypes({})
-  const project = useSelectProject(projectId!)
 
   const assignPatternSensorType = useAssignPatternSensorTypeMutation()
 
@@ -324,7 +354,7 @@ const ProjectTagExplorer = () => {
   const groupedTagTypes = useMemo(() => {
     if (!uniqueTagTypes.data) return []
 
-    return uniqueTagTypes.data.map((tagType: any) => {
+    return uniqueTagTypes.data.map((tagType) => {
       const st = sensorTypes.data?.find(
         (s: SensorType) => s.sensor_type_id === tagType.sensor_type_id,
       )
@@ -346,6 +376,15 @@ const ProjectTagExplorer = () => {
       }
     })
   }, [uniqueTagTypes.data, sensorTypes.data])
+
+  // Filter groupedTagTypes to show only unassigned when checkbox is checked
+  const filteredGroupedTagTypes = useMemo(() => {
+    if (!showOnlyUnassigned) return groupedTagTypes
+    return groupedTagTypes.filter(
+      (row: (typeof groupedTagTypes)[number]) =>
+        !row.sensor_type_id || row.sensor_type_id === 0,
+    )
+  }, [groupedTagTypes, showOnlyUnassigned])
 
   const handleAssignPatternSensorType = async () => {
     if (!selectedTagPattern || !patternSensorTypeId || !projectId) return
@@ -421,7 +460,7 @@ const ProjectTagExplorer = () => {
     }
   }
 
-  const columns = useMemo<MRT_ColumnDef<any>[]>(
+  const columns = useMemo<MRT_ColumnDef<TagPatternRow>[]>(
     () => [
       {
         header: 'Tag Pattern',
@@ -433,7 +472,7 @@ const ProjectTagExplorer = () => {
         mantineTableBodyCellProps: {
           align: tagPatternAlignRight ? 'right' : 'left',
         },
-        Cell: ({ cell }: { cell: MRT_Cell<any> }) => {
+        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
           const pattern = cell.getValue<string>()
           const parts = pattern.split('[INT]')
 
@@ -476,7 +515,7 @@ const ProjectTagExplorer = () => {
         mantineTableBodyCellProps: {
           align: 'left',
         },
-        Cell: ({ cell }: { cell: MRT_Cell<any> }) => {
+        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
           const nameShort = cell.getValue<string | null>()
           const sensorTypeId = cell.row.original.sensor_type_id as
             | number
@@ -563,7 +602,7 @@ const ProjectTagExplorer = () => {
         mantineTableBodyCellProps: {
           align: 'center',
         },
-        Cell: ({ cell }: { cell: MRT_Cell<any> }) => {
+        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
           const sampleTagId = cell.getValue<number>()
           return sampleTagId || '-'
         },
@@ -579,7 +618,7 @@ const ProjectTagExplorer = () => {
         mantineTableBodyCellProps: {
           align: 'center',
         },
-        Cell: ({ cell }: { cell: MRT_Cell<any> }) => (
+        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => (
           <Group gap="xs" justify="center">
             <Tooltip label="View details">
               <ActionIcon
@@ -600,12 +639,12 @@ const ProjectTagExplorer = () => {
         enableGlobalFilter: false,
       },
     ],
-    [open, tagPatternAlignRight],
+    [openDetails, tagPatternAlignRight],
   )
 
   const table = useMantineReactTable({
     columns,
-    data: groupedTagTypes,
+    data: filteredGroupedTagTypes,
     state: {
       isLoading: uniqueTagTypes.isFetching || isTableRefreshing,
       showProgressBars: uniqueTagTypes.isFetching || isTableRefreshing,
@@ -669,7 +708,7 @@ const ProjectTagExplorer = () => {
         name_metric: st.name_metric,
         unit: st.unit,
         assigned: groupedTagTypes.some(
-          (row: any) => row.sensor_type_id === st.sensor_type_id,
+          (row) => row.sensor_type_id === st.sensor_type_id,
         ),
         device_type_name:
           deviceTypes.data?.find(
@@ -679,7 +718,7 @@ const ProjectTagExplorer = () => {
     )
   }, [sensorTypes.data, groupedTagTypes, deviceTypes.data])
 
-  const assignedColumns = useMemo<MRT_ColumnDef<any>[]>(
+  const assignedColumns = useMemo<MRT_ColumnDef<AssignedSensorTypeRow>[]>(
     () => [
       {
         header: 'Sensor Type',
@@ -888,6 +927,13 @@ const ProjectTagExplorer = () => {
                   )}
                 </Group>
                 <Group gap="sm">
+                  <Checkbox
+                    label="Show only unassigned"
+                    checked={showOnlyUnassigned}
+                    onChange={(event) =>
+                      setShowOnlyUnassigned(event.currentTarget.checked)
+                    }
+                  />
                   <Button
                     variant="light"
                     onClick={() => setShowColumnHandles(!showColumnHandles)}
@@ -1112,6 +1158,20 @@ const ProjectTagExplorer = () => {
                               Unit Scale Multiplier
                             </Text>
                           </Tooltip>
+                          <Group>
+                            <Button
+                              size="compact-xs"
+                              onClick={() => setPatternUnitScale(0.001)}
+                            >
+                              0.001
+                            </Button>
+                            <Button
+                              size="compact-xs"
+                              onClick={() => setPatternUnitScale(0.01)}
+                            >
+                              0.01
+                            </Button>
+                          </Group>
                           <Group gap="xs" align="center">
                             <Text size="sm">SCADA value ×</Text>
                             <NumberInput
@@ -1209,7 +1269,7 @@ const ProjectTagExplorer = () => {
                           <strong>Numeric Tags:</strong>{' '}
                           {
                             tagPatternSamples.data.sample_tags.filter(
-                              (tag: any) => tag.is_numeric,
+                              (tag) => tag.is_numeric,
                             ).length
                           }
                         </Text>
@@ -1217,7 +1277,7 @@ const ProjectTagExplorer = () => {
                           <strong>Non-Numeric Tags:</strong>{' '}
                           {
                             tagPatternSamples.data.sample_tags.filter(
-                              (tag: any) => !tag.is_numeric,
+                              (tag) => !tag.is_numeric,
                             ).length
                           }
                         </Text>
@@ -1236,12 +1296,12 @@ const ProjectTagExplorer = () => {
                         {(() => {
                           const numericTags =
                             tagPatternSamples.data.sample_tags.filter(
-                              (tag: any) =>
+                              (tag) =>
                                 tag.is_numeric && tag.sample_values.length > 0,
                             )
                           const nonNumericTags =
                             tagPatternSamples.data.sample_tags.filter(
-                              (tag: any) =>
+                              (tag) =>
                                 !tag.is_numeric && tag.sample_values.length > 0,
                             )
 
@@ -1267,7 +1327,7 @@ const ProjectTagExplorer = () => {
                                       }}
                                     >
                                       <Plot
-                                        data={numericTags.map((tag: any) => ({
+                                        data={numericTags.map((tag) => ({
                                           x: tag.timestamps.map(
                                             (timestamp: string) => {
                                               // Convert UTC timestamp to project's local timezone
@@ -1281,8 +1341,11 @@ const ProjectTagExplorer = () => {
                                             },
                                           ),
                                           y: tag.sample_values.map(
-                                            (value: number) => {
-                                              let transformedValue = value
+                                            (value: string | number) => {
+                                              let transformedValue =
+                                                typeof value === 'string'
+                                                  ? Number.parseFloat(value)
+                                                  : value
                                               if (patternUnitScale) {
                                                 transformedValue =
                                                   transformedValue *
@@ -1362,10 +1425,13 @@ const ProjectTagExplorer = () => {
                                       }}
                                     >
                                       <Plot
-                                        data={numericTags.map((tag: any) => ({
+                                        data={numericTags.map((tag) => ({
                                           x: tag.sample_values.map(
-                                            (value: number) => {
-                                              let transformedValue = value
+                                            (value: string | number) => {
+                                              let transformedValue =
+                                                typeof value === 'string'
+                                                  ? Number.parseFloat(value)
+                                                  : value
                                               if (patternUnitScale) {
                                                 transformedValue =
                                                   transformedValue *
@@ -1454,7 +1520,7 @@ const ProjectTagExplorer = () => {
                                         padding: '8px',
                                       }}
                                     >
-                                      {nonNumericTags.map((tag: any) => (
+                                      {nonNumericTags.map((tag) => (
                                         <div
                                           key={tag.tag_id}
                                           style={{ marginBottom: '12px' }}
@@ -1484,21 +1550,16 @@ const ProjectTagExplorer = () => {
                                               new Set(tag.sample_values),
                                             )
                                               .slice(0, 20)
-                                              .map(
-                                                (
-                                                  value: any,
-                                                  valueIndex: number,
-                                                ) => (
-                                                  <Badge
-                                                    key={valueIndex}
-                                                    size="xs"
-                                                    variant="light"
-                                                    color="gray"
-                                                  >
-                                                    {String(value)}
-                                                  </Badge>
-                                                ),
-                                              )}
+                                              .map((value, valueIndex) => (
+                                                <Badge
+                                                  key={valueIndex}
+                                                  size="xs"
+                                                  variant="light"
+                                                  color="gray"
+                                                >
+                                                  {String(value)}
+                                                </Badge>
+                                              ))}
                                             {new Set(tag.sample_values).size >
                                               20 && (
                                               <Text size="xs" c="dimmed">
