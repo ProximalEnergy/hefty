@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface TagPatternTag {
+interface TagPatternTag {
   tag_id: number
   name_scada: string
   name_short: string | null
@@ -16,7 +16,7 @@ export interface TagPatternTag {
   sensor_type_id: number | null
 }
 
-export interface UniqueTagType {
+interface UniqueTagType {
   project_id: string
   project_name: string
   project_name_short: string
@@ -31,7 +31,7 @@ export interface UniqueTagType {
   sample_tag_id: number | null
 }
 
-export interface TagPatternSample {
+interface TagPatternSample {
   tag_name: string
   tag_id: number
   sample_values: (number | string)[]
@@ -41,7 +41,7 @@ export interface TagPatternSample {
   total_unique_values: number
 }
 
-export interface TagPatternSamplesResponse {
+interface TagPatternSamplesResponse {
   tag_pattern: string
   sample_tags: TagPatternSample[]
   total_sample_tags: number

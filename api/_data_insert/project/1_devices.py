@@ -96,6 +96,8 @@ if update_project_spec:
 
 # Check for missing columns to ensure backwards compatibility
 # (When columns have not been added in Excel yet)
+if "logical" not in devices.columns:
+    devices["logical"] = False
 if "pv_module_id" not in devices.columns:
     devices["pv_module_id"] = None
 if "device_model_id" not in devices.columns:

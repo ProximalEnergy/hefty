@@ -32,7 +32,7 @@ export interface Contract {
   contract_summary?: string | null
 }
 
-export interface ContractKPI {
+interface ContractKPI {
   contract_id: number
   kpi_type_id: number
   threshold: Record<string, unknown> | null
