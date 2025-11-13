@@ -789,7 +789,9 @@ def get_project_weather_forecast(
     point = loads(wkb_bytes)
     lat, lon = point.y, point.x
     weather_api_key = settings.WEATHER_API_KEY
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={weather_api_key}&units=imperial&cnt=3"
+    # Request 40 entries (default) to get 5 days of forecasts (3-hour intervals)
+    # This ensures we have data for tomorrow and day after tomorrow
+    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={weather_api_key}&units=imperial"
     res = requests.get(url)
     if not res.ok:
         raise HTTPException(res.json()["cod"], res.json()["message"])
