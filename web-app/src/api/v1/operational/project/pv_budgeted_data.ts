@@ -1,7 +1,10 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
 import { UseQueryOptions, useMutation } from '@tanstack/react-query'
+
+export type PVBudgetedSeries = types.components['schemas']['PVBudgetedSeries']
 
 export const useGetPVBudgetedSeries = ({
   pathParams,
@@ -20,7 +23,7 @@ export const useGetPVBudgetedSeries = ({
     refetchOnMount: 'always',
   }
 
-  return useCustomQuery<unknown[]>({
+  return useCustomQuery<PVBudgetedSeries[]>({
     axiosConfig,
     queryName: 'pvBudgetedSeries',
     pathParams,

@@ -1,7 +1,6 @@
 import { UseQueryOptions, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
-import { FeatureCollection, MultiPolygon } from 'geojson'
-import { GeoJsonProperties } from 'geojson'
+import { FeatureCollection, GeoJsonProperties, MultiPolygon } from 'geojson'
 
 const spcWxOutlooksEndpointUrl =
   'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer'
@@ -177,4 +176,21 @@ export const useGetFireOutlook = ({
     queryKey: 'getFireOutlook',
     queryOptions,
   })
+}
+
+// NWS/NOAA tile services
+// Note: NWS doesn't provide direct tile services for radiation/windspeed
+// Using OpenWeatherMap as alternative since NWS services aren't available
+// OpenWeatherMap provides these layers and is already configured in the app
+export const getNWSWindspeedTileUrl = (): string => {
+  // Using OpenWeatherMap wind speed layer as NWS doesn't provide tile service
+  // Alternative would be NWS NDFD WMS which requires server-side conversion
+  const appid = import.meta.env.VITE_OPENWEATHERMAP_APP_ID
+  return `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${appid}`
+}
+
+export const getTemperatureTileUrl = (): string => {
+  // OpenWeatherMap temperature layer
+  const appid = import.meta.env.VITE_OPENWEATHERMAP_APP_ID
+  return `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${appid}`
 }

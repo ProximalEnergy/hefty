@@ -13,12 +13,14 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { IconArrowBackUp } from '@tabler/icons-react'
+import { UseQueryOptions } from '@tanstack/react-query'
 import {
   Background,
   Controls,
   Edge,
   Handle,
   Node,
+  NodeMouseHandler,
   NodeProps,
   Position,
   ReactFlow,
@@ -194,6 +196,18 @@ type CustomNode =
   | Node<GridData, 'grid'>
   | Node<BusData, 'verticalConnection'>
   | Node<CircuitLabelData, 'circuitLabel'>
+
+type NodeWithBlockDeviceId =
+  | Node<TransformerData, 'transformer'>
+  | Node<PCSData, 'pcs'>
+  | Node<BankData, 'battery'>
+  | Node<StringData, 'string'>
+
+const hasBlockDeviceId = (node: CustomNode): node is NodeWithBlockDeviceId => {
+  const data = node.data as { block_device_id?: unknown } | undefined
+
+  return typeof data?.block_device_id === 'number'
+}
 
 const BESSTooltipContent = ({
   label,
@@ -1168,6 +1182,15 @@ function SnapshotSLDContent() {
     },
   })
 
+  const timeSeriesQueryOptions = useMemo<Partial<UseQueryOptions>>(
+    () => ({
+      enabled:
+        !!devices && devices.length > 0 && !!projectId && timestamp !== null,
+      keepPreviousData: true,
+    }),
+    [devices, projectId, timestamp],
+  )
+
   const { data: timeSeriesData, isFetching: isTimeSeriesFetching } =
     useGetTimeSeries({
       pathParams: { projectId: projectId || '-1' },
@@ -1179,11 +1202,7 @@ function SnapshotSLDContent() {
         end: timestamp ? timestamp.add(2, 'seconds').toISOString() : undefined,
         interval: '1s',
       },
-      queryOptions: {
-        enabled:
-          !!devices && devices.length > 0 && !!projectId && timestamp !== null,
-        keepPreviousData: true,
-      } as any,
+      queryOptions: timeSeriesQueryOptions,
     })
 
   const deviceDataMap = useMemo(() => {
@@ -2913,13 +2932,20 @@ function SnapshotSLDContent() {
     }
   }, [nodes, fitView])
 
-  const onNodeClick = useCallback(
-    (_: any, node: any) => {
-      if (
-        node?.data?.block_device_id &&
-        selectedBlockId !== node.data.block_device_id
-      ) {
-        setSelectedBlockId(node.data.block_device_id)
+  const onNodeClick = useCallback<NodeMouseHandler<CustomNode>>(
+    (_, node) => {
+      if (!hasBlockDeviceId(node)) {
+        return
+      }
+
+      const blockDeviceId = node.data.block_device_id
+
+      if (blockDeviceId === undefined) {
+        return
+      }
+
+      if (selectedBlockId !== blockDeviceId) {
+        setSelectedBlockId(blockDeviceId)
       }
     },
     [selectedBlockId],

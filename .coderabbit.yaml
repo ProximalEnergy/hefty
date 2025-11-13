@@ -3,3 +3,4 @@ chat:
 
 reviews:
   poem: false
+  review_status: false

@@ -78,7 +78,8 @@ export const useGetCalendarEventCategories = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string } // projectId is part of the path for endpoint consistency
-  queryParams?: Record<string, any> // Generic query params, e.g., for skip/limit if needed later
+  queryParams?: Record<string, string | number | boolean | undefined>
+  // Generic query params, e.g., for skip/limit if needed later
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {

@@ -1,4 +1,5 @@
 import { useGetUserSelf } from '@/api/admin'
+import type { PVBudgetedSeries } from '@/api/v1/operational/project/pv_budgeted_data'
 import {
   useDeletePVBudgetedSeries,
   useGetPVBudgetedSeries,
@@ -259,7 +260,9 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [, setIsLoadingSeriesData] = useState(false)
   const [editingSeriesId, setEditingSeriesId] = useState<number | null>(null)
-  const [editingSeries, setEditingSeries] = useState<any | null>(null)
+  const [editingSeries, setEditingSeries] = useState<PVBudgetedSeries | null>(
+    null,
+  )
   const [poiUnitNote, setPoiUnitNote] = useState<string | null>(null)
 
   const theme = useMantineTheme()
@@ -278,7 +281,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
     return mode
   }
 
-  const handleEditClick = async (series: any) => {
+  const handleEditClick = async (series: PVBudgetedSeries) => {
     setEditingSeries(series)
     try {
       setIsLoadingSeriesData(true)
@@ -725,7 +728,7 @@ export default function PVBudgeted({ projectId }: { projectId: string }) {
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
-                        {existingSeries.data?.map((series: any) => (
+                        {existingSeries.data?.map((series) => (
                           <Table.Tr
                             key={series.pv_budgeted_series_id}
                             bg={

@@ -190,17 +190,19 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
     }
 
     // Filter out empty strings and convert Date objects to strings for API
-    const updateData: any = {}
-    Object.entries(values).forEach(([key, value]) => {
-      if (value !== '' && value !== null && value !== undefined) {
-        // Convert Date objects to ISO date strings (YYYY-MM-DD format)
-        if (value instanceof Date) {
-          updateData[key] = value.toISOString().split('T')[0]
-        } else {
-          updateData[key] = value
-        }
-      }
-    })
+    const updateData = Object.fromEntries(
+      Object.entries(values)
+        .filter(
+          ([, value]) => value !== '' && value !== null && value !== undefined,
+        )
+        .map(([key, value]) => {
+          if (value instanceof Date) {
+            return [key, value.toISOString().split('T')[0]]
+          }
+
+          return [key, value]
+        }),
+    ) as Partial<ProjectUpdate>
 
     updateProject.mutate(
       { projectId, projectData: updateData },

@@ -1,4 +1,8 @@
-import { type MRT_ColumnDef, MantineReactTable } from 'mantine-react-table'
+import {
+  type MRT_ColumnDef,
+  type MRT_Row,
+  MantineReactTable,
+} from 'mantine-react-table'
 import { useCallback, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
@@ -75,7 +79,11 @@ export function DeviceTypeSummaryTable({
         accessorKey: 'numberOfDevices',
         header: 'Number of Devices',
         enableEditing: true,
-        muiEditTextFieldProps: ({ row }: { row: any }) => ({
+        muiEditTextFieldProps: ({
+          row,
+        }: {
+          row: MRT_Row<DeviceTypeSummary>
+        }) => ({
           type: 'number',
           inputProps: { min: 0 },
           onBlur: (event: React.FocusEvent<HTMLInputElement>) => {

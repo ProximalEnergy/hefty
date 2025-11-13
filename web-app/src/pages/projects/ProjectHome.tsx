@@ -4,6 +4,7 @@ import {
   useGetContractKPIs,
   useGetOperationalKPIData,
 } from '@/api/v1/operational/kpi_data'
+import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
@@ -378,6 +379,18 @@ const KPICards = () => {
   const { data: user } = useGetUserSelf({})
 
   const project = useSelectProject(projectId!)
+  const projectKPIInstances = useGetKPIInstances({
+    queryParams: {
+      project_ids: [projectId || '-1'],
+      deep: true,
+    },
+    queryOptions: {
+      enabled: !!projectId,
+    },
+  })
+  const projectKPITypeIds = projectKPIInstances.data?.map(
+    (kpiInstance) => kpiInstance.kpi_type_id,
+  )
 
   const favoritedKPITypes = useGetUserFavoriteKPITypes({
     userId: user?.user_id,
@@ -387,14 +400,19 @@ const KPICards = () => {
     (kpiInstance) => kpiInstance.kpi_type_id,
   )
 
+  const selectedKPITypeIds = (projectKPITypeIds || []).filter((id) =>
+    (kpiTypeIds || []).includes(id),
+  )
+
   const data = useGetKPISummaryCards({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      kpi_type_ids: kpiTypeIds,
+      kpi_type_ids: selectedKPITypeIds,
       date: queryDate,
     },
     queryOptions: {
-      enabled: !!projectId && !!favoritedKPITypes.data,
+      enabled:
+        !!projectId && !!favoritedKPITypes.data && !!projectKPIInstances.data,
       refetchInterval: 60 * 1000, // Refetch every 60 seconds
       staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
@@ -442,7 +460,12 @@ const KPICards = () => {
     }
   }, [contentIsGreaterThanContainer])
 
-  if (project.isLoading || favoritedKPITypes.isLoading || data.isLoading) {
+  if (
+    project.isLoading ||
+    favoritedKPITypes.isLoading ||
+    data.isLoading ||
+    projectKPIInstances.isLoading
+  ) {
     return (
       <Skeleton radius="md">
         <EmptyKPICard />
