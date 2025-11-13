@@ -6,7 +6,7 @@ import {
   IconWind,
 } from '@tabler/icons-react'
 
-export interface WeatherContentProps {
+interface WeatherContentProps {
   weather: {
     id: number
     main: string

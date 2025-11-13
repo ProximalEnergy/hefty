@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { ForecastSlider } from './ForecastSlider'
 import { WeatherContent } from './WeatherContent'
 
-export interface WeatherHoverCardProps {
+interface WeatherHoverCardProps {
   projectId: string
   projectName: string
   isOpen: boolean

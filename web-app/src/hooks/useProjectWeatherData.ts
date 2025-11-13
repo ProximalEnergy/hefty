@@ -12,7 +12,7 @@ const TEMPERATURE_C_TO_F_MULTIPLIER = 9 / 5
 const TEMPERATURE_C_TO_F_OFFSET = 32
 const MPS_TO_MPH = 2.23694
 
-export interface ProjectWeatherData {
+interface ProjectWeatherData {
   // Current weather
   weather: ReturnType<typeof useGetWeather>['data']
   weatherLoading: boolean

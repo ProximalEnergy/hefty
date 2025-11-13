@@ -6,7 +6,7 @@ import { Group, Slider, Stack, Switch, Text } from '@mantine/core'
 import dayjs from 'dayjs'
 import { useEffect, useRef, useState } from 'react'
 
-export interface ForecastSliderProps {
+interface ForecastSliderProps {
   forecasts: ForecastListItem[]
   onForecastChange: (forecast: ForecastListItem | null) => void
   timezoneOffsetSeconds?: number
