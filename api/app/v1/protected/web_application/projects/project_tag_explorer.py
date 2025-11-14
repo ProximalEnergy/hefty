@@ -129,6 +129,7 @@ async def get_unique_tag_types(
             )
             representative_unit_scale = sample_tag.unit_scale if sample_tag else None
             representative_unit_offset = sample_tag.unit_offset if sample_tag else None
+            representative_unit_scada = sample_tag.unit_scada if sample_tag else None
 
             results.append(
                 {
@@ -137,7 +138,7 @@ async def get_unique_tag_types(
                     "project_name_short": project.name_short,
                     "sensor_type_id": representative_sensor_type_id,
                     "scada_type": None,
-                    "unit_scada": None,
+                    "unit_scada": representative_unit_scada,
                     "unit_offset": representative_unit_offset,
                     "unit_scale": representative_unit_scale,
                     "tag_pattern": row.pattern,
@@ -254,6 +255,7 @@ class AssignPatternSensorTypeRequest(BaseModel):
     sensor_type_id: int
     unit_scale: float | None = None
     unit_offset: float | None = None
+    unit_scada: str | None = None
 
 
 @router.post(
@@ -291,6 +293,10 @@ async def assign_sensor_type_to_pattern(
                 status_code=404, detail="No tags found matching this pattern"
             )
 
+        # Check if unit_scada was explicitly provided (even if None) to allow clearing
+        # The frontend only includes unit_scada in the request when it's explicitly set
+        unit_scada_provided = "unit_scada" in request.model_fields_set
+
         # Use bulk update for better performance
         updated_count = crud_tags.update_tags_sensor_type_by_pattern_bulk(
             project_db=project_db,
@@ -298,6 +304,8 @@ async def assign_sensor_type_to_pattern(
             sensor_type_id=request.sensor_type_id,
             unit_scale=request.unit_scale,
             unit_offset=request.unit_offset,
+            unit_scada=request.unit_scada,
+            unit_scada_provided=unit_scada_provided,
         )
 
         # Update project spec with current used_sensor_type_ids
@@ -321,6 +329,7 @@ async def assign_sensor_type_to_pattern(
             "sensor_type_id": request.sensor_type_id,
             "unit_scale": request.unit_scale,
             "unit_offset": request.unit_offset,
+            "unit_scada": request.unit_scada,
             "updated_spec": {"used_sensor_type_ids": unique_sensor_type_ids},
         }
 

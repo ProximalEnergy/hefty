@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -176,10 +177,14 @@ def update_tags_sensor_type_by_pattern_bulk(
     sensor_type_id: int,
     unit_scale: float | None = None,
     unit_offset: float | None = None,
+    unit_scada: str | None = None,
+    unit_scada_provided: bool = False,
 ):
     """
-    Bulk update sensor_type_id and optionally unit_scale/unit_offset for tags matching a pattern.
+    Bulk update sensor_type_id and optionally unit_scale/unit_offset/unit_scada for tags matching a pattern.
     Uses SQLAlchemy bulk update for better performance with large tag sets.
+
+    If unit_scada_provided is True, unit_scada will be updated even if it's None (to clear the value).
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
@@ -190,31 +195,18 @@ def update_tags_sensor_type_by_pattern_bulk(
         .filter(models.Tag.name_scada.op("~")(regex))
     )
 
-    # Use **kwargs to avoid type inference issues
-    if unit_scale is not None and unit_offset is not None:
-        result = query.update(
-            {
-                "sensor_type_id": sensor_type_id,
-                "unit_scale": unit_scale,
-                "unit_offset": unit_offset,
-            },
-            synchronize_session=False,
-        )
-    elif unit_scale is not None:
-        result = query.update(
-            {"sensor_type_id": sensor_type_id, "unit_scale": unit_scale},
-            synchronize_session=False,
-        )
-    elif unit_offset is not None:
-        result = query.update(
-            {"sensor_type_id": sensor_type_id, "unit_offset": unit_offset},
-            synchronize_session=False,
-        )
-    else:
-        result = query.update(
-            {"sensor_type_id": sensor_type_id}, synchronize_session=False
-        )
+    # Build update dict - include unit_scada if explicitly provided (even if None)
+    update_dict: dict[str, Any] = {"sensor_type_id": sensor_type_id}
 
+    if unit_scale is not None:
+        update_dict["unit_scale"] = unit_scale
+    if unit_offset is not None:
+        update_dict["unit_offset"] = unit_offset
+    if unit_scada_provided:
+        # Explicitly set unit_scada (even if None to clear it)
+        update_dict["unit_scada"] = unit_scada
+
+    result = query.update(update_dict, synchronize_session=False)  # type: ignore[arg-type]
     project_db.commit()
     return result
 
