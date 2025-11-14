@@ -34,7 +34,7 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Cache dependencies
         id: cache-deps
@@ -86,7 +86,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22  # Match the other jobs
+          node-version: 24  # Match the other jobs
 
       - name: Cache dependencies
         id: cache-prettier-deps
@@ -117,7 +117,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Cache dependencies
         id: cache-knip-deps
