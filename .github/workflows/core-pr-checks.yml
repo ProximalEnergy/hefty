@@ -146,7 +146,7 @@ jobs:
         working-directory: core
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
           aws-region: us-east-2 # This must match the AWS region of your CodeArtifact repository.
