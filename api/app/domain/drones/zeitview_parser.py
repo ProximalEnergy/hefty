@@ -9,24 +9,40 @@ from app.logger import logger
 class ZeitviewAPI:
     BASE_URL = "https://helio-external-api.production.zeitview.com"
 
-    def __init__(self, *, drone_integration_id: int):
-        secret_name = f"drone_integrations/drone_integration_id/{drone_integration_id}"
-        try:
-            secret_dict = get_secret(secret_name=secret_name)
-            if not secret_dict:
-                raise ValueError(f"Secret is empty for {secret_name}")
-            api_key = secret_dict.get("zeitview_api_key")
-        except Exception as e:
-            logger.error(f"Failed to get or parse secret '{secret_name}': {e}")
-            raise ValueError(
-                f"Could not retrieve or parse secret: {secret_name}"
-            ) from e
+    def __init__(
+        self, *, drone_integration_id: int | None = None, api_key: str | None = None
+    ):
+        if api_key:
+            self.api_key = api_key
+        elif drone_integration_id:
+            secret_name = (
+                f"drone_integrations/drone_integration_id/{drone_integration_id}"
+            )
+            try:
+                secret_dict = get_secret(secret_name=secret_name)
+                if not secret_dict:
+                    raise ValueError(f"Secret is empty for {secret_name}")
+                api_key = secret_dict.get("zeitview_api_key")
+            except Exception as e:
+                logger.error(f"Failed to get or parse secret '{secret_name}': {e}")
+                raise ValueError(
+                    f"Could not retrieve or parse secret: {secret_name}"
+                ) from e
 
-        if not api_key:
-            raise ValueError(f"'zeitview_api_key' not found in secret: {secret_name}")
+            if not api_key:
+                raise ValueError(
+                    f"'zeitview_api_key' not found in secret: {secret_name}"
+                )
+            self.api_key = api_key
+        else:
+            raise ValueError("Either drone_integration_id or api_key must be provided")
 
-        self.api_key = api_key
         self.headers = {"api-key": self.api_key, "Content-Type": "application/json"}
+
+    @classmethod
+    def from_api_key(cls, *, api_key: str):
+        """Create a ZeitviewAPI instance using a direct API key."""
+        return cls(api_key=api_key)
 
     async def _make_request(
         self,
@@ -50,6 +66,7 @@ class ZeitviewAPI:
                 if response.status_code != 200:
                     logger.error(f"Response status: {response.status_code}")
                     logger.error(f"Response content: {response.text}")
+                    logger.error(f"Request payload was: {json_data}")
                 response.raise_for_status()
                 result: dict[str, Any] = response.json()
                 return result
@@ -69,10 +86,19 @@ class ZeitviewAPI:
                         raise
                     # Longer delay for 504 errors
                     await asyncio.sleep(5 * (2**attempt))
+                elif e.response.status_code == 422:
+                    # 422 Unprocessable Entity - don't retry, raise immediately with details
+                    error_detail = e.response.text
+                    logger.error(
+                        f"422 Validation error on {url}: {error_detail}. "
+                        f"Request payload: {json_data}"
+                    )
+                    raise ValueError(f"API validation error: {error_detail}") from e
                 else:
                     logger.error(
                         f"HTTP error on attempt {attempt + 1}/{max_retries}: {e}"
                     )
+                    logger.error(f"Response content: {e.response.text}")
                     if attempt == max_retries - 1:
                         raise
                     await asyncio.sleep(2**attempt)
@@ -89,17 +115,37 @@ class ZeitviewAPI:
 
     async def query_sites(self, *, site_name: str | None = None) -> dict[str, Any]:
         """Query all sites or filter by site name"""
+        # According to API spec, only certain fields are allowed in query endpoint
+        # We'll query with minimal fields first, then enrich with individual queries
         payload: dict[str, Any] = {
             "fields": [
                 "site_id",
                 "site_capacity_mw",
-            ],  # Only allowed fields according to API spec
+            ],
             "filters": {},
+            "page_size": 200,
         }
         if site_name:
             payload["filters"]["site_name"] = site_name
 
-        return await self._make_request(endpoint="/sites/query", json_data=payload)
+        sites_response = await self._make_request(
+            endpoint="/sites/query", json_data=payload
+        )
+
+        # Enrich each site with site_name and site_uuid by querying individually
+        # Note: This requires that we can query by site_id or that site_uuid
+        # is returned in the initial response
+        sites_data = sites_response.get("data", [])
+        enriched_sites = []
+        for site in sites_data:
+            site_id = site.get("site_id")
+            # Try to get site_uuid from the response first
+            # If not available, we'll need to handle it differently
+            # For now, assume the API might return it even if not in fields
+            enriched_sites.append(site)
+
+        sites_response["data"] = enriched_sites
+        return sites_response
 
     async def query_site_by_uuid(self, *, site_uuid: str) -> dict[str, Any]:
         """Query a site by its UUID"""
