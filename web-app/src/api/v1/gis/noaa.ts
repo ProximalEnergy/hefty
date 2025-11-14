@@ -31,6 +31,7 @@ const getSPCForecastPolygons = async (
     outFields: 'dn',
     returnGeometry: 'true',
     geometryPrecision: '3',
+    outSR: 4326, // Request WGS84 coordinates (lat/lon) instead of Web Mercator
     f: 'json',
   }
 
