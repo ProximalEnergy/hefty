@@ -836,6 +836,7 @@ class Project(Base):
         Enum(
             enumerations.ProjectDataInterval,
             values_callable=lambda obj: [e.value for e in obj],
+            native_enum=False,
         ),
         nullable=False,
     )

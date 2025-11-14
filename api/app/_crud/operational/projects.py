@@ -4,7 +4,7 @@ from datetime import timedelta
 import httpx
 import sqlalchemy as sa
 from core.database import Base
-from core.enumerations import ProjectStatusType
+from core.enumerations import ProjectDataInterval, ProjectStatusType
 from core.models import Project as DBProject
 from fastapi import HTTPException
 from shapely.geometry import Point
@@ -236,7 +236,7 @@ async def create_project(
                 " ", "_"
             ),  # Generate short name from long name (lowercase with underscores)
             "data_table": "data_timeseries",
-            "data_interval": "mqtt",
+            "data_interval": ProjectDataInterval.MQTT,
         }
     )
 
