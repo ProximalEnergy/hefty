@@ -47,7 +47,7 @@ jobs:
 
       - name: Run star_syntax_check script
         run: |
-          python ./_pr_checks/star_syntax_check.py
+          python ../_scripts/star_syntax_check.py --directory app
         working-directory: api
 
   mypy:

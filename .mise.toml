@@ -141,7 +141,7 @@ run = "uv run --dev ruff format core/src/"
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
 dir = "core"
-run = "uv run _pr_checks/star_syntax_check.py"
+run = "uv run ../_scripts/star_syntax_check.py --directory src"
 
 [tasks."core:pytest"]
 description = "Run pytest for core"
@@ -274,7 +274,7 @@ run = "uv run pytest"
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
 dir = "api"
-run = "uv run -m _pr_checks.star_syntax_check"
+run = "uv run ../_scripts/star_syntax_check.py --directory app"
 
 [tasks."api:hurl"]
 description = "Run hurl smoke tests for api"

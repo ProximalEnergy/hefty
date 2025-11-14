@@ -28,14 +28,19 @@ class MapDataProvider(ABC):
 
     async def get_data(
         self,
+        *,
         data_type: MapDataType,
         time_span: datetime.timedelta | None,
     ) -> MapData | None:
         """Get map data for the given data type"""
-        return await self._get_data(data_type, time_span)
+        return await self._get_data(
+            data_type=data_type,
+            time_span=time_span,
+        )
 
     async def _get_data(
         self,
+        *,
         data_type: MapDataType,
         time_span: datetime.timedelta | None,
     ) -> MapData | None:

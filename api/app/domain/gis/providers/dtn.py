@@ -16,6 +16,7 @@ class DTN(
 
     async def _get_data(
         self,
+        *,
         data_type: MapDataType,
         time_span: timedelta | None = None,
     ):

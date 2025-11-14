@@ -54,6 +54,7 @@ class TimeFrame(StrEnum):
 
 
 async def get_portfolio_home_short_term(
+    *,
     project_ids: list[UUID],
     db: AsyncSession,
 ) -> list[PortfolioHomeShortTerm]:
@@ -269,6 +270,7 @@ async def get_portfolio_home_short_term(
 
 
 async def get_portfolio_home_long_term(
+    *,
     project_ids: list[UUID],
     db: AsyncSession,
 ) -> list[PortfolioHomeLongTerm]:
@@ -392,7 +394,10 @@ async def get_home(
         project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
 
     if time.value == TimeFrame.H24.value:
-        short_term_data = await get_portfolio_home_short_term(project_ids, db)
+        short_term_data = await get_portfolio_home_short_term(
+            project_ids=project_ids,
+            db=db,
+        )
         # Convert short-term data to PortfolioHome format
         return_data = [
             PortfolioHome(
@@ -415,7 +420,10 @@ async def get_home(
             for item in short_term_data
         ]
     else:
-        long_term_data = await get_portfolio_home_long_term(project_ids, db)
+        long_term_data = await get_portfolio_home_long_term(
+            project_ids=project_ids,
+            db=db,
+        )
         # Convert long-term data to PortfolioHome format
         return_data = [
             PortfolioHome(
