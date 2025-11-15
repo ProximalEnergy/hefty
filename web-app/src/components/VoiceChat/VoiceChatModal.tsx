@@ -29,7 +29,7 @@ import {
   IconVolume,
   IconVolumeOff,
 } from '@tabler/icons-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 
 interface ContractData {
@@ -143,18 +143,6 @@ const VoiceChatModal = ({
       return newSet
     })
   }
-
-  useEffect(() => {
-    if (opened && !session) {
-      // Simulate document gathering time
-      const timer = setTimeout(() => {
-        setIsGatheringDocument(false)
-        initializeVoiceChat()
-      }, 2000) // 2 second delay
-
-      return () => clearTimeout(timer)
-    }
-  }, [opened])
 
   const isContractSearchResultArray = (
     value: unknown,
@@ -379,7 +367,7 @@ const VoiceChatModal = ({
     }
   }, [transcript])
 
-  const initializeVoiceChat = async () => {
+  const initializeVoiceChat = useCallback(async () => {
     try {
       // Dynamically import the OpenAI Agents SDK
       const { RealtimeAgent, RealtimeSession } = await import(
@@ -466,9 +454,21 @@ const VoiceChatModal = ({
       console.error('Failed to initialize voice chat:', err)
       setError('Failed to initialize voice chat. Please try again.')
     }
-  }
+  }, [contractData, user, ensureVectorStore, searchContractTool])
 
-  const connectToSession = async () => {
+  useEffect(() => {
+    if (opened && !session) {
+      // Simulate document gathering time
+      const timer = setTimeout(() => {
+        setIsGatheringDocument(false)
+        initializeVoiceChat()
+      }, 2000) // 2 second delay
+
+      return () => clearTimeout(timer)
+    }
+  }, [opened, session, initializeVoiceChat])
+
+  const connectToSession = useCallback(async () => {
     if (!session) return
 
     try {
@@ -506,7 +506,7 @@ const VoiceChatModal = ({
         'Failed to connect to voice chat. Please check your connection and try again.',
       )
     }
-  }
+  }, [session, createVoiceChatSession, isListening])
 
   // Auto-connect when session is ready
   useEffect(() => {
@@ -519,9 +519,16 @@ const VoiceChatModal = ({
     ) {
       connectToSession()
     }
-  }, [session, isGatheringDocument, isConnected, isCalling, isDisconnected])
+  }, [
+    session,
+    isGatheringDocument,
+    isConnected,
+    isCalling,
+    isDisconnected,
+    connectToSession,
+  ])
 
-  const disconnectFromSession = async () => {
+  const disconnectFromSession = useCallback(async () => {
     if (!session) return
 
     try {
@@ -564,7 +571,7 @@ const VoiceChatModal = ({
       tokenCacheRef.current = null // Clear token cache
       // Don't clear the session - keep it for reconnection
     }
-  }
+  }, [session])
 
   const toggleListening = () => {
     if (!isConnected || !session) return
@@ -627,7 +634,7 @@ const VoiceChatModal = ({
         disconnectFromSession()
       }
     }
-  }, [])
+  }, [session, disconnectFromSession])
 
   return (
     <>

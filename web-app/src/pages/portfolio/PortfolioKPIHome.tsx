@@ -209,7 +209,7 @@ const PortfolioKPIHome = () => {
 
   const { pivotedData, kpiTypeIds } = useMemo(() => {
     return pivotKpiData(kpiData?.data ?? [], projects?.data ?? [])
-  }, [kpiData?.data, projects?.data])
+  }, [kpiData.data, projects.data])
 
   const topLevelColumns = useMemo(() => {
     const projectColumn = {

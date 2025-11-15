@@ -163,28 +163,31 @@ export function PCSGISMap({
     },
   })
 
-  const onHover = useCallback((event: MapMouseEvent) => {
-    const {
-      features,
-      point: { x, y },
-    } = event
+  const onHover = useCallback(
+    (event: MapMouseEvent) => {
+      const {
+        features,
+        point: { x, y },
+      } = event
 
-    const hoveredFeature = features && features[0]
+      const hoveredFeature = features && features[0]
 
-    if (hoveredFeature) {
-      setHoverInfo({
-        feature: hoveredFeature,
-        x,
-        y,
-      })
-    } else {
-      setHoverInfo({
-        feature: null,
-        x: 0,
-        y: 0,
-      })
-    }
-  }, [])
+      if (hoveredFeature) {
+        setHoverInfo({
+          feature: hoveredFeature,
+          x,
+          y,
+        })
+      } else {
+        setHoverInfo({
+          feature: null,
+          x: 0,
+          y: 0,
+        })
+      }
+    },
+    [setHoverInfo],
+  )
 
   if (!context) {
     throw new Error('GISContext is not provided')

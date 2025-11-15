@@ -531,13 +531,19 @@ const KPICards = () => {
     },
   })
 
+  // Update queryDate when we detect today has no data (defer to avoid cascading renders)
   useEffect(() => {
+    const today = dayjs().format('YYYY-MM-DD')
     if (
       data.isSuccess &&
+      data.data &&
       data.data.length === 0 &&
-      queryDate === dayjs().format('YYYY-MM-DD')
+      queryDate === today
     ) {
-      setQueryDate(dayjs().subtract(1, 'day').format('YYYY-MM-DD'))
+      // Defer state update to avoid cascading renders
+      queueMicrotask(() => {
+        setQueryDate(dayjs().subtract(1, 'day').format('YYYY-MM-DD'))
+      })
     }
   }, [data.isSuccess, data.data, queryDate])
 
@@ -549,9 +555,14 @@ const KPICards = () => {
 
   const items = filteredData?.map((kpi) => kpi)
 
+  // Derive rotation offset: reset to 0 when content fits in container
+  const effectiveRotationOffset = contentIsGreaterThanContainer
+    ? rotationOffset
+    : 0
+
   const rotatedItems = items
-    ?.slice(rotationOffset)
-    .concat(items?.slice(0, rotationOffset))
+    ?.slice(effectiveRotationOffset)
+    .concat(items?.slice(0, effectiveRotationOffset))
 
   // Rotate items every second when content is greater than container and not hovered
   useEffect(() => {
@@ -566,12 +577,15 @@ const KPICards = () => {
     }
   }, [contentIsGreaterThanContainer, items?.length, isHovered])
 
-  // Reset rotation offset when content is no longer greater than container
+  // Reset rotation offset state when content is no longer greater than container
   useEffect(() => {
-    if (!contentIsGreaterThanContainer) {
-      setRotationOffset(0)
+    if (!contentIsGreaterThanContainer && rotationOffset !== 0) {
+      // Defer state update to avoid cascading renders
+      queueMicrotask(() => {
+        setRotationOffset(0)
+      })
     }
-  }, [contentIsGreaterThanContainer])
+  }, [contentIsGreaterThanContainer, rotationOffset])
 
   if (
     project.isLoading ||
@@ -1186,7 +1200,7 @@ const BatteryHealth = () => {
   }, [
     theme,
     dailyKpiData.data,
-    project.data?.cod,
+    project.data,
     showCycleData,
     dailyCycleData.data,
     showSocData,

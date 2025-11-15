@@ -193,7 +193,7 @@ export function ChatCard({
     return () => {
       ws.current?.close()
     }
-  }, [])
+  }, [setMessages])
 
   useEffect(() => {
     if (viewportRef.current) {

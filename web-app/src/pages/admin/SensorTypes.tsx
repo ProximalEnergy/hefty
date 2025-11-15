@@ -28,7 +28,7 @@ import {
   MantineReactTable,
   useMantineReactTable,
 } from 'mantine-react-table'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 const SensorTypes = () => {
   const [isModalOpen, { open, close }] = useDisclosure(false)
@@ -82,18 +82,21 @@ const SensorTypes = () => {
     },
   })
 
-  const handleEdit = (sensorType: SensorType) => {
-    setEditingSensorType(sensorType)
-    form.setValues({
-      device_type_id: sensorType.device_type_id.toString(),
-      name_short: sensorType.name_short,
-      name_long: sensorType.name_long,
-      name_metric: sensorType.name_metric,
-      unit: sensorType.unit || '',
-      description: sensorType.description || '',
-    })
-    open()
-  }
+  const handleEdit = useCallback(
+    (sensorType: SensorType) => {
+      setEditingSensorType(sensorType)
+      form.setValues({
+        device_type_id: sensorType.device_type_id.toString(),
+        name_short: sensorType.name_short,
+        name_long: sensorType.name_long,
+        name_metric: sensorType.name_metric,
+        unit: sensorType.unit || '',
+        description: sensorType.description || '',
+      })
+      open()
+    },
+    [form, open],
+  )
 
   const handleAdd = () => {
     setEditingSensorType(null)
@@ -243,7 +246,7 @@ const SensorTypes = () => {
         enableGlobalFilter: false,
       },
     ],
-    [handleEdit],
+    [handleEdit, deviceTypes.data],
   )
 
   const table = useMantineReactTable({

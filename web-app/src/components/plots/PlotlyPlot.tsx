@@ -306,7 +306,7 @@ const PlotlyPlot = ({
       doubleClick: false,
       showTips: false,
     }),
-    [allowPinning, theme],
+    [allowPinning],
   )
 
   if (colorscale && processedData.length > 0) {

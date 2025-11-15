@@ -362,10 +362,21 @@ function AdaptiveGisBESS() {
   // Track when map and container are available for resize observer setup
   const [mapReady, setMapReady] = useState(false)
 
-  // Reset initial fit ref and map ready state when projectId changes
+  // Reset initial fit ref when projectId changes
   useEffect(() => {
     initialFitDoneRef.current = false
-    setMapReady(false)
+  }, [projectId])
+
+  // Reset map ready state when projectId changes (using a ref to avoid cascading renders)
+  const prevProjectIdRef = useRef(projectId)
+  useEffect(() => {
+    if (prevProjectIdRef.current !== projectId) {
+      prevProjectIdRef.current = projectId
+      // Use setTimeout to defer state update and avoid cascading renders
+      setTimeout(() => {
+        setMapReady(false)
+      }, 0)
+    }
   }, [projectId])
 
   // Animate a heartbeat pulse (0..1). Throttled to 15 FPS to reduce Mapbox repaints.
