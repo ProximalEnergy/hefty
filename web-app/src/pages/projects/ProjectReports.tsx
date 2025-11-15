@@ -1,9 +1,12 @@
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import RequiresUserType from '@/components/admin/RequiresUserType'
+import { ReportInstancesConfigModal } from '@/components/modals/ReportInstancesConfigModal'
 import { useGetProjectReportInstances } from '@/hooks/api'
 import { ReportInstance } from '@/hooks/types'
 import {
+  Button,
   Divider,
   Group,
   Paper,
@@ -20,7 +23,9 @@ import {
   IconFileTypeCsv,
   IconFileTypePdf,
   IconFileTypeXls,
+  IconSettings,
 } from '@tabler/icons-react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import styles from './ProjectReports.module.css'
@@ -82,6 +87,7 @@ const REPORT_CONFIG: {
 const Page = () => {
   // Get the project ID from the URL
   const { projectId } = useParams<{ projectId: string }>()
+  const [configModalOpened, setConfigModalOpened] = useState(false)
 
   // Get report instances for the project
   const reportInstances = useGetProjectReportInstances({
@@ -97,9 +103,19 @@ const Page = () => {
 
   return (
     <Stack p="md" h="100%">
-      <PageTitle info="This page provides access to various project reports. Click on a report to view more details.">
-        Reports
-      </PageTitle>
+      <Group justify="space-between" align="center">
+        <PageTitle info="This page provides access to various project reports. Click on a report to view more details.">
+          Reports
+        </PageTitle>
+        <RequiresUserType requiredUserType="superadmin" silent>
+          <Button
+            leftSection={<IconSettings size={16} />}
+            onClick={() => setConfigModalOpened(true)}
+          >
+            Configure Reports
+          </Button>
+        </RequiresUserType>
+      </Group>
 
       {reportInstances.data?.length === 0 ? (
         // If no reports are available, show a message
@@ -120,6 +136,12 @@ const Page = () => {
             ))}
         </SimpleGrid>
       )}
+
+      <ReportInstancesConfigModal
+        opened={configModalOpened}
+        onClose={() => setConfigModalOpened(false)}
+        projectId={projectId || ''}
+      />
     </Stack>
   )
 }
