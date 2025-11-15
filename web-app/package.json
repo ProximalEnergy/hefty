@@ -31,7 +31,6 @@
     "@mantine/spotlight": "^7.17.1",
     "@mantine/tiptap": "^7.17.8",
     "@openai/agents-realtime": "^0.1.10",
-    "react-pdf": "^10.2.0",
     "@sentry/react": "10.20.0",
     "@sentry/vite-plugin": "4.4.0",
     "@tabler/icons-react": "^3.31.0",
@@ -62,6 +61,7 @@
     "react-dom": "19.1.1",
     "react-grid-layout": "^1.5.1",
     "react-map-gl": "8.1.0",
+    "react-pdf": "^10.2.0",
     "react-plotly.js": "^2.6.0",
     "react-resizable": "^3.0.5",
     "react-router": "^7.9.4",
@@ -98,7 +98,7 @@
     "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.9.2",
-    "vite": "7.1.7"
+    "vite": "^7.2.2"
   },
   "prettier": {
     "singleQuote": true,
