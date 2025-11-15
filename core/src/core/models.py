@@ -1305,6 +1305,9 @@ class Device(Base):
     device_type_id: Mapped[int] = mapped_column(
         sa.ForeignKey("operational.device_types.device_type_id"),
     )
+    device_model_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.device_models.device_model_id"),
+    )
     cec_pv_inverter_id: Mapped[int | None] = mapped_column(
         sa.ForeignKey("operational.cec_pv_inverters.cec_pv_inverter_id"),
     )
