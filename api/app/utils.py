@@ -145,7 +145,10 @@ def timedelta_to_postgres_interval(*, timedelta: pd.Timedelta) -> str:
 
 def parse_db_data_to_df(*, db_data):
     if len(db_data) == 0:
-        raise HTTPException(status_code=404, detail="No data found")
+        # Return an empty DataFrame with the expected columns so callers can
+        # continue gracefully. Previously this function raised a 404, but we
+        # now return an empty payload instead of surfacing an error.
+        return pd.DataFrame(columns=["time", "tag_id", "value"])
 
     # Parse database records into DataFrame
     try:

@@ -40,10 +40,7 @@ def get_project_data(
     )
 
     if len(data) == 0:
-        raise HTTPException(
-            status_code=404,
-            detail="No data found",
-        )
+        return []
 
     df = pd.DataFrame.from_records([d.__dict__ for d in data])
     df["value"] = df.filter(regex="value_").stack().reset_index(level=1, drop=True)
