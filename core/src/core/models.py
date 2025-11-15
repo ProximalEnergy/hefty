@@ -822,7 +822,7 @@ class Project(Base):
     __tablename__ = "projects"
 
     project_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    project_type_id: Mapped[int] = mapped_column(
+    project_type_id: Mapped[enumerations.ProjectType] = mapped_column(
         sa.ForeignKey("operational.project_types.project_type_id"),
     )
     project_status_type_id: Mapped[enumerations.ProjectStatusType] = mapped_column(
@@ -1155,7 +1155,7 @@ class ProjectDataLastUpdated(Base):
 class ProjectType(Base):
     __tablename__ = "project_types"
 
-    project_type_id: Mapped[int] = mapped_column(
+    project_type_id: Mapped[enumerations.ProjectType] = mapped_column(
         sa.SmallInteger,
         primary_key=True,
         autoincrement=False,
