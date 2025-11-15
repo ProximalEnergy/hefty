@@ -223,6 +223,7 @@ class UserSubscription(Base):
     )
     notifications: Mapped[bool] = mapped_column(server_default="false")
     reports: Mapped[bool] = mapped_column(server_default="false")
+    event_chat_notifications: Mapped[bool] = mapped_column(server_default="true")
 
     __table_args__ = {"schema": "admin"}
 
@@ -1596,6 +1597,115 @@ class EventLoss2(Base):
 
     sa.Index("ix_event_id_time_desc_2", event_id, time.desc())
     sa.Index("event_losses_2_time_idx", time.desc())
+
+
+class EventMessage(Base):
+    __tablename__ = "event_messages"
+
+    event_message_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    event_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.events.event_id", ondelete="CASCADE")
+    )
+    user_id: Mapped[str] = mapped_column(sa.ForeignKey("admin.users.user_id"))
+    body: Mapped[str] = mapped_column(sa.Text)
+    mentions: Mapped[str | None]
+    parent_message_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("project.event_messages.event_message_id", ondelete="CASCADE")
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
+    edited_at: Mapped[datetime.datetime | None] = mapped_column(
+        sa.DateTime(timezone=True)
+    )
+    deleted_at: Mapped[datetime.datetime | None] = mapped_column(
+        sa.DateTime(timezone=True)
+    )
+    image_s3_keys: Mapped[str | None]
+    private: Mapped[bool] = mapped_column(
+        sa.Boolean(), server_default="false", nullable=False
+    )
+
+    event = relationship("Event")
+    user = relationship("User")
+    parent_message = relationship(
+        "EventMessage", remote_side="EventMessage.event_message_id"
+    )
+    images = relationship("EventMessageImage", back_populates="event_message")
+    reactions = relationship("EventMessageReaction", back_populates="event_message")
+
+    sa.Index(
+        "event_messages_event_id_created_at_idx",
+        event_id,
+        created_at.desc(),
+    )
+    sa.Index("event_messages_parent_message_id_idx", parent_message_id)
+
+
+class EventMessageImage(Base):
+    __tablename__ = "event_message_images"
+
+    event_message_image_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    event_message_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.event_messages.event_message_id", ondelete="CASCADE")
+    )
+    event_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.events.event_id", ondelete="CASCADE")
+    )
+    s3_key: Mapped[str]
+    filename: Mapped[str]
+    content_type: Mapped[str]
+    file_size: Mapped[int]
+    created_at: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
+
+    event_message = relationship("EventMessage", back_populates="images")
+    event = relationship("Event")
+
+    sa.Index("event_message_images_event_message_id_idx", event_message_id)
+    sa.Index("event_message_images_event_id_idx", event_id)
+
+
+class EventMessageReaction(Base):
+    __tablename__ = "event_message_reactions"
+
+    reaction_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    event_message_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.event_messages.event_message_id", ondelete="CASCADE")
+    )
+    user_id: Mapped[str] = mapped_column(sa.ForeignKey("admin.users.user_id"))
+    reaction_type: Mapped[enumerations.ReactionType] = mapped_column(
+        Enum(enumerations.ReactionType)
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
+
+    event_message = relationship("EventMessage", back_populates="reactions")
+    user = relationship("User")
+
+    sa.Index("event_message_reactions_event_message_id_idx", event_message_id)
+    sa.UniqueConstraint(
+        "event_message_id",
+        "user_id",
+        "reaction_type",
+        name="uq_event_message_reactions_message_user_type",
+    )
+
+
+class EventChatMute(Base):
+    __tablename__ = "event_chat_mutes"
+
+    event_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.events.event_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id"), primary_key=True
+    )
+    muted_at: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
+
+    event = relationship("Event")
+    user = relationship("User")
+
+    sa.Index("event_chat_mutes_user_id_idx", user_id)
 
 
 class Report(Base):

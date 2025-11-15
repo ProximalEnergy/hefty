@@ -458,3 +458,12 @@ class ProjectDataInterval(StrEnum):
 class PVBudgetedSoilingMode(StrEnum):
     FIXED = "fixed"
     PER_TIMESTAMP = "per_timestamp"
+
+
+class ReactionType(StrEnum):
+    THUMBS_UP = "thumbs_up"
+    THUMBS_DOWN = "thumbs_down"
+    FIRE = "fire"
+    EYES = "eyes"
+    QUESTION_MARK = "question_mark"
+    HEART = "heart"
