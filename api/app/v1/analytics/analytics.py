@@ -2250,6 +2250,7 @@ async def dc_amperage_report_v2(
 
     # Main logic
     async def process_files(
+        *,
         excel_buffer,
         poa_buffer,
         cb_buffer,

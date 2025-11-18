@@ -34,6 +34,12 @@ export interface DroneInspection {
   report_summary?: string
 }
 
+export interface ProviderSite {
+  site_name: string | null
+  site_uuid: string
+  site_id: number | null
+}
+
 export interface DroneAnomaly {
   anomaly_uuid: string
   inspection_uuid: string
@@ -200,6 +206,31 @@ export const useUpdateDroneIntegration = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getDroneIntegrations'] })
+    },
+  })
+}
+
+export const useQueryProviderSites = () => {
+  const { getToken } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({
+      api_key,
+      provider_id,
+    }: {
+      api_key: string
+      provider_id: number
+    }) => {
+      const token = await getToken({ template: 'default' })
+      const response = await axios({
+        method: 'post',
+        url: `${baseURL}/v1/operational/drone-integrations/query-provider-sites`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { api_key, provider_id },
+      })
+      return response.data as ProviderSite[]
     },
   })
 }

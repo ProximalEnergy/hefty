@@ -14,7 +14,7 @@ repos:
       - id: star-syntax-check
         name: Star Syntax Check
         description: Ensures functions have keyword-only arguments unless decorated with @router
-        entry: _pr_checks/star_syntax_check.py
+        entry: ../_scripts/star_syntax_check.py
         language: script
         types: [python]
         pass_filenames: true

@@ -403,7 +403,7 @@ function CreateProject() {
                     form.values.project_type === 'pv+s') && (
                     <Group grow>
                       <NumberInput
-                        label="Battery Capacity DC (MW)"
+                        label="Battery Capacity DC (MWh)"
                         description="Enter the nameplate DC capacity of the battery system"
                         placeholder="Enter battery DC capacity"
                         min={0}

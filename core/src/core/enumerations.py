@@ -125,6 +125,16 @@ class ProjectStatusType(BaseIntEnum):
     ARCHIVED = 3
 
 
+class ProjectType(BaseIntEnum):
+    _db_table = nonmember("operational.project_types")  # type: ignore[misc,assignment]
+    _db_id_column = nonmember("project_type_id")  # type: ignore[misc,assignment]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+
+    PV = 1
+    BESS = 2
+    PVS = 3
+
+
 class UserTypeEnum(BaseIntEnum):
     _db_table = nonmember("admin.user_types")  # type: ignore[misc,assignment]
     _db_id_column = nonmember("user_type_id")  # type: ignore[misc,assignment]
@@ -448,3 +458,12 @@ class ProjectDataInterval(StrEnum):
 class PVBudgetedSoilingMode(StrEnum):
     FIXED = "fixed"
     PER_TIMESTAMP = "per_timestamp"
+
+
+class ReactionType(StrEnum):
+    THUMBS_UP = "thumbs_up"
+    THUMBS_DOWN = "thumbs_down"
+    FIRE = "fire"
+    EYES = "eyes"
+    QUESTION_MARK = "question_mark"
+    HEART = "heart"

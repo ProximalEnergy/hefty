@@ -2,8 +2,11 @@ import datetime
 from typing import Any
 
 import pandas as pd
+from core.dependencies import get_db_session_async
+from core.enumerations import TimeInterval, TimeOffset
 from fastapi import HTTPException
 from natsort import natsorted
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -11,7 +14,124 @@ from app import utils
 from core import models
 
 
-def get_equipment_analysis_pcs_data(
+def _normalize_timestamp(
+    *,
+    project: models.Project,
+    value: datetime.datetime | pd.Timestamp | None,
+    default_to_start_of_day: bool,
+) -> pd.Timestamp:
+    if value is None:
+        if default_to_start_of_day:
+            normalized = pd.Timestamp.now(tz=project.time_zone).floor("D")
+        else:
+            normalized = pd.Timestamp.now(tz=project.time_zone).ceil("5min")
+    else:
+        normalized = pd.Timestamp(value)
+        if normalized.tzinfo is None:
+            normalized = normalized.tz_localize(project.time_zone)
+        else:
+            normalized = normalized.tz_convert(project.time_zone)
+
+    return normalized
+
+
+async def _fetch_timeseries_dataframe(
+    *,
+    project_db: Session,
+    project: models.Project,
+    tags: list[models.Tag],
+    start: datetime.datetime,
+    end: datetime.datetime,
+    operational_db: AsyncSession,
+) -> pd.DataFrame:
+    if len(tags) == 0:
+        return pd.DataFrame()
+
+    data_timeseries = await core.crud.project.data_timeseries.DataTimeseries.get(
+        project_name_short=project.name_short,
+        tag_ids=[tag.tag_id for tag in tags],
+        query_start=start,
+        query_end=end,
+        agg_interval=TimeInterval.FIVE_MINUTES,
+        max_lookback_period=TimeOffset.FIVE_MINUTES,
+        ensure_full_range=True,
+        project_db=project_db,
+        operational_db=operational_db,
+        return_arrow=False,
+    )
+
+    df_polars = data_timeseries.df
+    if df_polars.height == 0:
+        return pd.DataFrame()
+
+    df = df_polars.to_pandas()
+    time_col = "time" if "time" in df.columns else "time_bucket"
+    if time_col not in df.columns:
+        return pd.DataFrame()
+
+    df = df.set_index(time_col, drop=True)
+    remaining_time_cols = {
+        column for column in ("time", "time_bucket") if column in df.columns
+    }
+    if remaining_time_cols:
+        df = df.drop(columns=list(remaining_time_cols))
+
+    if len(df.index) == 0:
+        df.index = pd.DatetimeIndex([], tz=project.time_zone)
+    else:
+        datetime_index = pd.DatetimeIndex(df.index)
+        if datetime_index.tz is None:
+            datetime_index = datetime_index.tz_localize(project.time_zone)
+        else:
+            datetime_index = datetime_index.tz_convert(project.time_zone)
+        df.index = datetime_index
+
+    df = df.sort_index()
+    df.columns = df.columns.astype(int)
+
+    return df
+
+
+async def _get_equipment_analysis_frames_async(
+    *,
+    project_db: Session,
+    project: models.Project,
+    block_tags: list[models.Tag],
+    pcs_tags: list[models.Tag],
+    pcs_module_tags: list[models.Tag],
+    start: datetime.datetime,
+    end: datetime.datetime,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    async with get_db_session_async(schema=None) as operational_db:
+        df_block = await _fetch_timeseries_dataframe(
+            project_db=project_db,
+            project=project,
+            tags=block_tags,
+            start=start,
+            end=end,
+            operational_db=operational_db,
+        )
+        df_pcs = await _fetch_timeseries_dataframe(
+            project_db=project_db,
+            project=project,
+            tags=pcs_tags,
+            start=start,
+            end=end,
+            operational_db=operational_db,
+        )
+        df_pcs_module = await _fetch_timeseries_dataframe(
+            project_db=project_db,
+            project=project,
+            tags=pcs_module_tags,
+            start=start,
+            end=end,
+            operational_db=operational_db,
+        )
+
+    return df_block, df_pcs, df_pcs_module
+
+
+async def get_equipment_analysis_pcs_data(
     *,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
@@ -30,14 +150,25 @@ def get_equipment_analysis_pcs_data(
     Returns:
         Dictionary containing equipment analysis data
     """
-    if end is not None and end > pd.Timestamp.utcnow():
-        end = pd.Timestamp.utcnow().floor("5min")
+    live = start is None and end is None
 
-    live = False
-    if not start and not end:
-        live = True
-        end = pd.Timestamp.utcnow().floor("5min")
-        start = end - pd.Timedelta(minutes=30)
+    if live:
+        end_ts = pd.Timestamp.now(tz=project.time_zone).floor("5min")
+        start_ts = end_ts - pd.Timedelta(minutes=30)
+    else:
+        start_ts = _normalize_timestamp(
+            project=project,
+            value=start,
+            default_to_start_of_day=True,
+        )
+        end_ts = _normalize_timestamp(
+            project=project,
+            value=end,
+            default_to_start_of_day=False,
+        )
+        now_project = pd.Timestamp.now(tz=project.time_zone).floor("5min")
+        if end_ts > now_project:
+            end_ts = now_project
 
     # BLOCKs
     # Get block devices
@@ -109,27 +240,26 @@ def get_equipment_analysis_pcs_data(
     # Check if there are any PCS module tags
     has_pcs_module_tags = len(tags_pcs_module) > 0
 
-    # Initialize DataFrames
-    df_block = pd.DataFrame()
-    df_pcs = pd.DataFrame()
-    df_pcs_module = pd.DataFrame()
+    (
+        df_block,
+        df_pcs,
+        df_pcs_module,
+    ) = await _get_equipment_analysis_frames_async(
+        project_db=project_db,
+        project=project,
+        block_tags=tags_block if has_block_tags else [],
+        pcs_tags=tags_pcs if has_pcs_tags else [],
+        pcs_module_tags=tags_pcs_module if has_pcs_module_tags else [],
+        start=start_ts.to_pydatetime(),
+        end=end_ts.to_pydatetime(),
+    )
 
-    # Get data for block tags
     if has_block_tags:
-        df_block = utils.data_df(
-            project_db,
-            project,
-            tags_block,
-            start=start,
-            end=end,
-            fillna_zero=False,
-        )
         if live:
             df_block = df_block.dropna(how="all")
             if df_block.empty:
                 raise HTTPException(status_code=404, detail="No data found")
-            else:
-                df_block = df_block.tail(1)
+            df_block = df_block.tail(1)
 
         df_block.columns = pd.Index(
             [
@@ -142,22 +272,12 @@ def get_equipment_analysis_pcs_data(
     else:
         df_block = pd.DataFrame()
 
-    # Get data for PCS tags
     if has_pcs_tags:
-        df_pcs = utils.data_df(
-            project_db,
-            project,
-            tags_pcs,
-            start=start,
-            end=end,
-            fillna_zero=False,
-        )
         if live:
             df_pcs = df_pcs.dropna(how="all")
             if df_pcs.empty:
                 raise HTTPException(status_code=404, detail="No data found")
-            else:
-                df_pcs = df_pcs.tail(1)
+            df_pcs = df_pcs.tail(1)
 
         df_pcs.columns = pd.Index(
             [
@@ -170,22 +290,12 @@ def get_equipment_analysis_pcs_data(
     else:
         df_pcs = pd.DataFrame()
 
-    # Get data for PCS module tags
     if has_pcs_module_tags:
-        df_pcs_module = utils.data_df(
-            project_db,
-            project,
-            tags_pcs_module,
-            start=start,
-            end=end,
-            fillna_zero=False,
-        )
         if live:
             df_pcs_module = df_pcs_module.dropna(how="all")
             if df_pcs_module.empty:
                 raise HTTPException(status_code=404, detail="No data found")
-            else:
-                df_pcs_module = df_pcs_module.tail(1)
+            df_pcs_module = df_pcs_module.tail(1)
 
         df_pcs_module.columns = pd.Index(
             [
@@ -211,7 +321,8 @@ def get_equipment_analysis_pcs_data(
             ],
             axis=1,
         )
-        df_block.columns = pd.Index(list(block_device_id_to_pcs_device_ids.keys()))  # type: ignore
+        block_ids = list(block_device_id_to_pcs_device_ids.keys())
+        df_block.columns = pd.Index(block_ids)  # type: ignore
         df_block = df_block.fillna(0)
 
     return_data: dict[str, Any] = dict()
@@ -397,6 +508,7 @@ def get_equipment_analysis_pcs_data(
         "total_nameplate": total_nameplate,
     }
 
-    return_data["timestamps"] = df_pcs.index.tz_convert(project.time_zone).tolist()  # type: ignore
+    timestamps_index = df_pcs.index.tz_convert(project.time_zone)  # type: ignore
+    return_data["timestamps"] = timestamps_index.tolist()
 
     return return_data

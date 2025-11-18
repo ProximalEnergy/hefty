@@ -8,7 +8,7 @@ import {
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
-import { IconAlertTriangle } from '@tabler/icons-react'
+import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
 import chroma from 'chroma-js'
 import { merge } from 'lodash'
@@ -36,6 +36,110 @@ const Plot = createPlotlyComponent(Plotly)
 
 type ErrorData = {
   detail: string
+}
+
+const hasArrayValues = (value: unknown): boolean => {
+  if (value == null) {
+    return false
+  }
+
+  if (typeof value === 'number' && Number.isNaN(value)) {
+    return false
+  }
+
+  if (typeof value === 'string') {
+    return value.trim().length > 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item) => hasArrayValues(item))
+  }
+
+  if (ArrayBuffer.isView(value)) {
+    return (value as ArrayBufferView).byteLength > 0
+  }
+
+  if (value instanceof Date) {
+    return true
+  }
+
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).some((item) =>
+      hasArrayValues(item),
+    )
+  }
+
+  return true
+}
+
+const traceHasData = (trace: Data): boolean => {
+  const record = trace as Record<string, unknown>
+  const type = typeof record.type === 'string' ? record.type : undefined
+
+  if ('y' in record && hasArrayValues(record['y'])) {
+    return true
+  }
+
+  if ('z' in record && hasArrayValues(record['z'])) {
+    return true
+  }
+
+  if ('values' in record && hasArrayValues(record['values'])) {
+    return true
+  }
+
+  if ('r' in record && hasArrayValues(record['r'])) {
+    return true
+  }
+
+  if (
+    'lat' in record &&
+    'lon' in record &&
+    hasArrayValues(record['lat']) &&
+    hasArrayValues(record['lon'])
+  ) {
+    return true
+  }
+
+  if (
+    ('open' in record && hasArrayValues(record['open'])) ||
+    ('high' in record && hasArrayValues(record['high'])) ||
+    ('low' in record && hasArrayValues(record['low'])) ||
+    ('close' in record && hasArrayValues(record['close']))
+  ) {
+    return true
+  }
+
+  if (type === 'indicator' && 'value' in record) {
+    return hasArrayValues(record['value'])
+  }
+
+  if (
+    'x' in record &&
+    !(
+      'y' in record ||
+      'z' in record ||
+      'values' in record ||
+      'r' in record ||
+      ('lat' in record && 'lon' in record)
+    ) &&
+    hasArrayValues(record['x'])
+  ) {
+    return true
+  }
+
+  if (
+    'cells' in record &&
+    typeof record['cells'] === 'object' &&
+    record['cells'] !== null &&
+    'values' in (record['cells'] as Record<string, unknown>)
+  ) {
+    return hasArrayValues(
+      (record['cells'] as Record<string, unknown>)['values'],
+    )
+  }
+
+  return false
 }
 
 type Annotation = Partial<Annotations> & {
@@ -202,7 +306,7 @@ const PlotlyPlot = ({
       doubleClick: false,
       showTips: false,
     }),
-    [allowPinning, theme],
+    [allowPinning],
   )
 
   if (colorscale && processedData.length > 0) {
@@ -513,6 +617,19 @@ const PlotlyPlot = ({
         <Stack align="center">
           <IconAlertTriangle size={48} />
           <Text>{error.response?.data.detail}</Text>
+        </Stack>
+      </Center>
+    )
+  }
+
+  const hasData = processedData.some((trace) => traceHasData(trace))
+
+  if (!hasData) {
+    return (
+      <Center h={'100%'} w={'100%'}>
+        <Stack align="center" gap="xs">
+          <IconInfoCircle size={48} />
+          <Text c="dimmed">No data available for the selected inputs.</Text>
         </Stack>
       </Center>
     )

@@ -24,6 +24,7 @@ from app.dependencies import (
     is_prod_origin,
     requires_superadmin_async,
 )
+from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
     DroneIntegration,
     DroneIntegrationCreate,
@@ -39,6 +40,19 @@ class DroneInspectionOrderRequest(BaseModel):
     project_id: uuid.UUID
     provider_email: str
     timing: str
+
+
+class QueryProviderSitesRequest(BaseModel):
+    api_key: str
+    provider_id: int
+
+    model_config = {"extra": "forbid"}
+
+
+class ProviderSite(BaseModel):
+    site_name: str | None = None
+    site_uuid: str
+    site_id: int | None = None
 
 
 @router.get("", response_model=list[DroneIntegration])
@@ -150,4 +164,62 @@ async def order_drone_inspection(
         logger.error(f"Error sending drone inspection order email: {e}")
         raise HTTPException(
             status_code=500, detail="Failed to send drone inspection order email"
+        )
+
+
+@router.post(
+    "/query-provider-sites",
+    response_model=list[ProviderSite],
+    dependencies=[Depends(requires_superadmin_async)],
+)
+async def query_provider_sites(
+    request: QueryProviderSitesRequest,
+):
+    """
+    Query sites from a drone provider using an API key.
+    Currently supports Zeitview (provider_id = 0).
+    """
+    logger.info(
+        f"Query provider sites request: provider_id={request.provider_id}, "
+        f"api_key_length={len(request.api_key) if request.api_key else 0}"
+    )
+
+    if not request.api_key:
+        raise HTTPException(status_code=400, detail="API key is required")
+
+    if request.provider_id != 0:  # Zeitview
+        logger.warning(
+            f"Unsupported provider_id {request.provider_id} requested. "
+            "Only provider_id=0 (Zeitview) is supported."
+        )
+        raise HTTPException(
+            status_code=400,
+            detail=f"Provider {request.provider_id} is not yet supported for site querying. Only provider_id=0 (Zeitview) is supported.",
+        )
+
+    try:
+        # Create a temporary ZeitviewAPI instance with the provided API key
+        zeitview_api = ZeitviewAPI.from_api_key(api_key=request.api_key)
+        sites_data = await zeitview_api.query_sites()
+
+        # Parse the response
+        sites = []
+        for site in sites_data.get("data", []):
+            sites.append(
+                ProviderSite(
+                    site_name=site.get("site_name"),
+                    site_uuid=site.get("site_uuid", ""),
+                    site_id=site.get("site_id"),
+                )
+            )
+
+        return sites
+    except ValueError as e:
+        # This catches errors from ZeitviewAPI init or API validation
+        logger.error(f"Validation error querying provider sites: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error querying provider sites: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to query provider sites: {str(e)}"
         )

@@ -125,13 +125,13 @@ def get_tracker_by_pv_block_id(
 
 
 @router.get("/pcs", response_class=ORJSONResponse)
-def get_equipment_analysis_pcs(
+async def get_equipment_analysis_pcs(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    return get_equipment_analysis_pcs_data(
+    return await get_equipment_analysis_pcs_data(
         start=start,
         end=end,
         project_db=project_db,

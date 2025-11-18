@@ -23,6 +23,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 class ThemeUpdateRequest(BaseModel):
     theme: str
+    vite_environment: str
 
 
 @router.get(
@@ -116,4 +117,8 @@ async def update_self_clerk_theme(
 ):
     """Update the current user's theme in Clerk."""
     user_id = user_data.user_id
-    return await update_clerk_user_theme(user_id=user_id, theme=request.theme)
+    return await update_clerk_user_theme(
+        user_id=user_id,
+        theme=request.theme,
+        vite_environment=request.vite_environment,
+    )

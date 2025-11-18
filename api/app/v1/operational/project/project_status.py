@@ -260,9 +260,7 @@ def get_status_time_series(
         index="time", as_datetime=True, tz=project.time_zone
     )
     if data_to_df.empty:
-        raise HTTPException(
-            status_code=404, detail="No data found for the given time range."
-        )
+        return []
     ## If necessary, convert hex strings to integers.
     str_interpret = data_to_df[~pd.isna(data_to_df["value_text"])]
     if not str_interpret.empty:
@@ -405,9 +403,7 @@ def get_status_time_series_python(
         index="time", as_datetime=True, tz=project.time_zone
     )
     if data_to_df.empty:
-        raise HTTPException(
-            status_code=404, detail="No data found for the given time range."
-        )
+        return []
     ## If necessary, convert hex strings to integers.
     str_interpret = data_to_df[~pd.isna(data_to_df["value_text"])]
     if not str_interpret.empty:

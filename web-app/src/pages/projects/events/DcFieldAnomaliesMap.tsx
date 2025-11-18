@@ -82,7 +82,7 @@ const DcFieldAnomaliesMap = ({
     )
 
     return { dcField, parentCombiner }
-  }, [devices, event?.device_id])
+  }, [devices, event])
 
   // Get all DC Combiners with polygons for map visualization
   const allCombiners = useMemo(() => {
@@ -234,7 +234,7 @@ const DcFieldAnomaliesMap = ({
       east: Math.max(...lngs),
       north: Math.max(...lats),
     }
-  }, [dcFieldInfo?.parentCombiner])
+  }, [dcFieldInfo])
 
   const [viewState, setViewState] = useState({
     longitude: 0,

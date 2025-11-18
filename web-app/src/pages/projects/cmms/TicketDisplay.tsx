@@ -45,7 +45,7 @@ const Page = () => {
       tickets.data.data.map((ticket) => ticket.status || ''),
     )
     return Array.from(statuses).filter(Boolean)
-  }, [tickets.data?.data])
+  }, [tickets.data])
 
   const sortedAndFilteredTickets = useMemo(() => {
     if (!tickets.data?.data) return []
@@ -77,7 +77,7 @@ const Page = () => {
       const statusB = b.status?.toLowerCase() || ''
       return (statusOrder[statusA] || 99) - (statusOrder[statusB] || 99)
     })
-  }, [tickets.data?.data, selectedStatuses, showClosed])
+  }, [tickets.data, selectedStatuses, showClosed])
 
   if (tickets.isLoading) {
     return <PageLoader />

@@ -144,7 +144,7 @@ jobs:
           cat core/pyproject.toml | grep "version ="
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
           aws-region: us-east-2
@@ -163,7 +163,7 @@ jobs:
           echo "UV_PUBLISH_PASSWORD=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
 
@@ -240,7 +240,7 @@ jobs:
           fi
 
       - name: Configure AWS credentials for CodeArtifact
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
           aws-region: us-east-2
@@ -252,7 +252,7 @@ jobs:
           echo "AWS_CODEARTIFACT_TOKEN=$AWS_CODEARTIFACT_TOKEN" >> $GITHUB_ENV
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
 
@@ -380,7 +380,7 @@ jobs:
           ls -lh deploy.zip
 
       - name: Configure AWS credentials for Elastic Beanstalk
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN_EB }}
           aws-region: us-east-2

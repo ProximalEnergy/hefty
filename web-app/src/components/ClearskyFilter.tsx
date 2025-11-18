@@ -130,7 +130,7 @@ const ClearskyFilter: React.FC<ClearskyFilterProps> = ({
 
   useEffect(() => {
     refetch()
-  }, [resampleRate])
+  }, [resampleRate, refetch])
 
   return (
     <>

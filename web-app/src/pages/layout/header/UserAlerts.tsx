@@ -1,17 +1,28 @@
 import { useGetTriggeredKPIAlerts } from '@/hooks/api'
-import { ActionIcon, Group, Indicator, Popover, Text } from '@mantine/core'
-import { IconAlertTriangle, IconBell } from '@tabler/icons-react'
+import {
+  ActionIcon,
+  Divider,
+  Group,
+  Indicator,
+  Popover,
+  Text,
+} from '@mantine/core'
+import { IconAlertTriangle, IconBell, IconSettings } from '@tabler/icons-react'
 import cx from 'clsx'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useParams } from 'react-router'
 
 import classes from './ThemeToggle.module.css'
 
 const UserAlerts = () => {
   const { data } = useGetTriggeredKPIAlerts({})
   const [checked, setChecked] = useState<boolean>(false)
+  const { projectId } = useParams<{ projectId?: string }>()
 
   const showIndicator = data?.length ? checked && data?.length > 0 : true
+  const firstProjectId =
+    projectId || (data && data.length > 0 ? data[0].project_id : null)
+
   return (
     <Group justify="center">
       <Popover position="bottom" withArrow shadow="md">
@@ -42,7 +53,23 @@ const UserAlerts = () => {
         </Popover.Target>
         <Popover.Dropdown>
           {Array.isArray(data) && data.length === 0 ? (
-            <Text>No alerts at this time.</Text>
+            <>
+              <Text>No alerts at this time.</Text>
+              {firstProjectId && (
+                <>
+                  <Divider my="xs" />
+                  <Link
+                    to={`/projects/${firstProjectId}/kpis/alerts`}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <Group gap="xs">
+                      <IconSettings size={16} />
+                      <Text size="sm">Set up alerts</Text>
+                    </Group>
+                  </Link>
+                </>
+              )}
+            </>
           ) : (
             <>
               <Text>Triggered Alerts ({data?.length}):</Text>
@@ -57,6 +84,20 @@ const UserAlerts = () => {
                   </Link>
                 </Group>
               ))}
+              {firstProjectId && (
+                <>
+                  <Divider my="xs" />
+                  <Link
+                    to={`/projects/${firstProjectId}/kpis/alerts`}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <Group gap="xs">
+                      <IconSettings size={16} />
+                      <Text size="sm">Set up alerts</Text>
+                    </Group>
+                  </Link>
+                </>
+              )}
             </>
           )}
         </Popover.Dropdown>

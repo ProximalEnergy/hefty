@@ -226,7 +226,12 @@ const PowerPlotBESS = () => {
   const data = useGetTimeSeries({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      sensor_type_name_shorts: ['meter_active_power', 'project_soc_percent'],
+      sensor_type_name_shorts: [
+        'meter_active_power',
+        'project_soc_percent',
+        'bess_pcs_available_charge_power',
+        'bess_pcs_available_discharge_power',
+      ],
       start: roundTime(startTime, interval, 'down'),
       end: roundTime(endTime, interval, 'up'),
       interval: interval,
@@ -238,6 +243,103 @@ const PowerPlotBESS = () => {
       staleTime: 30 * 1000, // Consider data stale after 30 seconds
     },
   })
+
+  // Aggregate project-level available charge/discharge power from all PCS devices
+  const timeSeriesData = data.data
+  const projectDetails = project.data
+
+  const aggregatedData = useMemo(() => {
+    if (!timeSeriesData || !projectDetails) return timeSeriesData
+
+    const chargeTraces = timeSeriesData.filter(
+      (d) => d.sensor_type_name === 'bess_pcs_available_charge_power',
+    )
+    const dischargeTraces = timeSeriesData.filter(
+      (d) => d.sensor_type_name === 'bess_pcs_available_discharge_power',
+    )
+    const otherTraces = timeSeriesData.filter(
+      (d) =>
+        d.sensor_type_name !== 'bess_pcs_available_charge_power' &&
+        d.sensor_type_name !== 'bess_pcs_available_discharge_power',
+    )
+
+    const aggregated: typeof timeSeriesData = [...otherTraces]
+
+    // Get current time to filter out future timestamps
+    const now = dayjs()
+
+    // Aggregate charge power: sum all PCS values, divide by -1000, clip to -poi
+    if (chargeTraces.length > 0) {
+      const poi = projectDetails.poi
+      const firstTrace = chargeTraces[0]
+
+      // Filter out future timestamps
+      const filteredIndices = firstTrace.x
+        .map((timestamp, idx) => ({
+          timestamp,
+          idx,
+        }))
+        .filter(
+          ({ timestamp }) =>
+            dayjs(timestamp).isBefore(now) || dayjs(timestamp).isSame(now),
+        )
+        .map(({ idx }) => idx)
+
+      const filteredX = filteredIndices.map((idx) => firstTrace.x[idx])
+      const aggregatedY = filteredIndices.map((idx) => {
+        const sum = chargeTraces.reduce(
+          (acc, trace) => acc + (trace.y[idx] || 0),
+          0,
+        )
+        const mw = sum / -1000
+        return Math.max(mw, -poi)
+      })
+
+      aggregated.push({
+        ...firstTrace,
+        x: filteredX,
+        y: aggregatedY,
+        name: 'Available Charge Power',
+      })
+    }
+
+    // Aggregate discharge power: sum all PCS values, divide by 1000, clip to poi
+    if (dischargeTraces.length > 0) {
+      const poi = projectDetails.poi
+      const firstTrace = dischargeTraces[0]
+
+      // Filter out future timestamps
+      const filteredIndices = firstTrace.x
+        .map((timestamp, idx) => ({
+          timestamp,
+          idx,
+        }))
+        .filter(
+          ({ timestamp }) =>
+            dayjs(timestamp).isBefore(now) || dayjs(timestamp).isSame(now),
+        )
+        .map(({ idx }) => idx)
+
+      const filteredX = filteredIndices.map((idx) => firstTrace.x[idx])
+      const aggregatedY = filteredIndices.map((idx) => {
+        const sum = dischargeTraces.reduce(
+          (acc, trace) => acc + (trace.y[idx] || 0),
+          0,
+        )
+        const mw = sum / 1000
+        return Math.min(mw, poi)
+      })
+
+      aggregated.push({
+        ...firstTrace,
+        x: filteredX,
+        y: aggregatedY,
+        name: 'Available Discharge Power',
+      })
+    }
+
+    return aggregated
+  }, [projectDetails, timeSeriesData])
 
   return (
     <CustomCard
@@ -294,19 +396,33 @@ const PowerPlotBESS = () => {
       }
     >
       <PlotlyPlot
-        data={data.data?.map((d) => ({
-          x: d.x,
-          y: d.y,
-          name: d.name,
-          fill: d.sensor_type_name === 'project_soc_percent' ? null : 'tozeroy',
-          line: {
-            color:
-              d.sensor_type_name === 'project_soc_percent'
+        data={aggregatedData?.map((d) => {
+          const isAvailableCharge =
+            d.sensor_type_name === 'bess_pcs_available_charge_power'
+          const isAvailableDischarge =
+            d.sensor_type_name === 'bess_pcs_available_discharge_power'
+          const isSoc = d.sensor_type_name === 'project_soc_percent'
+
+          return {
+            x: d.x,
+            y: d.y,
+            name: d.name,
+            fill:
+              isSoc || isAvailableCharge || isAvailableDischarge
+                ? null
+                : 'tozeroy',
+            line: {
+              color: isSoc
                 ? theme.colors.blue[7]
-                : theme.colors.green[7],
-          },
-          yaxis: d.sensor_type_name === 'project_soc_percent' ? 'y2' : 'y',
-        }))}
+                : isAvailableCharge || isAvailableDischarge
+                  ? theme.colors.orange[7]
+                  : theme.colors.green[7],
+              dash:
+                isAvailableCharge || isAvailableDischarge ? 'dot' : undefined,
+            },
+            yaxis: isSoc ? 'y2' : 'y',
+          }
+        })}
         layout={
           project.data && {
             yaxis: {
@@ -418,13 +534,19 @@ const KPICards = () => {
     },
   })
 
+  // Update queryDate when we detect today has no data (defer to avoid cascading renders)
   useEffect(() => {
+    const today = dayjs().format('YYYY-MM-DD')
     if (
       data.isSuccess &&
+      data.data &&
       data.data.length === 0 &&
-      queryDate === dayjs().format('YYYY-MM-DD')
+      queryDate === today
     ) {
-      setQueryDate(dayjs().subtract(1, 'day').format('YYYY-MM-DD'))
+      // Defer state update to avoid cascading renders
+      queueMicrotask(() => {
+        setQueryDate(dayjs().subtract(1, 'day').format('YYYY-MM-DD'))
+      })
     }
   }, [data.isSuccess, data.data, queryDate])
 
@@ -436,9 +558,14 @@ const KPICards = () => {
 
   const items = filteredData?.map((kpi) => kpi)
 
+  // Derive rotation offset: reset to 0 when content fits in container
+  const effectiveRotationOffset = contentIsGreaterThanContainer
+    ? rotationOffset
+    : 0
+
   const rotatedItems = items
-    ?.slice(rotationOffset)
-    .concat(items?.slice(0, rotationOffset))
+    ?.slice(effectiveRotationOffset)
+    .concat(items?.slice(0, effectiveRotationOffset))
 
   // Rotate items every second when content is greater than container and not hovered
   useEffect(() => {
@@ -453,12 +580,15 @@ const KPICards = () => {
     }
   }, [contentIsGreaterThanContainer, items?.length, isHovered])
 
-  // Reset rotation offset when content is no longer greater than container
+  // Reset rotation offset state when content is no longer greater than container
   useEffect(() => {
-    if (!contentIsGreaterThanContainer) {
-      setRotationOffset(0)
+    if (!contentIsGreaterThanContainer && rotationOffset !== 0) {
+      // Defer state update to avoid cascading renders
+      queueMicrotask(() => {
+        setRotationOffset(0)
+      })
     }
-  }, [contentIsGreaterThanContainer])
+  }, [contentIsGreaterThanContainer, rotationOffset])
 
   if (
     project.isLoading ||
@@ -1073,7 +1203,7 @@ const BatteryHealth = () => {
   }, [
     theme,
     dailyKpiData.data,
-    project.data?.cod,
+    project.data,
     showCycleData,
     dailyCycleData.data,
     showSocData,

@@ -10,7 +10,7 @@ UNKNOWN_COMPANY_ID = "d9c5181c-d59f-4c11-a763-a87a95096414"
 CUSTOMER_FEEDBACK_LABEL_ID = "a853e6d3-085f-4069-872b-c48ada6b5485"
 
 
-async def get_company_id_by_email(client, email: str) -> str | None:
+async def get_company_id_by_email(*, client, email: str) -> str | None:
     try:
         domain = email.split("@")[1]
     except IndexError:
@@ -55,7 +55,10 @@ async def create_linear_issue(
     )
 
     async with Client(transport=transport, fetch_schema_from_transport=True) as session:
-        customer_id = await get_company_id_by_email(session, user_email)
+        customer_id = await get_company_id_by_email(
+            client=session,
+            email=user_email,
+        )
         if not customer_id:
             customer_id = UNKNOWN_COMPANY_ID
 

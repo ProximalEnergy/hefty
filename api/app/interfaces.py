@@ -547,6 +547,15 @@ class ReportInstance(BaseModel):
     report_type: ReportType | None
 
 
+class ReportInstanceUpdate(BaseModel):
+    report_type_id: int
+    is_visible: bool
+
+
+class ReportInstancesBulkUpdate(BaseModel):
+    report_instances: list[ReportInstanceUpdate]
+
+
 class FailureMode(BaseModel):
     failure_mode_id: int
     device_type_id: int

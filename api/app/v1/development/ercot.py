@@ -36,7 +36,7 @@ router = APIRouter(prefix="/ercot", tags=["ercot"])
 async def get_settlement_point_markets(
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
-    return await crud_get_ercot_settlement_point_markets(db)
+    return await crud_get_ercot_settlement_point_markets(db=db)
 
 
 @router.get(
@@ -68,7 +68,7 @@ async def get_settlement_points(
 async def get_qses(
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
-    return await crud_get_ercot_qses(db)
+    return await crud_get_ercot_qses(db=db)
 
 
 @router.get(
@@ -78,7 +78,7 @@ async def get_qses(
 async def get_dmes(
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
-    return await crud_get_ercot_dmes(db)
+    return await crud_get_ercot_dmes(db=db)
 
 
 @router.get(

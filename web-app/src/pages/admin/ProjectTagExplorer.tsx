@@ -109,6 +109,7 @@ const ProjectTagExplorer = () => {
   const [patternUnitOffset, setPatternUnitOffset] = useState<number | null>(
     null,
   )
+  const [patternUnitScada, setPatternUnitScada] = useState<string | null>(null)
   const [selectedSensorTypeUnit, setSelectedSensorTypeUnit] = useState<
     string | null
   >(null)
@@ -169,6 +170,51 @@ const ProjectTagExplorer = () => {
   const sensorTypes = useGetSensorTypes({})
   const deviceTypes = useGetDeviceTypes({})
   const project = useSelectProject(projectId!)
+
+  // Predefined list of common SCADA units
+  const predefinedUnits = [
+    // Temperature
+    'C',
+    'F',
+    'K',
+    // Power
+    'W',
+    'kW',
+    'MW',
+    'GW',
+    // Voltage
+    'mV',
+    'V',
+    'kV',
+    'MV',
+    'p.u.',
+    // Current
+    'mA',
+    'A',
+    'kA',
+    // Energy
+    'Wh',
+    'kWh',
+    'MWh',
+    'GWh',
+    'J',
+    'kJ',
+    'MJ',
+    // Reactive Power
+    'VAR',
+    'kVAR',
+    'MVAR',
+    // Apparent Power
+    'VA',
+    'kVA',
+    'MVA',
+    // No Unit
+    '-',
+    // Percentage
+    '%',
+    // Degrees for tracker position:
+    'Degrees',
+  ]
 
   const populateUniqueTagPatterns = usePopulateUniqueTagPatterns()
 
@@ -241,6 +287,7 @@ const ProjectTagExplorer = () => {
 
         setPatternUnitScale(patternData.unit_scale || null)
         setPatternUnitOffset(patternData.unit_offset || null)
+        setPatternUnitScada(patternData.unit_scada || null)
 
         // Reset the unit first, then set it from the sensor type if available
         setSelectedSensorTypeUnit(null)
@@ -258,6 +305,7 @@ const ProjectTagExplorer = () => {
 
         setPatternUnitScale(null)
         setPatternUnitOffset(null)
+        setPatternUnitScada(null)
         setSelectedSensorTypeUnit(null)
       }
     } else {
@@ -266,6 +314,7 @@ const ProjectTagExplorer = () => {
 
       setPatternUnitScale(null)
       setPatternUnitOffset(null)
+      setPatternUnitScada(null)
       setSelectedSensorTypeUnit(null)
     }
   }, [selectedTagPattern, uniqueTagTypes.data, sensorTypes.data])
@@ -396,6 +445,7 @@ const ProjectTagExplorer = () => {
         sensorTypeId: parseInt(patternSensorTypeId),
         unitScale: patternUnitScale,
         unitOffset: patternUnitOffset,
+        unitScada: patternUnitScada,
       })
       closeConfirm()
       closeDetails()
@@ -1096,10 +1146,28 @@ const ProjectTagExplorer = () => {
               ) : null}
 
               <Group align="flex-start" grow>
-                {/* Left: Assignment (50%) */}
+                {/* Left: Tag Properties and Assignment (50%) */}
                 <Card withBorder style={{ flex: 1 }}>
                   <Stack gap="sm">
-                    <Text fw={500}>Assignment</Text>
+                    <Text fw={500}>Tag Properties</Text>
+                    <Stack gap="md">
+                      <Select
+                        label="SCADA Unit"
+                        placeholder="Select SCADA unit (e.g., C, W, W/m2)"
+                        searchable
+                        clearable
+                        value={patternUnitScada}
+                        data={predefinedUnits.map((unit) => ({
+                          value: unit,
+                          label: unit,
+                        }))}
+                        onChange={(value) => setPatternUnitScada(value)}
+                      />
+                    </Stack>
+
+                    <Text fw={500} style={{ marginTop: '16px' }}>
+                      Assignment
+                    </Text>
                     <Stack gap="md">
                       <Group justify="space-between" align="center">
                         <Text fw={500}>Sensor Type</Text>
@@ -1173,7 +1241,13 @@ const ProjectTagExplorer = () => {
                             </Button>
                           </Group>
                           <Group gap="xs" align="center">
-                            <Text size="sm">SCADA value ×</Text>
+                            <Text size="sm">
+                              SCADA Value in{' '}
+                              {patternUnitScada
+                                ? `[${patternUnitScada}]`
+                                : '[unit_scada]'}{' '}
+                              ×
+                            </Text>
                             <NumberInput
                               placeholder="1"
                               value={patternUnitScale || undefined}
