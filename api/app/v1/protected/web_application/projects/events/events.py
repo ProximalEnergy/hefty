@@ -5,6 +5,7 @@ import core.models as models
 import pandas as pd
 from core.model_list import ModelList
 from fastapi import APIRouter, Depends
+from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -332,7 +333,7 @@ async def get_meta_analysis(
     )
 
 
-@router.get("/home-page-summary")
+@router.get("/home-page-summary", response_class=ORJSONResponse)
 def get_events_home_page_summary(
     project_db: Session = Depends(get_project_db),
     project: models.Project = Depends(get_project_api),
