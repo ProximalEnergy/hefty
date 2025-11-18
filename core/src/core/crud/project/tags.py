@@ -1,5 +1,7 @@
 from typing import Any
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, noload, selectinload
 
 from core import models
@@ -37,6 +39,7 @@ def get_project_tags(
     tag_ids: list[int] = [],
     in_tsdb: bool | None = None,
     device_ids: list[int] = [],
+    device_type_ids: list[int] = [],
     sensor_type_ids: list[int] = [],
     sensor_type_name_shorts: list[str] = [],
     data_type_ids: list[int] = [],
@@ -76,6 +79,10 @@ def get_project_tags(
         query = query.filter(models.Tag.name_scada == name_scada)
     if has_sensor_type_id:
         query = query.filter(models.Tag.sensor_type_id != None)  # noqa: E711
+    if device_type_ids:
+        query = query.filter(
+            models.Tag.device.has(models.Device.device_type_id.in_(device_type_ids))
+        )
     if not include_ghost_tags:
         query = query.filter(models.Tag.device_id != 0)
         query = query.filter(models.Tag.sensor_type_id != 0)
@@ -112,3 +119,20 @@ def get_unique_sensor_type_ids_from_tags(*, db: Session) -> list[int]:
         sensor_type_ids.insert(0, 0)
 
     return sensor_type_ids
+
+
+async def get_tags_by_regex(
+    *, db: AsyncSession, regex: str, limit: int = 200, deep: bool = False
+) -> list[models.Tag]:
+    """
+    Get all tags whose name_scada matches a given regex (PostgreSQL '~*' operator).
+    """
+    options = _get_project_tag_options(deep=deep)
+    stmt = (
+        select(models.Tag)
+        .options(*options)
+        .where(models.Tag.name_scada.op("~*")(regex))
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())

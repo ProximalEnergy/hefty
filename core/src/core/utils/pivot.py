@@ -146,8 +146,11 @@ def pivot_timeseries_by_tag_polars(
     # ---- numeric path (apply scale/offset) ----
     if num_cols:
         numeric_filtered = filtered.filter(pl.col("vcol").is_in(num_cols))
+        tags_lut_lf = tags_lut.lazy().with_columns(pl.col("tag_id").cast(pl.Int64))
+
         numeric_wide = (
-            numeric_filtered.join(tags_lut.lazy(), on="tag_id", how="left")
+            numeric_filtered.with_columns(pl.col("tag_id").cast(pl.Int64))
+            .join(tags_lut_lf, on="tag_id", how="left")
             .with_columns(
                 (
                     pl.col("val").cast(pl.Float64, strict=False)

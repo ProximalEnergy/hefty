@@ -50,3 +50,43 @@ export const useGetTimeSeries = ({
     queryOptions: mergedQueryOptions,
   })
 }
+
+export const useGetDataTimeSeriesV3 = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    tag_ids?: number[]
+    sensor_type_ids?: number[]
+    start?: string
+    end?: string
+    ensure_full_range?: boolean
+    interval?: string
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-v3`,
+    params: queryParams,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  const mergedQueryOptions = {
+    ...defaultQueryOptions,
+    ...queryOptions,
+  }
+
+  return useCustomQuery<types.DataTimeSeries[]>({
+    axiosConfig,
+    queryName: 'getTimeSeries',
+    pathParams,
+    queryParams: queryParams,
+    queryOptions: mergedQueryOptions,
+  })
+}

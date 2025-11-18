@@ -1,11 +1,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
 from app import custom_types, interfaces, utils
-from app.dependencies import get_project_db
+from app.dependencies import get_project_db, get_project_db_async
 
 DESCRIPTION_404 = "Tag not found"
 
@@ -18,6 +19,7 @@ def get_project_tags(
     in_tsdb: Annotated[bool | None, Query()] = None,
     device_ids: Annotated[list[int], Query()] = [],
     sensor_type_ids: Annotated[list[int], Query()] = [],
+    device_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",
     deep: custom_types.AnnotatedDeep = False,
@@ -30,11 +32,24 @@ def get_project_tags(
         in_tsdb=in_tsdb,
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
+        device_type_ids=device_type_ids,
         name_short=name_short,
         name_long=name_long,
         deep=deep,
         include_ghost_tags=include_ghost_tags,
     ).models()
+
+
+@router.get("/regex", response_model=list[interfaces.Tag])
+async def get_tags_by_regex(
+    regex: Annotated[str, Query()],
+    limit: Annotated[int, Query()] = 200,
+    deep: custom_types.AnnotatedDeep = False,
+    project_db: AsyncSession = Depends(get_project_db_async),
+):
+    return await core.crud.project.tags.get_tags_by_regex(
+        db=project_db, regex=regex, limit=limit, deep=deep
+    )
 
 
 @router.get(

@@ -510,6 +510,21 @@ class Data(BaseModel):
     value: Any
 
 
+class DataTimeSeries(BaseModel):
+    x: list[str]
+    y: list[float | None]
+    y_range: list[float | None]
+    yaxis: str
+    name: str
+    sensor_type_name: str
+    device_name_long: str
+    tag_name_scada: str
+    tag_name_long: str
+    device_id: int
+    sensor_type_id: int
+    tag_id: int
+
+
 class _KPIProjectTemplateData(BaseModel):
     timestamps: list[datetime.datetime]
     values: list[float | None]
