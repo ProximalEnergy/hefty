@@ -583,6 +583,7 @@ export const useUpdateSelfClerkTheme = () => {
         },
         data: {
           theme,
+          vite_environment: import.meta.env.VITE_ENVIRONMENT,
         },
       })
     },

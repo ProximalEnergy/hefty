@@ -199,7 +199,7 @@ async def send_drone_inspection_order_email(
     ses_client.send_email(**email_kwargs)
 
 
-async def get_clerk_user_metadata(*, user_id: str) -> dict:
+async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dict:
     """Get a user's public metadata from Clerk.
 
     Args:
@@ -210,7 +210,7 @@ async def get_clerk_user_metadata(*, user_id: str) -> dict:
     """
     try:
         with Clerk(
-            bearer_auth=settings.CLERK_SECRET_KEY,
+            bearer_auth=clerk_secret_key,
         ) as clerk:
             clerk_user = clerk.users.get(user_id=user_id)
             if not clerk_user:
@@ -220,16 +220,27 @@ async def get_clerk_user_metadata(*, user_id: str) -> dict:
         return {"error": f"Failed to get user metadata: {e.data.errors[0].message}"}
 
 
-async def update_clerk_user_theme(*, user_id: str, theme: str):
+async def update_clerk_user_theme(*, user_id: str, theme: str, vite_environment: str):
     """Update a user's theme in Clerk while preserving existing metadata.
 
     Args:
         user_id (str): The ID of the user to update.
         theme (str): The theme to update the user to.
+        vite_environment (str): The environment to use.
     """
+    if vite_environment == "PRODUCTION":
+        clerk_secret_key = settings.CLERK_SECRET_KEY
+    elif vite_environment in ["STAGING", "DEV"]:
+        clerk_secret_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
+    else:
+        raise ValueError("Invalid Vite environment")
+    if clerk_secret_key is None:
+        raise ValueError("Clerk secret key is not set for this environment")
     try:
         # First get the current metadata to preserve it
-        current_metadata = await get_clerk_user_metadata(user_id=user_id)
+        current_metadata = await get_clerk_user_metadata(
+            user_id=user_id, clerk_secret_key=clerk_secret_key
+        )
         if "error" in current_metadata:
             return current_metadata
 
@@ -237,7 +248,7 @@ async def update_clerk_user_theme(*, user_id: str, theme: str):
         updated_metadata = {**current_metadata, "parent_company": theme}
 
         with Clerk(
-            bearer_auth=settings.CLERK_SECRET_KEY,
+            bearer_auth=clerk_secret_key,
         ) as clerk:
             clerk_user = clerk.users.update(
                 user_id=user_id,

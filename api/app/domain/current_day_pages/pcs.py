@@ -2,6 +2,8 @@ import datetime
 from typing import Any
 
 import pandas as pd
+from core.dependencies import get_db_session_async
+from core.enumerations import TimeInterval, TimeOffset
 from fastapi import HTTPException
 from natsort import natsorted
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,8 +12,6 @@ from sqlalchemy.orm import Session
 import core
 from app import utils
 from core import models
-from core.dependencies import get_db_session_async
-from core.enumerations import TimeInterval, TimeOffset
 
 
 def _normalize_timestamp(
