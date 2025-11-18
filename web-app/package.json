@@ -55,7 +55,7 @@
     "mantine-react-table": "^2.0.0-beta.9",
     "mapbox-gl": "^3.10.0",
     "markdown-it": "^14.1.0",
-    "plotly.js": "3.0.3",
+    "plotly.js": "3.3.0",
     "qs": "^6.14.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
