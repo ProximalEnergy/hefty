@@ -1330,7 +1330,7 @@ class Device(Base):
         Geography(geometry_type="POINT", srid=4326, spatial_index=False),
     )
     polygon: Mapped[Geography | None] = mapped_column(
-        Geography(geometry_type="GEOMETRY", srid=4326, spatial_index=False),
+        Geography(geometry_type="MULTIPOLYGON", srid=4326, spatial_index=False),
     )
 
     sa.Index("ix_devices_device_type_id", device_type_id)
