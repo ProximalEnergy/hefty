@@ -147,7 +147,6 @@ if [ "$SKIP_HURL" != "true" ]; then
 fi
 run_check "Root: No package.json" "check_root_for_package_json"
 run_check "Web-App: TypeScript & Format Check" "mise run web:check"
-run_check "Web-App: ESLint" "mise run web:lint"
 
 # Print summary
 echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

@@ -245,29 +245,32 @@ const PowerPlotBESS = () => {
   })
 
   // Aggregate project-level available charge/discharge power from all PCS devices
-  const aggregatedData = useMemo(() => {
-    if (!data.data || !project.data) return data.data
+  const timeSeriesData = data.data
+  const projectDetails = project.data
 
-    const chargeTraces = data.data.filter(
+  const aggregatedData = useMemo(() => {
+    if (!timeSeriesData || !projectDetails) return timeSeriesData
+
+    const chargeTraces = timeSeriesData.filter(
       (d) => d.sensor_type_name === 'bess_pcs_available_charge_power',
     )
-    const dischargeTraces = data.data.filter(
+    const dischargeTraces = timeSeriesData.filter(
       (d) => d.sensor_type_name === 'bess_pcs_available_discharge_power',
     )
-    const otherTraces = data.data.filter(
+    const otherTraces = timeSeriesData.filter(
       (d) =>
         d.sensor_type_name !== 'bess_pcs_available_charge_power' &&
         d.sensor_type_name !== 'bess_pcs_available_discharge_power',
     )
 
-    const aggregated: typeof data.data = [...otherTraces]
+    const aggregated: typeof timeSeriesData = [...otherTraces]
 
     // Get current time to filter out future timestamps
     const now = dayjs()
 
     // Aggregate charge power: sum all PCS values, divide by -1000, clip to -poi
     if (chargeTraces.length > 0) {
-      const poi = project.data.poi
+      const poi = projectDetails.poi
       const firstTrace = chargeTraces[0]
 
       // Filter out future timestamps
@@ -302,7 +305,7 @@ const PowerPlotBESS = () => {
 
     // Aggregate discharge power: sum all PCS values, divide by 1000, clip to poi
     if (dischargeTraces.length > 0) {
-      const poi = project.data.poi
+      const poi = projectDetails.poi
       const firstTrace = dischargeTraces[0]
 
       // Filter out future timestamps
@@ -336,7 +339,7 @@ const PowerPlotBESS = () => {
     }
 
     return aggregated
-  }, [data.data, project.data])
+  }, [projectDetails, timeSeriesData])
 
   return (
     <CustomCard

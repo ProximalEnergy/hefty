@@ -357,9 +357,9 @@ dir = "web-app"
 run = "npm run preview"
 
 [tasks."web:check"]
-description = "Run TypeScript check and format web-app"
+description = "Run TypeScript check, ESLint, and format web-app"
 dir = "web-app"
-run = "npm run check"
+run = "npm run check && npm run lint"
 
 [tasks."web:lint"]
 description = "Run ESLint for web-app"

@@ -37,7 +37,7 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
   ({ fileUrl }, ref) => {
     const [numPages, setNumPages] = useState<number | null>(null)
     const [searchText, setSearchText] = useState('')
-    const documentRef = useRef<any>(null)
+    const documentRef = useRef<HTMLDivElement | null>(null)
 
     // Memoize options to prevent unnecessary reloads
     const options = useMemo(

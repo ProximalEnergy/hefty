@@ -12,10 +12,9 @@ import {
   Stack,
   Switch,
   Text,
-  Title,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 interface ReportInstancesConfigModalProps {
   opened: boolean
@@ -56,23 +55,26 @@ export const ReportInstancesConfigModal = ({
     return visibility
   }, [reportInstances.data, reportTypes.data])
 
-  // State to track which report types are visible
-  const [reportVisibility, setReportVisibility] = useState<
-    Record<number, boolean>
-  >(() => initialVisibility)
+  const [visibilityOverrides, setVisibilityOverrides] = useState<Record<
+    number,
+    boolean
+  > | null>(null)
 
-  // Reset state when modal opens or data changes
-  useEffect(() => {
-    if (opened && Object.keys(initialVisibility).length > 0) {
-      setReportVisibility(initialVisibility)
-    }
-  }, [opened, initialVisibility])
+  const reportVisibility = visibilityOverrides ?? initialVisibility
+
+  const handleClose = () => {
+    setVisibilityOverrides(null)
+    onClose()
+  }
 
   const handleToggle = (reportTypeId: number) => {
-    setReportVisibility((prev) => ({
-      ...prev,
-      [reportTypeId]: !prev[reportTypeId],
-    }))
+    setVisibilityOverrides((prev) => {
+      const base = prev ?? initialVisibility
+      return {
+        ...base,
+        [reportTypeId]: !base[reportTypeId],
+      }
+    })
   }
 
   const handleSave = async () => {
@@ -97,8 +99,9 @@ export const ReportInstancesConfigModal = ({
         color: 'green',
       })
 
-      onClose()
+      handleClose()
     } catch (error) {
+      console.error('Failed to update report instances', error)
       notifications.show({
         title: 'Error',
         message: 'Failed to update report instances',
@@ -112,8 +115,8 @@ export const ReportInstancesConfigModal = ({
   return (
     <Modal
       opened={opened}
-      onClose={onClose}
-      title={<Title order={3}>Configure Report Instances</Title>}
+      onClose={handleClose}
+      title="Configure Report Instances"
       size="lg"
     >
       {isLoading ? (
@@ -144,7 +147,7 @@ export const ReportInstancesConfigModal = ({
           </ScrollArea>
 
           <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={onClose}>
+            <Button variant="default" onClick={handleClose}>
               Cancel
             </Button>
             <Button onClick={handleSave} loading={updateMutation.isPending}>
