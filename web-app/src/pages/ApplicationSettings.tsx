@@ -1,3 +1,4 @@
+import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { clearTips } from '@/components/Tips'
 import RequiresUserType from '@/components/admin/RequiresUserType'
@@ -8,6 +9,7 @@ import {
   useUpdateNotificationSubscription,
   useUpdateReportSubscription,
 } from '@/hooks/api'
+import { useUser } from '@clerk/clerk-react'
 import {
   Accordion,
   ActionIcon,
@@ -17,6 +19,7 @@ import {
   Fieldset,
   Group,
   Paper,
+  SegmentedControl,
   Stack,
   Text,
   Title,
@@ -31,13 +34,83 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 const TeamsGate = ({ children }: { children: React.ReactNode }) => (
   <RequiresUserType requiredUserType="admin" silent>
     {children}
   </RequiresUserType>
 )
+
+const DemoMode = () => {
+  const { user } = useUser()
+  const userType = useGetUserType({})
+  const navigate = useNavigate()
+  const [demoMode, setDemoMode] = useState<boolean>(
+    typeof user?.publicMetadata.demo === 'boolean'
+      ? (user?.publicMetadata.demo as boolean)
+      : false,
+  )
+  const { mutate: updateSelfClerkDemoMode, isPending: isUpdatingDemoMode } =
+    useUpdateSelfClerkDemoMode()
+
+  const handleDemoModeChange = (value: boolean) => {
+    setDemoMode(value)
+    updateSelfClerkDemoMode(
+      { demo_mode: value },
+      {
+        onSuccess: () => {
+          // Hard refresh by navigating to portfolio with full page reload
+          navigate('/portfolio')
+        },
+      },
+    )
+  }
+
+  const ret = () => {
+    return (
+      <Group w="100%" justify="center">
+        <Paper withBorder p="md" w="25%">
+          <Stack align="center">
+            <Group>
+              <Text fw="bold">Demo Mode:</Text>
+              <SegmentedControl
+                data={[
+                  { label: 'Off', value: 'false' },
+                  { label: 'On', value: 'true' },
+                ]}
+                value={demoMode ? 'true' : 'false'}
+                disabled={isUpdatingDemoMode}
+                onChange={(value) =>
+                  handleDemoModeChange(value === 'true' ? true : false)
+                }
+              />
+            </Group>
+            <Text>
+              Demo Mode allows you to view the application with project names
+              hidden. On changing your demo mode, you will be redirected to the
+              Portfolio homepage. Please refresh your browser after changing
+              your demo mode.
+            </Text>
+          </Stack>
+        </Paper>
+      </Group>
+    )
+  }
+
+  const isSuperadmin = userType.data?.name_short === 'superadmin'
+  const isSpecificUser = [
+    'user_2dj6d9XfGyIPqx8ZKw6ZWvwCjzJ',
+    'user_2xmRqek6OcT48vnVplc1cn64Kvf',
+  ].includes(user?.id ?? '')
+
+  if (isSuperadmin || isSpecificUser) {
+    return ret()
+  }
+
+  return null
+}
 
 const ApplicationSettings = () => {
   // const { user } = useUser()
@@ -49,6 +122,7 @@ const ApplicationSettings = () => {
       </TeamsGate>
       <Subscriptions />
       <PersonalPortfolio />
+      <DemoMode />
       <Tips />
       <GISColors />
     </Stack>

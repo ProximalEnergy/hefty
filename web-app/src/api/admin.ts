@@ -593,6 +593,34 @@ export const useUpdateSelfClerkTheme = () => {
   })
 }
 
+export const useUpdateSelfClerkDemoMode = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ demo_mode }: { demo_mode: boolean }) => {
+      const token = await getToken({ template: 'default' })
+
+      return axios({
+        method: 'put',
+        url: `${baseURL}/v1/admin/users/self/clerk-demo-mode`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          demo_mode,
+          vite_environment: import.meta.env.VITE_ENVIRONMENT,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getUserSelf'] })
+      queryClient.invalidateQueries({ queryKey: ['getProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['getProjectsPersonal'] })
+    },
+  })
+}
+
 export const useDeleteUser = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()

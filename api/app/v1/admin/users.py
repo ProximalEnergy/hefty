@@ -14,6 +14,7 @@ from app._utils.user_management import (
     create_clerk_user,
     delete_clerk_user,
     send_onboarding_email,
+    update_clerk_user_demo_mode,
     update_clerk_user_theme,
 )
 from app.interfaces import User, UserCreate
@@ -23,6 +24,11 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 class ThemeUpdateRequest(BaseModel):
     theme: str
+    vite_environment: str
+
+
+class DemoModeUpdateRequest(BaseModel):
+    demo_mode: bool
     vite_environment: str
 
 
@@ -120,5 +126,24 @@ async def update_self_clerk_theme(
     return await update_clerk_user_theme(
         user_id=user_id,
         theme=request.theme,
+        vite_environment=request.vite_environment,
+    )
+
+
+@router.put(
+    "/self/clerk-demo-mode",
+    dependencies=[Depends(dependencies.requires_admin_async)],
+)
+async def update_self_clerk_demo_mode(
+    user_data: Annotated[
+        interfaces.UserData, Depends(dependencies.get_user_data_async)
+    ],
+    request: DemoModeUpdateRequest,
+):
+    """Update the current user's demo mode in Clerk."""
+    user_id = user_data.user_id
+    return await update_clerk_user_demo_mode(
+        user_id=user_id,
+        demo_mode=request.demo_mode,
         vite_environment=request.vite_environment,
     )

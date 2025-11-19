@@ -259,3 +259,46 @@ async def update_clerk_user_theme(*, user_id: str, theme: str, vite_environment:
         return {"success": True}
     except models.ClerkErrors as e:
         return {"error": f"Failed to update user: {e.data.errors[0].message}"}
+
+
+async def update_clerk_user_demo_mode(
+    *, user_id: str, demo_mode: bool, vite_environment: str
+):
+    """Toggle a user's demo mode in Clerk while preserving existing metadata.
+
+    Args:
+        user_id (str): The ID of the user to update.
+        demo_mode (bool): Set to True to enable demo mode, False to disable.
+        vite_environment (str): The environment to use.
+    """
+    if vite_environment == "PRODUCTION":
+        clerk_secret_key = settings.CLERK_SECRET_KEY
+    elif vite_environment in ["STAGING", "DEV"]:
+        clerk_secret_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
+    else:
+        raise ValueError("Invalid Vite environment")
+    if clerk_secret_key is None:
+        raise ValueError("Clerk secret key is not set for this environment")
+    try:
+        # First get the current metadata to preserve it
+        current_metadata = await get_clerk_user_metadata(
+            user_id=user_id, clerk_secret_key=clerk_secret_key
+        )
+        if "error" in current_metadata:
+            return current_metadata
+
+        # Update the demo mode while preserving other metadata
+        updated_metadata = {**current_metadata, "demo": demo_mode}
+
+        with Clerk(
+            bearer_auth=clerk_secret_key,
+        ) as clerk:
+            clerk_user = clerk.users.update(
+                user_id=user_id,
+                public_metadata=updated_metadata,
+            )
+            if not clerk_user:
+                raise ValueError("Failed to update user")
+        return {"success": True}
+    except models.ClerkErrors as e:
+        return {"error": f"Failed to update user: {e.data.errors[0].message}"}
