@@ -25,7 +25,7 @@ import pandas as pd
 import requests
 from botocore.config import Config
 from core.dependencies import get_db
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
 from pvlib import location
