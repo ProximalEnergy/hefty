@@ -8,7 +8,7 @@ import {
   useMantineTheme,
 } from '@mantine/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 
 interface AllTagsProps {
   projectId: string
@@ -40,12 +40,33 @@ const AllTags = ({
 
   const tagList = tags.data ?? []
 
+  const getScrollElement = useCallback(() => parentRef.current, [])
+  const estimateSize = useCallback(() => 35, [])
+
+  // TanStack Virtual's useVirtualizer returns non-memoizable functions by design.
+  // This is expected behavior, so we use a ref to keep the measureElement function stable.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: tagList.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 35,
+    getScrollElement,
+    estimateSize,
     overscan: 5,
   })
+
+  // Store measureElement in a ref to keep it stable across renders
+  const measureElementRef = useRef(rowVirtualizer.measureElement)
+  measureElementRef.current = rowVirtualizer.measureElement
+
+  // Create stable callback that uses the ref
+  const measureElement = useCallback((node: Element | null) => {
+    if (node) {
+      measureElementRef.current(node)
+    }
+  }, [])
+
+  // Extract virtualizer values - these will update on each render which is expected
+  const virtualItems = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
 
   if (searchTerm.length < 3) {
     return (
@@ -85,13 +106,13 @@ const AllTags = ({
       >
         <div
           style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
+            height: `${totalSize}px`,
             width: '100%',
             position: 'relative',
             padding: '16px',
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          {virtualItems.map((virtualRow) => {
             const tag = tagList[virtualRow.index]
             if (!tag) return null
 
@@ -103,7 +124,7 @@ const AllTags = ({
               <div
                 key={tag.tag_id}
                 data-index={virtualRow.index}
-                ref={rowVirtualizer.measureElement}
+                ref={measureElement}
                 style={{
                   position: 'absolute',
                   top: 0,

@@ -138,12 +138,33 @@ const UniquePatterns = ({
     )
   }
 
+  const getScrollElement = useCallback(() => parentRef.current, [])
+  const estimateSize = useCallback(() => 35, [])
+
+  // TanStack Virtual's useVirtualizer returns non-memoizable functions by design.
+  // This is expected behavior, so we use a ref to keep the measureElement function stable.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: tagPatterns.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 35,
+    getScrollElement,
+    estimateSize,
     overscan: 5,
   })
+
+  // Store measureElement in a ref to keep it stable across renders
+  const measureElementRef = useRef(rowVirtualizer.measureElement)
+  measureElementRef.current = rowVirtualizer.measureElement
+
+  // Create stable callback that uses the ref
+  const measureElement = useCallback((node: Element | null) => {
+    if (node) {
+      measureElementRef.current(node)
+    }
+  }, [])
+
+  // Extract virtualizer values - these will update on each render which is expected
+  const virtualItems = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -196,13 +217,13 @@ const UniquePatterns = ({
         >
           <div
             style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
+              height: `${totalSize}px`,
               width: '100%',
               position: 'relative',
               padding: '16px',
             }}
           >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            {virtualItems.map((virtualRow) => {
               const tagPattern = tagPatterns[virtualRow.index]
               if (!tagPattern) return null
 
@@ -210,7 +231,7 @@ const UniquePatterns = ({
                 <div
                   key={virtualRow.index}
                   data-index={virtualRow.index}
-                  ref={rowVirtualizer.measureElement}
+                  ref={measureElement}
                   onClick={() => handlePatternClick(tagPattern)}
                   style={{
                     position: 'absolute',
