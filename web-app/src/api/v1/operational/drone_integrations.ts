@@ -1,6 +1,7 @@
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
+import { UseQueryOptions } from '@tanstack/react-query'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 
@@ -58,25 +59,43 @@ export interface DroneAnomaly {
   client_status_id?: number
 }
 
-export const useGetDroneIntegrations = () => {
+export const useGetDroneIntegrations = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+} = {}) => {
   const axiosConfig = {
     url: 'v1/operational/drone-integrations',
+  }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
 
   return useCustomQuery<DroneIntegration[]>({
     axiosConfig,
     queryName: 'getDroneIntegrations',
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
-export const useGetDroneProviders = () => {
+export const useGetDroneProviders = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+} = {}) => {
   const axiosConfig = {
     url: 'v1/operational/drone-providers',
+  }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
 
   return useCustomQuery<DroneProvider[]>({
     axiosConfig,
     queryName: 'getDroneProviders',
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -150,14 +169,23 @@ export const useDeleteDronePermission = () => {
   })
 }
 
-export const useGetDronePermissions = () => {
+export const useGetDronePermissions = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+} = {}) => {
   const axiosConfig = {
     url: 'v1/operational/drone-permissions',
+  }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
 
   return useCustomQuery<DronePermission[]>({
     axiosConfig,
     queryName: 'getDronePermissions',
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -328,16 +356,23 @@ export const useDeleteDroneProvider = () => {
   })
 }
 
-export const useGetDroneInspections = (projectId?: string) => {
+export const useGetDroneInspections = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
   const axiosConfig = {
-    url: `v1/operational/projects/${projectId}/drone-inspections`,
+    url: `v1/operational/projects/${pathParams.projectId}/drone-inspections`,
   }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+
   return useCustomQuery<DroneInspection[]>({
     axiosConfig,
-    queryName: `getDroneInspections-${projectId}`,
-    queryOptions: {
-      enabled: !!projectId,
-    },
+    queryName: `getDroneInspections-${pathParams.projectId}`,
+    pathParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -375,19 +410,22 @@ export const useSyncZeitviewInspections = (
   }
 }
 
-export const useGetDroneAnomalies = (
-  projectId?: string,
-  inspectionId?: string,
-) => {
+export const useGetDroneAnomalies = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; inspectionId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
   const axiosConfig = {
-    url: `v1/operational/projects/${projectId}/drone-inspections/${inspectionId}/anomalies`,
+    url: `v1/operational/projects/${pathParams.projectId}/drone-inspections/${pathParams.inspectionId}/anomalies`,
   }
+  const defaultQueryOptions: Partial<UseQueryOptions> = {}
   return useCustomQuery<DroneAnomaly[]>({
     axiosConfig,
-    queryName: `getDroneAnomalies-${inspectionId}`,
-    queryOptions: {
-      enabled: !!projectId && !!inspectionId,
-    },
+    queryName: `getDroneAnomalies-${pathParams.projectId}-${pathParams.inspectionId}`,
+    pathParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
@@ -413,7 +451,7 @@ export const useSyncZeitviewAnomalies = (
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [`getDroneAnomalies-${inspectionId}`],
+        queryKey: [`getDroneAnomalies-${projectId}-${inspectionId}`],
       })
     },
     ...options,
