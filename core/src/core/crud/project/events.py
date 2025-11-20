@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import func, or_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult
-from sqlalchemy.orm import Session, noload, selectinload
+from sqlalchemy.orm import Session, selectinload
 
 from core import models
 from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
@@ -20,6 +20,7 @@ def get_windowed_events(
     end: datetime.datetime,
     deep: bool = False,
     return_query: bool = False,
+    include_underperformance: bool = True,
 ) -> ModelList[models.Event]:
     """Query events that start before `end` and end after `start` or are ongoing."""
     query = db.query(models.Event)
@@ -29,8 +30,13 @@ def get_windowed_events(
     )
     if deep:
         query = query.options(selectinload(models.Event.device))
-    else:
-        query = query.options(noload(models.Event.device))
+    if not include_underperformance:
+        query = query.options(selectinload(models.Event.failure_mode))
+        query = query.filter(
+            ~models.Event.failure_mode.has(
+                models.FailureMode.name_long.contains("Underperforming")
+            )
+        )
     return ModelList(query=query, return_query=return_query)
 
 

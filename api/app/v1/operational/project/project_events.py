@@ -573,7 +573,7 @@ async def get_uptime(
 ):
     # Query events from the database
     events = core.crud.project.events.get_windowed_events(
-        db=project_db, start=start, end=end
+        db=project_db, start=start, end=end, include_underperformance=False
     ).models()
 
     if not events:
@@ -686,8 +686,8 @@ async def get_uptime(
                 "device_id": device_id,
                 "device_type_id": device.device_type_id,
                 "device_name_full": f"{device_type_name} {device_name_long}".strip(),
-                "downtime_hours": data["hours"],
-                "downtime_percentage": data["hours"] / possible_uptime,
+                "downtime_hours": min(data["hours"], possible_uptime),
+                "downtime_percentage": min(data["hours"] / possible_uptime, 1),
                 "events": data["count"],
             },
         )
