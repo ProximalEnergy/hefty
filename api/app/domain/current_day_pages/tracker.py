@@ -3,6 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 from fastapi import Depends, HTTPException
+from natsort import natsorted
 from sqlalchemy.orm import Session
 
 import core
@@ -180,8 +181,8 @@ def get_tracker_by_pv_block_id_data(
         t.tag_id: device_id_to_name_short[t.device_id] for t in tags
     }
 
-    tags_ids_position = [t.tag_id for t in tags if t.sensor_type_id == 24]
-    tags_ids_setpoint = [t.tag_id for t in tags if t.sensor_type_id == 25]
+    tags_ids_position = natsorted([t.tag_id for t in tags if t.sensor_type_id == 24])
+    tags_ids_setpoint = natsorted([t.tag_id for t in tags if t.sensor_type_id == 25])
 
     df_position = df[tags_ids_position]
     df_setpoint = df[tags_ids_setpoint]
