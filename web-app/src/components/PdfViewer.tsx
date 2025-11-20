@@ -1,4 +1,5 @@
 import { Box } from '@mantine/core'
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import {
   forwardRef,
   useCallback,
@@ -12,9 +13,7 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
-// Configure PDF.js worker using CDN
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
-
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker
 export interface PdfViewerHandle {
   find: (query: string) => void
 }
