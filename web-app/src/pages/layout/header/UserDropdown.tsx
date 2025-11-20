@@ -7,6 +7,7 @@ import {
   IconDeviceDesktopCog,
   IconGauge,
   IconHelicopter,
+  IconHistory,
   IconLogout2,
   IconUserCog,
   IconUsers,
@@ -92,6 +93,15 @@ const UserDropdown = () => {
                   }
                 >
                   Sensor Types
+                </Menu.Item>
+                <Menu.Item
+                  component={Link}
+                  to="/admin/kpi-backfill"
+                  leftSection={
+                    <IconHistory style={{ width: rem(14), height: rem(14) }} />
+                  }
+                >
+                  KPI Backfill
                 </Menu.Item>
                 <Menu trigger="hover" position="right-start" withArrow>
                   <Menu.Target>

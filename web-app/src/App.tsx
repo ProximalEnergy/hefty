@@ -49,6 +49,7 @@ import { SignIn } from './pages/SignIn'
 import DroneIntegrations from './pages/admin/DroneIntegrations'
 import DronePermissions from './pages/admin/DronePermissions'
 import DroneProviders from './pages/admin/DroneProviders'
+import KPIBackfill from './pages/admin/KPIBackfill'
 import ProjectTagExplorer from './pages/admin/ProjectTagExplorer'
 import SensorTypes from './pages/admin/SensorTypes'
 import UserManagement from './pages/admin/UserManagement'
@@ -535,6 +536,14 @@ const ClerkProviderWithRoutes = () => {
                 element={
                   <RequiresUserType requiredUserType="superadmin">
                     <SensorTypes />
+                  </RequiresUserType>
+                }
+              />
+              <Route
+                path="kpi-backfill"
+                element={
+                  <RequiresUserType requiredUserType="superadmin">
+                    <KPIBackfill />
                   </RequiresUserType>
                 }
               />
