@@ -26,6 +26,7 @@ def get_expected_power(
     device_ids: Annotated[list[int], Query()] = [],
     expected_metric_ids: Annotated[list[int], Query()] = [],
     highest_priority_only: bool = False,
+    cutoff_now: bool = False,
 ):
     project_device_id = 1  # The device_id whose device_type_id is 1 (Project). This is always device_id = 1.'
     if device_ids == []:
@@ -85,7 +86,11 @@ def get_expected_power(
         )
         / 1_000_000  ## W -> MW
     )
-    df = df.reindex(pd.date_range(start_query, end_query, freq="5min")).ffill()
+    df = df.reindex(
+        pd.date_range(start_query, end_query, freq="5min", inclusive="left")
+    ).ffill()
+    if cutoff_now:
+        df = df[df.index <= pd.Timestamp.now(tz=project.time_zone)]
     df = df.fillna(0)
     df = df.replace(np.nan, None)
 

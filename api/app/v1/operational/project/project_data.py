@@ -394,6 +394,7 @@ async def get_timeseries_v3(
     end: datetime.datetime | None = None,
     interval: str | None = None,
     ensure_full_range: bool = False,
+    cutoff_now: bool = False,
 ):
     if tag_ids == [] and sensor_type_ids == []:
         return []
@@ -422,6 +423,14 @@ async def get_timeseries_v3(
 
     # Convert polars DataFrame to pandas
     df = data_timeseries.df.to_pandas()
+
+    if cutoff_now:
+        if "time" in df.columns:
+            df = df[df["time"] <= pd.Timestamp.now(tz=project.time_zone)]
+        elif "time_bucket" in df.columns:
+            df = df[df["time_bucket"] <= pd.Timestamp.now(tz=project.time_zone)]
+        else:
+            raise ValueError("time or time_bucket column not found in dataframe")
 
     # Get tags for metadata
     if tag_ids:

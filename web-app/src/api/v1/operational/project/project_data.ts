@@ -64,6 +64,7 @@ export const useGetDataTimeSeriesV3 = ({
     end?: string
     ensure_full_range?: boolean
     interval?: string
+    cutoff_now?: boolean
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

@@ -14,6 +14,7 @@ export const useGetPvExpected = ({
     device_ids?: number[]
     expected_metric_ids?: number[]
     highest_priority_only?: boolean
+    cutoff_now?: boolean
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

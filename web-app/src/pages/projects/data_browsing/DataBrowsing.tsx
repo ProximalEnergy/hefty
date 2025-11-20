@@ -28,7 +28,7 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 
 import AllTags from './AllTags'
@@ -67,6 +67,31 @@ const DataBrowsing = () => {
   }
   const { start, end } = useValidateDateRange({})
   const project = useSelectProject(projectId!)
+  const previousProjectIdRef = useRef(projectId)
+
+  useEffect(() => {
+    if (!projectId) {
+      previousProjectIdRef.current = projectId
+      return
+    }
+
+    if (
+      previousProjectIdRef.current &&
+      previousProjectIdRef.current !== projectId
+    ) {
+      queueMicrotask(() => {
+        setSelectedTags([])
+        setHasLoadedTagsFromUrl(false)
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('tagIds')
+          return next
+        })
+      })
+    }
+
+    previousProjectIdRef.current = projectId
+  }, [projectId, setSearchParams])
 
   // Parse tagIds from URL
   const tagIdsFromUrl = useMemo(() => {
@@ -377,6 +402,28 @@ const DataBrowsing = () => {
     }
   }
 
+  const layout = useMemo(() => {
+    const range =
+      start?.tz('UTC', true).toISOString() && end?.tz('UTC', true).toISOString()
+        ? [
+            start?.tz('UTC', true).toISOString(),
+            end?.tz('UTC', true).toISOString(),
+          ]
+        : undefined
+    return {
+      xaxis: {
+        title: { text: 'Time' },
+        range: range
+          ? [
+              start?.tz('UTC', true).toISOString(),
+              end?.tz('UTC', true).toISOString(),
+            ]
+          : undefined,
+        autorange: range ? false : undefined,
+      },
+    }
+  }, [start, end])
+
   const timeseriesData = useGetDataTimeSeriesV3({
     pathParams: { projectId: projectId! },
     queryParams: {
@@ -387,6 +434,7 @@ const DataBrowsing = () => {
       end: endQuery,
       ensure_full_range: true,
       interval: interval,
+      cutoff_now: true,
     },
     queryOptions: {
       enabled: false,
@@ -401,6 +449,7 @@ const DataBrowsing = () => {
         .filter((tag) => tag.tag_id < 0)
         .map((tag) => -tag.tag_id),
       highest_priority_only: true,
+      cutoff_now: true,
     },
     queryOptions: {
       enabled: false,
@@ -926,7 +975,7 @@ const DataBrowsing = () => {
             <PlotWithUnits
               data={fullTimeseriesData}
               tags={selectedTags}
-              // layout={customLayout}
+              layout={layout}
               isLoading={
                 timeseriesData.isFetching ||
                 expectedPowerTimeseriesData.isFetching
