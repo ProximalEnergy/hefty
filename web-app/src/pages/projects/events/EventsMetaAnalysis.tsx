@@ -486,6 +486,7 @@ const Page = () => {
             >
               {mtbfData[0]?.x?.length || eventsMetaAnalysis.isLoading ? (
                 <PlotlyPlot
+                  data={mtbfData}
                   layout={{
                     xaxis: { title: { text: 'Device Type' } },
                     yaxis: { title: { text: 'Hours' } },
