@@ -11,7 +11,14 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
-import { ActionIcon, Button, Group, Stack, Tooltip } from '@mantine/core'
+import {
+  ActionIcon,
+  Button,
+  Group,
+  SegmentedControl,
+  Stack,
+  Tooltip,
+} from '@mantine/core'
 import { useViewportSize } from '@mantine/hooks'
 import { IconArrowBackUp, IconPlus, IconX } from '@tabler/icons-react'
 import type { Layout, PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
@@ -300,6 +307,7 @@ function DeviceTypeCard({
   const navigate = useNavigate()
   const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
+  const [chartType, setChartType] = useState<'line' | 'heatmap'>('line')
 
   const deviceDetails = useGetDeviceDetailsVertical({
     pathParams: { projectId: projectId || '' },
@@ -310,6 +318,8 @@ function DeviceTypeCard({
     },
   })
 
+  const hasMultipleTraces = (deviceDetails.data?.data.length ?? 0) > 1
+
   const handlePlotClick = (event: PlotMouseEvent) => {
     const { points } = event
 
@@ -317,26 +327,54 @@ function DeviceTypeCard({
       return
     }
 
-    const deviceId = points[0].data.customdata[0]
+    let deviceId: string | number | undefined
 
-    navigate(
-      `/projects/${projectId}/device-details/single/${deviceId}?${searchParams.toString()}`,
-    )
+    if (chartType === 'line') {
+      // Line chart: customdata is an array with device_id at index 0
+      const customdata = points[0].data.customdata
+      if (Array.isArray(customdata) && customdata.length > 0) {
+        deviceId = customdata[0] as string | number
+      }
+    } else if (chartType === 'heatmap') {
+      // Heatmap: use the y value (device name) to find the device_id
+      const deviceName = points[0].y as string
+      const device = deviceDetails.data?.data.find((d) => d.name === deviceName)
+      deviceId = device?.device_id
+    }
+
+    if (deviceId !== undefined) {
+      navigate(
+        `/projects/${projectId}/device-details/single/${deviceId}?${searchParams.toString()}`,
+      )
+    }
   }
 
   return (
     <CustomCard
       title={label}
       headerChildren={
-        <ActionIcon
-          color="red"
-          variant="transparent"
-          aria-label={`Remove ${label}`}
-          onClick={onRemove}
-          disabled={selectedCards === 1}
-        >
-          <IconX size={20} stroke={ICON_STROKE} />
-        </ActionIcon>
+        <Group>
+          {hasMultipleTraces && (
+            <SegmentedControl
+              size="xs"
+              value={chartType}
+              onChange={(value) => setChartType(value as 'line' | 'heatmap')}
+              data={[
+                { label: 'Line', value: 'line' },
+                { label: 'Heatmap', value: 'heatmap' },
+              ]}
+            />
+          )}
+          <ActionIcon
+            color="red"
+            variant="transparent"
+            aria-label={`Remove ${label}`}
+            onClick={onRemove}
+            disabled={selectedCards === 1}
+          >
+            <IconX size={20} stroke={ICON_STROKE} />
+          </ActionIcon>
+        </Group>
       }
       style={{
         flex: isFillMode ? 1 : undefined,
@@ -344,14 +382,47 @@ function DeviceTypeCard({
       }}
     >
       <PlotlyPlot
-        data={deviceDetails.data?.data.map((device) => ({
-          x: deviceDetails.data?.times,
-          y: device.values,
-          name: device.name,
-          type: 'scatter',
-          mode: 'lines',
-          customdata: [device.device_id],
-        }))}
+        key={chartType}
+        data={(() => {
+          if (!deviceDetails.data) return undefined
+          switch (chartType) {
+            case 'line':
+              return deviceDetails.data.data.map((device) => ({
+                x: deviceDetails.data?.times,
+                y: device.values,
+                name: device.name,
+                type: 'scatter',
+                mode: 'lines',
+                customdata: [device.device_id],
+              }))
+            case 'heatmap':
+              return [
+                {
+                  x: deviceDetails.data.times,
+                  y: deviceDetails.data.data.map((d) => d.name),
+                  z: deviceDetails.data.data.map((d) => d.values),
+                  type: 'heatmap',
+                  colorbar: {
+                    orientation: 'h',
+                    yref: 'container',
+                    yanchor: 'bottom',
+                    y: 0,
+                    tickformat:
+                      deviceDetails.data.layout.y_axis_label === 'SOC'
+                        ? ',.0%'
+                        : undefined,
+                    title: {
+                      text: deviceDetails.data.layout.y_axis_label,
+                    },
+                    thickness: 15,
+                  },
+                  colorscale: 'Portland',
+                },
+              ]
+            default:
+              return undefined
+          }
+        })()}
         layout={{
           ...layout,
           xaxis: {
@@ -359,13 +430,21 @@ function DeviceTypeCard({
             autorange: xaxisRange === undefined ? true : false,
           },
           yaxis: {
-            title: { text: deviceDetails.data?.layout.y_axis_label },
+            title: {
+              text:
+                chartType === 'heatmap'
+                  ? label
+                  : deviceDetails.data?.layout.y_axis_label,
+            },
             tickformat:
-              deviceDetails.data?.layout.y_axis_label === 'SOC'
-                ? ',.0%'
-                : undefined,
+              chartType === 'heatmap'
+                ? undefined
+                : deviceDetails.data?.layout.y_axis_label === 'SOC'
+                  ? ',.0%'
+                  : undefined,
+            type: chartType === 'heatmap' ? 'category' : undefined,
           },
-          showlegend: true,
+          showlegend: chartType === 'line',
           hovermode: 'closest',
         }}
         onRelayout={onRelayout}
