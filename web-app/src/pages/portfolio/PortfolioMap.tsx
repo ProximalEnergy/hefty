@@ -112,7 +112,6 @@ const ProjectMarker = ({
           projectId={project.project_id}
           projectName={project.name_long}
           isOpen={isHoverCardOpen}
-          poi={project.poi}
         />
       </HoverCard>
     </Marker>

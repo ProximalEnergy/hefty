@@ -37,6 +37,16 @@ devices = pd.read_excel(
 devices = utils.clean_df(devices, index_col="device_id")
 devices = utils.get_device_id_path(devices)
 
+# Verify that every row in the polygon column is either None or starts with 'MULTIPOLYGON'
+if (
+    not devices["polygon"]
+    .map(lambda x: x is None or x.startswith("MULTIPOLYGON"))
+    .all()
+):
+    raise ValueError(
+        "Every row in the polygon column must be either None or start with 'MULTIPOLYGON'"
+    )
+
 # Identify unique device_type_ids that are used in the project
 used_device_type_ids = sorted(devices["device_type_id"].unique().tolist())
 

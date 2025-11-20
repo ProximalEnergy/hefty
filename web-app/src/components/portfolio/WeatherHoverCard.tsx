@@ -24,14 +24,12 @@ interface WeatherHoverCardProps {
   projectId: string
   projectName: string
   isOpen: boolean
-  poi: number
 }
 
 export const WeatherHoverCard = ({
   projectId,
   projectName,
   isOpen,
-  poi,
 }: WeatherHoverCardProps) => {
   const {
     weather,
@@ -149,11 +147,10 @@ export const WeatherHoverCard = ({
             <Text size="sm" fw={500}>
               Meter Power:{' '}
               {(() => {
+                // Backend always returns meter power in MW
                 const absValue = Math.abs(avgMeterPowerMW)
-                const displayValue =
-                  absValue > poi * 1.25 ? absValue / 1000 : absValue
                 const sign = avgMeterPowerMW >= 0 ? '' : '-'
-                return `${sign}${displayValue.toFixed(2)} MW`
+                return `${sign}${absValue.toFixed(2)} MW`
               })()}
             </Text>
           ) : (

@@ -16,6 +16,9 @@ const DeviceSunburst = ({
 
   const { data, isLoading } = useGetSunburstData({
     pathParams: { projectId: projectId || '-1' },
+    queryOptions: {
+      enabled: !!projectId,
+    },
   })
 
   const clickedRef = useRef<string>('')

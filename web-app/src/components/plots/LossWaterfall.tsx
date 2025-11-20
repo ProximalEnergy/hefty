@@ -18,6 +18,9 @@ const LossWaterfall = ({
   const data = useGetWaterfall({
     pathParams: { projectId: projectId || '-1' },
     queryParams: { level: level, start: startQuery, end: endQuery },
+    queryOptions: {
+      enabled: !!projectId && !!startQuery && !!endQuery,
+    },
   })
 
   if (data.isLoading) return <PageLoader />

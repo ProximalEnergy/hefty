@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --force",
     "build": "node build-plotly-custom.js && tsc && NODE_OPTIONS=--max_old_space_size=8192 vite build",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 1000",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "check": "npx tsc && npx prettier --write --log-level warn . && npx knip"
   },

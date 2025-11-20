@@ -128,6 +128,10 @@ const traceHasData = (trace: Data): boolean => {
     return true
   }
 
+  if ('labels' in record && hasArrayValues(record['labels'])) {
+    return true
+  }
+
   if (
     'cells' in record &&
     typeof record['cells'] === 'object' &&

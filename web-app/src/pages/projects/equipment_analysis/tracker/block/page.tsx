@@ -10,6 +10,8 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Button, Group, Stack, Title } from '@mantine/core'
 import { IconArrowBackUp } from '@tabler/icons-react'
+import { Data } from 'plotly.js'
+import { useMemo } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
@@ -58,6 +60,43 @@ const Page = () => {
     },
   })
 
+  const collator = useMemo(
+    () => new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' }),
+    [],
+  )
+
+  const positionSeries = useMemo<Data[]>(() => {
+    if (!data.data?.positions) {
+      return []
+    }
+
+    return Object.entries(data.data.positions)
+      .sort(([a], [b]) => collator.compare(a, b))
+      .map<Data>(([key, value]) => ({
+        x: data.data?.times ?? [],
+        y: value ?? [],
+        type: 'scatter',
+        mode: 'lines',
+        name: key,
+      }))
+  }, [collator, data.data])
+
+  const setpointSeries = useMemo<Data[]>(() => {
+    if (!data.data?.setpoints) {
+      return []
+    }
+
+    return Object.entries(data.data.setpoints)
+      .sort(([a], [b]) => collator.compare(a, b))
+      .map<Data>(([key, value]) => ({
+        x: data.data?.times ?? [],
+        y: value ?? [],
+        type: 'scatter',
+        mode: 'lines',
+        name: key,
+      }))
+  }, [collator, data.data])
+
   if (blockDropdown.isLoading) {
     return <PageLoader />
   }
@@ -96,15 +135,7 @@ const Page = () => {
       </Group>
       <CustomCard title="Tracker Position" style={{ height: '50vh' }}>
         <PlotlyPlot
-          data={Object.entries(data.data?.positions || {}).map(
-            ([key, value]) => ({
-              x: data.data?.times,
-              y: value,
-              type: 'scatter',
-              mode: 'lines',
-              name: key,
-            }),
-          )}
+          data={positionSeries}
           layout={{
             yaxis: {
               title: { text: 'Angle (degrees)' },
@@ -115,15 +146,7 @@ const Page = () => {
       </CustomCard>
       <CustomCard title="Tracker Setpoint" style={{ height: '50vh' }}>
         <PlotlyPlot
-          data={Object.entries(data.data?.setpoints || {}).map(
-            ([key, value]) => ({
-              x: data.data?.times,
-              y: value,
-              type: 'scatter',
-              mode: 'lines',
-              name: key,
-            }),
-          )}
+          data={setpointSeries}
           layout={{
             yaxis: {
               title: { text: 'Angle (degrees)' },

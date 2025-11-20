@@ -16,8 +16,10 @@ export interface DataTimeSeriesLastWithTag {
 // Type for forecast list item
 export type ForecastListItem = ForecastResponse['list'][number]
 
-// Helper to extract numeric value from DataTimeSeriesLast and apply unit
-// scaling
+// Helper to extract numeric value from DataTimeSeriesLast
+// NOTE: The backend endpoint get_data_timeseries_last already applies unit_scale
+// and unit_offset before returning values, so we should NOT apply scaling again here.
+// The tag metadata is included for reference but scaling has already been applied.
 const getNumericValue = (
   item: DataTimeSeriesLastWithTag | null,
 ): number | null => {
@@ -31,18 +33,8 @@ const getNumericValue = (
 
   if (rawValue === null) return null
 
-  // Apply unit scaling if tag has unit_scale
-  let scaledValue = rawValue
-  if (item.tag?.unit_scale !== null && item.tag?.unit_scale !== undefined) {
-    scaledValue = scaledValue * item.tag.unit_scale
-  }
-
-  // Apply unit offset if tag has unit_offset
-  if (item.tag?.unit_offset !== null && item.tag?.unit_offset !== undefined) {
-    scaledValue = scaledValue + item.tag.unit_offset
-  }
-
-  return scaledValue
+  // Backend already applied unit_scale and unit_offset, so return the value as-is
+  return rawValue
 }
 
 // Calculate averages

@@ -75,8 +75,6 @@ import PortfolioSettings from './pages/portfolio/settings/PortfolioSettings'
 import BESSOperation from './pages/projects/BESSOperation'
 // Battery Health
 import BatteryHealth from './pages/projects/BatteryHealth'
-// Data Browsing
-import DataBrowsing from './pages/projects/DataBrowsing'
 import EnergyWaterfall from './pages/projects/EnergyWaterfall'
 // Project Admin
 import ProjectAdmin from './pages/projects/ProjectAdmin'
@@ -99,6 +97,8 @@ import ProjectContract from './pages/projects/contracts/ProjectContract'
 import ProjectContracts from './pages/projects/contracts/ProjectContracts'
 import CustomDash from './pages/projects/custom_dash/CustomDash'
 import CustomDashMenu from './pages/projects/custom_dash/CustomDashMenu'
+// Data Browsing
+import DataBrowsing from './pages/projects/data_browsing/DataBrowsing'
 import DataAvailability from './pages/projects/device_details/DataAvailability'
 import RealTime from './pages/projects/device_details/RealTime'
 import VerticalDeviceDetails from './pages/projects/device_details/VerticalDeviceDetails'

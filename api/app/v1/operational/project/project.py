@@ -15,6 +15,7 @@ from app.v1.operational.project import (
     project_mccarthy_quality,
     project_pg_data_types,
     project_pv_budgeted,
+    project_pv_expected,
     project_qc,
     project_report_instances,
     project_reports,
@@ -36,6 +37,7 @@ router.include_router(project_report_instances.router)
 router.include_router(project_tags.router)
 router.include_router(project_status.router)
 router.include_router(project_pv_budgeted.router)
+router.include_router(project_pv_expected.router)
 router.include_router(project_mccarthy_quality.router)
 router.include_router(project_documents.router)
 router.include_router(project_pg_data_types.router)
