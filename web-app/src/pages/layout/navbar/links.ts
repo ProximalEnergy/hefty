@@ -175,7 +175,7 @@ export const projectLinks: DropdownLink[] = [
     icon: icons.IconChartLine,
   },
   {
-    to: (projectId: string) => `/projects/${projectId}/contracts`,
+    to: (projectId: string) => `/projects/${projectId}/contracts/`,
     label: 'Contracts',
     icon: icons.IconFileText,
   },
