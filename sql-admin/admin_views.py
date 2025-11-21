@@ -3,6 +3,7 @@
 from core.models import (
     Company,
     Device,
+    DeviceModel,
     Event,
     KPIInstance,
     Project,
@@ -160,6 +161,27 @@ class SensorTypeAdmin(ModelView, model=SensorType):
     column_default_sort = [(SensorType.name_short, False)]
 
 
+class DeviceModelAdmin(ModelView, model=DeviceModel):
+    """Admin view for DeviceModel model."""
+
+    # Permissions
+    can_delete = False
+
+    # Metadata
+    name = "Device Model"
+    name_plural = "Device Models"
+    category = "Operational Schema"
+
+    # List page
+    column_list = "__all__"
+    column_searchable_list = [DeviceModel.brand, DeviceModel.model]
+    column_sortable_list = [c for c in DeviceModel.__table__.columns]
+    column_default_sort = [(DeviceModel.device_model_id, False)]
+
+    # Form options
+    form_excluded_columns = [DeviceModel.device_model_id]  # Auto-generated
+
+
 class TagAdmin(ModelView, model=Tag):
     """Admin view for Tag model."""
 
@@ -257,6 +279,7 @@ def setup_admin_views(admin: Admin) -> None:
 
     # Device and sensor models
     admin.add_view(DeviceAdmin)
+    admin.add_view(DeviceModelAdmin)
     admin.add_view(SensorTypeAdmin)
     admin.add_view(TagAdmin)
     admin.add_view(KPIInstanceAdmin)
