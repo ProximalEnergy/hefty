@@ -4,7 +4,6 @@ import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { useGetWaterfall } from '@/api/v1/operational/project/waterfall'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
@@ -20,6 +19,7 @@ import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import Attribution from '@/components/gis/Attribution'
+import LossWaterfall from '@/components/plots/LossWaterfall'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
@@ -406,7 +406,8 @@ const DailyEnergyComparison = ({
     )
   }
 
-  if (powerData.isLoading || project.isLoading || budgetedDataQuery.isLoading) {
+  // Only wait for required data - budgeted data is optional and can be added later
+  if (powerData.isLoading || project.isLoading) {
     return (
       <Text ta="center" py="xl">
         Loading...
@@ -781,7 +782,10 @@ function MapHoverCard({
         {hoverInfo.feature?.properties?.value != null
           ? kpiType.unit === '%'
             ? `${(hoverInfo.feature.properties.value * 100).toFixed(2)}%`
-            : `${hoverInfo.feature.properties.value.toFixed(2)} ${kpiType.unit}`
+            : `${hoverInfo.feature.properties.value.toLocaleString('en-US', {
+                maximumFractionDigits: 0,
+                minimumFractionDigits: 0,
+              })} ${kpiType.unit}`
           : 'No Data'}
       </Text>
     </Paper>
@@ -970,6 +974,11 @@ const Page: React.FC = () => {
     },
     queryOptions: {
       enabled: !!projectId,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 24 * 60 * 60 * 1000, // 24 hours - met stations don't change often
+      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 
@@ -978,6 +987,8 @@ const Page: React.FC = () => {
     [metStationsQuery.data],
   )
 
+  // Don't block on metStationsQuery - use empty array if still loading
+  // This allows other content to load while we wait for met stations
   const poaTimeseriesQuery = useGetTimeSeries({
     pathParams: { projectId: projectId || '' },
     queryParams: {
@@ -987,7 +998,15 @@ const Page: React.FC = () => {
       end: endTime || undefined,
     },
     queryOptions: {
-      enabled: !!projectId && metStationDeviceIds.length > 0 && !!startTime,
+      enabled:
+        !!projectId &&
+        !!startTime &&
+        (metStationDeviceIds.length > 0 || !metStationsQuery.isLoading),
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 60 * 60 * 1000, // 1 hour
+      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 
@@ -1020,7 +1039,7 @@ const Page: React.FC = () => {
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [1, 2, 34], // 1 = PCS mechanical availability, 2 = generation (MWh), 34 = performance ratio. Removed 3 (irradiance)
+      kpi_type_ids: [1, 6, 34, 102, 103], // 1 = PCS mechanical availability, 2 = generation (MWh), 34 = performance ratio, 102 = expected generation (for Performance Index), 103 = curtailment (MWh). Removed 3 (irradiance)
       start: selectedDateStr || '',
       end: trailingEnd || '',
       include_device_data: false,
@@ -1036,11 +1055,11 @@ const Page: React.FC = () => {
     },
   })
 
-  // Fetch trailing period KPI data for chart (only generation needed for chart)
+  // Fetch trailing period KPI data for chart (generation and expected generation)
   const trailingKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [2], // Only generation for chart
+      kpi_type_ids: [6, 102], // Generation (2) and Expected Generation (102)
       start: trailingStart || '',
       end: trailingEnd || '',
       include_device_data: false,
@@ -1066,24 +1085,6 @@ const Page: React.FC = () => {
     },
     queryOptions: {
       enabled: !!projectId && !!selectedDateStr,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
-      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  })
-
-  // Fetch waterfall loss data for the selected day
-  const waterfallData = useGetWaterfall({
-    pathParams: { projectId: projectId || '' },
-    queryParams: {
-      level: 'device_type',
-      start: startTime || undefined,
-      end: endTime || undefined,
-    },
-    queryOptions: {
-      enabled: !!projectId && !!startTime && !!endTime,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
@@ -1130,7 +1131,7 @@ const Page: React.FC = () => {
   const mtdKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [2], // Generation (MWh) for MTD revenue calculation
+      kpi_type_ids: [6], // Generation (MWh) for MTD revenue calculation
       start: mtdDateRange?.start || '',
       end: mtdDateRange?.end || '',
       include_device_data: false,
@@ -1326,7 +1327,7 @@ const Page: React.FC = () => {
 
     // Get the actual generation for the selected day
     const generationKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
     )
     const generationMWh = generationKpi?.data?.project_data?.[0] || 0
 
@@ -1433,22 +1434,27 @@ const Page: React.FC = () => {
   // Calculate stats for StatsGrid
   const stats = useMemo(() => {
     const generationKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
     )
-    const performanceRatioKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 34,
+    const expectedKpi = dailyKpiData.data?.find(
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 102,
+    )
+    const curtailmentKpi = dailyKpiData.data?.find(
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 103,
     )
     const availabilityKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) => kpi.kpi_type_id === 1,
     )
 
     const generationMWh = generationKpi?.data?.project_data?.[0] || 0
+    const expectedMWh = expectedKpi?.data?.project_data?.[0] || 0
+    const curtailmentMWh = curtailmentKpi?.data?.project_data?.[0] || 0
     const ppaRate = project.data?.ppa?.rate || 0
     const revenue = generationMWh * ppaRate
 
     // Calculate MTD revenue
     const mtdGenerationKpi = mtdKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
     )
     const mtdGenerationMWh =
       mtdGenerationKpi?.data?.project_data?.reduce(
@@ -1457,7 +1463,9 @@ const Page: React.FC = () => {
       ) || 0
     const mtdRevenue = mtdGenerationMWh * ppaRate
 
-    const performanceRatio = performanceRatioKpi?.data?.project_data?.[0] || 0
+    // Calculate Performance Index = (actual / expected) * 100
+    const performanceIndex =
+      expectedMWh > 0 ? (generationMWh / expectedMWh) * 100 : 0
     const irradianceKWhM2 = calculatedIrradiance ?? 0
 
     const availability = availabilityKpi?.data?.project_data?.[0] || 0
@@ -1468,26 +1476,32 @@ const Page: React.FC = () => {
         ?.length || 0
     const closedEvents = totalEvents - openEvents
 
+    // Build Project Generation description with curtailment info if applicable
+    let generationDescription = 'Total project generation'
+    if (curtailmentMWh !== 0) {
+      generationDescription += `. Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
+    }
+
     return [
       {
         title: 'Project Generation',
-        value: `${generationMWh.toFixed(2)} MWh`,
+        value: `${generationMWh.toFixed(1)} MWh${curtailmentMWh !== 0 ? '*' : ''}`,
         subtitle: generationBudgetInfo
-          ? `${generationBudgetInfo.percentage.toFixed(0)}% of Budgeted (${generationBudgetInfo.budgetedMWh.toFixed(2)} MWh)`
+          ? `${generationBudgetInfo.percentage.toFixed(0)}% of Budgeted`
           : undefined,
         icon: IconBolt,
-        description: 'Total project generation for the selected day',
+        description: generationDescription,
         kpiTypeId: 6,
-        link: `/projects/${projectId}/kpis/type/2`,
+        link: `/projects/${projectId}/kpis/type/6`,
       },
       {
-        title: 'Solar Resource (Insolation)',
+        title: 'Resource (Insolation)',
         value: `${irradianceKWhM2.toFixed(2)} kWh/m²`,
         subtitle: irradianceBudgetInfo
-          ? `${irradianceBudgetInfo.percentage.toFixed(0)}% of Budgeted (${irradianceBudgetInfo.budgetedPOASumkWh.toFixed(2)} kWh/m²)`
+          ? `${irradianceBudgetInfo.percentage.toFixed(0)}% of Budgeted`
           : undefined,
         icon: IconSun,
-        description: 'Daily irradiance for the selected day',
+        description: 'Total irradiation that day',
       },
       {
         title: 'Revenue',
@@ -1500,17 +1514,18 @@ const Page: React.FC = () => {
             ? `MTD: $${mtdRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : undefined,
         icon: IconCurrencyDollar,
-        description: 'Estimated revenue for the selected day',
+        description: 'Estimated revenue for that day',
       },
       {
-        title: 'Performance Ratio',
-        value: `${(performanceRatio * 100).toFixed(2)}%`,
-        subtitle: 'Daily performance ratio',
+        title: 'Performance Index',
+        value: `${performanceIndex.toFixed(2)}%${curtailmentMWh !== 0 ? '*' : ''}`,
+        subtitle: 'Actual vs Expected',
         icon: IconChartBar,
-        description:
-          kpiTypeDescriptions[34] || 'Performance ratio for the selected day',
-        kpiTypeId: 34,
-        link: `/projects/${projectId}/kpis/type/34`,
+        description: `Performance Index: ratio of actual generation to expected generation for the selected day. Note: Expected energy does not take curtailment into account.${
+          curtailmentMWh !== 0
+            ? ` Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
+            : ''
+        }`,
       },
       {
         title: 'Events',
@@ -1521,13 +1536,14 @@ const Page: React.FC = () => {
         link: `/projects/${projectId}/events`,
       },
       {
-        title: 'PCS Mechanical Availability',
-        value: `${(availability * 100).toFixed(2)}%`,
+        title: 'PCS Mech. Availability',
+        value: `${(availability * 100).toFixed(2)}%${curtailmentMWh !== 0 ? '*' : ''}`,
         subtitle: 'Daily mechanical availability',
         icon: IconCash,
-        description:
+        description: `${
           kpiTypeDescriptions[1] ||
-          'PCS mechanical availability for the selected day',
+          'PCS mechanical availability for the selected day'
+        }${curtailmentMWh !== 0 ? `. Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh` : ''}`,
         kpiTypeId: 1,
         link: `/projects/${projectId}/kpis/type/1`,
       },
@@ -1552,7 +1568,11 @@ const Page: React.FC = () => {
     }
 
     const generationKpi = trailingKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+    )
+
+    const expectedKpi = trailingKpiData.data?.find(
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 102,
     )
 
     // If we don't have generation data, try to show budgeted data only
@@ -1595,6 +1615,7 @@ const Page: React.FC = () => {
             marker: {
               size: 8,
               symbol: 'diamond',
+              color: theme.colors.violet[7],
             },
             error_y: {
               type: 'data',
@@ -1610,7 +1631,7 @@ const Page: React.FC = () => {
             name: 'Budgeted',
             type: 'scatter' as const,
             mode: 'lines' as const,
-            line: { width: 2, dash: 'dash' },
+            line: { width: 2, dash: 'dot', color: theme.colors.violet[7] },
           })
         }
 
@@ -1626,21 +1647,23 @@ const Page: React.FC = () => {
     // Calculate cumulative if needed
     let displayData = actualData
     if (energyView === 'cumulative') {
-      let lastCumulativeValue = 0
       displayData = actualData.reduce(
-        (acc: (number | null)[], val: number | null) => {
+        (
+          acc: { values: (number | null)[]; lastSum: number },
+          val: number | null,
+        ) => {
           if (val === null) {
             // If current value is null, keep it as null to create a gap
-            acc.push(null)
+            acc.values.push(null)
           } else {
             // Add to the last cumulative value (not reset to 0)
-            lastCumulativeValue += val
-            acc.push(lastCumulativeValue)
+            acc.lastSum += val
+            acc.values.push(acc.lastSum)
           }
           return acc
         },
-        [],
-      )
+        { values: [], lastSum: 0 },
+      ).values
     }
 
     const traces: Partial<Plotly.Data>[] = []
@@ -1653,6 +1676,7 @@ const Page: React.FC = () => {
         name: 'Actual',
         type: 'bar' as const,
         width: 0.6, // Make bars narrower to leave space for box plots
+        marker: { color: theme.colors.green[7] },
       })
     } else {
       // For cumulative view, use line chart
@@ -1663,8 +1687,115 @@ const Page: React.FC = () => {
         type: 'scatter' as const,
         mode: 'lines' as const,
         connectgaps: false, // Show gaps for missing data
-        line: { width: 2 },
+        line: { width: 2, color: theme.colors.green[7] },
       })
+    }
+
+    // Calculate percentage differences for legend
+    // Get the final actual value (last point for cumulative, or sum for daily)
+    const getFinalActualValue = (): number | null => {
+      if (displayData.length === 0) return null
+      if (energyView === 'cumulative') {
+        const lastValue = displayData[displayData.length - 1]
+        return typeof lastValue === 'number' ? lastValue : null
+      } else {
+        // For daily view, sum all values
+        return displayData.reduce((sum: number, val) => {
+          return sum + (typeof val === 'number' && val !== null ? val : 0)
+        }, 0)
+      }
+    }
+
+    const finalActualValue = getFinalActualValue()
+
+    // Process Expected Energy (KPI 102)
+    let expectedDisplayData: (number | null)[] = []
+    if (expectedKpi?.data?.dates && expectedKpi?.data?.project_data) {
+      try {
+        // Align expected data with actual data dates
+        const expectedDates = expectedKpi.data.dates
+        const expectedValues = expectedKpi.data.project_data
+
+        const alignedExpectedData = dates.map((date) => {
+          const index = expectedDates.indexOf(date)
+          if (index >= 0) {
+            return expectedValues[index]
+          }
+          return null
+        })
+
+        // Calculate cumulative if needed
+        if (energyView === 'cumulative') {
+          expectedDisplayData = alignedExpectedData.reduce(
+            (
+              acc: { values: (number | null)[]; lastSum: number },
+              val: number | null,
+            ) => {
+              if (val === null) {
+                acc.values.push(acc.lastSum > 0 ? acc.lastSum : null)
+              } else {
+                acc.lastSum += val
+                acc.values.push(acc.lastSum)
+              }
+              return acc
+            },
+            { values: [], lastSum: 0 },
+          ).values
+        } else {
+          expectedDisplayData = alignedExpectedData
+        }
+
+        // Calculate percentage difference for Expected
+        const getFinalExpectedValue = (): number | null => {
+          if (expectedDisplayData.length === 0) return null
+          if (energyView === 'cumulative') {
+            const lastValue =
+              expectedDisplayData[expectedDisplayData.length - 1]
+            return typeof lastValue === 'number' ? lastValue : null
+          } else {
+            return expectedDisplayData.reduce((sum: number, val) => {
+              return sum + (typeof val === 'number' && val !== null ? val : 0)
+            }, 0)
+          }
+        }
+
+        const finalExpectedValue = getFinalExpectedValue()
+        let expectedName = 'Expected'
+        if (
+          finalActualValue !== null &&
+          finalActualValue !== 0 &&
+          finalExpectedValue !== null
+        ) {
+          const expectedDiff =
+            ((finalExpectedValue - finalActualValue) / finalActualValue) * 100
+          const sign = expectedDiff >= 0 ? '+' : ''
+          expectedName = `Expected (${sign}${expectedDiff.toFixed(1)}%)`
+        }
+
+        if (energyView === 'daily') {
+          traces.push({
+            x: dates,
+            y: expectedDisplayData,
+            name: expectedName,
+            type: 'scatter' as const,
+            mode: 'lines+markers' as const,
+            line: { width: 2, color: theme.colors.orange[7] },
+            marker: { size: 6 },
+          })
+        } else {
+          traces.push({
+            x: dates,
+            y: expectedDisplayData,
+            name: expectedName,
+            type: 'scatter' as const,
+            mode: 'lines' as const,
+            connectgaps: false,
+            line: { width: 2, color: theme.colors.orange[7] },
+          })
+        }
+      } catch {
+        // Ignore errors in expected data processing
+      }
     }
 
     // Process budgeted data if available (use pre-processed data)
@@ -1690,22 +1821,51 @@ const Page: React.FC = () => {
         // Calculate cumulative if needed
         let budgetedDisplayData = budgetedData
         if (energyView === 'cumulative') {
-          let lastCumulativeValue = 0
           budgetedDisplayData = budgetedData.reduce(
-            (acc: (number | null)[], val: number | null) => {
+            (
+              acc: { values: (number | null)[]; lastSum: number },
+              val: number | null,
+            ) => {
               if (val === null) {
                 // If current value is null, use the last cumulative value to maintain continuity
                 // This ensures the final point has a value for the annotation
-                acc.push(lastCumulativeValue > 0 ? lastCumulativeValue : null)
+                acc.values.push(acc.lastSum > 0 ? acc.lastSum : null)
               } else {
                 // Add to the last cumulative value (not reset to 0)
-                lastCumulativeValue += val
-                acc.push(lastCumulativeValue)
+                acc.lastSum += val
+                acc.values.push(acc.lastSum)
               }
               return acc
             },
-            [],
-          )
+            { values: [], lastSum: 0 },
+          ).values
+        }
+
+        // Calculate percentage difference for Budgeted
+        const getFinalBudgetedValue = (): number | null => {
+          if (budgetedDisplayData.length === 0) return null
+          if (energyView === 'cumulative') {
+            const lastValue =
+              budgetedDisplayData[budgetedDisplayData.length - 1]
+            return typeof lastValue === 'number' ? lastValue : null
+          } else {
+            return budgetedDisplayData.reduce((sum: number, val) => {
+              return sum + (typeof val === 'number' && val !== null ? val : 0)
+            }, 0)
+          }
+        }
+
+        const finalBudgetedValue = getFinalBudgetedValue()
+        let budgetedName = 'Budgeted'
+        if (
+          finalActualValue !== null &&
+          finalActualValue !== 0 &&
+          finalBudgetedValue !== null
+        ) {
+          const budgetedDiff =
+            ((finalBudgetedValue - finalActualValue) / finalActualValue) * 100
+          const sign = budgetedDiff >= 0 ? '+' : ''
+          budgetedName = `Budgeted (${sign}${budgetedDiff.toFixed(1)}%)`
         }
 
         if (energyView === 'daily') {
@@ -1713,12 +1873,13 @@ const Page: React.FC = () => {
           traces.push({
             x: dates,
             y: budgetedDisplayData,
-            name: 'Budgeted',
+            name: budgetedName,
             type: 'scatter' as const,
             mode: 'markers' as const,
             marker: {
               size: 8,
               symbol: 'diamond',
+              color: theme.colors.violet[7],
             },
           })
         } else {
@@ -1726,11 +1887,11 @@ const Page: React.FC = () => {
           traces.push({
             x: dates,
             y: budgetedDisplayData,
-            name: 'Budgeted',
+            name: budgetedName,
             type: 'scatter' as const,
             mode: 'lines' as const,
             connectgaps: false, // Show gaps for missing data
-            line: { width: 2, dash: 'dash' },
+            line: { width: 2, dash: 'dot', color: theme.colors.violet[7] },
           })
         }
       } catch {
@@ -1745,6 +1906,9 @@ const Page: React.FC = () => {
     processedBudgetedData,
     selectedDate,
     trailingPeriod,
+    theme.colors.orange,
+    theme.colors.violet,
+    theme.colors.green,
   ])
 
   // Calculate performance summary for the trailing period
@@ -1971,17 +2135,29 @@ const Page: React.FC = () => {
       !selectedDate ||
       !project.data ||
       !dailyKpiData.data ||
-      !trailingKpiData.data ||
-      !processedBudgetedData
+      !trailingKpiData.data
     ) {
       return null
     }
 
     // Get daily generation data
     const dailyGenerationKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
     )
+    const expectedKpi = dailyKpiData.data.find(
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 102,
+    )
+    const curtailmentKpi = dailyKpiData.data.find(
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 103,
+    )
+
     const actualEnergyMWh = dailyGenerationKpi?.data?.project_data?.[0] || 0
+    const expectedMWh = expectedKpi?.data?.project_data?.[0] || 0
+    const curtailmentMWh = curtailmentKpi?.data?.project_data?.[0] || 0
+
+    // Calculate Performance Index = (actual / expected) * 100
+    const performanceIndex =
+      expectedMWh > 0 ? (actualEnergyMWh / expectedMWh) * 100 : 0
 
     // Get budgeted energy for the day
     const budgetedEnergyMWh = generationBudgetInfo?.budgetedMWh || 0
@@ -1993,7 +2169,7 @@ const Page: React.FC = () => {
 
     // Calculate 30-day trailing statistics
     const trailingGenerationKpi = trailingKpiData.data.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
     )
     const trailingActualMWh =
       trailingGenerationKpi?.data?.project_data?.reduce(
@@ -2002,10 +2178,12 @@ const Page: React.FC = () => {
       ) || 0
 
     // Calculate 30-day trailing budgeted using actual budgeted data
-    const trailingBudgetedMWh = processedBudgetedData.budgetedData.reduce(
-      (sum: number, value: number | null) => sum + (value || 0),
-      0,
-    )
+    const trailingBudgetedMWh = processedBudgetedData
+      ? processedBudgetedData.budgetedData.reduce(
+          (sum: number, value: number | null) => sum + (value || 0),
+          0,
+        )
+      : 0
     const trailingDifferenceMWh = trailingActualMWh - trailingBudgetedMWh
     const trailingPerformancePercent =
       trailingBudgetedMWh > 0
@@ -2018,7 +2196,7 @@ const Page: React.FC = () => {
 
     // Calculate MTD revenue
     const mtdGenerationKpi = mtdKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 2,
+      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
     )
     const mtdGenerationMWh =
       mtdGenerationKpi?.data?.project_data?.reduce(
@@ -2080,6 +2258,7 @@ const Page: React.FC = () => {
         project.data.name_long || project.data.name_short || 'Unknown Project',
       date: dayjs(selectedDate).format('YYYY-MM-DD'),
       actual_energy_mwh: actualEnergyMWh,
+      expected_energy_mwh: expectedMWh,
       budgeted_energy_mwh: budgetedEnergyMWh,
       energy_difference_mwh: energyDifferenceMWh,
       energy_performance_percent: energyPerformancePercent,
@@ -2087,6 +2266,9 @@ const Page: React.FC = () => {
       trailing_30_day_budgeted: trailingBudgetedMWh,
       trailing_30_day_difference: trailingDifferenceMWh,
       trailing_30_day_performance_percent: trailingPerformancePercent,
+      // Performance Index and Curtailment
+      performance_index: performanceIndex,
+      curtailment_mwh: curtailmentMWh,
       // Revenue data
       daily_revenue: dailyRevenue,
       mtd_revenue: mtdRevenue,
@@ -2108,17 +2290,16 @@ const Page: React.FC = () => {
     processedBudgetedData,
   ])
 
+  // Stats grid only needs these essential queries - budgeted data can load separately
+  // Don't block on metStationsQuery, poaTimeseriesQuery, or budgeted queries - they enhance but aren't required
   const isStatsLoading =
     dailyKpiData.isLoading ||
     eventsData.isLoading ||
     project.isLoading ||
-    metStationsQuery.isLoading ||
-    poaTimeseriesQuery.isLoading ||
-    dailyBudgetedDataQuery.isLoading ||
-    budgetedDataQuery.isLoading ||
-    mtdKpiData.isLoading ||
-    trailingKpiData.isLoading ||
-    waterfallData.isLoading
+    mtdKpiData.isLoading
+
+  // AICard needs trailingKpiData in addition to stats data
+  const isAICardLoading = isStatsLoading || trailingKpiData.isLoading
 
   // Prepare series options for dropdown (must be before early return)
   const seriesOptions = useMemo(() => {
@@ -2249,7 +2430,7 @@ const Page: React.FC = () => {
                           Stats Grid:
                         </Text>{' '}
                         Shows key metrics (Generation, Resource, Revenue,
-                        Performance Ratio, Events, Availability) with budgeted
+                        Performance Index, Events, Availability) with budgeted
                         comparisons based on the selected comparison mode.
                       </Text>
                     </List.Item>
@@ -2390,10 +2571,16 @@ const Page: React.FC = () => {
         </Group>
 
         {/* Stats Grid */}
-        <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 6 }}>
+        <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 3, lg: 6 }}>
           {isStatsLoading
             ? Array.from({ length: 6 }).map((_, index: number) => (
-                <Card key={index} withBorder p="md" radius="md">
+                <Card
+                  key={index}
+                  withBorder
+                  p="md"
+                  radius="md"
+                  style={{ height: '100%', minWidth: '140px' }}
+                >
                   <Group justify="space-between">
                     <Skeleton height={14} width="60%" />
                     <Skeleton height={20} circle />
@@ -2409,7 +2596,11 @@ const Page: React.FC = () => {
                     withBorder
                     p="md"
                     radius="md"
-                    style={stat.link ? { cursor: 'pointer' } : {}}
+                    style={{
+                      height: '100%',
+                      minWidth: '140px',
+                      ...(stat.link ? { cursor: 'pointer' } : {}),
+                    }}
                   >
                     <Group justify="space-between">
                       <Text size="sm" c="dimmed">
@@ -2454,7 +2645,7 @@ const Page: React.FC = () => {
             {/* AI Performance Summary Card - Much shorter */}
             <AICard
               stats={aiStats}
-              isLoading={isStatsLoading}
+              isLoading={isAICardLoading}
               hasBudgetedSeries={seriesOptions.length > 0}
               hasSelectedDate={!!selectedDate}
             />
@@ -2770,57 +2961,16 @@ const Page: React.FC = () => {
 
         {/* Waterfall Loss Chart */}
         <CustomCard title="Daily Loss Waterfall">
-          {waterfallData.isLoading ? (
-            <Skeleton height={300} />
-          ) : waterfallData.error ? (
-            <Text c="dimmed" ta="center" py="xl">
-              Error loading waterfall data
-            </Text>
-          ) : !waterfallData.data ||
-            !waterfallData.data.value ||
-            waterfallData.data.value.length === 0 ? (
-            <Text c="dimmed" ta="center" py="xl">
-              No waterfall data available for the selected day
-            </Text>
-          ) : (
-            <PlotlyPlot
-              data={[
-                {
-                  type: 'waterfall',
-                  name: 'Loss Waterfall',
-                  measure: waterfallData.data.measure,
-                  x: waterfallData.data.name,
-                  y: waterfallData.data.value,
-                  marker: {
-                    line: { color: 'black', width: 2 },
-                  },
-                  connector: {
-                    line: {
-                      color: 'rgb(63, 63, 63)',
-                    },
-                  },
-                  increasing: {
-                    marker: { color: theme.colors.gray[7] },
-                  },
-                  decreasing: {
-                    marker: { color: theme.colors.red[7] },
-                  },
-                  totals: {
-                    marker: { color: theme.colors.green[7] },
-                  },
-                } as Partial<Plotly.PlotData>,
-              ]}
-              layout={{
-                height: 300,
-                yaxis: {
-                  title: { text: 'Energy (MWh)' },
-                },
-                margin: { l: 60, r: 30, t: 30, b: 60 },
-                showlegend: false,
-              }}
-              isLoading={waterfallData.isLoading}
-              error={waterfallData.error}
+          {startTime && endTime ? (
+            <LossWaterfall
+              level="device_type"
+              startQuery={startTime}
+              endQuery={endTime}
             />
+          ) : (
+            <Text c="dimmed" ta="center" py="xl">
+              Please select a date to view waterfall data
+            </Text>
           )}
         </CustomCard>
       </Stack>

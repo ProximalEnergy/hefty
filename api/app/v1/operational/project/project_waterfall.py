@@ -4,7 +4,12 @@ from typing import Annotated
 from uuid import UUID
 
 import pandas as pd
-from core.crud.operational.device_types import get_device_types as crud_get_device_types
+from core.crud.operational.device_types import (
+    get_device_types as crud_get_device_types,
+)
+from core.crud.project.event_losses import (
+    get_event_losses_aggregated,
+)
 from core.database import Base
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,6 +57,11 @@ async def get_project_waterfall(
     if start is None or end is None:
         start = pd.Timestamp.now(tz=project.time_zone).floor("D") - pd.Timedelta(days=1)
         end = pd.Timestamp.now(tz=project.time_zone).floor("D")
+    # Convert Timestamps to datetime.datetime for type checking
+    start_dt = start.to_pydatetime() if isinstance(start, pd.Timestamp) else start
+    end_dt = end.to_pydatetime() if isinstance(end, pd.Timestamp) else end
+    if start_dt is None or end_dt is None:
+        raise ValueError("start and end must not be None")
     match project.project_type_id:
         ## PV only
         case 1:
@@ -95,29 +105,29 @@ async def get_project_waterfall(
     ## TODO: integrate this into a table instead
     data_expected = crud_get_pv_expected(
         db=project_db,
-        start=start,
-        end=end,
+        start=start_dt,
+        end=end_dt,
         expected_metric_ids=[12],
     )
     if len(data_expected) == 0:
         data_expected = crud_get_pv_expected(
             db=project_db,
-            start=start,
-            end=end,
+            start=start_dt,
+            end=end_dt,
             expected_metric_ids=[11],
         )
     if len(data_expected) == 0:
         data_expected = crud_get_pv_expected(
             db=project_db,
-            start=start,
-            end=end,
+            start=start_dt,
+            end=end_dt,
             expected_metric_ids=[5],
         )
     if len(data_expected) == 0:
         data_expected = crud_get_pv_expected(
             db=project_db,
-            start=start,
-            end=end,
+            start=start_dt,
+            end=end_dt,
             expected_metric_ids=[6],
         )
     if len(data_expected) == 0:
@@ -130,25 +140,18 @@ async def get_project_waterfall(
     df_events = df_events.assign(
         device_type_id=df_events["device"].map(attrgetter("device_type_id"))
     )
-    df_event_losses = core.crud.project.event_losses.get_event_losses(
+    # Use aggregated query - much faster than fetching all individual loss records
+    event_losses_dict = get_event_losses_aggregated(
         db=project_db,
         time_gte=start,
         time_lt=end,
         event_ids=df_events.index.tolist(),
-    ).pandas_dataframe(index="time", as_datetime=True, tz=project.time_zone)
-    if df_event_losses.empty:
-        df_event_losses = pd.DataFrame(
-            columns=["event_id", "event_loss_type_id", "loss"]
-        )
-    else:
-        df_event_losses = df_event_losses[["event_id", "event_loss_type_id", "loss"]]
-
-    loss_sum = (
-        df_event_losses[df_event_losses["event_loss_type_id"] == 1]
-        .groupby("event_id", as_index=True)["loss"]
-        .sum()
+        event_loss_type_id=1,  # Only type 1 losses (energy losses)
     )
-    df_events["loss"] = loss_sum.reindex(df_events.index, fill_value=0)
+    # Map aggregated losses to events DataFrame
+    df_events["loss"] = df_events.index.map(
+        lambda event_id: event_losses_dict.get(event_id, 0.0)
+    )
     if level == "device_type":
         data_device_types = await crud_get_device_types(
             db=db,
@@ -174,17 +177,43 @@ async def get_project_waterfall(
     grouped_losses = grouped_losses.rename(columns={"loss": "value"})
     grouped_losses["value"] = -grouped_losses["value"]
     grouped_losses = grouped_losses.reset_index(drop=True)
+    # Calculate expected energy: expected values are power (W) at 5-minute intervals
+    # Need to integrate over time: Energy (MWh) = Power (W) × Time (hours) / 1,000,000
+    # Calculate time delta in hours from the DataFrame index
+    if len(df_expected) > 1:
+        # Calculate average time interval between data points
+        time_deltas = df_expected.index.to_series().diff().dropna()
+        mean_timedelta = time_deltas.mean()  # type: ignore[misc]
+        avg_time_delta_hours = pd.Timedelta(mean_timedelta).total_seconds() / 3600
+    else:
+        # Default to 5 minutes if only one data point
+        avg_time_delta_hours = 5 / 60
+    # Convert power (W) to energy (MWh): sum of power × time interval / 1,000,000
+    # For 5-minute intervals: 5/60 = 1/12 hours
+    expected_energy_mwh = df_expected["value"].sum() * avg_time_delta_hours / 1_000_000
     new_row = pd.DataFrame(
         {
-            "value": [df_expected["value"].sum() / 1000000],
+            "value": [expected_energy_mwh],
             "measure": ["absolute"],
             "name": ["PV Expected"],
         }
     )
     grouped_losses = pd.concat([new_row, grouped_losses]).reset_index(drop=True)
+    # Convert meter power to energy: multiply sum by time interval (5/60 hours for 5-min data)
+    if len(series_meter) > 1:
+        # Calculate average time interval between data points
+        meter_time_deltas = series_meter.index.to_series().diff().dropna()
+        mean_meter_timedelta = meter_time_deltas.mean()  # type: ignore[misc]
+        avg_meter_time_delta_hours = (
+            pd.Timedelta(mean_meter_timedelta).total_seconds() / 3600
+        )
+    else:
+        # Default to 5 minutes if only one data point
+        avg_meter_time_delta_hours = 5 / 60
+    meter_energy_mwh = series_meter.sum() * avg_meter_time_delta_hours
     new_row = pd.DataFrame(
         {
-            "value": -(grouped_losses["value"].sum() - series_meter.sum()),
+            "value": -(grouped_losses["value"].sum() - meter_energy_mwh),
             "measure": ["relative"],
             "name": ["Unaccounted Difference"],
         }
@@ -192,7 +221,7 @@ async def get_project_waterfall(
     grouped_losses = pd.concat([grouped_losses, new_row]).reset_index(drop=True)
     new_row = pd.DataFrame(
         {
-            "value": [series_meter.sum()],
+            "value": [meter_energy_mwh],
             "measure": ["absolute"],
             "name": ["PV Energy Output"],
         }

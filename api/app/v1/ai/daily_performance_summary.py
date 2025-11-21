@@ -33,6 +33,7 @@ class DailyPerformanceStats(BaseModel):
     project_name: str
     date: str
     actual_energy_mwh: float
+    expected_energy_mwh: float
     budgeted_energy_mwh: float
     energy_difference_mwh: float
     energy_performance_percent: float
@@ -40,6 +41,9 @@ class DailyPerformanceStats(BaseModel):
     trailing_30_day_budgeted: float
     trailing_30_day_difference: float
     trailing_30_day_performance_percent: float
+    # Performance Index and Curtailment
+    performance_index: float
+    curtailment_mwh: float
     # Revenue data
     daily_revenue: float
     mtd_revenue: float
@@ -102,7 +106,8 @@ async def generate_daily_performance_summary(
     system_prompt = (
         "You are an expert solar energy analyst. Generate a concise, "
         "professional summary of a solar project's daily performance. "
-        "Focus on key metrics, trends, and actionable insights. "
+        "Focus on Performance Index (actual vs expected energy) and expected "
+        "energy as the primary metrics. Do not mention budgeted energy. "
         "Keep the summary to 2-3 sentences maximum."
     )
 
@@ -112,9 +117,9 @@ async def generate_daily_performance_summary(
         "date": request.stats.date,
         "daily_metrics": {
             "actual_energy_mwh": request.stats.actual_energy_mwh,
-            "budgeted_energy_mwh": request.stats.budgeted_energy_mwh,
-            "energy_difference_mwh": request.stats.energy_difference_mwh,
-            "performance_percent": request.stats.energy_performance_percent,
+            "expected_energy_mwh": request.stats.expected_energy_mwh,
+            "performance_index": request.stats.performance_index,
+            "curtailment_mwh": request.stats.curtailment_mwh,
         },
         "trailing_30_day_metrics": {
             "actual_energy_mwh": request.stats.trailing_30_day_actual,
@@ -142,10 +147,13 @@ async def generate_daily_performance_summary(
             ],
         },
         "instructions": [
-            "Highlight whether the project is performing above or below budget",
+            "Focus on the Performance Index (actual vs expected energy) as the primary metric",
+            "Highlight the expected energy and how actual generation compares to it",
             "Mention the 30-day trailing performance trend",
             "Include revenue impact and any significant events affecting performance",
             "Note any open events that may be impacting generation",
+            "Mention curtailment if present",
+            "Do NOT mention budgeted energy comparisons",
             "Use professional, technical language appropriate for energy analysts",
             "Be specific about percentages, energy values, and revenue impact",
             "Keep the tone informative but concise",

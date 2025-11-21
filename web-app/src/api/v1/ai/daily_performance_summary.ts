@@ -9,6 +9,7 @@ export interface DailyPerformanceStats {
   project_name: string
   date: string
   actual_energy_mwh: number
+  expected_energy_mwh: number
   budgeted_energy_mwh: number
   energy_difference_mwh: number
   energy_performance_percent: number
@@ -16,6 +17,9 @@ export interface DailyPerformanceStats {
   trailing_30_day_budgeted: number
   trailing_30_day_difference: number
   trailing_30_day_performance_percent: number
+  // Performance Index and Curtailment
+  performance_index: number
+  curtailment_mwh: number
   // Revenue data
   daily_revenue: number
   mtd_revenue: number
