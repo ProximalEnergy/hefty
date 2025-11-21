@@ -116,7 +116,10 @@ const DroneInspections: React.FC = () => {
     data: inspections,
     isLoading: inspectionsLoading,
     refetch: refetchInspections,
-  } = useGetDroneInspections(projectId)
+  } = useGetDroneInspections({
+    pathParams: { projectId: projectId! },
+    queryOptions: { enabled: !!projectId },
+  })
 
   const {
     refetch: syncInspections,
@@ -209,7 +212,15 @@ const DroneInspections: React.FC = () => {
     data: anomalies,
     isLoading: anomaliesLoading,
     refetch: refetchAnomalies,
-  } = useGetDroneAnomalies(projectId, selectedInspection?.inspection_uuid)
+  } = useGetDroneAnomalies({
+    pathParams: {
+      projectId: projectId!,
+      inspectionId: selectedInspection?.inspection_uuid ?? '',
+    },
+    queryOptions: {
+      enabled: !!projectId && !!selectedInspection?.inspection_uuid,
+    },
+  })
 
   const {
     refetch: syncAnomalies,

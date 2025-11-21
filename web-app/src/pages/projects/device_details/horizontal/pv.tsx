@@ -8,7 +8,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
-import { Stack } from '@mantine/core'
+import { SegmentedControl, Stack } from '@mantine/core'
 import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
 import { useCallback, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
@@ -27,6 +27,7 @@ const Page = () => {
   const [sharedXRange, setSharedXRange] = useState<
     [string, string] | undefined
   >(undefined)
+  const [pcsChartType, setPcsChartType] = useState<'line' | 'heatmap'>('line')
 
   const project = useSelectProject(projectId!)
 
@@ -75,11 +76,26 @@ const Page = () => {
       return
     }
 
-    const deviceId = points[0].data.customdata
+    let deviceId: string | number | undefined
 
-    navigate(
-      `/projects/${projectId}/device-details/vertical?device_id=${deviceId}&${searchParams.toString()}`,
-    )
+    if (pcsChartType === 'line') {
+      // Line chart: customdata is directly the device_id
+      const customdata = points[0].data.customdata
+      if (customdata !== undefined && !Array.isArray(customdata)) {
+        deviceId = customdata as string | number
+      }
+    } else if (pcsChartType === 'heatmap') {
+      // Heatmap: use the y value (PCS name) to find the device_id
+      const pcsName = points[0].y as string
+      const pcs = deviceDetails.data?.pcs.find((p) => p.name === pcsName)
+      deviceId = pcs?.device_id
+    }
+
+    if (deviceId !== undefined) {
+      navigate(
+        `/projects/${projectId}/device-details/vertical?device_id=${deviceId}&${searchParams.toString()}`,
+      )
+    }
   }
 
   return (
@@ -145,24 +161,68 @@ const Page = () => {
           error={deviceDetails.error}
         />
       </CustomCard>
-      <CustomCard title="PCS" style={{ flex: 2 }}>
+      <CustomCard
+        title="PCS"
+        style={{ flex: 2 }}
+        headerChildren={
+          <SegmentedControl
+            size="xs"
+            value={pcsChartType}
+            onChange={(value) => setPcsChartType(value as 'line' | 'heatmap')}
+            data={[
+              { label: 'Line', value: 'line' },
+              { label: 'Heatmap', value: 'heatmap' },
+            ]}
+          />
+        }
+      >
         <PlotlyPlot
-          data={
-            deviceDetails.data &&
-            deviceDetails.data.pcs.map((pcs) => ({
-              x: deviceDetails.data.times,
-              y: pcs.values,
-              name: pcs.name,
-              customdata: pcs.device_id,
-            }))
-          }
+          key={pcsChartType}
+          data={(() => {
+            if (!deviceDetails.data) return undefined
+            switch (pcsChartType) {
+              case 'line':
+                return deviceDetails.data.pcs.map((pcs) => ({
+                  x: deviceDetails.data.times,
+                  y: pcs.values,
+                  name: pcs.name,
+                  customdata: pcs.device_id,
+                }))
+              case 'heatmap':
+                return [
+                  {
+                    x: deviceDetails.data.times,
+                    y: deviceDetails.data.pcs.map((pcs) => pcs.name),
+                    z: deviceDetails.data.pcs.map((pcs) => pcs.values),
+                    type: 'heatmap',
+                    colorbar: {
+                      orientation: 'h',
+                      yref: 'container',
+                      yanchor: 'bottom',
+                      y: 0,
+                      ticksuffix: ' MW',
+                      thickness: 15,
+                      title: {
+                        text: 'AC Power',
+                      },
+                    },
+                    colorscale: 'Portland',
+                  },
+                ]
+              default:
+                return undefined
+            }
+          })()}
           layout={{
             xaxis: {
               range: sharedXRange,
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: { text: 'AC Power (MW)' },
+              title: {
+                text: pcsChartType === 'heatmap' ? 'PCS' : 'AC Power (MW)',
+              },
+              type: pcsChartType === 'heatmap' ? 'category' : undefined,
             },
             hovermode: 'closest',
           }}

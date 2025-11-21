@@ -45,7 +45,14 @@ import dayjs from 'dayjs'
 import { FeatureCollection } from 'geojson'
 import { groupBy } from 'lodash'
 import { Data, Layout, PlotData, Shape } from 'plotly.js'
-import React, { memo, useCallback, useContext, useMemo, useState } from 'react'
+import React, {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   Layer,
   MapMouseEvent,
@@ -308,6 +315,9 @@ const GraphsTab: React.FC<{
   averagePerCombiner: { [deviceId: string]: number | null }
   pvModules: PvModule[]
 }> = ({ filteredData, devices, averagePerCombiner, pvModules }) => {
+  const [selectedHistogramType, setSelectedHistogramType] = useState<
+    string | null
+  >('dc_performance_bins')
   const deviceTypes = [
     { value: '9', label: 'Combiner' },
     { value: '2', label: 'Inverter' },
@@ -645,7 +655,7 @@ const GraphsTab: React.FC<{
     return maxDates
   }, [filteredData.x, filteredData.y])
 
-  // Build histogram
+  // Build histogram for DC Performance Bins
   const allValues: number[] = useMemo(() => {
     return Object.values(filteredData?.y || {}).flatMap((item) =>
       Object.values(item).filter(
@@ -653,6 +663,74 @@ const GraphsTab: React.FC<{
       ),
     )
   }, [filteredData?.y])
+
+  // Build histogram for Avg Per Module
+  // Calculate average performance per device (across all days), then histogram those device averages
+  const avgPerModule = useMemo(() => {
+    if (!filteredData?.y) return []
+
+    // Calculate average for each individual device across all days
+    const deviceAverages: number[] = []
+    Object.keys(filteredData.y).forEach((deviceIdStr) => {
+      const deviceId = Number(deviceIdStr)
+      const values = filteredData.y[deviceId] || []
+
+      // Calculate average for this device across all days
+      const validValues = values.filter((v) => v !== null) as number[]
+      if (validValues.length > 0) {
+        const sum = validValues.reduce((acc, val) => acc + val, 0)
+        deviceAverages.push(sum / validValues.length)
+      }
+    })
+
+    return deviceAverages
+  }, [filteredData?.y])
+
+  // Build histogram for Avg Per Module Family
+  // Calculate average performance per device (across all days), then group by module family
+  const avgPerModuleFamily = useMemo(() => {
+    if (!filteredData?.y || !devices || !pvModules) return {}
+
+    // Calculate average for each individual device, then group by family
+    const familyAverages: { [family: string]: number[] } = {}
+
+    Object.keys(filteredData.y).forEach((deviceIdStr) => {
+      const deviceId = Number(deviceIdStr)
+      const device = deviceMap.get(deviceId)
+      const moduleId = device?.pv_module_id
+
+      if (moduleId != null) {
+        const module = pvModules.find((pv) => pv.pv_module_id === moduleId)
+        const family = module?.family || 'Unknown'
+
+        // Calculate average for this device across all days
+        const values = filteredData.y[deviceId] || []
+        const validValues = values.filter((v) => v !== null) as number[]
+
+        if (validValues.length > 0) {
+          const sum = validValues.reduce((acc, val) => acc + val, 0)
+          const deviceAverage = sum / validValues.length
+
+          if (!familyAverages[family]) {
+            familyAverages[family] = []
+          }
+          familyAverages[family].push(deviceAverage)
+        }
+      }
+    })
+
+    return familyAverages
+  }, [filteredData?.y, devices, pvModules, deviceMap])
+
+  // Reset selectedHistogramType if it's set to 'avg_per_module_family' but there's only one family
+  useEffect(() => {
+    if (
+      selectedHistogramType === 'avg_per_module_family' &&
+      Object.keys(avgPerModuleFamily).length <= 1
+    ) {
+      setSelectedHistogramType('dc_performance_bins')
+    }
+  }, [selectedHistogramType, avgPerModuleFamily])
 
   // Use .reduce for min/max to avoid stack overflow for large arrays
   const minValue: number =
@@ -663,7 +741,7 @@ const GraphsTab: React.FC<{
     allValues.length > 0
       ? Math.round(allValues.reduce((a, b) => Math.max(a, b)) * 100) / 100
       : 0
-  const binSize: number = 0.01
+  const binSize: number = 0.005
   const binNum: number = Math.round((maxValue - minValue) / binSize)
 
   const binValues: { [key: number]: number } = {}
@@ -679,6 +757,79 @@ const GraphsTab: React.FC<{
     const binStart = minValue + binSize * binIndex
     binValues[binStart] += 1
   })
+
+  // Build histogram bins for Avg Per Module
+  const avgPerModuleHistogram = useMemo(() => {
+    if (avgPerModule.length === 0) return { bins: {}, min: 0, max: 0 }
+
+    const moduleMin =
+      Math.round(avgPerModule.reduce((a, b) => Math.min(a, b)) * 100) / 100
+    const moduleMax =
+      Math.round(avgPerModule.reduce((a, b) => Math.max(a, b)) * 100) / 100
+    const moduleBinSize = 0.005
+    const moduleBinNum = Math.round((moduleMax - moduleMin) / moduleBinSize)
+
+    const bins: { [key: number]: number } = {}
+    for (let i = 0; i < moduleBinNum; i++) {
+      const binStart = moduleMin + moduleBinSize * i
+      bins[binStart] = 0
+    }
+
+    avgPerModule.forEach((value) => {
+      let binIndex = Math.floor((value - moduleMin) / moduleBinSize)
+      if (binIndex === moduleBinNum) {
+        binIndex = moduleBinNum - 1
+      }
+      const binStart = moduleMin + moduleBinSize * binIndex
+      bins[binStart] += 1
+    })
+
+    return { bins, min: moduleMin, max: moduleMax }
+  }, [avgPerModule])
+
+  // Build histogram bins for Avg Per Module Family (compound histogram)
+  const avgPerModuleFamilyHistogram = useMemo(() => {
+    if (Object.keys(avgPerModuleFamily).length === 0) {
+      return { familyBins: {}, min: 0, max: 0 }
+    }
+
+    // Find overall min/max across all families
+    const allFamilyValues = Object.values(avgPerModuleFamily).flat()
+    if (allFamilyValues.length === 0) {
+      return { familyBins: {}, min: 0, max: 0 }
+    }
+
+    const familyMin =
+      Math.round(allFamilyValues.reduce((a, b) => Math.min(a, b)) * 100) / 100
+    const familyMax =
+      Math.round(allFamilyValues.reduce((a, b) => Math.max(a, b)) * 100) / 100
+    const familyBinSize = 0.005
+    const familyBinNum = Math.round((familyMax - familyMin) / familyBinSize)
+
+    // Create bins for each family
+    const familyBins: { [family: string]: { [key: number]: number } } = {}
+
+    Object.entries(avgPerModuleFamily).forEach(([family, values]) => {
+      const bins: { [key: number]: number } = {}
+      for (let i = 0; i < familyBinNum; i++) {
+        const binStart = familyMin + familyBinSize * i
+        bins[binStart] = 0
+      }
+
+      values.forEach((value) => {
+        let binIndex = Math.floor((value - familyMin) / familyBinSize)
+        if (binIndex === familyBinNum) {
+          binIndex = familyBinNum - 1
+        }
+        const binStart = familyMin + familyBinSize * binIndex
+        bins[binStart] += 1
+      })
+
+      familyBins[family] = bins
+    })
+
+    return { familyBins, min: familyMin, max: familyMax }
+  }, [avgPerModuleFamily])
 
   // Map module_id -> color
   const uniqueModuleIds = useMemo(() => {
@@ -1085,29 +1236,96 @@ const GraphsTab: React.FC<{
         </Stack>
         <Stack h="100%" justify="flex-start">
           <CustomCard
-            title="Histogram: DC Performance Bins"
+            title="Histograms"
+            headerChildren={
+              <SegmentedControl
+                data={[
+                  {
+                    label: 'DC Performance Bins',
+                    value: 'dc_performance_bins',
+                  },
+                  { label: 'Avg Per Device', value: 'avg_per_device' },
+                  ...(Object.keys(avgPerModuleFamily).length > 1
+                    ? [
+                        {
+                          label: 'Avg Per Module Family',
+                          value: 'avg_per_module_family',
+                        },
+                      ]
+                    : []),
+                ]}
+                value={selectedHistogramType ?? undefined}
+                onChange={(value) => setSelectedHistogramType(value)}
+              />
+            }
             style={{ height: '50%' }}
-            info={`This plot shows the distribution of DC performance across all days. The bins are defined by 1% increments
-              (e.g. a value of 1,000 for the 98% bin means that 1,000 combiners had a DC performance between 98% and 98.9% when averaged across all days).`}
+            info={
+              selectedHistogramType === 'dc_performance_bins'
+                ? `This plot shows the distribution of DC performance across all days. The bins are defined by 0.5% increments
+              (e.g. a value of 1,000 for the 98% bin means that 1,000 combiners had a DC performance between 98% and 98.49% when averaged across all days).`
+                : selectedHistogramType === 'avg_per_device'
+                  ? `This plot shows the distribution of average DC performance per device across all days. Each bar represents the number of devices with an average performance in that bin range.`
+                  : selectedHistogramType === 'avg_per_module_family'
+                    ? `This plot shows the distribution of average DC performance per module family across all days. Each trace represents a different module family, showing how many modules in that family fall into each performance bin.`
+                    : ''
+            }
           >
             <PlotlyPlot
-              data={[
-                {
-                  x: Object.keys(binValues).map(Number),
-                  y: Object.values(binValues).map(Number),
-                  type: 'bar',
-                },
-              ]}
+              data={
+                selectedHistogramType === 'dc_performance_bins'
+                  ? [
+                      {
+                        x: Object.keys(binValues).map(Number),
+                        y: Object.values(binValues).map(Number),
+                        type: 'bar',
+                        name: 'DC Performance',
+                      },
+                    ]
+                  : selectedHistogramType === 'avg_per_device'
+                    ? [
+                        {
+                          x: Object.keys(avgPerModuleHistogram.bins).map(
+                            Number,
+                          ),
+                          y: Object.values(avgPerModuleHistogram.bins).map(
+                            Number,
+                          ),
+                          type: 'bar',
+                          name: 'Avg Per Module',
+                        },
+                      ]
+                    : selectedHistogramType === 'avg_per_module_family'
+                      ? Object.entries(
+                          avgPerModuleFamilyHistogram.familyBins,
+                        ).map(([family, bins]) => ({
+                          x: Object.keys(bins).map(Number),
+                          y: Object.values(bins).map(Number),
+                          type: 'bar',
+                          name: family,
+                        }))
+                      : []
+              }
               layout={{
                 bargap: 0,
+                barmode:
+                  selectedHistogramType === 'avg_per_module_family'
+                    ? 'group'
+                    : 'overlay',
                 xaxis: {
-                  tickformat: ',.0%',
+                  tickformat: ',.01%',
                   tickangle: -45,
                   title: { text: 'DC Performance' },
                   type: 'linear',
                 },
                 yaxis: {
-                  title: { text: 'Combiner Count' },
+                  title: {
+                    text:
+                      selectedHistogramType === 'dc_performance_bins'
+                        ? 'Combiner Count'
+                        : selectedHistogramType === 'avg_per_device'
+                          ? 'Module Count'
+                          : 'Module Count',
+                  },
                 },
               }}
             />

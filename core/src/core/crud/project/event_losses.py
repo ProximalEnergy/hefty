@@ -35,6 +35,60 @@ def get_event_losses(
     return ModelList(query=query, return_query=return_query)
 
 
+def get_event_losses_aggregated(
+    db: Session,
+    *,
+    time_gte: datetime.datetime | None = None,
+    time_lt: datetime.datetime | None = None,
+    event_ids: list[int] | None = None,
+    event_loss_type_id: int | None = None,
+) -> dict[int, float]:
+    """
+    Get aggregated event losses by event_id.
+
+    Returns a dictionary mapping event_id to total loss (sum of all losses for that event).
+    This is much more efficient than fetching all individual loss records when you only
+    need the aggregated sum per event.
+
+    Args:
+        db: Database session
+        time_gte: Filter losses where time >= this value
+        time_lt: Filter losses where time < this value
+        event_ids: Filter by these event IDs (if None, returns empty dict)
+        event_loss_type_id: Filter by this loss type ID (if None, includes all types)
+
+    Returns:
+        Dictionary mapping event_id to total loss (float)
+    """
+    if not event_ids:
+        return {}
+
+    query = db.query(
+        models.EventLoss.event_id,
+        func.sum(models.EventLoss.loss).label("total_loss"),
+    )
+
+    query = query.filter(models.EventLoss.event_id.in_(event_ids))
+
+    if time_gte is not None:
+        query = query.filter(models.EventLoss.time >= time_gte)
+    if time_lt is not None:
+        query = query.filter(models.EventLoss.time < time_lt)
+    if event_loss_type_id is not None:
+        query = query.filter(models.EventLoss.event_loss_type_id == event_loss_type_id)
+
+    query = query.group_by(models.EventLoss.event_id)
+
+    results = query.all()
+
+    # Convert to dictionary: event_id -> total_loss
+    # func.sum() returns None if no rows match, so we default to 0.0
+    return {
+        row.event_id: float(row.total_loss if row.total_loss is not None else 0.0)
+        for row in results
+    }
+
+
 def get_event_losses_summary_in_sql(
     db: Session,
     *,

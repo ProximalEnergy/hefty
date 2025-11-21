@@ -8,7 +8,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
-import { Stack } from '@mantine/core'
+import { SegmentedControl, Stack } from '@mantine/core'
 import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
 import { useCallback, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
@@ -27,6 +27,10 @@ const Page = () => {
   const [sharedXRange, setSharedXRange] = useState<
     [string, string] | undefined
   >(undefined)
+  const [batteryChartType, setBatteryChartType] = useState<'line' | 'heatmap'>(
+    'line',
+  )
+  const [pcsChartType, setPcsChartType] = useState<'line' | 'heatmap'>('line')
 
   const project = useSelectProject(projectId!)
 
@@ -70,18 +74,64 @@ const Page = () => {
 
   const batteryTitle = getBatteryTitle(project.data?.spec.used_sensor_type_ids)
 
-  const handlePlotClick = (event: PlotMouseEvent) => {
+  const handleBatteryPlotClick = (event: PlotMouseEvent) => {
     const { points } = event
 
     if (points.length !== 1) {
       return
     }
 
-    const deviceId = points[0].data.customdata
+    let deviceId: string | number | undefined
 
-    navigate(
-      `/projects/${projectId}/device-details/vertical?device_id=${deviceId}&${searchParams.toString()}`,
-    )
+    if (batteryChartType === 'line') {
+      // Line chart: customdata is directly the device_id
+      const customdata = points[0].data.customdata
+      if (customdata !== undefined && !Array.isArray(customdata)) {
+        deviceId = customdata as string | number
+      }
+    } else if (batteryChartType === 'heatmap') {
+      // Heatmap: use the y value (battery name) to find the device_id
+      const batteryName = points[0].y as string
+      const battery = deviceDetails.data?.battery.find(
+        (b) => b.name === batteryName,
+      )
+      deviceId = battery?.device_id
+    }
+
+    if (deviceId !== undefined) {
+      navigate(
+        `/projects/${projectId}/device-details/vertical?device_id=${deviceId}&${searchParams.toString()}`,
+      )
+    }
+  }
+
+  const handlePcsPlotClick = (event: PlotMouseEvent) => {
+    const { points } = event
+
+    if (points.length !== 1) {
+      return
+    }
+
+    let deviceId: string | number | undefined
+
+    if (pcsChartType === 'line') {
+      // Line chart: customdata is directly the device_id
+      const customdata = points[0].data.customdata
+      if (customdata !== undefined && !Array.isArray(customdata)) {
+        deviceId = customdata as string | number
+      }
+    } else if (pcsChartType === 'heatmap') {
+      // Heatmap: use the y value (PCS name) to find the device_id
+      const pcsName = points[0].y as string
+      const pcs = deviceDetails.data?.pcs.find((p) => p.name === pcsName)
+      deviceId = pcs?.device_id
+    }
+
+    if (deviceId !== undefined) {
+      navigate(
+        `/projects/${projectId}/device-details/vertical?device_id=${deviceId}&${searchParams.toString()}`,
+      )
+    }
   }
 
   return (
@@ -142,59 +192,152 @@ const Page = () => {
           error={deviceDetails.error}
         />
       </CustomCard>
-      <CustomCard title="PCS" style={{ flex: 3 }}>
+      <CustomCard
+        title="PCS"
+        style={{ flex: 3 }}
+        headerChildren={
+          <SegmentedControl
+            size="xs"
+            value={pcsChartType}
+            onChange={(value) => setPcsChartType(value as 'line' | 'heatmap')}
+            data={[
+              { label: 'Line', value: 'line' },
+              { label: 'Heatmap', value: 'heatmap' },
+            ]}
+          />
+        }
+      >
         <PlotlyPlot
-          data={
-            deviceDetails.data &&
-            deviceDetails.data.pcs.map((pcs) => ({
-              x: deviceDetails.data.times,
-              y: pcs.values,
-              name: pcs.name,
-              customdata: pcs.device_id,
-            }))
-          }
+          key={pcsChartType}
+          data={(() => {
+            if (!deviceDetails.data) return undefined
+            switch (pcsChartType) {
+              case 'line':
+                return deviceDetails.data.pcs.map((pcs) => ({
+                  x: deviceDetails.data.times,
+                  y: pcs.values,
+                  name: pcs.name,
+                  customdata: pcs.device_id,
+                }))
+              case 'heatmap':
+                return [
+                  {
+                    x: deviceDetails.data.times,
+                    y: deviceDetails.data.pcs.map((pcs) => pcs.name),
+                    z: deviceDetails.data.pcs.map((pcs) => pcs.values),
+                    type: 'heatmap',
+                    colorbar: {
+                      orientation: 'h',
+                      yref: 'container',
+                      yanchor: 'bottom',
+                      y: 0,
+                      ticksuffix: ' MW',
+                      thickness: 15,
+                      title: {
+                        text: 'AC Power',
+                      },
+                    },
+                    colorscale: 'Portland',
+                  },
+                ]
+              default:
+                return undefined
+            }
+          })()}
           layout={{
             xaxis: {
               range: sharedXRange,
               autorange: sharedXRange === undefined ? true : false,
             },
             yaxis: {
-              title: { text: 'Power (MW)' },
+              title: {
+                text: pcsChartType === 'heatmap' ? 'PCS' : 'Power (MW)',
+              },
+              type: pcsChartType === 'heatmap' ? 'category' : undefined,
             },
             hovermode: 'closest',
           }}
           onRelayout={handleRelayout}
           isLoading={deviceDetails.isLoading}
+          onClick={handlePcsPlotClick}
           error={deviceDetails.error}
-          onClick={handlePlotClick}
         />
       </CustomCard>
       {batteryTitle && (
-        <CustomCard title={batteryTitle} style={{ flex: 3 }}>
+        <CustomCard
+          title={batteryTitle}
+          style={{ flex: 3 }}
+          headerChildren={
+            <SegmentedControl
+              size="xs"
+              value={batteryChartType}
+              onChange={(value) =>
+                setBatteryChartType(value as 'line' | 'heatmap')
+              }
+              data={[
+                { label: 'Line', value: 'line' },
+                { label: 'Heatmap', value: 'heatmap' },
+              ]}
+            />
+          }
+        >
           <PlotlyPlot
-            data={
-              deviceDetails.data &&
-              deviceDetails.data.battery.map((battery) => ({
-                x: deviceDetails.data.times,
-                y: battery.values,
-                name: battery.name,
-                customdata: battery.device_id,
-              }))
-            }
+            key={batteryChartType}
+            data={(() => {
+              if (!deviceDetails.data) return undefined
+              switch (batteryChartType) {
+                case 'line':
+                  return deviceDetails.data.battery.map((battery) => ({
+                    x: deviceDetails.data.times,
+                    y: battery.values,
+                    name: battery.name,
+                    customdata: battery.device_id,
+                  }))
+                case 'heatmap':
+                  return [
+                    {
+                      x: deviceDetails.data.times,
+                      y: deviceDetails.data.battery.map((b) => b.name),
+                      z: deviceDetails.data.battery.map((b) => b.values),
+                      type: 'heatmap',
+                      colorbar: {
+                        orientation: 'h',
+                        yref: 'container',
+                        yanchor: 'bottom',
+                        y: 0,
+                        tickformat: ',.0%',
+                        thickness: 15,
+                        title: {
+                          text: 'SOC',
+                        },
+                      },
+                      colorscale: 'Portland',
+                    },
+                  ]
+                default:
+                  return undefined
+              }
+            })()}
             layout={{
               xaxis: {
                 range: sharedXRange,
                 autorange: sharedXRange === undefined ? true : false,
               },
               yaxis: {
-                tickformat: ',.0%',
-                title: { text: 'State of Charge' },
+                tickformat: batteryChartType === 'heatmap' ? undefined : ',.0%',
+                title: {
+                  text:
+                    batteryChartType === 'heatmap'
+                      ? batteryTitle
+                      : 'State of Charge',
+                },
+                type: batteryChartType === 'heatmap' ? 'category' : undefined,
               },
               hovermode: 'closest',
             }}
             onRelayout={handleRelayout}
             isLoading={deviceDetails.isLoading}
-            onClick={handlePlotClick}
+            onClick={handleBatteryPlotClick}
             error={deviceDetails.error}
           />
         </CustomCard>

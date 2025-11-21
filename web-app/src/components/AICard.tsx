@@ -51,6 +51,11 @@ const AICard = ({
     }
   }, [stats, generateSummary])
 
+  // Clear summary when date changes (stats.date changes)
+  useEffect(() => {
+    setSummary(null)
+  }, [stats?.date])
+
   // Auto-generate summary when stats change and data is fully loaded
   useEffect(() => {
     if (stats && !isLoading && !summary && !isGenerating) {
