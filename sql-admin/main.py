@@ -1,5 +1,6 @@
 """Main SQLAdmin application using core models and database."""
 
+import os
 import sys
 from contextlib import asynccontextmanager
 
@@ -14,9 +15,14 @@ from admin_views import setup_admin_views
 # Load environment variables
 load_dotenv()
 
-SCHEMA_TO_USE = "gregory"
-if len(sys.argv) > 1:
-    SCHEMA_TO_USE = sys.argv[1]
+
+# Determine schema to use
+SCHEMA_TO_USE = os.getenv("SQL_ADMIN_SCHEMA")
+if not SCHEMA_TO_USE:
+    if len(sys.argv) > 1:
+        SCHEMA_TO_USE = sys.argv[1]
+    else:
+        SCHEMA_TO_USE = "project_default"
 
 # Configuration
 APP_TITLE = f"SQLAdmin ({SCHEMA_TO_USE})"
