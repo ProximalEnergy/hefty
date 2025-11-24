@@ -13,6 +13,7 @@ from app._crud.admin.users import get_users as crud_get_users
 from app._utils.user_management import (
     create_clerk_user,
     delete_clerk_user,
+    get_clerk_user_image_url,
     send_onboarding_email,
     update_clerk_user_demo_mode,
     update_clerk_user_theme,
@@ -40,17 +41,24 @@ async def get_users(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_ids: list[uuid.UUID] | None = Query(default=None),
     user_ids: list[str] | None = Query(default=None),
+    api_prod: Annotated[bool, Depends(dependencies.is_prod_api)] = False,
 ):
     users = await crud_get_users(db=db, company_ids=company_ids, user_ids=user_ids)
 
-    # Process each user tuple and add operational_project_ids
-    users_with_project_ids = [
-        {
+    # Process each user tuple and add operational_project_ids and image URLs
+    users_with_project_ids = []
+    for user in users:
+        user_dict = {
             **{k: v for k, v in user[0].__dict__.items() if k != "api_key"},
             "operational_project_ids": user[1],
         }
-        for user in users
-    ]
+        # Fetch profile picture URL from Clerk
+        image_url = await get_clerk_user_image_url(
+            user_id=user[0].user_id, api_prod=api_prod
+        )
+        if image_url:
+            user_dict["image_url"] = image_url
+        users_with_project_ids.append(user_dict)
 
     return users_with_project_ids
 

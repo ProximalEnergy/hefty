@@ -3,6 +3,7 @@ import { useGetEventLossesSummary } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUtilityExpected } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
+import { EventChat } from '@/components/EventChat'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
@@ -33,7 +34,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { IconClock } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router'
+import { useLocation, useParams } from 'react-router'
 
 import DcFieldAnomaliesMap from './DcFieldAnomaliesMap'
 import DeviceEventsTimeline from './DeviceEventsTimeline'
@@ -367,6 +368,7 @@ const ConfirmRootModal = ({
 
 const Page = () => {
   const { projectId } = useParams<{ projectId: string }>()
+  const location = useLocation()
   const eventId = parseInt(
     new URLSearchParams(location.search).get('eventId') || '-1',
   )
@@ -484,9 +486,9 @@ const Page = () => {
           close()
         }}
       />
-      <Group h="100%" gap="md" p="md">
-        <Stack h="100%" flex={1}>
-          <Group h="100%" align="flex-start">
+      <Group gap="md" p="md" align="stretch">
+        <Stack flex={1}>
+          <Group align="flex-start" style={{ alignItems: 'stretch' }}>
             <Stack flex={0} style={{ minWidth: '300px' }}>
               {event && (
                 <DcFieldEventHeader
@@ -510,14 +512,14 @@ const Page = () => {
               />
               <EventLosses losses={losses} />
             </Stack>
-            <Stack flex={1} h="100%">
+            <Stack flex={1} style={{ minHeight: '400px' }}>
               <DcFieldAnomaliesMap
                 event={event ?? null}
                 projectId={projectId || '-1'}
               />
             </Stack>
           </Group>
-          <CustomCard title="Event Traces" fill style={{ height: '100%' }}>
+          <CustomCard title="Event Traces" fill style={{ height: '400px' }}>
             <PlotlyPlot
               isLoading={expectedPower.isLoading}
               data={[
@@ -594,12 +596,21 @@ const Page = () => {
               }}
             />
           </CustomCard>
+          {eventId > 0 && projectId && (
+            <CustomCard
+              allowFullscreen={false}
+              title="Team Insights"
+              style={{ height: '600px', flex: 1 }}
+            >
+              <EventChat eventId={eventId} projectId={projectId} />
+            </CustomCard>
+          )}
         </Stack>
-        <Stack h="100%" flex={0} style={{ minWidth: '350px' }}>
+        <Stack flex={0} style={{ minWidth: '350px' }}>
           <CustomCard
             allowFullscreen={false}
             title="Timeline"
-            style={{ height: '100%' }}
+            style={{ height: '600px', maxHeight: '600px' }}
           >
             <DeviceEventsTimeline
               isLoading={isTimelineLoading}

@@ -28,6 +28,7 @@ export interface User {
   company_id: string
   user_type_id: number
   operational_project_ids: string[]
+  image_url?: string | null
 }
 
 interface Company {
