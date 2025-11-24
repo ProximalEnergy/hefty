@@ -7,7 +7,6 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
-from core.crud.operational.projects import get_project_async
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -48,6 +47,7 @@ from app.dependencies import (
     get_project_name_short_async,
 )
 from core import models
+from core.crud.operational.projects import get_project_async
 
 logger = logging.getLogger(__name__)
 
@@ -493,9 +493,6 @@ async def send_notifications_for_message(
         event_url = f"https://app.proximal.energy/projects/events?eventId={event_id}"
 
     # Send emails to each recipient
-    # TEMPORARY: For testing, send all emails to Rob
-    TEST_EMAIL = "rob@proximal.energy"
-
     for user_tuple in recipient_users:
         user = user_tuple[0]
         recipient_email = await get_user_email_from_clerk(
@@ -507,14 +504,6 @@ async def send_notifications_for_message(
                 f"Could not get email for user {user.user_id}, skipping notification"
             )
             continue
-
-        # TEMPORARY: Override recipient email for testing
-        original_email = recipient_email
-        recipient_email = TEST_EMAIL
-        logger.info(
-            f"TEST MODE: Sending email to {TEST_EMAIL} instead of {original_email} "
-            f"(original recipient: {user.name_long})"
-        )
 
         await send_event_chat_email(
             recipient_user_id=user.user_id,
