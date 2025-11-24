@@ -495,14 +495,6 @@ const ClerkProviderWithRoutes = () => {
                     </RequiresUserType>
                   }
                 />
-                <Route
-                  path="company-view"
-                  element={
-                    <RequiresUserType requiredUserType="superadmin">
-                      <CompanyView />
-                    </RequiresUserType>
-                  }
-                />
               </Route>
 
               {/* Finances */}
@@ -568,6 +560,14 @@ const ClerkProviderWithRoutes = () => {
                 element={
                   <RequiresUserType requiredUserType="superadmin">
                     <DronePermissions />
+                  </RequiresUserType>
+                }
+              />
+              <Route
+                path="company-view"
+                element={
+                  <RequiresUserType requiredUserType="superadmin">
+                    <CompanyView />
                   </RequiresUserType>
                 }
               />

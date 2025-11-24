@@ -2,6 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import { useClerk, useUser } from '@clerk/clerk-react'
 import { Avatar, Menu, UnstyledButton, rem } from '@mantine/core'
 import {
+  IconBuilding,
   IconChevronRight,
   IconCode,
   IconDeviceDesktopCog,
@@ -81,7 +82,7 @@ const UserDropdown = () => {
                 <IconUsers style={{ width: rem(14), height: rem(14) }} />
               }
             >
-              Users
+              User Management
             </Menu.Item>
             {userType.data?.name_short === 'superadmin' && (
               <>
@@ -132,6 +133,15 @@ const UserDropdown = () => {
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
+                <Menu.Item
+                  component={Link}
+                  to="/admin/company-view"
+                  leftSection={
+                    <IconBuilding style={{ width: rem(14), height: rem(14) }} />
+                  }
+                >
+                  Company View
+                </Menu.Item>
               </>
             )}
             {projectId && (
@@ -142,7 +152,7 @@ const UserDropdown = () => {
                   <IconUsers style={{ width: rem(14), height: rem(14) }} />
                 }
               >
-                Admin
+                User Permissions
               </Menu.Item>
             )}
           </>
