@@ -7,6 +7,7 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
+from core.crud.operational.projects import get_project_async
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -47,7 +48,6 @@ from app.dependencies import (
     get_project_name_short_async,
 )
 from core import models
-from core.crud.operational.projects import get_project_async
 
 logger = logging.getLogger(__name__)
 
