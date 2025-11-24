@@ -13,7 +13,7 @@ try {
 
   // Create a custom Plotly.js bundle
   execSync(
-    'npm run custom-bundle -- --traces scatter,bar,waterfall,heatmap,sunburst,icicle,box',
+    'npm run custom-bundle -- --traces scatter,bar,waterfall,heatmap,sunburst,icicle,box,histogram',
     {
       stdio: 'inherit',
       cwd: plotlyDir,

@@ -1271,46 +1271,62 @@ const GraphsTab: React.FC<{
             }
           >
             <PlotlyPlot
-              data={
-                selectedHistogramType === 'dc_performance_bins'
-                  ? [
-                      {
-                        x: Object.keys(binValues).map(Number),
-                        y: Object.values(binValues).map(Number),
-                        type: 'bar',
-                        name: 'DC Performance',
-                      },
-                    ]
-                  : selectedHistogramType === 'avg_per_device'
+              data={(() => {
+                const dataArray =
+                  selectedHistogramType === 'dc_performance_bins'
                     ? [
                         {
-                          x: Object.keys(avgPerModuleHistogram.bins).map(
-                            Number,
-                          ),
-                          y: Object.values(avgPerModuleHistogram.bins).map(
-                            Number,
-                          ),
-                          type: 'bar',
-                          name: 'Avg Per Module',
+                          x: allValues,
+                          type: 'histogram' as const,
+                          name: 'DC Performance',
+                          xbins: {
+                            start: minValue,
+                            end: maxValue,
+                            size: binSize,
+                          },
                         },
                       ]
-                    : selectedHistogramType === 'avg_per_module_family'
-                      ? Object.entries(
-                          avgPerModuleFamilyHistogram.familyBins,
-                        ).map(([family, bins]) => ({
-                          x: Object.keys(bins).map(Number),
-                          y: Object.values(bins).map(Number),
-                          type: 'bar',
-                          name: family,
-                        }))
-                      : []
-              }
+                    : selectedHistogramType === 'avg_per_device'
+                      ? [
+                          {
+                            x: avgPerModule,
+                            type: 'histogram' as const,
+                            name: 'Avg Per Module',
+                            xbins: {
+                              start: avgPerModuleHistogram.min,
+                              end: avgPerModuleHistogram.max,
+                              size: 0.005,
+                            },
+                          },
+                        ]
+                      : selectedHistogramType === 'avg_per_module_family'
+                        ? Object.entries(avgPerModuleFamily).map(
+                            ([family, values]) => ({
+                              x: values,
+                              type: 'histogram' as const,
+                              name: family,
+                              xbins: {
+                                start: avgPerModuleFamilyHistogram.min,
+                                end: avgPerModuleFamilyHistogram.max,
+                                size: 0.005,
+                              },
+                            }),
+                          )
+                        : []
+
+                // Add opacity 0.5 if there's more than one trace
+                if (dataArray.length > 1) {
+                  return dataArray.map((trace) => ({
+                    ...trace,
+                    marker: { opacity: 0.75 },
+                  }))
+                }
+
+                return dataArray
+              })()}
               layout={{
                 bargap: 0,
-                barmode:
-                  selectedHistogramType === 'avg_per_module_family'
-                    ? 'group'
-                    : 'overlay',
+                barmode: 'overlay',
                 xaxis: {
                   tickformat: ',.01%',
                   tickangle: -45,
@@ -1319,12 +1335,7 @@ const GraphsTab: React.FC<{
                 },
                 yaxis: {
                   title: {
-                    text:
-                      selectedHistogramType === 'dc_performance_bins'
-                        ? 'Combiner Count'
-                        : selectedHistogramType === 'avg_per_device'
-                          ? 'Module Count'
-                          : 'Module Count',
+                    text: 'Combiner Count',
                   },
                 },
               }}
