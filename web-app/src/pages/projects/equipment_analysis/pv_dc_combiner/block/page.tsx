@@ -325,7 +325,13 @@ const Page = () => {
   }
 
   let data = combinerTags.data
-    ?.filter((d) => pcsDeviceIds?.includes(d.device.parent_device_id ?? -1))
+    ?.filter((d) => {
+      if (!pcsDeviceIds || !d.device.device_id_path) return false
+      const idPathNums = d.device.device_id_path
+        .split('.')
+        .map((n) => Number(n))
+      return idPathNums.some((id) => pcsDeviceIds.includes(id))
+    })
     .map((d) => ({
       combiner_device_id: d.device.device_id,
       combiner_dc_capacity: d.device.capacity_dc ?? 0,
@@ -726,7 +732,10 @@ const Page = () => {
                   width: hoveredTagName === d.tag_name_scada ? 4 : 2, // Highlight line width
                 },
               }
-            })}
+            })
+            .sort((a, b) =>
+              a.name.localeCompare(b.name, undefined, { numeric: true }),
+            )}
           layout={{
             yaxis: {
               title: { text: 'Current (A)' },
@@ -762,7 +771,10 @@ const Page = () => {
                     capacityDCsToColors[tagNameToCapacityDC[d.tag_name_scada]],
                 },
               }
-            })}
+            })
+            .sort((a, b) =>
+              a.name.localeCompare(b.name, undefined, { numeric: true }),
+            )}
           layout={{
             yaxis: {
               title: { text: 'Specific Current (A/kWdc)' },

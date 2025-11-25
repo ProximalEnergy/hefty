@@ -221,10 +221,9 @@ class KPIInstanceAdmin(ModelView, model=KPIInstance):
 
     category = "Operational Schema"
 
-    # READ-ONLY MODE - No modifications allowed
     can_create = True
     can_edit = True
-    can_delete = False
+    can_delete = True
 
     column_list = [
         KPIInstance.project,
