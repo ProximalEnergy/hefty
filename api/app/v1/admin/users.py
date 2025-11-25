@@ -41,23 +41,28 @@ async def get_users(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_ids: list[uuid.UUID] | None = Query(default=None),
     user_ids: list[str] | None = Query(default=None),
+    include_image_urls: bool = Query(
+        default=False, description="Include user profile image URLs from Clerk"
+    ),
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)] = False,
 ):
     users = await crud_get_users(db=db, company_ids=company_ids, user_ids=user_ids)
 
-    # Process each user tuple and add operational_project_ids and image URLs
+    # Process each user tuple and add operational_project_ids and optionally image URLs
     users_with_project_ids = []
     for user in users:
         user_dict = {
             **{k: v for k, v in user[0].__dict__.items() if k != "api_key"},
             "operational_project_ids": user[1],
         }
-        # Fetch profile picture URL from Clerk
-        image_url = await get_clerk_user_image_url(
-            user_id=user[0].user_id, api_prod=api_prod
-        )
-        if image_url:
-            user_dict["image_url"] = image_url
+        # Only fetch profile picture URL from Clerk if explicitly requested
+        # This avoids unnecessary API calls for users that may not exist in Clerk
+        if include_image_urls:
+            image_url = await get_clerk_user_image_url(
+                user_id=user[0].user_id, api_prod=api_prod
+            )
+            if image_url:
+                user_dict["image_url"] = image_url
         users_with_project_ids.append(user_dict)
 
     return users_with_project_ids

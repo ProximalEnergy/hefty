@@ -265,6 +265,7 @@ export const useGetUsers = ({
   queryParams?: {
     user_ids?: string[]
     company_ids?: string[]
+    include_image_urls?: boolean
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

@@ -219,7 +219,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
 
   // Fetch users from admin.users table for message display
   const { data: users } = useGetUsers({
-    queryParams: { user_ids: userIds },
+    queryParams: { user_ids: userIds, include_image_urls: true },
     queryOptions: {
       enabled: userIds.length > 0,
     },
