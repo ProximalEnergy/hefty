@@ -138,6 +138,16 @@ class Polygon(BaseModel):
         return convert(polygon)
 
 
+class MultiPolygon(BaseModel):
+    type: str
+    coordinates: list[Any]
+
+    @model_validator(mode="before")  # skip-star-syntax
+    @staticmethod
+    def convert_multipolygon(multipolygon):  # skip-star-syntax
+        return convert(multipolygon)
+
+
 class ProjectType(BaseModel):
     project_type_id: int
     name_short: str
@@ -358,7 +368,7 @@ class Device(BaseModel):
     capacity_dc: float | None
     capacity_ac: float | None
     point: Point | None
-    polygon: Polygon | None
+    polygon: MultiPolygon | None
 
     device_type: DeviceType | None = None
     name_full: str | None = None
