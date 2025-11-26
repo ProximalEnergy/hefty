@@ -256,7 +256,10 @@ export const useGetEventChatMuteStatus = (
   })
 }
 
-export const useGetEventChatNotificationStatus = (projectId: string) => {
+export const useGetEventChatNotificationStatus = (
+  projectId: string,
+  queryOptions?: Partial<UseQueryOptions>,
+) => {
   const shouldFetch = !!projectId && projectId !== 'placeholder'
 
   const axiosConfig = {
@@ -271,8 +274,49 @@ export const useGetEventChatNotificationStatus = (projectId: string) => {
     queryParams: {},
     queryOptions: {
       refetchOnWindowFocus: false,
-      enabled: shouldFetch, // Only fetch if projectId is provided and valid
+      enabled: shouldFetch && queryOptions?.enabled !== false, // Only fetch if projectId is provided and valid, and not explicitly disabled
+      ...queryOptions,
     },
+  })
+}
+
+export const useGetEventChatNotificationStatusesBatch = ({
+  projectIds,
+  queryOptions = {},
+}: {
+  projectIds: string[]
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const { getToken } = useAuth()
+
+  const queryKey = ['getEventChatNotificationStatusesBatch', { projectIds }]
+
+  const queryFn = async (): Promise<Record<string, boolean>> => {
+    if (projectIds.length === 0) {
+      return {}
+    }
+
+    const token = await getToken({ template: 'default' })
+    const response = await axios({
+      method: 'post',
+      url: `${baseURL}/v1/operational/event-messages/notifications/status/batch`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        project_ids: projectIds,
+      },
+    })
+    return response.data.statuses
+  }
+
+  return useQuery({
+    queryKey,
+    queryFn,
+    refetchOnWindowFocus: false,
+    enabled: projectIds.length > 0,
+    ...queryOptions,
   })
 }
 
@@ -344,6 +388,110 @@ export const useUpdateEventChatNotification = () => {
       queryClient.setQueryData(
         ['getEventChatNotificationStatus', { projectId: variables.projectId }],
         data,
+      )
+      // Update batch query cache directly without invalidating (to prevent refetch)
+      queryClient.setQueriesData(
+        {
+          queryKey: ['getEventChatNotificationStatusesBatch'],
+        },
+        (oldData: Record<string, boolean> | undefined) => {
+          if (!oldData) return { [variables.projectId]: data.enabled }
+          return { ...oldData, [variables.projectId]: data.enabled }
+        },
+      )
+    },
+  })
+}
+
+export const useUpdateEventChatNotificationBatch = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    Record<string, boolean>,
+    Error,
+    Record<string, boolean>, // projectId -> enabled
+    { previousValues: Map<string, { enabled: boolean } | undefined> }
+  >({
+    mutationFn: async (statuses) => {
+      const token = await getToken({ template: 'default' })
+      const response = await axios({
+        method: 'put',
+        url: `${baseURL}/v1/operational/event-messages/notifications/batch`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        data: {
+          statuses,
+        },
+      })
+      return response.data.statuses
+    },
+    onMutate: async (statuses) => {
+      // Cancel any outgoing refetches
+      const projectIds = Object.keys(statuses)
+      await Promise.all(
+        projectIds.map((projectId) =>
+          queryClient.cancelQueries({
+            queryKey: ['getEventChatNotificationStatus', { projectId }],
+          }),
+        ),
+      )
+
+      // Snapshot previous values
+      const previousValues = new Map<string, { enabled: boolean } | undefined>()
+      projectIds.forEach((projectId) => {
+        const previousValue = queryClient.getQueryData<{ enabled: boolean }>([
+          'getEventChatNotificationStatus',
+          { projectId },
+        ])
+        previousValues.set(projectId, previousValue)
+
+        // Optimistically update to the new value
+        queryClient.setQueryData(
+          ['getEventChatNotificationStatus', { projectId }],
+          { enabled: statuses[projectId] },
+        )
+      })
+
+      return { previousValues }
+    },
+    onError: (_err, variables, context) => {
+      // Roll back all values on error
+      if (context?.previousValues) {
+        Object.keys(variables).forEach((projectId) => {
+          const previousValue = context.previousValues.get(projectId)
+          if (previousValue !== undefined) {
+            queryClient.setQueryData(
+              ['getEventChatNotificationStatus', { projectId }],
+              previousValue,
+            )
+          } else {
+            queryClient.invalidateQueries({
+              queryKey: ['getEventChatNotificationStatus', { projectId }],
+            })
+          }
+        })
+      }
+    },
+    onSuccess: (data) => {
+      // Update all caches with actual response data
+      Object.entries(data).forEach(([projectId, enabled]) => {
+        queryClient.setQueryData(
+          ['getEventChatNotificationStatus', { projectId }],
+          { enabled },
+        )
+      })
+      // Update batch query cache directly without invalidating (to prevent refetch)
+      queryClient.setQueriesData(
+        {
+          queryKey: ['getEventChatNotificationStatusesBatch'],
+        },
+        (oldData: Record<string, boolean> | undefined) => {
+          if (!oldData) return data
+          return { ...oldData, ...data }
+        },
       )
     },
   })

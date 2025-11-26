@@ -1,7 +1,8 @@
 import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
 import {
-  useGetEventChatNotificationStatus,
+  useGetEventChatNotificationStatusesBatch,
   useUpdateEventChatNotification,
+  useUpdateEventChatNotificationBatch,
 } from '@/api/v1/operational/event_messages'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { clearTips } from '@/components/Tips'
@@ -41,8 +42,8 @@ import {
   IconReport,
   IconTrash,
 } from '@tabler/icons-react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useContext, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 const TeamsGate = ({ children }: { children: React.ReactNode }) => (
@@ -279,19 +280,46 @@ function EventChatNotificationsPanel({
 }: {
   projects: Array<{ project_id: string; name_long: string }>
 }) {
-  const updateMutation = useUpdateEventChatNotification()
+  const updateBatchMutation = useUpdateEventChatNotificationBatch()
   const queryClient = useQueryClient()
   const [isTogglingAll, setIsTogglingAll] = useState(false)
 
-  // Get statuses from query cache
+  // Fetch all notification statuses in a single batch request
+  const projectIds = projects.map((p) => p.project_id)
+
+  const { data: batchStatuses, isLoading: isLoadingBatch } =
+    useGetEventChatNotificationStatusesBatch({
+      projectIds,
+    })
+
+  // Populate cache when batch data is available (not just in onSuccess, in case onSuccess doesn't fire)
+  useEffect(() => {
+    if (batchStatuses) {
+      Object.entries(batchStatuses).forEach(([projectId, enabled]) => {
+        queryClient.setQueryData(
+          ['getEventChatNotificationStatus', { projectId }],
+          { enabled },
+        )
+      })
+    }
+  }, [batchStatuses, queryClient])
+
+  // Get statuses from query cache (populated by batch request or individual calls)
   const projectStatuses = projects.map((project) => {
     const queryData = queryClient.getQueryData<{ enabled: boolean }>([
       'getEventChatNotificationStatus',
       { projectId: project.project_id },
     ])
+    // Fallback to batch data if query cache doesn't have it yet
+    const enabled =
+      queryData?.enabled ??
+      (batchStatuses as Record<string, boolean> | undefined)?.[
+        project.project_id
+      ] ??
+      true // Default to enabled
     return {
       projectId: project.project_id,
-      enabled: queryData?.enabled ?? true, // Default to enabled
+      enabled,
     }
   })
 
@@ -302,58 +330,20 @@ function EventChatNotificationsPanel({
     // If all are enabled, disable all; otherwise (mixed or all disabled) enable all
     const targetState = !allEnabled
 
-    // Store previous values for rollback
-    const previousValues = new Map<string, { enabled: boolean } | undefined>()
-
-    // Optimistically update all query caches immediately
-    projects.forEach((project) => {
-      const queryKey = [
-        'getEventChatNotificationStatus',
-        { projectId: project.project_id },
-      ]
-      const previousValue = queryClient.getQueryData<{ enabled: boolean }>(
-        queryKey,
-      )
-      previousValues.set(project.project_id, previousValue)
-
-      // Set optimistic value
-      queryClient.setQueryData(queryKey, { enabled: targetState })
-    })
-
     setIsTogglingAll(true)
 
-    // Update all projects in parallel
-    const updatePromises = projects.map((project) =>
-      updateMutation
-        .mutateAsync({
-          projectId: project.project_id,
-          enabled: targetState,
-        })
-        .catch((error) => {
-          // Rollback on error
-          const queryKey = [
-            'getEventChatNotificationStatus',
-            { projectId: project.project_id },
-          ]
-          const previousValue = previousValues.get(project.project_id)
-          if (previousValue !== undefined) {
-            queryClient.setQueryData(queryKey, previousValue)
-          } else {
-            // If no previous value, invalidate to refetch
-            queryClient.invalidateQueries({ queryKey })
-          }
-          throw error
-        }),
-    )
+    // Build statuses map for batch update
+    const statuses: Record<string, boolean> = {}
+    projects.forEach((project) => {
+      statuses[project.project_id] = targetState
+    })
 
-    Promise.all(updatePromises)
-      .finally(() => {
+    // Use batch update instead of individual updates
+    updateBatchMutation.mutate(statuses, {
+      onSettled: () => {
         setIsTogglingAll(false)
-      })
-      .catch(() => {
-        // Error handling is done per-project in the catch above
-        // This catch prevents unhandled promise rejection
-      })
+      },
+    })
   }
 
   const sortedProjects = [...projects].sort((a, b) =>
@@ -377,6 +367,7 @@ function EventChatNotificationsPanel({
             checked={allEnabled}
             onChange={handleToggleAll}
             disabled={isTogglingAll || sortedProjects.length === 0}
+            style={{ cursor: 'pointer' }}
           />
           <Text size="sm" fw={500}>
             Toggle All
@@ -385,13 +376,37 @@ function EventChatNotificationsPanel({
         </Group>
       </Group>
       <Divider />
-      {sortedProjects.map((project) => (
-        <EventChatNotificationSetting
-          key={project.project_id}
-          projectId={project.project_id}
-          projectName={project.name_long}
-        />
-      ))}
+      {isLoadingBatch ? (
+        <Loader />
+      ) : (
+        sortedProjects.map((project) => {
+          // Get status from batch data or cache - use actual database values, don't default
+          const queryData = queryClient.getQueryData<{ enabled: boolean }>([
+            'getEventChatNotificationStatus',
+            { projectId: project.project_id },
+          ])
+          // Only use batchStatuses if queryData is not available (shouldn't happen after batch loads)
+          const enabled =
+            queryData?.enabled ??
+            (batchStatuses as Record<string, boolean> | undefined)?.[
+              project.project_id
+            ]
+
+          // Only render if we have actual data (don't show default)
+          if (enabled === undefined) {
+            return null
+          }
+
+          return (
+            <EventChatNotificationSetting
+              key={project.project_id}
+              projectId={project.project_id}
+              projectName={project.name_long}
+              initialEnabled={enabled}
+            />
+          )
+        })
+      )}
     </Stack>
   )
 }
@@ -399,25 +414,72 @@ function EventChatNotificationsPanel({
 function EventChatNotificationSetting({
   projectId,
   projectName,
+  initialEnabled,
 }: {
   projectId: string
   projectName: string
+  initialEnabled?: boolean
 }) {
-  const { data: status } = useGetEventChatNotificationStatus(projectId)
   const updateMutation = useUpdateEventChatNotification()
 
-  const enabled = status?.enabled ?? true // Default to enabled
+  // Subscribe to cache changes using useQuery
+  const { data: status } = useQuery<{ enabled: boolean }>({
+    queryKey: ['getEventChatNotificationStatus', { projectId }],
+    enabled: false, // Don't make network request, just subscribe to cache
+    placeholderData:
+      initialEnabled !== undefined ? { enabled: initialEnabled } : undefined,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  })
+
+  // Derive the actual value from status or initialEnabled
+  const actualValue = status?.enabled ?? initialEnabled
+
+  // Use local state only for optimistic updates during mutations
+  const [optimisticValue, setOptimisticValue] = useState<boolean | undefined>(
+    undefined,
+  )
+
+  // Compute the displayed value: use optimistic value if mutation is pending, otherwise use actual value
+  // When mutation succeeds, the cache updates -> status updates -> actualValue updates
+  // which naturally overrides optimisticValue
+  const enabled =
+    updateMutation.isPending && optimisticValue !== undefined
+      ? optimisticValue
+      : actualValue
+
+  // Don't render if we don't have a value yet (shouldn't happen after batch loads)
+  if (enabled === undefined) {
+    return null
+  }
 
   return (
     <Group justify="space-between" wrap="nowrap">
       <Switch
         checked={enabled}
         onChange={(event) => {
-          updateMutation.mutate({
-            projectId,
-            enabled: event.currentTarget.checked,
-          })
+          const newValue = event.currentTarget.checked
+          // Optimistically update local state immediately
+          setOptimisticValue(newValue)
+          updateMutation.mutate(
+            {
+              projectId,
+              enabled: newValue,
+            },
+            {
+              onSuccess: () => {
+                // Clear optimistic value when mutation succeeds
+                setOptimisticValue(undefined)
+              },
+              onError: () => {
+                // Clear optimistic value on error so UI shows actual state
+                setOptimisticValue(undefined)
+              },
+            },
+          )
         }}
+        style={{ cursor: 'pointer' }}
+        disabled={updateMutation.isPending}
       />
       <Text style={{ flex: 1 }}>{projectName}</Text>
     </Group>
