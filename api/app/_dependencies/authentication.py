@@ -193,9 +193,7 @@ def _get_clerk_url_jwks() -> str:
 
 def _get_clerk_application() -> Literal["development", "production"]:
     environment = settings.ENVIRONMENT
-    if environment in ["development", "staging"]:
-        return "development"
-    elif environment == "production":
+    if environment == "production":
         return "production"
     else:
-        raise HTTPException(status_code=500, detail="Invalid environment")
+        return "development"

@@ -8,9 +8,8 @@ import ast
 import logging
 import re
 import sys
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
-
 
 HTTP_METHOD_DECORATORS = {
     "get",

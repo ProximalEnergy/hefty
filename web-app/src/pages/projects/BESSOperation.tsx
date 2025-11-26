@@ -25,6 +25,7 @@ import {
 } from '@mantine/core'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { IconBatteryCharging, IconBolt } from '@tabler/icons-react'
+import dayjs from 'dayjs'
 import { Data } from 'plotly.js'
 import { ReactNode } from 'react'
 import { useParams, useSearchParams } from 'react-router'
@@ -104,8 +105,7 @@ const BESSOperationDataPage = () => {
 
   const start = searchParams.get('start')
   const end = searchParams.get('end')
-
-  // Parse query params for date range
+  const xAxisRange = start && end ? [start, end] : undefined
 
   const kpiInstances = useGetKPIInstances({
     queryParams: {
@@ -150,7 +150,7 @@ const BESSOperationDataPage = () => {
       kpi_type_ids: kpiInstances.data?.map((instance) => instance.kpi_type_id),
       include_device_data: true,
       start: start || undefined,
-      end: end || undefined,
+      end: end ? dayjs(end).add(1, 'day').format('YYYY-MM-DD') : undefined,
     },
     queryOptions: {
       enabled: !!projectId && !!kpiInstances.data && !!start && !!end,
@@ -184,7 +184,7 @@ const BESSOperationDataPage = () => {
   // format x and y to be in the Data format expected for plotly traces
   const createPlotlyTrace = (
     x: string[],
-    y: number[],
+    y: (number | null)[],
     name: string,
     opacity: number,
   ): Data => ({
@@ -213,12 +213,7 @@ const BESSOperationDataPage = () => {
         devices_data?.find((device) => device.device_id.toString() === key)
           ?.name_long || `Device ${key}`
 
-      return createPlotlyTrace(
-        x,
-        y.filter((val): val is number => val !== null),
-        deviceName,
-        op,
-      )
+      return createPlotlyTrace(x, y, deviceName, op)
     })
   }
 
@@ -333,6 +328,7 @@ const BESSOperationDataPage = () => {
                   xaxis: {
                     title: { text: 'Date' },
                     type: 'date',
+                    range: xAxisRange,
                   },
                   yaxis: {
                     title: {
@@ -393,7 +389,7 @@ const BESSOperation = () => {
         </PageTitle>
         <AdvancedDatePicker
           defaultRange="past-month"
-          includeTodayInDateRange={true}
+          includeTodayInDateRange={false}
           maxDays={30}
           includeClearButton={false}
         />

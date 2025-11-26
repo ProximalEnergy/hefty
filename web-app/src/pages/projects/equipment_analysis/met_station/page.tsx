@@ -38,6 +38,7 @@ const Page = () => {
       ],
       start: start?.tz(project.data?.time_zone, true).toISOString(),
       end: end?.tz(project.data?.time_zone, true).toISOString(),
+      include_ghost_tags: false,
     },
   })
 

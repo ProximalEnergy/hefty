@@ -260,11 +260,6 @@ export const projectLinks: DropdownLink[] = [
           `/projects/${projectId}/utility/project-tag-explorer`,
         label: 'Tag Explorer',
       },
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/utility/company-view`,
-        label: 'Company View',
-      },
     ],
   },
   // {

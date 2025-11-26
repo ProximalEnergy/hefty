@@ -10,9 +10,8 @@ This script will:
 """
 
 import re
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 
 class ReleaseUpdater:

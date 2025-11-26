@@ -391,6 +391,24 @@ def get_status_time_series_python(
     tags = tags_model_list.pandas_dataframe(index="tag_id")
     tags = tags[~pd.isna(tags["status_lookup_id"])]
 
+    # Early return if no tags with status_lookup_id
+    if tags.empty:
+        # Create empty DataFrame with time column matching successful format
+        try:
+            time_index = pd.date_range(
+                pd.Timestamp(start).tz_convert(project.time_zone),
+                pd.Timestamp(end).tz_convert(project.time_zone),
+                freq="5min",
+            )
+        except Exception:
+            time_index = pd.date_range(
+                pd.Timestamp(start).tz_localize(project.time_zone),
+                pd.Timestamp(end).tz_localize(project.time_zone),
+                freq="5min",
+            )
+        empty_df = pd.DataFrame({"time": time_index})
+        return empty_df.to_dict(orient="records")
+
     data = core.crud.project.data_timeseries.get_project_data_timeseries(
         project_db=project_db,
         project_name_short=project.name_short,
@@ -403,7 +421,14 @@ def get_status_time_series_python(
         index="time", as_datetime=True, tz=project.time_zone
     )
     if data_to_df.empty:
-        return []
+        # Create empty DataFrame with time column matching successful format
+        time_index = pd.date_range(
+            pd.Timestamp(start).tz_convert(project.time_zone),
+            pd.Timestamp(end).tz_convert(project.time_zone),
+            freq="5min",
+        )
+        empty_df = pd.DataFrame({"time": time_index})
+        return empty_df.to_dict(orient="records")
     ## If necessary, convert hex strings to integers.
     str_interpret = data_to_df[~pd.isna(data_to_df["value_text"])]
     if not str_interpret.empty:
@@ -426,6 +451,11 @@ def get_status_time_series_python(
     # Reindex df_timeseries to full time range and forward-fill for MQTT
     df_timeseries = df_timeseries.reindex(time_index).ffill()
 
+    # Handle empty df_timeseries or no columns
+    if df_timeseries.empty or len(df_timeseries.columns) == 0:
+        empty_df = pd.DataFrame({"time": time_index})
+        return empty_df.to_dict(orient="records")
+
     keys, vals = [], []
     for col in df_timeseries.columns:
         v = df_timeseries[col].dropna().unique()
@@ -435,6 +465,11 @@ def get_status_time_series_python(
         except ValueError:
             v = np.array([int(val, 16) for val in v])
             vals.extend(v.astype(int).tolist())
+
+    # Handle case where no keys/vals found
+    if not keys or not vals:
+        empty_df = pd.DataFrame({"time": time_index})
+        return empty_df.to_dict(orient="records")
 
     status_interpret = get_status_interpret(
         db=db,
@@ -460,5 +495,10 @@ def get_status_time_series_python(
     status_failure_mode_df = status_failure_mode_df.astype(object).where(
         pd.notnull(status_failure_mode_df), None
     )
+
+    # Final check - if DataFrame is empty, return empty structure with time column
+    if status_failure_mode_df.empty:
+        empty_df = pd.DataFrame({"time": time_index})
+        return empty_df.to_dict(orient="records")
 
     return status_failure_mode_df.to_dict(orient="records")

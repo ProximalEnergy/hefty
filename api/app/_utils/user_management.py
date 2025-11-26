@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 
@@ -218,6 +219,36 @@ async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dic
             return clerk_user.public_metadata or {}
     except models.ClerkErrors as e:
         return {"error": f"Failed to get user metadata: {e.data.errors[0].message}"}
+
+
+async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | None:
+    """Get a user's profile picture URL from Clerk.
+
+    Args:
+        user_id (str): The ID of the user to get the image URL for.
+        api_prod (bool): Whether this is the production API.
+
+    Returns:
+        str | None: The user's profile picture URL, or None if not available.
+    """
+    clerk_secret_key = (
+        settings.CLERK_SECRET_KEY if api_prod else settings.CLERK_SECRET_KEY_DEVELOPMENT
+    )
+
+    try:
+        with Clerk(bearer_auth=clerk_secret_key) as clerk:
+            clerk_user = clerk.users.get(user_id=user_id)
+            if clerk_user and hasattr(clerk_user, "image_url") and clerk_user.image_url:
+                return str(clerk_user.image_url)
+    except models.ClerkErrors as e:
+        logging.warning(
+            f"Failed to get Clerk user image URL for user {user_id}: {e}",
+        )
+    except Exception as e:
+        logging.warning(
+            f"Unexpected error getting Clerk user image URL for user {user_id}: {e}",
+        )
+    return None
 
 
 async def update_clerk_user_theme(*, user_id: str, theme: str, vite_environment: str):

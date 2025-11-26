@@ -28,6 +28,7 @@ export interface User {
   company_id: string
   user_type_id: number
   operational_project_ids: string[]
+  image_url?: string | null
 }
 
 interface Company {
@@ -264,6 +265,7 @@ export const useGetUsers = ({
   queryParams?: {
     user_ids?: string[]
     company_ids?: string[]
+    include_image_urls?: boolean
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {

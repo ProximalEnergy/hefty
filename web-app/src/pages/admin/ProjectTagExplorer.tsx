@@ -208,6 +208,8 @@ const ProjectTagExplorer = () => {
     'VA',
     'kVA',
     'MVA',
+    // Frequency
+    'Hz',
     // No Unit
     '-',
     // Percentage

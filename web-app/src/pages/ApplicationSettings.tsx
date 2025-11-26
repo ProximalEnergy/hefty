@@ -1,4 +1,8 @@
 import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
+import {
+  useGetEventChatNotificationStatus,
+  useUpdateEventChatNotification,
+} from '@/api/v1/operational/event_messages'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { clearTips } from '@/components/Tips'
 import RequiresUserType from '@/components/admin/RequiresUserType'
@@ -16,11 +20,14 @@ import {
   Button,
   Checkbox,
   ColorInput,
+  Divider,
   Fieldset,
   Group,
+  Loader,
   Paper,
   SegmentedControl,
   Stack,
+  Switch,
   Text,
   Title,
   rem,
@@ -29,6 +36,7 @@ import {
 import { useLocalStorage } from '@mantine/hooks'
 import {
   IconBolt,
+  IconMessage,
   IconNotification,
   IconReport,
   IconTrash,
@@ -165,7 +173,8 @@ function Subscriptions() {
       <Text>
         Subscriptions allow you to receive emails for notifications and reports.
         You can change your subscription settings by clicking the checkboxes
-        below.
+        below. Event Chat Notifications control whether you receive emails for
+        the first message posted on event chats for each project.
       </Text>
       <Accordion multiple={true} variant="separated">
         <Accordion.Item value={'Notifications'}>
@@ -242,8 +251,176 @@ function Subscriptions() {
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>
+        <Accordion.Item value={'Event Chat Notifications'}>
+          <Accordion.Control
+            icon={
+              <IconMessage
+                style={{
+                  width: rem(20),
+                  height: rem(20),
+                }}
+              />
+            }
+            disabled={!projects.data}
+          >
+            First Event Chat Notifications
+          </Accordion.Control>
+          <Accordion.Panel>
+            <EventChatNotificationsPanel projects={projects.data || []} />
+          </Accordion.Panel>
+        </Accordion.Item>
       </Accordion>
     </>
+  )
+}
+
+function EventChatNotificationsPanel({
+  projects,
+}: {
+  projects: Array<{ project_id: string; name_long: string }>
+}) {
+  const updateMutation = useUpdateEventChatNotification()
+  const queryClient = useQueryClient()
+  const [isTogglingAll, setIsTogglingAll] = useState(false)
+
+  // Get statuses from query cache
+  const projectStatuses = projects.map((project) => {
+    const queryData = queryClient.getQueryData<{ enabled: boolean }>([
+      'getEventChatNotificationStatus',
+      { projectId: project.project_id },
+    ])
+    return {
+      projectId: project.project_id,
+      enabled: queryData?.enabled ?? true, // Default to enabled
+    }
+  })
+
+  // Determine toggle all state
+  const allEnabled = projectStatuses.every((p) => p.enabled)
+
+  const handleToggleAll = () => {
+    // If all are enabled, disable all; otherwise (mixed or all disabled) enable all
+    const targetState = !allEnabled
+
+    // Store previous values for rollback
+    const previousValues = new Map<string, { enabled: boolean } | undefined>()
+
+    // Optimistically update all query caches immediately
+    projects.forEach((project) => {
+      const queryKey = [
+        'getEventChatNotificationStatus',
+        { projectId: project.project_id },
+      ]
+      const previousValue = queryClient.getQueryData<{ enabled: boolean }>(
+        queryKey,
+      )
+      previousValues.set(project.project_id, previousValue)
+
+      // Set optimistic value
+      queryClient.setQueryData(queryKey, { enabled: targetState })
+    })
+
+    setIsTogglingAll(true)
+
+    // Update all projects in parallel
+    const updatePromises = projects.map((project) =>
+      updateMutation
+        .mutateAsync({
+          projectId: project.project_id,
+          enabled: targetState,
+        })
+        .catch((error) => {
+          // Rollback on error
+          const queryKey = [
+            'getEventChatNotificationStatus',
+            { projectId: project.project_id },
+          ]
+          const previousValue = previousValues.get(project.project_id)
+          if (previousValue !== undefined) {
+            queryClient.setQueryData(queryKey, previousValue)
+          } else {
+            // If no previous value, invalidate to refetch
+            queryClient.invalidateQueries({ queryKey })
+          }
+          throw error
+        }),
+    )
+
+    Promise.all(updatePromises)
+      .finally(() => {
+        setIsTogglingAll(false)
+      })
+      .catch(() => {
+        // Error handling is done per-project in the catch above
+        // This catch prevents unhandled promise rejection
+      })
+  }
+
+  const sortedProjects = [...projects].sort((a, b) =>
+    a.name_long.localeCompare(b.name_long),
+  )
+
+  return (
+    <Stack gap="md">
+      <Text size="sm" c="dimmed">
+        Control whether you receive email notifications for the first message
+        posted on event chats for each project. When enabled, you&apos;ll be
+        notified when someone starts a new conversation on an event chat. When
+        disabled, you won&apos;t receive these initial notifications, but
+        you&apos;ll still receive notifications for messages in conversations
+        you&apos;ve already participated in (if you have not muted the
+        conversation).
+      </Text>
+      <Group justify="space-between">
+        <Group gap="xs">
+          <Switch
+            checked={allEnabled}
+            onChange={handleToggleAll}
+            disabled={isTogglingAll || sortedProjects.length === 0}
+          />
+          <Text size="sm" fw={500}>
+            Toggle All
+          </Text>
+          {isTogglingAll && <Loader size="xs" />}
+        </Group>
+      </Group>
+      <Divider />
+      {sortedProjects.map((project) => (
+        <EventChatNotificationSetting
+          key={project.project_id}
+          projectId={project.project_id}
+          projectName={project.name_long}
+        />
+      ))}
+    </Stack>
+  )
+}
+
+function EventChatNotificationSetting({
+  projectId,
+  projectName,
+}: {
+  projectId: string
+  projectName: string
+}) {
+  const { data: status } = useGetEventChatNotificationStatus(projectId)
+  const updateMutation = useUpdateEventChatNotification()
+
+  const enabled = status?.enabled ?? true // Default to enabled
+
+  return (
+    <Group justify="space-between" wrap="nowrap">
+      <Switch
+        checked={enabled}
+        onChange={(event) => {
+          updateMutation.mutate({
+            projectId,
+            enabled: event.currentTarget.checked,
+          })
+        }}
+      />
+      <Text style={{ flex: 1 }}>{projectName}</Text>
+    </Group>
   )
 }
 

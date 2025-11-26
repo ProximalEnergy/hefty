@@ -35,7 +35,6 @@ from time import time
 
 import pandas as pd
 import psycopg2
-
 from app.logger import logger
 
 from .. import utils

@@ -24,11 +24,7 @@ fi
 [tasks.preview]
 description = "Run API and web-app preview servers concurrently"
 depends = ["sync", "api:switch-core"]
-run = [
-    "mise run install",
-    "mise run web:build",
-    "./_scripts/run_preview.sh"
-]
+run = ["mise run install", "mise run web:build", "./_scripts/run_preview.sh"]
 
 [tasks.check]
 description = "Run all quality checks across the entire monorepo"
@@ -52,6 +48,7 @@ mise run api:switch-core && \
 cd api && uv sync && cd .. && \
 cd web-app && npm install && npx node build-plotly-custom.js && \
 cd .. && \
+mise run sql-admin:install && \
 brew install hurl
 """
 
@@ -238,7 +235,7 @@ depends = [
   "api:pytest",
   "api:hurl",
   "api:deptry",
-  "api:vulture"
+  "api:vulture",
 ]
 
 [tasks."api:ruff"]
@@ -378,5 +375,25 @@ usage = '''
   arg "<rule>" help="ESLint rule ID to filter by"
 '''
 run = [
-  '''npx eslint . --format json | jq -r --arg rule ${usage_rule} '.[] | .filePath as $file | .messages[] | select(.ruleId == $rule) | "\($file):\(.line):\(.column) - \(.message)"' '''
+  '''npx eslint . --format json | jq -r --arg rule ${usage_rule} '.[] | .filePath as $file | .messages[] | select(.ruleId == $rule) | "\($file):\(.line):\(.column) - \(.message)"' ''',
 ]
+
+# =============================================================================
+# SQL-ADMIN TASKS (runs in ./sql-admin directory)
+# =============================================================================
+
+[tasks."sql-admin:install"]
+description = "Install dependencies for sql-admin"
+dir = "sql-admin"
+run = "uv sync"
+
+[tasks."sql-admin:run"]
+description = "Run the sql-admin server"
+dir = "sql-admin"
+usage = '''
+  arg "[schema]" help="Database schema to use (defaults to 'project_default')"
+'''
+run = """
+export SQL_ADMIN_SCHEMA=${usage_schema:-project_default}
+uv run uvicorn main:app --reload --host 0.0.0.0 --port 8001
+"""
