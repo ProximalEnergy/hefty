@@ -10,7 +10,7 @@ import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.dependencies import get_db
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
-from sqlalchemy import text
+from sqlalchemy import insert, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -1111,8 +1111,6 @@ def bulk_create_events(
 
         # Bulk insert losses using the most efficient approach
         if losses_data:
-            from sqlalchemy import insert
-
             # Single bulk INSERT with all data - this is the fastest approach
             stmt = insert(models.EventLoss)
             project_db.execute(stmt, losses_data)

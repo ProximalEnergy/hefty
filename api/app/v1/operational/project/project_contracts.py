@@ -1,4 +1,7 @@
+import json
 import logging
+import re
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -32,15 +35,11 @@ def validate_and_clean_date(*, date_string: str | None) -> str | None:
 
     try:
         # Check if it's a valid date format (YYYY-MM-DD)
-        import re
-
         date_regex = r"^\d{4}-\d{2}-\d{2}$"
         if not re.match(date_regex, date_string):
             return None
 
         # Try to parse and validate the date
-        from datetime import datetime
-
         parsed_date = datetime.strptime(date_string, "%Y-%m-%d")
 
         # Check reasonable year range
@@ -180,8 +179,6 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
     Call OpenAI with structured function calling to extract contract fields.
     This ensures reliable JSON output without syntax errors.
     """
-    import json
-
     client = OpenAI()
 
     tools = [

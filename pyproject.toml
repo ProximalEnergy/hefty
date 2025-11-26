@@ -41,6 +41,7 @@ select = [
     "ICN",     # Import alias
     "PD002",   # Pandas inplace
     "PIE",     # Code simplification
+    "PLC0415", # Only top level imports
     "S101",    # Look for assert
     "S102",    # Look for exec
     "S103",    # Look for os.chmod

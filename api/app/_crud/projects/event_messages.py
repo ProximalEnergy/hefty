@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core import models
 
@@ -20,8 +21,6 @@ async def get_event_messages(
     can be displayed with "This message was deleted." text.
     Loads images relationship.
     """
-    from sqlalchemy.orm import selectinload
-
     # Get all messages (including deleted ones)
     stmt = select(models.EventMessage).options(selectinload(models.EventMessage.images))
 
@@ -42,8 +41,6 @@ async def get_event_message_by_id(
     """Get a single event message by ID.
     Loads images relationship.
     """
-    from sqlalchemy.orm import selectinload
-
     stmt = (
         select(models.EventMessage)
         .options(selectinload(models.EventMessage.images))
@@ -164,8 +161,6 @@ async def delete_event_message(
     """Soft delete an event message by setting deleted_at timestamp.
     Validates that the user owns the message.
     """
-    from sqlalchemy.orm import selectinload
-
     # Get message without deleted_at filter to allow checking ownership
     stmt = (
         select(models.EventMessage)

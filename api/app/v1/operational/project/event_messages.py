@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+import urllib.parse
 import uuid as uuid_lib
 from pathlib import Path as PathLib
 from typing import Annotated
@@ -871,9 +872,6 @@ async def delete_event_message(
         # Reload message with images relationship after commit
         # Note: get_event_message_by_id filters out deleted messages,
         # so we need to fetch it directly
-        from sqlalchemy import select
-        from sqlalchemy.orm import selectinload
-
         stmt = (
             select(models.EventMessage)
             .options(selectinload(models.EventMessage.images))
@@ -996,8 +994,6 @@ def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -
     # Add response-content-disposition to force download
     if filename:
         # URL encode the filename for the header
-        import urllib.parse
-
         encoded_filename = urllib.parse.quote(filename)
         params["ResponseContentDisposition"] = (
             f"attachment; filename=\"{filename}\"; filename*=UTF-8''{encoded_filename}"

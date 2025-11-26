@@ -153,8 +153,6 @@ async def send_drone_inspection_order_email(
         project_name (str): The name of the project.
         timing (str): The timing preference for the inspection.
     """
-    import boto3
-
     ses_client = boto3.client("sesv2", region_name="us-east-2")
 
     subject = f"New Drone Inspection Request - {project_name}"

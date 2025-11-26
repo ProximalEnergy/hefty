@@ -1,7 +1,9 @@
 import datetime
+import logging
 import uuid
+from collections import defaultdict
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, extract, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
@@ -49,7 +51,6 @@ async def get_pv_budgeted_data(
     # Now get the data for these series
     # For budgeted data (especially TMY data), we need to match by month and day
     # rather than exact dates, since the data might be from year 2000 or other years
-    from sqlalchemy import extract, or_
 
     # Extract month and day from the start and end dates
     start_month = start.month
@@ -239,8 +240,6 @@ async def get_pv_budgeted_series_daily_data(
             return []
 
         # Process and aggregate data
-        from collections import defaultdict
-
         # Group budgeted data by month-day (from 2019)
         budgeted_data_by_month_day = defaultdict(list)
 
@@ -333,7 +332,5 @@ async def get_pv_budgeted_series_daily_data(
 
     except Exception as e:
         # Log the error and return empty list to prevent API crashes
-        import logging
-
         logging.error(f"Error in get_pv_budgeted_series_daily_data: {e}")
         return []

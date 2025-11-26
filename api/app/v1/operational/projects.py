@@ -1,8 +1,10 @@
 from collections import defaultdict
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
 from core.dependencies import get_db
+from core.models import Project as DBProject
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -203,8 +205,6 @@ async def update_project(
     Only company admins and super admins can update projects.
     """
     # Fetch the existing project using AsyncSession
-    from core.models import Project as DBProject
-
     result = await db.execute(
         select(DBProject).where(DBProject.project_id == project_id)
     )
@@ -216,8 +216,6 @@ async def update_project(
     update_data = project_update.model_dump(exclude_unset=True)
 
     # Convert date strings to date objects for SQLAlchemy
-    from datetime import date
-
     date_fields = {
         "cod",
         "commencement_of_construction_date",

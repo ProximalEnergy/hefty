@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 
 import psycopg2
@@ -102,8 +103,6 @@ COMPANIES = [
 def create_company_name_short(company_name_long):
     """Create a short name from the long company name"""
     # Remove parentheses and their contents
-    import re
-
     name = re.sub(r"\([^)]*\)", "", company_name_long)
     # Replace spaces and special characters with underscores, convert to lowercase
     name = re.sub(r"[^a-zA-Z0-9]", "_", name)

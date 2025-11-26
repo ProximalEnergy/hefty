@@ -9,6 +9,7 @@ This script will:
 4. Handle version increments and new release files as needed
 """
 
+import argparse
 import re
 import tomllib
 from pathlib import Path
@@ -139,8 +140,6 @@ class ReleaseUpdater:
 
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Update release notes with a new migration message"
     )

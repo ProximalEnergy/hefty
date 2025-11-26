@@ -1,7 +1,7 @@
 import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
@@ -83,8 +83,6 @@ async def delete_event_message_image(
     event_message_image_id: UUID,
 ) -> bool:
     """Delete an event message image from the database and S3."""
-    from sqlalchemy import delete
-
     image = await get_event_message_image_by_id(
         db=db, event_message_image_id=event_message_image_id
     )

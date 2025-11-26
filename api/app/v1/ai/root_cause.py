@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -311,7 +312,6 @@ async def suggest_root_cause(
                     continue
         except Exception as e:
             logger.exception("Failed to parse JSON from OpenAI response: %s", e)
-            import re
 
             try:
                 if text:
