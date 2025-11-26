@@ -28,7 +28,7 @@ router.include_router(pv_expected_energy.router)
 router.include_router(deletions.router)
 router.include_router(internal_comms.router)
 
-lambda_arn = os.getenv(f"LAMBDA_ARN_KPI_PIPELINE")
+lambda_arn = os.getenv("LAMBDA_ARN_KPI_PIPELINE")
 
 
 class KPIBackfillEvent(BaseModel):
