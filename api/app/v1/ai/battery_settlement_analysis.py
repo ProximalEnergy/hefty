@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import statistics
 from typing import Annotated, Any, TypedDict
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -98,8 +99,6 @@ def _aggregate_timeseries_stats(*, data: TimeseriesData) -> dict[str, ColumnStat
             continue
 
         # Calculate statistics
-        import statistics
-
         stats[col_name] = {
             "count": len(numeric_values),
             "mean": statistics.mean(numeric_values),
@@ -188,8 +187,6 @@ def _prepare_data_for_llm(
             for sensor_data in request.scada_data:
                 numeric_values = [v for v in sensor_data.y if v is not None]
                 if numeric_values:
-                    import statistics
-
                     scada_stats.append(
                         {
                             "sensor_type_id": sensor_data.sensor_type_id,

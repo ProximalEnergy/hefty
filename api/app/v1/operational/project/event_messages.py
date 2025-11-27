@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+import urllib.parse
 import uuid as uuid_lib
 from pathlib import Path as PathLib
 from typing import Annotated
@@ -26,7 +27,13 @@ from sqlalchemy.orm import selectinload
 from app import dependencies
 from app._crud.admin.companies import get_companies as crud_get_companies
 from app._crud.admin.user_subscriptions import (
+    get_event_chat_notification_statuses_batch as crud_get_event_chat_notification_statuses_batch,
+)
+from app._crud.admin.user_subscriptions import (
     is_event_chat_notification_enabled as crud_is_event_chat_notification_enabled,
+)
+from app._crud.admin.user_subscriptions import (
+    update_event_chat_notification_statuses_batch as crud_update_event_chat_notification_statuses_batch,
 )
 from app._crud.admin.user_subscriptions import (
     update_user_event_chat_notification_subscription as crud_update_event_chat_notification,
@@ -55,6 +62,12 @@ router = APIRouter(
     prefix="/projects/{project_id}/event-messages",
     tags=["event_messages"],
     dependencies=[Depends(check_project_access_async)],
+)
+
+# Batch router for operations that don't require a specific project
+batch_router = APIRouter(
+    prefix="/event-messages",
+    tags=["event_messages"],
 )
 
 # Company theme color mapping (matches frontend CompanyThemeManager.ts)
@@ -701,6 +714,105 @@ async def update_event_chat_notification_setting(
     return {"enabled": enabled}
 
 
+# --- Batch Endpoints ---
+class EventChatNotificationStatusesBatchRequest(BaseModel):
+    project_ids: list[UUID]
+
+
+class EventChatNotificationStatusesBatchResponse(BaseModel):
+    statuses: dict[str, bool]  # project_id (as string) -> enabled
+
+
+@batch_router.post("/notifications/status/batch")
+async def get_event_chat_notification_statuses_batch(
+    *,
+    request: EventChatNotificationStatusesBatchRequest,
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user_data: Annotated[
+        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
+    ],
+) -> EventChatNotificationStatusesBatchResponse:
+    """
+    Get event chat notification statuses for multiple projects in a single request.
+
+    Request Body:
+        project_ids: List of project IDs to get statuses for
+
+    Returns:
+        {
+            "statuses": {
+                "project_id_1": true,
+                "project_id_2": false,
+                ...
+            }
+        }
+    """
+    status_map = await crud_get_event_chat_notification_statuses_batch(
+        db=db,
+        user_id=user_data.user_id,
+        operational_project_ids=request.project_ids,
+    )
+
+    # Convert UUID keys to strings for JSON serialization
+    statuses_dict = {
+        str(project_id): enabled for project_id, enabled in status_map.items()
+    }
+
+    return EventChatNotificationStatusesBatchResponse(statuses=statuses_dict)
+
+
+class EventChatNotificationStatusesBatchUpdateRequest(BaseModel):
+    statuses: dict[str, bool]  # project_id (as string) -> enabled
+
+
+class EventChatNotificationStatusesBatchUpdateResponse(BaseModel):
+    statuses: dict[str, bool]  # project_id (as string) -> enabled
+
+
+@batch_router.put("/notifications/batch")
+async def update_event_chat_notification_statuses_batch(
+    *,
+    request: EventChatNotificationStatusesBatchUpdateRequest,
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user_data: Annotated[
+        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
+    ],
+) -> EventChatNotificationStatusesBatchUpdateResponse:
+    """
+    Update event chat notification statuses for multiple projects in a single request.
+
+    Request Body:
+        statuses: Dictionary mapping project_id (string) -> enabled (bool)
+
+    Returns:
+        {
+            "statuses": {
+                "project_id_1": true,
+                "project_id_2": false,
+                ...
+            }
+        }
+    """
+    # Convert string keys to UUIDs
+    project_statuses: dict[UUID, bool] = {
+        UUID(project_id_str): enabled
+        for project_id_str, enabled in request.statuses.items()
+    }
+
+    updated_statuses = await crud_update_event_chat_notification_statuses_batch(
+        db=db,
+        user_id=user_data.user_id,
+        project_statuses=project_statuses,
+    )
+
+    # Convert UUID keys back to strings for JSON serialization
+    statuses_dict = {
+        str(project_id): enabled for project_id, enabled in updated_statuses.items()
+    }
+
+    return EventChatNotificationStatusesBatchUpdateResponse(statuses=statuses_dict)
+
+
 @router.put("/{event_message_id}")
 async def update_event_message(
     *,
@@ -871,9 +983,6 @@ async def delete_event_message(
         # Reload message with images relationship after commit
         # Note: get_event_message_by_id filters out deleted messages,
         # so we need to fetch it directly
-        from sqlalchemy import select
-        from sqlalchemy.orm import selectinload
-
         stmt = (
             select(models.EventMessage)
             .options(selectinload(models.EventMessage.images))
@@ -996,8 +1105,6 @@ def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -
     # Add response-content-disposition to force download
     if filename:
         # URL encode the filename for the header
-        import urllib.parse
-
         encoded_filename = urllib.parse.quote(filename)
         params["ResponseContentDisposition"] = (
             f"attachment; filename=\"{filename}\"; filename*=UTF-8''{encoded_filename}"

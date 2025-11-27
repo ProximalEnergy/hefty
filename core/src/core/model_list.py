@@ -1,6 +1,7 @@
 """Model list and item wrappers for SQLAlchemy queries with Polars and Pandas support."""
 
 import asyncio
+import operator
 import warnings
 from collections.abc import Iterable, Iterator
 from typing import Any, TypeVar, cast
@@ -255,8 +256,6 @@ class ModelList[T]:
         (Skips Python object materialization; much faster for large results.)
         - If only in-memory items exist, use a cached attrgetter + tuples + from_records.
         """
-        import operator
-
         # ---- 1) Prefer DB -> pandas whenever we still have a query ----
         if isinstance(self.query, TextClause):
             engine = create_engine(database_url())

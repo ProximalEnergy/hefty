@@ -31,6 +31,7 @@ select = [
     "EXE",     # Executables
     "FA",      # Future Annotations
     "F401",    # Remove unused imports
+    "F541",    # f-string missing placeholders
     "FAST001", # FastAPI
     "FAST003", # FastAPI
     "FURB",    # Code modernization
@@ -40,6 +41,7 @@ select = [
     "ICN",     # Import alias
     "PD002",   # Pandas inplace
     "PIE",     # Code simplification
+    "PLC0415", # Only top level imports
     "S101",    # Look for assert
     "S102",    # Look for exec
     "S103",    # Look for os.chmod
@@ -66,26 +68,26 @@ ignore = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "**/tests/**/*.py" = [
-    "S101",  # asserts allowed in tests
-    "ARG",   # Unused function args -> fixtures are functionally relevant
-    "FBT",   # Don't care about booleans as positional arguments in tests
+    "S101", # asserts allowed in tests
+    "ARG",  # Unused function args -> fixtures are functionally relevant
+    "FBT",  # Don't care about booleans as positional arguments in tests
 ]
 "**/_tests/**/*.py" = [
-    "S101",  # asserts allowed in tests
-    "ARG",   # Unused function args -> fixtures are functionally relevant
-    "FBT",   # Don't care about booleans as positional arguments in tests
+    "S101", # asserts allowed in tests
+    "ARG",  # Unused function args -> fixtures are functionally relevant
+    "FBT",  # Don't care about booleans as positional arguments in tests
 ]
 "api/_data_insert/**/*.py" = [
-    "S608",  # hardcoded-sql-expression allowed in data insert scripts
+    "S608", # hardcoded-sql-expression allowed in data insert scripts
 ]
 "api/app/_crud/projects/data.py" = [
-    "S608",  # hardcoded-sql-expression allowed for dynamic schema queries
+    "S608", # hardcoded-sql-expression allowed for dynamic schema queries
 ]
 "api/app/_crud/projects/data_raw.py" = [
-    "S608",  # hardcoded-sql-expression allowed for dynamic schema queries
+    "S608", # hardcoded-sql-expression allowed for dynamic schema queries
 ]
 "api/app/_crud/projects/data_timeseries.py" = [
-    "S608",  # hardcoded-sql-expression allowed for dynamic schema queries
+    "S608", # hardcoded-sql-expression allowed for dynamic schema queries
 ]
 
 # =============================================================================
@@ -105,7 +107,7 @@ plugins = ["sqlalchemy.ext.mypy.plugin"]
 
 # Exclude patterns for mypy
 exclude = [
-    "^core/.*",  # Exclude installed package in api
+    "^core/.*",           # Exclude installed package in api
     "^app\\.crud\\.py$",
     "^app\\.utils\\.py$",
 ]
@@ -133,7 +135,7 @@ ignore_missing_imports = true
 # =============================================================================
 [tool.vulture]
 exclude = [
-# --- CORE ---
-# --- API ---
-"*protected/deletions/delete_project*.py"
+    # --- CORE ---
+    # --- API ---
+    "*protected/deletions/delete_project*.py",
 ]

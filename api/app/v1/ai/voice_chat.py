@@ -1,4 +1,6 @@
 import os
+import traceback
+from datetime import datetime
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
@@ -65,8 +67,6 @@ async def create_voice_chat_session(
 
                 # Convert timestamp to string if it's an integer
                 if isinstance(expires_at, int):
-                    from datetime import datetime
-
                     expires_at = datetime.fromtimestamp(expires_at).isoformat()
 
             elif "client_secret" in data:
@@ -95,8 +95,6 @@ async def create_voice_chat_session(
             status_code=500, detail=f"Failed to communicate with OpenAI API: {str(e)}"
         )
     except Exception as e:
-        import traceback
-
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 

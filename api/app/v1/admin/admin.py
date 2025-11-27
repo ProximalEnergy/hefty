@@ -4,6 +4,7 @@ from typing import Annotated
 
 import httpx
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, settings
@@ -68,8 +69,6 @@ async def get_subscribed_alert_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
-    from sqlalchemy import select
-
     query = (
         select(models.User.user_id)
         .join(
@@ -125,8 +124,6 @@ async def get_subscribed_report_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
-    from sqlalchemy import select
-
     query = (
         select(models.User.user_id)
         .join(

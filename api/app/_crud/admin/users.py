@@ -2,7 +2,7 @@ import secrets
 import uuid
 
 import sqlalchemy as sa
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces import User
@@ -65,8 +65,6 @@ async def delete_user(
     # Delete related records first
     # NOTE: This could be rewritten later to use a CASCADE
     # instead of deleting each record.
-    from sqlalchemy import delete
-
     await db.execute(
         delete(models.UserProject).where(models.UserProject.user_id == user_id)
     )
@@ -90,8 +88,6 @@ async def create_api_key(
     *,
     user_id: str,
 ):
-    from sqlalchemy import update
-
     stmt = (
         update(models.User)
         .where(models.User.user_id == user_id)
@@ -106,8 +102,6 @@ async def delete_api_key(
     *,
     user_id: str,
 ):
-    from sqlalchemy import update
-
     stmt = (
         update(models.User).where(models.User.user_id == user_id).values(api_key=None)
     )

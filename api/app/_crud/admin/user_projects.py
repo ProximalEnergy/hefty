@@ -194,8 +194,6 @@ async def update_user_projects(
 ):
     """Update user project assignments for multiple users"""
     # Delete existing entries for these users
-    from sqlalchemy import delete
-
     delete_stmt = delete(models.UserProject).where(
         models.UserProject.user_id.in_(user_ids)
     )

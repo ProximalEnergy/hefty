@@ -160,11 +160,21 @@ async def get_project_devices_v2(
 
     # Process polygon column if it exists
     if "polygon" in devices_df.columns:
+        # NOTE: The database guarantees that polygon data are valid MULTIPOLYGONs (or nulls)
+        multipolygon_dtype = pl.Struct(
+            [
+                pl.Field("type", pl.Utf8),
+                pl.Field(
+                    "coordinates",
+                    pl.List(pl.List(pl.List(pl.List(pl.Float64)))),
+                ),
+            ]
+        )
         devices_df = devices_df.map_columns(
             ["polygon"],
             lambda s: s.map_elements(
                 wkb_to_geojson, return_dtype=pl.Utf8, skip_nulls=True
-            ).str.json_decode(infer_schema_length=None),
+            ).str.json_decode(dtype=multipolygon_dtype),
         )
     # Add name_full column using Polars operations
     # Device Type Name Long is called name_long_1 because it is joined in

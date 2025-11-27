@@ -10,6 +10,7 @@ This script will:
 4. Remove the import for for_each_project_schema if no longer needed
 """
 
+import argparse
 import re
 from pathlib import Path
 
@@ -244,8 +245,6 @@ class MigrationCleaner:
 
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Clean Alembic migration files by removing unnecessary "
         "for_each_project decorators"

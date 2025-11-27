@@ -1,6 +1,7 @@
+import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -47,6 +48,14 @@ async def get_tags_by_regex(
     deep: custom_types.AnnotatedDeep = False,
     project_db: AsyncSession = Depends(get_project_db_async),
 ):
+    # Validate regex pattern before passing to database
+    try:
+        re.compile(regex)
+    except re.error as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid regular expression pattern: {str(e)}",
+        )
     return await core.crud.project.tags.get_tags_by_regex(
         db=project_db, regex=regex, limit=limit, deep=deep
     )

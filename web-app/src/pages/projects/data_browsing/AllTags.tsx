@@ -7,6 +7,7 @@ import {
   Text,
   useMantineTheme,
 } from '@mantine/core'
+import { IconAlertTriangle } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useRef } from 'react'
 
@@ -83,6 +84,16 @@ const AllTags = ({
     !tags.isFetching &&
     (!tags.data || tags.data.length === 0)
   ) {
+    if (tags.error) {
+      return (
+        <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+          <Stack p="md" align="center" justify="center" h="100%">
+            <IconAlertTriangle size={48} />
+            <Text ta="center">{tags.error.response?.data?.detail}</Text>
+          </Stack>
+        </div>
+      )
+    }
     return (
       <div style={{ position: 'relative', height: '100%', width: '100%' }}>
         <Stack p="md" align="center" justify="center" h="100%">

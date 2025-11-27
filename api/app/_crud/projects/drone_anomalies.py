@@ -1,7 +1,9 @@
+import logging
 import uuid
 from collections.abc import Sequence
 
 from core.models import DroneAnomaly
+from sqlalchemy import case, update
 from sqlalchemy.orm import Session
 
 from app.interfaces import DroneAnomalyCreate
@@ -76,8 +78,6 @@ def update_anomalies_with_event_id(
     Update drone anomalies with the event_id they are associated with.
     Note: This function does NOT commit the transaction - it should be called within an existing transaction.
     """
-    import logging
-
     logging.info(
         f"🔧 update_anomalies_with_event_id called: event_id={event_id}, anomaly_uuids={anomaly_uuids}"
     )
@@ -94,8 +94,6 @@ def update_anomalies_with_event_id(
     )
 
     # Update the anomalies using a more efficient bulk update
-    from sqlalchemy import update
-
     stmt = (
         update(DroneAnomaly)
         .where(DroneAnomaly.anomaly_uuid.in_(anomaly_uuids))
@@ -124,8 +122,6 @@ def bulk_update_anomalies_with_event_ids(
         db: Database session
         event_mapping: Dict mapping event_id -> list of anomaly UUIDs
     """
-    from sqlalchemy import case, update
-
     if not event_mapping:
         return
 
