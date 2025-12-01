@@ -2,7 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -33,6 +33,10 @@ async def get_pcs_apparent_vs_voltage(
     tags = core.crud.project.tags.get_project_tags(
         project_db, sensor_type_ids=[132, 133, 134, 135]
     ).models()
+    if len(tags) == 0:
+        raise HTTPException(
+            status_code=404, detail="No tags found for requested sensor types."
+        )
     tags_df = pd.DataFrame.from_records([tag.__dict__ for tag in tags]).set_index(
         "tag_id"
     )

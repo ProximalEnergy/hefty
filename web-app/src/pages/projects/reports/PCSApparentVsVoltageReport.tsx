@@ -134,6 +134,7 @@ const Page: React.FC = () => {
             },
             hovermode: 'closest',
           }}
+          error={data.error}
         />
       </CustomCard>
     </Stack>
