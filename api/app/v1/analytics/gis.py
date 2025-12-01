@@ -722,24 +722,66 @@ def utility_expected(
     if pv_dc_combiner_case:
         # --- Combiner Specific Actual Power Calculation (Optimized) ---
 
-        # 1. Find parent PCS IDs directly from input combiners
+        # 1. Find parent PCS IDs from input combiners
+        # Combiners can be children of either PCSs (type 2) or PCS Modules (type 3)
+        # If parent is a module, we need to get the module's parent (the PCS)
         parent_ids_with_none = {
-            device_dict[dev_id].parent_device_id for dev_id in device_ids
+            device_dict[dev_id].parent_device_id
+            for dev_id in device_ids
+            if device_dict[dev_id].parent_device_id is not None
         }
-        parent_pcs_ids = [pid for pid in parent_ids_with_none if pid is not None]
+
+        if not parent_ids_with_none:
+            raise HTTPException(
+                status_code=404,
+                detail="Could not determine parent device IDs for the given combiners.",
+            )
+
+        # Fetch parent devices to check their types
+        parent_device_ids = [pid for pid in parent_ids_with_none if pid is not None]
+        parent_devices = core.crud.project.devices.get_project_devices(
+            project_db,
+            device_ids=parent_device_ids,
+        ).models()
+        parent_device_dict = {dev.device_id: dev for dev in parent_devices}
+
+        # Determine PCS IDs: if parent is a module (type 3), get its parent; if it's a PCS (type 2), use it directly
+        parent_pcs_ids = []
+        combiner_to_parent_pcs_id = {}
+        for dev_id in device_ids:
+            parent_id = device_dict[dev_id].parent_device_id
+            if parent_id is None:
+                continue
+
+            parent_device = parent_device_dict.get(parent_id)
+            if parent_device is None:
+                continue
+
+            # If parent is a PCS Module (type 3), get its parent (the PCS)
+            if parent_device.device_type_id == 3:  # PV PCS Module
+                pcs_id = parent_device.parent_device_id
+                if pcs_id is not None:
+                    parent_pcs_ids.append(pcs_id)
+                    combiner_to_parent_pcs_id[dev_id] = pcs_id
+            # If parent is already a PCS (type 2), use it directly
+            elif parent_device.device_type_id == 2:  # PV PCS
+                parent_pcs_ids.append(parent_id)
+                combiner_to_parent_pcs_id[dev_id] = parent_id
+            else:
+                # Unexpected parent type
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Combiner {dev_id} has unexpected parent device type {parent_device.device_type_id}.",
+                )
+
+        # Remove duplicates from parent_pcs_ids
+        parent_pcs_ids = list(set(parent_pcs_ids))
 
         if not parent_pcs_ids:
             raise HTTPException(
                 status_code=404,
                 detail="Could not determine parent PCS IDs for the given combiners.",
             )
-
-        # Map combiners to their parent PCS ID (needed later for grouping modules)
-        combiner_to_parent_pcs_id = {
-            dev_id: device_dict[dev_id].parent_device_id
-            for dev_id in device_ids
-            if device_dict[dev_id].parent_device_id is not None
-        }
 
         # DB Call 1: Fetch all relevant PV PCS Modules using parent IDs
         all_pcs_modules = core.crud.project.devices.get_project_devices(
