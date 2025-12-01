@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 from io import StringIO
 
@@ -112,6 +113,10 @@ if "pv_module_id" not in devices.columns:
     devices["pv_module_id"] = None
 if "device_model_id" not in devices.columns:
     devices["device_model_id"] = None
+else:
+    logging.warning(
+        "device_model_id will not be updated. Use the device_models CLI application instead."
+    )
 
 if update_devices:
     with psycopg2.connect(
@@ -148,7 +153,6 @@ if update_devices:
                     DO UPDATE SET
                         device_id_path = EXCLUDED.device_id_path,
                         device_type_id = EXCLUDED.device_type_id,
-                        device_model_id = EXCLUDED.device_model_id,
                         cec_pv_inverter_id = EXCLUDED.cec_pv_inverter_id,
                         cec_pv_module_id = EXCLUDED.cec_pv_module_id,
                         pv_module_id = EXCLUDED.pv_module_id,

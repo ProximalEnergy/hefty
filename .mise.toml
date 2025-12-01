@@ -314,6 +314,11 @@ description = "Insert devices data"
 dir = "api"
 run = "python3 -m _data_insert.project.1_devices"
 
+[tasks."api:insert_device_models"]
+description = "Insert device models data"
+dir = "api"
+run = "python3 -m _data_insert.project.device_models"
+
 [tasks."api:insert_tags"]
 description = "Insert tags data for a project"
 dir = "api"

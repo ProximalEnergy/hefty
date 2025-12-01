@@ -79,6 +79,7 @@ ignore = [
 ]
 "api/_data_insert/**/*.py" = [
     "S608", # hardcoded-sql-expression allowed in data insert scripts
+    "T20",  # print statements allowed in data insert scripts
 ]
 "api/app/_crud/projects/data.py" = [
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries
