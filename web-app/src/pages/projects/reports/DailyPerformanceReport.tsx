@@ -1,3 +1,4 @@
+import { KPITypeEnum } from '@/api/enumerations'
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
 import type { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
@@ -1327,7 +1328,8 @@ const Page: React.FC = () => {
 
     // Get the actual generation for the selected day
     const generationKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
     const generationMWh = generationKpi?.data?.project_data?.[0] || 0
 
@@ -1434,16 +1436,20 @@ const Page: React.FC = () => {
   // Calculate stats for StatsGrid
   const stats = useMemo(() => {
     const generationKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
     const expectedKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 102,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
     )
     const curtailmentKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 103,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_CURTAILMENT,
     )
     const availabilityKpi = dailyKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 1,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
     )
 
     const generationMWh = generationKpi?.data?.project_data?.[0] || 0
@@ -1454,7 +1460,8 @@ const Page: React.FC = () => {
 
     // Calculate MTD revenue
     const mtdGenerationKpi = mtdKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
     const mtdGenerationMWh =
       mtdGenerationKpi?.data?.project_data?.reduce(
@@ -1568,11 +1575,13 @@ const Page: React.FC = () => {
     }
 
     const generationKpi = trailingKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
 
     const expectedKpi = trailingKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 102,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
     )
 
     // If we don't have generation data, try to show budgeted data only
@@ -2142,13 +2151,16 @@ const Page: React.FC = () => {
 
     // Get daily generation data
     const dailyGenerationKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
     const expectedKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 102,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
     )
     const curtailmentKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 103,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_CURTAILMENT,
     )
 
     const actualEnergyMWh = dailyGenerationKpi?.data?.project_data?.[0] || 0
@@ -2169,7 +2181,8 @@ const Page: React.FC = () => {
 
     // Calculate 30-day trailing statistics
     const trailingGenerationKpi = trailingKpiData.data.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
     const trailingActualMWh =
       trailingGenerationKpi?.data?.project_data?.reduce(
@@ -2196,7 +2209,8 @@ const Page: React.FC = () => {
 
     // Calculate MTD revenue
     const mtdGenerationKpi = mtdKpiData.data?.find(
-      (kpi: OperationalKPIData) => kpi.kpi_type_id === 6,
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
     const mtdGenerationMWh =
       mtdGenerationKpi?.data?.project_data?.reduce(

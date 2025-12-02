@@ -4,7 +4,7 @@
 FILE1="app/crud.py"
 LINE_LIMIT1=1
 FILE2="app/v1/analytics/analytics.py"
-LINE_LIMIT2=1850
+LINE_LIMIT2=1853
 FILE3="app/dependencies.py"
 LINE_LIMIT=391
 

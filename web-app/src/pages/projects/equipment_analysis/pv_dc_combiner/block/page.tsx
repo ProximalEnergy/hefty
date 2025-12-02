@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -125,11 +126,11 @@ const Page = () => {
   })
 
   const pcsDeviceIds = devices.data
-    ?.filter((d) => d.device_type_id === 2)
+    ?.filter((d) => d.device_type_id === DeviceTypeEnum.PV_PCS)
     .map((d) => d.device_id)
 
   const combinerDeviceIds = devices.data
-    ?.filter((d) => d.device_type_id === 9)
+    ?.filter((d) => d.device_type_id === DeviceTypeEnum.PV_DC_COMBINER)
     .map((d) => d.device_id)
 
   const combinerData = useGetTimeSeries({

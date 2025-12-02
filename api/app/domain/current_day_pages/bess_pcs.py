@@ -1,6 +1,7 @@
 import datetime
 
 import pandas as pd
+from core.enumerations import SensorType
 from sqlalchemy.orm import Session
 
 import core
@@ -29,7 +30,7 @@ def get_bess_pcs_data(
     """
     tags = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_ids=[31],  # bess_pcs_ac_power
+        sensor_type_ids=[SensorType.BESS_PCS_AC_POWER],
         deep=True,
     ).models()
 

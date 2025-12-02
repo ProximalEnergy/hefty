@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { PageLoader } from '@/components/Loading'
 import { useAddKPIAlert } from '@/hooks/api'
@@ -123,7 +124,7 @@ const ProjectKPIAlerts = () => {
     }
 
     // If the KPI is a project level KPI, disable the statistic dropdown
-    if (selectedKpi?.device_type_id === 1) {
+    if (selectedKpi?.device_type_id === DeviceTypeEnum.PROJECT) {
       setStatisticDisabled(true)
       form.setFieldValue('statistic', null)
     } else {

@@ -1,4 +1,5 @@
 import { useGetUserType } from '@/api/admin'
+import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetOMContractorScopes } from '@/api/v1/operational/project/om_contractors'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
@@ -42,9 +43,11 @@ export default function ProjectInfoModal({
   const computedColorScheme = useComputedColorScheme()
 
   const isUserAdmin =
-    userType.data?.user_type_id === 2 || userType.data?.user_type_id === 1
+    userType.data?.user_type_id === UserTypeEnumEnum.ADMIN ||
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
-  const isUserSuperadmin = userType.data?.user_type_id === 1
+  const isUserSuperadmin =
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   // Helper function to get icon styling for dark mode support
   const getIconStyle = () => ({
@@ -324,8 +327,9 @@ export default function ProjectInfoModal({
                             {projectData?.time_zone || 'Not set'}
                           </Text>
                         </Group>
-                        {(projectData?.project_type_id === 1 ||
-                          projectData?.project_type_id === 3) && (
+                        {(projectData?.project_type_id === ProjectTypeEnum.PV ||
+                          projectData?.project_type_id ===
+                            ProjectTypeEnum.PVS) && (
                           <Group justify="space-between">
                             <Text size="sm" c="dimmed">
                               PV PPA Price:
@@ -353,8 +357,9 @@ export default function ProjectInfoModal({
                               : 'Not set'}
                           </Text>
                         </Group>
-                        {(projectData?.project_type_id === 1 ||
-                          projectData?.project_type_id === 3) && (
+                        {(projectData?.project_type_id === ProjectTypeEnum.PV ||
+                          projectData?.project_type_id ===
+                            ProjectTypeEnum.PVS) && (
                           <>
                             <Group justify="space-between">
                               <Text size="sm" c="dimmed">
@@ -378,8 +383,10 @@ export default function ProjectInfoModal({
                             </Group>
                           </>
                         )}
-                        {(projectData?.project_type_id === 2 ||
-                          projectData?.project_type_id === 3) && (
+                        {(projectData?.project_type_id ===
+                          ProjectTypeEnum.BESS ||
+                          projectData?.project_type_id ===
+                            ProjectTypeEnum.PVS) && (
                           <>
                             <Group justify="space-between">
                               <Text size="sm" c="dimmed">

@@ -1,6 +1,7 @@
 import logging
 
 import pandas as pd
+from core.enumerations import DeviceType
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -15,7 +16,7 @@ def parse_devices_combiners(
     # --- Get devices from the database ---
     combiner_models = core.crud.project.devices.get_project_devices(
         db=project_db,
-        device_type_ids=[9],
+        device_type_ids=[DeviceType.PV_DC_COMBINER],
     ).models()
     combiners = pd.DataFrame([x.__dict__ for x in combiner_models])
     combiners = combiners[["name_long", "device_id"]].rename(

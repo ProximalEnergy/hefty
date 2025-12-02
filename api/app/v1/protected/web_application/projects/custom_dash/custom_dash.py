@@ -6,6 +6,7 @@ from typing import Annotated
 import numpy as np
 import pandas as pd
 from core.dependencies import get_db
+from core.enumerations import DeviceType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -177,10 +178,10 @@ async def get_gauge(
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
     match measured_variable:
         case "meter_actual_power":
-            if project.project_type_id == 1:
-                measured_sensor_type_id = 1
+            if project.project_type_id == ProjectType.PV:
+                measured_sensor_type_id = SensorType.METER_ACTIVE_POWER
             else:
-                measured_sensor_type_id = 40
+                measured_sensor_type_id = SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER
             tags = core.crud.project.tags.get_project_tags(
                 db=project_db,
                 sensor_type_ids=[measured_sensor_type_id],
@@ -204,7 +205,7 @@ async def get_gauge(
             metrics_priority_order = [12, 11, 6, 5]
             device = core.crud.project.devices.get_project_devices(
                 db=project_db,
-                device_type_ids=[1],
+                device_type_ids=[DeviceType.PROJECT],
             )
             data_expected = core.crud.project.data_expected.get_project_data_expected(
                 project_db=project_db,
@@ -335,7 +336,7 @@ async def get_line(
                 name = sensor_name + " Count"
             case _:
                 pass
-        if sensor_type_id == 41:
+        if sensor_type_id == SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER:
             temp_df *= -1
         for j in range(len(temp_df.columns)):
             if aggregation_type == "none":

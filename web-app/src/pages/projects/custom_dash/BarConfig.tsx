@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
 import {
   Button,
@@ -43,7 +44,10 @@ const BarConfig = ({
   }
   const sensorTypesData = sensorTypes.data
     ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
-    .filter((sensorType) => sensorType.sensor_type_id !== 0)
+    .filter(
+      (sensorType) =>
+        sensorType.sensor_type_id !== SensorTypeEnum.GHOST_UNKNOWN,
+    )
   const allowCreate = !!sensorTypeId && !!aggregationMethod
   return (
     <Stack>

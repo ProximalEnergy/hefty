@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { PageLoader } from '@/components/Loading'
 import { useGetEvents } from '@/hooks/api'
 import { useParams } from 'react-router'
@@ -31,7 +32,7 @@ const EventRouter = () => {
   const event = eventData.data?.[0]
 
   // Route to DC Field event page if device type is 30 (DC Field)
-  if (event?.device?.device_type_id === 30) {
+  if (event?.device?.device_type_id === DeviceTypeEnum.DC_FIELD) {
     return <DcFieldEventPage />
   }
 

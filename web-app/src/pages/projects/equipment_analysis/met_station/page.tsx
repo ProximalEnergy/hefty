@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -110,10 +111,14 @@ const Page = () => {
 
   // Iterate through devices to populate name_ref
   devices?.forEach((device) => {
-    if (device.device_type_id === 4 && device.parent_device_id) {
+    if (
+      device.device_type_id === DeviceTypeEnum.MET_STATION &&
+      device.parent_device_id
+    ) {
       const parentDevice = devices.find(
         (d) =>
-          d.device_type_id === 6 && d.device_id === device.parent_device_id,
+          d.device_type_id === DeviceTypeEnum.BLOCK &&
+          d.device_id === device.parent_device_id,
       )
       if (parentDevice) {
         name_ref[device.name_long ?? ''] = parentDevice.name_long ?? ''

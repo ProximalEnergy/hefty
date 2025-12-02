@@ -1,4 +1,5 @@
 import pandas as pd
+from core.enumerations import DeviceType
 from sqlalchemy.orm import Session
 
 import core
@@ -12,7 +13,7 @@ def add_devices_blocks(
     # --- Get devices from the database ---
     transformers_data = core.crud.project.devices.get_project_devices(
         db=project_db,
-        device_type_ids=[15],  # operational.device_types (15 == mvt)
+        device_type_ids=[DeviceType.MVT],
     ).models()
     transformers = pd.DataFrame([x.__dict__ for x in transformers_data])
     transformers = transformers[["device_id", "parent_device_id"]].rename(

@@ -1,3 +1,4 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { Box, Stack, Tabs, Title } from '@mantine/core'
@@ -100,7 +101,8 @@ export default function EquipmentAnalysis() {
     if (!project.data) return true
 
     // Remove PV tabs if project doesn't have PV
-    if (tab.requiresPV && project.data.project_type_id === 2) return false
+    if (tab.requiresPV && project.data.project_type_id === ProjectTypeEnum.BESS)
+      return false
 
     // Remove BESS tabs if project doesn't have BESS components
     if (

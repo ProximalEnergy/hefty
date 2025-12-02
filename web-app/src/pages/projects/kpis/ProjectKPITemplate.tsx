@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
   useGetKPIExcel,
@@ -200,12 +201,12 @@ const Page = () => {
   const showProjectData = true
   const showDeviceData =
     !!kpiType &&
-    kpiType.device_type_id != 1 &&
+    kpiType.device_type_id != DeviceTypeEnum.PROJECT &&
     !!devices.data &&
     devices.data.length <= MAX_DEVICES
   const showMapData =
     !!kpiType &&
-    kpiType.device_type_id != 1 &&
+    kpiType.device_type_id != DeviceTypeEnum.PROJECT &&
     !!devices.data &&
     devices.data.length <= MAX_DEVICES &&
     !!project.data &&
@@ -337,7 +338,7 @@ const Page = () => {
           cardTitle={
             <Group gap="xs">
               Project Data
-              {kpiType?.device_type_id != 1 && (
+              {kpiType?.device_type_id != DeviceTypeEnum.PROJECT && (
                 <HoverCard>
                   <HoverCard.Target>
                     <Badge variant="light">{kpiType?.aggregation_method}</Badge>

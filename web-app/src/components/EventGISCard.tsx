@@ -1,4 +1,4 @@
-import { DeviceType } from '@/api/enumerations'
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
@@ -55,7 +55,7 @@ const EventGISCard = ({
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DeviceType.BLOCK],
+      device_type_ids: [DeviceTypeEnum.BLOCK],
     },
   })
 
@@ -71,7 +71,7 @@ const EventGISCard = ({
 
   let coordinates: [number, number] = [0, 0]
 
-  if (deviceData?.device_type_id === 29) {
+  if (deviceData?.device_type_id === DeviceTypeEnum.TRACKER_ROW) {
     coordinates = [
       deviceData?.polygon?.coordinates[0][0][0][0] || 0,
       deviceData?.polygon?.coordinates[0][0][0][1] || 0,

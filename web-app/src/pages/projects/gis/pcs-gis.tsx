@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
@@ -200,13 +201,19 @@ export function PCSGISMap({
   if (gis.error) return <PageError error={gis.error} />
 
   const filteredDevices = devices.data?.filter((device) =>
-    block ? device.device_type_id === 6 : device.device_type_id === 2,
+    block
+      ? device.device_type_id === DeviceTypeEnum.BLOCK
+      : device.device_type_id === DeviceTypeEnum.PV_PCS,
   )
 
   // Determine of there are more devices of device_type_id 2 than 6
   const multiplePCSsPerBlock = devices.data
-    ? devices.data?.filter((device) => device.device_type_id === 2).length >
-      devices.data?.filter((device) => device.device_type_id === 6).length
+    ? devices.data?.filter(
+        (device) => device.device_type_id === DeviceTypeEnum.PV_PCS,
+      ).length >
+      devices.data?.filter(
+        (device) => device.device_type_id === DeviceTypeEnum.BLOCK,
+      ).length
     : undefined
 
   // Generate GeoJSON data from filteredDevices and gis.data

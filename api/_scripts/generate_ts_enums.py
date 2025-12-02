@@ -43,7 +43,7 @@ def ts_literal(value: Any) -> str:
 
 def enum_to_ts_constant(enum_cls: type[Enum]) -> str:
     name = enum_cls.__name__
-    lines: list[str] = [f"export const {name} = {{"]
+    lines: list[str] = [f"export const {name}Enum = {{"]
     for m in enum_members_in_order(enum_cls):
         lines.append(f"  {m.name}: {ts_literal(m.value)},")
     lines.append("} as const;")

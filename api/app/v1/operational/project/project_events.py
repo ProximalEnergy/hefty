@@ -9,6 +9,7 @@ import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.dependencies import get_db
+from core.enumerations import DeviceType, ProjectType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import insert, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -518,8 +519,8 @@ async def get_events_summary(
         denom = g["days_event"]  # or g["days_data_span"] for original behavior
 
         # 4) Calculate daily averages from SQL-aggregated totals
-        # loss_1 = energy (event_loss_type_id == 1)
-        # loss_2 = financial (event_loss_type_id == 2)
+        # loss_1 = energy (event_loss_type_id == EventLossType.PROXIMAL_ENERGY)
+        # loss_2 = financial (event_loss_type_id == EventLossType.PROXIMAL_FINANCIAL)
         g["avg_loss_per_day_1"] = g["loss_1"] / denom.replace({0: pd.NA})
         g["avg_loss_per_day_2"] = g["loss_2"] / denom.replace({0: pd.NA})
 
@@ -579,7 +580,7 @@ async def get_uptime(
     if not events:
         return []
 
-    if project.project_type_id != 2:
+    if project.project_type_id != ProjectType.BESS:
         # Get POA data efficiently for daylight hours calculation
         poa_df = utils.data_df(
             project_db,
@@ -670,8 +671,8 @@ async def get_uptime(
         if not device:
             continue
 
-        # Skip tracker_pv_pcs (device_type_id = 10)
-        if device.device_type_id == 10:
+        # Skip tracker_pv_pcs
+        if device.device_type_id == DeviceType.TRACKER_PV_PCS:
             continue
 
         device_type = device_type_dict.get(device.device_type_id)
@@ -977,7 +978,7 @@ def bulk_create_events(
         # Get DC Field devices that are direct children of our combiners
         dc_field_children = core.crud.project.devices.get_project_devices(
             project_db,
-            device_type_ids=[30],  # DC Field device type
+            device_type_ids=[DeviceType.DC_FIELD],
             parent_device_ids=[device_id for device_id in combiner_device_ids],
         ).models()
 

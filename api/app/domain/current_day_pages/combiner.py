@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.enumerations import DeviceType
 from fastapi import Depends
 from natsort import natsorted
 from sqlalchemy.orm import Session
@@ -37,7 +38,7 @@ def get_equipment_analysis_combiner_data(
     # Get combiner devices
     devices_combiner = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[9],
+        device_type_ids=[DeviceType.PV_DC_COMBINER],
     ).models()
 
     # Get combiner current tags

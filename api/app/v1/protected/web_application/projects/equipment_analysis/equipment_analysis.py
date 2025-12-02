@@ -1,6 +1,7 @@
 import datetime
 from typing import Annotated
 
+from core.enumerations import DeviceType
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from natsort import natsorted
@@ -202,7 +203,9 @@ async def get_sunburst_data(
     labels = []
     parents = []
     colors = []
-    project_device = [x.device_id for x in devices if x.device_type_id == 1][0]
+    project_device = [
+        x.device_id for x in devices if x.device_type_id == DeviceType.PROJECT
+    ][0]
 
     if mode == "events":
         online_status_dict = {x.device_id: 0 for x in devices}

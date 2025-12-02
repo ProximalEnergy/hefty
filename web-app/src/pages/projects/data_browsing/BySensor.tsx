@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import { Tag } from '@/hooks/types'
 import { Checkbox, Group, LoadingOverlay, useMantineTheme } from '@mantine/core'
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
@@ -264,7 +265,8 @@ const BySensor = ({
               const tag = item.tag!
               // Use name_scada fallback for un-mapped tags (sensor_type_id=0 or device_id=0)
               const isUnmappedTag =
-                tag.sensor_type_id === 0 || tag.device_id === 0
+                tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
+                tag.device_id === 0
               const tagName = isUnmappedTag
                 ? tag.name_scada
                 : tag.device?.device_type?.name_long

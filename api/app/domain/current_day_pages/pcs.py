@@ -3,7 +3,7 @@ from typing import Any
 
 import pandas as pd
 from core.dependencies import get_db_session_async
-from core.enumerations import TimeInterval, TimeOffset
+from core.enumerations import DeviceType, TimeInterval, TimeOffset
 from fastapi import HTTPException
 from natsort import natsorted
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -174,7 +174,7 @@ async def get_equipment_analysis_pcs_data(
     # Get block devices
     devices_block = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[6],
+        device_type_ids=[DeviceType.BLOCK],
     ).models()
     devices_block_device_id_to_name_long = {
         device.device_id: device.name_long for device in devices_block
@@ -198,7 +198,7 @@ async def get_equipment_analysis_pcs_data(
     # Get PCS devices
     devices_pcs = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[2],
+        device_type_ids=[DeviceType.PV_PCS],
     ).models()
     devices_pcs_device_id_to_name_long = {
         device.device_id: device.name_long for device in devices_pcs
@@ -222,7 +222,7 @@ async def get_equipment_analysis_pcs_data(
     # Get PCS module devices
     devices_pcs_module = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[3],
+        device_type_ids=[DeviceType.PV_PCS_MODULE],
     ).models()
     devices_pcs_module_device_id_to_name_long = {
         device.device_id: device.name_long for device in devices_pcs_module

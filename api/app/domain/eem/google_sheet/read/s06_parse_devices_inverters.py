@@ -1,4 +1,5 @@
 import pandas as pd
+from core.enumerations import DeviceType
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -13,7 +14,7 @@ def parse_devices_inverters(
     # --- Get devices from the database ---
     inverter_models = core.crud.project.devices.get_project_devices(
         db=project_db,
-        device_type_ids=[2],  # operational.device_types (2 == pv_pcs)
+        device_type_ids=[DeviceType.PV_PCS],
     ).models()
     inverters = pd.DataFrame([x.__dict__ for x in inverter_models])
     inverters = inverters[["name_long", "device_id", "parent_device_id"]].rename(

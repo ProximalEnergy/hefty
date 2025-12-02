@@ -1,3 +1,8 @@
+import {
+  DeviceTypeEnum,
+  ProjectTypeEnum,
+  SensorTypeEnum,
+} from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
@@ -94,48 +99,49 @@ const Page = () => {
     {
       label: 'PV PCS',
       deviceId: '2',
-      sensorTypeIds: ['2', '9'],
+      sensorTypeIds: [
+        String(SensorTypeEnum.PV_PCS_AC_POWER),
+        String(SensorTypeEnum.PV_PCS_AC_POWER_SETPOINT),
+      ],
     },
     {
       label: 'PV PCS Module',
       deviceId: '3',
-      sensorTypeIds: ['3'],
+      sensorTypeIds: [String(SensorTypeEnum.PV_PCS_MODULE_AC_POWER)],
     },
     {
       label: 'PV DC Combiner',
       deviceId: '9',
-      sensorTypeIds: ['27'],
+      sensorTypeIds: [String(SensorTypeEnum.PV_DC_COMBINER_CURRENT)],
     },
     {
       label: 'Tracker',
       deviceId: '29',
-      sensorTypeIds: ['24', '25'],
+      sensorTypeIds: [
+        String(SensorTypeEnum.TRACKER_POSITION),
+        String(SensorTypeEnum.TRACKER_SETPOINT),
+      ],
     },
     {
       label: 'BESS PCS',
       deviceId: '13',
-      sensorTypeIds: ['31'],
+      sensorTypeIds: [String(SensorTypeEnum.BESS_PCS_AC_POWER)],
     },
     {
       label: 'BESS PCS Module Group',
       deviceId: '32',
-      sensorTypeIds: ['121'],
+      sensorTypeIds: [String(SensorTypeEnum.BESS_PCS_MODULE_GROUP_AC_POWER)],
     },
     {
       label: 'BESS PCS Module',
       deviceId: '33',
-      sensorTypeIds: ['106'],
+      sensorTypeIds: [String(SensorTypeEnum.BESS_PCS_MODULE_AC_POWER)],
     },
     {
       label: 'BESS String',
       deviceId: '27',
-      sensorTypeIds: ['45'],
+      sensorTypeIds: [String(SensorTypeEnum.BESS_STRING_SOC_PERCENT)],
     },
-    // {
-    //   label: 'BESS Cell',
-    //   deviceId: '31',
-    //   sensorTypeIds: ['82'],
-    // },
   ]
 
   // deviceTypeId will keep track of which device type is selected
@@ -164,7 +170,11 @@ const Page = () => {
   useEffect(() => {
     if (projectData.data) {
       queueMicrotask(() =>
-        setDeviceTypeId(projectData.data?.project_type_id == 1 ? 2 : 13),
+        setDeviceTypeId(
+          projectData.data?.project_type_id == ProjectTypeEnum.PV
+            ? DeviceTypeEnum.PV_PCS
+            : DeviceTypeEnum.BESS_PCS,
+        ),
       )
     }
   }, [projectData.data])

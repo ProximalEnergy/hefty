@@ -233,6 +233,8 @@ const PlotlyPlot = ({
       x: 0.5,
       y: 0,
       orientation: 'h',
+      // @ts-expect-error - maxHeight not included in type definition yet (https://plotly.com/javascript/reference/layout/#layout-legend-maxheight)
+      maxheight: 0.2,
     },
     paper_bgcolor: 'transparent',
     plot_bgcolor: 'transparent',

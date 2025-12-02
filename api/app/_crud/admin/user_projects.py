@@ -2,6 +2,7 @@ import uuid
 from typing import cast
 from uuid import UUID
 
+from core.enumerations import UserTypeEnum
 from sqlalchemy import delete, select
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -93,11 +94,11 @@ async def assign_project_to_relevant_users(
             # Company admins
             (
                 (models.User.company_id == creator_company_id)
-                & (models.User.user_type_id == 2)
+                & (models.User.user_type_id == UserTypeEnum.ADMIN)
             )
             |
             # All superadmins
-            (models.User.user_type_id == 1)
+            (models.User.user_type_id == UserTypeEnum.SUPERADMIN)
         )
         users_result = await db.execute(users_query)
         users_to_assign = users_result.scalars().all()

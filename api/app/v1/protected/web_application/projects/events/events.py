@@ -3,6 +3,7 @@ from typing import Literal
 
 import core.models as models
 import pandas as pd
+from core.enumerations import DeviceType
 from core.model_list import ModelList
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
@@ -143,8 +144,8 @@ async def get_meta_analysis(
     if project_cap == 0:
         project_cap = project.poi * 1000
 
-    # Override capacity for project-level events (device_type_id == 5)
-    df.loc[df["device_type_id"] == 5, "capacity_ac"] = project_cap
+    # Override capacity for project-level events
+    df.loc[df["device_type_id"] == DeviceType.METER, "capacity_ac"] = project_cap
 
     # -----------------------
     # Durations & unavailability (default)
