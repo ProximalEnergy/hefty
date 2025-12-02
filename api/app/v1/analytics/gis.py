@@ -582,11 +582,12 @@ def get_devices_in_viewport(
         if extra_data_for_this_device:
             if device.device_type_id == DeviceType.TRACKER_ROW:
                 device_dict["tracker_data"] = extra_data_for_this_device
-            # Assuming PCS (2) and Combiner (9) expect their data under "power_data"
+            # Assuming PCS (2, 13) and Combiner (9) expect their data under "power_data"
             # and utility_expected returns the payload directly for these types.
             elif device.device_type_id in [
                 DeviceType.PV_PCS,
                 DeviceType.PV_DC_COMBINER,
+                DeviceType.BESS_PCS,
             ]:
                 device_dict["power_data"] = extra_data_for_this_device
             elif device.device_type_id == DeviceType.MET_STATION:
@@ -600,6 +601,7 @@ def get_devices_in_viewport(
             elif device.device_type_id in [
                 DeviceType.PV_PCS,
                 DeviceType.PV_DC_COMBINER,
+                DeviceType.BESS_PCS,
             ]:
                 device_dict["power_data"] = None
             elif device.device_type_id == DeviceType.MET_STATION:
@@ -720,6 +722,12 @@ def utility_expected(
         multiplier = 1 / 1_000  # V * A = W -> kW
         expected_device_ids_for_query = device_ids
         pv_dc_combiner_case = True
+    elif first_device_type_id == DeviceType.BESS_PCS.value:  # BESS PCS
+        sensor_type_ids = [SensorType.BESS_PCS_AC_POWER]  # BESS PCS AC Power
+        # BESS devices don't have expected power data like PV devices
+        expected_metric_ids_fallback = []
+        multiplier = 1_000.0  # Raw data presumed in kW?
+        expected_device_ids_for_query = device_ids
     else:
         raise HTTPException(
             status_code=422,
