@@ -26,8 +26,16 @@ export function Stats({
         project.project_type_id === ProjectTypeId.PV_BESS) && (
         <RingProgressStat
           project={project}
-          type="poa"
-          value={portfolioHomeProject?.poa ?? undefined}
+          type={
+            portfolioHomeProject?.performance_index
+              ? 'performance_index'
+              : 'poa'
+          }
+          value={
+            portfolioHomeProject?.performance_index ??
+            portfolioHomeProject?.poa ??
+            undefined
+          }
         />
       )}
       {(project.project_type_id === ProjectTypeId.BESS ||
