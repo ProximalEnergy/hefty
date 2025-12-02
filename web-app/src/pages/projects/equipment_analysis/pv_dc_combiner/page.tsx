@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -55,7 +56,7 @@ const Page = () => {
     let currentDevice = devicesMap[deviceId]
     while (
       currentDevice &&
-      currentDevice.device_type_id !== 2 &&
+      currentDevice.device_type_id !== DeviceTypeEnum.PV_PCS &&
       currentDevice.parent_device_id !== null
     ) {
       currentDevice = devicesMap[currentDevice.parent_device_id]

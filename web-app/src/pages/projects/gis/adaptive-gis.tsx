@@ -1,4 +1,5 @@
 import { HexLoaderInline } from '@/HexLoaderInline'
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetDevicesInViewport } from '@/api/v1/analytics/gis'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
@@ -367,7 +368,7 @@ export function AdaptiveGisMap() {
           // Case 2: Expected Power is missing or zero, fallback to capacity
           let usedCapacity = false
           if (
-            device.device_type_id === 2 &&
+            device.device_type_id === DeviceTypeEnum.PV_PCS &&
             device.capacity_ac &&
             device.capacity_ac > 0
           ) {
@@ -375,7 +376,7 @@ export function AdaptiveGisMap() {
             actual_vs_expected = (latestActualPower / device.capacity_ac) * 100
             usedCapacity = true
           } else if (
-            device.device_type_id === 9 &&
+            device.device_type_id === DeviceTypeEnum.PV_DC_COMBINER &&
             device.capacity_dc &&
             device.capacity_dc > 0
           ) {
@@ -428,7 +429,7 @@ export function AdaptiveGisMap() {
       if (effectiveZoom >= VERY_HIGH_ZOOM) {
         // VERY HIGH ZOOM: Tracker (polygon), Combiner (polygon), PCS (point), Met (point)
         if (
-          device.device_type_id === 29 && // Tracker Row
+          device.device_type_id === DeviceTypeEnum.TRACKER_ROW &&
           device.polygon
         ) {
           // Parse polygon JSON string if it's a string, otherwise use as-is
@@ -458,7 +459,7 @@ export function AdaptiveGisMap() {
           }
         }
         if (
-          device.device_type_id === 9 && // Combiner
+          device.device_type_id === DeviceTypeEnum.PV_DC_COMBINER &&
           device.polygon
         ) {
           // Parse polygon JSON string if it's a string, otherwise use as-is
@@ -488,7 +489,7 @@ export function AdaptiveGisMap() {
           }
         }
         if (
-          device.device_type_id === 2 && // PCS
+          device.device_type_id === DeviceTypeEnum.PV_PCS &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -499,7 +500,7 @@ export function AdaptiveGisMap() {
           })
         }
         if (
-          device.device_type_id === 4 && // Met
+          device.device_type_id === DeviceTypeEnum.MET_STATION &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -512,7 +513,7 @@ export function AdaptiveGisMap() {
       } else if (effectiveZoom >= HIGH_ZOOM) {
         // HIGH ZOOM: Combiner (polygon), PCS (point), Met (point)
         if (
-          device.device_type_id === 9 && // Combiner
+          device.device_type_id === DeviceTypeEnum.PV_DC_COMBINER &&
           device.polygon &&
           Array.isArray(device.polygon.coordinates) &&
           device.polygon.coordinates.length > 0
@@ -525,7 +526,7 @@ export function AdaptiveGisMap() {
         }
         // PCS and Met points (same as VERY_HIGH_ZOOM, repeated for clarity)
         if (
-          device.device_type_id === 2 &&
+          device.device_type_id === DeviceTypeEnum.PV_PCS &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -536,7 +537,7 @@ export function AdaptiveGisMap() {
           })
         }
         if (
-          device.device_type_id === 4 &&
+          device.device_type_id === DeviceTypeEnum.MET_STATION &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -548,7 +549,7 @@ export function AdaptiveGisMap() {
         }
       } else if (effectiveZoom >= LOW_ZOOM) {
         // MEDIUM ZOOM: PCS (point & polygon)
-        if (device.device_type_id === 2) {
+        if (device.device_type_id === DeviceTypeEnum.PV_PCS) {
           // Check polygon validity
           if (
             device.polygon &&
@@ -572,7 +573,7 @@ export function AdaptiveGisMap() {
         }
         // Add Met Station points at medium zoom
         if (
-          device.device_type_id === 4 &&
+          device.device_type_id === DeviceTypeEnum.MET_STATION &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -586,7 +587,7 @@ export function AdaptiveGisMap() {
         // LOW ZOOM: PCS (polygon)
         // Check polygon validity
         if (
-          device.device_type_id === 2 &&
+          device.device_type_id === DeviceTypeEnum.PV_PCS &&
           device.polygon &&
           Array.isArray(device.polygon.coordinates) &&
           device.polygon.coordinates.length > 0
@@ -599,7 +600,7 @@ export function AdaptiveGisMap() {
         }
         // Add Met Station points at low zoom
         if (
-          device.device_type_id === 4 &&
+          device.device_type_id === DeviceTypeEnum.MET_STATION &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -631,7 +632,8 @@ export function AdaptiveGisMap() {
           return false
         }
 
-        const isCombiner = feature.properties.device_type_id === 9
+        const isCombiner =
+          feature.properties.device_type_id === DeviceTypeEnum.PV_DC_COMBINER
         const atVeryHighZoom =
           feature.properties.effective_zoom >= VERY_HIGH_ZOOM
         // Ignore combiner hovers only at highest (tracker) zoom level
@@ -1168,13 +1170,13 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
 
   // Determine device type string
   let deviceTypeString = 'Device'
-  if (props?.device_type_id === 2) {
+  if (props?.device_type_id === DeviceTypeEnum.PV_PCS) {
     deviceTypeString = 'PCS'
-  } else if (props?.device_type_id === 9) {
+  } else if (props?.device_type_id === DeviceTypeEnum.PV_DC_COMBINER) {
     deviceTypeString = 'Combiner' // Or DC Combiner?
-  } else if (props?.device_type_id === 4) {
+  } else if (props?.device_type_id === DeviceTypeEnum.MET_STATION) {
     deviceTypeString = 'Met Station'
-  } else if (props?.device_type_id === 29) {
+  } else if (props?.device_type_id === DeviceTypeEnum.TRACKER_ROW) {
     deviceTypeString = 'Tracker Row'
   }
 
@@ -1195,7 +1197,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
         {deviceTypeString}: {props?.name ?? 'N/A'}
       </Text>
       {/* Show tracker angle if it's a tracker row */}
-      {props?.device_type_id === 29 && (
+      {props?.device_type_id === DeviceTypeEnum.TRACKER_ROW && (
         <Text size="sm">
           Tracker Angle:{' '}
           {props?.tracker_angle !== undefined && props?.tracker_angle !== null
@@ -1204,39 +1206,40 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
         </Text>
       )}
       {/* Only show power details for non-tracker devices and non-met-station devices */}
-      {props?.device_type_id !== 29 && props?.device_type_id !== 4 && (
-        <>
-          <Text size="sm">
-            Power:{' '}
-            {props?.power !== undefined && props?.power !== null
-              ? props.power.toFixed(1) + ' kW'
-              : 'No Data'}
-          </Text>
-          <Text size="sm">
-            Expected Power:{' '}
-            {props?.power_expected !== undefined &&
-            props?.power_expected !== null
-              ? props.power_expected.toFixed(1) + ' kW'
-              : 'No Data'}
-          </Text>
-          {/* Use the dynamic label from properties */}
-          <Text size="sm">
-            {props?.ratio_label ?? 'Actual/Expected'}:{' '}
-            {props?.actual_vs_expected !== undefined &&
-            props?.actual_vs_expected !== null
-              ? props.actual_vs_expected.toFixed(1) + ' %'
-              : 'No Data'}
-          </Text>
-          <Text size="sm">
-            DC Capacity:{' '}
-            {props?.capacity_dc !== undefined && props?.capacity_dc !== null
-              ? props.capacity_dc.toFixed(1) + ' kW'
-              : 'No Data'}
-          </Text>
-        </>
-      )}
+      {props?.device_type_id !== DeviceTypeEnum.TRACKER_ROW &&
+        props?.device_type_id !== DeviceTypeEnum.MET_STATION && (
+          <>
+            <Text size="sm">
+              Power:{' '}
+              {props?.power !== undefined && props?.power !== null
+                ? props.power.toFixed(1) + ' kW'
+                : 'No Data'}
+            </Text>
+            <Text size="sm">
+              Expected Power:{' '}
+              {props?.power_expected !== undefined &&
+              props?.power_expected !== null
+                ? props.power_expected.toFixed(1) + ' kW'
+                : 'No Data'}
+            </Text>
+            {/* Use the dynamic label from properties */}
+            <Text size="sm">
+              {props?.ratio_label ?? 'Actual/Expected'}:{' '}
+              {props?.actual_vs_expected !== undefined &&
+              props?.actual_vs_expected !== null
+                ? props.actual_vs_expected.toFixed(1) + ' %'
+                : 'No Data'}
+            </Text>
+            <Text size="sm">
+              DC Capacity:{' '}
+              {props?.capacity_dc !== undefined && props?.capacity_dc !== null
+                ? props.capacity_dc.toFixed(1) + ' kW'
+                : 'No Data'}
+            </Text>
+          </>
+        )}
       {/* Display Met Station specific data */}
-      {props?.device_type_id === 4 && (
+      {props?.device_type_id === DeviceTypeEnum.MET_STATION && (
         <>
           <Text size="sm">
             POA:{' '}

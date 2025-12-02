@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
@@ -1302,9 +1303,10 @@ const DeviceTypeOverview = ({
     return devices.map((deviceType, index) => {
       const totalItems = devices.length
       const isLastItem = index === totalItems - 1
-      const isTracker = deviceType.device_type_id === 29
+      const isTracker = deviceType.device_type_id === DeviceTypeEnum.TRACKER_ROW
       const isNextItemTracker =
-        index < totalItems - 1 && devices[index + 1]?.device_type_id === 29
+        index < totalItems - 1 &&
+        devices[index + 1]?.device_type_id === DeviceTypeEnum.TRACKER_ROW
 
       // Calculate connector width dynamically
       const estimatedCardWidth = 110
@@ -1346,41 +1348,42 @@ const DeviceTypeOverview = ({
 
           <Stack align="center" gap={4} style={{ minWidth: 120 }}>
             {/* Power reading to the left of icon */}
-            {powerReading !== null && deviceType.device_type_id !== 1 && (
-              <Box
-                style={{
-                  position: 'absolute',
-                  left: -60,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  zIndex: 2,
-                }}
-              >
-                <Tooltip
-                  label={getPowerTooltipText(deviceType.device_type_id)}
-                  position="top"
-                  withArrow
-                  multiline
-                  w={200}
+            {powerReading !== null &&
+              deviceType.device_type_id !== DeviceTypeEnum.PROJECT && (
+                <Box
+                  style={{
+                    position: 'absolute',
+                    left: -60,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 2,
+                  }}
                 >
-                  <Text
-                    size="xs"
-                    fw={600}
-                    c={theme.colors.gray[7]}
-                    style={{
-                      backgroundColor: theme.colors.gray[0],
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      border: `1px solid ${theme.colors.gray[3]}`,
-                      whiteSpace: 'nowrap',
-                      cursor: 'help',
-                    }}
+                  <Tooltip
+                    label={getPowerTooltipText(deviceType.device_type_id)}
+                    position="top"
+                    withArrow
+                    multiline
+                    w={200}
                   >
-                    {powerReading.toFixed(1)} MW
-                  </Text>
-                </Tooltip>
-              </Box>
-            )}
+                    <Text
+                      size="xs"
+                      fw={600}
+                      c={theme.colors.gray[7]}
+                      style={{
+                        backgroundColor: theme.colors.gray[0],
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: `1px solid ${theme.colors.gray[3]}`,
+                        whiteSpace: 'nowrap',
+                        cursor: 'help',
+                      }}
+                    >
+                      {powerReading.toFixed(1)} MW
+                    </Text>
+                  </Tooltip>
+                </Box>
+              )}
 
             {iconPath && (
               <Popover

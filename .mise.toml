@@ -93,6 +93,11 @@ description = "Run ruff formatter on entire monorepo"
 dir = "."
 run = "uv run --dev ruff format core/src/ api/app/"
 
+[tasks."hardcoded_type_id_check"]
+description = "Run hardcoded type ID check on entire monorepo"
+dir = "."
+run = "./_scripts/hardcoded_type_id_check.sh"
+
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
 # =============================================================================

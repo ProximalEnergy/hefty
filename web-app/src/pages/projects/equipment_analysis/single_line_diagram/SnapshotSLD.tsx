@@ -1,3 +1,8 @@
+import {
+  DeviceTypeEnum,
+  ProjectTypeEnum,
+  SensorTypeEnum,
+} from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -1139,7 +1144,9 @@ function SnapshotSLDContent() {
 
   useEffect(() => {
     if (blockDevices && blockDevices.length > 0 && !selectedBlockId) {
-      const projectDevice = blockDevices.find((d) => d.device_type_id === 1)
+      const projectDevice = blockDevices.find(
+        (d) => d.device_type_id === DeviceTypeEnum.PROJECT,
+      )
       setSelectedBlockId(projectDevice?.device_id || blockDevices[0].device_id)
     }
   }, [blockDevices, selectedBlockId])
@@ -1152,7 +1159,7 @@ function SnapshotSLDContent() {
   // Choose which device types to pull in descendant query
   const descendantDeviceTypeIds = useMemo(() => {
     if (!selectedDevice) return undefined
-    if (selectedDevice.device_type_id === 1) {
+    if (selectedDevice.device_type_id === DeviceTypeEnum.PROJECT) {
       // Project view – include blocks and their major components
       return [
         1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
@@ -1233,7 +1240,7 @@ function SnapshotSLDContent() {
         let valueToStore = lastValue
         // Heuristic to detect if voltage is in mV
         if (
-          ts.sensor_type_id === 82 && // bess_cell_voltage
+          ts.sensor_type_id === SensorTypeEnum.BESS_CELL_VOLTAGE &&
           lastValue !== null &&
           lastValue > 5
         ) {
@@ -1259,13 +1266,20 @@ function SnapshotSLDContent() {
       return null
     }
 
-    const bess_bank_devices = devices.filter((d) => d.device_type_id === 26)
-    const bess_string_devices = devices.filter((d) => d.device_type_id === 27)
+    const bess_bank_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_BANK,
+    )
+    const bess_string_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_STRING,
+    )
 
     // Use banks if available, otherwise fall back to strings
     const targetDevices =
       bess_bank_devices.length > 0 ? bess_bank_devices : bess_string_devices
-    const soc_sensor_id = bess_bank_devices.length > 0 ? 44 : 45
+    const soc_sensor_id =
+      bess_bank_devices.length > 0
+        ? SensorTypeEnum.BESS_BANK_SOC_PERCENT
+        : SensorTypeEnum.BESS_STRING_SOC_PERCENT
 
     if (targetDevices.length === 0) {
       return null
@@ -1306,8 +1320,12 @@ function SnapshotSLDContent() {
       return null
     }
 
-    const bess_bank_devices = devices.filter((d) => d.device_type_id === 26)
-    const bess_string_devices = devices.filter((d) => d.device_type_id === 27)
+    const bess_bank_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_BANK,
+    )
+    const bess_string_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_STRING,
+    )
 
     // Use banks if available, otherwise fall back to strings
     const targetDevices =
@@ -1355,8 +1373,12 @@ function SnapshotSLDContent() {
       return null
     }
 
-    const bess_bank_devices = devices.filter((d) => d.device_type_id === 26)
-    const bess_string_devices = devices.filter((d) => d.device_type_id === 27)
+    const bess_bank_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_BANK,
+    )
+    const bess_string_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_STRING,
+    )
 
     // Use banks if available, otherwise fall back to strings
     const targetDevices =
@@ -1402,7 +1424,9 @@ function SnapshotSLDContent() {
       return null
     }
 
-    const bess_pcs_devices = devices.filter((d) => d.device_type_id === 13)
+    const bess_pcs_devices = devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.BESS_PCS,
+    )
     const totalPcs = bess_pcs_devices.length
 
     if (totalPcs === 0) {
@@ -1508,16 +1532,18 @@ function SnapshotSLDContent() {
       blockDeviceId?: number,
     ) => {
       const transformer_device = blockDescendantDevices.find(
-        (d) => d.device_type_id === 25,
+        (d) => d.device_type_id === DeviceTypeEnum.BESS_MVT,
       )
       const bess_pcs_devices = blockDescendantDevices.filter(
-        (d) => d.device_type_id === 13,
+        (d) => d.device_type_id === DeviceTypeEnum.BESS_PCS,
       )
       const bess_bank_devices = blockDescendantDevices.filter(
-        (d) => d.device_type_id === 26,
+        (d) => d.device_type_id === DeviceTypeEnum.BESS_BANK,
       )
       const bess_string_devices = showStrings
-        ? blockDescendantDevices.filter((d) => d.device_type_id === 27)
+        ? blockDescendantDevices.filter(
+            (d) => d.device_type_id === DeviceTypeEnum.BESS_STRING,
+          )
         : []
 
       // Use strings as battery equivalents when no banks exist
@@ -1898,8 +1924,8 @@ function SnapshotSLDContent() {
     }
 
     if (
-      selectedDevice.device_type_id === 6 ||
-      selectedDevice.device_type_id === 12
+      selectedDevice.device_type_id === DeviceTypeEnum.BLOCK ||
+      selectedDevice.device_type_id === DeviceTypeEnum.BESS_BLOCK
     ) {
       // It's a single block
       const { nodes, edges } = generateSingleSnapshotSld(
@@ -1910,7 +1936,7 @@ function SnapshotSLDContent() {
         selectedDevice.device_id,
       )
       return { nodes, edges }
-    } else if (selectedDevice.device_type_id === 1) {
+    } else if (selectedDevice.device_type_id === DeviceTypeEnum.PROJECT) {
       // It's the project
       const finalNodes: CustomNode[] = []
       const finalEdges: Edge[] = []
@@ -1921,7 +1947,8 @@ function SnapshotSLDContent() {
       // Check for BESS MV Circuits (device_type_id = 17) connected to project
       const mvCircuits = devices.filter(
         (d) =>
-          d.device_type_id === 17 && d.parent_device_id === selectedBlockId,
+          d.device_type_id === DeviceTypeEnum.BESS_MV_CIRCUIT &&
+          d.parent_device_id === selectedBlockId,
       )
 
       if (mvCircuits.length > 0) {
@@ -1946,7 +1973,7 @@ function SnapshotSLDContent() {
           // Find PCS devices for this circuit
           const circuitPcsDevices = devices.filter(
             (d) =>
-              d.device_type_id === 13 &&
+              d.device_type_id === DeviceTypeEnum.BESS_PCS &&
               d.device_id_path?.includes(circuit.device_id_path || ''),
           )
 
@@ -2019,7 +2046,7 @@ function SnapshotSLDContent() {
               // Find transformer that is the parent of this PCS
               const pcsTransformer = devices.find(
                 (d) =>
-                  d.device_type_id === 25 &&
+                  d.device_type_id === DeviceTypeEnum.BESS_MVT &&
                   d.device_id === pcsDevice.parent_device_id,
               )
 
@@ -2069,31 +2096,31 @@ function SnapshotSLDContent() {
               const directBankDevicesForPcs = devices.filter(
                 (d) =>
                   d.parent_device_id === pcsDevice.device_id &&
-                  d.device_type_id === 26,
+                  d.device_type_id === DeviceTypeEnum.BESS_BANK,
               )
               const directStringDevicesForPcs = devices.filter(
                 (d) =>
                   d.parent_device_id === pcsDevice.device_id &&
-                  d.device_type_id === 27,
+                  d.device_type_id === DeviceTypeEnum.BESS_STRING,
               )
 
               // Also check for connections through bess_pcs_module_group (device_type_id = 32)
               const moduleGroups = devices.filter(
                 (d) =>
                   d.parent_device_id === pcsDevice.device_id &&
-                  d.device_type_id === 32,
+                  d.device_type_id === DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
               )
 
               const bankDevicesFromModuleGroups = devices.filter(
                 (d) =>
-                  d.device_type_id === 26 &&
+                  d.device_type_id === DeviceTypeEnum.BESS_BANK &&
                   moduleGroups.some(
                     (mg) => mg.device_id === d.parent_device_id,
                   ),
               )
               const stringDevicesFromModuleGroups = devices.filter(
                 (d) =>
-                  d.device_type_id === 27 &&
+                  d.device_type_id === DeviceTypeEnum.BESS_STRING &&
                   moduleGroups.some(
                     (mg) => mg.device_id === d.parent_device_id,
                   ),
@@ -2412,7 +2439,8 @@ function SnapshotSLDContent() {
       // Fallback: Check if PCS units are directly connected to project level (legacy)
       const directPcsDevices = devices.filter(
         (d) =>
-          d.device_type_id === 13 && d.parent_device_id === selectedBlockId,
+          d.device_type_id === DeviceTypeEnum.BESS_PCS &&
+          d.parent_device_id === selectedBlockId,
       )
 
       if (directPcsDevices.length > 0) {
@@ -2490,12 +2518,13 @@ function SnapshotSLDContent() {
             const batteryDevicesForPcs = devices.filter(
               (d) =>
                 d.parent_device_id === pcsDevice.device_id &&
-                (d.device_type_id === 26 || d.device_type_id === 27),
+                (d.device_type_id === DeviceTypeEnum.BESS_BANK ||
+                  d.device_type_id === DeviceTypeEnum.BESS_STRING),
             )
 
             if (batteryDevicesForPcs.length > 0) {
               const useBanks = batteryDevicesForPcs.some(
-                (d) => d.device_type_id === 26,
+                (d) => d.device_type_id === DeviceTypeEnum.BESS_BANK,
               )
               const batterySpacing = 40
               const dcBusHeight =
@@ -2528,7 +2557,10 @@ function SnapshotSLDContent() {
                 const batteryY = pcsY + 100 + j * batterySpacing - 12
                 const deviceData = deviceDataMap.get(batteryDevice.device_id)
 
-                if (useBanks && batteryDevice.device_type_id === 26) {
+                if (
+                  useBanks &&
+                  batteryDevice.device_type_id === DeviceTypeEnum.BESS_BANK
+                ) {
                   const batteryNode: CustomNode = {
                     id: `project-battery-${pcsIndex + 1}-${j + 1}`,
                     type: 'battery',
@@ -2550,7 +2582,9 @@ function SnapshotSLDContent() {
                     },
                   }
                   batteryNodes.push(batteryNode)
-                } else if (batteryDevice.device_type_id === 27) {
+                } else if (
+                  batteryDevice.device_type_id === DeviceTypeEnum.BESS_STRING
+                ) {
                   const sohFraction = deviceData?.[59]?.value // bess_string_soh_percent
                   const sohPercent =
                     sohFraction !== undefined && sohFraction !== null
@@ -2599,7 +2633,9 @@ function SnapshotSLDContent() {
               // Create edges from DC bus to batteries/strings
               batteryDevicesForPcs.forEach((_, j) => {
                 const targetType =
-                  useBanks && batteryDevicesForPcs[j].device_type_id === 26
+                  useBanks &&
+                  batteryDevicesForPcs[j].device_type_id ===
+                    DeviceTypeEnum.BESS_BANK
                     ? 'battery'
                     : 'string'
                 finalEdges.push({
@@ -2775,9 +2811,14 @@ function SnapshotSLDContent() {
         )
 
         // Determine if we should show strings based on whether banks exist
-        const hasBanks = blockDescendants.some((d) => d.device_type_id === 26)
+        const hasBanks = blockDescendants.some(
+          (d) => d.device_type_id === DeviceTypeEnum.BESS_BANK,
+        )
         const showStrings =
-          !hasBanks && blockDescendants.some((d) => d.device_type_id === 27)
+          !hasBanks &&
+          blockDescendants.some(
+            (d) => d.device_type_id === DeviceTypeEnum.BESS_STRING,
+          )
 
         const {
           nodes,
@@ -2952,7 +2993,10 @@ function SnapshotSLDContent() {
   )
 
   const projectDeviceId = useMemo(() => {
-    return blockDevices?.find((d) => d.device_type_id === 1)?.device_id || null
+    return (
+      blockDevices?.find((d) => d.device_type_id === DeviceTypeEnum.PROJECT)
+        ?.device_id || null
+    )
   }, [blockDevices])
 
   if (
@@ -2966,8 +3010,8 @@ function SnapshotSLDContent() {
     return <PageLoader />
   }
 
-  // Restrict access for PV-only projects (project_type_id === 1)
-  if (project?.project_type_id !== 2) {
+  // Restrict access for PV-only projects
+  if (project?.project_type_id !== ProjectTypeEnum.BESS) {
     return (
       <div style={{ padding: '2rem' }}>
         Single-Line Diagram is not available for this project type.

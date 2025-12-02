@@ -1,3 +1,4 @@
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetDataTimeSeriesV3 } from '@/api/v1/operational/project/project_data'
 import { useGetPvExpected } from '@/api/v1/operational/project/project_pv_expected'
@@ -276,7 +277,7 @@ const DataBrowsing = () => {
     queryOptions: { enabled: !!project.data && usedDeviceTypeIds.length > 0 },
   })
   const deviceTypeData = deviceTypes.data
-    ?.filter((deviceType) => deviceType.device_type_id !== 0)
+    ?.filter((deviceType) => deviceType.device_type_id !== DeviceTypeEnum.GHOST)
     .sort((a, b) => (a.name_long ?? '').localeCompare(b.name_long ?? ''))
 
   const tags = useGetTags({
@@ -913,7 +914,8 @@ const DataBrowsing = () => {
                 {selectedTags.map((tag) => {
                   // Use name_scada fallback for un-mapped tags (sensor_type_id=0 or device_id=0)
                   const isUnmappedTag =
-                    tag.sensor_type_id === 0 || tag.device_id === 0
+                    tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
+                    tag.device_id === 0
                   const tagName = isUnmappedTag
                     ? tag.name_scada
                     : tag.sensor_type?.name_long

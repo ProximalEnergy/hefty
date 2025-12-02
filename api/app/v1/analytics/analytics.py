@@ -25,6 +25,7 @@ import pandas as pd
 import requests
 from botocore.config import Config
 from core.dependencies import get_db
+from core.enumerations import DeviceType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
@@ -83,7 +84,7 @@ def get_combiner_block_performance(
     # Get descendent pv_dc_combiner devices of requests pv_block
     devices_combiner = core.crud.project.devices.get_project_devices(
         db=project_db,
-        device_type_ids=[9],  # pv_dc_combiner (PV DC Combiner)
+        device_type_ids=[DeviceType.PV_DC_COMBINER],
         device_id_descendent_of=device_block.device_id,
     ).models()
 
@@ -202,7 +203,7 @@ def get_project_geo(
         pcs_devices = core.crud.project.devices.get_project_devices(
             project_db,
             device_ids=[],
-            device_type_ids=[2],  # pv_pcs
+            device_type_ids=[DeviceType.PV_PCS],
             parent_device_ids=[],
             name_short="",
             name_long="",
@@ -1126,22 +1127,28 @@ async def dc_amperage_report_v2(
     logger.logger.info("CB data processing")
 
     devices = core.crud.project.devices.get_project_devices(
-        project_db, device_type_ids=[2, 4, 9], deep=False
+        project_db,
+        device_type_ids=[
+            DeviceType.PV_PCS,
+            DeviceType.MET_STATION,
+            DeviceType.PV_DC_COMBINER,
+        ],
+        deep=False,
     ).models()
 
-    inv_devices = [d for d in devices if d.device_type_id == 2]
+    inv_devices = [d for d in devices if d.device_type_id == DeviceType.PV_PCS]
     inv_devices_df = pd.DataFrame([x.__dict__ for x in inv_devices]).set_index(
         "device_id",
         drop=True,
     )
 
-    cb_devices = [d for d in devices if d.device_type_id == 9]
+    cb_devices = [d for d in devices if d.device_type_id == DeviceType.PV_DC_COMBINER]
     df_cb_report = pd.DataFrame([x.__dict__ for x in cb_devices]).set_index(
         "device_id",
         drop=True,
     )
 
-    met_devices = [d for d in devices if d.device_type_id == 4]
+    met_devices = [d for d in devices if d.device_type_id == DeviceType.MET_STATION]
 
     # NOTE: This df_cb_report will be transformed until writing to Excel
 

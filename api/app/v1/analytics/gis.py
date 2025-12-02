@@ -5,7 +5,7 @@ from uuid import UUID
 import numpy as np
 import pandas as pd
 from core.dependencies import get_db
-from core.enumerations import ProjectStatusType
+from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
@@ -31,12 +31,12 @@ def get_pcs(
 ):
     devices_block = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[6],  # block (PV Block)
+        device_type_ids=[DeviceType.BLOCK],
     ).models()
 
     devices_pcs = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[2],  # pv_pcs (PV PCS)
+        device_type_ids=[DeviceType.PV_PCS],
     ).models()
 
     device_ids = [device.device_id for device in devices_pcs] + [
@@ -182,7 +182,7 @@ def get_pcs(
                     start=start.date(),
                     end=end.date(),
                     project_ids=[project_id],
-                    kpi_type_ids=[2],
+                    kpi_type_ids=[KPIType.PV_PCS_ENERGY_PRODUCTION],
                     include_device_data=True,
                 )
                 df_pcs = pd.DataFrame(
@@ -238,7 +238,7 @@ def get_tracker(
     # Get PV Block devices
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
-        device_type_ids=[6],  # block (PV Block)
+        device_type_ids=[DeviceType.BLOCK],
     ).models()
 
     # Get KPI data
@@ -306,7 +306,7 @@ def get_tracker_by_block(
     # Get tracker rows which are descendents of the block
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
-        device_type_ids=[29],  # tracker_row (Tracker Row)
+        device_type_ids=[DeviceType.TRACKER_ROW],
         device_id_descendent_of=block_id,
     ).models()
 
@@ -377,7 +377,7 @@ def get_bess_enclosure(
 ):
     # BESS Enclosure devices
     devices = core.crud.project.devices.get_project_devices(
-        project_db, device_type_ids=[11]
+        project_db, device_type_ids=[DeviceType.BESS_ENCLOSURE]
     ).models()
 
     features = [
@@ -500,12 +500,15 @@ def get_devices_in_viewport(
                 )
 
     # 2. Fetch power data for any PCS (type 2) devices if not already fetched as primary
-    if power_device_type_id != 2:  # Check if PCS wasn't the primary type
+    if (
+        power_device_type_id != DeviceType.PV_PCS
+    ):  # Check if PCS wasn't the primary type
         # Identify PCS devices that are in the viewport AND don't already have their data fetched
         pcs_to_fetch_ids = [
             dev.device_id
             for dev in devices
-            if dev.device_type_id == 2 and dev.device_id not in all_device_extra_data
+            if dev.device_type_id == DeviceType.PV_PCS
+            and dev.device_id not in all_device_extra_data
         ]
         if pcs_to_fetch_ids:
             logger.logger.info(
@@ -525,7 +528,8 @@ def get_devices_in_viewport(
     met_station_to_fetch_ids = [
         dev.device_id
         for dev in devices
-        if dev.device_type_id == 4 and dev.device_id not in all_device_extra_data
+        if dev.device_type_id == DeviceType.MET_STATION
+        and dev.device_id not in all_device_extra_data
     ]
     if met_station_to_fetch_ids:
         try:
@@ -576,23 +580,29 @@ def get_devices_in_viewport(
         extra_data_for_this_device = all_device_extra_data.get(device.device_id)
 
         if extra_data_for_this_device:
-            if device.device_type_id == 29:  # Tracker Row
+            if device.device_type_id == DeviceType.TRACKER_ROW:
                 device_dict["tracker_data"] = extra_data_for_this_device
             # Assuming PCS (2) and Combiner (9) expect their data under "power_data"
             # and utility_expected returns the payload directly for these types.
-            elif device.device_type_id in [2, 9]:  # PV PCS, PV DC Combiner
+            elif device.device_type_id in [
+                DeviceType.PV_PCS,
+                DeviceType.PV_DC_COMBINER,
+            ]:
                 device_dict["power_data"] = extra_data_for_this_device
-            elif device.device_type_id == 4:  # Met Station
+            elif device.device_type_id == DeviceType.MET_STATION:
                 # extra_data_for_this_device should be the dict like {poa: val, ...}
                 device_dict["met_station_values"] = extra_data_for_this_device
             # Add other device type specific data handling here if utility_expected supports them
         else:
             # Ensure keys for power_data or tracker_data are present (as None) for frontend consistency if expected
-            if device.device_type_id == 29:
+            if device.device_type_id == DeviceType.TRACKER_ROW:
                 device_dict["tracker_data"] = None
-            elif device.device_type_id in [2, 9]:  # PV PCS, PV DC Combiner
+            elif device.device_type_id in [
+                DeviceType.PV_PCS,
+                DeviceType.PV_DC_COMBINER,
+            ]:
                 device_dict["power_data"] = None
-            elif device.device_type_id == 4:  # Met Station
+            elif device.device_type_id == DeviceType.MET_STATION:
                 device_dict["met_station_values"] = None
             # Met stations (type 4) etc. won't have these keys added here unless explicitly handled
 
@@ -646,9 +656,9 @@ def utility_expected(
             status_code=422,
             detail="All device IDs must be of the same type.",
         )
-    # --- Handle Tracker Row Case (Device Type ID 29) ---
-    if first_device_type_id == 29:  # Tracker Row
-        sensor_type_ids = [24]
+    # --- Handle Tracker Row Case ---
+    if first_device_type_id == DeviceType.TRACKER_ROW:
+        sensor_type_ids = [SensorType.TRACKER_POSITION]
         tags = core.crud.project.tags.get_project_tags(
             project_db,
             device_ids=device_ids,
@@ -696,14 +706,14 @@ def utility_expected(
     # --- Determine Parameters based on Device Type ---
     pv_dc_combiner_case = False
     sensor_type_ids = []  # Initialize for non-combiner case
-    if first_device_type_id == 2:  # PV PCS
-        sensor_type_ids = [2]
+    if first_device_type_id == DeviceType.PV_PCS:
+        sensor_type_ids = [SensorType.PV_PCS_AC_POWER]
         # Add fallback expected metric IDs for PCS (expected_metric_type_id 2)
         # Try with soiling first (10), then without soiling (9), then with degradation (3), then without degradation (4)
         expected_metric_ids_fallback = [10, 9, 4, 3]
         multiplier = 1_000.0  # Raw data presumed in kW?
         expected_device_ids_for_query = device_ids
-    elif first_device_type_id == 9:  # PV DC Combiner
+    elif first_device_type_id == DeviceType.PV_DC_COMBINER:
         # Add fallback expected metric IDs for Combiner (expected_metric_type_id 1)
         # Try with soiling first (8), then without soiling (7), then with degradation (1), then without degradation (2)
         expected_metric_ids_fallback = [8, 7, 2, 1]
@@ -758,13 +768,13 @@ def utility_expected(
                 continue
 
             # If parent is a PCS Module (type 3), get its parent (the PCS)
-            if parent_device.device_type_id == 3:  # PV PCS Module
+            if parent_device.device_type_id == DeviceType.PV_PCS_MODULE:
                 pcs_id = parent_device.parent_device_id
                 if pcs_id is not None:
                     parent_pcs_ids.append(pcs_id)
                     combiner_to_parent_pcs_id[dev_id] = pcs_id
             # If parent is already a PCS (type 2), use it directly
-            elif parent_device.device_type_id == 2:  # PV PCS
+            elif parent_device.device_type_id == DeviceType.PV_PCS:
                 parent_pcs_ids.append(parent_id)
                 combiner_to_parent_pcs_id[dev_id] = parent_id
             else:
@@ -786,7 +796,7 @@ def utility_expected(
         # DB Call 1: Fetch all relevant PV PCS Modules using parent IDs
         all_pcs_modules = core.crud.project.devices.get_project_devices(
             project_db,
-            device_type_ids=[3],  # PV PCS Module
+            device_type_ids=[DeviceType.PV_PCS_MODULE],
             parent_device_ids=parent_pcs_ids,  # type: ignore # Use direct parent IDs
         ).models()
         module_ids = [mod.device_id for mod in all_pcs_modules]
@@ -811,7 +821,7 @@ def utility_expected(
         tags_current = core.crud.project.tags.get_project_tags(
             project_db,
             device_ids=device_ids,
-            sensor_type_ids=[27],
+            sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         ).models()
 
         if not tags_current:
@@ -822,14 +832,14 @@ def utility_expected(
         tags_voltage = core.crud.project.tags.get_project_tags(
             project_db,
             device_ids=module_ids,
-            sensor_type_ids=[38],  # PV PCS Module DC Voltage
+            sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
         ).models()
 
         if not tags_voltage:
             tags_voltage = core.crud.project.tags.get_project_tags(
                 project_db,
                 device_ids=parent_pcs_ids,  # Use PCS device IDs for fallback
-                sensor_type_ids=[144],  # PV PCS DC Voltage
+                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
             ).models()
             using_pcs_level_voltage = True
 

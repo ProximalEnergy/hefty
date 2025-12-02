@@ -1,0 +1,24 @@
+name: Hardcoded Type ID Check
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+
+jobs:
+  hardcoded-type-id-check:
+    name: Hardcoded Type ID Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: Run hardcoded type ID check
+        run: |
+          chmod +x _scripts/hardcoded_type_id_check.sh
+          _scripts/hardcoded_type_id_check.sh

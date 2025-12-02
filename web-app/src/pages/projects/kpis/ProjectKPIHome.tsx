@@ -1,4 +1,5 @@
 import { useGetUserSelf, useGetUserType } from '@/api/admin'
+import { DeviceTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import {
   useGetUserFavoriteKPITypes,
   useUpdateUserKPITypeFavoriteMutation,
@@ -434,7 +435,8 @@ const ProjectKPIHome = () => {
       enabled: !!projectId,
     },
   })
-  const isUserSuperadmin = userType?.data?.user_type_id === 1
+  const isUserSuperadmin =
+    userType?.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   // Parse deviceTypeId from URL params as Number of there
   const deviceTypeId = useMemo(() => {
@@ -517,7 +519,9 @@ const ProjectKPIHome = () => {
   // Memoize filteredDeviceTypes
   const filteredDeviceTypes = useMemo(() => {
     if (!deviceTypes.data) return []
-    return deviceTypes.data.filter((dt) => dt.device_type_id !== 0)
+    return deviceTypes.data.filter(
+      (dt) => dt.device_type_id !== DeviceTypeEnum.GHOST,
+    )
   }, [deviceTypes])
 
   // Update the categorizedKPIs calculation

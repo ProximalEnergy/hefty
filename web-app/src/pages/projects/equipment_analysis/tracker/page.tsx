@@ -56,38 +56,6 @@ const ProjectEquipmentAnalysisTracker = () => {
     }
   }
 
-  // const deviceMap =
-  //   devices.data
-  //     ?.filter((device) => device.device_type_id === 6)
-  //     .reduce((acc, device) => {
-  //       acc[`Block ${device.name_long}`] = device.device_id;
-  //       return acc;
-  //     }, {} as Record<string, number | string>) || {};
-
-  // const tagDevices = devices.data;
-  // const findParentDeviceId = (
-  //   deviceId: number | string
-  // ): number | string | null => {
-  //   const device = tagDevices?.find((d) => d.device_id === deviceId);
-  //   if (!device) return null;
-  //   if (device.device_type_id === 6) return device.device_id;
-  //   return findParentDeviceId(device.parent_device_id ?? "");
-  // };
-
-  // const tags = useGetTags({
-  //   pathParams: { projectId: projectId || "-1" },
-  //   queryParams: { sensor_type_ids: [24] },
-  // });
-
-  // const tagMap =
-  //   tags.data?.reduce((acc, tag) => {
-  //     const associatedDeviceId = findParentDeviceId(tag.device_id ?? "");
-  //     if (associatedDeviceId) {
-  //       acc[`${tag.name_long}`] = associatedDeviceId;
-  //     }
-  //     return acc;
-  //   }, {} as Record<string, number | string>) || {};
-
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,
   })

@@ -1,4 +1,5 @@
 import { useGetUserType } from '@/api/admin'
+import { UserTypeEnumEnum } from '@/api/enumerations'
 import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import { useGetProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
@@ -50,7 +51,8 @@ function PortfolioHome() {
       refetchOnWindowFocus: false,
     },
   })
-  const isUserSuperadmin = userType?.data?.user_type_id === 1
+  const isUserSuperadmin =
+    userType?.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   // Query projects and portfolio home data
   const projects = useGetProjects({

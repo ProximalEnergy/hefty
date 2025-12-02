@@ -1,3 +1,4 @@
+import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -227,7 +228,7 @@ const Page = () => {
     }
 
     const projectAvailabilityKPI = kpiDataByType.find(
-      (k) => k.kpi_type_id === 34,
+      (k) => k.kpi_type_id === KPITypeEnum.PERFORMANCE_RATIO,
     )
 
     if (
@@ -399,7 +400,7 @@ const Page = () => {
             />
           </CustomCard>
 
-          {project.data?.project_type_id != 2 && (
+          {project.data?.project_type_id != ProjectTypeEnum.BESS && (
             <CustomCard
               title="Inverter Availability"
               style={{ height: '100%' }}
@@ -427,7 +428,7 @@ const Page = () => {
             </CustomCard>
           )}
 
-          {project.data?.project_type_id != 1 && (
+          {project.data?.project_type_id != ProjectTypeEnum.PV && (
             <CustomCard title="BESS Availability" style={{ height: '100%' }}>
               <PlotlyPlot
                 data={kpiDataByType

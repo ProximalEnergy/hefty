@@ -1,6 +1,7 @@
 import re
 from typing import Any
 
+from core.enumerations import SensorType
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -54,9 +55,9 @@ def get_unique_tag_types(
 
     # Apply sensor type filters
     if only_null_sensor_types:
-        query = query.filter(models.Tag.sensor_type_id == 0)
+        query = query.filter(models.Tag.sensor_type_id == SensorType.GHOST_UNKNOWN)
     elif not include_null_sensor_types:
-        query = query.filter(models.Tag.sensor_type_id > 0)
+        query = query.filter(models.Tag.sensor_type_id > SensorType.GHOST_UNKNOWN)
 
     # Group by and order
     query = query.group_by(
@@ -111,7 +112,10 @@ def get_tag_by_name_short(project_db: Session, *, name_short: str):
     """
     return (
         project_db.query(models.Tag)
-        .filter(models.Tag.name_short == name_short, models.Tag.device_id != 0)
+        .filter(
+            models.Tag.name_short == name_short,
+            models.Tag.device_id != 0,
+        )
         .first()
     )
 

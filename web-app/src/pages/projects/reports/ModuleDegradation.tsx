@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -199,7 +200,9 @@ const GisTab: React.FC<{
   const features = {
     type: 'FeatureCollection',
     features: devices
-      ?.filter((device) => device.device_type_id === 9)
+      ?.filter(
+        (device) => device.device_type_id === DeviceTypeEnum.PV_DC_COMBINER,
+      )
       .map((device) => {
         return {
           type: 'Feature',

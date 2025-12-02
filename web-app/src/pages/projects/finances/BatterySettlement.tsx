@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import {
   type SCADADataPoint,
   requestBatterySettlementAnalysis,
@@ -822,7 +823,11 @@ const Page = () => {
                   label="Select Proximal Data to Plot"
                   placeholder="Choose proximal data..."
                   data={sensorTypes.data
-                    ?.filter((sensorType) => sensorType.sensor_type_id !== 0)
+                    ?.filter(
+                      (sensorType) =>
+                        sensorType.sensor_type_id !==
+                        SensorTypeEnum.GHOST_UNKNOWN,
+                    )
                     .map((sensorType) => ({
                       value: sensorType.sensor_type_id.toString(),
                       label: sensorType.name_long,

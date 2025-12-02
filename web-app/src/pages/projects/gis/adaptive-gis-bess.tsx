@@ -1,4 +1,5 @@
 import { HexLoaderInline } from '@/HexLoaderInline'
+import { SensorTypeEnum } from '@/api/enumerations'
 import { useGetDevicesInViewport } from '@/api/v1/analytics/gis'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
@@ -257,7 +258,9 @@ function AdaptiveGisBESS() {
     const map: Record<number, number | null> = {}
     if (!stringSocRealtime.data) return map
     const { device_ids, traces } = stringSocRealtime.data
-    const socTrace = traces.find((t) => t.sensor_type_id === 45)
+    const socTrace = traces.find(
+      (t) => t.sensor_type_id === SensorTypeEnum.BESS_STRING_SOC_PERCENT,
+    )
     if (socTrace) {
       socTrace.values.forEach((v, idx) => {
         const did = device_ids[idx]
@@ -281,7 +284,9 @@ function AdaptiveGisBESS() {
     if (hasEnclosureSOC && enclosureSocRealtime.data) {
       // Use direct enclosure SOC values from realtime endpoint
       const { device_ids, traces } = enclosureSocRealtime.data
-      const socTrace = traces.find((t) => t.sensor_type_id === 43)
+      const socTrace = traces.find(
+        (t) => t.sensor_type_id === SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT,
+      )
       if (socTrace) {
         socTrace.values.forEach((v, idx) => {
           const did = device_ids[idx]

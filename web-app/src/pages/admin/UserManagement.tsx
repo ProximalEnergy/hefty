@@ -5,6 +5,7 @@ import {
   useGetUsers,
   useUpdateUserProjects,
 } from '@/api/admin'
+import { UserTypeEnumEnum } from '@/api/enumerations'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import { useUser } from '@clerk/clerk-react'
@@ -51,7 +52,7 @@ const UserManagement = () => {
   const users = useGetUsers({
     queryParams: {
       company_ids:
-        currentUser.data?.[0].user_type_id === 1
+        currentUser.data?.[0].user_type_id === UserTypeEnumEnum.SUPERADMIN
           ? undefined
           : [user?.company_id || ''],
     },

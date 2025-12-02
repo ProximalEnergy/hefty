@@ -1,4 +1,5 @@
 import datetime
+from collections.abc import Sequence
 from uuid import UUID
 
 import pandas as pd
@@ -61,7 +62,7 @@ async def get_kpi_data_async(
     start: datetime.date,
     end: datetime.date,
     project_ids: list[UUID] = [],
-    kpi_type_ids: list[int] = [],
+    kpi_type_ids: Sequence[int] = [],
     include_device_data: bool = True,
 ):
     """

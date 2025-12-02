@@ -1,4 +1,5 @@
 import { useGetUserType } from '@/api/admin'
+import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
 import { Stack, Tabs, Text } from '@mantine/core'
@@ -13,11 +14,13 @@ const PortfolioSettings = () => {
   const hasPVProjects =
     projects.data?.some(
       (project) =>
-        project.project_type_id === 1 || project.project_type_id === 3,
+        project.project_type_id === ProjectTypeEnum.PV ||
+        project.project_type_id === ProjectTypeEnum.PVS,
     ) ?? false
 
   const userType = useGetUserType({})
-  const isUserSuperadmin = userType?.data?.user_type_id === 1
+  const isUserSuperadmin =
+    userType?.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   if (!hasPVProjects) {
     return (

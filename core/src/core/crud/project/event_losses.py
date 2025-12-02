@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from core import models
+from core.enumerations import EventLossType
 from core.model_list import ModelList
 
 
@@ -119,19 +120,31 @@ def get_event_losses_summary_in_sql(
     # Prebuild per-type totals
     loss_1_total = func.sum(
         sa.case(
-            (event_losses_table.c.event_loss_type_id == 1, clean_loss),
+            (
+                event_losses_table.c.event_loss_type_id
+                == EventLossType.PROXIMAL_ENERGY,
+                clean_loss,
+            ),
             else_=0.0,
         )
     )
     loss_2_total = func.sum(
         sa.case(
-            (event_losses_table.c.event_loss_type_id == 2, clean_loss),
+            (
+                event_losses_table.c.event_loss_type_id
+                == EventLossType.PROXIMAL_FINANCIAL,
+                clean_loss,
+            ),
             else_=0.0,
         )
     )
     loss_3_total = func.sum(
         sa.case(
-            (event_losses_table.c.event_loss_type_id == 3, clean_loss),
+            (
+                event_losses_table.c.event_loss_type_id
+                == EventLossType.PROXIMAL_PV_DC_CAPACITY,
+                clean_loss,
+            ),
             else_=0.0,
         )
     )

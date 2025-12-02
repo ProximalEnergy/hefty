@@ -6,6 +6,7 @@ from app import dependencies, interfaces
 from app._utils.recursive_parents import get_recursive_parents
 from app.utils import data_df
 from core.crud.operational.device_types import get_device_types
+from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from fastapi.responses import ORJSONResponse
@@ -86,7 +87,7 @@ async def utility_expected(
         raise HTTPException(status_code=404, detail="Device not found")
 
     # Meter
-    if device.device_type_id == 5:
+    if device.device_type_id == DeviceType.METER:
         sensor_type_name_shorts = ["meter_active_power"]
         expected_metric_id_clean = 11 if not warranted_degradation else 5
         expected_metric_id_soiled = 12 if not warranted_degradation else 6
@@ -94,7 +95,7 @@ async def utility_expected(
         expected_device_ids = [1]
         pv_dc_combiner = False
     # PV PCS
-    elif device.device_type_id == 2:
+    elif device.device_type_id == DeviceType.PV_PCS:
         sensor_type_name_shorts = ["pv_pcs_ac_power"]
         expected_metric_id_clean = 9 if not warranted_degradation else 3
         expected_metric_id_soiled = 10 if not warranted_degradation else 4
@@ -102,7 +103,7 @@ async def utility_expected(
         expected_device_ids = [device_id]
         pv_dc_combiner = False
     # PV DC Combiner
-    elif device.device_type_id == 9:
+    elif device.device_type_id == DeviceType.PV_DC_COMBINER:
         sensor_type_name_shorts = ["pv_dc_combiner_current"]
         expected_metric_id_clean = 7 if not warranted_degradation else 1
         expected_metric_id_soiled = 8 if not warranted_degradation else 2
@@ -117,7 +118,7 @@ async def utility_expected(
     if pv_dc_combiner:
         device_pv_pcs_models = core.crud.project.devices.get_project_devices(
             project_db,
-            device_type_ids=[2],
+            device_type_ids=[DeviceType.PV_PCS],
             device_id_path_ancestor_of=device.device_id_path,
         ).models()
         if not device_pv_pcs_models:
@@ -126,7 +127,7 @@ async def utility_expected(
 
         devices_pv_pcs_modules_models = core.crud.project.devices.get_project_devices(
             project_db,
-            device_type_ids=[3],
+            device_type_ids=[DeviceType.PV_PCS_MODULE],
             device_id_descendent_of=device_pv_pcs.device_id,
         ).models()
 
@@ -135,7 +136,7 @@ async def utility_expected(
         tags_pv_pcs_module_voltage = core.crud.project.tags.get_project_tags(
             project_db,
             device_ids=device_ids_pv_pcs_modules,
-            sensor_type_ids=[38],
+            sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
         ).models()
 
         ## Kind of a hacky workaround:
@@ -145,13 +146,13 @@ async def utility_expected(
             tags_pv_pcs_module_voltage = core.crud.project.tags.get_project_tags(
                 project_db,
                 device_ids=[device_pv_pcs.device_id],
-                sensor_type_ids=[144],
+                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
             ).models()
 
         tags_pv_dc_combiner_current = core.crud.project.tags.get_project_tags(
             project_db,
             device_ids=[device_id],
-            sensor_type_ids=[27],
+            sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         ).models()
 
         df_pv_pcs_module_voltage = data_df(
@@ -229,7 +230,7 @@ async def utility_expected(
         project,
         tags=core.crud.project.tags.get_project_tags(
             project_db,
-            sensor_type_ids=[4],
+            sensor_type_ids=[SensorType.MET_STATION_POA],
         ).models(),
         start=start,
         end=end,
@@ -242,7 +243,7 @@ async def utility_expected(
             project,
             tags=core.crud.project.tags.get_project_tags(
                 project_db,
-                sensor_type_ids=[39],
+                sensor_type_ids=[SensorType.MET_STATION_SOIL_PERCENT],
             ).models(),
             start=start,
             end=end,

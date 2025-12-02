@@ -1,4 +1,5 @@
 import { HexLoader } from '@/HexLoader'
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import {
   OMContractorScope,
@@ -58,7 +59,8 @@ export default function OMContractors({ projectId }: { projectId: string }) {
 
   const filteredDeviceTypes = (deviceTypes.data || []).filter(
     (dt) =>
-      usedDeviceTypeIds.includes(dt.device_type_id) && dt.device_type_id !== 0,
+      usedDeviceTypeIds.includes(dt.device_type_id) &&
+      dt.device_type_id !== DeviceTypeEnum.GHOST,
   )
 
   const orderedDeviceTypes = useMemo(() => {

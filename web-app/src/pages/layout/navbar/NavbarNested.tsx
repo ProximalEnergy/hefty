@@ -1,4 +1,5 @@
 import { useGetUserSelf, useGetUserType } from '@/api/admin'
+import { UserTypeEnumEnum } from '@/api/enumerations'
 import {
   DroneIntegration,
   DronePermission,
@@ -155,7 +156,8 @@ export function NavbarNested({
       ? user.publicMetadata.demo
       : false
 
-  const userIsSuperadmin = userType.data?.user_type_id === 1
+  const userIsSuperadmin =
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   // Remove unnecessary links based on project characteristics
   const removePVLinks = project.data?.project_type_id === ProjectTypeId.BESS

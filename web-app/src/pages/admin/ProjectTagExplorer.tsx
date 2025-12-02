@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
@@ -433,7 +434,8 @@ const ProjectTagExplorer = () => {
     if (!showOnlyUnassigned) return groupedTagTypes
     return groupedTagTypes.filter(
       (row: (typeof groupedTagTypes)[number]) =>
-        !row.sensor_type_id || row.sensor_type_id === 0,
+        !row.sensor_type_id ||
+        row.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN,
     )
   }, [groupedTagTypes, showOnlyUnassigned])
 

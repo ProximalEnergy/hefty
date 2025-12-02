@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useSuggestRootCauses } from '@/api/v1/ai/root-cause'
 import { DroneAnomaly } from '@/api/v1/operational/drone_integrations'
 import { useBulkCreateEvents } from '@/api/v1/operational/project/events'
@@ -193,17 +194,17 @@ const viewNameMapping: { [key: number]: string } = {
 const layerLockConfig = {
   PCS: {
     powerTypeId: 2,
-    deviceTypeIds: [2], // PCS only
+    deviceTypeIds: [DeviceTypeEnum.PV_PCS],
     zoom: LOW_ZOOM,
   },
   'DC Combiner': {
     powerTypeId: 9,
-    deviceTypeIds: [9], // DC Combiner only
+    deviceTypeIds: [DeviceTypeEnum.PV_DC_COMBINER],
     zoom: HIGH_ZOOM,
   },
   Tracker: {
     powerTypeId: 29,
-    deviceTypeIds: [29], // Tracker only
+    deviceTypeIds: [DeviceTypeEnum.TRACKER_ROW],
     zoom: VERY_HIGH_ZOOM,
   },
 } as const
@@ -571,7 +572,11 @@ const DroneInspectionsMap = ({
 
     // Pre-process all devices with polygons and calculate bounding boxes
     const devicesWithBounds = deviceData.data
-      .filter((device) => device.polygon && device.device_type_id !== 29) // Skip tracker rows
+      .filter(
+        (device) =>
+          device.polygon &&
+          device.device_type_id !== DeviceTypeEnum.TRACKER_ROW,
+      ) // Skip tracker rows
       .map((device) => {
         let coordinates: number[][]
 
@@ -1045,14 +1050,14 @@ const DroneInspectionsMap = ({
     if (!filteredAnomalies || !deviceData.data) return
 
     const combiners = deviceData.data.filter(
-      (d) => d.device_type_id === 9 && d.polygon,
+      (d) => d.device_type_id === DeviceTypeEnum.PV_DC_COMBINER && d.polygon,
     )
     if (combiners.length === 0) return
 
     // Get DC Fields (device_type_id = 30) that are children of the combiners
     const dcFields = deviceData.data.filter(
       (d) =>
-        d.device_type_id === 30 &&
+        d.device_type_id === DeviceTypeEnum.DC_FIELD &&
         combiners.some((c) => c.device_id === d.parent_device_id),
     )
 

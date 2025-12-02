@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import {
   DroneAnomaly,
   useGetEventAnomalies,
@@ -72,13 +73,17 @@ const DcFieldAnomaliesMap = ({
 
     // Find the DC Field device
     const dcField = devices.find(
-      (d) => d.device_id === event.device_id && d.device_type_id === 30,
+      (d) =>
+        d.device_id === event.device_id &&
+        d.device_type_id === DeviceTypeEnum.DC_FIELD,
     )
     if (!dcField?.parent_device_id) return null
 
     // Find its parent DC Combiner
     const parentCombiner = devices.find(
-      (d) => d.device_id === dcField.parent_device_id && d.device_type_id === 9,
+      (d) =>
+        d.device_id === dcField.parent_device_id &&
+        d.device_type_id === DeviceTypeEnum.PV_DC_COMBINER,
     )
 
     return { dcField, parentCombiner }
@@ -87,7 +92,9 @@ const DcFieldAnomaliesMap = ({
   // Get all DC Combiners with polygons for map visualization
   const allCombiners = useMemo(() => {
     if (!devices) return []
-    return devices.filter((d) => d.device_type_id === 9 && d.polygon)
+    return devices.filter(
+      (d) => d.device_type_id === DeviceTypeEnum.PV_DC_COMBINER && d.polygon,
+    )
   }, [devices])
 
   // Get anomalies directly by event_id (much simpler than geographic filtering!)

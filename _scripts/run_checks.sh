@@ -146,6 +146,7 @@ if [ "$SKIP_HURL" != "true" ]; then
     run_check "API: Hurl Tests" "mise run api:hurl"
 fi
 run_check "Root: No package.json" "check_root_for_package_json"
+run_check "Root: Hardcoded Type ID Check" "mise run hardcoded_type_id_check"
 run_check "Web-App: TypeScript & Format Check" "mise run web:check"
 
 # Print summary

@@ -3,6 +3,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 import pandas as pd
+from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
@@ -278,11 +279,12 @@ async def get_portfolio_home_long_term(
         return []
 
     # KPI type IDs for long-term data
-    # 32 = cycle_count_string (BESS_STRING_CYCLE_COUNT)
-    # 54 = state_of_health (BESS_STRING_SOH)
-    # 1 = pcs_mechanical_availability
-    # 2 = energy_production
-    kpi_type_ids = [32, 54, 1, 2]
+    kpi_type_ids = [
+        KPIType.BESS_STRING_CYCLE_COUNT,
+        KPIType.BESS_STRING_SOH,
+        KPIType.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPIType.PV_PCS_ENERGY_PRODUCTION,
+    ]
 
     # end equal to current date in UTC
     end_date = pd.Timestamp.utcnow().floor("D").date()

@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -31,7 +32,13 @@ async def get_pcs_apparent_vs_voltage(
     end: datetime.datetime,
 ):
     tags = core.crud.project.tags.get_project_tags(
-        project_db, sensor_type_ids=[132, 133, 134, 135]
+        project_db,
+        sensor_type_ids=[
+            SensorType.PV_PCS_AC_APPARENT_POWER,
+            SensorType.PV_PCS_VOLTAGE_LL_AB,
+            SensorType.PV_PCS_VOLTAGE_LL_BC,
+            SensorType.PV_PCS_VOLTAGE_LL_CA,
+        ],
     ).models()
     if len(tags) == 0:
         raise HTTPException(

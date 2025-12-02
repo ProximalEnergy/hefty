@@ -1,3 +1,4 @@
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import {
@@ -164,7 +165,7 @@ const EventHeader = ({
   <Stack>
     <Group>
       <Title order={2}>
-        {event?.device.device_type_id === 29 ? (
+        {event?.device.device_type_id === DeviceTypeEnum.TRACKER_ROW ? (
           <>
             <Link
               to={`/projects/${projectId}/device-details/tracker-row/${event?.device_id}`}
@@ -469,22 +470,22 @@ const Page = () => {
   const rootCauseDeviceTypes: number[] = [event?.device?.device_type_id || -1]
   if (
     project.data?.has_pv_dc_combiners &&
-    event?.device?.device_type_id === 9
+    event?.device?.device_type_id === DeviceTypeEnum.PV_DC_COMBINER
   ) {
     rootCauseDeviceTypes.push(30)
   } else if (
     !project.data?.has_pv_dc_combiners &&
-    event?.device?.device_type_id === 2
+    event?.device?.device_type_id === DeviceTypeEnum.PV_PCS
   ) {
     rootCauseDeviceTypes.push(30)
   }
-  if (event?.device?.device_type_id === 3) {
+  if (event?.device?.device_type_id === DeviceTypeEnum.PV_PCS_MODULE) {
     rootCauseDeviceTypes.push(2)
   }
-  if (event?.device?.device_type_id === 29) {
+  if (event?.device?.device_type_id === DeviceTypeEnum.TRACKER_ROW) {
     rootCauseDeviceTypes.push(28)
   }
-  if (event?.device?.device_type_id === 28) {
+  if (event?.device?.device_type_id === DeviceTypeEnum.TRACKER_ZONE) {
     rootCauseDeviceTypes.push(29)
   }
 
@@ -527,7 +528,10 @@ const Page = () => {
 
   // Process eventTraces.data for device type 28 to average Position and Setpoint traces
   let processedEventTraces = eventTraces.data
-  if (event?.device.device_type_id === 28 && eventTraces.data) {
+  if (
+    event?.device.device_type_id === DeviceTypeEnum.TRACKER_ZONE &&
+    eventTraces.data
+  ) {
     // Group traces by name to identify Position and Setpoint traces
     const tracesByName = eventTraces.data.reduce<
       Record<string, typeof eventTraces.data>
@@ -878,7 +882,8 @@ const Page = () => {
                         (value): value is number => value !== null,
                       ),
                       name:
-                        event?.device.device_type_id === 28
+                        event?.device.device_type_id ===
+                        DeviceTypeEnum.TRACKER_ZONE
                           ? 'Average ' +
                             tag?.sensor_type?.name_long +
                             ' ' +
@@ -890,7 +895,8 @@ const Page = () => {
                       line: {
                         color: unitColorMap[unit] || traceColorsArray[0],
                         dash:
-                          tag?.sensor_type_id === 25
+                          tag?.sensor_type_id ===
+                          SensorTypeEnum.TRACKER_SETPOINT
                             ? ('dash' as const)
                             : ('solid' as const),
                       },

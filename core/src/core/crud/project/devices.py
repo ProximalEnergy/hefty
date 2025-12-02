@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, joinedload, noload
 
 from core import models
+from core.enumerations import SensorType
 from core.model_list import ModelItem, ModelList
 
 
@@ -75,7 +76,7 @@ def get_project_devices(
         tag_exists = (
             exists()
             .where(models.Tag.device_id == models.Device.device_id)
-            .where(models.Tag.sensor_type_id != 0)
+            .where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
         )
         query = query.filter(tag_exists)
     if device_id_descendent_of is not None:
@@ -161,7 +162,7 @@ async def get_project_devices_async(
         tag_exists = (
             exists()
             .where(models.Tag.device_id == models.Device.device_id)
-            .where(models.Tag.sensor_type_id != 0)
+            .where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
         )
         stmt = stmt.where(tag_exists)
     if device_id_descendent_of is not None:

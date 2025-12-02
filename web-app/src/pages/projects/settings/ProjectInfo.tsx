@@ -1,4 +1,5 @@
 import { useGetUserType } from '@/api/admin'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import {
   ProjectUpdate,
@@ -318,8 +319,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
                   {...form.getInputProps('time_zone')}
                   styles={!isUserSuperadmin ? getReadOnlyStyles() : undefined}
                 />
-                {(project.project_type_id === 1 ||
-                  project.project_type_id === 3) && (
+                {(project.project_type_id === ProjectTypeEnum.PV ||
+                  project.project_type_id === ProjectTypeEnum.PVS) && (
                   <NumberInput
                     label="PV PPA Price ($/MWh)"
                     placeholder="Enter PV PPA price"
@@ -352,8 +353,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
                   {...form.getInputProps('poi')}
                   styles={!isUserSuperadmin ? getReadOnlyStyles() : undefined}
                 />
-                {(project.project_type_id === 1 ||
-                  project.project_type_id === 3) && (
+                {(project.project_type_id === ProjectTypeEnum.PV ||
+                  project.project_type_id === ProjectTypeEnum.PVS) && (
                   <NumberInput
                     label="PV DC Capacity (MW)"
                     placeholder="Enter DC capacity"
@@ -363,8 +364,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
                     styles={!isUserSuperadmin ? getReadOnlyStyles() : undefined}
                   />
                 )}
-                {(project.project_type_id === 1 ||
-                  project.project_type_id === 3) && (
+                {(project.project_type_id === ProjectTypeEnum.PV ||
+                  project.project_type_id === ProjectTypeEnum.PVS) && (
                   <NumberInput
                     label="PV AC Capacity (MW)"
                     placeholder="Enter AC capacity"
@@ -374,8 +375,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
                     styles={!isUserSuperadmin ? getReadOnlyStyles() : undefined}
                   />
                 )}
-                {(project.project_type_id === 2 ||
-                  project.project_type_id === 3) && (
+                {(project.project_type_id === ProjectTypeEnum.BESS ||
+                  project.project_type_id === ProjectTypeEnum.PVS) && (
                   <NumberInput
                     label="BESS Power AC (MW)"
                     placeholder="Enter BESS power capacity"
@@ -385,8 +386,8 @@ export default function ProjectInfo({ projectId }: ProjectInfoProps) {
                     styles={!isUserSuperadmin ? getReadOnlyStyles() : undefined}
                   />
                 )}
-                {(project.project_type_id === 2 ||
-                  project.project_type_id === 3) && (
+                {(project.project_type_id === ProjectTypeEnum.BESS ||
+                  project.project_type_id === ProjectTypeEnum.PVS) && (
                   <NumberInput
                     label="BESS Energy BOL DC (MWh)"
                     placeholder="Enter BESS energy capacity"

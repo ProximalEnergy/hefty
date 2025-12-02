@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import select
@@ -5,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, noload, selectinload
 
 from core import models
+from core.enumerations import SensorType
 from core.model_list import ModelItem, ModelList
 
 
@@ -40,7 +42,7 @@ def get_project_tags(
     in_tsdb: bool | None = None,
     device_ids: list[int] = [],
     device_type_ids: list[int] = [],
-    sensor_type_ids: list[int] = [],
+    sensor_type_ids: Sequence[int] = [],
     sensor_type_name_shorts: list[str] = [],
     data_type_ids: list[int] = [],
     name_short: str = "",
@@ -85,7 +87,7 @@ def get_project_tags(
         )
     if not include_ghost_tags:
         query = query.filter(models.Tag.device_id != 0)
-        query = query.filter(models.Tag.sensor_type_id != 0)
+        query = query.filter(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
     return ModelList(query=query, return_query=return_query)
 
 

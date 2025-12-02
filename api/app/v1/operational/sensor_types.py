@@ -7,6 +7,7 @@ from core.crud.operational.sensor_types import (
     get_sensor_types as core_get_sensor_types,
 )
 from core.dependencies import get_db
+from core.enumerations import SensorType, UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -113,13 +114,13 @@ def create_sensor_type(
     db: Annotated[Session, Depends(get_db)],
 ):
     """Create a new sensor type. Only superadmins can create sensor types."""
-    if user_data.user_type_id != 1:  # superadmin
+    if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
             status_code=403, detail="Only superadmins can create sensor types"
         )
 
     # Get next available ID if not provided
-    if sensor_type.sensor_type_id == 0:
+    if sensor_type.sensor_type_id == SensorType.GHOST_UNKNOWN:
         sensor_type.sensor_type_id = crud_get_next_sensor_type_id(db=db)
 
     try:
@@ -157,7 +158,7 @@ def update_sensor_type(
     db: Annotated[Session, Depends(get_db)],
 ):
     """Update an existing sensor type. Only superadmins can update sensor types."""
-    if user_data.user_type_id != 1:  # superadmin
+    if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
             status_code=403, detail="Only superadmins can update sensor types"
         )

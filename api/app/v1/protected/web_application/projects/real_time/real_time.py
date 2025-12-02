@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 from core.crud.operational.sensor_types import get_sensor_types
+from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
@@ -100,7 +101,7 @@ def get_by_device_type_id(
         device_ids=device_ids,
         deep=False,
     ).models()
-    devices = [d for d in devices if d.device_type_id != 0]
+    devices = [d for d in devices if d.device_type_id != DeviceType.GHOST]
     device_ids = [d.device_id for d in devices]
 
     # id ➜ long_name lookup
@@ -222,7 +223,7 @@ def get_device_type_power_summary(
                 models.DataTimeseriesLast.tag_id == models.Tag.tag_id,
             )
             .filter(models.Device.device_type_id == func.any(array(ac_like_types)))
-            .filter(models.Tag.sensor_type_id == 2)
+            .filter(models.Tag.sensor_type_id == SensorType.PV_PCS_AC_POWER)
             .group_by(models.Device.device_type_id)
         )
 
@@ -240,7 +241,7 @@ def get_device_type_power_summary(
             # Fetch combiner devices once
             combiner_devices = core.crud.project.devices.get_project_devices(
                 project_db,
-                device_type_ids=[9],
+                device_type_ids=[DeviceType.PV_DC_COMBINER],
             ).models()
             device_ids = [d.device_id for d in combiner_devices]
             if device_ids:
@@ -295,7 +296,7 @@ def _calculate_dc_combiner_power_sum(
     # Get PV PCS Modules for voltage data
     all_pcs_modules = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[3],  # PV PCS Module
+        device_type_ids=[DeviceType.PV_PCS_MODULE],
         parent_device_ids=parent_pcs_ids,
     ).models()
 
@@ -314,7 +315,7 @@ def _calculate_dc_combiner_power_sum(
     rows_current = core.crud.project.data_timeseries_last.get_data_timeseries_last(
         project_db,
         device_ids=device_ids,
-        sensor_type_ids=[27],  # PV DC Combiner Current (A)
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         deep=True,
         include_ghost_tags=False,
     ).models()
@@ -329,7 +330,7 @@ def _calculate_dc_combiner_power_sum(
             core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 project_db,
                 device_ids=module_ids,
-                sensor_type_ids=[38],  # PV PCS Module DC Voltage (V)
+                sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
                 deep=True,
                 include_ghost_tags=False,
             ).models()
@@ -342,7 +343,7 @@ def _calculate_dc_combiner_power_sum(
             core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 project_db,
                 device_ids=[pid for pid in parent_pcs_ids if pid is not None],
-                sensor_type_ids=[144],  # PV PCS DC Voltage (V)
+                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
                 deep=True,
                 include_ghost_tags=False,
             ).models()
@@ -416,7 +417,7 @@ def _calculate_pcs_power_sum(
         rows = core.crud.project.data_timeseries_last.get_data_timeseries_last(
             project_db,
             device_ids=device_ids,
-            sensor_type_ids=[2],  # PV PCS AC Power (MW)
+            sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
             deep=True,
             include_ghost_tags=False,
         ).models()
@@ -459,7 +460,7 @@ def _calculate_mvt_power_sum(
         # Fetch blocks that correspond to these MVTs: blocks have parent_device_id == MVT id
         blocks = core.crud.project.devices.get_project_devices(
             project_db,
-            device_type_ids=[6],  # PV Block
+            device_type_ids=[DeviceType.BLOCK],
             parent_device_ids=[
                 device_id for device_id in device_ids if device_id is not None
             ],
@@ -474,7 +475,7 @@ def _calculate_mvt_power_sum(
         rows = core.crud.project.data_timeseries_last.get_data_timeseries_last(
             project_db,
             device_ids=block_ids,
-            sensor_type_ids=[16],  # PV Block AC Power (MW)
+            sensor_type_ids=[SensorType.BLOCK_AC_POWER],
             deep=True,
             include_ghost_tags=False,
         ).models()
@@ -507,7 +508,7 @@ def _calculate_circuit_power_sum(
     meter_tags = core.crud.project.tags.get_project_tags(
         project_db,
         device_ids=device_ids,
-        sensor_type_ids=[1],  # Meter Active Power
+        sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
     ).models()
 
     if meter_tags:
@@ -540,7 +541,7 @@ def _calculate_circuit_power_sum(
     pcs_tags = core.crud.project.tags.get_project_tags(
         project_db,
         device_ids=device_ids,
-        sensor_type_ids=[2],  # PV PCS AC Power
+        sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
     ).models()
 
     if not pcs_tags:

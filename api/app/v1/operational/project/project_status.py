@@ -5,6 +5,7 @@ from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
+from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -218,7 +219,17 @@ def get_status_time_series(
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
 ):
-    status_sensor_type_ids = [46, 47, 48, 49, 137, 140, 142, 143, 145]
+    status_sensor_type_ids = [
+        SensorType.PV_PCS_STATUS,
+        SensorType.PV_PCS_MODULE_STATUS,
+        SensorType.TRACKER_ZONE_STATUS,
+        SensorType.TRACKER_ROW_STATUS,
+        SensorType.BESS_PCS_MODULE_STATUS,
+        SensorType.BESS_PCS_MODULE_ALARM,
+        SensorType.BESS_PCS_STATUS,
+        SensorType.BESS_BANK_STATUS,
+        SensorType.BESS_STRING_STATUS,
+    ]
     if device_ids is not None:
         device_ids = list(set(device_ids))
         tags_model_list = core.crud.project.tags.get_project_tags(
@@ -366,7 +377,17 @@ def get_status_time_series_python(
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
 ):
-    status_sensor_type_ids = [46, 47, 48, 49, 137, 140, 142, 143, 145]
+    status_sensor_type_ids = [
+        SensorType.PV_PCS_STATUS,
+        SensorType.PV_PCS_MODULE_STATUS,
+        SensorType.TRACKER_ZONE_STATUS,
+        SensorType.TRACKER_ROW_STATUS,
+        SensorType.BESS_PCS_MODULE_STATUS,
+        SensorType.BESS_PCS_MODULE_ALARM,
+        SensorType.BESS_PCS_STATUS,
+        SensorType.BESS_BANK_STATUS,
+        SensorType.BESS_STRING_STATUS,
+    ]
     if device_ids is not None:
         device_ids = list(set(device_ids))
         tags_model_list = core.crud.project.tags.get_project_tags(

@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.enumerations import DeviceType, KPIType, SensorType
 from fastapi import Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
@@ -35,16 +36,16 @@ def get_tracker_data(
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_type_ids=[
-            6,  # block (PV Block)
-            29,  # tracker_row (Tracker Row)
+            DeviceType.BLOCK,
+            DeviceType.TRACKER_ROW,
         ],
     ).models()
 
     # Create lookup mappings
     device_id_to_name_long = {d.device_id: d.name_long for d in devices}
     block_device_id_to_tracker_row_ids = utils.map_ancestors_to_descendents(
-        ancestors=[d for d in devices if d.device_type_id == 6],
-        descendents=[d for d in devices if d.device_type_id == 29],
+        ancestors=[d for d in devices if d.device_type_id == DeviceType.BLOCK],
+        descendents=[d for d in devices if d.device_type_id == DeviceType.TRACKER_ROW],
     )
 
     # Get KPI data
@@ -54,10 +55,10 @@ def get_tracker_data(
             start=start,
             end=end,
             kpi_type_ids=[
-                18,  # tracker_position_deviating_from_setpoint_by_block
-                19,  # tracker_setpoint_deviating_from_median_by_block
-                21,  # tracker_position_deviating_from_setpoint_by_row
-                22,  # tracker_setpoint_deviating_from_median_by_row
+                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
+                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
+                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
             ],
             project_ids=[project.project_id],
             include_device_data=True,
@@ -150,7 +151,7 @@ def get_tracker_by_pv_block_id_data(
     # Get tracker rows that are descendants of the pv block
     devices = core.crud.project.devices.get_project_devices(
         project_db,
-        device_type_ids=[29],  # Tracker Zone (tracker_zone)
+        device_type_ids=[DeviceType.TRACKER_ROW],
         device_id_descendent_of=pv_block_id,
     ).models()
 
@@ -181,8 +182,12 @@ def get_tracker_by_pv_block_id_data(
         t.tag_id: device_id_to_name_short[t.device_id] for t in tags
     }
 
-    tags_ids_position = natsorted([t.tag_id for t in tags if t.sensor_type_id == 24])
-    tags_ids_setpoint = natsorted([t.tag_id for t in tags if t.sensor_type_id == 25])
+    tags_ids_position = natsorted(
+        [t.tag_id for t in tags if t.sensor_type_id == SensorType.TRACKER_POSITION]
+    )
+    tags_ids_setpoint = natsorted(
+        [t.tag_id for t in tags if t.sensor_type_id == SensorType.TRACKER_SETPOINT]
+    )
 
     df_position = df[tags_ids_position]
     df_setpoint = df[tags_ids_setpoint]

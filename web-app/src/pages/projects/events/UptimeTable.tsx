@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
@@ -30,7 +31,7 @@ function ViewDataButton({
   const { projectId } = useParams<{ projectId: string }>()
   const filteredTags = tags
     .filter((tag) => tag.device_id === deviceId)
-    .filter((tag) => tag.sensor_type_id != 0)
+    .filter((tag) => tag.sensor_type_id != SensorTypeEnum.GHOST_UNKNOWN)
   const tagString = filteredTags.map((tag) => tag.tag_id).join('%2C')
 
   const onClick = () => {

@@ -1,4 +1,5 @@
 import { useGetUserSelf } from '@/api/admin'
+import { KPITypeEnum } from '@/api/enumerations'
 import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import {
   useGetContractKPIs,
@@ -907,16 +908,28 @@ const BatteryHealth = () => {
   })
 
   // Extract specific KPI values
-  const sohData = kpiData.data?.find((kpi) => kpi.kpi_type_id === 54) // bess_string_soh
-  const cycleData = kpiData.data?.find((kpi) => kpi.kpi_type_id === 32) // bess_string_cycle_count
-  const avgSocData = kpiData.data?.find((kpi) => kpi.kpi_type_id === 25) // bess_string_average_soc_percent
-  const restSocData = kpiData.data?.find((kpi) => kpi.kpi_type_id === 30) // bess_string_resting_soc_percent
-  const avgDodData = kpiData.data?.find((kpi) => kpi.kpi_type_id === 49) // bess_string_depth_of_discharge
+  const sohData = kpiData.data?.find(
+    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
+  )
+  const cycleData = kpiData.data?.find(
+    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_CYCLE_COUNT,
+  )
+  const avgSocData = kpiData.data?.find(
+    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT,
+  )
+  const restSocData = kpiData.data?.find(
+    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
+  )
+  const avgDodData = kpiData.data?.find(
+    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_DEPTH_OF_DISCHARGE,
+  )
 
   // Get the last available SOH value from daily data
   const getLastSohValue = () => {
     if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find((kpi) => kpi.kpi_type_id === 54)
+      const sohKpiData = dailyKpiData.data.find(
+        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
+      )
       if (
         sohKpiData?.data?.project_data &&
         sohKpiData.data.project_data.length > 0
@@ -941,7 +954,9 @@ const BatteryHealth = () => {
     if (project.data?.cod) {
       startDate = dayjs(project.data.cod)
     } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find((kpi) => kpi.kpi_type_id === 54)
+      const sohKpiData = dailyKpiData.data.find(
+        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
+      )
       if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
         startDate = dayjs(sohKpiData.data.dates[0])
       } else {
@@ -967,7 +982,9 @@ const BatteryHealth = () => {
   // Calculate expected SOH for the last actual data point date
   const getExpectedSohForLastDataPoint = () => {
     if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find((kpi) => kpi.kpi_type_id === 54)
+      const sohKpiData = dailyKpiData.data.find(
+        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
+      )
       if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
         const lastDate = sohKpiData.data.dates[sohKpiData.data.dates.length - 1]
 
@@ -1015,7 +1032,7 @@ const BatteryHealth = () => {
         startDate = dayjs(project.data.cod)
       } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
         const sohKpiData = dailyKpiData.data.find(
-          (kpi) => kpi.kpi_type_id === 54,
+          (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
         )
         if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
           startDate = dayjs(sohKpiData.data.dates[0])
@@ -1050,7 +1067,9 @@ const BatteryHealth = () => {
     // Use real daily KPI data if available
     let actualSohData: { x: string[]; y: number[] } | null = null
     if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find((kpi) => kpi.kpi_type_id === 54)
+      const sohKpiData = dailyKpiData.data.find(
+        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
+      )
       if (sohKpiData?.data?.dates && sohKpiData?.data?.project_data) {
         const dates = sohKpiData.data.dates.map((date) =>
           dayjs(date).format('YYYY-MM-DD'),
@@ -1085,7 +1104,7 @@ const BatteryHealth = () => {
         return [project.data.cod, twoYearsLater]
       } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
         const sohKpiData = dailyKpiData.data.find(
-          (kpi) => kpi.kpi_type_id === 54,
+          (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
         )
         if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
           const startDate = dayjs(sohKpiData.data.dates[0])
@@ -1128,7 +1147,7 @@ const BatteryHealth = () => {
       dailyCycleData.data.length > 0
     ) {
       const cycleKpiData = dailyCycleData.data.find(
-        (kpi) => kpi.kpi_type_id === 32,
+        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_CYCLE_COUNT,
       )
       if (cycleKpiData?.data?.dates && cycleKpiData?.data?.project_data) {
         const dates = cycleKpiData.data.dates.map((date) =>
@@ -1151,7 +1170,10 @@ const BatteryHealth = () => {
 
     // Add SOC data if enabled
     if (showSocData && dailySocData.data && dailySocData.data.length > 0) {
-      const socKpiData = dailySocData.data.find((kpi) => kpi.kpi_type_id === 25)
+      const socKpiData = dailySocData.data.find(
+        (kpi) =>
+          kpi.kpi_type_id === KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT,
+      )
       if (socKpiData?.data?.dates && socKpiData?.data?.project_data) {
         const dates = socKpiData.data.dates.map((date) =>
           dayjs(date).format('YYYY-MM-DD'),
@@ -1178,7 +1200,8 @@ const BatteryHealth = () => {
       dailyRestSocData.data.length > 0
     ) {
       const restSocKpiData = dailyRestSocData.data.find(
-        (kpi) => kpi.kpi_type_id === 30,
+        (kpi) =>
+          kpi.kpi_type_id === KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
       )
       if (restSocKpiData?.data?.dates && restSocKpiData?.data?.project_data) {
         const dates = restSocKpiData.data.dates.map((date) =>

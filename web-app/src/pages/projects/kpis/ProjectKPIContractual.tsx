@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
   useGetOperationalKPIData,
@@ -72,9 +73,14 @@ const BarAndHeatmapCard = ({
         data={parsedData}
         layout={{
           xaxis: {
-            type: kpiTypeData?.device_type_id === 1 ? 'date' : 'category',
+            type:
+              kpiTypeData?.device_type_id === DeviceTypeEnum.PROJECT
+                ? 'date'
+                : 'category',
             title:
-              kpiTypeData?.device_type_id === 1 ? { text: 'Date' } : undefined,
+              kpiTypeData?.device_type_id === DeviceTypeEnum.PROJECT
+                ? { text: 'Date' }
+                : undefined,
           },
           yaxis: {
             tickformat: kpiTypeData?.unit === '%' ? ',.0%' : ',.0f',
@@ -266,7 +272,7 @@ const ProjectKPIContractual = () => {
     const isPercentage = kpiTypeData?.unit === '%'
 
     // For device_type_id = 1, show daily data with time on x-axis
-    if (kpiTypeData?.device_type_id === 1) {
+    if (kpiTypeData?.device_type_id === DeviceTypeEnum.PROJECT) {
       const isCumulative = kpiTypeData?.aggregation_method === 'sum'
       const hovertemplate = isPercentage
         ? '%{y:.2%}<extra></extra>'
