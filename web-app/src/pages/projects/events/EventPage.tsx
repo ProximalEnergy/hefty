@@ -205,11 +205,13 @@ const EventHeader = ({
 // Event Losses Component
 const EventLosses = ({
   losses,
+  deviceTypeId,
 }: {
   losses: Record<
     string,
     { title: string; value: string | number; unit: string; info?: string }
   >
+  deviceTypeId: number
 }) => (
   <Table w="100%">
     <Table.Thead>
@@ -249,10 +251,32 @@ const EventLosses = ({
           </Text>
         </Table.Td>
         <Table.Td>
-          <Text>
-            {Number(losses.capacity.value).toLocaleString()}{' '}
-            {losses.capacity.unit}
-          </Text>
+          {deviceTypeId !== DeviceTypeEnum.TRACKER_ROW &&
+          deviceTypeId !== DeviceTypeEnum.TRACKER_ZONE ? (
+            <Text>
+              {Number(losses.capacity.value).toLocaleString()}{' '}
+              {losses.capacity.unit}
+            </Text>
+          ) : (
+            <Group gap={2}>
+              <Text>Varies</Text>
+              <HoverCard>
+                <HoverCard.Target>
+                  <IconInfoCircle size={16} />
+                </HoverCard.Target>
+                <HoverCard.Dropdown w="33%">
+                  <Text>
+                    Trackers don&apos;t have a fixed capacity loss when offline
+                    because they remain stuck at a single tilt angle rather than
+                    following the sun. When the tracker&apos;s fixed position
+                    happens to align well with the optimal angle, production is
+                    nearly normal; when it doesn&apos;t, the loss increases
+                    proportionally with the misalignment.
+                  </Text>
+                </HoverCard.Dropdown>
+              </HoverCard>
+            </Group>
+          )}
         </Table.Td>
       </Table.Tr>
     </Table.Tbody>
@@ -803,7 +827,10 @@ const Page = () => {
                 open()
               }}
             />
-            <EventLosses losses={losses} />
+            <EventLosses
+              losses={losses}
+              deviceTypeId={event?.device.device_type_id || -1}
+            />
           </Stack>
           <CustomCard
             allowFullscreen={false}
