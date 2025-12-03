@@ -314,13 +314,21 @@ async def get_equipment_analysis_pcs_data(
             ancestors=devices_block,
             descendents=devices_pcs,
         )
-        df_block = pd.concat(
-            [
-                df_pcs[block_device_id_to_pcs_device_ids[block_device_id]].sum(axis=1)
-                for block_device_id in block_device_id_to_pcs_device_ids
-            ],
-            axis=1,
-        )
+        # Filter to only include PCS device IDs that exist in df_pcs columns
+        available_pcs_columns = set(df_pcs.columns.astype(int))
+        block_series_list = []
+        for block_device_id in block_device_id_to_pcs_device_ids:
+            valid_pcs_ids = [
+                pcs_id
+                for pcs_id in block_device_id_to_pcs_device_ids[block_device_id]
+                if pcs_id in available_pcs_columns
+            ]
+            if valid_pcs_ids:
+                block_series_list.append(df_pcs[valid_pcs_ids].sum(axis=1))
+            else:
+                # If no valid PCS columns, create a series of zeros with same index
+                block_series_list.append(pd.Series(0, index=df_pcs.index, dtype=float))
+        df_block = pd.concat(block_series_list, axis=1)
         block_ids = list(block_device_id_to_pcs_device_ids.keys())
         df_block.columns = pd.Index(block_ids)  # type: ignore
         df_block = df_block.fillna(0)
