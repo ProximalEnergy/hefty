@@ -1,3 +1,4 @@
+import { ReportTypeEnum } from '@/api/enumerations'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -42,13 +43,18 @@ const REPORT_CONFIG: {
   downloadable_pdf: Record<number, boolean> // Whether the report has a downloadable PDF file
 } = {
   link: {
-    2: 'dc-amperage',
-    3: 'module-degradation',
-    4: 'tracker-availability?report_type_id=4',
-    5: 'tracker-availability?report_type_id=5',
-    6: 'inverter-availability',
-    8: 'pcs-apparent-vs-voltage',
-    9: 'daily-performance',
+    [ReportTypeEnum.DC_AMPERAGE]: 'dc-amperage',
+    [ReportTypeEnum.MODULE_DEGRADATION]: 'module-degradation',
+    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT]:
+      'tracker-availability?report_type_id=' +
+      ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT,
+    [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]:
+      'tracker-availability?report_type_id=' +
+      ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT,
+    [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: 'inverter-availability',
+    [ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE]:
+      'pcs-apparent-vs-voltage',
+    [ReportTypeEnum.PV_PERFORMANCE_DAILY]: 'daily-performance',
   },
   description: {
     2: 'This report is designed to characterize the normalized output current of combiners at a project. The analysis is generated with user input for clearsky data, then combiner current is normalized based on relative capacity and compared to both neighboring and project-wide combiner results.',

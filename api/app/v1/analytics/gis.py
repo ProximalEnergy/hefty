@@ -248,8 +248,8 @@ def get_tracker(
             start=start,
             end=end,
             kpi_type_ids=[
-                18,  # tracker_position_deviating_from_setpoint_by_block
-                19,  # tracker_setpoint_deviating_from_median_by_block
+                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK,
+                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK,
             ],
             project_ids=[project.project_id],
             include_device_data=True,
@@ -317,8 +317,8 @@ def get_tracker_by_block(
             start=start,
             end=end,
             kpi_type_ids=[
-                21,  # tracker_position_deviating_from_setpoint_by_row
-                22,  # tracker_setpoint_deviating_from_median_by_row
+                KPIType.TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_ROW,
+                KPIType.TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW,
             ],
             project_ids=[project.project_id],
             include_device_data=True,

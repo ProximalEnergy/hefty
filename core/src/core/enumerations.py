@@ -494,6 +494,8 @@ class KPIType(BaseIntEnum):
     PV_DC_COMBINER_MECHANICAL_AVAILABILITY = 101
     PV_PROJECT_EXPECTED_ENERGY_DELIVERED = 102
     PV_PROJECT_CURTAILMENT = 103
+    BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY = 104
+    BESS_PROJECT_DC_ENCLOSURE_RTE = 105
 
 
 class EventLossType(BaseIntEnum):
@@ -504,6 +506,22 @@ class EventLossType(BaseIntEnum):
     PROXIMAL_ENERGY = 1
     PROXIMAL_FINANCIAL = 2
     PROXIMAL_PV_DC_CAPACITY = 3
+
+
+class ReportType(BaseIntEnum):
+    _db_table = nonmember("operational.report_types")  # type: ignore[misc,assignment]
+    _db_id_column = nonmember("report_type_id")  # type: ignore[misc,assignment]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+
+    PERFORMANCE_SUMMARY = 1
+    DC_AMPERAGE = 2
+    MODULE_DEGRADATION = 3
+    TRACKER_AVAILABILITY_POSITION_VS_SETPOINT = 4
+    TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT = 5
+    INVERTER_MECHANICAL_AVAILABILITY = 6
+    PPC_V_Q_CURVE_DIAGNOSTIC = 7
+    PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE = 8
+    PV_PERFORMANCE_DAILY = 9
 
 
 # --- Other Enums ---

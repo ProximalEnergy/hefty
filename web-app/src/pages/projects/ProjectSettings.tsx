@@ -14,7 +14,7 @@ const ProjectSettings = () => {
   const [searchParams] = useSearchParams()
   const project = useSelectProject(projectId || '-1')
 
-  // BESS-only projects have project_type_id = 2
+  // BESS-only projects have project_type_id = BESS
   const isBESSOnly = project.data?.project_type_id === ProjectTypeId.BESS
 
   // If default tab is pv-budgeted but project is BESS-only, default to project-info

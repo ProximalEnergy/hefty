@@ -1054,7 +1054,7 @@ const DroneInspectionsMap = ({
     )
     if (combiners.length === 0) return
 
-    // Get DC Fields (device_type_id = 30) that are children of the combiners
+    // Get DC Fields (device_type_id = DC_FIELD) that are children of the combiners
     const dcFields = deviceData.data.filter(
       (d) =>
         d.device_type_id === DeviceTypeEnum.DC_FIELD &&
@@ -1067,7 +1067,7 @@ const DroneInspectionsMap = ({
       notifications.show({
         title: 'DC Fields Required',
         message:
-          'No DC Field devices found. Please define DC Field devices (device_type_id = 30) as children of DC Combiners before creating events from drone inspections.',
+          'No DC Field devices found. Please define DC Field devices as children of DC Combiners before creating events from drone inspections.',
         color: 'red',
       })
       return

@@ -73,6 +73,12 @@ export const DeviceTypeEnum = {
   PV_MODULE: 35,
 } as const;
 
+export const EventLossTypeEnum = {
+  PROXIMAL_ENERGY: 1,
+  PROXIMAL_FINANCIAL: 2,
+  PROXIMAL_PV_DC_CAPACITY: 3,
+} as const;
+
 export const KPITypeEnum = {
   PV_PCS_MECHANICAL_AVAILABILITY: 1,
   PV_PCS_ENERGY_PRODUCTION: 2,
@@ -177,6 +183,8 @@ export const KPITypeEnum = {
   PV_DC_COMBINER_MECHANICAL_AVAILABILITY: 101,
   PV_PROJECT_EXPECTED_ENERGY_DELIVERED: 102,
   PV_PROJECT_CURTAILMENT: 103,
+  BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY: 104,
+  BESS_PROJECT_DC_ENCLOSURE_RTE: 105,
 } as const;
 
 export const PVBudgetedSoilingModeEnum = {
@@ -215,6 +223,18 @@ export const ReactionTypeEnum = {
   EYES: "eyes",
   QUESTION_MARK: "question_mark",
   HEART: "heart",
+} as const;
+
+export const ReportTypeEnum = {
+  PERFORMANCE_SUMMARY: 1,
+  DC_AMPERAGE: 2,
+  MODULE_DEGRADATION: 3,
+  TRACKER_AVAILABILITY_POSITION_VS_SETPOINT: 4,
+  TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT: 5,
+  INVERTER_MECHANICAL_AVAILABILITY: 6,
+  PPC_V_Q_CURVE_DIAGNOSTIC: 7,
+  PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE: 8,
+  PV_PERFORMANCE_DAILY: 9,
 } as const;
 
 export const SensorTypeEnum = {

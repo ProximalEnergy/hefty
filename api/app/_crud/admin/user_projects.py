@@ -78,8 +78,8 @@ async def assign_project_to_relevant_users(
     """
     Assign a project to:
     1. The user who created it
-    2. All admins (user_type_id = 2) in the creator's company
-    3. All superadmins (user_type_id = 1) regardless of company
+    2. All admins (user_type_id = ADMIN) in the creator's company
+    3. All superadmins (user_type_id = SUPERADMIN) regardless of company
 
     Args:
         do_commit: Whether to commit the transaction. Defaults to True.

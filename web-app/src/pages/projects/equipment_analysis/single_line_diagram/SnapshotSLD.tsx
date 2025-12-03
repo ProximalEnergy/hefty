@@ -1944,7 +1944,7 @@ function SnapshotSLDContent() {
       const childBlocks =
         devices.filter((d) => d.parent_device_id === selectedBlockId) || []
 
-      // Check for BESS MV Circuits (device_type_id = 17) connected to project
+      // Check for BESS MV Circuits (device_type_id = BESS_MV_CIRCUIT) connected to project
       const mvCircuits = devices.filter(
         (d) =>
           d.device_type_id === DeviceTypeEnum.BESS_MV_CIRCUIT &&
@@ -2104,7 +2104,7 @@ function SnapshotSLDContent() {
                   d.device_type_id === DeviceTypeEnum.BESS_STRING,
               )
 
-              // Also check for connections through bess_pcs_module_group (device_type_id = 32)
+              // Also check for connections through bess_pcs_module_group (device_type_id = BESS_PCS_MODULE_GROUP)
               const moduleGroups = devices.filter(
                 (d) =>
                   d.parent_device_id === pcsDevice.device_id &&

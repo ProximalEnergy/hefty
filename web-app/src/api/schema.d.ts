@@ -2725,7 +2725,7 @@ export interface paths {
          *
          *     - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
          *     - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-         *     - If event_loss_type_id=3 is not present in operational.event_loss_types, create it with
+         *     - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
          *       name_short 'proximal_pv_dc_capacity'.
          */
         post: operations["bulk_create_events_v1_operational_projects__project_id__events_bulk_create_post"];
@@ -8715,6 +8715,8 @@ export interface components {
             max_discharge_power: unknown[] | null;
             /** Expected Power */
             expected_power: unknown[] | null;
+            /** Performance Index */
+            performance_index: number | null;
         };
         /**
          * Project
