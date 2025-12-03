@@ -292,7 +292,10 @@ async def get_portfolio_home_short_term(
                     .sum(axis=1)
                     .sum()
                 )
-                performance_index = meter_total / expected_total * 100
+                if expected_total > 0:
+                    performance_index = meter_total / expected_total * 100
+                else:
+                    performance_index = None
             else:
                 performance_index = None
 

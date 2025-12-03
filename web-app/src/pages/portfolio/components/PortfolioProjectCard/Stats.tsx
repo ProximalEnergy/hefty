@@ -27,7 +27,7 @@ export function Stats({
         <RingProgressStat
           project={project}
           type={
-            portfolioHomeProject?.performance_index
+            portfolioHomeProject?.performance_index != null
               ? 'performance_index'
               : 'poa'
           }
