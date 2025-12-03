@@ -235,6 +235,7 @@ dist-ssr
 *.local
 
 # Editor directories and files
+mono.code-workspace
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -262,3 +263,6 @@ rollup-plugin-visualizer-stats.html
 
 # uv lock files
 uv.lock
+
+# dont track sandbox files
+*/_sandbox/
