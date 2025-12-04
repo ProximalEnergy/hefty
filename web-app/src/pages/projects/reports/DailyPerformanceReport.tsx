@@ -1,11 +1,10 @@
-import { KPITypeEnum } from '@/api/enumerations'
+import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
 import type { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   useGetPVBudgetedData,
@@ -134,7 +133,7 @@ const DailyEnergyComparison = ({
       start: startTime || '',
       end: endTime || '',
       interval: '15min', // 15-minute intervals for daily view
-      include_storage: project.data?.project_type_id === ProjectTypeId.PV_BESS,
+      include_storage: project.data?.project_type_id === ProjectTypeEnum.PVS,
       include_setpoint: true,
       include_soiling: includeSoiling,
       include_degradation: includeDegradation,
@@ -424,7 +423,7 @@ const DailyEnergyComparison = ({
           title: { text: 'Power (MW)' },
           fixedrange: true,
           range:
-            project.data?.project_type_id === ProjectTypeId.PV_BESS
+            project.data?.project_type_id === ProjectTypeEnum.PVS
               ? undefined
               : [0, (project.data?.poi || 0) * 1.05],
         },
@@ -795,7 +794,7 @@ function MapHoverCard({
 
 const Page: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   const { projectId } = useParams<{ projectId: string }>()

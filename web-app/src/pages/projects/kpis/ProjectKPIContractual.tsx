@@ -271,7 +271,7 @@ const ProjectKPIContractual = () => {
     const kpiData = data[0].data
     const isPercentage = kpiTypeData?.unit === '%'
 
-    // For device_type_id = 1, show daily data with time on x-axis
+    // For device_type_id = PROJECT, show daily data with time on x-axis
     if (kpiTypeData?.device_type_id === DeviceTypeEnum.PROJECT) {
       const isCumulative = kpiTypeData?.aggregation_method === 'sum'
       const hovertemplate = isPercentage

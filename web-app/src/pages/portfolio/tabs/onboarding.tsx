@@ -1,6 +1,6 @@
 import { useGetUserType } from '@/api/admin'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { Project } from '@/api/v1/operational/projects'
 import { Paper, Stack } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
@@ -58,7 +58,11 @@ export function OnboardingProjectsTab({
       header: 'Project Type',
       accessorFn: (row: Project) => {
         const typeId = row.project_type_id
-        return typeId ? ProjectTypeId[typeId] : 'Unknown'
+        if (!typeId) return 'Unknown'
+        const key = Object.keys(ProjectTypeEnum).find(
+          (k) => ProjectTypeEnum[k as keyof typeof ProjectTypeEnum] === typeId,
+        )
+        return key || 'Unknown'
       },
       enableSorting: true,
       enableColumnFilter: true,
@@ -69,7 +73,7 @@ export function OnboardingProjectsTab({
       enableSorting: false,
       enableColumnFilter: false,
       Cell: ({ row }: { row: MRT_Row<Project> }) => {
-        if (row.original.project_type_id === ProjectTypeId.BESS) {
+        if (row.original.project_type_id === ProjectTypeEnum.BESS) {
           return null
         }
 

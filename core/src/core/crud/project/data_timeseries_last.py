@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session, selectinload
 
 from core import models
+from core.enumerations import DeviceType, SensorType
 from core.model_list import ModelList
 
 
@@ -18,9 +19,17 @@ def get_data_timeseries_latest_by_device_type(
 ) -> ModelList[models.DataTimeseriesLast]:
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
-            2: [2, 9],  # pv_pcs: [pv_pcs_ac_power, pv_pcs_ac_power_setpoint]
-            9: [27],  # pv_dc_combiner: [pv_dc_combiner_current]
-            29: [24, 25],  # tracker_row: [tracker_position, tracker_setpoint]
+            DeviceType.PV_PCS.value: [
+                SensorType.PV_PCS_AC_POWER.value,
+                SensorType.PV_PCS_AC_POWER_SETPOINT.value,
+            ],
+            DeviceType.PV_DC_COMBINER.value: [
+                SensorType.PV_DC_COMBINER_CURRENT.value,
+            ],
+            DeviceType.TRACKER_ROW.value: [
+                SensorType.TRACKER_POSITION.value,
+                SensorType.TRACKER_SETPOINT.value,
+            ],
         }
         sensor_type_ids = device_type_id_to_sensor_type_ids.get(device_type_id, [])
 

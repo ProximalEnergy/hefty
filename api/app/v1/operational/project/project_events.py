@@ -9,7 +9,7 @@ import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.dependencies import get_db
-from core.enumerations import DeviceType, ProjectType
+from core.enumerations import DeviceType, EventLossType, ProjectType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import insert, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -490,6 +490,10 @@ async def get_events_summary(
 
         # SQL already aggregated, so we have one row per event_id
         g = losses_df.copy()
+        cols_to_mwh = ["loss_1", "loss_1_daily"]
+        for col in cols_to_mwh:
+            if col in g.columns:
+                g[col] = g[col] / 12
 
         # 1) Calculate days_data_span from SQL-aggregated time_min/time_max
         g["days_data_span"] = (
@@ -920,11 +924,11 @@ def bulk_create_events(
 
     - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
     - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-    - If event_loss_type_id=3 is not present in operational.event_loss_types, create it with
+    - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
       name_short 'proximal_pv_dc_capacity'.
     """
     # Ensure event_loss_type id exists (id 3 requested by frontend)
-    loss_type_id = 3
+    loss_type_id = EventLossType.PROXIMAL_PV_DC_CAPACITY
     try:
         exists = (
             db.query(models.EventLossType)
@@ -972,7 +976,7 @@ def bulk_create_events(
         )
         project_db.execute(text("COMMIT"))
 
-        # Map DC Combiner device_ids to their DC Field children (device_type_id = 30)
+        # Map DC Combiner device_ids to their DC Field children (device_type_id = DC_FIELD)
         combiner_device_ids = [item.device_id for item in payload.items]
 
         # Get DC Field devices that are direct children of our combiners
@@ -1194,7 +1198,8 @@ def get_event_losses_summary(
         # Totals per type
         sums = losses_df.groupby("event_loss_type_id")["loss"].sum()
 
-        t_energy = sums.get(1)
+        power_sum = sums.get(1)
+        t_energy = (power_sum / 12) if power_sum is not None else None  # convert to MWh
         t_fin = sums.get(2)
 
         # Daily = totals / days_event (if available)

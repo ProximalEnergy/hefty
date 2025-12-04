@@ -160,8 +160,8 @@ def get_tracker_by_pv_block_id_data(
         db=project_db,
         device_ids=[d.device_id for d in devices],
         sensor_type_ids=[
-            24,  # tracker_position
-            25,  # tracker_setpoint
+            SensorType.TRACKER_POSITION,
+            SensorType.TRACKER_SETPOINT,
         ],
     ).models()
 

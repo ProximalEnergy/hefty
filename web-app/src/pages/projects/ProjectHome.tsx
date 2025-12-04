@@ -1,5 +1,5 @@
 import { useGetUserSelf } from '@/api/admin'
-import { KPITypeEnum } from '@/api/enumerations'
+import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import {
   useGetContractKPIs,
@@ -8,7 +8,6 @@ import {
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import {
   Project,
   useGetProjects,
@@ -456,7 +455,7 @@ const PowerPlotBESS = () => {
 }
 
 const PowerPlot = ({ projectType }: { projectType: number }) => {
-  if (projectType === ProjectTypeId.BESS) {
+  if (projectType === ProjectTypeEnum.BESS) {
     return <PowerPlotBESS />
   }
   return <PowerPlotPVZoom />
@@ -1650,8 +1649,8 @@ const ContractualKPIOverview = ({
 
   // Size values based on project type - BESS projects get larger sizes
   const isBESSProject =
-    project?.project_type_id === ProjectTypeId.BESS ||
-    project?.project_type_id === ProjectTypeId.PV_BESS
+    project?.project_type_id === ProjectTypeEnum.BESS ||
+    project?.project_type_id === ProjectTypeEnum.PVS
   const expandedFlex = isBESSProject ? 0.5 : 0.3
   const expandedMinHeight = isBESSProject ? 180 : 80
   const expandedMaxHeight = isBESSProject ? 250 : 150
@@ -2111,7 +2110,7 @@ const ProjectHome = () => {
   if (project.data === undefined) return <PageError error={undefined} />
 
   let mapComponent
-  if (project.data.project_type_id === ProjectTypeId.BESS) {
+  if (project.data.project_type_id === ProjectTypeEnum.BESS) {
     mapComponent = <BESSEnclosureGIS showTitleCard={false} />
   } else if (
     projectId === '3028d2ee-c924-4c6e-a133-9938926bc4b6' ||
@@ -2168,7 +2167,7 @@ const ProjectHome = () => {
       <Group flex={1} align="start">
         <Stack h="100%" flex={1}>
           {/* Performance card - hidden for BESS projects */}
-          {project.data.project_type_id !== ProjectTypeId.BESS && (
+          {project.data.project_type_id !== ProjectTypeEnum.BESS && (
             <CustomCard
               title="Performance"
               fill
@@ -2304,7 +2303,7 @@ const ProjectHome = () => {
             </CustomCard>
           )}
           {/* Battery Health + System Map for BESS projects */}
-          {project.data.project_type_id === ProjectTypeId.BESS && (
+          {project.data.project_type_id === ProjectTypeEnum.BESS && (
             <>
               <CustomCard
                 title="Performance Map"
@@ -2502,7 +2501,7 @@ const ProjectHome = () => {
             </>
           )}
           {/* Contractual KPI Overview for PV-only projects in left pane */}
-          {project.data.project_type_id === ProjectTypeId.PV && (
+          {project.data.project_type_id === ProjectTypeEnum.PV && (
             <ContractualKPIOverview
               project={project.data}
               onExpandedChange={setContractRisksExpanded}
@@ -2512,8 +2511,8 @@ const ProjectHome = () => {
         <Stack h="100%" flex={1}>
           {project.data.has_event_integration && <EventTable />}
           {/* Contractual KPI Overview for PV_BESS and BESS projects */}
-          {(project.data.project_type_id === ProjectTypeId.PV_BESS ||
-            project.data.project_type_id === ProjectTypeId.BESS) && (
+          {(project.data.project_type_id === ProjectTypeEnum.PVS ||
+            project.data.project_type_id === ProjectTypeEnum.BESS) && (
             <ContractualKPIOverview
               project={project.data}
               onExpandedChange={setContractRisksExpanded}

@@ -222,15 +222,28 @@ async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dic
 async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | None:
     """Get a user's profile picture URL from Clerk.
 
+    Tries the primary Clerk instance first (based on ENVIRONMENT setting), then falls back
+    to the other instance if the user is not found. This handles cases where users might
+    exist in different Clerk instances (dev vs prod).
+
     Args:
         user_id (str): The ID of the user to get the image URL for.
-        api_prod (bool): Whether this is the production API.
+        api_prod (bool): Deprecated - kept for backward compatibility.
+                       Now uses settings.ENVIRONMENT instead.
 
     Returns:
         str | None: The user's profile picture URL, or None if not available.
     """
+    # Determine which Clerk instance to use based on ENVIRONMENT setting
+    # This is more reliable than api_prod which checks request headers
+    environment = settings.ENVIRONMENT
+    is_production = environment == "production"
+
+    # Try primary Clerk instance first (based on ENVIRONMENT)
     clerk_secret_key = (
-        settings.CLERK_SECRET_KEY if api_prod else settings.CLERK_SECRET_KEY_DEVELOPMENT
+        settings.CLERK_SECRET_KEY
+        if is_production
+        else settings.CLERK_SECRET_KEY_DEVELOPMENT
     )
 
     try:
@@ -239,9 +252,37 @@ async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | Non
             if clerk_user and hasattr(clerk_user, "image_url") and clerk_user.image_url:
                 return str(clerk_user.image_url)
     except models.ClerkErrors as e:
-        logging.warning(
-            f"Failed to get Clerk user image URL for user {user_id}: {e}",
-        )
+        # If user not found, try the other Clerk instance as fallback
+        error_message = str(e)
+        if (
+            "not found" in error_message.lower()
+            or "resource_not_found" in error_message.lower()
+        ):
+            # Try the other Clerk instance (silently - this is expected behavior)
+            fallback_secret_key = (
+                settings.CLERK_SECRET_KEY_DEVELOPMENT
+                if is_production
+                else settings.CLERK_SECRET_KEY
+            )
+            try:
+                with Clerk(bearer_auth=fallback_secret_key) as clerk:
+                    clerk_user = clerk.users.get(user_id=user_id)
+                    if (
+                        clerk_user
+                        and hasattr(clerk_user, "image_url")
+                        and clerk_user.image_url
+                    ):
+                        return str(clerk_user.image_url)
+            except Exception:
+                # If fallback also fails, log and return None
+                logging.warning(
+                    f"Failed to get Clerk user image URL for user {user_id} in both instances",
+                )
+        else:
+            # Log other errors (not "not found" errors since we handle those with fallback)
+            logging.warning(
+                f"Failed to get Clerk user image URL for user {user_id}: {e}",
+            )
     except Exception as e:
         logging.warning(
             f"Unexpected error getting Clerk user image URL for user {user_id}: {e}",

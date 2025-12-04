@@ -1,10 +1,10 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
   useGetOperationalKPIData,
 } from '@/api/v1/operational/kpi_data'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetRoundTripEfficiency } from '@/api/v1/operational/project/kpi_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -97,7 +97,7 @@ const KPI_TYPE_IDS = {
 
 const BESSOperationDataPage = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
 
   const { projectId } = useParams<{ projectId: string }>()

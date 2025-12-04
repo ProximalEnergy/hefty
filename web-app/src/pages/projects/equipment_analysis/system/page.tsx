@@ -14,11 +14,12 @@ import {
   SegmentedControl,
   Select,
   Stack,
+  Switch,
   Text,
 } from '@mantine/core'
 import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 const SystemPerformance = () => {
@@ -26,9 +27,27 @@ const SystemPerformance = () => {
   const [showLevel, setShowLevel] = useState('device_type')
   const [sunburstDepth, setSunburstDepth] = useState<string>('3')
   const [sunburstStyle, setSunburstStyle] = useState<PlotType>('sunburst')
+  const [showGridHzV, setShowGridHzV] = useState(false)
   const { start, end } = useValidateDateRange({})
 
   const project = useSelectProject(projectId!)
+
+  // Compute showGridHzVSwitch before early return to use in useMemo
+  const GRID_HZ_V_SENSOR_TYPE_IDS = [11, 192]
+  const showGridHzVSwitch =
+    (project.data?.spec.used_sensor_type_ids?.filter((id) =>
+      GRID_HZ_V_SENSOR_TYPE_IDS.includes(id),
+    ).length ?? 0) === GRID_HZ_V_SENSOR_TYPE_IDS.length || false
+
+  // Reset showGridHzV to false when project doesn't support grid Hz/V
+  // This ensures state doesn't persist incorrectly when switching projects
+  // Must be called before any early returns (React hooks rules)
+  const effectiveShowGridHzV = useMemo(() => {
+    if (!showGridHzVSwitch) {
+      return false
+    }
+    return showGridHzV
+  }, [showGridHzV, showGridHzVSwitch])
 
   let startQuery: string | undefined = undefined
   let endQuery: string | undefined = undefined
@@ -60,7 +79,19 @@ const SystemPerformance = () => {
       <Group flex={1} w="100%">
         <CustomCard
           title="POI Meter"
-          style={{ height: '100%', flex: 1 }}
+          style={{ height: '100%', flex: 0.6 }}
+          headerChildren={
+            showGridHzVSwitch && (
+              <Switch
+                label="Grid Hz/V"
+                size="sm"
+                checked={effectiveShowGridHzV}
+                onChange={(event) =>
+                  setShowGridHzV(event.currentTarget.checked)
+                }
+              />
+            )
+          }
           info={
             <>
               This chart shows power being exported by the project. A lower
@@ -74,11 +105,11 @@ const SystemPerformance = () => {
             </>
           }
         >
-          <POIMeter />
+          <POIMeter key={projectId} showGridHzV={effectiveShowGridHzV} />
         </CustomCard>
         <CustomCard
           title="System Device Health"
-          style={{ height: '100%', flex: 1 }}
+          style={{ height: '100%', flex: 0.4 }}
           info={
             <>
               System Device Health is based on the hierarchical relationships

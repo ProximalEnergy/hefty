@@ -248,7 +248,7 @@ const ByDevice = ({
             } else {
               // It's a tag
               const tag = item.tag!
-              // Use name_scada fallback for un-mapped tags (sensor_type_id=0 or device_id=0)
+              // Use name_scada fallback for un-mapped tags (sensor_type_id=GHOST_UNKNOWN or device_id=0)
               const isUnmappedTag =
                 tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
                 tag.device_id === 0

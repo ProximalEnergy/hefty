@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import {
@@ -217,9 +217,9 @@ export function ChatCard({
     return (
       <Stack align="flex-start">
         {INITIAL_QUESTION_OPTIONS.filter((question) => {
-          if (project.data?.project_type_id === ProjectTypeId.PV) {
+          if (project.data?.project_type_id === ProjectTypeEnum.PV) {
             return question.type !== 'bess'
-          } else if (project.data?.project_type_id === ProjectTypeId.BESS) {
+          } else if (project.data?.project_type_id === ProjectTypeEnum.BESS) {
             return question.type !== 'pv'
           } else {
             return true

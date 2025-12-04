@@ -195,10 +195,14 @@ def get_device_type_power_summary(
 
     # --- Optimized path: compute power sums for most device types in one query ---
     # We treat AC-power-like device types (PCS/MVT/Circuit/BESS PCS/MVT/Circuit, etc.)
-    # as sum of latest sensor_type_id=2 values, scaled by tag.unit_scale.
+    # as sum of latest sensor_type_id=PV_PCS_AC_POWER values, scaled by tag.unit_scale.
     # We exclude tracker rows (29) and PV DC Combiner (9) from this grouped query.
 
-    ac_like_types = [dt for dt in used_device_type_ids if dt not in [29, 9]]
+    ac_like_types = [
+        dt
+        for dt in used_device_type_ids
+        if dt not in [DeviceType.TRACKER_ROW, DeviceType.PV_DC_COMBINER]
+    ]
 
     if ac_like_types:
         # Build a single grouped query over DataTimeseriesLast -> Tag -> Device
@@ -447,7 +451,7 @@ def _calculate_pcs_power_sum(
 def _calculate_mvt_power_sum(
     *, project_db: Session, project: models.Project, device_ids: list[int]
 ) -> float | None:
-    """Calculate total power for PV MVT devices using Block AC Power (sensor_type_id=16).
+    """Calculate total power for PV MVT devices using Block AC Power (sensor_type_id=BLOCK_AC_POWER).
 
     Each PV Block (type 6) corresponds to one PV MVT (type 15). We therefore
     sum the latest PV Block AC Power values for blocks that correspond to the
@@ -471,7 +475,7 @@ def _calculate_mvt_power_sum(
 
         block_ids = [b.device_id for b in blocks]
 
-        # Fetch latest Block AC Power (sensor_type_id=16)
+        # Fetch latest Block AC Power (sensor_type_id=BLOCK_AC_POWER)
         rows = core.crud.project.data_timeseries_last.get_data_timeseries_last(
             project_db,
             device_ids=block_ids,
@@ -593,12 +597,15 @@ def _calculate_bess_power_sum(
 
     # Map device types to sensor types
     sensor_type_map = {
-        17: [1],  # BESS Circuit - Meter Active Power
-        25: [1],  # BESS MVT - Meter Active Power
-        13: [1],  # BESS PCS - Meter Active Power
+        DeviceType.BESS_CIRCUIT: [SensorType.METER_ACTIVE_POWER],
+        DeviceType.BESS_MVT: [SensorType.METER_ACTIVE_POWER],
+        DeviceType.BESS_PCS: [SensorType.METER_ACTIVE_POWER],
     }
 
-    sensor_type_ids = sensor_type_map.get(device_type_id, [1])
+    sensor_type_ids = sensor_type_map.get(
+        DeviceType(device_type_id),
+        [SensorType.METER_ACTIVE_POWER],
+    )
 
     tags = core.crud.project.tags.get_project_tags(
         project_db,
@@ -653,7 +660,7 @@ def _calculate_generic_power_sum(
         return None
 
     # Try common power sensor types
-    power_sensor_types = [1, 2]  # Meter Active Power, PV PCS AC Power
+    power_sensor_types = [SensorType.METER_ACTIVE_POWER, SensorType.PV_PCS_AC_POWER]
 
     for sensor_type_id in power_sensor_types:
         tags = core.crud.project.tags.get_project_tags(

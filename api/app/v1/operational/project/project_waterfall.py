@@ -11,6 +11,7 @@ from core.crud.project.event_losses import (
     get_event_losses_aggregated,
 )
 from core.database import Base
+from core.enumerations import EventLossType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -146,7 +147,7 @@ async def get_project_waterfall(
         time_gte=start,
         time_lt=end,
         event_ids=df_events.index.tolist(),
-        event_loss_type_id=1,  # Only type 1 losses (energy losses)
+        event_loss_type_id=EventLossType.PROXIMAL_ENERGY,
     )
     # Map aggregated losses to events DataFrame
     df_events["loss"] = df_events.index.map(

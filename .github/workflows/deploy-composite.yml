@@ -18,8 +18,7 @@ on:
     workflows: ["Auto Merge Staging to Main if All Reviewers Approved"]
     types:
       - completed
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -29,14 +28,24 @@ jobs:
   # Job 0: Detect what changed
   detect-changes:
     runs-on: ubuntu-latest
-    # Only run if triggered by push, or if workflow_run completed successfully
+    # Only run if triggered by push, workflow_dispatch (on staging/main), or if workflow_run completed successfully
     # Note: workflow_run works even when triggered by automated actions (schedule/workflow_dispatch)
     # because those are not considered "workflow-triggered" events that would be blocked
-    if: github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    # For workflow_run: ensure it completed successfully and ran on main branch
+    # We use head_branch check instead of branches filter because scheduled workflows
+    # can have issues with branch filters, but head_branch is reliably set to 'main'
+    # for scheduled workflows that run on the default branch
+    # For workflow_dispatch: only allow staging or main branches
+    if: |
+      github.event_name == 'push' || 
+      (github.event_name == 'workflow_dispatch' && (github.ref_name == 'staging' || github.ref_name == 'main')) ||
+      (github.event_name == 'workflow_run' && 
+       github.event.workflow_run.conclusion == 'success' && 
+       github.event.workflow_run.head_branch == 'main')
     outputs:
-      core: ${{ steps.filter.outputs.core }}
-      api: ${{ steps.filter.outputs.api }}
-      web-app: ${{ steps.filter.outputs.web-app }}
+      core: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.core || steps.filter.outputs.core }}
+      api: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.api || steps.filter.outputs.api }}
+      web-app: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.web-app || steps.filter.outputs.web-app }}
     steps:
       - name: Debug workflow trigger information
         run: |
@@ -51,13 +60,17 @@ jobs:
             echo "Triggering workflow head branch: ${{ github.event.workflow_run.head_branch }}"
             echo "Triggering workflow head SHA: ${{ github.event.workflow_run.head_sha }}"
             echo "Triggering workflow event: ${{ github.event.workflow_run.event }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Triggered by manual workflow_dispatch"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "SHA: ${{ github.sha }}"
           fi
           echo "=============================="
 
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'workflow_run' && 'main' || github.ref }}
-          fetch-depth: ${{ github.event_name == 'workflow_run' && 2 || 1 }}
+          fetch-depth: ${{ (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && 2 || 1 }}
 
       - name: Determine base commit for comparison
         id: base-commit
@@ -65,6 +78,10 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             # For workflow_run, use HEAD^ (parent of merge commit on main)
             # Get the actual SHA of the parent commit
+            BASE_COMMIT=$(git rev-parse HEAD^)
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For workflow_dispatch, use HEAD^ (previous commit on the branch)
+            # This allows detecting changes since the last commit
             BASE_COMMIT=$(git rev-parse HEAD^)
           else
             # For push events, use the before commit
@@ -87,12 +104,28 @@ jobs:
               - 'web-app/**'
               - 'amplify.yml'
 
+      - name: Override change detection for manual triggers
+        id: override
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          # For manual triggers, always detect changes to ensure deployment happens
+          echo "Manual trigger detected - forcing change detection for all components"
+          echo "core=true" >> $GITHUB_OUTPUT
+          echo "api=true" >> $GITHUB_OUTPUT
+          echo "web-app=true" >> $GITHUB_OUTPUT
+
       - name: Echo detected changes
         run: |
           echo "Changes detected:"
-          echo "  Core: ${{ steps.filter.outputs.core }}"
-          echo "  API: ${{ steps.filter.outputs.api }}"
-          echo "  Web-App: ${{ steps.filter.outputs.web-app }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "  Core: ${{ steps.override.outputs.core }} (manual trigger - forced)"
+            echo "  API: ${{ steps.override.outputs.api }} (manual trigger - forced)"
+            echo "  Web-App: ${{ steps.override.outputs.web-app }} (manual trigger - forced)"
+          else
+            echo "  Core: ${{ steps.filter.outputs.core }}"
+            echo "  API: ${{ steps.filter.outputs.api }}"
+            echo "  Web-App: ${{ steps.filter.outputs.web-app }}"
+          fi
 
   # Job 1: Publish Core Package
   publish-core:

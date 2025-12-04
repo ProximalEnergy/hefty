@@ -7,7 +7,7 @@ export const RingProgressStat = ({
   value,
 }: {
   project: NonNullable<ReturnType<typeof useSelectProject>['data']>
-  type: 'power' | 'poa' | 'soc'
+  type: 'power' | 'poa' | 'soc' | 'performance_index'
   value?: number
 }) => {
   const powerLimit = Math.max(project.poi, project.capacity_bess_power_ac || 0)
@@ -29,6 +29,10 @@ export const RingProgressStat = ({
       break
     case 'soc':
       tooltipLabel = 'SOC'
+      sectionValue = value != null ? (value / 100) * 100 : 0
+      break
+    case 'performance_index':
+      tooltipLabel = 'Performance Index'
       sectionValue = value != null ? (value / 100) * 100 : 0
       break
   }

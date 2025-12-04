@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import { projectDescription } from '@/utils/projectDescription'
@@ -35,7 +35,7 @@ const ProjectPicture = ({
     <BackgroundImage
       src={
         project?.image_url ??
-        (project?.project_type_id === ProjectTypeId.BESS
+        (project?.project_type_id === ProjectTypeEnum.BESS
           ? 'https://iea.imgix.net/d771a759-2355-4f8e-89f4-d53e762d1047/shutterstock_1514163416.jpg?auto=compress%2Cformat&fit=min&h=630&q=80&rect=987%2C0%2C7013%2C3943&w=1200'
           : 'https://images.unsplash.com/photo-1586366461834-d2d65d725a2e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')
       }

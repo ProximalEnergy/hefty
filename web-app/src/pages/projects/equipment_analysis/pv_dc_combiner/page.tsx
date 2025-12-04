@@ -1,6 +1,5 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
@@ -19,7 +18,7 @@ const MAX_DAYS = 1
 
 const Page = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   const navigate = useNavigate()

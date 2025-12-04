@@ -34,6 +34,7 @@ class PortfolioHomeShortTerm(BaseModel):
     max_charge_power: list[Any] | None
     max_discharge_power: list[Any] | None
     expected_power: list[Any] | None
+    performance_index: float | None
 
 
 class PortfolioHomeLongTerm(BaseModel):
@@ -171,6 +172,7 @@ async def get_portfolio_home_short_term(
                     max_charge_power=None,
                     max_discharge_power=None,
                     expected_power=None,
+                    performance_index=None,
                 ),
             )
         else:
@@ -252,6 +254,51 @@ async def get_portfolio_home_short_term(
             else:
                 expected_power = None
 
+            if power_columns and expected_columns:
+                time_zone: str = projects_df.loc[project_id, "time_zone"]  # type: ignore
+                project_type_id = projects_df.loc[project_id, "project_type_id"]  # type: ignore
+                if project_type_id == core.enumerations.ProjectType.PVS:  # PV + Storage
+                    circuit_power_columns = [
+                        c
+                        for c in df_project.columns
+                        if c[1]
+                        == core.enumerations.SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER
+                    ]  # pv_mv_circuit_meter_active_power
+                    meter_total = (
+                        df_project.loc[
+                            pd.Timestamp.now().tz_localize(time_zone).floor("D") :,
+                            circuit_power_columns,
+                        ]
+                        .clip(lower=0)
+                        .sum(axis=1)
+                        .sum()
+                    )
+                else:
+                    meter_total = (
+                        df_project.loc[
+                            pd.Timestamp.now().tz_localize(time_zone).floor("D") :,
+                            power_columns,
+                        ]
+                        .clip(lower=0)
+                        .sum(axis=1)
+                        .sum()
+                    )
+                expected_total = (
+                    df_project.loc[
+                        pd.Timestamp.now().tz_localize(time_zone).floor("D") :,
+                        expected_columns,
+                    ]
+                    .clip(lower=0)
+                    .sum(axis=1)
+                    .sum()
+                )
+                if expected_total > 0:
+                    performance_index = meter_total / expected_total * 100
+                else:
+                    performance_index = None
+            else:
+                performance_index = None
+
             return_data.append(
                 PortfolioHomeShortTerm(
                     project_id=project_id,
@@ -264,6 +311,7 @@ async def get_portfolio_home_short_term(
                     max_charge_power=max_charge_power,
                     max_discharge_power=max_discharge_power,
                     expected_power=expected_power,
+                    performance_index=performance_index,
                 ),
             )
 
@@ -412,6 +460,7 @@ async def get_home(
                 meter_soc_percent=item.meter_soc_percent,
                 max_charge_power=item.max_charge_power,
                 max_discharge_power=item.max_discharge_power,
+                performance_index=item.performance_index,
                 # Long-term fields set to None
                 cycle_count_string=None,
                 state_of_health=None,
@@ -440,6 +489,7 @@ async def get_home(
                 meter_soc_percent=None,
                 max_charge_power=None,
                 max_discharge_power=None,
+                performance_index=None,
                 # Long-term fields
                 cycle_count_string=item.cycle_count_string,
                 state_of_health=item.state_of_health,

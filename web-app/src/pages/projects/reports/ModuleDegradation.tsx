@@ -1,6 +1,6 @@
 import { DeviceTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import DocsButton from '@/components/DocsButton'
@@ -1404,7 +1404,7 @@ const MemoizedGraphsTab = memo(GraphsTab, (prevProps, nextProps) => {
 
 const ModuleDegradation: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   // Variables and states

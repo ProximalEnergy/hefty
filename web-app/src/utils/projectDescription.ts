@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { Project } from '@/api/v1/operational/projects'
 
 const formatNumber = (number: number | null) => {
@@ -18,13 +18,13 @@ const formatNumber = (number: number | null) => {
 export const projectDescription = (project: Project) => {
   let title = ''
   switch (project.project_type_id) {
-    case ProjectTypeId.PV:
+    case ProjectTypeEnum.PV:
       title = `${formatNumber(project.poi)} MW PV`
       break
-    case ProjectTypeId.BESS:
+    case ProjectTypeEnum.BESS:
       title = `${formatNumber(project.capacity_bess_power_ac)} MW / ${formatNumber(project.capacity_bess_energy_bol_dc)} MWh BESS`
       break
-    case ProjectTypeId.PV_BESS:
+    case ProjectTypeEnum.PVS:
       title = `${formatNumber(project.poi)} MW PV | ${formatNumber(project.capacity_bess_power_ac)} MW - ${formatNumber(project.capacity_bess_energy_bol_dc)} MWh BESS`
       break
   }

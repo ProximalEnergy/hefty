@@ -124,7 +124,7 @@ const DataBrowsing = () => {
     queryParams: {
       tag_ids: positiveTagIds,
       deep: true,
-      include_ghost_tags: true, // Include un-mapped tags (device_id=0 or sensor_type_id=0)
+      include_ghost_tags: true, // Include un-mapped tags (device_id=0 or sensor_type_id=GHOST_UNKNOWN)
     },
     queryOptions: {
       enabled:
@@ -912,7 +912,7 @@ const DataBrowsing = () => {
             <ScrollArea h="100%" style={{ height: '100%', overflowY: 'auto' }}>
               <Stack p="md" h="100%" gap={3}>
                 {selectedTags.map((tag) => {
-                  // Use name_scada fallback for un-mapped tags (sensor_type_id=0 or device_id=0)
+                  // Use name_scada fallback for un-mapped tags (sensor_type_id=GHOST_UNKNOWN or device_id=0)
                   const isUnmappedTag =
                     tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
                     tag.device_id === 0

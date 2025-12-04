@@ -1,31 +1,23 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export enum ProjectTypeId {
-  PV = 1,
-  BESS = 2,
-  PV_BESS = 3,
-}
+const _COMPONENT_NAME = 'ProjectType'
+const URL = '/v1/operational/project-types/'
 
-export interface ProjectType {
-  project_type_id: ProjectTypeId
-  name_short: string
-  name_long: string
-}
+export type ProjectType = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
 
 export const useGetProjectTypes = ({
   queryParams = {},
   queryOptions = {},
 }: {
-  queryParams?: {
-    project_type_ids?: ProjectTypeId[]
-    name_short?: string
-    name_long?: string
-  }
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 } = {}) => {
   const axiosConfig = {
-    url: '/v1/operational/project-types/',
+    url: URL,
     params: queryParams,
   }
 

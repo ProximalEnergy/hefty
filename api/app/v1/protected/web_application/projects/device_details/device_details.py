@@ -8,6 +8,7 @@ import pandas as pd
 import polars as pl
 import pyarrow as pa
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
+from core.enumerations import DeviceType
 from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse, Response
@@ -290,9 +291,9 @@ async def get_vertical_controller(
     # Determine the block device type ID based on the technology.
     # The block device is the greatest common ancestor of the returned devices.
     if device_technology == "pv":
-        block_device_type_id = 6  # PV Block
+        block_device_type_id = DeviceType.BLOCK
     else:
-        block_device_type_id = 12  # BESS Block
+        block_device_type_id = DeviceType.BESS_BLOCK
 
     # Get the block associated with the device_id
     _block: list[models.Device] = core.crud.project.devices.get_project_devices(

@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { useComputedColorScheme, useMantineTheme } from '@mantine/core'
@@ -281,8 +281,8 @@ function usePortfolioPlotDataShortTerm({
             mode: 'lines',
             line: maxLineCfg,
           },
-          project.project_type_id === ProjectTypeId.BESS ||
-          project.project_type_id === ProjectTypeId.PV_BESS
+          project.project_type_id === ProjectTypeEnum.BESS ||
+          project.project_type_id === ProjectTypeEnum.PVS
             ? {
                 x,
                 y: Array(x.length).fill(-maxPower),
@@ -367,7 +367,7 @@ function usePortfolioPlotDataShortTerm({
         },
         overlaying: 'y2',
         range: [
-          project.project_type_id === ProjectTypeId.PV ? 0 : maxPower * -1.1,
+          project.project_type_id === ProjectTypeEnum.PV ? 0 : maxPower * -1.1,
           maxPower * 1.1,
         ],
         gridcolor: 'transparent',

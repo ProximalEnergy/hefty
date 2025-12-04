@@ -33,6 +33,11 @@ DEFAULT_EXCLUDE_DIRS=(
     "_scripts"
 )
 
+# Files to exclude from checks
+EXCLUDE_FILES=(
+    "web-app/src/api/schema.d.ts"
+)
+
 # Arrays to store patterns
 declare -a PATTERN_NAMES=()
 declare -a PATTERN_REGEXES=()
@@ -64,7 +69,7 @@ add_pattern() {
 load_patterns() {
     add_pattern "Hardcoded Type IDs Arrays (Python)" \
         "\\w+_type_ids\\s*=\\s*\\[\\s*(#|\\d)" \
-        "Checks for hardcoded type_ids array assignments in Python (e.g., kpi_type_ids=[18, 19] or multiline with comments)" \
+        "Checks for hardcoded type_ids array assignments in Python (e.g., kpi_type_ids=[18, 19] or kpi_type_ids=[  # comment with numbers on next line)" \
         "_scripts"
     
     add_pattern "Hardcoded Type IDs Arrays (TypeScript/TSX)" \
@@ -74,6 +79,16 @@ load_patterns() {
     add_pattern "Hardcoded Type ID Comparisons" \
         "\\w+_type_id\\s*[!=]==?\\s*\\d+" \
         "Checks for hardcoded type_id comparisons (e.g., first_device_type_id == 29, user_type_id === 1)" \
+        "_scripts"
+    
+    add_pattern "Hardcoded Type ID Assignments" \
+        "\\w+_type_id\\s*=\\s*\\d+" \
+        "Checks for hardcoded type_id assignments (e.g., project_type_id=3, device_type_id: 3)" \
+        "_scripts"
+    
+    add_pattern "Hardcoded Type ID Dictionary Mappings" \
+        "^\\s*\\d+\\s*:\\s*\\[" \
+        "Checks for dictionary mappings with hardcoded type IDs (e.g., 2: [2, 9] or 9: [27] inside type_id dictionaries)" \
         "_scripts"
 }
 
@@ -128,6 +143,11 @@ for i in "${!PATTERN_NAMES[@]}"; do
             done
         fi
         
+        # Exclude specific files
+        for file in "${EXCLUDE_FILES[@]}"; do
+            local_exclude_args+=("--glob" "!$file")
+        done
+        
         # Use ripgrep for faster searching
         matches=$(rg -n --color=never "${local_exclude_args[@]}" "$pattern_regex" . 2>/dev/null || true)
     else
@@ -145,18 +165,39 @@ for i in "${!PATTERN_NAMES[@]}"; do
             done
         fi
         
+        # Exclude specific files for grep
+        for file in "${EXCLUDE_FILES[@]}"; do
+            grep_exclude_args+=("--exclude=$file")
+        done
+        
         matches=$(grep -rn --color=never "${grep_exclude_args[@]}" -E "$pattern_regex" . 2>/dev/null || true)
     fi
     
     if [ -n "$matches" ]; then
-        echo -e "${RED}❌ Found matches for pattern '${pattern_name}':${NC}"
-        match_count=$(echo "$matches" | wc -l)
-        echo "$matches" | while IFS= read -r line; do
-            echo -e "  ${RED}${line}${NC}"
-        done
-        echo ""
-        TOTAL_MATCHES=$((TOTAL_MATCHES + match_count))
-        OVERALL_FAILED=1
+        # Filter out comment lines for assignment pattern
+        if [ "$pattern_name" = "Hardcoded Type ID Assignments" ]; then
+            filtered_matches=$(echo "$matches" | grep -v -E "^[[:space:]]*(//|#|\*)" || true)
+            if [ -z "$filtered_matches" ]; then
+                matches=""
+            else
+                matches="$filtered_matches"
+            fi
+        fi
+        
+        if [ -n "$matches" ]; then
+            echo -e "${RED}❌ Found matches for pattern '${pattern_name}':${NC}"
+            match_count=$(echo "$matches" | wc -l)
+            echo "$matches" | while IFS= read -r line; do
+                # Remove ./ prefix from file paths to make them clickable in IDEs
+                cleaned_line=$(echo "$line" | sed 's|^\./||')
+                echo -e "  ${RED}${cleaned_line}${NC}"
+            done
+            echo ""
+            TOTAL_MATCHES=$((TOTAL_MATCHES + match_count))
+            OVERALL_FAILED=1
+        else
+            echo -e "${GREEN}✅ No matches found for pattern '${pattern_name}'${NC}\n"
+        fi
     else
         echo -e "${GREEN}✅ No matches found for pattern '${pattern_name}'${NC}\n"
     fi

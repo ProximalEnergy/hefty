@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import ClearskyFilter from '@/components/ClearskyFilter'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
@@ -38,7 +38,7 @@ interface HeatmapData {
 
 const DCAmperageReport: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   const theme = useComputedColorScheme()

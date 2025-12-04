@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
@@ -29,7 +29,7 @@ import { HoverInfo } from './utils'
 
 const Page = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
 
   return <BESSEnclosureGIS showTitleCard={true} />

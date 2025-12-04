@@ -163,7 +163,7 @@ def get_project_geo(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    device_type_id = 6  # block
+    device_type_id = DeviceType.BLOCK
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=[],

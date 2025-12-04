@@ -1,8 +1,8 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
 } from '@/api/v1/operational/aws'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetReportType } from '@/api/v1/operational/report_types'
 import { PageLoader } from '@/components/Loading'
@@ -42,7 +42,7 @@ const handleDownload = async (
 
 const Page: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   const { projectId } = useParams<{ projectId: string }>()

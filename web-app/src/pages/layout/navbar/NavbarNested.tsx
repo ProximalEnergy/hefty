@@ -1,12 +1,11 @@
 import { useGetUserSelf, useGetUserType } from '@/api/admin'
-import { UserTypeEnumEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import {
   DroneIntegration,
   DronePermission,
   useGetDroneIntegrations,
   useGetDronePermissions,
 } from '@/api/v1/operational/drone_integrations'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateFeedbackMutation } from '@/hooks/api'
 import * as types from '@/hooks/types'
@@ -114,12 +113,12 @@ export function NavbarNested({
 
     const projectTypeId = project.data.project_type_id
     // Drone inspections are only available for PV and PV_BESS projects, not for BESS-only projects
-    if (projectTypeId === ProjectTypeId.BESS) {
+    if (projectTypeId === ProjectTypeEnum.BESS) {
       return false
     }
     if (
-      projectTypeId !== ProjectTypeId.PV &&
-      projectTypeId !== ProjectTypeId.PV_BESS
+      projectTypeId !== ProjectTypeEnum.PV &&
+      projectTypeId !== ProjectTypeEnum.PVS
     ) {
       return false
     }
@@ -160,7 +159,7 @@ export function NavbarNested({
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   // Remove unnecessary links based on project characteristics
-  const removePVLinks = project.data?.project_type_id === ProjectTypeId.BESS
+  const removePVLinks = project.data?.project_type_id === ProjectTypeEnum.BESS
   const removeMetStationsLinks = !project.data?.has_met_stations
   const removePVDCCombinerLinks = !project.data?.has_pv_dc_combiners
   const removeTrackersLinks = !project.data?.has_trackers
@@ -240,7 +239,8 @@ export function NavbarNested({
       ) &&
       !(link.requiresRealTimeData && !project.data?.has_real_time_data) &&
       !(
-        link.requiresPV && project.data?.project_type_id === ProjectTypeId.BESS
+        link.requiresPV &&
+        project.data?.project_type_id === ProjectTypeEnum.BESS
       ) &&
       !(
         link.requiresQSEIntegration &&
