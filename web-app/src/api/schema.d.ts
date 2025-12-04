@@ -19867,7 +19867,12 @@ export interface operations {
     };
     get_users_v1_operational_users__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter by specific user IDs */
+                user_ids?: string[] | null;
+                /** @description Include user profile image URLs from Clerk */
+                include_image_urls?: boolean;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
