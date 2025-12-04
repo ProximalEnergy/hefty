@@ -1,5 +1,5 @@
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
-import { ProjectType, ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectType } from '@/api/v1/operational/project_types'
 import { useCustomQuery } from '@/hooks/api'
 import { MultiPolygon, Point } from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
@@ -41,7 +41,7 @@ interface ProjectSpec {
 
 export interface Project {
   project_id: string
-  project_type_id: ProjectTypeId
+  project_type_id: ProjectType['project_type_id']
   project_status_type_id: ProjectStatusTypeId
   name_short: string
   name_long: string

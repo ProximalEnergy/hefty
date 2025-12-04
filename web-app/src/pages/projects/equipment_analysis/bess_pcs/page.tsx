@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisBESSPCS } from '@/api/v1/protected/web-application/projects/equipment-analysis/bess_pcs'
 import CustomCard from '@/components/CustomCard'
@@ -15,7 +15,7 @@ const MAX_DAYS = 7
 
 const Page = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
 
   const { projectId } = useParams<{ projectId: string }>()

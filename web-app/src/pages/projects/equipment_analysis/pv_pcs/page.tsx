@@ -1,5 +1,5 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_pcs'
 import CustomCard from '@/components/CustomCard'
@@ -159,7 +159,7 @@ const RingProgressCard: React.FC<RingProgressCardProps> = ({
 
 const PCSEquipmentAnalysis = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   const { projectId } = useParams<{ projectId: string }>()

@@ -1,3 +1,4 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import {
   Contract,
   useDeleteContract,
@@ -8,7 +9,6 @@ import {
   KPISummaryCard,
   useGetKPISummaryCards,
 } from '@/api/v1/operational/project/kpi_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
@@ -119,9 +119,9 @@ const BESS_EXAMPLE_CONTRACT = {
 }
 
 const exampleContractsByType = {
-  [ProjectTypeId.PV]: [PV_EXAMPLE_CONTRACT],
-  [ProjectTypeId.BESS]: [BESS_EXAMPLE_CONTRACT],
-  [ProjectTypeId.PV_BESS]: [PV_EXAMPLE_CONTRACT, BESS_EXAMPLE_CONTRACT],
+  [ProjectTypeEnum.PV]: [PV_EXAMPLE_CONTRACT],
+  [ProjectTypeEnum.BESS]: [BESS_EXAMPLE_CONTRACT],
+  [ProjectTypeEnum.PVS]: [PV_EXAMPLE_CONTRACT, BESS_EXAMPLE_CONTRACT],
 }
 
 interface ContractCardProps {
@@ -732,7 +732,9 @@ const Page = () => {
   const exampleContracts = useMemo(() => {
     if (!project.data) return []
     return project.data.project_type_id
-      ? exampleContractsByType[project.data.project_type_id] || []
+      ? exampleContractsByType[
+          project.data.project_type_id as keyof typeof exampleContractsByType
+        ] || []
       : Object.values(exampleContractsByType).flat()
   }, [project.data])
 

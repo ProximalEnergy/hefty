@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { Stack } from '@mantine/core'
@@ -22,8 +22,8 @@ export function Stats({
         type="power"
         value={portfolioHomeProject?.power ?? undefined}
       />
-      {(project.project_type_id === ProjectTypeId.PV ||
-        project.project_type_id === ProjectTypeId.PV_BESS) && (
+      {(project.project_type_id === ProjectTypeEnum.PV ||
+        project.project_type_id === ProjectTypeEnum.PVS) && (
         <RingProgressStat
           project={project}
           type={
@@ -38,8 +38,8 @@ export function Stats({
           }
         />
       )}
-      {(project.project_type_id === ProjectTypeId.BESS ||
-        project.project_type_id === ProjectTypeId.PV_BESS) && (
+      {(project.project_type_id === ProjectTypeEnum.BESS ||
+        project.project_type_id === ProjectTypeEnum.PVS) && (
         <RingProgressStat
           project={project}
           type="soc"

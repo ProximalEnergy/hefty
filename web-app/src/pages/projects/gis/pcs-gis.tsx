@@ -1,5 +1,4 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -89,7 +88,7 @@ export default function PCSGIS() {
   useTipsPCSGIS()
 
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   return <PCSGISMap />

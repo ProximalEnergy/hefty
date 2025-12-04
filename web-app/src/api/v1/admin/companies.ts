@@ -1,24 +1,23 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface Company {
-  company_id: string
-  name_short: string
-  name_long: string
-}
+const _COMPONENT_NAME = 'Company'
+const URL = '/v1/admin/companies/'
+
+type Company = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
 
 export const useGetCompanies = ({
   queryParams = {},
   queryOptions = {},
 }: {
-  queryParams?: {
-    company_ids?: string[]
-    name_shorts?: string[]
-  }
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 } = {}) => {
   const axiosConfig = {
-    url: '/v1/admin/companies',
+    url: URL,
     params: queryParams,
   }
 

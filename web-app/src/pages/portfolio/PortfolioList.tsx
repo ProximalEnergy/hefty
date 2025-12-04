@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { Project, useGetProjects } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { NoData, PageError } from '@/components/Error'
@@ -33,13 +33,13 @@ const PortfolioList = () => {
   data.sort((a, b) => (a.name_short > b.name_short ? 1 : -1))
 
   const pvProjects = data.filter(
-    (project) => project.project_type_id === ProjectTypeId.PV,
+    (project) => project.project_type_id === ProjectTypeEnum.PV,
   )
   const bessProjects = data.filter(
-    (project) => project.project_type_id === ProjectTypeId.BESS,
+    (project) => project.project_type_id === ProjectTypeEnum.BESS,
   )
   const pvsProjects = data.filter(
-    (project) => project.project_type_id === ProjectTypeId.PV_BESS,
+    (project) => project.project_type_id === ProjectTypeEnum.PVS,
   )
 
   return (

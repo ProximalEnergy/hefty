@@ -1,3 +1,4 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import {
   getNWSWindspeedTileUrl,
@@ -7,10 +8,7 @@ import {
   useGetTornadoOutlook,
   useGetWindOutlook,
 } from '@/api/v1/gis/noaa'
-import {
-  ProjectTypeId,
-  useGetProjectTypes,
-} from '@/api/v1/operational/project_types'
+import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import { Project, useGetProjects } from '@/api/v1/operational/projects'
 import { NoData, PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
@@ -95,11 +93,11 @@ const ProjectMarker = ({
             <div>
               {(() => {
                 switch (project.project_type_id) {
-                  case ProjectTypeId.PV:
+                  case ProjectTypeEnum.PV:
                     return <IconSolarPanel style={icon_style} />
-                  case ProjectTypeId.BESS:
+                  case ProjectTypeEnum.BESS:
                     return <IconBattery4 style={icon_style} />
-                  case ProjectTypeId.PV_BESS:
+                  case ProjectTypeEnum.PVS:
                     return <IconSolarElectricity style={icon_style} />
                   default:
                     return <IconSolarPanel style={icon_style} />
@@ -397,10 +395,14 @@ const PortfolioMap = () => {
     defaultValue: false,
   })
   const [selectedProjectTypes, setSelectedProjectTypes] = useLocalStorage<
-    ProjectTypeId[]
+    number[]
   >({
     key: 'selected-project-types',
-    defaultValue: [ProjectTypeId.PV, ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
+    defaultValue: [
+      ProjectTypeEnum.PV,
+      ProjectTypeEnum.BESS,
+      ProjectTypeEnum.PVS,
+    ],
   })
 
   const { userId } = useAuth()

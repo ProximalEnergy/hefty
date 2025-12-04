@@ -1,6 +1,6 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useUpdateProjectFavorite } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { projectDescription } from '@/utils/projectDescription'
 import { useUser } from '@clerk/clerk-react'
@@ -62,12 +62,14 @@ export function Header({
           </Title>
           <Tooltip label={description}>
             <Group gap={0}>
-              {[ProjectTypeId.PV, ProjectTypeId.PV_BESS].includes(
-                project.project_type_id,
-              ) && <IconSolarPanel />}
-              {[ProjectTypeId.BESS, ProjectTypeId.PV_BESS].includes(
-                project.project_type_id,
-              ) && <IconBattery4 />}
+              {(project.project_type_id === ProjectTypeEnum.PV ||
+                project.project_type_id === ProjectTypeEnum.PVS) && (
+                <IconSolarPanel />
+              )}
+              {(project.project_type_id === ProjectTypeEnum.BESS ||
+                project.project_type_id === ProjectTypeEnum.PVS) && (
+                <IconBattery4 />
+              )}
             </Group>
           </Tooltip>
           {!project.has_real_time_data && (

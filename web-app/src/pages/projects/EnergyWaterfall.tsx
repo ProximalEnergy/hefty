@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import CustomCard from '@/components/CustomCard'
 import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
@@ -22,7 +22,7 @@ import { useState } from 'react'
 
 const EnergyWaterfall = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.BESS, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.BESS, ProjectTypeEnum.PVS],
   })
 
   const [showEfficiency, setShowEfficiency] = useState(true)

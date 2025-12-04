@@ -1,4 +1,4 @@
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
@@ -149,7 +149,7 @@ const PowerPlotPVZoom = () => {
       end: roundTime(endTime, interval, 'up'),
       interval: interval,
       // Determine include_storage based on project type if needed
-      include_storage: project.data?.project_type_id === ProjectTypeId.PV_BESS,
+      include_storage: project.data?.project_type_id === ProjectTypeEnum.PVS,
       // TODO: Replace 'false' with the correct condition based on project data
       include_setpoint: true, // Placeholder - set based on actual project properties
       include_soiling: includeSoiling,
@@ -351,7 +351,7 @@ const PowerPlotPVZoom = () => {
               fixedrange: true,
               // Restore explicit range
               range:
-                project.data?.project_type_id === ProjectTypeId.PV_BESS
+                project.data?.project_type_id === ProjectTypeEnum.PVS
                   ? undefined
                   : [0, project.data.poi * 1.05],
             },

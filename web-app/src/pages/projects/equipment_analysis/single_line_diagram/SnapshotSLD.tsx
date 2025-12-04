@@ -4,7 +4,6 @@ import {
   SensorTypeEnum,
 } from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import { SensorType } from '@/api/v1/operational/sensor_types'
@@ -3089,7 +3088,7 @@ function SnapshotSLDContent() {
 
 export default function SnapshotSLD() {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.BESS],
+    projectTypes: [ProjectTypeEnum.BESS],
   })
 
   return (

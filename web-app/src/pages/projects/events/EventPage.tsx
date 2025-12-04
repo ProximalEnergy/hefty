@@ -1,4 +1,8 @@
-import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
+import {
+  DeviceTypeEnum,
+  ProjectTypeEnum,
+  SensorTypeEnum,
+} from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import {
@@ -7,7 +11,6 @@ import {
 } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useGetStatusTimeSeries } from '@/api/v1/operational/project/project_status'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import AriaRecommendation from '@/components/AriaRecommendation'
 import CustomCard from '@/components/CustomCard'
@@ -745,7 +748,7 @@ const Page = () => {
   )
 
   let mapComponent
-  if (project.data?.project_type_id === ProjectTypeId.BESS) {
+  if (project.data?.project_type_id === ProjectTypeEnum.BESS) {
     mapComponent = <BESSEnclosureGIS showTitleCard={false} />
   } else if (
     projectId === '3028d2ee-c924-4c6e-a133-9938926bc4b6' ||

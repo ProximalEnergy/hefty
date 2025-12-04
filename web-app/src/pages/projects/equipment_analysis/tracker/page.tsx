@@ -1,5 +1,5 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
-import { ProjectTypeId } from '@/api/v1/operational/project_types'
 import { useGetTrackerEquipmentAnalysis } from '@/api/v1/protected/web-application/projects/equipment-analysis/tracker'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
@@ -24,7 +24,7 @@ const MAX_DAYS = 7
 
 const ProjectEquipmentAnalysisTracker = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeId.PV, ProjectTypeId.PV_BESS],
+    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
   })
 
   const { projectId } = useParams<{ projectId: string }>()
