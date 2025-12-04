@@ -490,6 +490,10 @@ async def get_events_summary(
 
         # SQL already aggregated, so we have one row per event_id
         g = losses_df.copy()
+        cols_to_mwh = ["loss_1", "loss_1_daily"]
+        for col in cols_to_mwh:
+            if col in g.columns:
+                g[col] = g[col] / 12
 
         # 1) Calculate days_data_span from SQL-aggregated time_min/time_max
         g["days_data_span"] = (
@@ -1194,7 +1198,8 @@ def get_event_losses_summary(
         # Totals per type
         sums = losses_df.groupby("event_loss_type_id")["loss"].sum()
 
-        t_energy = sums.get(1)
+        power_sum = sums.get(1)
+        t_energy = (power_sum / 12) if power_sum is not None else None  # convert to MWh
         t_fin = sums.get(2)
 
         # Daily = totals / days_event (if available)
