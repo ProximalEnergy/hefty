@@ -18,8 +18,6 @@ on:
     workflows: ["Auto Merge Staging to Main if All Reviewers Approved"]
     types:
       - completed
-    branches:
-      - main
 
 permissions:
   id-token: write
@@ -32,7 +30,15 @@ jobs:
     # Only run if triggered by push, or if workflow_run completed successfully
     # Note: workflow_run works even when triggered by automated actions (schedule/workflow_dispatch)
     # because those are not considered "workflow-triggered" events that would be blocked
-    if: github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    # For workflow_run: ensure it completed successfully and ran on main branch
+    # We use head_branch check instead of branches filter because scheduled workflows
+    # can have issues with branch filters, but head_branch is reliably set to 'main'
+    # for scheduled workflows that run on the default branch
+    if: |
+      github.event_name == 'push' || 
+      (github.event_name == 'workflow_run' && 
+       github.event.workflow_run.conclusion == 'success' && 
+       github.event.workflow_run.head_branch == 'main')
     outputs:
       core: ${{ steps.filter.outputs.core }}
       api: ${{ steps.filter.outputs.api }}
