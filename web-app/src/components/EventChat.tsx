@@ -1,4 +1,4 @@
-import { useGetUsers } from '@/api/admin'
+import { useGetCompanyUsers } from '@/api/operational'
 import {
   useGetEventMessageReactions,
   useToggleEventMessageReaction,
@@ -217,13 +217,33 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
     return Array.from(new Set(messages.map((m) => m.user_id)))
   }, [messages])
 
-  // Fetch users from admin.users table for message display
-  const { data: users } = useGetUsers({
+  // Fetch users from operational endpoint for message display
+  // Using operational endpoint instead of admin endpoint so non-admin users can fetch user names
+  const { data: users, isLoading: isLoadingUsers } = useGetCompanyUsers({
     queryParams: { user_ids: userIds, include_image_urls: true },
     queryOptions: {
       enabled: userIds.length > 0,
     },
   })
+
+  // Track if we've ever successfully loaded both messages and users (to distinguish initial load from new messages)
+  const hasLoadedBothRef = useRef(false)
+  useEffect(() => {
+    // Mark as loaded once we have messages loaded AND (no users needed OR users loaded)
+    const messagesLoaded = messages && !isLoading
+    const usersNotNeeded = userIds.length === 0
+    const usersLoaded = userIds.length > 0 ? users && !isLoadingUsers : true
+
+    if (messagesLoaded && (usersNotNeeded || usersLoaded)) {
+      hasLoadedBothRef.current = true
+    }
+  }, [messages, users, isLoading, isLoadingUsers, userIds.length])
+
+  // Only show loading on initial load - wait for both messages and users to load
+  // Once both have loaded at least once, show new messages immediately even if users are still loading
+  const isInitialLoad =
+    !hasLoadedBothRef.current &&
+    (isLoading || (userIds.length > 0 && isLoadingUsers))
 
   // Create a map from user_id to name_long
   const userIdToName = useMemo(() => {
@@ -1270,7 +1290,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
 
         <MessageList
           messages={organizedMessages}
-          isLoading={isLoading}
+          isLoading={isInitialLoad}
           eventId={eventId}
           projectId={projectId}
           userIdToName={userIdToName}
