@@ -35,9 +35,9 @@ const SystemPerformance = () => {
   // Compute showGridHzVSwitch before early return to use in useMemo
   const GRID_HZ_V_SENSOR_TYPE_IDS = [11, 192]
   const showGridHzVSwitch =
-    project.data?.spec.used_sensor_type_ids?.filter((id) =>
+    (project.data?.spec.used_sensor_type_ids?.filter((id) =>
       GRID_HZ_V_SENSOR_TYPE_IDS.includes(id),
-    ).length === GRID_HZ_V_SENSOR_TYPE_IDS.length || false
+    ).length ?? 0) === GRID_HZ_V_SENSOR_TYPE_IDS.length || false
 
   // Reset showGridHzV to false when project doesn't support grid Hz/V
   // This ensures state doesn't persist incorrectly when switching projects
