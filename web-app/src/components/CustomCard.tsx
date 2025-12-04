@@ -39,8 +39,8 @@ const CardTitle = ({
   allowFullscreen?: boolean
 }) => {
   return (
-    <Group justify="apart">
-      <Group gap={3}>
+    <Group justify="apart" wrap="nowrap">
+      <Group gap={3} wrap="nowrap">
         {beta && <Badge variant="filled">Beta</Badge>}
         {title && <span style={{ fontWeight: 500 }}>{title}</span>}
         {info && (

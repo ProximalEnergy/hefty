@@ -6,6 +6,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { DataTimeSeries, Quality } from '@/hooks/types'
 import { getInterval, roundTime } from '@/utils/interval'
 import {
+  Badge,
   Button,
   Group,
   HoverCard,
@@ -163,6 +164,57 @@ const PowerPlotPVZoom = () => {
     },
   })
 
+  // Calculate performance index from meter and expected power traces
+  const performanceIndex = (() => {
+    if (!data.data?.data) return undefined
+
+    let meterTrace: DataTimeSeries | undefined
+    switch (project.data?.project_type_id) {
+      case ProjectTypeEnum.PV:
+        meterTrace = data.data?.data?.find(
+          (trace) => trace.name === 'Meter Active Power',
+        )
+        break
+      case ProjectTypeEnum.BESS:
+        return undefined
+      case ProjectTypeEnum.PVS:
+        meterTrace = data.data?.data?.find(
+          (trace) => trace.name === 'PV Active Power',
+        )
+        break
+      default:
+        return undefined
+    }
+
+    const expectedTrace = data.data.data.find(
+      (trace) => trace.name === 'Expected Power',
+    )
+
+    if (!meterTrace || !expectedTrace) return undefined
+
+    // Sum the y values, filtering out nulls
+    const sumMeter = meterTrace.y.reduce(
+      (sum, val) => sum + (val !== null ? val : 0),
+      0,
+    )
+    const sumExpected = expectedTrace.y.reduce(
+      (sum, val) => sum + (val !== null ? val : 0),
+      0,
+    )
+
+    // Convert to MWh based on interval
+    // 5min interval: divide by 12 (5 minutes = 1/12 hour)
+    // 1min interval: divide by 60 (1 minute = 1/60 hour)
+    const conversionFactor =
+      interval === '5min' ? 12 : interval === '1min' ? 60 : 12
+    const meterMWh = sumMeter / conversionFactor
+    const expectedMWh = sumExpected / 12
+
+    // Calculate performance index
+    if (expectedMWh === 0) return undefined
+    return meterMWh / expectedMWh
+  })()
+
   const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
     const newStartTime = event['xaxis.range[0]']
     const newEndTime = event['xaxis.range[1]']
@@ -293,26 +345,42 @@ const PowerPlotPVZoom = () => {
       }
       style={{ flex: 2 }}
       headerChildren={
-        <Group>
+        <Group wrap="nowrap">
+          {performanceIndex !== undefined && (
+            <Tooltip label="Performance Index is calculated as the ratio of the meter power to the expected power at full health.">
+              <Badge
+                size="lg"
+                color={
+                  performanceIndex < 1.11
+                    ? performanceIndex > 0.9
+                      ? 'green'
+                      : performanceIndex > 0.5
+                        ? 'yellow'
+                        : 'red'
+                    : 'gray'
+                }
+              >
+                {performanceIndex < 1.11
+                  ? `P.I. ${(performanceIndex * 100).toFixed(1) + '%'}`
+                  : 'P.I. >110%'}
+              </Badge>
+            </Tooltip>
+          )}
           <Tooltip label="Pan Left">
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => handlePan('left')}
-            >
+            <Button size="xs" variant="light" onClick={() => handlePan('left')}>
               <IconArrowLeft />
             </Button>
           </Tooltip>
           <Button.Group>
             <Tooltip label="Reset to the last 24 hours. You can also zoom by scrolling.">
-              <Button size="xs" variant="outline" onClick={handleDefaultView}>
+              <Button size="xs" variant="light" onClick={handleDefaultView}>
                 Last 24 Hours
               </Button>
             </Tooltip>
             <Menu>
               <Menu.Target>
                 <Tooltip label="Select a time range">
-                  <Button size="xs" variant="outline">
+                  <Button size="xs" variant="light">
                     <IconCaretDown />
                   </Button>
                 </Tooltip>
@@ -333,7 +401,7 @@ const PowerPlotPVZoom = () => {
           <Tooltip label="Pan Right">
             <Button
               size="xs"
-              variant="outline"
+              variant="light"
               onClick={() => handlePan('right')}
             >
               <IconArrowRight />
