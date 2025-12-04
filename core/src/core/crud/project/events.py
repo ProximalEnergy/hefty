@@ -234,9 +234,9 @@ def get_homepage_summary(
             "total_number_of_open_events": 0,
         }
     if sort_by == "daily":
-        query = query.order_by(models.Event.loss_daily_financial.desc())
+        query = query.order_by(models.Event.loss_daily_financial.desc().nullslast())
     elif sort_by == "total":
-        query = query.order_by(models.Event.loss_total_financial.desc())
+        query = query.order_by(models.Event.loss_total_financial.desc().nullslast())
     else:
         raise ValueError(f"Invalid sort_by: {sort_by}")
     top_events = query.limit(5).all()
