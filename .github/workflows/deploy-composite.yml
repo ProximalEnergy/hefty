@@ -67,7 +67,7 @@ jobs:
           fi
           echo "=============================="
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_run' && 'main' || github.ref }}
           fetch-depth: ${{ (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && 2 || 1 }}
@@ -139,7 +139,7 @@ jobs:
       release_name: ${{ steps.version.outputs.release_name }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -258,7 +258,7 @@ jobs:
     if: needs.publish-core.result == 'success'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Create GitHub Release
         env:
@@ -287,7 +287,7 @@ jobs:
       environment: ${{ steps.set-env.outputs.environment }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set environment variables
         id: set-env
@@ -493,7 +493,7 @@ jobs:
       (needs.deploy-api.result == 'success' || (needs.deploy-api.result == 'skipped' && needs.detect-changes.outputs.web-app == 'true'))
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Trigger Amplify Build
         run: |
