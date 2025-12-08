@@ -7699,41 +7699,7 @@ export interface components {
             vector_store_id: string;
         };
         /** Event */
-        "Event-Input": {
-            /** Event Id */
-            event_id: number;
-            /** Device Id */
-            device_id: number;
-            /** Failure Mode Id */
-            failure_mode_id: number;
-            /** Root Cause Id */
-            root_cause_id: number | null;
-            /**
-             * Time Start
-             * Format: date-time
-             */
-            time_start: string;
-            /** Time End */
-            time_end: string | null;
-            /**
-             * Time Detected
-             * Format: date-time
-             */
-            time_detected: string;
-            /** Time Last Analyzed */
-            time_last_analyzed: string | null;
-            /** Loss Total Financial */
-            loss_total_financial: number | null;
-            failure_mode: components["schemas"]["FailureMode"] | null;
-            root_cause: components["schemas"]["RootCause"] | null;
-            device: components["schemas"]["Device"] | null;
-            /** Device Name Full */
-            device_name_full?: string | null;
-            /** Version */
-            version?: string | null;
-        };
-        /** Event */
-        "Event-Output": {
+        Event: {
             /** Event Id */
             event_id: number;
             /** Device Id */
@@ -8146,20 +8112,7 @@ export interface components {
             alert_id: number;
         };
         /** KPIInstance */
-        "KPIInstance-Input": {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
-            /** Kpi Type Id */
-            kpi_type_id: number;
-            /** Is Visible */
-            is_visible: boolean;
-            kpi_type: components["schemas"]["KPIType"] | null;
-        };
-        /** KPIInstance */
-        "KPIInstance-Output": {
+        KPIInstance: {
             /**
              * Project Id
              * Format: uuid
@@ -8299,18 +8252,7 @@ export interface components {
             device_id: number;
         };
         /** OperationalKPIData */
-        "OperationalKPIData-Input": {
-            /**
-             * Project Id
-             * Format: uuid
-             */
-            project_id: string;
-            /** Kpi Type Id */
-            kpi_type_id: number;
-            data: components["schemas"]["OperationalKPIDataObj"];
-        };
-        /** OperationalKPIData */
-        "OperationalKPIData-Output": {
+        OperationalKPIData: {
             /**
              * Project Id
              * Format: uuid
@@ -14706,7 +14648,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Event-Output"][];
+                    "application/json": components["schemas"]["Event"][];
                 };
             };
             /** @description Validation Error */
@@ -14905,7 +14847,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Event-Output"][];
+                    "application/json": components["schemas"]["Event"][];
                 };
             };
             /** @description Validation Error */
@@ -17451,7 +17393,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OperationalKPIData-Output"][];
+                    "application/json": components["schemas"]["OperationalKPIData"][];
                 };
             };
             /** @description Validation Error */
@@ -17633,7 +17575,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIInstance-Output"][];
+                    "application/json": components["schemas"]["KPIInstance"][];
                 };
             };
             /** @description Validation Error */
