@@ -186,6 +186,16 @@ const PowerPlotPVZoom = () => {
         return undefined
     }
 
+    // Clip meterTrace values to a minimum of 0
+    if (meterTrace) {
+      meterTrace = {
+        ...meterTrace,
+        y: meterTrace.y.map((val) =>
+          val !== null ? Math.max(0, val) : null,
+        ) as number[],
+      }
+    }
+
     const expectedTrace = data.data.data.find(
       (trace) => trace.name === 'Expected Power',
     )
@@ -203,10 +213,17 @@ const PowerPlotPVZoom = () => {
     )
 
     // Convert to MWh based on interval
+    // 15min interval: divide by 4 (15 minutes = 1/4 hour)
     // 5min interval: divide by 12 (5 minutes = 1/12 hour)
     // 1min interval: divide by 60 (1 minute = 1/60 hour)
     const conversionFactor =
-      interval === '5min' ? 12 : interval === '1min' ? 60 : 12
+      interval === '5min'
+        ? 12
+        : interval === '1min'
+          ? 60
+          : interval === '15min'
+            ? 4
+            : 12
     const meterMWh = sumMeter / conversionFactor
     const expectedMWh = sumExpected / 12
 
@@ -347,7 +364,7 @@ const PowerPlotPVZoom = () => {
       headerChildren={
         <Group wrap="nowrap">
           {performanceIndex !== undefined && (
-            <Tooltip label="Performance Index is calculated as the ratio of the meter power to the expected power at full health.">
+            <Tooltip label="Performance Index for the plotted period: metered energy divided by expected energy at full health.">
               <Badge
                 size="lg"
                 color={
