@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -20,6 +21,14 @@ router = APIRouter(prefix="/projects/{project_id}/status", tags=["project_status
 # Cache translation table outside the endpoint
 delete_chars = string.punctuation + string.whitespace
 tbl = str.maketrans("", "", delete_chars)
+
+
+class StatusTimeSeries(BaseModel):
+    x: list[datetime.datetime]
+    y: list[str | None]
+    name: str
+    alert: list[bool]
+    tag_id: int
 
 
 def strtobool(val: str) -> int:  # skip-star-syntax
@@ -51,7 +60,7 @@ def interpret(
 
 
 # -- optimized /time-series endpoint for JS --
-@router.get("/time-series")
+@router.get("/time-series", response_model=list[StatusTimeSeries])
 def get_status_time_series(
     db: Annotated[Session, Depends(get_project_db)],
     *,

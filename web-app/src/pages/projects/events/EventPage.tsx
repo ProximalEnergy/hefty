@@ -315,7 +315,7 @@ const useEventTraces = (
   })
 
   const statusTimeSeries = useGetStatusTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       device_ids: eventTraceTags?.map((tag) => tag.device_id || -1) || [],
       start: traceStart.toISOString(),
@@ -690,7 +690,7 @@ const Page = () => {
   )
 
   const heatmapData: {
-    uniqueY: string[]
+    uniqueY: (string | null)[]
     x: string[]
     y: string[]
     z: number[][]

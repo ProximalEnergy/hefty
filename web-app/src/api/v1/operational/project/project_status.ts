@@ -1,29 +1,26 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface StatusTimeSeries {
-  x: string[]
-  y: string[]
-  name: string
-  alert: boolean[]
-}
+const _COMPONENT_NAME = 'StatusTimeSeries'
+const URL = '/v1/operational/projects/{project_id}/status/time-series'
+
+type StatusTimeSeries = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
+type getPathParams = get['parameters']['path']
 
 export const useGetStatusTimeSeries = ({
   pathParams,
   queryParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: string }
-  queryParams: {
-    start: string
-    end: string
-    tag_ids?: number[]
-    device_ids?: number[]
-  }
+  pathParams: getPathParams
+  queryParams: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/status/time-series`,
+    url: URL,
     params: queryParams,
   }
 

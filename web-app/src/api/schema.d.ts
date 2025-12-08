@@ -7403,6 +7403,26 @@ export interface components {
                 [key: string]: (number | null)[];
             };
         };
+        /** DeviceDetailsHorizonalData */
+        DeviceDetailsHorizonalData: {
+            /** Values */
+            values: number[];
+            /** Name */
+            name: string | null;
+            /** Device Id */
+            device_id: number;
+        };
+        /** DeviceDetailsHorizontalPV */
+        DeviceDetailsHorizontalPV: {
+            /** Times */
+            times: string[];
+            /** Meter Power */
+            meter_power: components["schemas"]["DeviceDetailsHorizonalData"][];
+            /** Met */
+            met: components["schemas"]["DeviceDetailsHorizonalData"][];
+            /** Pcs */
+            pcs: components["schemas"]["DeviceDetailsHorizonalData"][];
+        };
         /** DeviceTotals */
         DeviceTotals: {
             /** Device Type Id */
@@ -9209,6 +9229,19 @@ export interface components {
             site_name: string;
             /** Site Capacity Mw */
             site_capacity_mw: number;
+        };
+        /** StatusTimeSeries */
+        StatusTimeSeries: {
+            /** X */
+            x: string[];
+            /** Y */
+            y: (string | null)[];
+            /** Name */
+            name: string;
+            /** Alert */
+            alert: boolean[];
+            /** Tag Id */
+            tag_id: number;
         };
         /** SuggestRootCauseRequest */
         SuggestRootCauseRequest: {
@@ -15842,7 +15875,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusTimeSeries"][];
                 };
             };
             /** @description Validation Error */
@@ -20308,7 +20341,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DeviceDetailsHorizontalPV"];
                 };
             };
             /** @description Validation Error */

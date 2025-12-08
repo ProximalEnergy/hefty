@@ -1,25 +1,28 @@
-import { DeviceDetailsHorizontalData } from '@/api/v1/protected/web-application/projects/device-details/horizontal/horizontal'
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface DeviceDetailsHorizontalPV {
-  times: string[]
-  meter_power: DeviceDetailsHorizontalData[]
-  met: DeviceDetailsHorizontalData[]
-  pcs: DeviceDetailsHorizontalData[]
-}
+const _COMPONENT_NAME = 'DeviceDetailsHorizontalPV'
+const URL =
+  '/v1/protected/web-application/projects/{project_id}/device-details/horizontal/pv'
+
+type DeviceDetailsHorizontalPV =
+  types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
+type getPathParams = get['parameters']['path']
 
 export const useGetDeviceDetailsHorizontalPV = ({
   pathParams,
-  queryParams = {},
+  queryParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: string }
-  queryParams?: object
+  pathParams: getPathParams
+  queryParams: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/horizontal/pv`,
+    url: URL,
     params: queryParams,
   }
 

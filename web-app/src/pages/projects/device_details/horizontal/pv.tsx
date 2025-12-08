@@ -42,10 +42,10 @@ const Page = () => {
   }
 
   const deviceDetails = useGetDeviceDetailsHorizontalPV({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
-      start: startRequest,
-      end: endRequest,
+      start: startRequest || '',
+      end: endRequest || '',
     },
     queryOptions: { enabled: !!projectId && !!startRequest && !!endRequest },
   })
@@ -116,7 +116,7 @@ const Page = () => {
             deviceDetails.data.meter_power.map((meterPower) => ({
               x: deviceDetails.data.times,
               y: meterPower.values,
-              name: meterPower.name,
+              name: meterPower.name ?? undefined,
               fill: 'tozeroy',
               customdata: meterPower.device_id,
             }))
@@ -142,7 +142,7 @@ const Page = () => {
             deviceDetails.data.met.map((met) => ({
               x: deviceDetails.data.times,
               y: met.values,
-              name: met.name,
+              name: met.name ?? undefined,
               customdata: met.device_id,
             }))
           }
@@ -185,7 +185,7 @@ const Page = () => {
                 return deviceDetails.data.pcs.map((pcs) => ({
                   x: deviceDetails.data.times,
                   y: pcs.values,
-                  name: pcs.name,
+                  name: pcs.name ?? undefined,
                   customdata: pcs.device_id,
                 }))
               case 'heatmap':

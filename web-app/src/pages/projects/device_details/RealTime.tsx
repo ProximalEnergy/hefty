@@ -220,7 +220,7 @@ const Page = () => {
 
   const sensorTypes = useGetSensorTypes({
     queryParams: {
-      sensor_type_ids: usedSensorIds,
+      sensor_type_ids: usedSensorIds.map((id) => Number(id)),
     },
     queryOptions: { enabled: !!projectId && usedSensorIds.length > 0 },
   })
