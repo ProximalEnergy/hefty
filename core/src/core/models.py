@@ -2618,3 +2618,28 @@ class QSEField(Base):
     qse_provider = relationship("QSEProvider")
 
     __table_args__ = {"schema": "operational"}
+
+
+class EventCMMSTicket(Base):
+    __tablename__ = "event_cmms_tickets"
+
+    event_cmms_ticket_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True
+    )
+    event_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.events.event_id"), index=True
+    )
+    cmms_ticket_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.cmms_tickets.cmms_ticket_id"), index=True
+    )
+    created_by_user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id"), index=True
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True), server_default=sa.func.now()
+    )
+
+    event = relationship("Event")
+    cmms_ticket = relationship("CMMSTicket")
+
+    __table_args__ = (sa.UniqueConstraint("event_id", "cmms_ticket_id"),)
