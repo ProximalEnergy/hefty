@@ -792,7 +792,7 @@ const ProjectKPIHome = () => {
                 <Button variant="light">Contracts</Button>
               </Link>
               <Button variant="light" onClick={() => setRequestModalOpen(true)}>
-                Request New KPI
+                Request New Contractual KPI
               </Button>
             </Group>
           </Group>

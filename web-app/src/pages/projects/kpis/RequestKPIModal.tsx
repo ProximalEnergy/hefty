@@ -104,7 +104,7 @@ Contract ID: ${selectedContract}`,
       <Modal
         opened={opened}
         onClose={onClose}
-        title="Request New KPI"
+        title="Request New Contractual KPI"
         size="md"
       >
         <Stack>

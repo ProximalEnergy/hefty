@@ -1,0 +1,98 @@
+name: Sync Types and Check TypeScript
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+    paths:
+      - "api/**"
+      - "core/**"
+      - ".github/workflows/sync-types-and-check.yml"
+
+permissions:
+  id-token: write # For OIDC authentication if needed
+  contents: read
+
+jobs:
+  sync-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Full history for git diff
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+
+      - name: Check for changes in api/ or core/
+        id: check-changes
+        run: |
+          if git diff --name-only ${{ github.base_ref }}...HEAD | grep -E '^(api/|core/)' > /dev/null; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in api/ or core/"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in api/ or core/"
+          fi
+
+      - name: Set up Python with uv
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        run: uv python install
+        working-directory: core
+
+      - name: Install core dependencies
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        run: uv sync
+        working-directory: core
+
+      - name: Install API dependencies
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        run: uv sync
+        working-directory: api
+
+      - name: Set up Node.js
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Get pinned openapi-typescript version
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        id: get-version
+        run: |
+          # Extract version from package-lock.json (lockfileVersion 3 uses packages structure)
+          OPENAPI_TS_VERSION=$(node -p "require('./web-app/package-lock.json').packages['node_modules/openapi-typescript'].version")
+          echo "version=${OPENAPI_TS_VERSION}" >> $GITHUB_OUTPUT
+          echo "Using openapi-typescript version: ${OPENAPI_TS_VERSION}"
+
+      - name: Run sync script
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        env:
+          # Minimal environment variables needed for OpenAPI schema generation
+          DATABASE_URL: "postgresql://dummy:dummy@localhost/dummy"
+          DISABLE_PARAMETER_STORE_BOOTSTRAP: "1"
+          ENVIRONMENT: "development"
+          # Pass the pinned version to the sync script
+          OPENAPI_TYPESCRIPT_VERSION: ${{ steps.get-version.outputs.version }}
+        run: bash _scripts/sync_api_and_ts_types_and_enums.sh
+
+      - name: Check if generated files changed
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        run: |
+          if git diff --exit-code web-app/src/api/enumerations.ts web-app/src/api/schema.d.ts > /dev/null; then
+            echo "✓ Generated files are up to date"
+          else
+            echo "::error::Generated files (enumerations.ts or schema.d.ts) changed after running sync script."
+            echo "::error::This means backend changes require frontend type updates."
+            echo "::error::👀 Please run 'mise run codegen' locally and commit the changes. 👀"
+            echo ""
+            echo "Changed files:"
+            git diff --name-only web-app/src/api/enumerations.ts web-app/src/api/schema.d.ts
+            exit 1
+          fi
