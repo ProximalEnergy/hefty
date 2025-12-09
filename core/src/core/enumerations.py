@@ -613,3 +613,20 @@ class ReactionType(StrEnum):
     EYES = "eyes"
     QUESTION_MARK = "question_mark"
     HEART = "heart"
+
+
+class NotificationSeverity(StrEnum):
+    INFO = "info"
+    WARNING = "warning"
+    CRITICAL = "critical"
+
+
+class NotificationChannel(StrEnum):
+    EMAIL = "email"
+    IN_APP = "in_app"
+
+
+class NotificationState(StrEnum):
+    UNREAD = "unread"
+    READ = "read"
+    DELETED = "deleted"

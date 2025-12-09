@@ -29,6 +29,30 @@ class LTree(UserDefinedType):
         return "LTREE"
 
 
+# --- Postgres Enum Types ---
+# We attach these to metadata so they aren't tied to just one table
+notification_severity_enum = Enum(
+    enumerations.NotificationSeverity,
+    name="notification_severity",
+    schema="admin",
+    metadata=Base.metadata,
+)
+
+notification_channel_enum = Enum(
+    enumerations.NotificationChannel,
+    name="notification_channel",
+    schema="admin",
+    metadata=Base.metadata,
+)
+
+notification_state_enum = Enum(
+    enumerations.NotificationState,
+    name="notification_state",
+    schema="admin",
+    metadata=Base.metadata,
+)
+
+
 ##### START ADMIN SCHEMA #####
 # NOTE: Every model in the admin schema must specify
 #  `__table_args__ = {"schema": "admin"}`
@@ -226,6 +250,112 @@ class UserSubscription(Base):
     event_chat_notifications: Mapped[bool] = mapped_column(server_default="true")
 
     __table_args__ = {"schema": "admin"}
+
+
+class NotificationType(Base):
+    __tablename__ = "notification_types"
+
+    notification_type_id: Mapped[int] = mapped_column(primary_key=True)
+    name_long: Mapped[str] = mapped_column(sa.Text)
+    in_app_enabled_default: Mapped[bool]
+    email_enabled_default: Mapped[bool]
+    in_app_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
+        mapped_column(notification_severity_enum, nullable=True)
+    )
+    email_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
+        mapped_column(notification_severity_enum, nullable=True)
+    )
+
+    __table_args__ = {"schema": "admin"}
+
+
+class NotificationPreference(Base):
+    __tablename__ = "notification_preferences"
+
+    notification_preference_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id"),
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("operational.projects.project_id"),
+    )
+    notification_type_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("admin.notification_types.notification_type_id"),
+    )
+    in_app_enabled: Mapped[bool]
+    email_enabled: Mapped[bool]
+    email_min_severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
+        notification_severity_enum
+    )
+    in_app_min_severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
+        notification_severity_enum
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "user_id",
+            "project_id",
+            "notification_type_id",
+        ),
+        {"schema": "admin"},
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    notification_id: Mapped[int] = mapped_column(primary_key=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey("operational.projects.project_id"),
+    )
+    notification_type_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("admin.notification_types.notification_type_id"),
+    )
+    data: Mapped[dict] = mapped_column(JSONB)
+    severity: Mapped[enumerations.NotificationSeverity] = mapped_column(
+        notification_severity_enum
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+    sent_at: Mapped[datetime.datetime | None] = mapped_column(
+        sa.DateTime(timezone=True),
+        nullable=True,
+    )
+
+    __table_args__ = {"schema": "admin"}
+
+
+class NotificationState(Base):
+    __tablename__ = "notification_states"
+
+    notification_state_id: Mapped[int] = mapped_column(primary_key=True)
+    notification_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("admin.notifications.notification_id"),
+    )
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id"),
+    )
+    channel: Mapped[enumerations.NotificationChannel] = mapped_column(
+        notification_channel_enum
+    )
+    state: Mapped[enumerations.NotificationState] = mapped_column(
+        notification_state_enum
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "notification_id",
+            "user_id",
+            "channel",
+        ),
+        {"schema": "admin"},
+    )
 
 
 class UserType(Base):

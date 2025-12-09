@@ -187,6 +187,23 @@ export const KPITypeEnum = {
   BESS_PROJECT_DC_ENCLOSURE_RTE: 105,
 } as const;
 
+export const NotificationChannelEnum = {
+  EMAIL: "email",
+  IN_APP: "in_app",
+} as const;
+
+export const NotificationSeverityEnum = {
+  INFO: "info",
+  WARNING: "warning",
+  CRITICAL: "critical",
+} as const;
+
+export const NotificationStateEnum = {
+  UNREAD: "unread",
+  READ: "read",
+  DELETED: "deleted",
+} as const;
+
 export const PVBudgetedSoilingModeEnum = {
   FIXED: "fixed",
   PER_TIMESTAMP: "per_timestamp",
