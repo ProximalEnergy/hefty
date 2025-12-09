@@ -1,10 +1,11 @@
-import time
 import urllib.parse
 from typing import Annotated, Any, cast
 
 import pandas as pd
 from core.crud.operational import projects as crud_projects
+from core.crud.operational.sensor_types import get_sensor_type
 from core.crud.project import tags as crud_project_tags
+from core.crud.project.tags import get_project_tags
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -16,9 +17,9 @@ from app.logger import logger
 from core import models
 
 
-def create_tag_pattern_fast(*, name_scada: str) -> str:
+def create_tag_pattern(*, name_scada: str) -> str:
     """
-    Faster version of create_tag_pattern using string operations instead of regex.
+    Crate a tag pattern from a name_scada string.
     """
     result = []
     i = 0
@@ -75,9 +76,6 @@ router = APIRouter(prefix="/project-tag-explorer", tags=["project_tag_explorer"]
 async def get_unique_tag_types(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
-    limit: int = 500,
-    include_null_sensor_types: bool = False,
-    only_null_sensor_types: bool = False,
 ):
     """
     Get unique tag types for the current project.
@@ -268,19 +266,8 @@ async def assign_sensor_type_to_pattern(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """
-    Assign a sensor type to all tags matching a pattern in a project.
-    This endpoint is only accessible to superadmins.
-    """
-
-    # Get the sensor type
-    sensor_type = (
-        project_db.query(models.SensorType)
-        .filter(models.SensorType.sensor_type_id == request.sensor_type_id)
-        .first()
-    )
-    if not sensor_type:
-        raise HTTPException(status_code=404, detail="Sensor type not found")
+    # Get sensor type
+    sensor_type = get_sensor_type(db=db, sensor_type_id=request.sensor_type_id).item
 
     try:
         # First, check if any tags match the pattern (for validation)
@@ -400,89 +387,62 @@ async def get_tag_samples(
         )
 
 
-@router.post(
-    "/populate-unique-tag-patterns",
+@router.put(
+    "/unique-tag-patterns",
     dependencies=[Depends(dependencies.requires_superadmin_async)],
+    status_code=201,
 )
-async def populate_unique_tag_patterns(
+async def put_unique_tag_patterns(
+    project_id: str,
     project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    Populate the UniqueTagPatterns table with all tag patterns for the current
-    project. Moves away from parquet output and persists in the database.
-    """
     try:
-        start_time = time.time()
+        # Query all tags, including ghost tags
+        tags = get_project_tags(
+            db=project_db,
+            include_ghost_tags=True,
+        ).models()
 
-        # Get all unique tag patterns from the project schema
-        all_tag_types = crud_tags.get_unique_tag_types(
-            project_db=project_db,
-            limit=10000000,
-            include_null_sensor_types=True,
-        )
+        # Group by tag pattern
+        patterns: dict[str, dict] = {}
+        for tag in tags:
+            pattern = create_tag_pattern(name_scada=tag.name_scada)
 
-        # Group by normalized pattern
-        pattern_groups: dict[str, dict] = {}
-        for tag_type in all_tag_types:
-            if not tag_type.name_scada:
-                continue
-            pattern = create_tag_pattern_fast(name_scada=tag_type.name_scada)
-            if pattern not in pattern_groups:
-                pattern_groups[pattern] = {
+            # If pattern is not in patterns, initialize it
+            if pattern not in patterns:
+                patterns[pattern] = {
                     "pattern": pattern,
                     "count": 0,
                     "example_tag_ids": [],
                 }
-            pattern_groups[pattern]["count"] += tag_type.count
-            # Use the example_tag_id from the query result directly
-            if (
-                tag_type.example_tag_id
-                and tag_type.example_tag_id
-                not in pattern_groups[pattern]["example_tag_ids"]
-            ):
-                pattern_groups[pattern]["example_tag_ids"].append(
-                    tag_type.example_tag_id
-                )
+
+            # Increment count
+            patterns[pattern]["count"] += 1
+
+            # Add the tag_id to the example_tag_ids list
+            patterns[pattern]["example_tag_ids"].append(tag.tag_id)
 
         # Convert to list and sort by count
-        unique_patterns = list(pattern_groups.values())
+        unique_patterns = list(patterns.values())
         unique_patterns.sort(key=lambda x: x["count"], reverse=True)
 
-        # Replace parquet persistence with database writes into the PROJECT schema
-        # Clear existing rows for this tenant (project schema session)
+        # Remove existing rows
         project_db.query(models.UniqueTagPatterns).delete()
 
         # Prepare rows for bulk insert
-        rows = []
-        for item in unique_patterns:
-            # Use the first example tag ID if available, otherwise empty list
-            example_tag_id = (
-                item["example_tag_ids"][0] if item["example_tag_ids"] else None
+        rows = [
+            models.UniqueTagPatterns(
+                pattern=item["pattern"],
+                count=int(item["count"]),
+                # Store as dict per models.py definition, with single tag_id
+                example_tag_ids={"tag_ids": [item["example_tag_ids"][0]]},
             )
-            rows.append(
-                models.UniqueTagPatterns(
-                    pattern=item["pattern"],
-                    count=int(item["count"]),
-                    # Store as dict per models.py definition, with single tag_id
-                    example_tag_ids={"tag_ids": [example_tag_id]}
-                    if example_tag_id
-                    else {"tag_ids": []},
-                )
-            )
+            for item in unique_patterns
+        ]
 
-        if rows:
-            project_db.bulk_save_objects(rows)
+        # Bulk insert rows
+        project_db.bulk_save_objects(rows)
         project_db.commit()
-
-        total_time = time.time() - start_time
-        return {
-            "message": (f"Inserted {len(rows)} unique tag patterns into the database"),
-            "total_patterns": len(rows),
-            "total_tags": sum(x["count"] for x in unique_patterns),
-            "project_id": str(project.project_id),
-            "elapsed_seconds": round(total_time, 3),
-        }
 
     except Exception as e:
         # Rollback DB transaction if anything failed during write
@@ -517,82 +477,65 @@ async def get_tag_pattern_samples(
             project_db=project_db, pattern=tag_pattern, limit=5
         )
 
+        # Parse start and end dates, or use default 1 day if not provided (reduced for performance)
+        if start and end:
+            start_date = pd.Timestamp(start)
+            end_date = pd.Timestamp(end)
+        else:
+            end_date = pd.Timestamp.utcnow()
+            start_date = end_date - pd.Timedelta(days=1)
+
         # For each tag, get sample values from the timeseries data
         tag_samples = []
         for tag in sample_tags:
             try:
-                # Parse start and end dates, or use default 1 day if not provided (reduced for performance)
-                if start and end:
-                    start_date = pd.Timestamp(start)
-                    end_date = pd.Timestamp(end)
-                else:
-                    end_date = pd.Timestamp.utcnow()
-                    start_date = end_date - pd.Timedelta(
-                        days=1
-                    )  # Reduced from 3 days to 1 day
-
-                # Get sample tag IDs for this pattern
-
-                # Use the existing utils.data_df function (same as DataBrowsing page)
-                try:
-                    df = utils.data_df(
-                        project_db=project_db,
-                        project=project,
-                        tags=[tag],
-                        start=start_date,
-                        end=end_date,
-                        interval="5min",  # Use 5min interval for sample data
-                        agg="instantaneous",
-                        fillna_zero=False,
-                        unit_scaled=False,
-                    )
-
-                    # Process the DataFrame data
-                    values = []
-                    timestamps = []
-
-                    if not df.empty and tag.tag_id in df.columns:
-                        # Get non-null values and their corresponding timestamps
-                        non_null_data = df[tag.tag_id].dropna()
-
-                        # For timeseries, we want time-ordered data, not just unique values
-                        # Sample data points across the time range for better visualization
-                        if len(non_null_data) > 100:
-                            # For large datasets, sample every nth point to get good coverage
-                            step = len(non_null_data) // 100
-                            sampled_data = non_null_data.iloc[::step]
-                            values = sampled_data.tolist()
-                            timestamps = sampled_data.index.tolist()
-                        else:
-                            # For smaller datasets, use all data
-                            values = non_null_data.tolist()
-                            timestamps = non_null_data.index.tolist()
-
-                    is_numeric, value_range, total_unique_values = (
-                        _process_numeric_values(values=values)
-                    )
-                except Exception as e:
-                    # Continue with empty data
-                    # Log error for debugging but don't fail the request
-
-                    logger.warning(
-                        f"Error getting timeseries data for tag {tag.tag_id}: {e}"
-                    )
-
-                tag_samples.append(
-                    {
-                        "tag_name": tag.name_scada,
-                        "tag_id": tag.tag_id,
-                        "sample_values": values,  # Show all returned data
-                        "timestamps": timestamps,  # Show all timestamps
-                        "is_numeric": is_numeric,
-                        "value_range": value_range,
-                        "total_unique_values": total_unique_values,
-                    }
+                df = utils.data_df(
+                    project_db=project_db,
+                    project=project,
+                    tags=[tag],
+                    start=start_date,
+                    end=end_date,
+                    interval="5min",
+                    agg="instantaneous",
+                    fillna_zero=False,
+                    unit_scaled=False,
                 )
-            except Exception:
-                # Continue with other tags even if one fails
-                continue
+
+                # Process the DataFrame data
+                values = []
+                timestamps = []
+
+                if not df.empty and tag.tag_id in df.columns:
+                    # Get non-null values and their corresponding timestamps
+                    non_null_data = df[tag.tag_id].dropna()
+
+                    values = non_null_data.tolist()
+                    timestamps = non_null_data.index.tz_convert(
+                        project.time_zone
+                    ).tolist()
+
+                is_numeric, value_range, total_unique_values = _process_numeric_values(
+                    values=values
+                )
+            except Exception as e:
+                # Continue with empty data
+                # Log error for debugging but don't fail the request
+
+                logger.warning(
+                    f"Error getting timeseries data for tag {tag.tag_id}: {e}"
+                )
+
+            tag_samples.append(
+                {
+                    "tag_name": tag.name_scada,
+                    "tag_id": tag.tag_id,
+                    "sample_values": values,  # Show all returned data
+                    "timestamps": timestamps,  # Show all timestamps
+                    "is_numeric": is_numeric,
+                    "value_range": value_range,
+                    "total_unique_values": total_unique_values,
+                }
+            )
 
         return {
             "tag_pattern": tag_pattern,

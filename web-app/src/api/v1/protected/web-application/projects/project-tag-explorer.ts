@@ -47,15 +47,15 @@ interface TagPatternSamplesResponse {
   total_sample_tags: number
 }
 
-export const usePopulateUniqueTagPatterns = () => {
+export const usePutUniqueTagPatterns = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ projectId }: { projectId: string }) => {
       const token = await getToken()
-      const response = await axios.post(
-        `${baseURL}/v1/protected/web-application/projects/${projectId}/project-tag-explorer/populate-unique-tag-patterns`,
+      const response = await axios.put(
+        `${baseURL}/v1/protected/web-application/projects/${projectId}/project-tag-explorer/unique-tag-patterns`,
         {},
         {
           headers: {
@@ -145,8 +145,8 @@ export const useGetTagPatternSamples = ({
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     refetchOnWindowFocus: false,
-    staleTime: 300000, // 5 minutes
-    enabled: false, // Don't fetch automatically, only when called
+    staleTime: Infinity,
+    enabled: false,
   }
 
   return useCustomQuery<TagPatternSamplesResponse>({

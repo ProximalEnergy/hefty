@@ -5221,11 +5221,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Assign Sensor Type To Pattern
-         * @description Assign a sensor type to all tags matching a pattern in a project.
-         *     This endpoint is only accessible to superadmins.
-         */
+        /** Assign Sensor Type To Pattern */
         post: operations["assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post"];
         delete?: never;
         options?: never;
@@ -5254,7 +5250,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/populate-unique-tag-patterns": {
+    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/unique-tag-patterns": {
         parameters: {
             query?: never;
             header?: never;
@@ -5262,13 +5258,9 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
-        /**
-         * Populate Unique Tag Patterns
-         * @description Populate the UniqueTagPatterns table with all tag patterns for the current
-         *     project. Moves away from parquet output and persists in the database.
-         */
-        post: operations["populate_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_populate_unique_tag_patterns_post"];
+        /** Put Unique Tag Patterns */
+        put: operations["put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -20547,9 +20539,6 @@ export interface operations {
     get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get: {
         parameters: {
             query?: {
-                limit?: number;
-                include_null_sensor_types?: boolean;
-                only_null_sensor_types?: boolean;
                 schema?: string | null;
             };
             header?: {
@@ -20738,11 +20727,9 @@ export interface operations {
             };
         };
     };
-    populate_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_populate_unique_tag_patterns_post: {
+    put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20755,7 +20742,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
