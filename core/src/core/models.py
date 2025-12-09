@@ -1558,6 +1558,36 @@ class Event2(Base):
     __table_args__ = (sa.UniqueConstraint("device_id", "time_start"),)
 
 
+class Issue(Base):
+    __tablename__ = "issues"
+
+    issue_id: Mapped[int] = mapped_column(primary_key=True)
+    device_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.devices.device_id"),
+        index=True,
+    )
+    sensor_type_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.sensor_types.sensor_type_id"),
+    )
+    failure_mode_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.failure_modes.failure_mode_id"),
+        server_default="1",
+    )
+    time_start: Mapped[datetime.datetime] = mapped_column(sa.DateTime(timezone=True))
+    time_end: Mapped[datetime.datetime | None] = mapped_column(
+        sa.DateTime(timezone=True),
+        nullable=True,
+    )
+    time_detected: Mapped[datetime.datetime | None] = mapped_column(
+        sa.DateTime(timezone=True),
+    )
+    version: Mapped[str | None]
+
+    device = relationship("Device")
+    sensor_type = relationship("SensorType")
+    failure_mode = relationship("FailureMode")
+
+
 class EventLoss(Base):
     __tablename__ = "event_losses"
 
@@ -2588,3 +2618,28 @@ class QSEField(Base):
     qse_provider = relationship("QSEProvider")
 
     __table_args__ = {"schema": "operational"}
+
+
+class EventCMMSTicket(Base):
+    __tablename__ = "event_cmms_tickets"
+
+    event_cmms_ticket_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True
+    )
+    event_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.events.event_id"), index=True
+    )
+    cmms_ticket_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.cmms_tickets.cmms_ticket_id"), index=True
+    )
+    created_by_user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id"), index=True
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True), server_default=sa.func.now()
+    )
+
+    event = relationship("Event")
+    cmms_ticket = relationship("CMMSTicket")
+
+    __table_args__ = (sa.UniqueConstraint("event_id", "cmms_ticket_id"),)

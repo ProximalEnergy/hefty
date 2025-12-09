@@ -1,3 +1,4 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -8,25 +9,22 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface SensorType {
-  sensor_type_id: number
-  device_type_id: number
-  name_short: string
-  name_long: string
-  name_metric: string
-  unit: string | null
-  description: string | null
-}
+const _COMPONENT_NAME = 'SensorType'
+const URL = '/v1/operational/sensor-types/'
+
+export type SensorType = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
 
 export const useGetSensorTypes = ({
   queryParams = {},
   queryOptions = {},
 }: {
-  queryParams?: object
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/sensor-types/`,
+    url: URL,
     params: queryParams,
   }
 

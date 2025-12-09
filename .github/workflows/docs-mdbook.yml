@@ -31,7 +31,7 @@ jobs:
       MDBOOK_MERMAID_VERSION: 0.16.2
       MDBOOK_KATEX_VERSION: 0.9.4
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh

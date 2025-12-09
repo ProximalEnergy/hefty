@@ -14,6 +14,22 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { FeatureCollection } from 'geojson'
 import qs from 'qs'
 
+type PathParams = Record<string, string | number | boolean | null | undefined>
+
+function interpolatePath(url: string, pathParams: object): string {
+  if (!pathParams || Object.keys(pathParams).length === 0) return url
+
+  const params = pathParams as PathParams
+
+  return url.replace(/{([^}]+)}/g, (_match, key) => {
+    const value = params[key as keyof PathParams]
+    if (value === undefined || value === null) {
+      throw new Error(`Missing path param "${key}" for URL "${url}"`)
+    }
+    return encodeURIComponent(String(value))
+  })
+}
+
 export const useCustomQuery = <T>({
   axiosConfig,
   queryName,
@@ -43,8 +59,15 @@ export const useCustomQuery = <T>({
 
   const queryFn = async (): Promise<T> => {
     const token = await getToken({ template: 'default' })
+
+    const url =
+      axiosConfig.url != null
+        ? interpolatePath(axiosConfig.url, pathParams)
+        : undefined
+
     const response = await axios({
       ...axiosConfig,
+      url,
       baseURL: baseURL,
       headers: {
         Authorization: `Bearer ${token}`,

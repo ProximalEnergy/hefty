@@ -13,6 +13,7 @@ from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse, Response
 from natsort import natsorted
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -118,9 +119,23 @@ def get_horizontal_bess(
     }
 
 
+class DeviceDetailsHorizonalData(BaseModel):
+    values: list[float]
+    name: str | None
+    device_id: int
+
+
+class DeviceDetailsHorizontalPV(BaseModel):
+    times: list[datetime.datetime]
+    meter_power: list[DeviceDetailsHorizonalData]
+    met: list[DeviceDetailsHorizonalData]
+    pcs: list[DeviceDetailsHorizonalData]
+
+
 @router.get(
     "/horizontal/pv",
     response_class=ORJSONResponse,
+    response_model=DeviceDetailsHorizontalPV,
 )
 def get_horizontal_pv(
     start: datetime.datetime,

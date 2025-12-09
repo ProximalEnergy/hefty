@@ -1,30 +1,23 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-import { KPIType } from './kpi_types'
+const _COMPONENT_NAME = 'KPIInstance'
+const URL = '/v1/operational/kpi-instances/'
 
-export interface KPIInstance {
-  project_id: string
-  kpi_type_id: number
-  is_visible: boolean
-
-  // Relationships
-  kpi_type?: KPIType
-}
+export type KPIInstance = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
 
 export const useGetKPIInstances = ({
   queryParams = {},
   queryOptions = {},
 }: {
-  queryParams?: {
-    kpi_type_ids?: number[]
-    project_ids?: string[]
-    deep?: boolean
-  }
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/kpi-instances/`,
+    url: URL,
     params: queryParams,
   }
 
