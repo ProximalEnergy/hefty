@@ -2611,6 +2611,30 @@ class CustomDashboardComponent(Base):
     __table_args__ = {"schema": "operational"}
 
 
+class CustomDashboardShare(Base):
+    __tablename__ = "custom_dashboard_shares"
+
+    share_id: Mapped[int] = mapped_column(
+        sa.Integer, primary_key=True, autoincrement=True
+    )
+    dashboard_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        sa.ForeignKey("operational.custom_dashboards.dashboard_id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id"),
+        index=True,
+        nullable=False,
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint("dashboard_id", "user_id"),
+        {"schema": "operational"},
+    )
+
+
 class UniqueTagPatterns(Base):
     __tablename__ = "unique_tag_patterns"
 
