@@ -78,8 +78,9 @@ const placeholderKPIs = [
 // Example contracts for demo purposes - organized by project type
 const PV_EXAMPLE_CONTRACT = {
   contract_id: 2,
-  project_id: 'demo',
-  document_id: 'doc_002',
+  project_id: 'b102379c-eadb-4cc4-808b-a3d4b3f3ea5a',
+  document_id: '23b725a0-694a-4649-afeb-2e862c6dc3c3',
+  openai_file_id: 'file-7vWbEhxdTMUmjRfXXnFVBM',
   company_id_provider: 'provider_002',
   company_id_counter: 'counter_002',
   execution_date: '2024-03-20',
@@ -99,8 +100,9 @@ const PV_EXAMPLE_CONTRACT = {
 
 const BESS_EXAMPLE_CONTRACT = {
   contract_id: 83,
-  project_id: 'demo',
-  document_id: 'doc_083',
+  project_id: 'b102379c-eadb-4cc4-808b-a3d4b3f3ea5a',
+  document_id: 'c86dadfa-1eb6-4ea9-b9c0-bf285a490ccb',
+  openai_file_id: 'file-HynBFHgRRg3b7fb1L7CNj3',
   company_id_provider: 'provider_083',
   company_id_counter: 'c86dadfa-1eb6-4ea9-b9c0-bf285a490ccb',
   execution_date: '2025-10-02',
