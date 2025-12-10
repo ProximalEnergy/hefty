@@ -47,6 +47,7 @@ columns = [
     "device_id",
     "pg_data_type_id",
     "name_scada",
+    "status_lookup_id",
 ]
 logging.info(f"The following columns will be inserted/updated: {columns}")
 
@@ -104,7 +105,8 @@ def process_tag_chunk(tag_chunk):
                         device_id = EXCLUDED.device_id,
                         in_tsdb = EXCLUDED.in_tsdb,
                         pg_data_type_id = EXCLUDED.pg_data_type_id,
-                        name_scada = EXCLUDED.name_scada;
+                        name_scada = EXCLUDED.name_scada,
+                        status_lookup_id = EXCLUDED.status_lookup_id;
                     """,
                 )
 
