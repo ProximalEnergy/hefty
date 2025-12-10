@@ -126,7 +126,7 @@ const Page = () => {
           maxDays={MAX_DAYS}
         />
         <Link
-          to={`/projects/${projectId}/equipment-analysis?tab=tracker&start=${startURI}&end=${endURI}`}
+          to={`/projects/${projectId}/equipment-analysis/tracker?start=${startURI}&end=${endURI}`}
         >
           <Button variant="light" rightSection={<IconArrowBackUp size={14} />}>
             Back to Project

@@ -1,7 +1,7 @@
 import * as icons from '@tabler/icons-react'
 import React from 'react'
 
-type Link = {
+export type Link = {
   label: string
   to: string | ((arg: string) => string)
   requiresPV?: boolean
@@ -20,6 +20,7 @@ type Link = {
   requiresQSEIntegration?: boolean
   underDevelopment?: boolean
   userTypeRequired?: string
+  tooltip?: string
 }
 
 export type DropdownLink = {
@@ -77,91 +78,18 @@ export const portfolioLinks: DropdownLink[] = [
 ]
 
 export const projectLinks: DropdownLink[] = [
+  // Home is handled separately via HomeLinkWithDashboards component
   {
-    to: (projectId: string) => `/projects/${projectId}`,
-    label: 'Home',
-    icon: icons.IconHome,
+    to: (projectId: string) =>
+      `/projects/${projectId}/device-details/horizontal/pv`, // Will be overridden in NavbarNested based on project type
+    label: 'StackTrace',
+    icon: icons.IconStackMiddle,
   },
-  // {
-  //   link: (projectId: string) => `/projects/${projectId}/single-line`,
-  //   label: "Single Line",
-  //   icon: icons.IconCircuitCellPlus,
-  //   underDevelopment: true,
-  // },
+  // Performance links are generated dynamically based on project.spec.used_device_type_ids
   {
-    to: (projectId: string) => `/projects/${projectId}/custom-dash`,
-    label: 'Custom Dashboards',
-    icon: icons.IconLayoutDashboard,
-    requiresPV: true,
-  },
-  {
-    to: (projectId: string) => `/projects/${projectId}/real-time`,
-    label: 'Real Time',
-    icon: icons.IconClock,
-    requiresRealTimeData: true,
-  },
-  {
-    label: 'Current Day',
-    icon: icons.IconCalendarEvent,
-    links: [
-      {
-        to: (projectId: string) => `/projects/${projectId}/equipment-analysis`,
-        label: 'Devices',
-      },
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/device-details/data-availability`,
-        label: 'Data Availability',
-        requiresRealTimeData: true,
-      },
-    ],
-  },
-  {
-    label: 'Historic',
-    icon: icons.IconHistory,
-    links: [
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/device-details/horizontal/bess`,
-        label: 'BESS',
-        requiresBESS: true,
-      },
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/device-details/horizontal/pv`,
-        label: 'PV',
-        requiresPV: true,
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/battery-health`,
-        label: 'Battery Health',
-        requiresBESS: true,
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/bess-operation`,
-        label: 'BESS Operation',
-        requiresBESS: true,
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/energy-waterfall`,
-        label: 'Energy Waterfall',
-        requiresBESS: true,
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/events/uptime`,
-        label: 'Uptime',
-      },
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/events/meta-analysis`,
-        label: 'Events Meta-Analysis',
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/reports`,
-        label: 'Reports',
-        requiresReportIntegration: true,
-      },
-    ],
+    label: 'Performance',
+    icon: icons.IconChartBar,
+    links: [], // Will be populated dynamically in NavbarNested
   },
   {
     to: (projectId: string) => `/projects/${projectId}/events`,
@@ -175,26 +103,10 @@ export const projectLinks: DropdownLink[] = [
     icon: icons.IconChartLine,
   },
   {
-    to: (projectId: string) => `/projects/${projectId}/contracts/`,
-    label: 'Contracts',
+    to: (projectId: string) => `/projects/${projectId}/reports`,
+    label: 'Reports',
     icon: icons.IconFileText,
-  },
-  {
-    label: 'Finances',
-    icon: icons.IconCurrencyDollar,
-    requiresQSEIntegration: true,
-    links: [
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/finances/battery-settlement`,
-        label: 'Battery Settlement',
-      },
-    ],
-  },
-  {
-    to: (projectId: string) => `/projects/${projectId}/data-browsing`,
-    label: 'Data Browsing',
-    icon: icons.IconDatabaseSearch,
+    requiresReportIntegration: true,
   },
   {
     label: 'Maintenance',
@@ -202,43 +114,112 @@ export const projectLinks: DropdownLink[] = [
     links: [
       {
         to: (projectId: string) => `/projects/${projectId}/cmms/ticket-display`,
-        label: 'CMMS',
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/drone-inspections`,
-        label: 'Drone Inspections',
-        requiresDroneIntegration: true,
+        label: 'Tickets',
       },
       {
         to: (projectId: string) =>
           `/projects/${projectId}/maintenance/spare-parts`,
         label: 'Spare Parts',
       },
+      {
+        to: (projectId: string) => `/projects/${projectId}/drone-inspections`,
+        label: 'Drone Inspections',
+        requiresPV: true,
+      },
+      // Warranty TBD - placeholder for future
+      // {
+      //   to: (projectId: string) => `/projects/${projectId}/maintenance/warranty`,
+      //   label: 'Warranty',
+      // },
     ],
   },
   {
-    to: (projectId: string) => `/projects/${projectId}/loss-waterfall`,
-    label: 'Loss Waterfall',
-    icon: icons.IconBucketDroplet,
+    to: (projectId: string) => `/projects/${projectId}/calendar`,
+    label: 'Calendar',
+    icon: icons.IconCalendar,
+  },
+  {
+    to: (projectId: string) => `/projects/${projectId}/data-browsing`,
+    label: 'Data Browsing',
+    icon: icons.IconDatabaseSearch,
+  },
+  {
+    to: (projectId: string) => `/projects/${projectId}/contracts/`,
+    label: 'Contracts',
+    icon: icons.IconFileText,
+  },
+  {
+    to: (projectId: string) => `/projects/${projectId}/settings`,
+    label: 'Settings',
+    icon: icons.IconSettings,
+  },
+  {
+    label: 'Other',
+    icon: icons.IconDots,
+    links: [
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/equipment-analysis/single-line-diagram`,
+        label: 'Snapshot',
+        requiresBESS: true,
+      },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/device-details/horizontal/pv`,
+        label: 'Timeline',
+        requiresPV: true,
+      },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/events/meta-analysis`,
+        label: 'Events Meta Analysis',
+        requiresEventIntegration: true,
+      },
+      {
+        to: (projectId: string) => `/projects/${projectId}/events/uptime`,
+        label: 'Uptime',
+        requiresEventIntegration: true,
+      },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/device-details/data-availability`,
+        label: 'Data Availability',
+      },
+      {
+        to: (projectId: string) => `/projects/${projectId}/battery-health`,
+        label: 'Battery Health',
+        requiresBESS: true,
+      },
+      {
+        to: (projectId: string) => `/projects/${projectId}/energy-waterfall`,
+        label: 'BESS Energy Waterfall',
+        requiresBESS: true,
+      },
+      {
+        to: (projectId: string) => `/projects/${projectId}/bess-operation`,
+        label: 'BESS Operations',
+        requiresBESS: true,
+      },
+    ],
+  },
+  // Legacy/Development items kept for reference
+  {
+    to: (projectId: string) => `/projects/${projectId}/real-time`,
+    label: 'Real Time',
+    icon: icons.IconClock,
+    requiresRealTimeData: true,
     underDevelopment: true,
   },
   {
-    to: (projectId: string) => `/projects/${projectId}/quality`,
-    label: 'Quality',
-    icon: icons.IconHexagonLetterQFilled,
-    requiresQualityIntegration: true,
-  },
-  {
-    label: 'Administrative',
-    icon: icons.IconSettings,
+    label: 'Finances',
+    icon: icons.IconCurrencyDollar,
+    requiresQSEIntegration: true,
+    underDevelopment: true,
     links: [
       {
-        to: (projectId: string) => `/projects/${projectId}/calendar`,
-        label: 'Calendar',
-      },
-      {
-        to: (projectId: string) => `/projects/${projectId}/settings`,
-        label: 'Settings',
+        to: (projectId: string) =>
+          `/projects/${projectId}/finances/battery-settlement`,
+        label: 'Battery Settlement',
       },
     ],
   },
@@ -262,23 +243,6 @@ export const projectLinks: DropdownLink[] = [
       },
     ],
   },
-  // {
-  //   link: (projectId: string) => `/projects/${projectId}/availability-analysis`,
-  //   label: "Availability Analysis",
-  //   icon: icons.IconClockHour5,
-  //   underDevelopment: true,
-  // },
-  // {
-  //   link: (projectId: string) => `/projects/${projectId}/data`,
-  //   label: "Data",
-  //   icon: icons.IconChartAreaLineFilled,
-  // },
-  // {
-  //   link: (projectId: string) => `/projects/${projectId}/capacity`,
-  //   label: "Capacity",
-  //   icon: icons.IconBattery3,
-  //   bessOnly: true,
-  // },
 ]
 
 export const developmentLinks: DropdownLink[] = [

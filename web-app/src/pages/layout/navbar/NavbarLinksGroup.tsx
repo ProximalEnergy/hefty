@@ -1,15 +1,13 @@
 import {
   Box,
-  Collapse,
   Group,
-  Text,
+  Menu,
   ThemeIcon,
   Tooltip,
   UnstyledButton,
   rem,
 } from '@mantine/core'
 import { IconChevronRight } from '@tabler/icons-react'
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
 import classes from './NavbarLinksGroup.module.css'
@@ -18,16 +16,15 @@ interface DropdownLinkProps {
   label: string
   to: string
   underDevelopment: boolean
+  tooltip?: string
 }
 
 interface LinksGroupProps {
   icon: React.ElementType
   label: string
-  initiallyOpened?: boolean
   to?: string
   links?: DropdownLinkProps[]
   underDevelopment?: boolean
-  dropdownBehavior?: 'full' | 'arrow-only'
   collapsed: boolean
   onExpandNavbar?: () => void
 }
@@ -35,10 +32,8 @@ interface LinksGroupProps {
 export function LinksGroup({
   icon: Icon,
   label,
-  initiallyOpened,
   to,
   links,
-  dropdownBehavior = 'full',
   collapsed,
   onExpandNavbar,
 }: LinksGroupProps) {
@@ -55,49 +50,36 @@ export function LinksGroup({
     return false
   }
 
-  // Check if any dropdown items are active
-  const hasActiveDropdownItem =
-    hasLinks &&
-    links?.some((link) => {
-      if (typeof link.to === 'string') {
-        return isActive(link.to)
-      }
-      return false
-    })
-
-  // Initialize opened state based on initiallyOpened prop or if any dropdown items are active
-  const [opened, setOpened] = useState(initiallyOpened || hasActiveDropdownItem)
-
   const handleMainClick = () => {
     if (collapsed && hasLinks && onExpandNavbar) {
       // If sidebar is collapsed and this item has nested links, expand the sidebar
       onExpandNavbar()
-      setOpened(true)
-    } else if (dropdownBehavior === 'full') {
-      setOpened((o) => !o)
     }
   }
 
-  const handleArrowClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setOpened((o) => !o)
-  }
-
-  const items = (hasLinks ? links : []).map((link) => (
-    <Link
-      to={link.to}
-      style={{ textDecoration: 'none' }}
-      key={link.label}
-      data-active={isActive(link.to)}
-    >
-      <Text className={classes.link}>{link.label}</Text>
-    </Link>
-  ))
+  const menuItems = hasLinks
+    ? links?.map((link) => (
+        <Tooltip
+          key={link.label}
+          label={link.tooltip || ''}
+          disabled={!link.tooltip}
+          withArrow
+          position="right"
+        >
+          <Menu.Item
+            component={Link}
+            to={link.to}
+            data-active={isActive(link.to)}
+          >
+            {link.label}
+          </Menu.Item>
+        </Tooltip>
+      ))
+    : []
 
   const activeState = to ? isActive(to) : false
 
-  const unstyledButton = (
+  const buttonContent = (
     <UnstyledButton onClick={handleMainClick} className={classes.control}>
       <Group
         justify={collapsed ? 'center' : 'space-between'}
@@ -115,43 +97,68 @@ export function LinksGroup({
           {!collapsed && <Box ml="md">{label}</Box>}
         </Box>
         {hasLinks && !collapsed && (
-          <Box onClick={handleArrowClick}>
-            <IconChevronRight
-              className={classes.chevron}
-              stroke={1.5}
-              style={{
-                width: rem(16),
-                height: rem(16),
-                transform: opened ? 'rotate(-90deg)' : 'none',
-              }}
-            />
-          </Box>
+          <IconChevronRight
+            className={classes.chevron}
+            stroke={1.5}
+            style={{
+              width: rem(16),
+              height: rem(16),
+            }}
+          />
         )}
       </Group>
     </UnstyledButton>
   )
 
-  const button = to ? (
+  const menuTarget = to ? (
     <Link to={to} style={{ textDecoration: 'none' }} data-active={activeState}>
-      {unstyledButton}
+      {buttonContent}
     </Link>
   ) : (
-    unstyledButton
+    buttonContent
   )
 
   if (collapsed) {
     const tooltipLabel = hasLinks ? `${label} (click to expand)` : label
+    if (hasLinks) {
+      return (
+        <Tooltip label={tooltipLabel} position="right" withArrow>
+          <Menu
+            trigger="click-hover"
+            position="right-start"
+            openDelay={100}
+            closeDelay={400}
+            offset={0}
+            zIndex={10000}
+          >
+            <Menu.Target>{buttonContent}</Menu.Target>
+            <Menu.Dropdown>{menuItems}</Menu.Dropdown>
+          </Menu>
+        </Tooltip>
+      )
+    }
     return (
       <Tooltip label={tooltipLabel} position="right" withArrow>
-        {button}
+        {menuTarget}
       </Tooltip>
     )
   }
 
-  return (
-    <>
-      {button}
-      {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
-    </>
-  )
+  if (hasLinks) {
+    return (
+      <Menu
+        trigger="hover"
+        position="right-start"
+        openDelay={100}
+        closeDelay={400}
+        offset={0}
+        zIndex={10000}
+      >
+        <Menu.Target>{menuTarget}</Menu.Target>
+        <Menu.Dropdown>{menuItems}</Menu.Dropdown>
+      </Menu>
+    )
+  }
+
+  return <>{menuTarget}</>
 }

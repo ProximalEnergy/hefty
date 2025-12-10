@@ -35,7 +35,12 @@ import {
   useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconDrone, IconPlus, IconRefresh } from '@tabler/icons-react'
+import {
+  IconAlertTriangle,
+  IconDrone,
+  IconPlus,
+  IconRefresh,
+} from '@tabler/icons-react'
 import {
   MRT_Cell,
   MRT_ColumnDef,
@@ -342,7 +347,64 @@ const DroneInspections: React.FC = () => {
         )}
       </Group>
       {!hasPermission ? (
-        <Text>No Permissions Exist!</Text>
+        <Stack gap="md">
+          <Card
+            withBorder
+            p="lg"
+            style={{ backgroundColor: '#fff3cd', borderColor: '#ffeaa7' }}
+          >
+            <Group gap="sm">
+              <IconAlertTriangle size={24} color="#856404" />
+              <div>
+                <Text size="md" fw={600} c="#856404">
+                  Drone Integration Required
+                </Text>
+                <Text size="sm" c="#856404" mt={4}>
+                  This project does not have a drone integration set up. Please
+                  use the feedback button in the bottom left to reach out to the
+                  Proximal team to set up a drone integration for this project.
+                </Text>
+              </div>
+            </Group>
+          </Card>
+          <Card withBorder p="lg">
+            <Stack gap="md">
+              <Text size="md" fw={600}>
+                Available Drone Inspection Providers
+              </Text>
+              <Group gap="lg">
+                {providers && providers.length > 0
+                  ? providers.map((provider) => {
+                      const logoUrl = getProviderLogoUrl(provider.name_long)
+                      return (
+                        logoUrl && (
+                          <Image
+                            key={provider.drone_provider_id}
+                            src={logoUrl}
+                            alt={`${provider.name_long} logo`}
+                            h={40}
+                            fit="contain"
+                          />
+                        )
+                      )
+                    })
+                  : getProviderLogoUrl('Zeitview') && (
+                      <Image
+                        src={getProviderLogoUrl('Zeitview')!}
+                        alt="Zeitview logo"
+                        h={40}
+                        fit="contain"
+                      />
+                    )}
+              </Group>
+              <Text size="sm" c="dimmed">
+                Other drone inspection providers can be integrated as well.
+                Please contact us through the feedback button to discuss
+                integration options.
+              </Text>
+            </Stack>
+          </Card>
+        </Stack>
       ) : sortedInspections && sortedInspections.length > 0 ? (
         <Stack>
           <Grid>

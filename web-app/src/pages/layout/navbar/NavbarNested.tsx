@@ -1,5 +1,11 @@
 import { useGetUserSelf, useGetUserType } from '@/api/admin'
-import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
+import {
+  DeviceTypeEnum,
+  ProjectTypeEnum,
+  UserTypeEnumEnum,
+} from '@/api/enumerations'
+import type { DeviceType as DeviceTypeData } from '@/api/v1/operational/device_types'
+import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import {
   DroneIntegration,
   DronePermission,
@@ -35,9 +41,137 @@ import { IconArrowBackUp, IconMessageChatbot, IconX } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router'
 
+import { HomeLinkWithDashboards } from './HomeLinkWithDashboards'
 import { LinksGroup } from './NavbarLinksGroup'
 import ProjectPicture from './ProjectPicture'
 import * as links from './links'
+
+// Mapping from device_type_id to equipment-analysis tab value
+// Note: Multiple device types can map to the same tab (e.g., BESS_STRING and BESS_BLOCK both map to 'bess')
+const DEVICE_TYPE_TO_TAB_MAP: Record<number, string> = {
+  [DeviceTypeEnum.PV_PCS]: 'pv-pcs',
+  [DeviceTypeEnum.PV_DC_COMBINER]: 'pv-dc-combiner',
+  [DeviceTypeEnum.TRACKER_ROW]: 'tracker',
+  [DeviceTypeEnum.MET_STATION]: 'met-station',
+  [DeviceTypeEnum.BESS_PCS]: 'bess-pcs',
+  [DeviceTypeEnum.BESS_STRING]: 'bess',
+  [DeviceTypeEnum.BESS_BLOCK]: 'bess', // BESS Block also maps to bess tab
+  [DeviceTypeEnum.PV_CIRCUIT]: 'circuit',
+}
+
+// Priority order for device types when multiple map to the same tab (lower number = higher priority)
+const DEVICE_TYPE_PRIORITY: Record<number, number> = {
+  [DeviceTypeEnum.BESS_STRING]: 1,
+  [DeviceTypeEnum.BESS_BLOCK]: 2,
+}
+
+// Custom sort order for menu items (lower number = appears earlier)
+const DEVICE_TYPE_MENU_ORDER: Record<number, number> = {
+  [DeviceTypeEnum.PV_CIRCUIT]: 1,
+  [DeviceTypeEnum.PV_PCS]: 2,
+  [DeviceTypeEnum.PV_DC_COMBINER]: 3,
+  [DeviceTypeEnum.TRACKER_ROW]: 4,
+  [DeviceTypeEnum.BESS_PCS]: 5,
+  [DeviceTypeEnum.BESS_STRING]: 6,
+  [DeviceTypeEnum.BESS_BLOCK]: 7,
+  [DeviceTypeEnum.MET_STATION]: 8,
+}
+
+const generatePerformanceLinks = (
+  projectId: string,
+  usedDeviceTypeIds: number[] | undefined,
+  deviceTypes: DeviceTypeData[] | undefined,
+  isSuperadmin: boolean = false,
+): links.Link[] => {
+  // Always include System
+  const performanceLinks: links.Link[] = [
+    {
+      to: `/projects/${projectId}/equipment-analysis/system`,
+      label: 'System',
+    },
+  ]
+
+  if (!usedDeviceTypeIds || !deviceTypes || usedDeviceTypeIds.length === 0) {
+    return performanceLinks
+  }
+
+  // Create a map of device_type_id to DeviceTypeData for quick lookup
+  const deviceTypeMap = new Map(
+    deviceTypes.map((dt) => [dt.device_type_id, dt]),
+  )
+
+  // Get device types that are used and have a corresponding tab
+  const availableDeviceTypeIds = usedDeviceTypeIds.filter(
+    (id) => DEVICE_TYPE_TO_TAB_MAP[id] !== undefined,
+  )
+
+  // Group device types by tab value, keeping only the highest priority one for each tab
+  const tabToDeviceType = new Map<
+    string,
+    { deviceTypeId: number; deviceType: DeviceTypeData }
+  >()
+
+  availableDeviceTypeIds.forEach((deviceTypeId) => {
+    const tabValue = DEVICE_TYPE_TO_TAB_MAP[deviceTypeId]
+    const deviceType = deviceTypeMap.get(deviceTypeId)
+    if (!tabValue || !deviceType) return
+
+    const existing = tabToDeviceType.get(tabValue)
+    if (!existing) {
+      tabToDeviceType.set(tabValue, { deviceTypeId, deviceType })
+    } else {
+      // If multiple device types map to same tab, use priority to decide
+      const existingPriority =
+        DEVICE_TYPE_PRIORITY[existing.deviceTypeId] ?? 999
+      const currentPriority = DEVICE_TYPE_PRIORITY[deviceTypeId] ?? 999
+      if (currentPriority < existingPriority) {
+        tabToDeviceType.set(tabValue, { deviceTypeId, deviceType })
+      }
+    }
+  })
+
+  // Convert to array and sort by custom menu order, then by device_type_id
+  const deviceTypesForTabs = Array.from(tabToDeviceType.values()).sort(
+    (a, b) => {
+      const orderA = DEVICE_TYPE_MENU_ORDER[a.deviceTypeId] ?? 999
+      const orderB = DEVICE_TYPE_MENU_ORDER[b.deviceTypeId] ?? 999
+      if (orderA !== orderB) {
+        return orderA - orderB
+      }
+      // Fallback to device_type_id if not in menu order
+      return a.deviceTypeId - b.deviceTypeId
+    },
+  )
+
+  // Add links for each available device type
+  deviceTypesForTabs.forEach(({ deviceType }) => {
+    const tabValue = DEVICE_TYPE_TO_TAB_MAP[deviceType.device_type_id]
+    if (tabValue) {
+      // Filter PV Circuit for non-superadmins
+      if (
+        deviceType.device_type_id === DeviceTypeEnum.PV_CIRCUIT &&
+        !isSuperadmin
+      ) {
+        return
+      }
+
+      const link: links.Link = {
+        to: `/projects/${projectId}/equipment-analysis/${tabValue}`,
+        label: deviceType.name_long,
+      }
+
+      // Add tooltip for PV Circuit
+      if (deviceType.device_type_id === DeviceTypeEnum.PV_CIRCUIT) {
+        link.tooltip =
+          'This page (and tooltip) is currently only visible to superadmins'
+      }
+
+      performanceLinks.push(link)
+    }
+  })
+
+  return performanceLinks
+}
 
 const generateLinksGroup = (
   links: links.DropdownLink[],
@@ -81,6 +215,7 @@ const generateLinksGroup = (
         label: dropdownLink.label,
         to: dropdownLink.to,
         underDevelopment: dropdownLink.underDevelopment ?? false,
+        tooltip: dropdownLink.tooltip,
       }))}
       collapsed={collapsed}
       onExpandNavbar={onExpandNavbar}
@@ -105,6 +240,7 @@ export function NavbarNested({
   const { data: integrations } = useGetDroneIntegrations()
   const { data: dronePermissions } = useGetDronePermissions()
   const self = useGetUserSelf({})
+  const deviceTypes = useGetDeviceTypes({})
 
   const hasDroneIntegration = useMemo(() => {
     if (!project.data || !dronePermissions || !self.data || !integrations) {
@@ -140,6 +276,23 @@ export function NavbarNested({
     )
   }, [project.data, dronePermissions, self.data, integrations])
 
+  // Generate Performance links dynamically based on project's used_device_type_ids
+  // This must be called before any early returns to maintain hook order
+  const performanceLinks = useMemo(() => {
+    if (!project.data || !deviceTypes.data || !projectId) {
+      return []
+    }
+    const usedDeviceTypeIds = project.data.spec?.used_device_type_ids
+    const isSuperadmin =
+      userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+    return generatePerformanceLinks(
+      projectId,
+      usedDeviceTypeIds,
+      deviceTypes.data,
+      isSuperadmin,
+    )
+  }, [project.data, deviceTypes.data, projectId, userType.data])
+
   if (!isLoaded || !user || userType.isLoading) {
     return null
   }
@@ -171,7 +324,34 @@ export function NavbarNested({
   const removeRealTimeDataLinks = !project.data?.has_real_time_data
   const removeReportIntegrationLinks = !project.data?.has_report_integration
 
-  let projectLinks = links.projectLinks
+  // Replace Performance link with dynamically generated one
+  // Set StackTrace route based on project type
+  let projectLinks = links.projectLinks.map((link) => {
+    if (link.label === 'Performance') {
+      return {
+        ...link,
+        links: performanceLinks,
+      }
+    }
+    if (link.label === 'StackTrace' && project.data) {
+      const projectTypeId = project.data.project_type_id
+      const stackTracePath =
+        projectTypeId === ProjectTypeEnum.BESS
+          ? `/projects/${projectId}/device-details/horizontal/bess`
+          : `/projects/${projectId}/device-details/horizontal/pv`
+      return {
+        ...link,
+        to: stackTracePath,
+        label:
+          projectTypeId === ProjectTypeEnum.PVS
+            ? 'StackTrace (PV)'
+            : 'StackTrace',
+      }
+    }
+    return link
+  })
+
+  projectLinks = projectLinks
     .map((link) => {
       // child‑level filtering
       const filteredChildren = link.links?.filter(
@@ -298,6 +478,7 @@ export function NavbarNested({
                 {projectId && project.data && (
                   <>
                     <Divider label="Project" labelPosition="center" />
+                    <HomeLinkWithDashboards collapsed={collapsed} />
                     <>
                       {generateLinksGroup(
                         projectLinks,

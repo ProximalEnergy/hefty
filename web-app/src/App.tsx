@@ -112,8 +112,17 @@ import TrackerRowDetail from './pages/projects/device_details/tracker-row/page'
 import DroneInspections from './pages/projects/drone_inspections/DroneInspections'
 // Current Day
 import EquipmentAnalysis from './pages/projects/equipment_analysis'
+import EquipmentAnalysisBESS from './pages/projects/equipment_analysis/bess/page'
+import EquipmentAnalysisBESSPCS from './pages/projects/equipment_analysis/bess_pcs/page'
+import EquipmentAnalysisCircuit from './pages/projects/equipment_analysis/circuit/page'
+import EquipmentAnalysisMetStation from './pages/projects/equipment_analysis/met_station/page'
 import EquipmentAnalysisPVDCCombinerBlock from './pages/projects/equipment_analysis/pv_dc_combiner/block/page'
+import EquipmentAnalysisPVDCCombiner from './pages/projects/equipment_analysis/pv_dc_combiner/page'
+import EquipmentAnalysisPVPCS from './pages/projects/equipment_analysis/pv_pcs/page'
+import EquipmentAnalysisSingleLineDiagram from './pages/projects/equipment_analysis/single_line_diagram/SnapshotSLD'
+import EquipmentAnalysisSystem from './pages/projects/equipment_analysis/system/page'
 import EquipmentAnalysisTrackerBlock from './pages/projects/equipment_analysis/tracker/block/page'
+import EquipmentAnalysisTracker from './pages/projects/equipment_analysis/tracker/page'
 // Events
 import EventRouter from './pages/projects/events/EventRouter'
 import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
@@ -341,15 +350,33 @@ const ClerkProviderWithRoutes = () => {
               {/* Current Day */}
               <Route path="equipment-analysis">
                 <Route index element={<EquipmentAnalysis />} />
+                <Route path="system" element={<EquipmentAnalysisSystem />} />
+                <Route path="pv-pcs" element={<EquipmentAnalysisPVPCS />} />
+                <Route
+                  path="pv-dc-combiner"
+                  element={<EquipmentAnalysisPVDCCombiner />}
+                />
                 <Route path="pv-dc-combiner/block">
                   <Route
                     index
                     element={<EquipmentAnalysisPVDCCombinerBlock />}
                   />
                 </Route>
+                <Route path="tracker" element={<EquipmentAnalysisTracker />} />
                 <Route path="tracker/block">
                   <Route index element={<EquipmentAnalysisTrackerBlock />} />
                 </Route>
+                <Route path="bess" element={<EquipmentAnalysisBESS />} />
+                <Route path="bess-pcs" element={<EquipmentAnalysisBESSPCS />} />
+                <Route
+                  path="met-station"
+                  element={<EquipmentAnalysisMetStation />}
+                />
+                <Route path="circuit" element={<EquipmentAnalysisCircuit />} />
+                <Route
+                  path="single-line-diagram"
+                  element={<EquipmentAnalysisSingleLineDiagram />}
+                />
               </Route>
 
               {/* Device Details */}

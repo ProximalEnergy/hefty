@@ -12,6 +12,8 @@ import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import {
   ActionIcon,
+  Box,
+  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineTheme,
@@ -3029,6 +3031,9 @@ function SnapshotSLDContent() {
       }}
     >
       <SLDGlobalStyles />
+      <Box px="md" pt="md">
+        <Title order={1}>Performance: Single Line Diagram</Title>
+      </Box>
       <BlockHeader
         timezone={project?.time_zone}
         blockDevices={blockDevices}

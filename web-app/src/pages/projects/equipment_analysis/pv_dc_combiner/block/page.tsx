@@ -497,9 +497,7 @@ const Page = () => {
           disableQuickActions={true}
           maxDays={MAX_DAYS}
         />
-        <Link
-          to={`/projects/${projectId}/equipment-analysis?tab=pv-dc-combiner`}
-        >
+        <Link to={`/projects/${projectId}/equipment-analysis/pv-dc-combiner`}>
           <Button variant="light" rightSection={<IconArrowBackUp size={14} />}>
             Back to Project
           </Button>
