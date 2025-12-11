@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'ProjectDataLastUpdated'
-const URL = '/v1/operational/project-data-last-updated/'
+const URL = '/v1/operational/project-data-last-updated'
 
 export type ProjectDataLastUpdated =
   types.components['schemas'][typeof _COMPONENT_NAME]

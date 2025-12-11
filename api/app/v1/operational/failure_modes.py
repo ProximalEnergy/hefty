@@ -11,7 +11,7 @@ from app.dependencies import get_async_db
 router = APIRouter(prefix="/failure-modes", tags=["failure-modes"])
 
 
-@router.get("/", operation_id="get_failure_modes")
+@router.get("", operation_id="get_failure_modes")
 async def get_failure_modes(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     failure_mode_ids: Annotated[list[int], Query()] = [],

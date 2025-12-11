@@ -32,7 +32,7 @@ deprecated_router = APIRouter(
 
 
 @router.get(
-    "/", response_model=list[interfaces.SensorType], operation_id="get_sensor_types"
+    "", response_model=list[interfaces.SensorType], operation_id="get_sensor_types"
 )
 def get_sensor_types(
     sensor_type_ids: Annotated[list[int], Query()] = [],
@@ -53,7 +53,7 @@ def get_sensor_types(
 
 
 @deprecated_router.get(
-    "/",
+    "",
     response_model=list[interfaces.SensorType],
     operation_id="get_sensor_types_legacy",
 )
@@ -104,7 +104,7 @@ def get_sensor_type_legacy(
 
 
 @router.post(
-    "/",
+    "",
     response_model=interfaces.SensorType,
     operation_id="create_sensor_type",
 )
@@ -132,7 +132,7 @@ def create_sensor_type(
 
 
 @deprecated_router.post(
-    "/",
+    "",
     response_model=interfaces.SensorType,
     operation_id="create_sensor_type_legacy",
 )

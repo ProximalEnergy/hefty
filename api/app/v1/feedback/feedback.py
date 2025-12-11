@@ -20,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.post("/")
+@router.post("")
 async def create_feedback(
     user_id: Annotated[str, Form(...)],
     email: Annotated[str, Form(...)],

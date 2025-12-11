@@ -52,7 +52,7 @@ export const useGetProjectContracts = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/contracts/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/contracts`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -106,7 +106,7 @@ export const useCreateContract = () => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'post',
-        url: `${baseURL}/v1/operational/projects/${project_id}/contracts/`,
+        url: `${baseURL}/v1/operational/projects/${project_id}/contracts`,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -204,7 +204,7 @@ export const useGetContractCategories = ({
   queryOptions?: Partial<UseQueryOptions>
 } = {}) => {
   const axiosConfig = {
-    url: `/v1/operational/contract-categories/`,
+    url: `/v1/operational/contract-categories`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

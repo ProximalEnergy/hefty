@@ -29,7 +29,7 @@ DESCRIPTION_404 = "CEC PV Module not found"
 router = APIRouter(prefix="/cec-pv-modules", tags=["cec_pv_modules"])
 
 
-@router.get("/", response_model=list[interfaces.CECPVModuleWithID])
+@router.get("", response_model=list[interfaces.CECPVModuleWithID])
 async def get_cec_pv_modules(
     cec_pv_module_ids: Annotated[list[int], Query()] = [],
     db: AsyncSession = Depends(get_async_db),
@@ -130,7 +130,7 @@ async def get_proximal_cec_pv_module_models(
     return models
 
 
-@router.post("/", response_model=list[interfaces.CECPVModule])
+@router.post("", response_model=list[interfaces.CECPVModule])
 async def upsert_cec_pv_modules_bulk(
     modules: interfaces.CECPVModuleBulkCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],

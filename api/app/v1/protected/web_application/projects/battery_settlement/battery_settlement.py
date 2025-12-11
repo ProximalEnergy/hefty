@@ -82,7 +82,7 @@ def get_battery_settlement_details_dataframe(
     return df
 
 
-@router.get("/")
+@router.get("")
 async def get_battery_settlement_details(
     start: datetime.datetime,
     end: datetime.datetime,

@@ -39,7 +39,7 @@ export const useGetCMMSTickets = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/cmms-tickets/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/cmms-tickets`,
     params: queryParams,
   }
 

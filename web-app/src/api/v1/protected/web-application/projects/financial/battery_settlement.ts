@@ -28,7 +28,7 @@ export const useGetBatterySettlementDetails = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/battery-settlement/`,
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/battery-settlement`,
     params: queryParams,
   }
 

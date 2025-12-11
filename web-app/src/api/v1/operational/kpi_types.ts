@@ -53,7 +53,7 @@ export const useGetKPITypes = ({
   }
 }) => {
   const axiosConfig = {
-    url: '/v1/operational/kpi-types/',
+    url: '/v1/operational/kpi-types',
     params: queryParams,
   }
 

@@ -136,7 +136,7 @@ export const useCreateProject = () => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
         method: 'post',
-        url: `${baseURL}/v1/operational/projects/`,
+        url: `${baseURL}/v1/operational/projects`,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

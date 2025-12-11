@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/v1/admin/api-key/": {
+    "/v1/admin/api-key": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,12 +12,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get API Key */
-        get: operations["get_api_key_v1_admin_api_key__get"];
+        get: operations["get_api_key_v1_admin_api_key_get"];
         put?: never;
         /** Create API Key */
-        post: operations["create_api_key_v1_admin_api_key__post"];
+        post: operations["create_api_key_v1_admin_api_key_post"];
         /** Delete API Key */
-        delete: operations["delete_api_key_v1_admin_api_key__delete"];
+        delete: operations["delete_api_key_v1_admin_api_key_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -128,7 +128,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/report-preferences/": {
+    "/v1/admin/report-preferences": {
         parameters: {
             query?: never;
             header?: never;
@@ -139,12 +139,12 @@ export interface paths {
          * Get Report Preferences
          * @deprecated
          */
-        get: operations["get_report_preferences_v1_admin_report_preferences__get"];
+        get: operations["get_report_preferences_v1_admin_report_preferences_get"];
         /**
          * Update Report Preferences
          * @deprecated
          */
-        put: operations["update_report_preferences_v1_admin_report_preferences__put"];
+        put: operations["update_report_preferences_v1_admin_report_preferences_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -255,7 +255,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/companies/": {
+    "/v1/admin/companies": {
         parameters: {
             query?: never;
             header?: never;
@@ -263,10 +263,10 @@ export interface paths {
             cookie?: never;
         };
         /** Get Companies */
-        get: operations["get_companies_v1_admin_companies__get"];
+        get: operations["get_companies_v1_admin_companies_get"];
         put?: never;
         /** Create Company */
-        post: operations["create_company_v1_admin_companies__post"];
+        post: operations["create_company_v1_admin_companies_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1355,7 +1355,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/feedback/": {
+    "/v1/feedback": {
         parameters: {
             query?: never;
             header?: never;
@@ -1365,7 +1365,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create Feedback */
-        post: operations["create_feedback_v1_feedback__post"];
+        post: operations["create_feedback_v1_feedback_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1480,7 +1480,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/cec_pv_inverters/": {
+    "/v1/operational/cec_pv_inverters": {
         parameters: {
             query?: never;
             header?: never;
@@ -1488,17 +1488,17 @@ export interface paths {
             cookie?: never;
         };
         /** Get Cec Pv Inverters */
-        get: operations["get_cec_pv_inverters_v1_operational_cec_pv_inverters__get"];
+        get: operations["get_cec_pv_inverters_v1_operational_cec_pv_inverters_get"];
         put?: never;
         /** Upsert Cec Pv Inverters Bulk */
-        post: operations["upsert_cec_pv_inverters_bulk_v1_operational_cec_pv_inverters__post"];
+        post: operations["upsert_cec_pv_inverters_bulk_v1_operational_cec_pv_inverters_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/cec-pv-modules/": {
+    "/v1/operational/cec-pv-modules": {
         parameters: {
             query?: never;
             header?: never;
@@ -1506,10 +1506,10 @@ export interface paths {
             cookie?: never;
         };
         /** Get Cec Pv Modules */
-        get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules__get"];
+        get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules_get"];
         put?: never;
         /** Upsert Cec Pv Modules Bulk */
-        post: operations["upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules__post"];
+        post: operations["upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1609,7 +1609,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/data-types/": {
+    "/v1/operational/data-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1617,7 +1617,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Data Types */
-        get: operations["get_data_types_v1_operational_data_types__get"];
+        get: operations["get_data_types_v1_operational_data_types_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1643,7 +1643,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/data_types/": {
+    "/v1/operational/data_types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1654,7 +1654,7 @@ export interface paths {
          * Get Data Types Legacy
          * @deprecated
          */
-        get: operations["get_data_types_legacy_v1_operational_data_types__get"];
+        get: operations["get_data_types_legacy_v1_operational_data_types_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1683,7 +1683,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/device-types/": {
+    "/v1/operational/device-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1717,7 +1717,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/device_types/": {
+    "/v1/operational/device_types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1757,7 +1757,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/failure-modes/": {
+    "/v1/operational/failure-modes": {
         parameters: {
             query?: never;
             header?: never;
@@ -1774,7 +1774,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/project-types/": {
+    "/v1/operational/project-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1808,7 +1808,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/project_types/": {
+    "/v1/operational/project_types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1848,7 +1848,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/event-message-reactions/": {
+    "/v1/operational/projects/{project_id}/event-message-reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1868,7 +1868,7 @@ export interface paths {
          *     Returns:
          *         List of reactions for the message(s)
          */
-        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions__get"];
+        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
         put?: never;
         /**
          * Toggle Event Message Reaction
@@ -1883,14 +1883,14 @@ export interface paths {
          *     Returns:
          *         The created reaction (if added) or the deleted reaction info (if removed)
          */
-        post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions__post"];
+        post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/event-messages/": {
+    "/v1/operational/projects/{project_id}/event-messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -1909,7 +1909,7 @@ export interface paths {
          *     Returns:
          *         List of event messages, ordered by created_at (ascending)
          */
-        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages__get"];
+        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
         put?: never;
         /**
          * Create Event Message
@@ -1930,7 +1930,7 @@ export interface paths {
          *     Returns:
          *         The created event message
          */
-        post: operations["create_event_message_v1_operational_projects__project_id__event_messages__post"];
+        post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2243,7 +2243,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/contracts/": {
+    "/v1/operational/projects/{project_id}/contracts": {
         parameters: {
             query?: never;
             header?: never;
@@ -2251,10 +2251,10 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Contracts */
-        get: operations["get_project_contracts_v1_operational_projects__project_id__contracts__get"];
+        get: operations["get_project_contracts_v1_operational_projects__project_id__contracts_get"];
         put?: never;
         /** Create Contract */
-        post: operations["create_contract_v1_operational_projects__project_id__contracts__post"];
+        post: operations["create_contract_v1_operational_projects__project_id__contracts_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2408,7 +2408,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/data-last-updated/": {
+    "/v1/operational/projects/{project_id}/data-last-updated": {
         parameters: {
             query?: never;
             header?: never;
@@ -2416,7 +2416,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Data Last Updated Endpoint */
-        get: operations["get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated__get"];
+        get: operations["get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2425,7 +2425,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/data-timeseries-last/": {
+    "/v1/operational/projects/{project_id}/data-timeseries-last": {
         parameters: {
             query?: never;
             header?: never;
@@ -2433,7 +2433,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Data Timeseries Last */
-        get: operations["get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last__get"];
+        get: operations["get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2491,7 +2491,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/events/": {
+    "/v1/operational/projects/{project_id}/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -2499,7 +2499,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Events */
-        get: operations["get_events_v1_operational_projects__project_id__events__get"];
+        get: operations["get_events_v1_operational_projects__project_id__events_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2883,7 +2883,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/reports/": {
+    "/v1/operational/projects/{project_id}/reports": {
         parameters: {
             query?: never;
             header?: never;
@@ -2891,7 +2891,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Reports */
-        get: operations["get_project_reports_v1_operational_projects__project_id__reports__get"];
+        get: operations["get_project_reports_v1_operational_projects__project_id__reports_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2917,7 +2917,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/report-instances/": {
+    "/v1/operational/projects/{project_id}/report-instances": {
         parameters: {
             query?: never;
             header?: never;
@@ -2925,13 +2925,13 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Reports Instances */
-        get: operations["get_project_reports_instances_v1_operational_projects__project_id__report_instances__get"];
+        get: operations["get_project_reports_instances_v1_operational_projects__project_id__report_instances_get"];
         /**
          * Bulk Update Project Report Instances
          * @description Bulk update report instances for a project.
          *     Only accessible by superadmins.
          */
-        put: operations["bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances__put"];
+        put: operations["bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2939,7 +2939,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/tags/": {
+    "/v1/operational/projects/{project_id}/tags": {
         parameters: {
             query?: never;
             header?: never;
@@ -2947,7 +2947,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Tags */
-        get: operations["get_project_tags_v1_operational_projects__project_id__tags__get"];
+        get: operations["get_project_tags_v1_operational_projects__project_id__tags_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3110,7 +3110,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/pv-expected/": {
+    "/v1/operational/projects/{project_id}/pv-expected": {
         parameters: {
             query?: never;
             header?: never;
@@ -3118,7 +3118,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Expected Power */
-        get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected__get"];
+        get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3161,7 +3161,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/documents/": {
+    "/v1/operational/projects/{project_id}/documents": {
         parameters: {
             query?: never;
             header?: never;
@@ -3169,10 +3169,10 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Documents */
-        get: operations["get_project_documents_v1_operational_projects__project_id__documents__get"];
+        get: operations["get_project_documents_v1_operational_projects__project_id__documents_get"];
         put?: never;
         /** Upload Project Document */
-        post: operations["upload_project_document_v1_operational_projects__project_id__documents__post"];
+        post: operations["upload_project_document_v1_operational_projects__project_id__documents_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3218,7 +3218,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pg-data-types/": {
+    "/v1/operational/pg-data-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -3226,7 +3226,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Pg Data Types */
-        get: operations["get_pg_data_types_v1_operational_pg_data_types__get"];
+        get: operations["get_pg_data_types_v1_operational_pg_data_types_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3252,7 +3252,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pg_data_types/": {
+    "/v1/operational/pg_data_types": {
         parameters: {
             query?: never;
             header?: never;
@@ -3263,7 +3263,7 @@ export interface paths {
          * Get Pg Data Types Legacy
          * @deprecated
          */
-        get: operations["get_pg_data_types_legacy_v1_operational_pg_data_types__get"];
+        get: operations["get_pg_data_types_legacy_v1_operational_pg_data_types_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3292,7 +3292,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/cmms-tickets/": {
+    "/v1/operational/projects/{project_id}/cmms-tickets": {
         parameters: {
             query?: never;
             header?: never;
@@ -3320,7 +3320,7 @@ export interface paths {
          *     device_ids : Optional[List[int]]
          *         The list of device ids to filter the tickets by
          */
-        get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets__get"];
+        get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3384,7 +3384,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/waterfall/": {
+    "/v1/operational/projects/{project_id}/waterfall": {
         parameters: {
             query?: never;
             header?: never;
@@ -3392,7 +3392,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Waterfall */
-        get: operations["get_project_waterfall_v1_operational_projects__project_id__waterfall__get"];
+        get: operations["get_project_waterfall_v1_operational_projects__project_id__waterfall_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3573,7 +3573,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/om-contractors/": {
+    "/v1/operational/projects/{project_id}/om-contractors": {
         parameters: {
             query?: never;
             header?: never;
@@ -3581,10 +3581,10 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Om Contractor Scopes */
-        get: operations["get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors__get"];
+        get: operations["get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get"];
         put?: never;
         /** Create Project Om Contractor Scope */
-        post: operations["create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__post"];
+        post: operations["create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3619,7 +3619,11 @@ export interface paths {
         /** Get Projects */
         get: operations["get_projects"];
         put?: never;
-        post?: never;
+        /**
+         * Create Project
+         * @description Create a new project.
+         */
+        post: operations["create_project_v1_operational_projects_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3642,26 +3646,6 @@ export interface paths {
          */
         put: operations["update_project"];
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Project
-         * @description Create a new project.
-         */
-        post: operations["create_project_v1_operational_projects__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3753,7 +3737,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/kpi-instances/": {
+    "/v1/operational/kpi-instances": {
         parameters: {
             query?: never;
             header?: never;
@@ -3761,7 +3745,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Kpi Instances */
-        get: operations["get_kpi_instances_v1_operational_kpi_instances__get"];
+        get: operations["get_kpi_instances_v1_operational_kpi_instances_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3787,7 +3771,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/kpi-types/": {
+    "/v1/operational/kpi-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -3929,7 +3913,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/root-causes/": {
+    "/v1/operational/root-causes": {
         parameters: {
             query?: never;
             header?: never;
@@ -3965,7 +3949,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/sensor-types/": {
+    "/v1/operational/sensor-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -4007,7 +3991,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/sensor_types/": {
+    "/v1/operational/sensor_types": {
         parameters: {
             query?: never;
             header?: never;
@@ -4794,7 +4778,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/project-data-last-updated/": {
+    "/v1/operational/project-data-last-updated": {
         parameters: {
             query?: never;
             header?: never;
@@ -4802,7 +4786,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Project Data Last Updated Endpoint */
-        get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated__get"];
+        get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4811,7 +4795,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/users/": {
+    "/v1/operational/users": {
         parameters: {
             query?: never;
             header?: never;
@@ -4819,7 +4803,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Users */
-        get: operations["get_users_v1_operational_users__get"];
+        get: operations["get_users_v1_operational_users_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4828,7 +4812,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/contract-categories/": {
+    "/v1/operational/contract-categories": {
         parameters: {
             query?: never;
             header?: never;
@@ -4836,7 +4820,7 @@ export interface paths {
             cookie?: never;
         };
         /** List Contract Categories */
-        get: operations["list_contract_categories_v1_operational_contract_categories__get"];
+        get: operations["list_contract_categories_v1_operational_contract_categories_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5520,7 +5504,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/battery-settlement/": {
+    "/v1/protected/web-application/projects/{project_id}/battery-settlement": {
         parameters: {
             query?: never;
             header?: never;
@@ -5528,7 +5512,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Battery Settlement Details */
-        get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement__get"];
+        get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5771,7 +5755,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/": {
+    "/v1/auth": {
         parameters: {
             query?: never;
             header?: never;
@@ -5779,7 +5763,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Auth */
-        get: operations["get_auth_v1_auth__get"];
+        get: operations["get_auth_v1_auth_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6008,8 +5992,8 @@ export interface components {
             /** Name Full */
             name_full: string;
         };
-        /** Body_create_feedback_v1_feedback__post */
-        Body_create_feedback_v1_feedback__post: {
+        /** Body_create_feedback_v1_feedback_post */
+        Body_create_feedback_v1_feedback_post: {
             /** User Id */
             user_id: string;
             /** Email */
@@ -6054,8 +6038,8 @@ export interface components {
              */
             file: string;
         };
-        /** Body_upload_project_document_v1_operational_projects__project_id__documents__post */
-        Body_upload_project_document_v1_operational_projects__project_id__documents__post: {
+        /** Body_upload_project_document_v1_operational_projects__project_id__documents_post */
+        Body_upload_project_document_v1_operational_projects__project_id__documents_post: {
             /**
              * File
              * Format: binary
@@ -9595,7 +9579,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_api_key_v1_admin_api_key__get: {
+    get_api_key_v1_admin_api_key_get: {
         parameters: {
             query?: never;
             header?: {
@@ -9627,7 +9611,7 @@ export interface operations {
             };
         };
     };
-    create_api_key_v1_admin_api_key__post: {
+    create_api_key_v1_admin_api_key_post: {
         parameters: {
             query?: never;
             header?: {
@@ -9659,7 +9643,7 @@ export interface operations {
             };
         };
     };
-    delete_api_key_v1_admin_api_key__delete: {
+    delete_api_key_v1_admin_api_key_delete: {
         parameters: {
             query?: never;
             header?: {
@@ -9903,7 +9887,7 @@ export interface operations {
             };
         };
     };
-    get_report_preferences_v1_admin_report_preferences__get: {
+    get_report_preferences_v1_admin_report_preferences_get: {
         parameters: {
             query?: never;
             header?: {
@@ -9935,7 +9919,7 @@ export interface operations {
             };
         };
     };
-    update_report_preferences_v1_admin_report_preferences__put: {
+    update_report_preferences_v1_admin_report_preferences_put: {
         parameters: {
             query?: never;
             header?: {
@@ -10211,7 +10195,7 @@ export interface operations {
             };
         };
     };
-    get_companies_v1_admin_companies__get: {
+    get_companies_v1_admin_companies_get: {
         parameters: {
             query?: {
                 company_ids?: string[] | null;
@@ -10246,7 +10230,7 @@ export interface operations {
             };
         };
     };
-    create_company_v1_admin_companies__post: {
+    create_company_v1_admin_companies_post: {
         parameters: {
             query?: never;
             header?: {
@@ -12508,7 +12492,7 @@ export interface operations {
             };
         };
     };
-    create_feedback_v1_feedback__post: {
+    create_feedback_v1_feedback_post: {
         parameters: {
             query?: never;
             header?: {
@@ -12520,7 +12504,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_create_feedback_v1_feedback__post"];
+                "multipart/form-data": components["schemas"]["Body_create_feedback_v1_feedback_post"];
             };
         };
         responses: {
@@ -12717,7 +12701,7 @@ export interface operations {
             };
         };
     };
-    get_cec_pv_inverters_v1_operational_cec_pv_inverters__get: {
+    get_cec_pv_inverters_v1_operational_cec_pv_inverters_get: {
         parameters: {
             query?: {
                 cec_pv_inverter_ids?: number[];
@@ -12751,7 +12735,7 @@ export interface operations {
             };
         };
     };
-    upsert_cec_pv_inverters_bulk_v1_operational_cec_pv_inverters__post: {
+    upsert_cec_pv_inverters_bulk_v1_operational_cec_pv_inverters_post: {
         parameters: {
             query?: never;
             header?: {
@@ -12787,7 +12771,7 @@ export interface operations {
             };
         };
     };
-    get_cec_pv_modules_v1_operational_cec_pv_modules__get: {
+    get_cec_pv_modules_v1_operational_cec_pv_modules_get: {
         parameters: {
             query?: {
                 cec_pv_module_ids?: number[];
@@ -12821,7 +12805,7 @@ export interface operations {
             };
         };
     };
-    upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules__post: {
+    upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules_post: {
         parameters: {
             query?: never;
             header?: {
@@ -13029,7 +13013,7 @@ export interface operations {
             };
         };
     };
-    get_data_types_v1_operational_data_types__get: {
+    get_data_types_v1_operational_data_types_get: {
         parameters: {
             query?: {
                 data_type_ids?: number[];
@@ -13105,7 +13089,7 @@ export interface operations {
             };
         };
     };
-    get_data_types_legacy_v1_operational_data_types__get: {
+    get_data_types_legacy_v1_operational_data_types_get: {
         parameters: {
             query?: {
                 data_type_ids?: number[];
@@ -13531,7 +13515,7 @@ export interface operations {
             };
         };
     };
-    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions__get: {
+    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
         parameters: {
             query?: {
                 event_message_id?: number | null;
@@ -13568,7 +13552,7 @@ export interface operations {
             };
         };
     };
-    toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions__post: {
+    toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post: {
         parameters: {
             query?: never;
             header?: {
@@ -13606,7 +13590,7 @@ export interface operations {
             };
         };
     };
-    get_event_messages_v1_operational_projects__project_id__event_messages__get: {
+    get_event_messages_v1_operational_projects__project_id__event_messages_get: {
         parameters: {
             query: {
                 event_id: number;
@@ -13642,7 +13626,7 @@ export interface operations {
             };
         };
     };
-    create_event_message_v1_operational_projects__project_id__event_messages__post: {
+    create_event_message_v1_operational_projects__project_id__event_messages_post: {
         parameters: {
             query?: never;
             header?: {
@@ -14092,7 +14076,7 @@ export interface operations {
             };
         };
     };
-    get_project_contracts_v1_operational_projects__project_id__contracts__get: {
+    get_project_contracts_v1_operational_projects__project_id__contracts_get: {
         parameters: {
             query?: never;
             header?: {
@@ -14126,7 +14110,7 @@ export interface operations {
             };
         };
     };
-    create_contract_v1_operational_projects__project_id__contracts__post: {
+    create_contract_v1_operational_projects__project_id__contracts_post: {
         parameters: {
             query?: {
                 schema?: string | null;
@@ -14488,7 +14472,7 @@ export interface operations {
             };
         };
     };
-    get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated__get: {
+    get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated_get: {
         parameters: {
             query?: never;
             header?: {
@@ -14522,7 +14506,7 @@ export interface operations {
             };
         };
     };
-    get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last__get: {
+    get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last_get: {
         parameters: {
             query?: {
                 tag_ids?: number[] | null;
@@ -14645,7 +14629,7 @@ export interface operations {
             };
         };
     };
-    get_events_v1_operational_projects__project_id__events__get: {
+    get_events_v1_operational_projects__project_id__events_get: {
         parameters: {
             query?: {
                 device_id?: number | null;
@@ -15524,7 +15508,7 @@ export interface operations {
             };
         };
     };
-    get_project_reports_v1_operational_projects__project_id__reports__get: {
+    get_project_reports_v1_operational_projects__project_id__reports_get: {
         parameters: {
             query?: never;
             header?: {
@@ -15596,7 +15580,7 @@ export interface operations {
             };
         };
     };
-    get_project_reports_instances_v1_operational_projects__project_id__report_instances__get: {
+    get_project_reports_instances_v1_operational_projects__project_id__report_instances_get: {
         parameters: {
             query?: {
                 deep?: boolean;
@@ -15637,7 +15621,7 @@ export interface operations {
             };
         };
     };
-    bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances__put: {
+    bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put: {
         parameters: {
             query?: never;
             header?: {
@@ -15675,7 +15659,7 @@ export interface operations {
             };
         };
     };
-    get_project_tags_v1_operational_projects__project_id__tags__get: {
+    get_project_tags_v1_operational_projects__project_id__tags_get: {
         parameters: {
             query?: {
                 tag_ids?: number[];
@@ -16104,7 +16088,7 @@ export interface operations {
             };
         };
     };
-    get_expected_power_v1_operational_projects__project_id__pv_expected__get: {
+    get_expected_power_v1_operational_projects__project_id__pv_expected_get: {
         parameters: {
             query: {
                 start: string;
@@ -16214,7 +16198,7 @@ export interface operations {
             };
         };
     };
-    get_project_documents_v1_operational_projects__project_id__documents__get: {
+    get_project_documents_v1_operational_projects__project_id__documents_get: {
         parameters: {
             query?: never;
             header?: {
@@ -16248,7 +16232,7 @@ export interface operations {
             };
         };
     };
-    upload_project_document_v1_operational_projects__project_id__documents__post: {
+    upload_project_document_v1_operational_projects__project_id__documents_post: {
         parameters: {
             query?: {
                 schema?: string | null;
@@ -16264,7 +16248,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_project_document_v1_operational_projects__project_id__documents__post"];
+                "multipart/form-data": components["schemas"]["Body_upload_project_document_v1_operational_projects__project_id__documents_post"];
             };
         };
         responses: {
@@ -16361,7 +16345,7 @@ export interface operations {
             };
         };
     };
-    get_pg_data_types_v1_operational_pg_data_types__get: {
+    get_pg_data_types_v1_operational_pg_data_types_get: {
         parameters: {
             query?: {
                 pg_data_type_ids?: number[];
@@ -16443,7 +16427,7 @@ export interface operations {
             };
         };
     };
-    get_pg_data_types_legacy_v1_operational_pg_data_types__get: {
+    get_pg_data_types_legacy_v1_operational_pg_data_types_get: {
         parameters: {
             query?: {
                 pg_data_type_ids?: number[];
@@ -16525,7 +16509,7 @@ export interface operations {
             };
         };
     };
-    get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets__get: {
+    get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get: {
         parameters: {
             query?: {
                 start?: string | null;
@@ -16670,7 +16654,7 @@ export interface operations {
             };
         };
     };
-    get_project_waterfall_v1_operational_projects__project_id__waterfall__get: {
+    get_project_waterfall_v1_operational_projects__project_id__waterfall_get: {
         parameters: {
             query?: {
                 level?: string;
@@ -17070,7 +17054,7 @@ export interface operations {
             };
         };
     };
-    get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors__get: {
+    get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get: {
         parameters: {
             query?: never;
             header?: {
@@ -17104,7 +17088,7 @@ export interface operations {
             };
         };
     };
-    create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__post: {
+    create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post: {
         parameters: {
             query?: never;
             header?: {
@@ -17266,6 +17250,42 @@ export interface operations {
             };
         };
     };
+    create_project_v1_operational_projects_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_by_id: {
         parameters: {
             query?: {
@@ -17344,42 +17364,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_project_v1_operational_projects__post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProjectCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Project"];
-                };
             };
             /** @description Validation Error */
             422: {
@@ -17577,7 +17561,7 @@ export interface operations {
             };
         };
     };
-    get_kpi_instances_v1_operational_kpi_instances__get: {
+    get_kpi_instances_v1_operational_kpi_instances_get: {
         parameters: {
             query?: {
                 project_ids?: string[] | null;
@@ -19798,7 +19782,7 @@ export interface operations {
             };
         };
     };
-    get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated__get: {
+    get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get: {
         parameters: {
             query: {
                 project_ids: string[];
@@ -19832,7 +19816,7 @@ export interface operations {
             };
         };
     };
-    get_users_v1_operational_users__get: {
+    get_users_v1_operational_users_get: {
         parameters: {
             query?: {
                 /** @description Filter by specific user IDs */
@@ -19869,7 +19853,7 @@ export interface operations {
             };
         };
     };
-    list_contract_categories_v1_operational_contract_categories__get: {
+    list_contract_categories_v1_operational_contract_categories_get: {
         parameters: {
             query?: never;
             header?: {
@@ -21333,7 +21317,7 @@ export interface operations {
             };
         };
     };
-    get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement__get: {
+    get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get: {
         parameters: {
             query: {
                 start: string;
@@ -21752,7 +21736,7 @@ export interface operations {
             };
         };
     };
-    get_auth_v1_auth__get: {
+    get_auth_v1_auth_get: {
         parameters: {
             query?: never;
             header?: {

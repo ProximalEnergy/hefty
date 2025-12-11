@@ -18,7 +18,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.ProjectDataLastUpdated],
     dependencies=[Depends(require_user_projects)],
 )

@@ -16,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 async def get_users(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[

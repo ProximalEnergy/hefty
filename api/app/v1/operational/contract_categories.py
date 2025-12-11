@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[interfaces.ContractCategory])
+@router.get("", response_model=list[interfaces.ContractCategory])
 async def list_contract_categories(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):

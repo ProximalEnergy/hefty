@@ -57,7 +57,7 @@ def _none_if_nan(x: Any) -> float | None:  # skip-star-syntax
         return None
 
 
-@router.get("/", response_model=list[interfaces.Event])
+@router.get("", response_model=list[interfaces.Event])
 def get_events(
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],

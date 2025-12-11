@@ -17,7 +17,7 @@ deprecated_router = APIRouter(
 
 
 @router.get(
-    "/", response_model=list[interfaces.DeviceType], operation_id="get_device_types"
+    "", response_model=list[interfaces.DeviceType], operation_id="get_device_types"
 )
 async def get_device_types(
     device_type_ids: Annotated[list[int], Query()] = [],
@@ -36,7 +36,7 @@ async def get_device_types(
 
 
 @deprecated_router.get(
-    "/",
+    "",
     response_model=list[interfaces.DeviceType],
     operation_id="get_device_types_legacy",
 )

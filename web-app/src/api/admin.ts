@@ -270,7 +270,7 @@ export const useGetUsers = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/admin/users/`,
+    url: `/v1/admin/users`,
     params: queryParams,
   }
 

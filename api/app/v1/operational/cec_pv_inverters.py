@@ -17,7 +17,7 @@ DESCRIPTION_404 = "CEC PV Inverter not found"
 router = APIRouter(prefix="/cec_pv_inverters", tags=["cec_pv_inverters"])
 
 
-@router.get("/", response_model=list[interfaces.CECPVInverterWithID])
+@router.get("", response_model=list[interfaces.CECPVInverterWithID])
 async def get_cec_pv_inverters(
     cec_pv_inverter_ids: Annotated[list[int], Query()] = [],
     db: AsyncSession = Depends(get_async_db),
@@ -25,7 +25,7 @@ async def get_cec_pv_inverters(
     return await crud_get_cec_pv_inverters(db, cec_pv_inverter_ids=cec_pv_inverter_ids)
 
 
-@router.post("/", response_model=list[interfaces.CECPVInverter])
+@router.post("", response_model=list[interfaces.CECPVInverter])
 async def upsert_cec_pv_inverters_bulk(
     inverters: interfaces.CECPVInverterBulkCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],

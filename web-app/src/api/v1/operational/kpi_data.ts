@@ -46,7 +46,7 @@ export const useGetOperationalKPIData = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/kpi-data/`,
+    url: `/v1/operational/kpi-data`,
     params: queryParams,
   }
 

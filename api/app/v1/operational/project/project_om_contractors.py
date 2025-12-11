@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 async def get_project_om_contractor_scopes(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -42,7 +42,7 @@ async def get_project_om_contractor_scopes(
     return data
 
 
-@router.post("/")
+@router.post("")
 async def create_project_om_contractor_scope(
     project_id: UUID,
     payload: dict,

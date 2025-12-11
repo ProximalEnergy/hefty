@@ -56,7 +56,7 @@ def generate_presigned_url(*, file_key: str) -> str:
     return str(presigned_url)
 
 
-@router.get("/", response_model=list[interfaces.Document])
+@router.get("", response_model=list[interfaces.Document])
 async def get_project_documents(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -90,7 +90,7 @@ async def get_project_documents(
     return response_documents
 
 
-@router.post("/", response_model=interfaces.Document)
+@router.post("", response_model=interfaces.Document)
 async def upload_project_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],

@@ -21,7 +21,7 @@ deprecated_router = APIRouter(
 
 
 @router.get(
-    "/", response_model=list[interfaces.ProjectType], operation_id="get_project_types"
+    "", response_model=list[interfaces.ProjectType], operation_id="get_project_types"
 )
 def get_project_types(
     project_type_ids: Annotated[list[int], Query()] = [],
@@ -38,7 +38,7 @@ def get_project_types(
 
 
 @deprecated_router.get(
-    "/",
+    "",
     response_model=list[interfaces.ProjectType],
     operation_id="get_project_types_legacy",
 )

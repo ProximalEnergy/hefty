@@ -17,7 +17,7 @@ from core import models
 router = APIRouter(prefix="/projects/{project_id}/reports", tags=["project_reports"])
 
 
-@router.get("/", response_model=interfaces.Report)
+@router.get("", response_model=interfaces.Report)
 def get_project_reports():
     pass
 
