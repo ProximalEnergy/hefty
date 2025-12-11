@@ -228,6 +228,28 @@ def pivot_timeseries_by_tag_polars(
         pl.col("time").dt.convert_time_zone(project_timezone)
     )
 
+    # Ensure all requested tags appear as columns, even if they have no data
+    # Get all requested tag_ids from tags_lut
+    requested_tag_ids = set(tags_lut["tag_id"].to_list())
+
+    # Get existing tag columns (exclude 'time')
+    existing_tag_cols = set()
+    for col in wide.columns:
+        if col != "time":
+            try:
+                existing_tag_cols.add(int(col))
+            except (ValueError, TypeError):
+                pass
+
+    # Find missing tags
+    missing_tag_ids = requested_tag_ids - existing_tag_cols
+
+    # Add null columns for missing tags
+    # Since these tags have no data, we can use Null type for all of them
+    if missing_tag_ids:
+        for tag_id in sorted(missing_tag_ids):
+            wide = wide.with_columns(pl.lit(None).alias(str(tag_id)))
+
     return wide
 
 
