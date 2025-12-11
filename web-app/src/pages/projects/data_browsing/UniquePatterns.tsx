@@ -1,6 +1,6 @@
 import {
   useGetUniqueTagTypes,
-  usePopulateUniqueTagPatterns,
+  usePutUniqueTagPatterns,
 } from '@/api/v1/protected/web-application/projects/project-tag-explorer'
 import {
   Button,
@@ -35,7 +35,7 @@ const UniquePatterns = ({
     queryParams: {},
   })
 
-  const populateUniqueTagPatterns = usePopulateUniqueTagPatterns()
+  const putUniqueTagPatterns = usePutUniqueTagPatterns()
 
   // Helper function to check if a pattern matches the search term
   const matchesSearch = useCallback(
@@ -82,7 +82,7 @@ const UniquePatterns = ({
 
   const handleAssignPatterns = () => {
     if (projectId) {
-      populateUniqueTagPatterns.mutate({ projectId })
+      putUniqueTagPatterns.mutate({ projectId })
     }
   }
 
@@ -185,7 +185,7 @@ const UniquePatterns = ({
             </Text>
             <Button
               onClick={handleAssignPatterns}
-              loading={populateUniqueTagPatterns.isPending}
+              loading={putUniqueTagPatterns.isPending}
             >
               Assign Unique Patterns
             </Button>

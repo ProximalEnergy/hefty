@@ -10,7 +10,7 @@ import {
 import axios from 'axios'
 
 const _COMPONENT_NAME = 'SensorType'
-const URL = '/v1/operational/sensor-types/'
+const URL = '/v1/operational/sensor-types'
 
 export type SensorType = types.components['schemas'][typeof _COMPONENT_NAME]
 type get = types.paths[typeof URL]['get']
@@ -50,7 +50,7 @@ export const useCreateSensorTypeMutation = () => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'post',
-        url: `${baseURL}/v1/operational/sensor-types/`,
+        url: `${baseURL}/v1/operational/sensor-types`,
         headers: {
           Authorization: `Bearer ${token}`,
         },

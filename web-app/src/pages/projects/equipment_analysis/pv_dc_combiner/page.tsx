@@ -1,17 +1,25 @@
-import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
+import { useGetUserType } from '@/api/admin'
+import {
+  DeviceTypeEnum,
+  ProjectTypeEnum,
+  UserTypeEnumEnum,
+} from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
+import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2, useGetEquipmentAnalysisCombiner } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import { Device } from '@/hooks/types'
-import { Checkbox, Group, HoverCard, Stack, Text } from '@mantine/core'
+import RealTime from '@/pages/projects/device_details/RealTime'
+import { Checkbox, Group, HoverCard, Stack, Tabs, Text } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
-import { useState } from 'react'
+import Plotly from 'plotly.js/dist/plotly-custom.min.js'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 1
@@ -23,15 +31,19 @@ const Page = () => {
 
   const navigate = useNavigate()
   const { projectId } = useParams<{ projectId: string }>()
+  const userType = useGetUserType({})
+  const isSuperadmin =
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
   const [searchParams] = useSearchParams()
   const [checked, setChecked] = useState(false)
+  const [activeTab, setActiveTab] = useState<string>('current-day')
+  const tabPanelRef = useRef<HTMLDivElement>(null)
 
   // Handle block dropdown change
   const handleBlockDropdownChange = (value: string | null) => {
     if (value) {
       const newSearchParams = new URLSearchParams(searchParams)
       newSearchParams.set('deviceId', value)
-      newSearchParams.set('tab', 'pv-dc-combiner')
       navigate(
         `/projects/${projectId}/equipment-analysis/pv-dc-combiner/block?${newSearchParams.toString()}`,
       )
@@ -98,77 +110,194 @@ const Page = () => {
     queryOptions: { enabled: !!projectId },
   })
 
+  // Resize Plotly charts when tab becomes active
+  // Must be before early return to follow React hooks rules
+  useEffect(() => {
+    if (!tabPanelRef.current || activeTab !== 'current-day') return
+
+    const resizeCharts = () => {
+      // Find all Plotly plot elements within the active tab panel
+      const plotElements = tabPanelRef.current?.querySelectorAll(
+        '.js-plotly-plot',
+      ) as NodeListOf<HTMLElement>
+
+      if (plotElements && plotElements.length > 0) {
+        // Resize each plot after a short delay to ensure container has dimensions
+        setTimeout(() => {
+          plotElements.forEach((plotElement) => {
+            const rect = plotElement.getBoundingClientRect()
+            // Only resize if the plot element has actual dimensions
+            if (rect.width > 0 && rect.height > 0) {
+              Plotly.Plots.resize(plotElement)
+            }
+          })
+        }, 150)
+      }
+    }
+
+    // Initial resize when tab becomes active
+    resizeCharts()
+
+    // Also set up an IntersectionObserver to detect when the tab panel becomes visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0) {
+            resizeCharts()
+          }
+        })
+      },
+      {
+        threshold: 0.01,
+      },
+    )
+
+    if (tabPanelRef.current) {
+      observer.observe(tabPanelRef.current)
+    }
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [activeTab])
+
   return (
     <Stack p="md" h="100%">
-      <Group>
-        <BlockDropdown
-          data={blockDropdown.data}
-          value={null}
-          onChange={handleBlockDropdownChange}
-          includeNextPrevious={false}
-          includeFirstLast={false}
-        />
-        <AdvancedDatePicker
-          includeClearButton={false}
-          limits={{
-            day: 1,
-            week: 0,
-            month: 0,
-            quarter: 0,
-            year: 0,
-          }}
-          disableQuickActions={true}
-          maxDays={MAX_DAYS}
-          defaultRange="today"
-        />
-        <Info />
-      </Group>
-      <CustomCard
-        title={`Combiner Output Distribution${
-          startRequest && endRequest
-            ? ` (${start?.format('MM-DD-YYYY')} 11:30AM - 12:30PM)`
-            : ': Real-Time'
-        }`}
-        style={{ flex: 1 }}
-        headerChildren={
-          <Checkbox
-            label="Normalize by Combiner Power"
-            checked={checked}
-            onChange={(event) => setChecked(event.currentTarget.checked)}
-          />
-        }
+      <PageTitle>PV DC Combiner Performance</PageTitle>
+      <Tabs
+        value={activeTab}
+        onChange={(value) => setActiveTab(value || 'current-day')}
+        defaultValue="current-day"
+        variant="outline"
+        keepMounted={false}
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          width: '100%',
+        }}
       >
-        <PlotlyPlot
-          data={
-            data.data && [
-              {
-                x: data.data.x,
-                y: checked ? data.data.y_norm : data.data.y,
-                type: 'bar',
-              },
-            ]
-          }
-          layout={{
-            yaxis: {
-              title: { text: checked ? 'Current/Power (A/kW)' : 'Current (A)' },
-            },
+        <Tabs.List>
+          <Tabs.Tab value="realtime">Real-time</Tabs.Tab>
+          <Tabs.Tab value="current-day">Day View</Tabs.Tab>
+          {isSuperadmin && <Tabs.Tab value="long-term">Long Term</Tabs.Tab>}
+        </Tabs.List>
+
+        <Tabs.Panel
+          value="realtime"
+          pt="md"
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            width: '100%',
           }}
-          isLoading={data.isLoading}
-          error={data.error}
-          onClick={(event) => {
-            const xValue = event.points[0]?.x
-            if (xValue) {
-              const deviceId = deviceMapping[xValue as string]
-              const newSearchParams = new URLSearchParams(searchParams)
-              newSearchParams.set('deviceId', deviceId)
-              newSearchParams.set('tab', 'pv-dc-combiner')
-              navigate(
-                `/projects/${projectId}/equipment-analysis/pv-dc-combiner/block?${newSearchParams.toString()}`,
-              )
-            }
+        >
+          <RealTime
+            initialDeviceTypeId={DeviceTypeEnum.PV_DC_COMBINER}
+            restrictToDeviceTypeId={DeviceTypeEnum.PV_DC_COMBINER}
+          />
+        </Tabs.Panel>
+
+        <Tabs.Panel
+          value="current-day"
+          pt="md"
+          ref={tabPanelRef}
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            width: '100%',
           }}
-        />
-      </CustomCard>
+        >
+          <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
+            <Group>
+              <BlockDropdown
+                data={blockDropdown.data}
+                value={null}
+                onChange={handleBlockDropdownChange}
+                includeNextPrevious={false}
+                includeFirstLast={false}
+              />
+              <AdvancedDatePicker
+                includeClearButton={false}
+                limits={{
+                  day: 1,
+                  week: 0,
+                  month: 0,
+                  quarter: 0,
+                  year: 0,
+                }}
+                disableQuickActions={true}
+                maxDays={MAX_DAYS}
+                defaultRange="today"
+              />
+              <Info />
+            </Group>
+            <CustomCard
+              title={`Combiner Output Distribution${
+                startRequest && endRequest
+                  ? ` (${start?.format('MM-DD-YYYY')} 11:30AM - 12:30PM)`
+                  : ': Real-Time'
+              }`}
+              style={{ flex: 1 }}
+              headerChildren={
+                <Checkbox
+                  label="Normalize by Combiner Power"
+                  checked={checked}
+                  onChange={(event) => setChecked(event.currentTarget.checked)}
+                />
+              }
+            >
+              <PlotlyPlot
+                key={`combiner-${checked ? 'normalized' : 'raw'}-${startRequest}-${endRequest}`}
+                data={
+                  data.data && [
+                    {
+                      x: data.data.x,
+                      y: checked ? data.data.y_norm : data.data.y,
+                      type: 'bar',
+                    },
+                  ]
+                }
+                layout={{
+                  yaxis: {
+                    title: {
+                      text: checked ? 'Current/Power (A/kW)' : 'Current (A)',
+                    },
+                  },
+                }}
+                isLoading={data.isLoading}
+                error={data.error}
+                onClick={(event) => {
+                  const xValue = event.points[0]?.x
+                  if (xValue) {
+                    const deviceId = deviceMapping[xValue as string]
+                    const newSearchParams = new URLSearchParams(searchParams)
+                    newSearchParams.set('deviceId', deviceId)
+                    navigate(
+                      `/projects/${projectId}/equipment-analysis/pv-dc-combiner/block?${newSearchParams.toString()}`,
+                    )
+                  }
+                }}
+              />
+            </CustomCard>
+          </Stack>
+        </Tabs.Panel>
+
+        {isSuperadmin && (
+          <Tabs.Panel value="long-term" pt="md">
+            <Text c="dimmed">
+              This page is still under development and is only visible to
+              superadmins. The long-term PV DC Combiner performance view needs
+              to be created.
+            </Text>
+          </Tabs.Panel>
+        )}
+      </Tabs>
     </Stack>
   )
 }

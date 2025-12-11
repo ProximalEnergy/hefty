@@ -78,7 +78,10 @@ def get_equipment_analysis_combiner_data(
     if mean:
         y = df.mean().fillna(0).values.tolist()
     else:
-        y = df.tail(1).fillna(0).values.tolist()[0]
+        if df.empty:
+            y = [0] * len(df.columns)
+        else:
+            y = df.tail(1).fillna(0).values.tolist()[0]
     y_norm = [
         y / tag_id_to_combiner_capacity_dc[int(tag_id)]
         for tag_id, y in zip(df.columns, y)

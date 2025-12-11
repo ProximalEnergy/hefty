@@ -570,6 +570,47 @@ const PlotlyPlot = ({
         },
       }
 
+      // Format x value for display
+      const formatXValue = (val: number | string): string => {
+        if (typeof val === 'number') {
+          // Check if it's a timestamp (milliseconds since epoch)
+          const date = new Date(val)
+          if (!isNaN(date.getTime()) && val > 1000000000000) {
+            // If it's a valid date and likely a timestamp
+            const dateStr = date.toLocaleDateString()
+            const timeStr = date.toLocaleTimeString()
+            return `${dateStr}<br>${timeStr}`
+          }
+          return val.toFixed(2)
+        }
+        return String(val)
+      }
+
+      // Create x-axis annotation to show x value
+      const xAxisAnnotation: Annotation = {
+        x: xVal,
+        y: 0,
+        yref: 'paper',
+        xref: 'x',
+        text: formatXValue(xVal),
+        name: groupId,
+        showarrow: false,
+        yanchor: 'top',
+        yshift: -5,
+        align: 'center',
+        bgcolor:
+          computedColorScheme === 'dark'
+            ? 'rgba(0,0,0,0.8)'
+            : 'rgba(255,255,255,0.9)',
+        bordercolor: layoutSettings.fontcolor,
+        borderwidth: 1,
+        borderpad: 3,
+        font: {
+          color: layoutSettings.fontcolor,
+          size: 10,
+        },
+      }
+
       const newShape: Partial<Shape> = {
         type: 'line',
         x0: xVal,
@@ -584,7 +625,7 @@ const PlotlyPlot = ({
         name: groupId,
       }
 
-      setAnnotations((prev) => [...prev, newAnnotation])
+      setAnnotations((prev) => [...prev, newAnnotation, xAxisAnnotation])
       setShapes((prev) => [...prev, newShape])
     }
     onClick?.(e)

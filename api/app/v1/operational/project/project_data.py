@@ -405,8 +405,21 @@ async def get_timeseries_v3(
             status_code=400, detail="start and end datetime parameters are required"
         )
 
-    # Determine aggregation interval
-    agg_interval = TimeInterval(interval) if interval else TimeInterval.FIVE_MINUTES
+    valid_intervals = [time_interval.value for time_interval in TimeInterval]
+
+    if interval is None:
+        agg_interval = TimeInterval.FIVE_MINUTES
+    else:
+        try:
+            agg_interval = TimeInterval(interval)
+        except ValueError as exc:  # pragma: no cover - runtime validation
+            valid_options = ", ".join(valid_intervals)
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Invalid interval '{interval}'. Valid intervals are: {valid_options}"
+                ),
+            ) from exc
 
     data_timeseries = await core.crud.project.data_timeseries.DataTimeseries.get(
         project_db=project_db,

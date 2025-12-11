@@ -31,7 +31,7 @@ export const useGetOMContractorScopes = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/om-contractors/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/om-contractors`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -75,7 +75,7 @@ export const useCreateOMContractorScope = ({
         contractor_email: payload.contractor_email,
         contractor_phone: payload.contractor_phone,
       }
-      const path = `/v1/operational/projects/${projectId}/om-contractors/`
+      const path = `/v1/operational/projects/${projectId}/om-contractors`
       const apiUrl = `${baseURL}${path}`
       const res = await axios({
         method: 'post',

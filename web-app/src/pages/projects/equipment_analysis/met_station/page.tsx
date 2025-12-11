@@ -1,14 +1,21 @@
-import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
+import { useGetUserType } from '@/api/admin'
+import {
+  DeviceTypeEnum,
+  ProjectTypeEnum,
+  UserTypeEnumEnum,
+} from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
+import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { traceColors } from '@/components/plots/PlotlyPlotUtils'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import { Stack, useMantineTheme } from '@mantine/core'
+import { Stack, Tabs, Text, useMantineTheme } from '@mantine/core'
+import { useState } from 'react'
 import { useParams } from 'react-router'
 
 const MAX_DAYS = 7
@@ -20,6 +27,10 @@ const Page = () => {
 
   const { projectId } = useParams<{ projectId: string }>()
   const theme = useMantineTheme()
+  const userType = useGetUserType({})
+  const isSuperadmin =
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const [activeTab, setActiveTab] = useState<string>('current-day')
 
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,
@@ -213,35 +224,91 @@ const Page = () => {
 
   return (
     <Stack h="100%" p="md">
-      <AdvancedDatePicker
-        maxDays={MAX_DAYS}
-        disableQuickActions={true}
-        includeClearButton={false}
-        defaultRange="today"
-        includeTodayInDateRange
-      />
-      <CustomCard title="Met Stations" style={{ height: '100%' }}>
-        <PlotlyPlot
-          data={plotData}
-          layout={{
-            grid: { rows: numRows, columns: 1 },
-            yaxis: {
-              title: { text: axisLabelMap[reversedYAxisMap[1]] },
-              automargin: true,
-            },
-            yaxis2: {
-              title: { text: axisLabelMap[reversedYAxisMap[2]] },
-              automargin: true,
-            },
-            yaxis3: {
-              title: { text: axisLabelMap[reversedYAxisMap[3]] },
-              automargin: true,
-            },
+      <PageTitle>Met Station Performance</PageTitle>
+      <Tabs
+        value={activeTab}
+        onChange={(value) => setActiveTab(value || 'current-day')}
+        defaultValue="current-day"
+        variant="outline"
+        keepMounted={false}
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          width: '100%',
+        }}
+      >
+        <Tabs.List>
+          {isSuperadmin && <Tabs.Tab value="realtime">Real-time</Tabs.Tab>}
+          <Tabs.Tab value="current-day">Day View</Tabs.Tab>
+          {isSuperadmin && <Tabs.Tab value="long-term">Long Term</Tabs.Tab>}
+        </Tabs.List>
+
+        {isSuperadmin && (
+          <Tabs.Panel value="realtime" pt="md">
+            <Text c="dimmed">
+              This tab and page are still under development and are only visible
+              to superadmins. The real-time Met Station performance view needs
+              to be created.
+            </Text>
+          </Tabs.Panel>
+        )}
+
+        <Tabs.Panel
+          value="current-day"
+          pt="md"
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            width: '100%',
           }}
-          isLoading={isLoading}
-          error={error}
-        />
-      </CustomCard>
+        >
+          <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
+            <AdvancedDatePicker
+              maxDays={MAX_DAYS}
+              disableQuickActions={true}
+              includeClearButton={false}
+              defaultRange="today"
+              includeTodayInDateRange
+            />
+            <CustomCard title="Met Stations" style={{ height: '100%' }}>
+              <PlotlyPlot
+                data={plotData}
+                layout={{
+                  grid: { rows: numRows, columns: 1 },
+                  yaxis: {
+                    title: { text: axisLabelMap[reversedYAxisMap[1]] },
+                    automargin: true,
+                  },
+                  yaxis2: {
+                    title: { text: axisLabelMap[reversedYAxisMap[2]] },
+                    automargin: true,
+                  },
+                  yaxis3: {
+                    title: { text: axisLabelMap[reversedYAxisMap[3]] },
+                    automargin: true,
+                  },
+                }}
+                isLoading={isLoading}
+                error={error}
+              />
+            </CustomCard>
+          </Stack>
+        </Tabs.Panel>
+
+        {isSuperadmin && (
+          <Tabs.Panel value="long-term" pt="md">
+            <Text c="dimmed">
+              This tab and page are still under development and are only visible
+              to superadmins. The long-term Met Station performance view needs
+              to be created.
+            </Text>
+          </Tabs.Panel>
+        )}
+      </Tabs>
     </Stack>
   )
 }

@@ -37,7 +37,7 @@ export const useGetReportTypes = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: '/v1/operational/report-types/',
+    url: '/v1/operational/report-types',
   }
 
   return useCustomQuery<ReportType[]>({
@@ -62,7 +62,7 @@ export const useBulkUpdateReportInstances = () => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
         method: 'put',
-        url: `${baseURL}/v1/operational/projects/${projectId}/report-instances/`,
+        url: `${baseURL}/v1/operational/projects/${projectId}/report-instances`,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

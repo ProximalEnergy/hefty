@@ -19,7 +19,7 @@ deprecated_router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[interfaces.PGDataType])
+@router.get("", response_model=list[interfaces.PGDataType])
 def get_pg_data_types(
     pg_data_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
@@ -32,7 +32,7 @@ def get_pg_data_types(
     )
 
 
-@deprecated_router.get("/", response_model=list[interfaces.PGDataType])
+@deprecated_router.get("", response_model=list[interfaces.PGDataType])
 def get_pg_data_types_legacy(
     *,
     pg_data_type_ids: Annotated[list[int], Query()] = [],

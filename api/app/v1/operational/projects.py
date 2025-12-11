@@ -166,7 +166,7 @@ def get_project(
     return project
 
 
-@router.post("/", response_model=interfaces.Project)
+@router.post("", response_model=interfaces.Project)
 async def create_project(
     project_in: interfaces.ProjectCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),

@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 def get_expected_power(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],

@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 import traceback
@@ -56,7 +57,7 @@ def _none_if_nan(x: Any) -> float | None:  # skip-star-syntax
         return None
 
 
-@router.get("/", response_model=list[interfaces.Event])
+@router.get("", response_model=list[interfaces.Event])
 def get_events(
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
@@ -439,7 +440,9 @@ async def get_events_summary(
     if end is not None:
         end = end.astimezone(tzinfo)
 
-    events = crud_get_events_summary(
+    # Run sync database operations in thread pool to avoid blocking event loop
+    events = await asyncio.to_thread(
+        crud_get_events_summary,
         project_db,
         open=open,
         start=start,
@@ -458,30 +461,42 @@ async def get_events_summary(
         {e.root_cause_id for e in events if e.root_cause_id is not None}
     )
 
-    failure_modes = await get_failure_modes(db=db, failure_mode_ids=failure_mode_ids)
-    failure_mode_id_to_name = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
+    # Parallelize async database calls
+    failure_modes_task = get_failure_modes(db=db, failure_mode_ids=failure_mode_ids)
+    root_causes_task = get_root_causes(db=db, root_cause_ids=root_cause_ids)
+    # Run loss query in parallel with other async calls
+    losses_task = asyncio.to_thread(
+        core.crud.project.event_losses.get_event_losses_summary_in_sql,
+        project_db,
+        project_name=project.name_short,
+        event_ids=event_ids,
+    )
 
-    root_causes = await get_root_causes(db=db, root_cause_ids=root_cause_ids)
+    # Wait for all async operations to complete
+    failure_modes, root_causes, losses = await asyncio.gather(
+        failure_modes_task, root_causes_task, losses_task
+    )
+
+    failure_mode_id_to_name = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
     root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
 
-    # Build per-event loss map with NaN -> None coercion
-    losses_map: dict[int, dict[str, float | None]] = {}
-    losses = core.crud.project.event_losses.get_event_losses_summary_in_sql(
-        db=project_db, project_name=project.name_short, event_ids=event_ids
-    )
-    # Convert Row objects to dicts for proper DataFrame column names
-    # SQLAlchemy Row objects use _mapping attribute (2.0+) or _asdict() (older)
-    try:
-        losses_dicts = [dict(row._mapping) for row in losses]
-    except AttributeError:
-        # Fallback for older SQLAlchemy versions
-        losses_dicts = [row._asdict() for row in losses]
-    losses_df = pd.DataFrame(losses_dicts)
+    # Process losses data in thread pool (pandas operations are CPU-bound)
+    def process_losses_data(
+        *, losses_rows: Any, events_list: list
+    ) -> dict[int, dict[str, float | None]]:
+        # Convert Row objects to dicts for proper DataFrame column names
+        # SQLAlchemy Row objects use _mapping attribute (2.0+) or _asdict() (older)
+        try:
+            losses_dicts = [dict(row._mapping) for row in losses_rows]
+        except AttributeError:
+            # Fallback for older SQLAlchemy versions
+            losses_dicts = [row._asdict() for row in losses_rows]
+        losses_df = pd.DataFrame(losses_dicts)
 
-    # If no losses, keep existing behavior
-    if losses_df.empty:
-        losses_map = {}
-    else:
+        # If no losses, keep existing behavior
+        if losses_df.empty:
+            return {}
+
         # Ensure expected columns exist (SQL already aggregated)
         cols_needed = {"event_id", "time_min", "time_max", "loss_1", "loss_2"}
         missing = cols_needed - set(losses_df.columns)
@@ -510,7 +525,7 @@ async def get_events_summary(
                     "time_end": e.time_end
                     or datetime.datetime.now(e.time_start.tzinfo),
                 }
-                for e in events
+                for e in events_list
             ]
         )
         # Align tz and floor to whole days if you want calendar-aware durations
@@ -538,6 +553,11 @@ async def get_events_summary(
                 "loss_daily_energy": _none_if_nan(row.get("avg_loss_per_day_1")),
                 "loss_daily_financial": _none_if_nan(row.get("avg_loss_per_day_2")),
             }
+        return losses_map
+
+    losses_map = await asyncio.to_thread(
+        process_losses_data, losses_rows=losses, events_list=events
+    )
 
     unknown = "Unknown"
     out: list[interfaces.EventSummary] = []

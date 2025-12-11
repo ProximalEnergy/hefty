@@ -9,13 +9,11 @@ import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
-import { PageTitle } from '@/components/PageTitle'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import {
   Button,
   Group,
-  HoverCard,
   List,
   SegmentedControl,
   Select,
@@ -29,7 +27,6 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconDatabaseX,
-  IconInfoCircle,
 } from '@tabler/icons-react'
 import { Data, Layout, PlotMouseEvent } from 'plotly.js'
 import { useEffect, useState } from 'react'
@@ -85,7 +82,15 @@ const formatRelativeTime = (timeString: string): string => {
   }
 }
 
-const Page = () => {
+interface RealTimeProps {
+  initialDeviceTypeId?: number
+  restrictToDeviceTypeId?: number
+}
+
+const Page = ({
+  initialDeviceTypeId,
+  restrictToDeviceTypeId,
+}: RealTimeProps) => {
   useProjectFilter({
     hasRealTimeData: true,
   })
@@ -169,15 +174,15 @@ const Page = () => {
 
   useEffect(() => {
     if (projectData.data) {
+      const defaultDeviceTypeId =
+        projectData.data?.project_type_id === ProjectTypeEnum.PV
+          ? DeviceTypeEnum.PV_PCS
+          : DeviceTypeEnum.BESS_PCS
       queueMicrotask(() =>
-        setDeviceTypeId(
-          projectData.data?.project_type_id == ProjectTypeEnum.PV
-            ? DeviceTypeEnum.PV_PCS
-            : DeviceTypeEnum.BESS_PCS,
-        ),
+        setDeviceTypeId(initialDeviceTypeId ?? defaultDeviceTypeId),
       )
     }
-  }, [projectData.data])
+  }, [initialDeviceTypeId, projectData.data])
 
   const usedDeviceIds = (
     projectData.data?.spec?.used_device_type_ids ?? []
@@ -189,6 +194,11 @@ const Page = () => {
 
   const projectDeviceTypes = possibleDeviceTypes
     .filter((dt) => usedDeviceIds.includes(dt.deviceId))
+    .filter((dt) =>
+      restrictToDeviceTypeId
+        ? dt.deviceId === String(restrictToDeviceTypeId)
+        : true,
+    )
     .map((dt) => ({
       ...dt,
       sensorTypeIds: dt.sensorTypeIds.filter((id) =>
@@ -339,9 +349,9 @@ const Page = () => {
       isDataStale(time, stalenessLimitMs),
     )
 
-    const zmin = deviceTypeId === 29 ? -60 : 0
+    const zmin = deviceTypeId === DeviceTypeEnum.TRACKER_ROW ? -60 : 0
     const zmax =
-      deviceTypeId === 29
+      deviceTypeId === DeviceTypeEnum.TRACKER_ROW
         ? 60
         : Math.max(
             ...(latestData?.traces
@@ -371,9 +381,9 @@ const Page = () => {
         colorbar: {
           title: {
             text:
-              deviceTypeId === 9
+              deviceTypeId === DeviceTypeEnum.PV_DC_COMBINER
                 ? 'Current (A)'
-                : deviceTypeId === 29
+                : deviceTypeId === DeviceTypeEnum.TRACKER_ROW
                   ? 'Angle (degrees)'
                   : unit || '',
           },
@@ -852,28 +862,9 @@ const Page = () => {
     return <PageLoader />
   }
 
-  const title = (
-    <PageTitle>
-      <Group>
-        Real Time
-        {getChartDescription() && (
-          <HoverCard shadow="md">
-            <HoverCard.Target>
-              <IconInfoCircle size={20} stroke={1.5} />
-            </HoverCard.Target>
-            <HoverCard.Dropdown maw="50%">
-              {getChartDescription()}
-            </HoverCard.Dropdown>
-          </HoverCard>
-        )}
-      </Group>
-    </PageTitle>
-  )
-
   if (!projectData.data?.has_real_time_data) {
     return (
       <Stack h="100%" p="md">
-        {title}
         <Text>
           Real time data is not available for this project yet. Check back soon!
         </Text>
@@ -882,17 +873,8 @@ const Page = () => {
   }
 
   return (
-    <Stack h="100%" p="md">
-      {title}
+    <Stack h="100%" w="100%">
       <Group>
-        <SegmentedControl
-          value={deviceTypeId?.toString() ?? ''}
-          onChange={(value) => setDeviceTypeId(Number(value))}
-          data={projectDeviceTypes.map((type) => ({
-            label: type.label,
-            value: type.deviceId,
-          }))}
-        />
         {canGroup && (isLarge || !!groupBy) && (
           <GroupNavigation
             availableGroups={availableGroups}
@@ -935,7 +917,10 @@ const Page = () => {
           }
         />
       </Group>
-      <CustomCard style={{ flex: 1, height: '100%' }}>
+      <CustomCard
+        style={{ flex: 1, height: '100%', width: '100%' }}
+        info={getChartDescription()}
+      >
         {!data.isLoading && realTimeData?.traces?.length === 0 ? (
           <Stack align="center" justify="center" h="100%">
             <IconDatabaseX size={48} strokeWidth={2} />
@@ -948,7 +933,11 @@ const Page = () => {
             onClick={handleClick}
             isLoading={data.isLoading}
             error={data.error}
-            colorscale={deviceTypeId === 29 ? 'tracker' : 'good-bad'}
+            colorscale={
+              deviceTypeId === DeviceTypeEnum.TRACKER_ROW
+                ? 'tracker'
+                : 'good-bad'
+            }
           />
         )}
       </CustomCard>

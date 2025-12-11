@@ -535,7 +535,7 @@ async def send_notifications_for_message(
 
 
 # --- API Endpoints ---
-@router.get("/")
+@router.get("")
 async def get_event_messages(
     *,
     project_id: Annotated[UUID, Path(...)],
@@ -567,7 +567,7 @@ async def get_event_messages(
         return [_model_to_pydantic_message(model=msg) for msg in message_models]
 
 
-@router.post("/")
+@router.post("")
 async def create_event_message(
     *,
     project_id: Annotated[UUID, Path(...)],

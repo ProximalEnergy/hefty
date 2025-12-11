@@ -384,6 +384,13 @@ class SensorType(BaseIntEnum):
     PV_PCS_MODULE_FREQUENCY = 190
     PV_PCS_MODULE_EFFICIENCY = 191
     PROJECT_LINE_TO_LINE_VOLTAGE = 192
+    PV_PCS_MODULE_IGBT_TEMPERATURE = 193
+    PV_PCS_MODULE_CURRENT_PHASE_A = 194
+    PV_PCS_MODULE_CURRENT_PHASE_B = 195
+    PV_PCS_MODULE_CURRENT_PHASE_C = 196
+    PV_PCS_MODULE_VOLTAGE_PHASE_A = 197
+    PV_PCS_MODULE_VOLTAGE_PHASE_B = 198
+    PV_PCS_MODULE_VOLTAGE_PHASE_C = 199
 
 
 class KPIType(BaseIntEnum):
@@ -606,3 +613,20 @@ class ReactionType(StrEnum):
     EYES = "eyes"
     QUESTION_MARK = "question_mark"
     HEART = "heart"
+
+
+class NotificationSeverity(StrEnum):
+    INFO = "info"
+    WARNING = "warning"
+    CRITICAL = "critical"
+
+
+class NotificationChannel(StrEnum):
+    EMAIL = "email"
+    IN_APP = "in_app"
+
+
+class NotificationState(StrEnum):
+    UNREAD = "unread"
+    READ = "read"
+    DELETED = "deleted"

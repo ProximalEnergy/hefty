@@ -65,7 +65,7 @@ export const useGetDroneIntegrations = ({
   queryOptions?: Partial<UseQueryOptions>
 } = {}) => {
   const axiosConfig = {
-    url: 'v1/operational/drone-integrations',
+    url: '/v1/operational/drone-integrations',
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     refetchOnWindowFocus: false,
@@ -85,7 +85,7 @@ export const useGetDroneProviders = ({
   queryOptions?: Partial<UseQueryOptions>
 } = {}) => {
   const axiosConfig = {
-    url: 'v1/operational/drone-providers',
+    url: '/v1/operational/drone-providers',
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     refetchOnWindowFocus: false,
@@ -175,7 +175,7 @@ export const useGetDronePermissions = ({
   queryOptions?: Partial<UseQueryOptions>
 } = {}) => {
   const axiosConfig = {
-    url: 'v1/operational/drone-permissions',
+    url: '/v1/operational/drone-permissions',
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     refetchOnWindowFocus: false,

@@ -16,7 +16,7 @@ from app._crud.admin.companies import (
 router = APIRouter(prefix="/companies", tags=["companies"])
 
 
-@router.post("/", response_model=interfaces.Company)
+@router.post("", response_model=interfaces.Company)
 async def create_company(
     *,
     company: interfaces.CompanyCreate,
@@ -25,7 +25,7 @@ async def create_company(
     return await crud_create_company(db=db, company=company)
 
 
-@router.get("/")
+@router.get("")
 async def get_companies(
     *,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],

@@ -42,7 +42,7 @@ def df_from_objects(  # skip-star-syntax
     return df
 
 
-@router.get("/")
+@router.get("")
 async def get_project_waterfall(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],

@@ -206,15 +206,18 @@ git push origin "v$VERSION"
 """
 
 [tasks."core:db"]
-description = "Generate alembic migration for core (usage: mise run core:db 'message')"
+description = "Generate alembic migration"
+usage = '''
+arg "<description>" help="Migration description"
+'''
 dir = "core"
-run = """
-alembic revision --autogenerate -m "$1" && \
-python3 _scripts/clean_alembic.py --latest && \
-python3 _scripts/update_releases.py "$1" && \
-cd .. && uv run --dev ruff check core/src/ && \
-cd .. && uv run --dev ruff format core/src/
-"""
+run = '''
+echo "Generating alembic migration with description ${usage_description}"
+alembic revision --autogenerate -m "${usage_description}"
+python3 _scripts/clean_alembic.py --latest
+python3 _scripts/update_releases.py "${usage_description}"
+cd .. && uv run --dev ruff check core/_alembic_migrations/versions && uv run --dev ruff format core/_alembic_migrations/versions
+'''
 
 # =============================================================================
 # API TASKS (runs in ./api directory)
@@ -406,4 +409,15 @@ usage = '''
 run = """
 export SQL_ADMIN_SCHEMA=${usage_schema:-project_default}
 uv run uvicorn main:app --reload --host 0.0.0.0 --port 8001
+"""
+
+[tasks."sql-admin:open"]
+description = "Run sql-admin and open it in the default browser"
+dir = "sql-admin"
+run = """
+uv run main.py &
+server_pid=$!
+sleep 2
+uv run python -m webbrowser "http://127.0.0.1:8001/admin"
+wait $server_pid
 """

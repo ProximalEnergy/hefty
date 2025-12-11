@@ -1,14 +1,17 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { useGetUserType } from '@/api/admin'
+import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_pcs'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
+import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetHeatmap } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
+import RealTime from '@/pages/projects/device_details/RealTime'
 import {
   ActionIcon,
   Button,
@@ -18,6 +21,7 @@ import {
   Skeleton,
   Slider,
   Stack,
+  Tabs,
   Text,
 } from '@mantine/core'
 import {
@@ -28,6 +32,7 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import Plotly from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
@@ -163,10 +168,15 @@ const PCSEquipmentAnalysis = () => {
   })
 
   const { projectId } = useParams<{ projectId: string }>()
+  const userType = useGetUserType({})
+  const isSuperadmin =
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
   const [sliderValue, setSliderValue] = useState(0)
   const [initialSliderValueSet, setInitialSliderValueSet] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const intervalRef = useRef<number | null>(null)
+  const [activeTab, setActiveTab] = useState<string>('current-day')
+  const tabPanelRef = useRef<HTMLDivElement>(null)
   const { start, end } = useValidateDateRange({})
 
   const [blockNormalize, setBlockNormalize] = useState(false)
@@ -254,6 +264,56 @@ const PCSEquipmentAnalysis = () => {
     }
   }, [isPlaying, dataLength])
 
+  // Resize Plotly charts when tab becomes active
+  useEffect(() => {
+    if (!tabPanelRef.current || activeTab !== 'current-day') return
+
+    const resizeCharts = () => {
+      // Find all Plotly plot elements within the active tab panel
+      const plotElements = tabPanelRef.current?.querySelectorAll(
+        '.js-plotly-plot',
+      ) as NodeListOf<HTMLElement>
+
+      if (plotElements && plotElements.length > 0) {
+        // Resize each plot after a short delay to ensure container has dimensions
+        setTimeout(() => {
+          plotElements.forEach((plotElement) => {
+            const rect = plotElement.getBoundingClientRect()
+            // Only resize if the plot element has actual dimensions
+            if (rect.width > 0 && rect.height > 0) {
+              Plotly.Plots.resize(plotElement)
+            }
+          })
+        }, 150)
+      }
+    }
+
+    // Initial resize when tab becomes active
+    resizeCharts()
+
+    // Also set up an IntersectionObserver to detect when the tab panel becomes visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0) {
+            resizeCharts()
+          }
+        })
+      },
+      {
+        threshold: 0.01,
+      },
+    )
+
+    if (tabPanelRef.current) {
+      observer.observe(tabPanelRef.current)
+    }
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [activeTab])
+
   const togglePlay = () => {
     setIsPlaying((prev) => !prev)
   }
@@ -284,250 +344,321 @@ const PCSEquipmentAnalysis = () => {
     : dayjs().subtract(1, 'day').format('YYYY-MM-DD')
 
   return (
-    <Stack p="md">
-      <Skeleton visible={data.isLoading}>
-        <Group>
-          <AdvancedDatePicker
-            maxDays={1}
-            includeTodayInDateRange
-            disableQuickActions
-            defaultRange="today"
-            includeClearButton={false}
-          />
-          {includeEnergy && produced?.[0]?.value ? (
-            <Link
-              to={`/projects/${projectId}/kpis/type/6?start=${startLink}&end=${endLink}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <Button rightSection={<IconExternalLink size={16} />}>
-                Daily Energy: {produced?.[0]?.value} MWh
-              </Button>
-            </Link>
-          ) : null}
-          {dataLength && dataLength > 1 && (
-            <>
-              <Slider
-                value={sliderValue}
-                label={getTimeFromSliderValue(sliderValue)}
-                onChange={setSliderValue}
-                min={0}
-                max={
-                  data.data?.total_power_output.value.length
-                    ? data.data.total_power_output.value.length - 1
-                    : 0
-                }
-                step={1}
-                style={{ flex: 1 }}
-              />
-              <ActionIcon onClick={togglePlay}>
-                {isPlaying ? (
-                  <IconPlayerPauseFilled size={16} />
-                ) : (
-                  <IconPlayerPlayFilled size={16} />
-                )}
-              </ActionIcon>
-            </>
-          )}
-        </Group>
-      </Skeleton>
-      <Group w="100%" justify="space-evenly" align="flex-end">
-        <RingProgressCard
-          title="AC Capacity (MW)"
-          subtitle="Out of nameplate capacity"
-          value={
-            data.data?.total_power_output.value[
-              dataLength && dataLength > 1 ? sliderValue : 0
-            ] ?? null
-          }
-          total={data.data?.total_power_output.total_nameplate ?? null}
-          isLoading={data.isLoading}
-          color="grey"
-        />
-        <RingProgressCard
-          title="Blocks"
-          subtitle="Generating Power"
-          value={
-            data.data?.generating_power_block.value[
-              dataLength && dataLength > 1 ? sliderValue : 0
-            ] ?? null
-          }
-          total={data.data?.generating_power_block.total ?? null}
-          isLoading={data.isLoading}
-          color={
-            data.data
-              ? colorFromPercent(
-                  data.data.generating_power_block.value[
-                    dataLength && dataLength > 1 ? sliderValue : 0
-                  ],
-                  data.data.generating_power_block.total,
-                )
-              : 'grey'
-          }
-        />
-        <RingProgressCard
-          title="PCSs"
-          subtitle="Generating Power"
-          value={
-            data.data?.generating_power_pcs.value[
-              dataLength && dataLength > 1 ? sliderValue : 0
-            ] ?? null
-          }
-          total={data.data?.generating_power_pcs.total ?? null}
-          isLoading={data.isLoading}
-          color={
-            data.data
-              ? colorFromPercent(
-                  data.data.generating_power_pcs.value[
-                    dataLength && dataLength > 1 ? sliderValue : 0
-                  ],
-                  data.data.generating_power_pcs.total,
-                )
-              : 'grey'
-          }
-        />
-        {hasPCSModules && (
-          <RingProgressCard
-            title="PCS Modules"
-            subtitle="Generating Power"
-            value={
-              data.data?.generating_power_pcs_module?.value[
-                dataLength && dataLength > 1 ? sliderValue : 0
-              ] ?? null
-            }
-            total={data.data?.generating_power_pcs_module?.total ?? null}
-            isLoading={data.isLoading}
-            color={
-              data.data
-                ? colorFromPercent(
-                    data.data.generating_power_pcs_module?.value[
-                      dataLength && dataLength > 1 ? sliderValue : 0
-                    ] ?? 0,
-                    data.data.generating_power_pcs_module?.total ?? 0,
-                  )
-                : 'grey'
-            }
-          />
-        )}
-      </Group>
-      <CustomCard
-        title="Block Output Distribution"
-        style={{ height: '250px' }}
-        info="This plot shows the power output of each block. Clicking the 'Normalize by DC Input' button will equalize the performance of each block against its installed DC capacity, which is useful since installed capacity often differs per block. Look for large differences in performance between equipment to narrow down possible issues."
-        headerChildren={
-          <Checkbox
-            label="Normalize by DC Input"
-            value={blockNormalize ? 'true' : 'false'}
-            onChange={(event) => setBlockNormalize(event.currentTarget.checked)}
-          />
-        }
+    <Stack p="md" h="100%">
+      <PageTitle>PV PCS Performance</PageTitle>
+      <Tabs
+        value={activeTab}
+        onChange={(value) => setActiveTab(value || 'current-day')}
+        defaultValue="current-day"
+        variant="outline"
+        keepMounted={false}
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          width: '100%',
+        }}
       >
-        <PlotlyPlot
-          data={
-            data.data && [
-              {
-                x: blockData?.x,
-                y: blockData?.y[dataLength && dataLength > 1 ? sliderValue : 0],
-                customdata: blockData?.customdata,
-                type: 'bar',
-              },
-            ]
-          }
-          layout={
-            data.data && {
-              xaxis: { type: 'category', title: { text: 'Block' } },
-              yaxis: {
-                range: [0, blockData ? blockData.yaxis_range_max * 1.05 : 1.05],
-                title: { text: blockNormalize ? 'Power (%)' : 'Power (MW)' },
-              },
-            }
-          }
-          isLoading={data.isLoading}
-          error={data.error}
-        />
-      </CustomCard>
-      <CustomCard
-        title="PCS Output Distribution"
-        style={{ height: '250px' }}
-        info="This plot shows the power output of each PCS. Clicking the 'Normalize by DC Input' button will equalize the performance of each inverter against its installed DC capacity, which is useful since installed capacity is often different per equipment. Look for large differences in performance between equipment to narrow down possible issues."
-        headerChildren={
-          <Checkbox
-            label="Normalize by DC Input"
-            value={pcsNormalize ? 'true' : 'false'}
-            onChange={(event) => setPcsNormalize(event.currentTarget.checked)}
-          />
-        }
-      >
-        <PlotlyPlot
-          data={
-            data.data && [
-              {
-                x: pcsData?.x,
-                y: pcsData?.y[dataLength && dataLength > 1 ? sliderValue : 0],
-                customdata: pcsData?.customdata,
-                type: 'bar',
-              },
-            ]
-          }
-          layout={
-            data.data && {
-              xaxis: { type: 'category', title: { text: 'PCS' } },
-              yaxis: {
-                range: [0, pcsData ? pcsData.yaxis_range_max * 1.05 : 1.05],
-                title: { text: pcsNormalize ? 'Power (%)' : 'Power (MW)' },
-              },
-            }
-          }
-          isLoading={data.isLoading}
-          error={data.error}
-        />
-      </CustomCard>
-      {hasPCSModules && (
-        <CustomCard
-          title="PCS Module Output Distribution"
-          style={{ height: '250px' }}
+        <Tabs.List>
+          <Tabs.Tab value="realtime">Real-time</Tabs.Tab>
+          <Tabs.Tab value="current-day">Day View</Tabs.Tab>
+          {isSuperadmin && <Tabs.Tab value="long-term">Long Term</Tabs.Tab>}
+        </Tabs.List>
+
+        <Tabs.Panel
+          value="realtime"
+          pt="md"
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            width: '100%',
+          }}
         >
-          <PlotlyPlot
-            data={
-              data.data && [
-                {
-                  x: data.data.pcs_module_power_distribution?.x,
-                  y: data.data.pcs_module_power_distribution?.y[
+          <RealTime initialDeviceTypeId={2} restrictToDeviceTypeId={2} />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="current-day" pt="md" ref={tabPanelRef}>
+          <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
+            <Skeleton visible={data.isLoading}>
+              <Group>
+                <AdvancedDatePicker
+                  maxDays={1}
+                  includeTodayInDateRange
+                  disableQuickActions
+                  defaultRange="today"
+                  includeClearButton={false}
+                />
+                {includeEnergy && produced?.[0]?.value ? (
+                  <Link
+                    to={`/projects/${projectId}/kpis/type/6?start=${startLink}&end=${endLink}`}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <Button rightSection={<IconExternalLink size={16} />}>
+                      Daily Energy: {produced?.[0]?.value} MWh
+                    </Button>
+                  </Link>
+                ) : null}
+                {dataLength && dataLength > 1 && (
+                  <>
+                    <Slider
+                      value={sliderValue}
+                      label={getTimeFromSliderValue(sliderValue)}
+                      onChange={setSliderValue}
+                      min={0}
+                      max={
+                        data.data?.total_power_output.value.length
+                          ? data.data.total_power_output.value.length - 1
+                          : 0
+                      }
+                      step={1}
+                      style={{ flex: 1 }}
+                    />
+                    <ActionIcon onClick={togglePlay}>
+                      {isPlaying ? (
+                        <IconPlayerPauseFilled size={16} />
+                      ) : (
+                        <IconPlayerPlayFilled size={16} />
+                      )}
+                    </ActionIcon>
+                  </>
+                )}
+              </Group>
+            </Skeleton>
+            <Group w="100%" justify="space-evenly" align="flex-end">
+              <RingProgressCard
+                title="AC Capacity (MW)"
+                subtitle="Out of nameplate capacity"
+                value={
+                  data.data?.total_power_output.value[
                     dataLength && dataLength > 1 ? sliderValue : 0
-                  ],
-                  customdata:
-                    data.data.pcs_module_power_distribution?.customdata,
-                  type: 'bar',
-                },
-              ]
-            }
-            layout={
-              data.data && {
-                xaxis: { type: 'category', title: { text: 'PCS Module' } },
-                yaxis: {
-                  range: [
-                    0,
-                    (data.data.pcs_module_power_distribution?.yaxis_range_max ??
-                      1) * 1.05,
-                  ],
-                  title: { text: 'Power (MW)' },
-                },
+                  ] ?? null
+                }
+                total={data.data?.total_power_output.total_nameplate ?? null}
+                isLoading={data.isLoading}
+                color="grey"
+              />
+              <RingProgressCard
+                title="Blocks"
+                subtitle="Generating Power"
+                value={
+                  data.data?.generating_power_block.value[
+                    dataLength && dataLength > 1 ? sliderValue : 0
+                  ] ?? null
+                }
+                total={data.data?.generating_power_block.total ?? null}
+                isLoading={data.isLoading}
+                color={
+                  data.data
+                    ? colorFromPercent(
+                        data.data.generating_power_block.value[
+                          dataLength && dataLength > 1 ? sliderValue : 0
+                        ],
+                        data.data.generating_power_block.total,
+                      )
+                    : 'grey'
+                }
+              />
+              <RingProgressCard
+                title="PCSs"
+                subtitle="Generating Power"
+                value={
+                  data.data?.generating_power_pcs.value[
+                    dataLength && dataLength > 1 ? sliderValue : 0
+                  ] ?? null
+                }
+                total={data.data?.generating_power_pcs.total ?? null}
+                isLoading={data.isLoading}
+                color={
+                  data.data
+                    ? colorFromPercent(
+                        data.data.generating_power_pcs.value[
+                          dataLength && dataLength > 1 ? sliderValue : 0
+                        ],
+                        data.data.generating_power_pcs.total,
+                      )
+                    : 'grey'
+                }
+              />
+              {hasPCSModules && (
+                <RingProgressCard
+                  title="PCS Modules"
+                  subtitle="Generating Power"
+                  value={
+                    data.data?.generating_power_pcs_module?.value[
+                      dataLength && dataLength > 1 ? sliderValue : 0
+                    ] ?? null
+                  }
+                  total={data.data?.generating_power_pcs_module?.total ?? null}
+                  isLoading={data.isLoading}
+                  color={
+                    data.data
+                      ? colorFromPercent(
+                          data.data.generating_power_pcs_module?.value[
+                            dataLength && dataLength > 1 ? sliderValue : 0
+                          ] ?? 0,
+                          data.data.generating_power_pcs_module?.total ?? 0,
+                        )
+                      : 'grey'
+                  }
+                />
+              )}
+            </Group>
+            <CustomCard
+              title="Block Output Distribution"
+              style={{ height: '250px' }}
+              info="This plot shows the power output of each block. Clicking the 'Normalize by DC Input' button will equalize the performance of each block against its installed DC capacity, which is useful since installed capacity often differs per block. Look for large differences in performance between equipment to narrow down possible issues."
+              headerChildren={
+                <Checkbox
+                  label="Normalize by DC Input"
+                  value={blockNormalize ? 'true' : 'false'}
+                  onChange={(event) =>
+                    setBlockNormalize(event.currentTarget.checked)
+                  }
+                />
               }
-            }
-            isLoading={data.isLoading}
-            error={data.error}
-          />
-        </CustomCard>
-      )}
-      <CustomCard
-        title={
-          'PCS Power Heatmap' +
-          (dataLength && dataLength > 1 ? '' : ' (Last 24 hours)')
-        }
-        style={{ height: '500px' }}
-        info="This plot shows the power output of each PCS over time. Look for large differences in performance between equipment to narrow down possible issues."
-      >
-        <PCSHeatmap startQuery={startQuery} endQuery={endQuery} />
-      </CustomCard>
+            >
+              <PlotlyPlot
+                data={
+                  data.data && [
+                    {
+                      x: blockData?.x,
+                      y: blockData?.y[
+                        dataLength && dataLength > 1 ? sliderValue : 0
+                      ],
+                      customdata: blockData?.customdata,
+                      type: 'bar',
+                    },
+                  ]
+                }
+                layout={
+                  data.data && {
+                    xaxis: { type: 'category', title: { text: 'Block' } },
+                    yaxis: {
+                      range: [
+                        0,
+                        blockData ? blockData.yaxis_range_max * 1.05 : 1.05,
+                      ],
+                      title: {
+                        text: blockNormalize ? 'Power (%)' : 'Power (MW)',
+                      },
+                    },
+                  }
+                }
+                isLoading={data.isLoading}
+                error={data.error}
+              />
+            </CustomCard>
+            <CustomCard
+              title="PCS Output Distribution"
+              style={{ height: '250px' }}
+              info="This plot shows the power output of each PCS. Clicking the 'Normalize by DC Input' button will equalize the performance of each inverter against its installed DC capacity, which is useful since installed capacity is often different per equipment. Look for large differences in performance between equipment to narrow down possible issues."
+              headerChildren={
+                <Checkbox
+                  label="Normalize by DC Input"
+                  value={pcsNormalize ? 'true' : 'false'}
+                  onChange={(event) =>
+                    setPcsNormalize(event.currentTarget.checked)
+                  }
+                />
+              }
+            >
+              <PlotlyPlot
+                data={
+                  data.data && [
+                    {
+                      x: pcsData?.x,
+                      y: pcsData?.y[
+                        dataLength && dataLength > 1 ? sliderValue : 0
+                      ],
+                      customdata: pcsData?.customdata,
+                      type: 'bar',
+                    },
+                  ]
+                }
+                layout={
+                  data.data && {
+                    xaxis: { type: 'category', title: { text: 'PCS' } },
+                    yaxis: {
+                      range: [
+                        0,
+                        pcsData ? pcsData.yaxis_range_max * 1.05 : 1.05,
+                      ],
+                      title: {
+                        text: pcsNormalize ? 'Power (%)' : 'Power (MW)',
+                      },
+                    },
+                  }
+                }
+                isLoading={data.isLoading}
+                error={data.error}
+              />
+            </CustomCard>
+            {hasPCSModules && (
+              <CustomCard
+                title="PCS Module Output Distribution"
+                style={{ height: '250px' }}
+              >
+                <PlotlyPlot
+                  data={
+                    data.data && [
+                      {
+                        x: data.data.pcs_module_power_distribution?.x,
+                        y: data.data.pcs_module_power_distribution?.y[
+                          dataLength && dataLength > 1 ? sliderValue : 0
+                        ],
+                        customdata:
+                          data.data.pcs_module_power_distribution?.customdata,
+                        type: 'bar',
+                      },
+                    ]
+                  }
+                  layout={
+                    data.data && {
+                      xaxis: {
+                        type: 'category',
+                        title: { text: 'PCS Module' },
+                      },
+                      yaxis: {
+                        range: [
+                          0,
+                          (data.data.pcs_module_power_distribution
+                            ?.yaxis_range_max ?? 1) * 1.05,
+                        ],
+                        title: { text: 'Power (MW)' },
+                      },
+                    }
+                  }
+                  isLoading={data.isLoading}
+                  error={data.error}
+                />
+              </CustomCard>
+            )}
+            <CustomCard
+              title={
+                'PCS Power Heatmap' +
+                (dataLength && dataLength > 1 ? '' : ' (Last 24 hours)')
+              }
+              style={{ height: '500px' }}
+              info="This plot shows the power output of each PCS over time. Look for large differences in performance between equipment to narrow down possible issues."
+            >
+              <PCSHeatmap startQuery={startQuery} endQuery={endQuery} />
+            </CustomCard>
+          </Stack>
+        </Tabs.Panel>
+
+        {isSuperadmin && (
+          <Tabs.Panel value="long-term" pt="md">
+            <Text c="dimmed">
+              This tab and page are still under development and are only visible
+              to superadmins. The long-term PV PCS performance view needs to be
+              created.
+            </Text>
+          </Tabs.Panel>
+        )}
+      </Tabs>
     </Stack>
   )
 }

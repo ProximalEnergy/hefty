@@ -10,7 +10,7 @@ export const useGetDataLastUpdated = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/data-last-updated/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/data-last-updated`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

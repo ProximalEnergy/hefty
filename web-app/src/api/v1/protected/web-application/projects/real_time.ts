@@ -121,7 +121,7 @@ export const useGetDataTimeseriesLast = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-last/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-last`,
     params: queryParams,
   }
 

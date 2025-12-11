@@ -187,6 +187,23 @@ export const KPITypeEnum = {
   BESS_PROJECT_DC_ENCLOSURE_RTE: 105,
 } as const;
 
+export const NotificationChannelEnum = {
+  EMAIL: "email",
+  IN_APP: "in_app",
+} as const;
+
+export const NotificationSeverityEnum = {
+  INFO: "info",
+  WARNING: "warning",
+  CRITICAL: "critical",
+} as const;
+
+export const NotificationStateEnum = {
+  UNREAD: "unread",
+  READ: "read",
+  DELETED: "deleted",
+} as const;
+
 export const PVBudgetedSoilingModeEnum = {
   FIXED: "fixed",
   PER_TIMESTAMP: "per_timestamp",
@@ -429,6 +446,13 @@ export const SensorTypeEnum = {
   PV_PCS_MODULE_FREQUENCY: 190,
   PV_PCS_MODULE_EFFICIENCY: 191,
   PROJECT_LINE_TO_LINE_VOLTAGE: 192,
+  PV_PCS_MODULE_IGBT_TEMPERATURE: 193,
+  PV_PCS_MODULE_CURRENT_PHASE_A: 194,
+  PV_PCS_MODULE_CURRENT_PHASE_B: 195,
+  PV_PCS_MODULE_CURRENT_PHASE_C: 196,
+  PV_PCS_MODULE_VOLTAGE_PHASE_A: 197,
+  PV_PCS_MODULE_VOLTAGE_PHASE_B: 198,
+  PV_PCS_MODULE_VOLTAGE_PHASE_C: 199,
 } as const;
 
 export const TimeIntervalEnum = {

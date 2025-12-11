@@ -23,7 +23,7 @@ export const useGetProjectDocuments = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/documents/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/documents`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -58,7 +58,7 @@ export const useUploadProjectDocument = () => {
 
       return axios({
         method: 'post',
-        url: `${baseURL}/v1/operational/projects/${projectId}/documents/`,
+        url: `${baseURL}/v1/operational/projects/${projectId}/documents`,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

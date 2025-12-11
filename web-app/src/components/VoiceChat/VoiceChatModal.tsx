@@ -17,8 +17,8 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
-import { tool } from '@openai/agents-realtime'
 import type { RealtimeSession } from '@openai/agents-realtime'
+import { tool } from '@openai/agents-realtime'
 import {
   IconChevronDown,
   IconChevronUp,
@@ -99,6 +99,31 @@ const VoiceChatModal = ({
   const [cachedVectorStoreId, setCachedVectorStoreId] = useState<string | null>(
     null,
   )
+  const vectorStoreIdRef = useRef<string | null>(null)
+  const ensureVectorStoreInFlightRef = useRef<Promise<string | null> | null>(
+    null,
+  )
+
+  // Reset cache when the contract changes to avoid stale vector store reuse
+  useEffect(() => {
+    const incomingId =
+      contractData?.openai_vector_store_id ??
+      contractData?.vector_store_id ??
+      null
+
+    // Clear any in-flight ensure from previous contract
+    ensureVectorStoreInFlightRef.current = null
+
+    // Reset cached ids for the new contract
+    vectorStoreIdRef.current = incomingId
+    setCachedVectorStoreId(incomingId)
+  }, [
+    contractData?.contract_id,
+    contractData?.document_id,
+    contractData?.openai_file_id,
+    contractData?.openai_vector_store_id,
+    contractData?.vector_store_id,
+  ])
 
   const transcriptRef = useRef<HTMLDivElement>(null)
   const tokenCacheRef = useRef<{ token: string; expires: number } | null>(null)
@@ -112,6 +137,52 @@ const VoiceChatModal = ({
 
     return token
   }
+
+  const resolveVectorStoreId = useCallback(async (): Promise<string | null> => {
+    if (vectorStoreIdRef.current) return vectorStoreIdRef.current
+    if (ensureVectorStoreInFlightRef.current) {
+      return ensureVectorStoreInFlightRef.current
+    }
+
+    const existing =
+      cachedVectorStoreId ??
+      contractData?.openai_vector_store_id ??
+      contractData?.vector_store_id ??
+      null
+    if (existing) {
+      vectorStoreIdRef.current = existing
+      setCachedVectorStoreId((prev) => prev ?? existing)
+      return existing
+    }
+
+    if (!contractData?.openai_file_id) return null
+
+    const promise = ensureVectorStore
+      .mutateAsync({
+        openai_file_id: contractData.openai_file_id,
+        name: 'aria-knowledge',
+      })
+      .then((vs) => {
+        const id = vs.vector_store_id ?? null
+        vectorStoreIdRef.current = id
+        setCachedVectorStoreId(id)
+        ensureVectorStoreInFlightRef.current = null
+        return id
+      })
+      .catch((err) => {
+        ensureVectorStoreInFlightRef.current = null
+        throw err
+      })
+
+    ensureVectorStoreInFlightRef.current = promise
+    return promise
+  }, [
+    cachedVectorStoreId,
+    contractData?.openai_file_id,
+    contractData?.openai_vector_store_id,
+    contractData?.vector_store_id,
+    ensureVectorStore,
+  ])
 
   const createPreview = (text: string, maxLength: number = 200): string => {
     const normalizedText = text.replace(/\n{2,}/g, '\n').trim()
@@ -157,29 +228,13 @@ const VoiceChatModal = ({
       return []
     }
 
-    // Get the vector store ID from cache, contract data, or ensure we have one
-    const initialVectorStoreId =
-      cachedVectorStoreId ??
-      contractData?.openai_vector_store_id ??
-      contractData?.vector_store_id ??
-      undefined
-
-    let vectorStoreId: string | undefined = initialVectorStoreId
-
-    // If we don't have a vector store ID, try to ensure one exists
-    if (!vectorStoreId && contractData?.openai_file_id) {
-      try {
-        const vs = await ensureVectorStore.mutateAsync({
-          openai_file_id: contractData.openai_file_id,
-          name: 'aria-knowledge',
-        })
-        vectorStoreId = vs.vector_store_id
-        // Cache the vector store ID for future searches
-        setCachedVectorStoreId(vectorStoreId ?? null)
-      } catch (e) {
-        console.error('Failed to ensure vector store:', e)
-        return []
-      }
+    // Resolve or create the vector store ID once
+    let vectorStoreId: string | null = null
+    try {
+      vectorStoreId = await resolveVectorStoreId()
+    } catch (e) {
+      console.error('Failed to resolve vector store:', e)
+      return []
     }
 
     if (!vectorStoreId) {
@@ -420,22 +475,10 @@ const VoiceChatModal = ({
             'Tell the user that something must have gone wrong.',
           ].join('\n')
 
-      let vectorStoreId: string | undefined =
-        contractData?.openai_vector_store_id ??
-        contractData?.vector_store_id ??
-        undefined
-
-      // If we have a file id but no vector store id, request one from backend
-      if (!vectorStoreId && contractData?.openai_file_id) {
-        try {
-          const vs = await ensureVectorStore.mutateAsync({
-            openai_file_id: contractData.openai_file_id,
-            name: 'aria-knowledge',
-          })
-          vectorStoreId = vs.vector_store_id
-        } catch (e) {
-          console.error('Failed ensuring vector store:', e)
-        }
+      try {
+        await resolveVectorStoreId()
+      } catch (e) {
+        console.error('Failed ensuring vector store:', e)
       }
 
       const newAgent = new RealtimeAgent({
@@ -454,7 +497,7 @@ const VoiceChatModal = ({
       console.error('Failed to initialize voice chat:', err)
       setError('Failed to initialize voice chat. Please try again.')
     }
-  }, [contractData, user, ensureVectorStore, searchContractTool])
+  }, [contractData, user, searchContractTool, resolveVectorStoreId])
 
   useEffect(() => {
     if (opened && !session) {
@@ -567,7 +610,6 @@ const VoiceChatModal = ({
       setContractSearchResults([])
       setShowContractReferences(false)
       setExpandedExcerpts(new Set())
-      setCachedVectorStoreId(null) // Clear cached vector store ID
       tokenCacheRef.current = null // Clear token cache
       // Don't clear the session - keep it for reconnection
     }

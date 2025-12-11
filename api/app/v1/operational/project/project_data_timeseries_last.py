@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 def get_data_timeseries_last(
     project_db: Annotated[Session, Depends(get_project_db)],
     tag_ids: Annotated[list[int] | None, Query()] = None,

@@ -16,7 +16,7 @@ deprecated_router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[interfaces.DataType])
+@router.get("", response_model=list[interfaces.DataType])
 async def get_data_types(
     data_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
@@ -27,7 +27,7 @@ async def get_data_types(
     )
 
 
-@deprecated_router.get("/", response_model=list[interfaces.DataType])
+@deprecated_router.get("", response_model=list[interfaces.DataType])
 async def get_data_types_legacy(
     data_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",

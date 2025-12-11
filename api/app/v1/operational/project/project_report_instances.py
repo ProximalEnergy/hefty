@@ -23,7 +23,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[interfaces.ReportInstance])
+@router.get("", response_model=list[interfaces.ReportInstance])
 def get_project_reports_instances(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
@@ -48,7 +48,7 @@ def get_project_reports_instances(
 
 
 @router.put(
-    "/",
+    "",
     response_model=list[interfaces.ReportInstance],
     dependencies=[Depends(requires_superadmin_async)],
 )

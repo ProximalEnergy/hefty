@@ -14,7 +14,7 @@ export const useGetCompanyUsers = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/users/`,
+    url: `/v1/operational/users`,
     params: queryParams,
   }
 

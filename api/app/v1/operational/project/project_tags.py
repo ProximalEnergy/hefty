@@ -14,7 +14,7 @@ DESCRIPTION_404 = "Tag not found"
 router = APIRouter(prefix="/projects/{project_id}/tags", tags=["project_tags"])
 
 
-@router.get("/", response_model=list[interfaces.Tag])
+@router.get("", response_model=list[interfaces.Tag])
 def get_project_tags(
     tag_ids: Annotated[list[int], Query()] = [],
     in_tsdb: Annotated[bool | None, Query()] = None,

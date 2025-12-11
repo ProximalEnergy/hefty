@@ -52,7 +52,7 @@ def _string_to_reaction_type(*, reaction_type_str: str) -> enumerations.Reaction
 
 
 # --- API Endpoints ---
-@router.get("/")
+@router.get("")
 async def get_event_message_reactions(
     *,
     project_id: Annotated[UUID, Path(...)],
@@ -109,7 +109,7 @@ async def get_event_message_reactions(
         ]
 
 
-@router.post("/")
+@router.post("")
 async def toggle_event_message_reaction(
     *,
     project_id: Annotated[UUID, Path(...)],

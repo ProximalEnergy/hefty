@@ -9,7 +9,7 @@ from app.interfaces import UserAuthed
 router = APIRouter(prefix="/auth", tags=["auth-test"])
 
 
-@router.get("/")
+@router.get("")
 def get_auth(user: UserAuthed = Depends(authentication.get_user)):
     return {"user": user}
 

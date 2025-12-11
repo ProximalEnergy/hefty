@@ -11,6 +11,7 @@ from app.dependencies import get_user_data_async
 from app.interfaces import UserData
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+_VECTOR_STORE_CACHE: dict[str, str] = {}
 
 
 class VoiceChatSessionRequest(BaseModel):
@@ -125,6 +126,11 @@ async def ensure_vector_store(
                 detail="OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.",
             )
 
+        # Fast-path: return cached store if we've already resolved it for this file
+        cached = _VECTOR_STORE_CACHE.get(request.openai_file_id)
+        if cached:
+            return EnsureVectorStoreResponse(vector_store_id=cached)
+
         client = OpenAI(api_key=openai_api_key)
 
         # First, check if a vector store already exists for this file
@@ -135,6 +141,7 @@ async def ensure_vector_store(
             for file in store_files.data:
                 if file.id == request.openai_file_id and store.status == "completed":
                     # Found an existing completed vector store with this file
+                    _VECTOR_STORE_CACHE[request.openai_file_id] = store.id
                     return EnsureVectorStoreResponse(vector_store_id=store.id)
 
         # If no existing store found, create a new one
@@ -142,6 +149,7 @@ async def ensure_vector_store(
             name=request.name or "aria-knowledge",
             file_ids=[request.openai_file_id],
         )
+        _VECTOR_STORE_CACHE[request.openai_file_id] = vs.id
         return EnsureVectorStoreResponse(vector_store_id=vs.id)
     except Exception as e:  # pragma: no cover - surface error details
         raise HTTPException(

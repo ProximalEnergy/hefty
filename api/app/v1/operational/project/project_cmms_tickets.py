@@ -43,7 +43,7 @@ class CMMSResponse(BaseModel):
     data: list[CMMSTicket]
 
 
-@router.get("/", response_model=CMMSResponse)
+@router.get("", response_model=CMMSResponse)
 async def get_cmms_tickets(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],

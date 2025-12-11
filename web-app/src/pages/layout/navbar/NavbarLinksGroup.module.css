@@ -49,3 +49,11 @@ a[data-active='true'] .link {
 .chevron {
   transition: transform 200ms ease;
 }
+
+/* Highlight the Home (default) menu item when mouse is on target */
+:global(.mantine-Menu-item[data-highlight-default='true']) {
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-8)
+  ) !important;
+}

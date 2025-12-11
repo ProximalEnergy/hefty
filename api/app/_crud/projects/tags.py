@@ -1,8 +1,6 @@
 import re
 from typing import Any
 
-from core.enumerations import SensorType
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from core import models
@@ -24,54 +22,6 @@ def _convert_pattern_to_regex(*, pattern: str) -> str:
 
     # Anchor to full string to avoid substring overmatches
     return f"^{regex}$"
-
-
-def get_unique_tag_types(
-    project_db: Session,
-    *,
-    limit: int = 500,
-    include_null_sensor_types: bool = False,
-    only_null_sensor_types: bool = False,
-):
-    """
-    Get unique tag types for a project using standard query patterns.
-    Groups tags by sensor_type_id, name_scada, scada_type, unit_scada, unit_offset, unit_scale.
-    Also returns one example tag_id for each group.
-    """
-    query = project_db.query(
-        models.Tag.sensor_type_id,
-        models.Tag.name_scada,
-        models.Tag.scada_type,
-        models.Tag.unit_scada,
-        models.Tag.unit_offset,
-        models.Tag.unit_scale,
-        func.count(models.Tag.tag_id).label("count"),
-        func.min(models.Tag.tag_id).label("example_tag_id"),
-    )
-
-    # Apply base filters
-    query = query.filter(models.Tag.device_id != 0)
-    query = query.filter(models.Tag.name_scada is not None)  # type: ignore[arg-type]
-
-    # Apply sensor type filters
-    if only_null_sensor_types:
-        query = query.filter(models.Tag.sensor_type_id == SensorType.GHOST_UNKNOWN)
-    elif not include_null_sensor_types:
-        query = query.filter(models.Tag.sensor_type_id > SensorType.GHOST_UNKNOWN)
-
-    # Group by and order
-    query = query.group_by(
-        models.Tag.sensor_type_id,
-        models.Tag.name_scada,
-        models.Tag.scada_type,
-        models.Tag.unit_scada,
-        models.Tag.unit_offset,
-        models.Tag.unit_scale,
-    )
-    query = query.order_by(func.count(models.Tag.tag_id).desc())
-    query = query.limit(limit)
-
-    return query.all()
 
 
 def get_sensor_type_assignments(*, project_db: Session):
@@ -138,15 +88,11 @@ def get_tags_by_pattern_digits_only(project_db: Session, *, pattern: str):
     """
     Get all tags that match a given pattern where [INT] matches digits only.
     Uses Postgres regex (~) and escapes literal pieces.
-    Filters out ghost tags and null names.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
     return (
-        project_db.query(models.Tag)
-        .filter(models.Tag.device_id != 0)
-        .filter(models.Tag.name_scada.op("~")(regex))
-        .all()
+        project_db.query(models.Tag).filter(models.Tag.name_scada.op("~")(regex)).all()
     )
 
 
@@ -193,11 +139,7 @@ def update_tags_sensor_type_by_pattern_bulk(
     regex = _convert_pattern_to_regex(pattern=pattern)
 
     # Execute bulk update using SQLAlchemy ORM bulk operations
-    query = (
-        project_db.query(models.Tag)
-        .filter(models.Tag.device_id != 0)
-        .filter(models.Tag.name_scada.op("~")(regex))
-    )
+    query = project_db.query(models.Tag).filter(models.Tag.name_scada.op("~")(regex))
 
     # Build update dict - include unit_scada if explicitly provided (even if None)
     update_dict: dict[str, Any] = {"sensor_type_id": sensor_type_id}
@@ -236,8 +178,6 @@ def get_sample_tags_by_pattern_digits_only(
 
     return (
         project_db.query(models.Tag)
-        .filter(models.Tag.device_id != 0)
-        .filter(models.Tag.name_scada.isnot(None))
         .filter(models.Tag.name_scada.op("~")(regex))
         .order_by(models.Tag.tag_id)
         .limit(limit)

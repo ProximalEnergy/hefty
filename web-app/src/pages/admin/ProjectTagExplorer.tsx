@@ -11,11 +11,12 @@ import {
   useGetTagPatternSamples,
   useGetTagsByPattern,
   useGetUniqueTagTypes,
-  usePopulateUniqueTagPatterns,
+  usePutUniqueTagPatterns,
 } from '@/api/v1/protected/web-application/projects/project-tag-explorer'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
+import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
   ActionIcon,
   Badge,
@@ -36,7 +37,12 @@ import {
 } from '@mantine/core'
 import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
-import { IconEye, IconPlus, IconRefresh } from '@tabler/icons-react'
+import {
+  IconEye,
+  IconInfoCircle,
+  IconPlus,
+  IconRefresh,
+} from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -47,7 +53,6 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import React, { useMemo, useState } from 'react'
-import Plot from 'react-plotly.js'
 import { useParams } from 'react-router'
 
 dayjs.extend(utc)
@@ -219,7 +224,7 @@ const ProjectTagExplorer = () => {
     'Degrees',
   ]
 
-  const populateUniqueTagPatterns = usePopulateUniqueTagPatterns()
+  const putUniqueTagPatterns = usePutUniqueTagPatterns()
 
   // No automatic execution time tracking - only manual refresh measurements
 
@@ -248,7 +253,7 @@ const ProjectTagExplorer = () => {
     if (!projectId) return
 
     try {
-      await populateUniqueTagPatterns.mutateAsync({
+      await putUniqueTagPatterns.mutateAsync({
         projectId,
       })
       // After population, explicitly refetch and show a spinner on the table
@@ -321,10 +326,6 @@ const ProjectTagExplorer = () => {
       setSelectedSensorTypeUnit(null)
     }
   }, [selectedTagPattern, uniqueTagTypes.data, sensorTypes.data])
-  // Temporarily disabled due to performance issues with large datasets
-  // const sensorTypeAssignments = useGetSensorTypeAssignments({
-  //   pathParams: { projectId: projectId || '-1' },
-  // })
 
   const assignPatternSensorType = useAssignPatternSensorTypeMutation()
 
@@ -339,9 +340,7 @@ const ProjectTagExplorer = () => {
       end: end?.toISOString(),
     },
     queryOptions: {
-      enabled: !!selectedTagPattern, // Only require selectedTagPattern, let backend handle default dates
-      refetchOnWindowFocus: false,
-      staleTime: 0, // Always refetch when parameters change
+      enabled: !!selectedTagPattern,
     },
   })
 
@@ -938,7 +937,7 @@ const ProjectTagExplorer = () => {
                   variant="filled"
                   leftSection={<IconPlus size={16} />}
                   onClick={handlePopulatePatterns}
-                  loading={populateUniqueTagPatterns.isPending}
+                  loading={putUniqueTagPatterns.isPending}
                 >
                   Populate Patterns
                 </Button>
@@ -1024,57 +1023,6 @@ const ProjectTagExplorer = () => {
         </Tabs.Panel>
       </Tabs>
 
-      {/* Temporarily disabled due to performance issues with large datasets */}
-      {/* <Card withBorder>
-        <Stack gap="md">
-          <Title order={3}>Sensor Type Assignments</Title>
-          <Text size="sm" c="dimmed">
-            View which sensor types are currently assigned across projects.
-          </Text>
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Sensor Type</Table.Th>
-                <Table.Th>Metric Name</Table.Th>
-                <Table.Th>Unit</Table.Th>
-                <Table.Th>Total Projects</Table.Th>
-                <Table.Th>Projects</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {sensorTypeAssignments.data?.map(
-                (assignment: SensorTypeAssignment) => (
-                  <Table.Tr key={assignment.sensor_type_id}>
-                    <Table.Td>
-                      <Text fw={500}>{assignment.sensor_type_name_short}</Text>
-                      <Text size="xs" c="dimmed">
-                        {assignment.sensor_type_name_long}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>{assignment.sensor_type_name_metric}</Table.Td>
-                    <Table.Td>{assignment.sensor_type_unit || '-'}</Table.Td>
-                    <Table.Td>{assignment.total_projects}</Table.Td>
-                    <Table.Td>
-                      <Group gap="xs">
-                        {assignment.project_assignments.map((project) => (
-                          <Badge
-                            key={project.project_id}
-                            size="sm"
-                            variant="light"
-                          >
-                            {project.project_name_short} ({project.tag_count})
-                          </Badge>
-                        ))}
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                ),
-              )}
-            </Table.Tbody>
-          </Table>
-        </Stack>
-      </Card> */}
-
       {/* Tag Pattern Details Modal */}
       <Modal
         opened={isDetailsModalOpen}
@@ -1098,237 +1046,251 @@ const ProjectTagExplorer = () => {
             'Tag Pattern Details'
           )
         }
-        size="90rem"
+        size="100%"
       >
         <Stack gap="lg">
           {selectedTagPattern && (
             <>
               {/* Pattern with [INT] replaced by computed ranges */}
-              {tagsByPattern.isLoading ? (
-                <Text size="sm">Loading tags…</Text>
-              ) : tagsByPattern.error ? (
-                <Text size="sm" c="red">
-                  Error loading tags
-                </Text>
-              ) : intRanges.length > 0 ? (
-                <Card withBorder>
-                  <Stack gap="xs">
-                    <Text size="sm" fw={500}>
-                      Pattern Ranges
-                    </Text>
-                    <Text size="sm" style={{ wordBreak: 'break-all' }}>
-                      {(() => {
-                        const parts = (selectedTagPattern || '').split('[INT]')
-                        const nodes: React.ReactNode[] = []
-                        for (let i = 0; i < parts.length; i++) {
-                          nodes.push(parts[i])
-                          if (i < intRanges.length) {
-                            const r = intRanges[i]
-                            const ok =
-                              Number.isFinite(r.min) && Number.isFinite(r.max)
-                            nodes.push(
-                              <Text
-                                key={`range-${i}`}
-                                component="span"
-                                c="blue"
-                                fw={600}
-                              >
-                                [{ok ? `${r.min}-${r.max}` : '—'}]
-                              </Text>,
-                            )
-                          }
-                        }
-                        return <>{nodes}</>
-                      })()}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Based on {tagsByPattern.data?.length || 0} tags matching
-                      this pattern
-                    </Text>
-                  </Stack>
-                </Card>
-              ) : null}
-
-              <Group align="flex-start" grow>
-                {/* Left: Tag Properties and Assignment (50%) */}
-                <Card withBorder style={{ flex: 1 }}>
-                  <Stack gap="sm">
-                    <Text fw={500}>Tag Properties</Text>
-                    <Stack gap="md">
-                      <Select
-                        label="SCADA Unit"
-                        placeholder="Select SCADA unit (e.g., C, W, W/m2)"
-                        searchable
-                        clearable
-                        value={patternUnitScada}
-                        data={predefinedUnits.map((unit) => ({
-                          value: unit,
-                          label: unit,
-                        }))}
-                        onChange={(value) => setPatternUnitScada(value)}
-                      />
-                    </Stack>
-
-                    <Text fw={500} style={{ marginTop: '16px' }}>
-                      Assignment
-                    </Text>
-                    <Stack gap="md">
-                      <Group justify="space-between" align="center">
-                        <Text fw={500}>Sensor Type</Text>
-                        <Button
-                          variant="subtle"
-                          size="xs"
-                          leftSection={<IconPlus size={12} />}
-                          onClick={handleCreateSensorType}
-                        >
-                          Add New...
-                        </Button>
-                      </Group>
-                      <Select
-                        placeholder="Select a sensor type"
-                        searchable
-                        clearable
-                        value={patternSensorTypeId}
-                        data={
-                          sensorTypes.data?.map((sensorType: SensorType) => ({
-                            value: sensorType.sensor_type_id.toString(),
-                            label: `${sensorType.name_short} - ${sensorType.name_long}`,
-                            unit: sensorType.unit,
-                          })) || []
-                        }
-                        onChange={(value) => {
-                          setPatternSensorTypeId(value)
-                          if (value && sensorTypes.data) {
-                            const sensorType = sensorTypes.data.find(
-                              (st: SensorType) =>
-                                st.sensor_type_id.toString() === value,
-                            )
-                            setSelectedSensorTypeUnit(sensorType?.unit || null)
-                          } else {
-                            setSelectedSensorTypeUnit(null)
-                          }
-                        }}
-                      />
-
-                      {selectedSensorTypeUnit && (
-                        <Text size="sm" c="blue" fw={500}>
-                          Unit: {selectedSensorTypeUnit}
-                        </Text>
-                      )}
-
-                      <Group gap="md" grow>
-                        <div>
-                          <Tooltip
-                            label="e.g., 0.000001 to convert W to MW"
-                            position="top"
-                          >
-                            <Text
-                              size="sm"
-                              fw={500}
-                              style={{ marginBottom: '8px' }}
-                            >
-                              Unit Scale Multiplier
-                            </Text>
-                          </Tooltip>
-                          <Group>
-                            <Button
-                              size="compact-xs"
-                              onClick={() => setPatternUnitScale(0.001)}
-                            >
-                              0.001
-                            </Button>
-                            <Button
-                              size="compact-xs"
-                              onClick={() => setPatternUnitScale(0.01)}
-                            >
-                              0.01
-                            </Button>
-                          </Group>
-                          <Group gap="xs" align="center">
-                            <Text size="sm">
-                              SCADA Value in{' '}
-                              {patternUnitScada
-                                ? `[${patternUnitScada}]`
-                                : '[unit_scada]'}{' '}
-                              ×
-                            </Text>
-                            <NumberInput
-                              placeholder="1"
-                              value={patternUnitScale || undefined}
-                              onChange={(value) =>
-                                setPatternUnitScale(
-                                  typeof value === 'number' ? value : null,
-                                )
-                              }
-                              min={0}
-                              step={0.000001}
-                              decimalScale={6}
-                              style={{ width: '120px' }}
-                              size="xs"
-                            />
-                            <Text size="sm">
-                              → {selectedSensorTypeUnit || 'Unit'}
-                            </Text>
-                          </Group>
-                        </div>
-                      </Group>
-
-                      <Group gap="md" grow>
-                        <div>
-                          <Tooltip
-                            label="Usually null/empty (not often used)"
-                            position="top"
-                          >
-                            <Text
-                              size="sm"
-                              fw={500}
-                              style={{ marginBottom: '8px' }}
-                            >
-                              Unit Offset
-                            </Text>
-                          </Tooltip>
-                          <NumberInput
-                            placeholder="0 (default)"
-                            value={patternUnitOffset || undefined}
-                            onChange={(value) =>
-                              setPatternUnitOffset(
-                                typeof value === 'number' ? value : null,
+              <Card withBorder>
+                <Stack gap="xs">
+                  <Text size="sm" fw={500}>
+                    Pattern Ranges
+                  </Text>
+                  {tagsByPattern.isLoading ? (
+                    <>
+                      <Text size="sm">Loading tags…</Text>
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        style={{ visibility: 'hidden' }}
+                      >
+                        Based on 0 tags matching this pattern
+                      </Text>
+                    </>
+                  ) : tagsByPattern.error ? (
+                    <>
+                      <Text size="sm" c="red">
+                        Error loading tags
+                      </Text>
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        style={{ visibility: 'hidden' }}
+                      >
+                        Based on 0 tags matching this pattern
+                      </Text>
+                    </>
+                  ) : intRanges.length > 0 ? (
+                    <>
+                      <Text size="sm" style={{ wordBreak: 'break-all' }}>
+                        {(() => {
+                          const parts = (selectedTagPattern || '').split(
+                            '[INT]',
+                          )
+                          const nodes: React.ReactNode[] = []
+                          for (let i = 0; i < parts.length; i++) {
+                            nodes.push(parts[i])
+                            if (i < intRanges.length) {
+                              const r = intRanges[i]
+                              const ok =
+                                Number.isFinite(r.min) && Number.isFinite(r.max)
+                              nodes.push(
+                                <Text
+                                  key={`range-${i}`}
+                                  component="span"
+                                  c="blue"
+                                  fw={600}
+                                >
+                                  [{ok ? `${r.min}-${r.max}` : '—'}]
+                                </Text>,
                               )
                             }
-                            step={0.01}
-                            decimalScale={2}
-                            size="xs"
-                          />
-                        </div>
+                          }
+                          return <>{nodes}</>
+                        })()}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Based on {tagsByPattern.data?.length || 0} tags matching
+                        this pattern
+                      </Text>
+                    </>
+                  ) : (
+                    <Text size="sm" c="dimmed">
+                      No ranges found
+                    </Text>
+                  )}
+                </Stack>
+              </Card>
+
+              <Group align="flex-start">
+                {/* Left: Tag Properties and Assignment */}
+                <Card withBorder style={{ flex: 1 }}>
+                  <Stack>
+                    <Text size="lg">Tag Properties</Text>
+
+                    {/* SCADA Unit */}
+                    <Group gap="xs" align="center">
+                      <Text>SCADA Unit</Text>
+                      <Tooltip label="The unit of the SCADA value.">
+                        <IconInfoCircle size={12} />
+                      </Tooltip>
+                    </Group>
+                    <Select
+                      placeholder="Select SCADA unit (e.g., C, W, W/m2)"
+                      searchable
+                      clearable
+                      value={patternUnitScada}
+                      data={predefinedUnits.map((unit) => ({
+                        value: unit,
+                        label: unit,
+                      }))}
+                      onChange={(value) => setPatternUnitScada(value)}
+                    />
+
+                    {/* Sensor Type */}
+                    <Group justify="space-between" align="center">
+                      <Group gap="xs" align="center">
+                        <Text size="lg">Sensor Type</Text>
+                        <Tooltip label="The sensor type to assign to the tag pattern.">
+                          <IconInfoCircle size={12} />
+                        </Tooltip>
                       </Group>
                       <Button
-                        variant="light"
-                        color="blue"
-                        onClick={handleAssignPatternClick}
-                        loading={assignPatternSensorType.isPending}
-                        disabled={!patternSensorTypeId}
-                        fullWidth
+                        variant="subtle"
+                        size="xs"
+                        leftSection={<IconPlus size={12} />}
+                        onClick={handleCreateSensorType}
                       >
-                        Assign to Pattern
+                        Add New...
                       </Button>
-                      <Button variant="subtle" onClick={closeDetails} fullWidth>
-                        Cancel
+                    </Group>
+                    <Select
+                      placeholder="Select a sensor type"
+                      searchable
+                      clearable
+                      value={patternSensorTypeId}
+                      data={
+                        sensorTypes.data?.map((sensorType: SensorType) => ({
+                          value: sensorType.sensor_type_id.toString(),
+                          label: `${sensorType.name_short} - ${sensorType.name_long}`,
+                          unit: sensorType.unit,
+                        })) || []
+                      }
+                      onChange={(value) => {
+                        setPatternSensorTypeId(value)
+                        if (value && sensorTypes.data) {
+                          const sensorType = sensorTypes.data.find(
+                            (st: SensorType) =>
+                              st.sensor_type_id.toString() === value,
+                          )
+                          setSelectedSensorTypeUnit(sensorType?.unit || null)
+                        } else {
+                          setSelectedSensorTypeUnit(null)
+                        }
+                      }}
+                    />
+
+                    {selectedSensorTypeUnit && (
+                      <Text size="sm">
+                        Selected sensor type has an assumed unit of{' '}
+                        <Text fw={600} component="span">
+                          {selectedSensorTypeUnit}
+                        </Text>
+                        .
+                      </Text>
+                    )}
+
+                    {/* Unit Scale */}
+                    <Group gap="xs" align="center">
+                      <Text size="lg">Unit Scale</Text>
+                      <Tooltip label="The amount to multiply the SCADA value by.">
+                        <IconInfoCircle size={12} />
+                      </Tooltip>
+                    </Group>
+                    <Group grow>
+                      <Group gap="xs" align="center">
+                        <Text>
+                          SCADA Value{' '}
+                          {patternUnitScada ? `(${patternUnitScada})` : ''}{' '}
+                          &times;
+                        </Text>
+                        <NumberInput
+                          placeholder="1 (default)"
+                          value={patternUnitScale || undefined}
+                          onChange={(value) =>
+                            setPatternUnitScale(
+                              typeof value === 'number' ? value : null,
+                            )
+                          }
+                          min={0}
+                          step={0.000001}
+                          decimalScale={6}
+                          size="xs"
+                        />
+                        <Text>→ {selectedSensorTypeUnit || 'Unit'}</Text>
+                      </Group>
+                    </Group>
+                    <Group>
+                      <Text>Quick Select Scales</Text>
+                      <Button
+                        size="compact-xs"
+                        onClick={() => setPatternUnitScale(0.001)}
+                      >
+                        0.001
                       </Button>
-                    </Stack>
+                      <Button
+                        size="compact-xs"
+                        onClick={() => setPatternUnitScale(0.01)}
+                      >
+                        0.01
+                      </Button>
+                    </Group>
+
+                    {/* Unit Offset */}
+                    <Group gap="xs" align="center">
+                      <Text size="lg">Unit Offset</Text>
+                      <Tooltip label="The amount to add to the SCADA value. Offset will be applied after the scale if both are set.">
+                        <IconInfoCircle size={12} />
+                      </Tooltip>
+                    </Group>
+                    <NumberInput
+                      placeholder="0 (default)"
+                      value={patternUnitOffset || undefined}
+                      onChange={(value) =>
+                        setPatternUnitOffset(
+                          typeof value === 'number' ? value : null,
+                        )
+                      }
+                      step={0.01}
+                      decimalScale={2}
+                      size="xs"
+                    />
+
+                    {/* Submission */}
+                    <Button
+                      onClick={handleAssignPatternClick}
+                      loading={assignPatternSensorType.isPending}
+                      disabled={!patternSensorTypeId}
+                      fullWidth
+                    >
+                      Assign to Pattern
+                    </Button>
+                    <Button variant="subtle" onClick={closeDetails} fullWidth>
+                      Cancel
+                    </Button>
                   </Stack>
                 </Card>
 
-                {/* Right: Sample Data (50%) */}
-                <Card withBorder style={{ flex: 1 }}>
-                  <Stack gap="md">
+                {/* Right: Sample Data */}
+                <Card withBorder style={{ flex: 2 }}>
+                  <Stack>
                     <Group justify="space-between" align="center">
                       <Title order={4}>Sample Data</Title>
                       <AdvancedDatePicker
-                        defaultRange="yesterday"
+                        defaultRange="past-3-days"
                         includeClearButton={false}
                         includeTodayInDateRange={true}
-                        size="sm"
-                        width={400}
                       />
                     </Group>
                     {tagPatternSamples.data?.sample_tags && (
@@ -1400,24 +1362,12 @@ const ProjectTagExplorer = () => {
                                     <div
                                       style={{
                                         width: '100%',
-                                        minHeight: '400px',
-                                        position: 'relative',
+                                        height: '450px',
                                       }}
                                     >
-                                      <Plot
+                                      <PlotlyPlot
                                         data={numericTags.map((tag) => ({
-                                          x: tag.timestamps.map(
-                                            (timestamp: string) => {
-                                              // Convert UTC timestamp to project's local timezone
-                                              // Keep as Date object for Plotly to handle chronologically
-                                              const projectTimezone =
-                                                project.data?.time_zone || 'UTC'
-                                              return dayjs
-                                                .utc(timestamp)
-                                                .tz(projectTimezone)
-                                                .toDate()
-                                            },
-                                          ),
+                                          x: tag.timestamps,
                                           y: tag.sample_values.map(
                                             (value: string | number) => {
                                               let transformedValue =
@@ -1441,31 +1391,9 @@ const ProjectTagExplorer = () => {
                                           type: 'scatter',
                                           mode: 'lines+markers',
                                           name: tag.tag_name,
-                                          opacity: 0.7,
-                                          hovertemplate:
-                                            `<b>${tag.tag_name}</b><br>` +
-                                            `Time: %{x|%m-%d %H:%M}<br>` +
-                                            `Value: %{y}<br>` +
-                                            `<extra></extra>`,
+                                          hoverlabel: { namelength: -1 },
                                         }))}
                                         layout={{
-                                          autosize: true,
-                                          showlegend: false,
-                                          margin: {
-                                            l: 60,
-                                            r: 30,
-                                            t: 20,
-                                            b: 100,
-                                            pad: 4,
-                                          },
-                                          xaxis: {
-                                            title: {
-                                              text: 'Time (Project Local)',
-                                              standoff: 20,
-                                            },
-                                            type: 'date',
-                                            tickformat: '%m-%d %H:%M',
-                                          },
                                           yaxis: {
                                             title: {
                                               text: selectedSensorTypeUnit
@@ -1481,15 +1409,6 @@ const ProjectTagExplorer = () => {
                                                 : undefined,
                                           },
                                         }}
-                                        config={{
-                                          displayModeBar: false,
-                                          responsive: true,
-                                        }}
-                                        style={{
-                                          width: '100%',
-                                          height: '100%',
-                                        }}
-                                        useResizeHandler={true}
                                       />
                                     </div>
                                   </Tabs.Panel>
@@ -1498,11 +1417,10 @@ const ProjectTagExplorer = () => {
                                     <div
                                       style={{
                                         width: '100%',
-                                        minHeight: '400px',
-                                        position: 'relative',
+                                        height: '450px',
                                       }}
                                     >
-                                      <Plot
+                                      <PlotlyPlot
                                         data={numericTags.map((tag) => ({
                                           x: tag.sample_values.map(
                                             (value: string | number) => {
@@ -1526,24 +1444,11 @@ const ProjectTagExplorer = () => {
                                           ),
                                           type: 'histogram',
                                           name: tag.tag_name,
-                                          opacity: 0.7,
                                           nbinsx: 20,
-                                          hovertemplate:
-                                            `<b>${tag.tag_name}</b><br>` +
-                                            `Value: %{x}<br>` +
-                                            `Count: %{y}<br>` +
-                                            `<extra></extra>`,
+                                          hoverlabel: { namelength: -1 },
                                         }))}
                                         layout={{
-                                          autosize: true,
                                           showlegend: false,
-                                          margin: {
-                                            l: 60,
-                                            r: 30,
-                                            t: 20,
-                                            b: 100,
-                                            pad: 4,
-                                          },
                                           xaxis: {
                                             title: {
                                               text: selectedSensorTypeUnit
@@ -1562,15 +1467,6 @@ const ProjectTagExplorer = () => {
                                             title: { text: 'Frequency' },
                                           },
                                         }}
-                                        config={{
-                                          displayModeBar: false,
-                                          responsive: true,
-                                        }}
-                                        style={{
-                                          width: '100%',
-                                          height: '100%',
-                                        }}
-                                        useResizeHandler={true}
                                       />
                                     </div>
                                   </Tabs.Panel>
