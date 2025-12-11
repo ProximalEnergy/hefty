@@ -3014,7 +3014,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Status Time Series */
+        /**
+         * Get Status Time Series
+         * @description sensor_types: list[SensorType] | None = None
+         *     Only queries statuses for the provided sensor types.
+         *     However, the provided list must be a subset of the supported sensor types.
+         *     If not provided, all supported sensor types will be used.
+         */
         get: operations["get_status_time_series_v1_operational_projects__project_id__status_time_series_get"];
         put?: never;
         post?: never;
@@ -9121,23 +9127,6 @@ export interface components {
             /** Y */
             y: (number | null)[];
         };
-        /** SensorType */
-        SensorType: {
-            /** Sensor Type Id */
-            sensor_type_id: number;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-            /** Name Metric */
-            name_metric: string;
-            /** Unit */
-            unit: string | null;
-            /** Description */
-            description: string | null;
-        };
         /** SettlementPoint */
         SettlementPoint: {
             /** Settlement Point Id */
@@ -9280,7 +9269,7 @@ export interface components {
             point: components["schemas"]["Point"] | null;
             polygon: components["schemas"]["Polygon"] | null;
             device: components["schemas"]["Device"] | null;
-            sensor_type: components["schemas"]["SensorType"] | null;
+            sensor_type: components["schemas"]["app__interfaces__SensorType"] | null;
             data_type: components["schemas"]["DataType"] | null;
             /** Status Lookup Id */
             status_lookup_id: number | null;
@@ -9570,6 +9559,28 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** SensorType */
+        app__interfaces__SensorType: {
+            /** Sensor Type Id */
+            sensor_type_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Unit */
+            unit: string | null;
+            /** Description */
+            description: string | null;
+        };
+        /**
+         * SensorType
+         * @enum {integer}
+         */
+        core__enumerations__SensorType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125 | 126 | 127 | 128 | 129 | 130 | 131 | 132 | 133 | 134 | 135 | 136 | 137 | 138 | 139 | 140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 | 151 | 152 | 153 | 154 | 155 | 156 | 157 | 158 | 159 | 160 | 161 | 162 | 163 | 164 | 165 | 166 | 167 | 168 | 169 | 170 | 171 | 172 | 173 | 174 | 175 | 176 | 177 | 178 | 179 | 180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 188 | 189 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 | 198 | 199;
     };
     responses: never;
     parameters: never;
@@ -15843,7 +15854,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["core__enumerations__SensorType"][] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -15883,7 +15898,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["core__enumerations__SensorType"][] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -17971,7 +17990,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"][];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"][];
                 };
             };
             /** @description Validation Error */
@@ -17999,7 +18018,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SensorType"];
+                "application/json": components["schemas"]["app__interfaces__SensorType"];
             };
         };
         responses: {
@@ -18009,7 +18028,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"];
                 };
             };
             /** @description Validation Error */
@@ -18045,7 +18064,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"];
                 };
             };
             /** @description Sensor type not found */
@@ -18082,7 +18101,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SensorType"];
+                "application/json": components["schemas"]["app__interfaces__SensorType"];
             };
         };
         responses: {
@@ -18092,7 +18111,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"];
                 };
             };
             /** @description Sensor type not found */
@@ -18138,7 +18157,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"][];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"][];
                 };
             };
             /** @description Validation Error */
@@ -18166,7 +18185,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SensorType"];
+                "application/json": components["schemas"]["app__interfaces__SensorType"];
             };
         };
         responses: {
@@ -18176,7 +18195,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"];
                 };
             };
             /** @description Validation Error */
@@ -18212,7 +18231,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"];
                 };
             };
             /** @description Sensor type not found */
@@ -18249,7 +18268,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SensorType"];
+                "application/json": components["schemas"]["app__interfaces__SensorType"];
             };
         };
         responses: {
@@ -18259,7 +18278,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType"];
+                    "application/json": components["schemas"]["app__interfaces__SensorType"];
                 };
             };
             /** @description Sensor type not found */

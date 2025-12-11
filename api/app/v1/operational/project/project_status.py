@@ -70,8 +70,15 @@ def get_status_time_series(
     end: datetime.datetime,
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
+    sensor_types: list[SensorType] | None = None,
 ):
-    status_sensor_type_ids = [
+    """
+    sensor_types: list[SensorType] | None = None
+    Only queries statuses for the provided sensor types.
+    However, the provided list must be a subset of the supported sensor types.
+    If not provided, all supported sensor types will be used.
+    """
+    supported_sensor_types = [
         SensorType.PV_PCS_STATUS,
         SensorType.PV_PCS_MODULE_STATUS,
         SensorType.TRACKER_ZONE_STATUS,
@@ -82,6 +89,16 @@ def get_status_time_series(
         SensorType.BESS_BANK_STATUS,
         SensorType.BESS_STRING_STATUS,
     ]
+
+    if sensor_types is not None:
+        if not set(sensor_types).issubset(supported_sensor_types):
+            unsupported_sensor_types = set(sensor_types) - set(supported_sensor_types)
+            raise ValueError(f"Unsupported sensor types: {unsupported_sensor_types}")
+    else:
+        sensor_types = supported_sensor_types
+
+    status_sensor_type_ids = SensorType.extract_values(sensor_types)
+
     if device_ids is not None:
         device_ids = list(set(device_ids))
         tags_model_list = core.crud.project.tags.get_project_tags(
@@ -231,6 +248,7 @@ async def get_status_time_series_python(
     end: datetime.datetime,
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
+    sensor_types: list[SensorType] | None = None,
 ):
     try:
         data = await core.crud.project.statuses.get_status_timeseries_python(
@@ -241,6 +259,7 @@ async def get_status_time_series_python(
             end=end,
             device_ids=device_ids,
             tag_ids=tag_ids,
+            sensor_types=sensor_types,
         )
         return data
     except ValueError as e:
