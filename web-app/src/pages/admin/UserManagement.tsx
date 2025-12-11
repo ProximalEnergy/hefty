@@ -24,9 +24,120 @@ import {
 } from '@mantine/core'
 import { hasLength, isEmail, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
+import { notifications } from '@mantine/notifications'
 import { IconUserMinus } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+const CreateUserModal = ({
+  opened,
+  onClose,
+  companies,
+  defaultCompanyId,
+  onSuccess,
+}: {
+  opened: boolean
+  onClose: () => void
+  companies:
+    | { company_id: string; name_long: string; name_short: string }[]
+    | undefined
+  defaultCompanyId: string | undefined
+  onSuccess: () => void
+}) => {
+  const [createUserError, setCreateUserError] = useState<string | null>(null)
+  const createUser = useCreateUser()
+  const form = useForm({
+    initialValues: {
+      first_name: '',
+      last_name: '',
+      email: '',
+      company_id: defaultCompanyId || '',
+    },
+    validate: {
+      first_name: hasLength(
+        { min: 2 },
+        'First name must be at least 2 characters',
+      ),
+      last_name: hasLength(
+        { min: 2 },
+        'Last name must be at least 2 characters',
+      ),
+      email: isEmail('Invalid email address'),
+      company_id: hasLength({ min: 1 }, 'Company is required'),
+    },
+  })
+
+  // Set company_id when defaultCompanyId is available or changes
+  useEffect(() => {
+    if (defaultCompanyId) {
+      form.setFieldValue('company_id', defaultCompanyId)
+    }
+  }, [form, defaultCompanyId])
+
+  const handleSubmit = form.onSubmit(async (values) => {
+    setCreateUserError(null)
+    try {
+      const selectedCompany = companies?.find(
+        (company) => company.company_id === values.company_id,
+      )
+      await createUser.mutateAsync({
+        first_name: values.first_name,
+        last_name: values.last_name,
+        email: values.email,
+        company_id: values.company_id,
+        company_name_short: selectedCompany?.name_short || '',
+      })
+      form.reset()
+      onSuccess()
+      onClose()
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        setCreateUserError(error.response?.data.detail)
+      }
+    }
+  })
+
+  return (
+    <Modal title="Create User" opened={opened} onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <Stack>
+          <TextInput
+            required
+            label="First Name"
+            placeholder="First Name"
+            {...form.getInputProps('first_name')}
+          />
+          <TextInput
+            required
+            label="Last Name"
+            placeholder="Last Name"
+            {...form.getInputProps('last_name')}
+          />
+          <TextInput
+            required
+            label="Email"
+            placeholder="Email"
+            {...form.getInputProps('email')}
+          />
+          <Select
+            required
+            label="Company"
+            placeholder="Select Company"
+            data={companies?.map((company) => ({
+              value: company.company_id,
+              label: company.name_long,
+            }))}
+            {...form.getInputProps('company_id')}
+          />
+          <Button type="submit" loading={createUser.isPending}>
+            Create User
+          </Button>
+          {createUser.isError && <Text c="red">{createUserError}</Text>}
+        </Stack>
+      </form>
+    </Modal>
+  )
+}
 
 const UserManagement = () => {
   const [isModalOpen, { open, close }] = useDisclosure(false)
@@ -39,8 +150,7 @@ const UserManagement = () => {
   const [modifiedUsers, setModifiedUsers] = useState<Record<string, string[]>>(
     {},
   )
-  const [createUserError, setCreateUserError] = useState<string | null>(null)
-  const createUser = useCreateUser()
+
   const deleteUser = useDeleteUser()
   const updateUserProjects = useUpdateUserProjects()
   const { user: clerkUser } = useUser()
@@ -58,28 +168,38 @@ const UserManagement = () => {
     },
     queryOptions: { enabled: !!user?.company_id },
   })
-  const uniqueCompanyIds = [
-    ...new Set(users.data?.map((user) => user.company_id) || []),
-  ]
+  const uniqueCompanyIds = useMemo(
+    () => [...new Set(users.data?.map((user) => user.company_id) || [])],
+    [users.data],
+  )
 
   const companies = useGetCompanies({
     queryParams: { company_ids: uniqueCompanyIds },
   })
 
   // Create a map of company IDs to company names for easier lookup
-  const companyMap =
-    companies.data?.reduce(
-      (acc, company) => {
-        acc[company.company_id] = company.name_long
-        return acc
-      },
-      {} as Record<string, string>,
-    ) || {}
+  const companyMap = useMemo(
+    () =>
+      companies.data?.reduce(
+        (acc, company) => {
+          acc[company.company_id] = company.name_long
+          return acc
+        },
+        {} as Record<string, string>,
+      ) || {},
+    [companies.data],
+  )
 
   // Collect all unique project IDs from all users
-  const uniqueProjectIds = Array.from(
-    new Set(users.data?.flatMap((user) => user.operational_project_ids) || []),
-  ).sort()
+  const uniqueProjectIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          users.data?.flatMap((user) => user.operational_project_ids) || [],
+        ),
+      ).sort(),
+    [users.data],
+  )
   const projects = useGetProjects({
     queryParams: { projectIds: uniqueProjectIds.join(',') },
     queryOptions: {
@@ -93,21 +213,25 @@ const UserManagement = () => {
   >(null)
 
   // Modify the sorting and filtering of users
-  const sortedUsers = users.data
-    ?.slice()
-    .filter(
-      (user) =>
-        !selectedCompanyFilter || user.company_id === selectedCompanyFilter,
-    )
-    .sort((a, b) => {
-      // First compare by company name
-      const companyComparison = (companyMap[a.company_id] || '').localeCompare(
-        companyMap[b.company_id] || '',
-      )
-      if (companyComparison !== 0) return companyComparison
-      // If companies are the same, compare by user name
-      return a.name_long.localeCompare(b.name_long)
-    })
+  const sortedUsers = useMemo(
+    () =>
+      users.data
+        ?.slice()
+        .filter(
+          (user) =>
+            !selectedCompanyFilter || user.company_id === selectedCompanyFilter,
+        )
+        .sort((a, b) => {
+          // First compare by company name
+          const companyComparison = (
+            companyMap[a.company_id] || ''
+          ).localeCompare(companyMap[b.company_id] || '')
+          if (companyComparison !== 0) return companyComparison
+          // If companies are the same, compare by user name
+          return a.name_long.localeCompare(b.name_long)
+        }),
+    [users.data, selectedCompanyFilter, companyMap],
+  )
 
   const isLoading =
     currentUser.isLoading ||
@@ -115,48 +239,6 @@ const UserManagement = () => {
     projects.isLoading ||
     companies.isLoading
 
-  const form = useForm({
-    initialValues: {
-      first_name: '',
-      last_name: '',
-      email: '',
-      company_id: user?.company_id || '',
-    },
-    validate: {
-      first_name: hasLength(
-        { min: 2 },
-        'First name must be at least 2 characters',
-      ),
-      last_name: hasLength(
-        { min: 2 },
-        'Last name must be at least 2 characters',
-      ),
-      email: isEmail('Invalid email address'),
-      company_id: hasLength({ min: 1 }, 'Company is required'),
-    },
-  })
-
-  const handleSubmit = form.onSubmit(async (values) => {
-    try {
-      const selectedCompany = companies.data?.find(
-        (company) => company.company_id === values.company_id,
-      )
-      await createUser.mutateAsync({
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        company_id: values.company_id,
-        company_name_short: selectedCompany?.name_short || '',
-      })
-      form.reset()
-      close()
-    } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        setCreateUserError(error.response?.data.detail)
-      }
-      // You might want to add error handling here, perhaps with notifications
-    }
-  })
   const handleDeleteUser = (user_id: string) => {
     deleteUser.mutateAsync({ user_id }).then(() => {
       closeDeleteModal()
@@ -350,44 +432,20 @@ const UserManagement = () => {
         </Stack>
       </Modal>
 
-      <Modal title="Create User" opened={isModalOpen} onClose={close}>
-        <form onSubmit={handleSubmit}>
-          <Stack>
-            <TextInput
-              required
-              label="First Name"
-              placeholder="First Name"
-              {...form.getInputProps('first_name')}
-            />
-            <TextInput
-              required
-              label="Last Name"
-              placeholder="Last Name"
-              {...form.getInputProps('last_name')}
-            />
-            <TextInput
-              required
-              label="Email"
-              placeholder="Email"
-              {...form.getInputProps('email')}
-            />
-            <Select
-              required
-              label="Company"
-              placeholder="Select Company"
-              data={companies.data?.map((company) => ({
-                value: company.company_id,
-                label: company.name_long,
-              }))}
-              {...form.getInputProps('company_id')}
-            />
-            <Button type="submit" loading={createUser.isPending}>
-              Create User
-            </Button>
-            {createUser.isError && <Text c="red">{createUserError}</Text>}
-          </Stack>
-        </form>
-      </Modal>
+      <CreateUserModal
+        opened={isModalOpen}
+        onClose={close}
+        companies={companies.data}
+        defaultCompanyId={user?.company_id}
+        onSuccess={() => {
+          notifications.show({
+            title: 'User created',
+            message: 'Remember to assign projects to the new user.',
+            color: 'green',
+            autoClose: 10000, // 10 seconds
+          })
+        }}
+      />
     </Stack>
   )
 }
