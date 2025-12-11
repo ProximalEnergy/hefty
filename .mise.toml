@@ -410,3 +410,14 @@ run = """
 export SQL_ADMIN_SCHEMA=${usage_schema:-project_default}
 uv run uvicorn main:app --reload --host 0.0.0.0 --port 8001
 """
+
+[tasks."sql-admin:open"]
+description = "Run sql-admin and open it in the default browser"
+dir = "sql-admin"
+run = """
+uv run main.py &
+server_pid=$!
+sleep 2
+uv run python -m webbrowser "http://127.0.0.1:8001/admin"
+wait $server_pid
+"""
