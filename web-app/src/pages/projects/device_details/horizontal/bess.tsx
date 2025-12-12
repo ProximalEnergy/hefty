@@ -135,7 +135,7 @@ const Page = () => {
   }
 
   return (
-    <Stack p="md" style={{ overflow: 'auto', height: '100%' }}>
+    <Stack p="md" h="100%">
       <PageTitle info="View all BESS PCSs and the highest level of the BESS hierarchy in a single view. Click on a single trace to zoom in to its vertical device detail view.">
         BESS Device Details
       </PageTitle>
@@ -145,10 +145,7 @@ const Page = () => {
         includeClearButton={false}
         maxDays={MAX_DAYS}
       />
-      <CustomCard
-        title="Project"
-        style={{ flex: '0 0 auto', minHeight: '250px' }}
-      >
+      <CustomCard title="Project" style={{ flex: 1, minHeight: '250px' }}>
         <PlotlyPlot
           data={
             deviceDetails.data
@@ -197,7 +194,7 @@ const Page = () => {
       </CustomCard>
       <CustomCard
         title="PCS"
-        style={{ flex: '0 0 auto', minHeight: '250px' }}
+        style={{ flex: 1, minHeight: '250px' }}
         headerChildren={
           <SegmentedControl
             size="xs"
@@ -269,7 +266,7 @@ const Page = () => {
       {batteryTitle && (
         <CustomCard
           title={batteryTitle}
-          style={{ flex: '0 0 auto', minHeight: '250px' }}
+          style={{ flex: 1, minHeight: '250px' }}
           headerChildren={
             <SegmentedControl
               size="xs"
