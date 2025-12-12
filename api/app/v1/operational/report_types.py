@@ -15,7 +15,7 @@ deprecated_router = APIRouter(
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.ReportType],
     operation_id="get_report_types",
 )
@@ -26,7 +26,7 @@ async def get_report_types(
 
 
 @deprecated_router.get(
-    "/",
+    "",
     response_model=list[interfaces.ReportType],
     operation_id="get_report_types_legacy",
 )

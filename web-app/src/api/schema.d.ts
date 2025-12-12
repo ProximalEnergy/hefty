@@ -152,7 +152,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/subscriptions/": {
+    "/v1/admin/subscriptions": {
         parameters: {
             query?: never;
             header?: never;
@@ -163,7 +163,7 @@ export interface paths {
          * Get Requesting User Subscriptions
          * @description Get all subscriptions for requesting user.
          */
-        get: operations["get_requesting_user_subscriptions_v1_admin_subscriptions__get"];
+        get: operations["get_requesting_user_subscriptions_v1_admin_subscriptions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -290,7 +290,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/teams/": {
+    "/v1/admin/teams": {
         parameters: {
             query?: never;
             header?: never;
@@ -298,10 +298,10 @@ export interface paths {
             cookie?: never;
         };
         /** Get Teams */
-        get: operations["get_teams_v1_admin_teams__get"];
+        get: operations["get_teams_v1_admin_teams_get"];
         put?: never;
         /** Create Team */
-        post: operations["create_team_v1_admin_teams__post"];
+        post: operations["create_team_v1_admin_teams_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -417,7 +417,7 @@ export interface paths {
         patch: operations["update_team_v1_admin_teams__team_id__patch"];
         trace?: never;
     };
-    "/v1/admin/users/": {
+    "/v1/admin/users": {
         parameters: {
             query?: never;
             header?: never;
@@ -425,7 +425,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Users */
-        get: operations["get_users_v1_admin_users__get"];
+        get: operations["get_users_v1_admin_users_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2439,7 +2439,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/devices/": {
+    "/v1/operational/projects/{project_id}/devices": {
         parameters: {
             query?: never;
             header?: never;
@@ -3638,7 +3638,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/kpi-data/": {
+    "/v1/operational/kpi-data": {
         parameters: {
             query?: never;
             header?: never;
@@ -3808,7 +3808,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/report-types/": {
+    "/v1/operational/report-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -3842,7 +3842,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/report_types/": {
+    "/v1/operational/report_types": {
         parameters: {
             query?: never;
             header?: never;
@@ -3882,7 +3882,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/report-instances/": {
+    "/v1/operational/report-instances": {
         parameters: {
             query?: never;
             header?: never;
@@ -4059,7 +4059,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-modules/": {
+    "/v1/operational/pv-modules": {
         parameters: {
             query?: never;
             header?: never;
@@ -4076,7 +4076,7 @@ export interface paths {
          *     If a PV module with the same pv_module_id already exists, it will be updated.
          *     If the PV module doesn't exist, a new one will be created.
          */
-        post: operations["create_pv_module_v1_operational_pv_modules__post"];
+        post: operations["create_pv_module_v1_operational_pv_modules_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4214,7 +4214,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-rackings/": {
+    "/v1/operational/pv-rackings": {
         parameters: {
             query?: never;
             header?: never;
@@ -4231,7 +4231,7 @@ export interface paths {
          *     If a racking with the same model already exists, it will be updated.
          *     If the racking doesn't exist, a new one will be created.
          */
-        post: operations["create_racking_v1_operational_pv_rackings__post"];
+        post: operations["create_racking_v1_operational_pv_rackings_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4297,7 +4297,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-inverters/": {
+    "/v1/operational/pv-inverters": {
         parameters: {
             query?: never;
             header?: never;
@@ -4314,7 +4314,7 @@ export interface paths {
          *     If an inverter with the same inverter_id already exists, it will be updated.
          *     If the inverter doesn't exist, a new one will be created.
          */
-        post: operations["create_inverter_v1_operational_pv_inverters__post"];
+        post: operations["create_inverter_v1_operational_pv_inverters_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4471,7 +4471,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-budgeted-data/": {
+    "/v1/operational/pv-budgeted-data": {
         parameters: {
             query?: never;
             header?: never;
@@ -5544,7 +5544,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/{project_id}/pv-expected-energy/backfill/": {
+    "/v1/protected/{project_id}/pv-expected-energy/backfill": {
         parameters: {
             query?: never;
             header?: never;
@@ -5560,14 +5560,14 @@ export interface paths {
          *         sun_streams_4: 2024-12-01
          *         serrano: 2025-02-15
          */
-        post: operations["backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill__post"];
+        post: operations["backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/{project_id}/pv-expected-energy/plot/": {
+    "/v1/protected/{project_id}/pv-expected-energy/plot": {
         parameters: {
             query?: never;
             header?: never;
@@ -5581,7 +5581,7 @@ export interface paths {
          *     This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
          *     fit the use case of the page.
          */
-        get: operations["utility_expected_v1_protected__project_id__pv_expected_energy_plot__get"];
+        get: operations["utility_expected_v1_protected__project_id__pv_expected_energy_plot_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9942,7 +9942,7 @@ export interface operations {
             };
         };
     };
-    get_requesting_user_subscriptions_v1_admin_subscriptions__get: {
+    get_requesting_user_subscriptions_v1_admin_subscriptions_get: {
         parameters: {
             query?: never;
             header?: {
@@ -10292,7 +10292,7 @@ export interface operations {
             };
         };
     };
-    get_teams_v1_admin_teams__get: {
+    get_teams_v1_admin_teams_get: {
         parameters: {
             query: {
                 company_id: string;
@@ -10326,7 +10326,7 @@ export interface operations {
             };
         };
     };
-    create_team_v1_admin_teams__post: {
+    create_team_v1_admin_teams_post: {
         parameters: {
             query?: never;
             header?: {
@@ -10599,7 +10599,7 @@ export interface operations {
             };
         };
     };
-    get_users_v1_admin_users__get: {
+    get_users_v1_admin_users_get: {
         parameters: {
             query?: {
                 company_ids?: string[] | null;
@@ -18342,7 +18342,7 @@ export interface operations {
             };
         };
     };
-    create_pv_module_v1_operational_pv_modules__post: {
+    create_pv_module_v1_operational_pv_modules_post: {
         parameters: {
             query?: {
                 company_id?: string | null;
@@ -18628,7 +18628,7 @@ export interface operations {
             };
         };
     };
-    create_racking_v1_operational_pv_rackings__post: {
+    create_racking_v1_operational_pv_rackings_post: {
         parameters: {
             query?: {
                 company_id?: string | null;
@@ -18805,7 +18805,7 @@ export interface operations {
             };
         };
     };
-    create_inverter_v1_operational_pv_inverters__post: {
+    create_inverter_v1_operational_pv_inverters_post: {
         parameters: {
             query?: {
                 company_id?: string | null;
@@ -21389,7 +21389,7 @@ export interface operations {
             };
         };
     };
-    backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill__post: {
+    backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill_post: {
         parameters: {
             query: {
                 energy_model_version: string;
@@ -21432,7 +21432,7 @@ export interface operations {
             };
         };
     };
-    utility_expected_v1_protected__project_id__pv_expected_energy_plot__get: {
+    utility_expected_v1_protected__project_id__pv_expected_energy_plot_get: {
         parameters: {
             query: {
                 device_id: number;

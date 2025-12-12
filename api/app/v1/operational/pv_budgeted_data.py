@@ -40,7 +40,7 @@ async def get_pv_budgeted_series(
 
 
 @router.get(
-    "/",
+    "",
     operation_id="get_pv_budgeted_data",
     dependencies=[Depends(require_user_company)],
 )

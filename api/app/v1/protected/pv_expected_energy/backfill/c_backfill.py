@@ -35,7 +35,7 @@ def health_check():
 
 
 @router.post(
-    "/",
+    "",
     summary="backfill expected energy model",
 )
 def backfill_expected_energy_model(

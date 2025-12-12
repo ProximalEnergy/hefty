@@ -31,7 +31,7 @@ router = APIRouter(prefix="/pv-inverters", tags=["pv_inverters"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.Inverter],
     operation_id="get_inverters",
 )
@@ -138,7 +138,7 @@ async def get_inverter_ids_by_manufacturer_and_model(
 
 
 @router.post(
-    "/",
+    "",
     response_model=interfaces.Inverter,
     summary="Create or update a PV inverter",
 )

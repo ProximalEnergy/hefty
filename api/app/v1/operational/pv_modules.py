@@ -33,7 +33,7 @@ router = APIRouter(prefix="/pv-modules", tags=["pv_modules"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.PVModule],
     operation_id="get_pv_modules",
     dependencies=[Depends(require_user_company)],
@@ -135,7 +135,7 @@ async def get_pv_module_ids_by_manufacturer_and_model(
 
 
 @router.post(
-    "/",
+    "",
     response_model=interfaces.PVModule,
     summary="Create or update a PV module",
 )

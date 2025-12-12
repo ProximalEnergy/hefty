@@ -32,7 +32,7 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[Team],
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
@@ -68,7 +68,7 @@ async def get_company_teams_with_members(
 
 
 @router.post(
-    "/",
+    "",
     response_model=Team,
     status_code=201,
     dependencies=[Depends(dependencies.requires_admin_async)],

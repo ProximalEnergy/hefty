@@ -14,7 +14,7 @@ router = APIRouter(prefix="/report-instances", tags=["report_instances"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.ReportInstance],
     operation_id="get_report_instances",
 )
