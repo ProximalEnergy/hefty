@@ -765,26 +765,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/gis/devices_in_viewport": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Devices In Viewport Legacy
-         * @deprecated
-         */
-        get: operations["get_devices_in_viewport_legacy_v1_analytics__project_id__gis_devices_in_viewport_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/analytics/{project_id}/gis/devices-in-viewport": {
         parameters: {
             query?: never;
@@ -11311,48 +11291,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_devices_in_viewport_legacy_v1_analytics__project_id__gis_devices_in_viewport_get: {
-        parameters: {
-            query: {
-                north: number;
-                east: number;
-                south: number;
-                west: number;
-                device_type_ids?: number[] | null;
-                power_device_type_id?: number | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -399,29 +399,6 @@ def get_bess_enclosure(
     return return_data
 
 
-@router.get("/devices_in_viewport", response_class=ORJSONResponse, deprecated=True)
-def get_devices_in_viewport_legacy(
-    north: float,
-    east: float,
-    south: float,
-    west: float,
-    device_type_ids: Annotated[list[int] | None, Query()] = None,
-    power_device_type_id: Annotated[int | None, Query()] = None,
-    project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project_api),
-):
-    return get_devices_in_viewport(
-        north=north,
-        east=east,
-        south=south,
-        west=west,
-        device_type_ids=device_type_ids,
-        power_device_type_id=power_device_type_id,
-        project_db=project_db,
-        project=project,
-    )
-
-
 @router.get("/devices-in-viewport", response_class=ORJSONResponse)
 def get_devices_in_viewport(
     north: float,
