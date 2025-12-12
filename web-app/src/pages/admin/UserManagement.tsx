@@ -72,7 +72,8 @@ const CreateUserModal = ({
     if (defaultCompanyId) {
       form.setFieldValue('company_id', defaultCompanyId)
     }
-  }, [form, defaultCompanyId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCompanyId])
 
   const handleSubmit = form.onSubmit(async (values) => {
     setCreateUserError(null)
