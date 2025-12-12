@@ -43,10 +43,9 @@ class UserAdmin(ModelView, model=User):
 
     category = "Admin Schema"
 
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
+    can_create = True
+    can_edit = True
+    can_delete = True
 
     column_list = [
         User.user_id,

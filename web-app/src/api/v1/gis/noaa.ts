@@ -105,8 +105,8 @@ const useGetSPCForecastPolygons = ({
   const defaultQueryOptions: Partial<
     UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
   > = {
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5,
   }
 
   return useQuery<FeatureCollection<MultiPolygon, GeoJsonProperties>>({

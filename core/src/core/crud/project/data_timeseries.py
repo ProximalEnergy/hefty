@@ -1,3 +1,4 @@
+import re
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -28,6 +29,32 @@ from core.utils.pivot import pivot_timeseries_by_tag_polars
 warnings.filterwarnings(
     "ignore", message="Did not recognize type 'ltree'", category=sa_exc.SAWarning
 )
+
+
+def _interval_to_minutes(*, interval_str: str) -> float:
+    """
+    Convert interval string to minutes for comparison.
+
+    Parses strings like '1min', '5min', '1hour' by extracting the
+    numeric portion and unit.
+    """
+    # Extract numeric portion and unit from the interval string
+    match = re.match(r"(\d+)(min|hour|sec)", interval_str.lower())
+    if not match:
+        raise ValueError(f"Invalid interval format: {interval_str}")
+
+    value = int(match.group(1))
+    unit = match.group(2)
+
+    # Convert to minutes based on unit
+    if unit == "sec":
+        return value / 60
+    elif unit == "min":
+        return value
+    elif unit == "hour":
+        return value * 60
+    else:
+        raise ValueError(f"Unsupported time unit: {unit}")
 
 
 @dataclass(slots=True)
@@ -186,17 +213,33 @@ class DataTimeseries:
         # Determine if we should use continuous aggregate table
         project_data_cagg_interval = project_info.get("data_cagg_interval")
 
-        # Check if requested agg_interval matches project's data_cagg_interval
-        use_cagg = (
-            project_data_cagg_interval is not None
-            and agg_interval.value == project_data_cagg_interval
-        )
+        # Check if we can use cagg table:
+        # - Project has a cagg interval configured
+        # - Requested agg_interval >= project's cagg interval
+        use_cagg = False
+        if project_data_cagg_interval is not None:
+            project_cagg_minutes = _interval_to_minutes(
+                interval_str=project_data_cagg_interval
+            )
+            agg_interval_minutes = _interval_to_minutes(interval_str=agg_interval.value)
+            use_cagg = agg_interval_minutes >= project_cagg_minutes
 
-        # Set interval and cagg_interval based on whether we use continuous aggregate
+        # Set interval and cagg_interval based on logic:
+        # - If using cagg and intervals match: query cagg table directly
+        # - If using cagg but need larger interval: query cagg with time_bucket
+        # - If not using cagg: query raw data with time_bucket
         if use_cagg:
-            interval = None
-            cagg_interval = agg_interval
+            # Use the project's cagg interval table
+            cagg_interval = TimeInterval(project_data_cagg_interval)  # type: ignore
+
+            # If requested interval matches cagg, no time_bucket needed
+            if agg_interval.value == project_data_cagg_interval:
+                interval = None
+            else:
+                # Need to aggregate up from cagg interval to requested interval
+                interval = agg_interval
         else:
+            # Use raw data with time_bucket
             interval = agg_interval
             cagg_interval = None
 
@@ -510,8 +553,9 @@ class DataTimeseries:
                 project_timezone=timezone,
             )
 
-            # Replace first row NaN values with lookback values using polars operations
-            # Filter out time-related columns and only keep columns that exist in both dataframes
+            # Replace first row NaN values with lookback values using
+            # polars operations. Filter out time-related columns and only
+            # keep columns that exist in both dataframes
             lookback_cols = [
                 col
                 for col in lookback_pivoted.columns

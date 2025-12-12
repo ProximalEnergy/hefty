@@ -1,46 +1,31 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-type PortfolioHomeProject = {
-  project_id: string
-  // Short-term fields (24h)
-  power?: number | null
-  poa?: number | null
-  soc?: number | null
-  times?: string[] | null
-  meter_active_power?: number[] | null
-  meter_soc_percent?: number[] | null
-  max_charge_power?: number[] | null
-  max_discharge_power?: number[] | null
-  // Long-term fields (30d)
-  cycle_count_string?: number[] | null
-  state_of_health?: number[] | null
-  pcs_mechanical_availability?: number[] | null
-  energy_production?: number[] | null
-  expected_power?: number[] | null
-  performance_index?: number | null
-}
+const _COMPONENT_NAME = 'PortfolioHome'
+const URL = '/v1/protected/web-application/portfolio/home'
+
+type PortfolioHome = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
 
 export const useGetPortfolioHome = ({
   queryParams = {},
   queryOptions = {},
 }: {
-  queryParams?: {
-    project_ids?: string[]
-    time?: '24h' | '30d'
-  }
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/portfolio/home`,
-    params: queryParams,
+    url: URL,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     staleTime: 1000 * 60 * 5,
+    refetchInterval: queryParams.time === '24h' ? 1000 * 60 * 5 : undefined,
   }
 
-  return useCustomQuery<PortfolioHomeProject[]>({
+  return useCustomQuery<PortfolioHome[]>({
     axiosConfig,
     queryName: 'getPortfolioHome',
     queryParams: queryParams,
