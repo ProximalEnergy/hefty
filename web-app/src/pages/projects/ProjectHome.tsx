@@ -463,7 +463,7 @@ const PowerPlot = ({ projectType }: { projectType: number }) => {
 
 const CurrentTime = ({ timezone }: { timezone: string }) => {
   const formattedTime = () => {
-    return dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss z')
+    return dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss')
   }
 
   const [currentTime, setCurrentTime] = useState(formattedTime())
@@ -652,10 +652,7 @@ const EventTable = () => {
   return (
     <CustomCard
       title={
-        <Link
-          to={`/projects/${projectId}/events`}
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
+        <Link to={`/projects/${projectId}/events`} style={{ color: 'inherit' }}>
           {cardTitle}
         </Link>
       }
@@ -734,7 +731,7 @@ const EventTable = () => {
         <Box h="100%" w="100%">
           <Center h="100%" w="100%">
             <Text size="xl" fw={500}>
-              No active events
+              No Open Events
             </Text>
           </Center>
         </Box>
@@ -750,6 +747,8 @@ function KioskMode({
   enabled: boolean
   setEnabled: (enabled: boolean) => void
 }) {
+  const INTERVAL = 60
+
   const { projectId } = useParams()
   const navigate = useNavigate()
 
@@ -788,7 +787,7 @@ function KioskMode({
       // Navigate to the next project
       const nextProjectId = projectIds[nextIndex]
       navigate(`/projects/${nextProjectId}`)
-    }, 60_000) // Rotate every 60 seconds
+    }, INTERVAL * 1000)
 
     // Cleanup interval on component unmount
     return () => clearInterval(interval)
@@ -796,7 +795,7 @@ function KioskMode({
 
   return (
     <Tooltip
-      label="Kiosk Mode - When enabled, the page will automatically rotate to the next project."
+      label={`Kiosk Mode - When enabled, the page will automatically rotate to the next project every ${INTERVAL} seconds.`}
       refProp="rootRef"
     >
       <Switch

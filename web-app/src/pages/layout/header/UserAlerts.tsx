@@ -40,14 +40,7 @@ const UserAlerts = () => {
               aria-label="Toggle color scheme"
               onClick={() => setChecked(true)}
             >
-              <IconBell
-                className={cx(classes.icon, classes.light)}
-                stroke={1.5}
-              />
-              <IconBell
-                className={cx(classes.icon, classes.dark)}
-                stroke={1.5}
-              />
+              <IconBell className={cx(classes.icon)} stroke={1.5} />
             </ActionIcon>
           </Indicator>
         </Popover.Target>

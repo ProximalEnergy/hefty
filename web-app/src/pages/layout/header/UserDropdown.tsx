@@ -34,6 +34,7 @@ const UserDropdown = () => {
             src={user?.hasImage ? user?.imageUrl : undefined}
             alt={user?.fullName || 'User avatar'}
             radius="xl"
+            size={34}
           >
             {initials}
           </Avatar>

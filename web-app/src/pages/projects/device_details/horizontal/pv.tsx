@@ -100,7 +100,7 @@ const Page = () => {
 
   return (
     <Stack p="md" style={{ overflow: 'auto', height: '100%' }}>
-      <PageTitle info="View all Met Stations and PV PCSs in a single view. Click on a single PV PCS trace to zoom in to its vertical device detail view.">
+      <PageTitle info="See project, met station, and PCS data in a single view. Click on a single PCS trace to zoom in to its vertical device detail view.">
         PV Device Details
       </PageTitle>
       <AdvancedDatePicker
@@ -108,6 +108,7 @@ const Page = () => {
         includeTodayInDateRange
         includeClearButton={false}
         maxDays={MAX_DAYS}
+        disableQuickActions={true}
       />
       <CustomCard
         title="Project"
