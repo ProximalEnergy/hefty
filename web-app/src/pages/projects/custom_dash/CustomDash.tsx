@@ -916,18 +916,38 @@ const BarComponent = ({
     return <PageLoader />
   }
 
+  if (!barData.data || !barData.data.x || !barData.data.y) {
+    return (
+      <Stack h="100%">
+        <Text fw={600} size="sm" mb="xs">
+          {barData.data?.name || 'Bar Chart'}
+        </Text>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text c="dimmed">No data available</Text>
+        </div>
+      </Stack>
+    )
+  }
+
   return (
     <Stack h="100%">
       <Text fw={600} size="sm" mb="xs">
-        {barData.data?.name}
+        {barData.data.name}
       </Text>
       <PlotlyPlot
         data={[
           {
-            x: barData.data?.x,
-            y: barData.data?.y,
+            x: barData.data.x,
+            y: barData.data.y,
             type: 'bar',
-            name: barData.data?.name,
+            name: barData.data.name,
             hoverlabel: { namelength: -1 },
           },
         ]}
@@ -938,7 +958,7 @@ const BarComponent = ({
             title: { text: 'Device' },
           },
           yaxis: {
-            title: { text: barData.data?.unit || 'Value' },
+            title: { text: barData.data.unit || 'Value' },
           },
         }}
         config={{ displayModeBar: false }}
