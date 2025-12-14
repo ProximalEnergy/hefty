@@ -103,10 +103,27 @@ export const projectLinks: DropdownLink[] = [
     icon: icons.IconChartLine,
   },
   {
+    to: (projectId: string) => `/projects/${projectId}/contracts/`,
+    label: 'Contracts',
+    icon: icons.IconFileText,
+  },
+  {
     to: (projectId: string) => `/projects/${projectId}/reports`,
     label: 'Reports',
     icon: icons.IconFileText,
     requiresReportIntegration: true,
+  },
+  {
+    label: 'Finances',
+    icon: icons.IconCurrencyDollar,
+    requiresQSEIntegration: true,
+    links: [
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/finances/battery-settlement`,
+        label: 'Battery Settlement',
+      },
+    ],
   },
   {
     label: 'Maintenance',
@@ -142,11 +159,6 @@ export const projectLinks: DropdownLink[] = [
     to: (projectId: string) => `/projects/${projectId}/data-browsing`,
     label: 'Data Browsing',
     icon: icons.IconDatabaseSearch,
-  },
-  {
-    to: (projectId: string) => `/projects/${projectId}/contracts/`,
-    label: 'Contracts',
-    icon: icons.IconFileText,
   },
   {
     to: (projectId: string) => `/projects/${projectId}/settings`,
@@ -209,19 +221,6 @@ export const projectLinks: DropdownLink[] = [
     icon: icons.IconClock,
     requiresRealTimeData: true,
     underDevelopment: true,
-  },
-  {
-    label: 'Finances',
-    icon: icons.IconCurrencyDollar,
-    requiresQSEIntegration: true,
-    underDevelopment: true,
-    links: [
-      {
-        to: (projectId: string) =>
-          `/projects/${projectId}/finances/battery-settlement`,
-        label: 'Battery Settlement',
-      },
-    ],
   },
   {
     label: 'Superadmin Utility',
