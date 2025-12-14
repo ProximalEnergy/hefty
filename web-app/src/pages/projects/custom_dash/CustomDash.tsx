@@ -263,7 +263,7 @@ export interface RichTextConfig {
 //   const devices = useGetDevicesV2({
 //     pathParams: { projectId },
 //     filters: {
-//       device_type_ids: [2], // PCS devices
+//       device_type_ids: [DeviceTypeEnum.PV_PCS], // PCS devices
 //     },
 //   })
 //   const computedColorScheme = useComputedColorScheme('dark')

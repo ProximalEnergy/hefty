@@ -1,5 +1,9 @@
 import { useGetUserType } from '@/api/admin'
-import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
+import {
+  KPITypeEnum,
+  ProjectTypeEnum,
+  UserTypeEnumEnum,
+} from '@/api/enumerations'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_pcs'
@@ -201,7 +205,7 @@ const PCSEquipmentAnalysis = () => {
 
   const { data: produced } = useGetKPISummaryCards({
     pathParams: { projectId: projectId || '-1' },
-    queryParams: { kpi_type_ids: [6] },
+    queryParams: { kpi_type_ids: [KPITypeEnum.PROJECT_ENERGY_PRODUCTION] },
     queryOptions: {
       enabled: includeEnergy,
     },

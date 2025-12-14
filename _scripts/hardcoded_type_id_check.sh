@@ -73,7 +73,7 @@ load_patterns() {
         "_scripts"
     
     add_pattern "Hardcoded Type IDs Arrays (TypeScript/TSX)" \
-        "\\w+[Tt]ype[Ii]ds?\\s*[:=]\\s*\\[\\s*['\"]?\\d" \
+        "[a-zA-Z_]*[Tt]ype_?[Ii]ds?\\s*[:=]\\s*\\[\\s*['\"]?\\d" \
         "Checks for hardcoded typeIds/type_ids array assignments in TypeScript/TSX (e.g., device_type_ids: [2, 6, 9] or deviceTypeIds: [2])"
     
     add_pattern "Hardcoded Type ID Comparisons" \
@@ -82,8 +82,8 @@ load_patterns() {
         "_scripts"
     
     add_pattern "Hardcoded Type ID Assignments" \
-        "\\w+_type_id\\s*=\\s*\\d+" \
-        "Checks for hardcoded type_id assignments (e.g., project_type_id=3, device_type_id: 3)" \
+        "[a-zA-Z_]*[Tt]ype[Ii]d\\s*[:=]\\s*\\d+" \
+        "Checks for hardcoded type_id assignments (e.g., project_type_id=3, device_type_id: 3, deviceTypeId: 5)" \
         "_scripts"
     
     add_pattern "Hardcoded Type ID Dictionary Mappings" \

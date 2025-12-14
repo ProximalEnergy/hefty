@@ -1,4 +1,4 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
   useGetOperationalKPIData,
@@ -127,7 +127,11 @@ const BESSOperationDataPage = () => {
     pathParams: { projectId: projectId || '-1' },
     filters: {
       deep: true,
-      device_type_ids: [27, 32, 33], // BESS device types
+      device_type_ids: [
+        DeviceTypeEnum.BESS_STRING,
+        DeviceTypeEnum.BESS_PCS_MODULE,
+        DeviceTypeEnum.BESS_PCS_MODULE_GROUP,
+      ],
     },
     queryOptions: { enabled: !!projectId },
   })

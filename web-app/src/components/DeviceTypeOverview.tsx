@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
@@ -427,7 +428,7 @@ const DeviceTypeOverview = ({
     const bessPcsRealtime = useGetRealTimeByDeviceTypeID({
       pathParams: {
         projectId: projectId || '-1',
-        deviceTypeId: 13, // BESS PCS device type
+        deviceTypeId: DeviceTypeEnum.BESS_PCS,
       },
       queryParams: {
         sensor_type_ids:
@@ -706,11 +707,15 @@ const DeviceTypeOverview = ({
     const meterRealtime = useGetRealTimeByDeviceTypeID({
       pathParams: {
         projectId: projectId || '-1',
-        deviceTypeId: 5, // Meter device type
+        deviceTypeId: DeviceTypeEnum.METER,
       },
       queryParams: {
         // Meter active power may be 1 or 2; apparent power is 10
-        sensor_type_ids: [1, 2, 10],
+        sensor_type_ids: [
+          SensorTypeEnum.METER_ACTIVE_POWER,
+          SensorTypeEnum.PV_PCS_AC_POWER,
+          SensorTypeEnum.METER_APPARENT_POWER,
+        ],
       },
       queryOptions: {
         enabled: !!projectId && deviceTypeId === 1,

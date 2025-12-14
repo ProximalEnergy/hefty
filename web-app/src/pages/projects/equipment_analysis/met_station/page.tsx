@@ -2,6 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import {
   DeviceTypeEnum,
   ProjectTypeEnum,
+  SensorTypeEnum,
   UserTypeEnumEnum,
 } from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
@@ -56,16 +57,24 @@ const Page = () => {
   const { data: devices } = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [4, 6],
+      device_type_ids: [DeviceTypeEnum.MET_STATION, DeviceTypeEnum.BLOCK],
     },
   })
 
   // Check and see which sensors are available at the project
   const hasIrradiance =
-    project.data?.spec.used_sensor_type_ids?.includes(4) ||
-    project.data?.spec.used_sensor_type_ids?.includes(5)
-  const hasTemperature = project.data?.spec.used_sensor_type_ids?.includes(6)
-  const hasWindSpeed = project.data?.spec.used_sensor_type_ids?.includes(7)
+    project.data?.spec.used_sensor_type_ids?.includes(
+      SensorTypeEnum.MET_STATION_POA,
+    ) ||
+    project.data?.spec.used_sensor_type_ids?.includes(
+      SensorTypeEnum.MET_STATION_GHI,
+    )
+  const hasTemperature = project.data?.spec.used_sensor_type_ids?.includes(
+    SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE,
+  )
+  const hasWindSpeed = project.data?.spec.used_sensor_type_ids?.includes(
+    SensorTypeEnum.MET_STATION_WIND_SPEED,
+  )
 
   // Count the number of sensors that are available at the project
   const numRows = [hasIrradiance, hasTemperature, hasWindSpeed].filter(

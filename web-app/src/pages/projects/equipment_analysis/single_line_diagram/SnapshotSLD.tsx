@@ -1084,7 +1084,13 @@ function SnapshotSLDContent() {
   const { data: blockDevices, isLoading: areBlockDevicesLoading } =
     useGetDevicesV2({
       pathParams: { projectId: projectId || '-1' },
-      filters: { device_type_ids: [1, 6, 12] },
+      filters: {
+        device_type_ids: [
+          DeviceTypeEnum.PROJECT,
+          DeviceTypeEnum.BLOCK,
+          DeviceTypeEnum.BESS_BLOCK,
+        ],
+      },
     })
   const { data: sensorTypes } = useGetSensorTypes({})
   const { isDarkMode, busColor, mainBusColor } = useNodeColorScheme()

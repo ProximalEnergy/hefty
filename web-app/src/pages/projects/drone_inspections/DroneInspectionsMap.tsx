@@ -193,17 +193,17 @@ const viewNameMapping: { [key: number]: string } = {
 // --- Layer Lock Configuration ---
 const layerLockConfig = {
   PCS: {
-    powerTypeId: 2,
+    powerTypeId: DeviceTypeEnum.PV_PCS,
     deviceTypeIds: [DeviceTypeEnum.PV_PCS],
     zoom: LOW_ZOOM,
   },
   'DC Combiner': {
-    powerTypeId: 9,
+    powerTypeId: DeviceTypeEnum.PV_DC_COMBINER,
     deviceTypeIds: [DeviceTypeEnum.PV_DC_COMBINER],
     zoom: HIGH_ZOOM,
   },
   Tracker: {
-    powerTypeId: 29,
+    powerTypeId: DeviceTypeEnum.TRACKER_ROW,
     deviceTypeIds: [DeviceTypeEnum.TRACKER_ROW],
     zoom: VERY_HIGH_ZOOM,
   },
@@ -770,7 +770,13 @@ const DroneInspectionsMap = ({
   // --- Root Causes for DC Combiner (9), Tracker (29), and DC Field (30) ---
   const rootCausesQuery = useGetRootCauses({
     pathParams: { projectId: projectId || '-1' },
-    queryParams: { device_type_ids: [9, 29, 30] },
+    queryParams: {
+      device_type_ids: [
+        DeviceTypeEnum.PV_DC_COMBINER,
+        DeviceTypeEnum.TRACKER_ROW,
+        DeviceTypeEnum.DC_FIELD,
+      ],
+    },
     queryOptions: { enabled: !!projectId },
   })
   const allowedRootCauses = useMemo(

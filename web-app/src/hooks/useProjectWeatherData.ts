@@ -1,3 +1,4 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import type { DataTimeSeriesLast } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetDataTimeseriesLast } from '@/api/v1/protected/web-application/projects/real_time'
 import { useGetForecast, useGetTags, useGetWeather } from '@/hooks/api'
@@ -76,7 +77,7 @@ export const useProjectWeatherData = (
   } = useGetDataTimeseriesLast({
     pathParams: { projectId },
     queryParams: {
-      sensor_type_ids: [5], // GHI irradiation
+      sensor_type_ids: [SensorTypeEnum.MET_STATION_GHI],
     },
     queryOptions: {
       enabled: isOpen,
@@ -91,7 +92,7 @@ export const useProjectWeatherData = (
   } = useGetDataTimeseriesLast({
     pathParams: { projectId },
     queryParams: {
-      sensor_type_ids: [6], // Temperature from met stations
+      sensor_type_ids: [SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE],
     },
     queryOptions: {
       enabled: isOpen,
@@ -106,7 +107,7 @@ export const useProjectWeatherData = (
   } = useGetDataTimeseriesLast({
     pathParams: { projectId },
     queryParams: {
-      sensor_type_ids: [7], // Wind speed
+      sensor_type_ids: [SensorTypeEnum.MET_STATION_WIND_SPEED],
     },
     queryOptions: {
       enabled: isOpen,
@@ -121,7 +122,7 @@ export const useProjectWeatherData = (
   } = useGetDataTimeseriesLast({
     pathParams: { projectId },
     queryParams: {
-      sensor_type_ids: [1], // Meter active power
+      sensor_type_ids: [SensorTypeEnum.METER_ACTIVE_POWER],
     },
     queryOptions: {
       enabled: isOpen,

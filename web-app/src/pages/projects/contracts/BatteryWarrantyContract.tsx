@@ -1,3 +1,4 @@
+import { KPITypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import {
   Contract,
@@ -49,7 +50,7 @@ export const BatteryWarrantyContract = ({
   const { data: cycleKPIData } = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [9], // PROJECT_CYCLE_COUNT
+      kpi_type_ids: [KPITypeEnum.PROJECT_CYCLE_COUNT],
       include_device_data: false,
     },
   })

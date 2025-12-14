@@ -56,7 +56,13 @@ const Page = () => {
 
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
-    filters: { device_type_ids: [9, 2, 3] },
+    filters: {
+      device_type_ids: [
+        DeviceTypeEnum.PV_DC_COMBINER,
+        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_PCS_MODULE,
+      ],
+    },
   })
 
   // Helper function to find the parent device recursively

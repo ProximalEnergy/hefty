@@ -204,7 +204,7 @@ function AdaptiveGisBESS() {
       deviceTypeId: DT_BESS_STRING,
     },
     queryParams: {
-      sensor_type_ids: [45], // String SOC
+      sensor_type_ids: [SensorTypeEnum.BESS_STRING_SOC_PERCENT],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -227,7 +227,7 @@ function AdaptiveGisBESS() {
       deviceTypeId: DT_BESS_DC_ENCLOSURE,
     },
     queryParams: {
-      sensor_type_ids: [43], // Enclosure SOC
+      sensor_type_ids: [SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT],
     },
     queryOptions: {
       enabled: !!projectId && hasEnclosureSOC,

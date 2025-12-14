@@ -839,7 +839,7 @@ const BatteryHealth = () => {
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [54], // Only fetch String SOH data for chart
+      kpi_type_ids: [KPITypeEnum.BESS_STRING_SOH],
       start: project.data?.cod
         ? dayjs(project.data.cod).format('YYYY-MM-DD')
         : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
@@ -858,7 +858,7 @@ const BatteryHealth = () => {
   const dailyCycleData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [32], // Fetch String cycle count data
+      kpi_type_ids: [KPITypeEnum.BESS_STRING_CYCLE_COUNT],
       start: project.data?.cod
         ? dayjs(project.data.cod).format('YYYY-MM-DD')
         : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
@@ -875,7 +875,7 @@ const BatteryHealth = () => {
   const dailySocData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [25], // Fetch String SOC data
+      kpi_type_ids: [KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT],
       start: project.data?.cod
         ? dayjs(project.data.cod).format('YYYY-MM-DD')
         : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
@@ -892,7 +892,7 @@ const BatteryHealth = () => {
   const dailyRestSocData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || '-1'],
-      kpi_type_ids: [30], // Fetch String Rest SOC data
+      kpi_type_ids: [KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT],
       start: project.data?.cod
         ? dayjs(project.data.cod).format('YYYY-MM-DD')
         : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
