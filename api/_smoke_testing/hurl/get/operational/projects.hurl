@@ -25,7 +25,7 @@ status == 200
 jsonpath "$" not isEmpty
 
 # Get project types
-GET {{baseURL}}/v1/operational/project_types
+GET {{baseURL}}/v1/operational/project-types
 x-api-key: {{apiKey}}
 HTTP 200
 

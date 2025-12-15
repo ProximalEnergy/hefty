@@ -1182,7 +1182,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/development/ercot/settlement_point_markets": {
+    "/v1/development/ercot/settlement-point-markets": {
         parameters: {
             query?: never;
             header?: never;
@@ -1199,7 +1199,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/development/ercot/settlement_point_types": {
+    "/v1/development/ercot/settlement-point-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -1216,7 +1216,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/development/ercot/settlement_points": {
+    "/v1/development/ercot/settlement-points": {
         parameters: {
             query?: never;
             header?: never;
@@ -1460,7 +1460,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/cec_pv_inverters": {
+    "/v1/operational/cec-pv-inverters": {
         parameters: {
             query?: never;
             header?: never;
@@ -1623,46 +1623,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/data_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Data Types Legacy
-         * @deprecated
-         */
-        get: operations["get_data_types_legacy_v1_operational_data_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/data_types/{data_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Data Type Legacy
-         * @deprecated
-         */
-        get: operations["get_data_type_legacy_v1_operational_data_types__data_type_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/device-types": {
         parameters: {
             query?: never;
@@ -1697,46 +1657,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/device_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Device Types Legacy
-         * @deprecated
-         */
-        get: operations["get_device_types_legacy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/device_types/{device_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Device Type Legacy
-         * @deprecated
-         */
-        get: operations["get_device_type_by_id_legacy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/failure-modes": {
         parameters: {
             query?: never;
@@ -1761,40 +1681,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Types */
-        get: operations["get_project_types"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/project-types/{project_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Project Type */
-        get: operations["get_project_type_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/project_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         /**
          * Get Project Types Legacy
          * @deprecated
@@ -1808,7 +1694,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/project_types/{project_type_id}": {
+    "/v1/operational/project-types/{project_type_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3238,46 +3124,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pg_data_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pg Data Types Legacy
-         * @deprecated
-         */
-        get: operations["get_pg_data_types_legacy_v1_operational_pg_data_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pg_data_types/{pg_data_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pg Data Type Legacy
-         * @deprecated
-         */
-        get: operations["get_pg_data_type_legacy_v1_operational_pg_data_types__pg_data_type_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/cmms-tickets": {
         parameters: {
             query?: never;
@@ -3815,40 +3661,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Report Types */
-        get: operations["get_report_types"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/report-types/{report_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Report Type */
-        get: operations["get_report_type_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/report_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         /**
          * Get Report Types Legacy
          * @deprecated
@@ -3862,7 +3674,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/report_types/{report_type_id}": {
+    "/v1/operational/report-types/{report_type_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3970,54 +3782,6 @@ export interface paths {
          * @description Update an existing sensor type. Only superadmins can update sensor types.
          */
         put: operations["update_sensor_type"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/sensor_types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Sensor Types Legacy
-         * @deprecated
-         */
-        get: operations["get_sensor_types_legacy"];
-        put?: never;
-        /**
-         * Create Sensor Type Legacy
-         * @deprecated
-         */
-        post: operations["create_sensor_type_legacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/sensor_types/{sensor_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Sensor Type Legacy
-         * @deprecated
-         */
-        get: operations["get_sensor_type_legacy"];
-        /**
-         * Update Sensor Type Legacy
-         * @deprecated
-         */
-        put: operations["update_sensor_type_legacy"];
         post?: never;
         delete?: never;
         options?: never;
@@ -13038,82 +12802,6 @@ export interface operations {
             };
         };
     };
-    get_data_types_legacy_v1_operational_data_types_get: {
-        parameters: {
-            query?: {
-                data_type_ids?: number[];
-                name_short?: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DataType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_data_type_legacy_v1_operational_data_types__data_type_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                data_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DataType"];
-                };
-            };
-            /** @description Data type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_device_types: {
         parameters: {
             query?: {
@@ -13192,84 +12880,6 @@ export interface operations {
             };
         };
     };
-    get_device_types_legacy: {
-        parameters: {
-            query?: {
-                device_type_ids?: number[];
-                name_short?: string;
-                name_long?: string;
-                only_included_by_default?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_device_type_by_id_legacy: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                device_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceType"];
-                };
-            };
-            /** @description Device type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_failure_modes: {
         parameters: {
             query?: {
@@ -13292,86 +12902,6 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_types: {
-        parameters: {
-            query?: {
-                project_type_ids?: number[];
-                name_short?: string;
-                name_long?: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_type_by_id: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectType"];
-                };
-            };
-            /** @description Project type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -16384,88 +15914,6 @@ export interface operations {
             };
         };
     };
-    get_pg_data_types_legacy_v1_operational_pg_data_types_get: {
-        parameters: {
-            query?: {
-                pg_data_type_ids?: number[];
-                name_short?: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PGDataType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pg_data_type_legacy_v1_operational_pg_data_types__pg_data_type_id__get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pg_data_type_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PGDataType"];
-                };
-            };
-            /** @description PG data type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get: {
         parameters: {
             query?: {
@@ -17696,72 +17144,6 @@ export interface operations {
             };
         };
     };
-    get_report_types: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_report_type_by_id: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                report_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportType"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_report_types_legacy: {
         parameters: {
             query?: {
@@ -18024,173 +17406,6 @@ export interface operations {
         };
     };
     update_sensor_type: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                sensor_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["app__interfaces__SensorType"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"];
-                };
-            };
-            /** @description Sensor type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_sensor_types_legacy: {
-        parameters: {
-            query?: {
-                sensor_type_ids?: number[];
-                name_short?: string;
-                name_long?: string;
-                name_metric?: string;
-                unit?: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_sensor_type_legacy: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["app__interfaces__SensorType"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_sensor_type_legacy: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                sensor_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"];
-                };
-            };
-            /** @description Sensor type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_sensor_type_legacy: {
         parameters: {
             query?: {
                 schema?: string | null;

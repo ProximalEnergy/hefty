@@ -16,7 +16,7 @@ DESCRIPTION_404 = "Project type not found"
 
 router = APIRouter(prefix="/project-types", tags=["project_types"])
 deprecated_router = APIRouter(
-    prefix="/project_types", tags=["project_types"], deprecated=True
+    prefix="/project-types", tags=["project_types"], deprecated=True
 )
 
 

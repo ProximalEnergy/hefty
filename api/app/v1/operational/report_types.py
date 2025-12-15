@@ -10,7 +10,7 @@ from app.dependencies import get_async_db
 
 router = APIRouter(prefix="/report-types", tags=["report_types"])
 deprecated_router = APIRouter(
-    prefix="/report_types", tags=["report_types"], deprecated=True
+    prefix="/report-types", tags=["report_types"], deprecated=True
 )
 
 

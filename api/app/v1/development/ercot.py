@@ -30,7 +30,7 @@ router = APIRouter(prefix="/ercot", tags=["ercot"])
 
 
 @router.get(
-    "/settlement_point_markets",
+    "/settlement-point-markets",
     response_model=list[interfaces.SettlementPointMarket],
 )
 async def get_settlement_point_markets(
@@ -40,7 +40,7 @@ async def get_settlement_point_markets(
 
 
 @router.get(
-    "/settlement_point_types",
+    "/settlement-point-types",
     response_model=list[interfaces.SettlementPointType],
 )
 async def get_settlement_point_types(
@@ -51,7 +51,7 @@ async def get_settlement_point_types(
 
 
 @router.get(
-    "/settlement_points",
+    "/settlement-points",
     response_model=list[interfaces.SettlementPoint],
 )
 async def get_settlement_points(

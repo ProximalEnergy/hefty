@@ -14,7 +14,7 @@ from app.dependencies import get_async_db
 
 DESCRIPTION_404 = "CEC PV Inverter not found"
 
-router = APIRouter(prefix="/cec_pv_inverters", tags=["cec_pv_inverters"])
+router = APIRouter(prefix="/cec-pv-inverters", tags=["cec-pv-inverters"])
 
 
 @router.get("", response_model=list[interfaces.CECPVInverterWithID])
