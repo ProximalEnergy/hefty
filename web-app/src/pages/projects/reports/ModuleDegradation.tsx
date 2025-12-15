@@ -1,4 +1,4 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, KPITypeEnum } from '@/api/enumerations'
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -1439,7 +1439,7 @@ const ModuleDegradation: React.FC = () => {
   } = useGetOperationalKPIData({
     queryParams: {
       project_ids: projectId ? [projectId] : undefined,
-      kpi_type_ids: [17],
+      kpi_type_ids: [KPITypeEnum.MODULE_EXCESS_DEGRADATION],
       start: startQuery,
       end: endQuery,
       include_device_data: true,
@@ -1466,7 +1466,12 @@ const ModuleDegradation: React.FC = () => {
   const { data: devices, isLoading: isDevicesLoading } = useGetDevicesV2({
     pathParams: { projectId: projectId || '' },
     filters: {
-      device_type_ids: [2, 6, 9, 14],
+      device_type_ids: [
+        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.BLOCK,
+        DeviceTypeEnum.PV_DC_COMBINER,
+        DeviceTypeEnum.CIRCUIT,
+      ],
     },
     queryOptions: {
       enabled: !!projectId,

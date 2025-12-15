@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import { useGetEventLossesSummary } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -126,7 +127,11 @@ const useDcFieldEventData = (
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [5, 2, 9], // Same as ExpectedPlotting
+      device_type_ids: [
+        DeviceTypeEnum.METER,
+        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_DC_COMBINER,
+      ],
     },
     queryOptions: {
       enabled: !!projectId,

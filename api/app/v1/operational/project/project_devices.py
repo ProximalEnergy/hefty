@@ -60,7 +60,7 @@ def get_project_device(
 
 
 @router.post(
-    "/",
+    "",
     operation_id="get_project_devices_v2",
     summary="Get project devices with support for large filter lists",
     description="""

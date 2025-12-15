@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -42,7 +43,10 @@ const TrackerRowDetail = React.memo(() => {
   const { data: devices, isLoading } = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [28, 29],
+      device_type_ids: [
+        DeviceTypeEnum.TRACKER_ZONE,
+        DeviceTypeEnum.TRACKER_ROW,
+      ],
     },
     queryOptions: {
       staleTime: Infinity,

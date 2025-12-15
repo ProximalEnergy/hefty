@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetUtilityExpected } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
@@ -46,7 +47,11 @@ const Page = () => {
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [5, 2, 9],
+      device_type_ids: [
+        DeviceTypeEnum.METER,
+        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_DC_COMBINER,
+      ],
     },
     queryOptions: {
       enabled: !!projectId,

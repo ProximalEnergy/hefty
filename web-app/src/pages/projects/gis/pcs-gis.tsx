@@ -159,7 +159,7 @@ export function PCSGISMap({
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [2, 6],
+      device_type_ids: [DeviceTypeEnum.PV_PCS, DeviceTypeEnum.BLOCK],
     },
   })
 

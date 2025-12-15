@@ -8,6 +8,7 @@ import pandas as pd
 from core.dependencies import get_db
 from core.enumerations import DeviceType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
+from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -150,6 +151,9 @@ async def get_bar(
         .map(devices.pandas_dataframe(index="device_id")["name_long"])
     )
     out = out.rename(index=tag_to_name.to_dict())
+    # Sort by device name using natural sort for consistent ordering
+    sorted_indices = natsorted(out.index, key=lambda x: str(x))
+    out = out.loc[sorted_indices]
     return {
         "x": out.index.tolist(),
         "y": out.tolist(),

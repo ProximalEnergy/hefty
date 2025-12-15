@@ -13,6 +13,8 @@ import {
 import dayjs from 'dayjs'
 import { useNavigate, useParams } from 'react-router'
 
+import { BatteryWarrantyContract } from './BatteryWarrantyContract'
+
 const ProjectContract = () => {
   const { projectId, contractId } = useParams()
   const navigate = useNavigate()
@@ -34,6 +36,18 @@ const ProjectContract = () => {
       <Container fluid pt="md">
         <Text>Contract not found.</Text>
       </Container>
+    )
+  }
+
+  // Check if this is a BESS Warranty contract (contract_category_id = 8)
+  const isBESSWarranty = contract.contract_category_id === 8
+
+  if (isBESSWarranty) {
+    return (
+      <BatteryWarrantyContract
+        contract={contract}
+        onNavigateToContracts={handleNavigateToContracts}
+      />
     )
   }
 

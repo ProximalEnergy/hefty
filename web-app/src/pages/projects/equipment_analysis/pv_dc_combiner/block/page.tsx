@@ -1,4 +1,4 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -110,7 +110,11 @@ const Page = () => {
       projectId: projectId || '-1',
     },
     filters: {
-      device_type_ids: [2, 6, 9],
+      device_type_ids: [
+        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.BLOCK,
+        DeviceTypeEnum.PV_DC_COMBINER,
+      ],
       device_id_descendent_of: blockDeviceId ? Number(blockDeviceId) : null,
     },
   })
@@ -120,7 +124,7 @@ const Page = () => {
       projectId: projectId || '-1',
     },
     queryParams: {
-      sensor_type_ids: [27],
+      sensor_type_ids: [SensorTypeEnum.PV_DC_COMBINER_CURRENT],
       deep: true,
     },
   })

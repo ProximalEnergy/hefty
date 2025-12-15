@@ -34,7 +34,7 @@ class DemoModeUpdateRequest(BaseModel):
 
 
 @router.get(
-    "/",
+    "",
     dependencies=[Depends(dependencies.requires_admin_async)],
 )
 async def get_users(

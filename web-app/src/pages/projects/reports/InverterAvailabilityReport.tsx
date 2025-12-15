@@ -1,4 +1,4 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, ReportTypeEnum } from '@/api/enumerations'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
@@ -46,7 +46,7 @@ const Page: React.FC = () => {
   })
 
   const { projectId } = useParams<{ projectId: string }>()
-  const reportTypeId = 6
+  const reportTypeId = ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY
   const reportDocUrl = 'reports/inverter-availability.html'
 
   const { start, end } = useValidateDateRange()

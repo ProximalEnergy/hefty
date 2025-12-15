@@ -254,7 +254,7 @@ export const useGetSubscriptions = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: '/v1/admin/subscriptions/',
+    url: '/v1/admin/subscriptions',
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -603,7 +603,7 @@ export const useGetEvents = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/events/`,
+    url: `/v1/operational/projects/${pathParams.projectId}/events`,
     params: queryParams,
   }
 
@@ -698,7 +698,7 @@ export const useGetFailureModes = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/failure-modes/`,
+    url: `/v1/operational/failure-modes`,
     params: queryParams,
   }
 
@@ -726,7 +726,7 @@ export const useGetRootCauses = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/root-causes/`,
+    url: `/v1/operational/root-causes`,
     params: queryParams,
   }
 

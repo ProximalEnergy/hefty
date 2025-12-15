@@ -78,7 +78,7 @@ const DeviceEventsTimeline = ({
   }
 
   return (
-    <ScrollArea scrollbars="y" p="xs" h="100%">
+    <ScrollArea scrollbars="y" h="100%">
       <ScrollArea.Autosize h="100%">
         <Box>
           <Timeline

@@ -145,7 +145,7 @@ const Page = () => {
         includeClearButton={false}
         maxDays={MAX_DAYS}
       />
-      <CustomCard title="Project" style={{ flex: 2 }}>
+      <CustomCard title="Project" style={{ flex: 1, minHeight: '250px' }}>
         <PlotlyPlot
           data={
             deviceDetails.data
@@ -194,7 +194,7 @@ const Page = () => {
       </CustomCard>
       <CustomCard
         title="PCS"
-        style={{ flex: 3 }}
+        style={{ flex: 1, minHeight: '250px' }}
         headerChildren={
           <SegmentedControl
             size="xs"
@@ -266,7 +266,7 @@ const Page = () => {
       {batteryTitle && (
         <CustomCard
           title={batteryTitle}
-          style={{ flex: 3 }}
+          style={{ flex: 1, minHeight: '250px' }}
           headerChildren={
             <SegmentedControl
               size="xs"

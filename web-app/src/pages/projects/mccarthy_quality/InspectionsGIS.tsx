@@ -1,3 +1,4 @@
+import { DeviceTypeEnum } from '@/api/enumerations'
 import { PageLoader } from '@/components/Loading'
 import { useGetDevicesV2, useGetInspections } from '@/hooks/api'
 import { Device } from '@/hooks/types'
@@ -17,7 +18,7 @@ export default function InspectionsGIS() {
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [6],
+      device_type_ids: [DeviceTypeEnum.BLOCK],
     },
     queryOptions: {
       enabled: !!projectId,

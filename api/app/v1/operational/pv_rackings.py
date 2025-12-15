@@ -23,7 +23,7 @@ router = APIRouter(prefix="/pv-rackings", tags=["pv_rackings"])
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.PVRackings],
     operation_id="get_rackings",
 )
@@ -110,7 +110,7 @@ async def get_racking_ids_by_manufacturer_and_model(
 
 
 @router.post(
-    "/",
+    "",
     response_model=interfaces.PVRackings,
     summary="Create or update a PV racking",
 )

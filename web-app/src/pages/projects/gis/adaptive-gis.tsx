@@ -185,18 +185,18 @@ const viewNameMapping: { [key: number]: string } = {
 // Defines the parameters for each view that can be locked
 const layerLockConfig = {
   PCS: {
-    powerTypeId: 2,
+    powerTypeId: DeviceTypeEnum.PV_PCS,
     // Use the function to stay consistent with dynamic calculations
     deviceTypeIds: calculateDeviceTypeIds(LOW_ZOOM),
     zoom: LOW_ZOOM,
   },
   'DC Combiner': {
-    powerTypeId: 9,
+    powerTypeId: DeviceTypeEnum.PV_DC_COMBINER,
     deviceTypeIds: calculateDeviceTypeIds(HIGH_ZOOM),
     zoom: HIGH_ZOOM,
   },
   Tracker: {
-    powerTypeId: 29,
+    powerTypeId: DeviceTypeEnum.TRACKER_ROW,
     deviceTypeIds: calculateDeviceTypeIds(VERY_HIGH_ZOOM),
     zoom: VERY_HIGH_ZOOM,
   },

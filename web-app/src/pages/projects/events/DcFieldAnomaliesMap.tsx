@@ -60,7 +60,7 @@ const DcFieldAnomaliesMap = ({
   const { data: devices, isLoading: devicesLoading } = useGetDevicesV2({
     pathParams: { projectId },
     filters: {
-      device_type_ids: [9, 30], // DC Combiner and DC Field
+      device_type_ids: [DeviceTypeEnum.PV_DC_COMBINER, DeviceTypeEnum.DC_FIELD],
     },
     queryOptions: {
       enabled: !!projectId,

@@ -2,6 +2,9 @@ import { searchActions } from '@/components/Spotlight.search.store'
 import { ActionIcon, Tooltip } from '@mantine/core'
 import { useOs } from '@mantine/hooks'
 import { IconSearch } from '@tabler/icons-react'
+import cx from 'clsx'
+
+import classes from './ThemeToggle.module.css'
 
 const SpotlightButton = () => {
   // Detect if the user is on macOS
@@ -17,7 +20,7 @@ const SpotlightButton = () => {
         onClick={searchActions.open}
         aria-label={`Open search (${shortcutText})`}
       >
-        <IconSearch size={18} stroke={1.5} />
+        <IconSearch className={cx(classes.icon)} stroke={1.5} />
       </ActionIcon>
     </Tooltip>
   )

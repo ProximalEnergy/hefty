@@ -91,13 +91,25 @@ const Page = () => {
       start: startDate.format('YYYY-MM-DD'),
       end: endDate.format('YYYY-MM-DD'),
       project_ids: [projectId as string],
-      kpi_type_ids: [1, 34, 57, 58],
+      kpi_type_ids: [
+        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PERFORMANCE_RATIO,
+        KPITypeEnum.BESS_BANK_AVAILABILITY,
+        KPITypeEnum.BESS_PCS_AVAILABILITY,
+      ],
     },
     queryOptions: { enabled: !!projectId },
   })
 
   const kpiTypeData = useGetKPITypes({
-    queryParams: { kpi_type_ids: [1, 34, 57, 58] },
+    queryParams: {
+      kpi_type_ids: [
+        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PERFORMANCE_RATIO,
+        KPITypeEnum.BESS_BANK_AVAILABILITY,
+        KPITypeEnum.BESS_PCS_AVAILABILITY,
+      ],
+    },
   })
 
   // Map KPI data with names; keep same shape and fallback logic

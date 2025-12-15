@@ -100,7 +100,7 @@ const Page = () => {
 
   return (
     <Stack p="md" h="100%">
-      <PageTitle info="View all Met Stations and PV PCSs in a single view. Click on a single PV PCS trace to zoom in to its vertical device detail view.">
+      <PageTitle info="See project, met station, and PCS data in a single view. Click on a single PCS trace to zoom in to its vertical device detail view.">
         PV Device Details
       </PageTitle>
       <AdvancedDatePicker
@@ -108,8 +108,9 @@ const Page = () => {
         includeTodayInDateRange
         includeClearButton={false}
         maxDays={MAX_DAYS}
+        disableQuickActions={true}
       />
-      <CustomCard title="Project" style={{ flex: 1 }}>
+      <CustomCard title="Project" style={{ flex: 1, minHeight: '250px' }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -135,7 +136,7 @@ const Page = () => {
           error={deviceDetails.error}
         />
       </CustomCard>
-      <CustomCard title="Met Station" style={{ flex: 1 }}>
+      <CustomCard title="Met Station" style={{ flex: 1, minHeight: '250px' }}>
         <PlotlyPlot
           data={
             deviceDetails.data &&
@@ -163,7 +164,7 @@ const Page = () => {
       </CustomCard>
       <CustomCard
         title="PCS"
-        style={{ flex: 2 }}
+        style={{ flex: 1, minHeight: '250px' }}
         headerChildren={
           <SegmentedControl
             size="xs"

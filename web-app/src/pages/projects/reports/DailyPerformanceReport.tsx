@@ -1,4 +1,9 @@
-import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
+import {
+  DeviceTypeEnum,
+  KPITypeEnum,
+  ProjectTypeEnum,
+  SensorTypeEnum,
+} from '@/api/enumerations'
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
 import type { OperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
@@ -970,7 +975,7 @@ const Page: React.FC = () => {
   const metStationsQuery = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [4], // Met Station
+      device_type_ids: [DeviceTypeEnum.MET_STATION],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -993,7 +998,7 @@ const Page: React.FC = () => {
     pathParams: { projectId: projectId || '' },
     queryParams: {
       device_ids: metStationDeviceIds,
-      sensor_type_ids: [4], // POA
+      sensor_type_ids: [SensorTypeEnum.MET_STATION_POA],
       start: startTime || undefined,
       end: endTime || undefined,
     },
@@ -1039,7 +1044,13 @@ const Page: React.FC = () => {
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [1, 6, 34, 102, 103], // 1 = PCS mechanical availability, 2 = generation (MWh), 34 = performance ratio, 102 = expected generation (for Performance Index), 103 = curtailment (MWh). Removed 3 (irradiance)
+      kpi_type_ids: [
+        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
+        KPITypeEnum.PERFORMANCE_RATIO,
+        KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
+        KPITypeEnum.PV_PROJECT_CURTAILMENT,
+      ],
       start: selectedDateStr || '',
       end: trailingEnd || '',
       include_device_data: false,
@@ -1059,7 +1070,10 @@ const Page: React.FC = () => {
   const trailingKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [6, 102], // Generation (2) and Expected Generation (102)
+      kpi_type_ids: [
+        KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
+      ],
       start: trailingStart || '',
       end: trailingEnd || '',
       include_device_data: false,
@@ -1097,7 +1111,7 @@ const Page: React.FC = () => {
   const combinerHealthKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [8], // DC combiner field health
+      kpi_type_ids: [KPITypeEnum.PV_DC_COMBINER_FIELD_HEALTH],
       start: selectedDateStr || '',
       end: trailingEnd || '',
       include_device_data: true,
@@ -1131,7 +1145,7 @@ const Page: React.FC = () => {
   const mtdKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
-      kpi_type_ids: [6], // Generation (MWh) for MTD revenue calculation
+      kpi_type_ids: [KPITypeEnum.PROJECT_ENERGY_PRODUCTION],
       start: mtdDateRange?.start || '',
       end: mtdDateRange?.end || '',
       include_device_data: false,
@@ -1151,7 +1165,7 @@ const Page: React.FC = () => {
   const combinerDevices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [9], // DC combiner device type ID
+      device_type_ids: [DeviceTypeEnum.PV_DC_COMBINER],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -1165,14 +1179,14 @@ const Page: React.FC = () => {
 
   // Create KPI type for DC combiner health
   const combinerKpiType: KPIType = {
-    kpi_type_id: 8,
+    kpi_type_id: KPITypeEnum.PV_DC_COMBINER_FIELD_HEALTH,
     name_long: 'DC Combiner Field Health',
     name_short: 'DC Combiner Field Health',
     name_metric: 'DC Combiner Field Health',
     description: 'DC Combiner Field Health',
     unit: '%',
     aggregation_method: 'average',
-    device_type_id: 9,
+    device_type_id: DeviceTypeEnum.PV_DC_COMBINER,
   }
 
   // Fetch daily aggregated budgeted series data
@@ -1262,7 +1276,10 @@ const Page: React.FC = () => {
   // Fetch KPI types for Performance Ratio (34) and PCS Mechanical Availability (1)
   const kpiTypesQuery = useGetKPITypes({
     queryParams: {
-      kpi_type_ids: [1, 34],
+      kpi_type_ids: [
+        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PERFORMANCE_RATIO,
+      ],
     },
     queryOptions: {
       enabled: true,
@@ -1497,7 +1514,7 @@ const Page: React.FC = () => {
           : undefined,
         icon: IconBolt,
         description: generationDescription,
-        kpiTypeId: 6,
+        kpiTypeId: KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
         link: `/projects/${projectId}/kpis/type/6`,
       },
       {
@@ -1550,7 +1567,7 @@ const Page: React.FC = () => {
           kpiTypeDescriptions[1] ||
           'PCS mechanical availability for the selected day'
         }${curtailmentMWh !== 0 ? `. Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh` : ''}`,
-        kpiTypeId: 1,
+        kpiTypeId: KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
         link: `/projects/${projectId}/kpis/type/1`,
       },
     ]

@@ -31,7 +31,7 @@ class UtilityExpectedResponse(BaseModel):
 
 
 @router.get(
-    "/",
+    "",
     response_model=UtilityExpectedResponse,
     response_class=ORJSONResponse,
 )

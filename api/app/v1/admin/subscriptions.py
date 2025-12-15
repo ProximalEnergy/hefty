@@ -52,7 +52,7 @@ async def get_email_from_clerk(*, user_id: str, api_prod: bool):
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[interfaces.UserSubscription],
     description="Get all subscriptions for requesting user.",
 )
