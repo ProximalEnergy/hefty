@@ -20,11 +20,15 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 class SignalPair(BaseModel):
+    """todo"""
+
     ir_signal: str | None = Field(default=None)
     rgb_signal: str | None = Field(default=None)
 
 
 class RootCauseCandidate(BaseModel):
+    """todo"""
+
     root_cause_id: int
     name_short: str | None = None
     name_long: str | None = None
@@ -32,12 +36,16 @@ class RootCauseCandidate(BaseModel):
 
 
 class SuggestRootCauseRequest(BaseModel):
+    """todo"""
+
     pairs: list[SignalPair]
     candidates: list[RootCauseCandidate]
     model: str = Field(default="gpt-5-mini")
 
 
 class SuggestedRootCause(BaseModel):
+    """todo"""
+
     index: int
     root_cause_id: int | None
     confidence: float | None = None
@@ -45,6 +53,8 @@ class SuggestedRootCause(BaseModel):
 
 
 class SuggestRootCauseResponse(BaseModel):
+    """todo"""
+
     suggestions: list[SuggestedRootCause]
 
 
@@ -59,8 +69,12 @@ async def suggest_root_cause(
 ):
     """Suggest a root cause for each (IR, RGB) signal pair.
 
-    Uses OpenAI Responses API to select the best candidate root cause
-    id from the provided list, based on IR/RGB signals.
+        Uses OpenAI Responses API to select the best candidate root cause
+        id from the provided list, based on IR/RGB signals.
+
+    Args:
+        request: TODO: describe.
+        user_data: TODO: describe.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

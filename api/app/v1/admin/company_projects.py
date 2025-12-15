@@ -24,6 +24,13 @@ async def get_company_projects(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     return await crud_get_company_projects(
         db=db,
         company_ids=[user_data.company_id],
@@ -43,11 +50,15 @@ async def get_all_company_projects_for_project(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """
-    Get all companies with access to a project.
+    """Get all companies with access to a project.
 
-    This endpoint is used by the event chat visibility dropdown to show
-    which companies can see messages posted to the project.
+        This endpoint is used by the event chat visibility dropdown to show
+        which companies can see messages posted to the project.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     return await crud_get_company_projects(
         db=db,

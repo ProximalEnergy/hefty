@@ -13,6 +13,14 @@ async def get_ercot_rtm_spp(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        settlement_point_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     query = select(models.RTMSPP)
 
     if settlement_point_ids:

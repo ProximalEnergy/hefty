@@ -28,7 +28,11 @@ router = APIRouter(
 
 # --- 1) helper to convert a DataTimeseriesLast row into a single float -------------
 def _extract_numeric_value(*, row) -> float | None:
-    """Return the first non-NULL numeric column from a DataTimeseriesLast row."""
+    """Return the first non-NULL numeric column from a DataTimeseriesLast row.
+
+    Args:
+        row: TODO: describe.
+    """
     # todo: unit_offset is not applied in this function however it should probably be
     # applied in the get_data_timeseries_latest_by_device_type function instead
     for attr in (
@@ -70,6 +74,13 @@ def get_by_device_type_id(
     project_db: Session = Depends(get_project_db),
 ):
     # ── fetch latest values ─────────────────────────────────────────────────────
+    """todo
+
+    Args:
+        device_type_id: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        project_db: TODO: describe.
+    """
     data_rows = get_data_timeseries_latest_by_device_type(
         db=project_db,
         device_type_id=device_type_id,
@@ -177,11 +188,14 @@ def get_device_type_power_summary(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
-    """
-    Get power summary for all device types in the project.
+    """Get power summary for all device types in the project.
 
-    This endpoint efficiently calculates actual power for all device types
-    using the same proven logic as the GIS and plotting endpoints.
+        This endpoint efficiently calculates actual power for all device types
+        using the same proven logic as the GIS and plotting endpoints.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     # Get all device types used in this project
     used_device_type_ids = getattr(project.spec, "used_device_type_ids", [])
@@ -266,8 +280,12 @@ def get_device_type_power_summary(
 def _calculate_dc_combiner_power_sum(
     *, project_db: Session, project: models.Project, device_ids: list[int]
 ) -> float | None:
-    """
-    Calculate total power for DC combiners using the proven utility_expected logic.
+    """Calculate total power for DC combiners using the proven utility_expected logic.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
     """
     if not device_ids:
         return None
@@ -412,7 +430,13 @@ def _calculate_dc_combiner_power_sum(
 def _calculate_pcs_power_sum(
     *, project_db: Session, project: models.Project, device_ids: list[int]
 ) -> float | None:
-    """Calculate total power for PV PCS devices using latest values (timeseries_last)."""
+    """Calculate total power for PV PCS devices using latest values (timeseries_last).
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
+    """
     if not device_ids:
         logger.debug("No device IDs provided for PCS power calculation")
         return None
@@ -453,9 +477,14 @@ def _calculate_mvt_power_sum(
 ) -> float | None:
     """Calculate total power for PV MVT devices using Block AC Power (sensor_type_id=BLOCK_AC_POWER).
 
-    Each PV Block (type 6) corresponds to one PV MVT (type 15). We therefore
-    sum the latest PV Block AC Power values for blocks that correspond to the
-    given MVT device IDs.
+        Each PV Block (type 6) corresponds to one PV MVT (type 15). We therefore
+        sum the latest PV Block AC Power values for blocks that correspond to the
+        given MVT device IDs.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
     """
     if not device_ids:
         return None
@@ -504,7 +533,13 @@ def _calculate_mvt_power_sum(
 def _calculate_circuit_power_sum(
     *, project_db: Session, project: models.Project, device_ids: list[int]
 ) -> float | None:
-    """Calculate total power for PV Circuit devices (try meter first, then PCS)."""
+    """Calculate total power for PV Circuit devices (try meter first, then PCS).
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
+    """
     if not device_ids:
         return None
 
@@ -591,7 +626,14 @@ def _calculate_bess_power_sum(
     device_ids: list[int],
     device_type_id: int,
 ) -> float | None:
-    """Calculate total power for BESS devices."""
+    """Calculate total power for BESS devices.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     if not device_ids:
         return None
 
@@ -655,7 +697,14 @@ def _calculate_generic_power_sum(
     device_ids: list[int],
     device_type_id: int,
 ) -> float | None:
-    """Calculate power for other device types if power data is available."""
+    """Calculate power for other device types if power data is available.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     if not device_ids:
         return None
 

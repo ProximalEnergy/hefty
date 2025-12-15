@@ -7,6 +7,11 @@ def map_columns_to_proximal_format(
     *,
     cec_pv_module: interfaces.CECPVModule,
 ) -> dict[str, Any]:
+    """todo
+
+    Args:
+        cec_pv_module: TODO: describe.
+    """
     column_mapping = {
         "model_number": "model",
         "nameplate_pmax": "pmax",

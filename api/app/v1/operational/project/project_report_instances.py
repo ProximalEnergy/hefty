@@ -31,6 +31,15 @@ def get_project_reports_instances(
     report_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        is_superadmin: TODO: describe.
+        report_type_ids: TODO: describe.
+        deep: TODO: describe.
+    """
     if is_superadmin:
         is_visible = None
     else:
@@ -57,9 +66,13 @@ async def bulk_update_project_report_instances(
     data: interfaces.ReportInstancesBulkUpdate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
-    """
-    Bulk update report instances for a project.
-    Only accessible by superadmins.
+    """Bulk update report instances for a project.
+        Only accessible by superadmins.
+
+    Args:
+        project_id: TODO: describe.
+        data: TODO: describe.
+        db: TODO: describe.
     """
     try:
         report_instances_data = [

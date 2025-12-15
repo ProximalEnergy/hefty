@@ -17,6 +17,14 @@ def create_series(
     company_id: uuid.UUID,
     project_id: uuid.UUID,
 ) -> models.PVBudgetedSeries:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        series_in: TODO: describe.
+        company_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     series = models.PVBudgetedSeries(
         company_id=company_id,
         project_id=project_id,
@@ -41,6 +49,12 @@ def create_series(
 def list_series(
     *, project_db: Session, project_id: uuid.UUID | None = None
 ) -> Sequence[models.PVBudgetedSeries]:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_id: TODO: describe.
+    """
     stmt = sa.select(models.PVBudgetedSeries)
     if project_id is not None:
         stmt = stmt.where(models.PVBudgetedSeries.project_id == project_id)
@@ -52,6 +66,12 @@ def list_series(
 def get_series(
     *, project_db: Session, pv_budgeted_series_id: int
 ) -> models.PVBudgetedSeries | None:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        pv_budgeted_series_id: TODO: describe.
+    """
     return (
         project_db.query(models.PVBudgetedSeries)
         .filter(models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id)
@@ -65,6 +85,13 @@ def update_series(
     pv_budgeted_series_id: int,
     series_in: interfaces.PVBudgetedSeriesIn,
 ) -> models.PVBudgetedSeries | None:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        pv_budgeted_series_id: TODO: describe.
+        series_in: TODO: describe.
+    """
     series = (
         project_db.query(models.PVBudgetedSeries)
         .filter(models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id)
@@ -97,6 +124,13 @@ def bulk_upsert_data(
     pv_budgeted_series_id: int,
     rows: list[interfaces.PVBudgetedDataRow],
 ) -> int:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        pv_budgeted_series_id: TODO: describe.
+        rows: TODO: describe.
+    """
     if not rows:
         return 0
 
@@ -139,6 +173,12 @@ def bulk_upsert_data(
 
 
 def delete_series(*, project_db: Session, pv_budgeted_series_id: int) -> bool:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        pv_budgeted_series_id: TODO: describe.
+    """
     try:
         # First delete all associated data points
         data_stmt = sa.delete(models.PVBudgetedData).where(
@@ -169,6 +209,14 @@ def fetch_data(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ) -> Sequence[models.PVBudgetedData]:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        pv_budgeted_series_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     stmt = sa.select(models.PVBudgetedData).where(
         models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id
     )

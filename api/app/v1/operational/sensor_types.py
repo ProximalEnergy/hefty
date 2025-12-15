@@ -39,6 +39,16 @@ def get_sensor_types(
     unit: str = "",
     db: Session = Depends(get_db),
 ):
+    """todo
+
+    Args:
+        sensor_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        name_metric: TODO: describe.
+        unit: TODO: describe.
+        db: TODO: describe.
+    """
     return core_get_sensor_types(
         db,
         sensor_type_ids=sensor_type_ids,
@@ -56,6 +66,12 @@ def get_sensor_types(
     operation_id="get_sensor_type",
 )
 def get_sensor_type(sensor_type_id: int, db: Annotated[Session, Depends(get_db)]):
+    """todo
+
+    Args:
+        sensor_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     sensor_type = core_get_sensor_type(
         db=db,
         sensor_type_id=sensor_type_id,
@@ -74,7 +90,13 @@ def create_sensor_type(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Create a new sensor type. Only superadmins can create sensor types."""
+    """Create a new sensor type. Only superadmins can create sensor types.
+
+    Args:
+        sensor_type: TODO: describe.
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
             status_code=403, detail="Only superadmins can create sensor types"
@@ -104,7 +126,14 @@ def update_sensor_type(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Update an existing sensor type. Only superadmins can update sensor types."""
+    """Update an existing sensor type. Only superadmins can update sensor types.
+
+    Args:
+        sensor_type_id: TODO: describe.
+        sensor_type: TODO: describe.
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
             status_code=403, detail="Only superadmins can update sensor types"

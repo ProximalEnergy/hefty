@@ -17,11 +17,22 @@ class BaseIntEnum(IntEnum):
     def extract_values(  # skip-star-syntax
         cls, enum_list: Sequence["BaseIntEnum"]
     ) -> list[int]:
-        """Extract integer values from a list of BaseEnum enums for database queries."""
+        """Extract integer values from a list of BaseEnum enums for database queries.
+
+        Args:
+            cls: TODO: describe.
+            enum_list: TODO: describe.
+        """
         return [status.value for status in enum_list]
 
     @classmethod
     def validate_against_database(cls, *, session: "Session") -> dict[str, Any]:
+        """TODO: add description.
+
+        Args:
+            cls: TODO: describe.
+            session: TODO: describe.
+        """
         table = cls._db_table
         id_column = cls._db_id_column
         name_column = cls._db_name_column

@@ -6,6 +6,11 @@ def build_system(
     system: pd.DataFrame,
 ):
     # --- hardcoded ---
+    """todo
+
+    Args:
+        system: TODO: describe.
+    """
     system["string_id"] = range(len(system))
     system["racking_device_id"] = -999
     system["pcs_module_id"] = -999

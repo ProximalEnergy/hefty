@@ -9,6 +9,12 @@ def get_spreadsheet_id(
     db: Session,
     project_name_short: str,
 ) -> str:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_name_short: TODO: describe.
+    """
     google_sheet_id: Row[tuple[str | None]] | None = (
         db.query(models.Project.gsheet_id)
         .filter(models.Project.name_short == project_name_short)

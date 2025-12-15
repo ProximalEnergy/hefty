@@ -29,6 +29,14 @@ def get_project_types(
     name_long: str = "",
     db: Session = Depends(get_db),
 ):
+    """todo
+
+    Args:
+        project_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        db: TODO: describe.
+    """
     return crud_get_project_types(
         db=db,
         project_type_ids=project_type_ids,
@@ -49,6 +57,14 @@ def get_project_types_legacy(
     name_long: str = "",
     db: Session = Depends(get_db),
 ):
+    """todo
+
+    Args:
+        project_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        db: TODO: describe.
+    """
     return get_project_types(
         project_type_ids=project_type_ids,
         name_short=name_short,
@@ -64,6 +80,12 @@ def get_project_types_legacy(
     operation_id="get_project_type_by_id",
 )
 def get_project_type(project_type_id: int, db: Annotated[Session, Depends(get_db)]):
+    """todo
+
+    Args:
+        project_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     project_type = crud_get_project_type(db=db, project_type_id=project_type_id)
     utils.check_404(value=project_type, detail=DESCRIPTION_404)
     return project_type
@@ -78,4 +100,10 @@ def get_project_type(project_type_id: int, db: Annotated[Session, Depends(get_db
 def get_project_type_legacy(
     *, project_type_id: int, db: Annotated[Session, Depends(get_db)]
 ):
+    """todo
+
+    Args:
+        project_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     return get_project_type(project_type_id, db)

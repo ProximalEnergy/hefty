@@ -4,9 +4,11 @@ from scipy.optimize import minimize
 
 
 def calc_reference_params(*, pv_module: dict):
-    """
-    Calculates the 5 single-diode model parameters using a robust,
-    bounded minimization approach.
+    """Calculates the 5 single-diode model parameters using a robust,
+        bounded minimization approach.
+
+    Args:
+        pv_module: TODO: describe.
     """
     # --- Constants and Module Specs ---
     TEMP_REF_K = 25.0 + 273.15  # Reference temperature in Kelvin
@@ -73,6 +75,12 @@ def calc_reference_params(*, pv_module: dict):
     )
 
     def objective_func(params, specs):  # skip-star-syntax
+        """todo
+
+        Args:
+            params: TODO: describe.
+            specs: TODO: describe.
+        """
         residuals = _system_of_equations_desoto(params, specs)
         residuals = np.array(residuals)
         return np.sum(residuals**2)

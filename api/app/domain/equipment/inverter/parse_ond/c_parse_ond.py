@@ -14,12 +14,13 @@ def parse_ond(
     *,
     file_content: bytes,
 ) -> dict[str, Any]:
-    """
-    Parse OND file content and extract inverter information.
+    """Parse OND file content and extract inverter information.
 
-    WARNINGS:
-        - The Binary Format is not working very well and is not complete
+        WARNINGS:
+            - The Binary Format is not working very well and is not complete
 
+    Args:
+        file_content: TODO: describe.
     """
 
     # Process through the pipeline

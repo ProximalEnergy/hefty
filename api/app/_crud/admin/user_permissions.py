@@ -11,7 +11,12 @@ async def create_user_permission(
     db: AsyncSession,
     user_permission: models.UserPermission,
 ):
-    """Create a new user_permissions record"""
+    """Create a new user_permissions record
+
+    Args:
+        db: TODO: describe.
+        user_permission: TODO: describe.
+    """
     db.add(user_permission)
     await db.commit()
     await db.refresh(user_permission)
@@ -23,7 +28,12 @@ async def delete_user_permission(
     *,
     user_permission: models.UserPermission,
 ):
-    """Delete a user_permissions record"""
+    """Delete a user_permissions record
+
+    Args:
+        db: TODO: describe.
+        user_permission: TODO: describe.
+    """
     delete_stmt = delete(models.UserPermission).where(
         models.UserPermission.user_id == user_permission.user_id,
         models.UserPermission.permission_id == user_permission.permission_id,
@@ -39,7 +49,13 @@ async def get_user_permissions(
     user_ids: list[str] | None = None,
     project_ids: list[UUID] | None = None,
 ) -> list[models.UserPermission]:
-    """Query the user_permissions table"""
+    """Query the user_permissions table
+
+    Args:
+        db: TODO: describe.
+        user_ids: TODO: describe.
+        project_ids: TODO: describe.
+    """
     query = select(models.UserPermission)
 
     if user_ids:

@@ -13,6 +13,12 @@ async def get_inverters(
     db: AsyncSession,
     inverter_ids: list[int] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        inverter_ids: TODO: describe.
+    """
     query = select(models.Inverter)
 
     if inverter_ids:
@@ -52,8 +58,11 @@ async def get_inverter_manufacturers(
     db: AsyncSession,
     company_id: uuid.UUID | None = None,
 ):
-    """
-    Returns a list of unique manufacturers of inverters.
+    """Returns a list of unique manufacturers of inverters.
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
     """
     logger.info(
         f"CRUD: get_inverter_manufacturers called with company_id: {company_id}"
@@ -86,8 +95,12 @@ async def get_inverter_models_given_manufacturer(
     manufacturer: str | None,
     company_id: uuid.UUID | None = None,
 ):
-    """
-    Returns a list of inverter models given manufacturer
+    """Returns a list of inverter models given manufacturer
+
+    Args:
+        db: TODO: describe.
+        manufacturer: TODO: describe.
+        company_id: TODO: describe.
     """
 
     query = select(models.Inverter.model).distinct()
@@ -106,6 +119,14 @@ async def get_inverter_ids(
     inverter_model: list[str] | None = None,
     company_id: uuid.UUID | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        inverter_manufacturer: TODO: describe.
+        inverter_model: TODO: describe.
+        company_id: TODO: describe.
+    """
     query = select(models.Inverter.inverter_id)
 
     if inverter_manufacturer:

@@ -50,6 +50,13 @@ def get_project_device(
     deep: custom_types.AnnotatedDeep = False,
     project_db: Session = Depends(get_project_db),
 ):
+    """todo
+
+    Args:
+        device_id: TODO: describe.
+        deep: TODO: describe.
+        project_db: TODO: describe.
+    """
     device = core.crud.project.devices.get_project_device(
         db=project_db,
         device_id=device_id,
@@ -85,6 +92,12 @@ async def get_project_devices_v2(
     project_db: Session = Depends(get_project_db),
 ):
     # Validate format
+    """todo
+
+    Args:
+        filters: TODO: describe.
+        project_db: TODO: describe.
+    """
     if filters.format not in ["json", "arrow", "parquet"]:
         raise HTTPException(
             status_code=400, detail="Format must be one of: json, arrow, parquet"
@@ -113,6 +126,11 @@ async def get_project_devices_v2(
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
     def wkb_to_geojson(wkb_bytes):  # skip-star-syntax
+        """todo
+
+        Args:
+            wkb_bytes: TODO: describe.
+        """
         if wkb_bytes is None:
             return None
 

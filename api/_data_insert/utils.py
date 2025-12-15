@@ -35,6 +35,7 @@ def get_df(sheet_name: str, project_name_short: str | None = None) -> pd.DataFra
 
 def get_sheet_names() -> list[str]:
     # Get sheet names from Excel file
+    """Get sheet names."""
     sheet_names_raw = pd.ExcelFile(EXCEL_PATH).sheet_names
 
     # Convert sheet names to list of strings
@@ -45,6 +46,12 @@ def get_sheet_names() -> list[str]:
 
 def clean_df(df: pd.DataFrame, *, index_col: str | None = None) -> pd.DataFrame:
     # If index_col is provided, drop all rows where the index_col is None
+    """Handle clean df.
+
+    Args:
+        df: TODO: describe.
+        index_col: TODO: describe.
+    """
     if index_col:
         df = df.dropna(subset=[index_col])
 
@@ -97,9 +104,12 @@ def get_device_id_path(df: pd.DataFrame) -> pd.DataFrame:
     parent_map = dict(zip(df["device_id"], df["parent_device_id"]))
 
     def get_device_path(dev_id, parent_map):
-        """
-        Builds the full path (ancestor chain) for a single device
-        by following the 'parent_device_id' links.
+        """Builds the full path (ancestor chain) for a single device
+                by following the 'parent_device_id' links.
+
+        Args:
+            dev_id: TODO: describe.
+            parent_map: TODO: describe.
         """
         path = []
         current_id = dev_id
@@ -123,6 +133,11 @@ def get_device_id_path(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def application_name(file_path: str) -> str:
+    """Handle application name.
+
+    Args:
+        file_path: TODO: describe.
+    """
     file_name = os.path.basename(file_path)
     file_name = file_name.replace(".py", "")
 

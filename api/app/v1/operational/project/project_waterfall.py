@@ -34,6 +34,13 @@ router = APIRouter(
 def df_from_objects(  # skip-star-syntax
     objects: list[Base], index_col: str, time_zone: str | None = None
 ) -> pd.DataFrame:
+    """todo
+
+    Args:
+        objects: TODO: describe.
+        index_col: TODO: describe.
+        time_zone: TODO: describe.
+    """
     df = pd.DataFrame.from_records(obj.__dict__ for obj in objects).set_index(index_col)  # type: ignore[arg-type]
     if "_sa_instance_state" in df.columns:
         df = df.drop(columns=["_sa_instance_state"])
@@ -55,6 +62,18 @@ async def get_project_waterfall(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        async_project_db: TODO: describe.
+        project: TODO: describe.
+        level: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     if start is None or end is None:
         start = pd.Timestamp.now(tz=project.time_zone).floor("D") - pd.Timedelta(days=1)
         end = pd.Timestamp.now(tz=project.time_zone).floor("D")

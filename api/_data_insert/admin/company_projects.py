@@ -13,6 +13,11 @@ logging.basicConfig(level=logging.INFO)
 
 
 def get_company_id_from_name_short(*, name_short: str) -> uuid.UUID:
+    """todo
+
+    Args:
+        name_short: TODO: describe.
+    """
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -26,6 +31,11 @@ def get_company_id_from_name_short(*, name_short: str) -> uuid.UUID:
 
 
 def get_project_id_from_name_short(*, name_short: str) -> uuid.UUID:
+    """todo
+
+    Args:
+        name_short: TODO: describe.
+    """
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -39,6 +49,11 @@ def get_project_id_from_name_short(*, name_short: str) -> uuid.UUID:
 
 
 def create_vector_store(*, name: str) -> str:
+    """todo
+
+    Args:
+        name: TODO: describe.
+    """
     client = OpenAI()
     vector_store = client.vector_stores.create(name=name)
     return vector_store.id
@@ -50,6 +65,13 @@ def create_company_project(
     project_id: uuid.UUID,
     vector_store_id: str,
 ) -> None:
+    """todo
+
+    Args:
+        company_id: TODO: describe.
+        project_id: TODO: describe.
+        vector_store_id: TODO: describe.
+    """
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute(

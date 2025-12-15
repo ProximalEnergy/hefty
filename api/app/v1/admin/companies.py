@@ -22,6 +22,12 @@ async def create_company(
     company: interfaces.CompanyCreate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        company: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_create_company(db=db, company=company)
 
 
@@ -32,6 +38,13 @@ async def get_companies(
     company_ids: list[uuid.UUID] | None = Query(default=None),
     name_shorts: list[str] | None = Query(default=None),
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_ids: TODO: describe.
+        name_shorts: TODO: describe.
+    """
     companies = await crud_get_companies(
         db=db,
         company_ids=company_ids,
@@ -46,4 +59,11 @@ async def search_companies(
     q: str = Query(min_length=3),
     limit: int = 20,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        q: TODO: describe.
+        limit: TODO: describe.
+    """
     return await crud_search_companies(db=db, q=q, limit=limit)

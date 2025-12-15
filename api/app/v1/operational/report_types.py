@@ -22,6 +22,11 @@ deprecated_router = APIRouter(
 async def get_report_types(
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     return await _crud.get_report_types(db=db)
 
 
@@ -31,6 +36,11 @@ async def get_report_types(
     operation_id="get_report_types_legacy",
 )
 def get_report_types_legacy(*, db: Annotated[AsyncSession, Depends(get_db)]):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     return get_report_types(db=db)
 
 
@@ -42,6 +52,12 @@ def get_report_types_legacy(*, db: Annotated[AsyncSession, Depends(get_db)]):
 async def get_report_type(
     report_type_id: int, db: Annotated[AsyncSession, Depends(get_async_db)]
 ):
+    """todo
+
+    Args:
+        report_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     return await _crud.get_report_type(db=db, report_type_id=report_type_id)
 
 
@@ -53,4 +69,10 @@ async def get_report_type(
 def get_report_type_legacy(
     *, report_type_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ):
+    """todo
+
+    Args:
+        report_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     return get_report_type(report_type_id, db)

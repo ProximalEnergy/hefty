@@ -6,6 +6,11 @@ from core import models
 
 
 async def get_ercot_resources_options(*, deep: bool):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = (
             # Load the main 'settlement_point' relationship...
@@ -29,6 +34,12 @@ async def get_ercot_resources_options(*, deep: bool):
 
 
 async def get_ercot_resources(*, db: AsyncSession, deep: bool = False):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        deep: TODO: describe.
+    """
     options = await get_ercot_resources_options(deep=deep)
     query = select(models.Resource).options(*options)
     result = await db.execute(query)
@@ -36,6 +47,13 @@ async def get_ercot_resources(*, db: AsyncSession, deep: bool = False):
 
 
 async def get_ercot_resource(*, db: AsyncSession, resource_id: int, deep: bool = False):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        resource_id: TODO: describe.
+        deep: TODO: describe.
+    """
     options = await get_ercot_resources_options(deep=deep)
     query = (
         select(models.Resource)

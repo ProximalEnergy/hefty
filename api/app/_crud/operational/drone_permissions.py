@@ -10,7 +10,11 @@ from app.interfaces import DronePermissionCreate, DronePermissionUpdate
 
 
 async def get_drone_permissions(*, db: AsyncSession) -> Sequence[DronePermission]:
-    """Get all drone permissions."""
+    """Get all drone permissions.
+
+    Args:
+        db: TODO: describe.
+    """
     stmt = sa.select(DronePermission)
     result = await db.execute(stmt)
     return result.scalars().all()
@@ -19,7 +23,12 @@ async def get_drone_permissions(*, db: AsyncSession) -> Sequence[DronePermission
 async def create_drone_permission(
     *, db: AsyncSession, drone_permission: DronePermissionCreate
 ) -> DronePermission:
-    """Create a new drone permission."""
+    """Create a new drone permission.
+
+    Args:
+        db: TODO: describe.
+        drone_permission: TODO: describe.
+    """
     db_drone_permission = DronePermission(**drone_permission.model_dump())
     db.add(db_drone_permission)
     await db.commit()
@@ -34,7 +43,14 @@ async def update_drone_permission(
     company_id: uuid.UUID,
     drone_permission: DronePermissionUpdate,
 ) -> DronePermission | None:
-    """Update a drone permission."""
+    """Update a drone permission.
+
+    Args:
+        db: TODO: describe.
+        drone_integration_id: TODO: describe.
+        company_id: TODO: describe.
+        drone_permission: TODO: describe.
+    """
     db_drone_permission = await db.get(
         DronePermission,
         {"drone_integration_id": drone_integration_id, "company_id": company_id},
@@ -49,7 +65,13 @@ async def update_drone_permission(
 async def delete_drone_permission(
     *, db: AsyncSession, drone_integration_id: int, company_id: uuid.UUID
 ) -> None:
-    """Delete a drone permission."""
+    """Delete a drone permission.
+
+    Args:
+        db: TODO: describe.
+        drone_integration_id: TODO: describe.
+        company_id: TODO: describe.
+    """
     delete_stmt = delete(DronePermission).where(
         DronePermission.drone_integration_id == drone_integration_id,
         DronePermission.company_id == company_id,

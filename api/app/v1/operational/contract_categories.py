@@ -17,6 +17,11 @@ async def list_contract_categories(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
     # Use raw SQL to avoid dependency on ORM model presence in installed core package
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     query = sa.text(
         """
         SELECT contract_category_id, name_short, name_long

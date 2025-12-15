@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 # --- Pydantic Models ---
 class BackfillRequest(BaseModel):
+    """todo"""
+
     single_diode_model: str | None = "DESOTO"
     soiling: str | None = "measured"
     degradation: str | None = "none"
@@ -46,11 +48,18 @@ def backfill_expected_energy_model(
     simulation_start: str,
     simulation_end: str,
 ):
-    """
-    Start dates of given projects:
-        double_black_diamond: 2024-08-01
-        sun_streams_4: 2024-12-01
-        serrano: 2025-02-15
+    """Start dates of given projects:
+            double_black_diamond: 2024-08-01
+            sun_streams_4: 2024-12-01
+            serrano: 2025-02-15
+
+    Args:
+        background_tasks: TODO: describe.
+        request: TODO: describe.
+        energy_model_version: TODO: describe.
+        project_name_short: TODO: describe.
+        simulation_start: TODO: describe.
+        simulation_end: TODO: describe.
     """
     kwargs: dict[str, Any] = {}
     if request.single_diode_model is not None:

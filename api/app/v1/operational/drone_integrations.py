@@ -37,12 +37,16 @@ router = APIRouter(prefix="/drone-integrations")
 
 
 class DroneInspectionOrderRequest(BaseModel):
+    """todo"""
+
     project_id: uuid.UUID
     provider_email: str
     timing: str
 
 
 class QueryProviderSitesRequest(BaseModel):
+    """todo"""
+
     api_key: str
     provider_id: int
 
@@ -50,6 +54,8 @@ class QueryProviderSitesRequest(BaseModel):
 
 
 class ProviderSite(BaseModel):
+    """todo"""
+
     site_name: str | None = None
     site_uuid: str
     site_id: int | None = None
@@ -59,8 +65,10 @@ class ProviderSite(BaseModel):
 async def get_drone_integrations_(
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Retrieve all drone integrations.
+    """Retrieve all drone integrations.
+
+    Args:
+        db: TODO: describe.
     """
     return await get_drone_integrations(db=db)
 
@@ -74,8 +82,11 @@ async def create_drone_integration_(
     drone_integration: DroneIntegrationCreate,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Create a new drone integration.
+    """Create a new drone integration.
+
+    Args:
+        drone_integration: TODO: describe.
+        db: TODO: describe.
     """
     return await create_drone_integration(db=db, drone_integration=drone_integration)
 
@@ -90,8 +101,12 @@ async def update_drone_integration_(
     drone_integration: DroneIntegrationUpdate,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Update a drone integration.
+    """Update a drone integration.
+
+    Args:
+        drone_integration_id: TODO: describe.
+        drone_integration: TODO: describe.
+        db: TODO: describe.
     """
     return await update_drone_integration(
         db=db,
@@ -107,8 +122,11 @@ async def delete_drone_integration_(
     drone_integration_id: int,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Delete a drone integration.
+    """Delete a drone integration.
+
+    Args:
+        drone_integration_id: TODO: describe.
+        db: TODO: describe.
     """
     await delete_drone_integration(db=db, drone_integration_id=drone_integration_id)
     return HTTPException(status_code=200, detail="Drone integration deleted")
@@ -121,8 +139,13 @@ async def order_drone_inspection(
     db: AsyncSession = Depends(get_async_db),
     api_prod: bool = Depends(is_prod_origin),
 ):
-    """
-    Send a drone inspection order email to the provider.
+    """Send a drone inspection order email to the provider.
+
+    Args:
+        request: TODO: describe.
+        user_data: TODO: describe.
+        db: TODO: describe.
+        api_prod: TODO: describe.
     """
     try:
         # Get project information
@@ -175,9 +198,11 @@ async def order_drone_inspection(
 async def query_provider_sites(
     request: QueryProviderSitesRequest,
 ):
-    """
-    Query sites from a drone provider using an API key.
-    Currently supports Zeitview (provider_id = 0).
+    """Query sites from a drone provider using an API key.
+        Currently supports Zeitview (provider_id = 0).
+
+    Args:
+        request: TODO: describe.
     """
     logger.info(
         f"Query provider sites request: provider_id={request.provider_id}, "

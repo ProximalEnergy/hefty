@@ -16,6 +16,11 @@ def get_api_key(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        user_data: TODO: describe.
+    """
     return {"api_key": user_data.api_key}
 
 
@@ -26,6 +31,12 @@ async def create_api_key(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     await crud_create_api_key(db, user_id=user_data.user_id)
 
 
@@ -36,4 +47,10 @@ async def delete_api_key(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     await crud_delete_api_key(db, user_id=user_data.user_id)

@@ -33,6 +33,12 @@ async def get_racking(
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     # authorized_company_id = None
+    """todo
+
+    Args:
+        racking_ids: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_racking(
         db=db,
         racking_ids=racking_ids,
@@ -48,6 +54,12 @@ async def get_proximal_racking_manufacturers(
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        authorized_company_id: TODO: describe.
+        db: TODO: describe.
+    """
     manufacturers = await get_racking_manufacturers(
         db=db, company_id=authorized_company_id
     )
@@ -67,6 +79,13 @@ async def get_proximal_racking_models(
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        manufacturer: TODO: describe.
+        authorized_company_id: TODO: describe.
+        db: TODO: describe.
+    """
     models = await get_racking_models_given_manufacturer(
         db=db, manufacturer=manufacturer, company_id=authorized_company_id
     )
@@ -86,13 +105,18 @@ async def get_racking_ids_by_manufacturer_and_model(
     models: Annotated[list[str], Query()],
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Get racking IDs for each manufacturer and model pair.
+    """Get racking IDs for each manufacturer and model pair.
 
-    corresponding racking IDs in the same order. Returns None for any pairs
-    that don't exist in the database.
+        corresponding racking IDs in the same order. Returns None for any pairs
+        that don't exist in the database.
 
-    The input lists must have the same length.
+        The input lists must have the same length.
+
+    Args:
+        authorized_company_id: TODO: describe.
+        manufacturers: TODO: describe.
+        models: TODO: describe.
+        db: TODO: describe.
     """
     try:
         racking_ids = await get_racking_ids_by_manufacturer_model(
@@ -120,11 +144,15 @@ async def create_racking(
     racking: interfaces.PVRackings,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Create a new PV racking or update an existing one.
+    """Create a new PV racking or update an existing one.
 
-    If a racking with the same model already exists, it will be updated.
-    If the racking doesn't exist, a new one will be created.
+        If a racking with the same model already exists, it will be updated.
+        If the racking doesn't exist, a new one will be created.
+
+    Args:
+        authorized_company_id: TODO: describe.
+        racking: TODO: describe.
+        db: TODO: describe.
     """
     if authorized_company_id is None:
         raise HTTPException(

@@ -16,12 +16,14 @@ VERTICAL_BAR_MARKER = 0xA6
 
 # --- Supporting Functions ---
 def _read48_to_float(*, real48: bytes) -> float:
-    """
-    Converts a 6-byte Delphi Real48 encoded value to a standard Python float.
+    """Converts a 6-byte Delphi Real48 encoded value to a standard Python float.
 
-    The format consists of:
-    - 1 byte: Exponent (offset by 129)
-    - 5 bytes: Mantissa, with the last bit of the 5th byte as the sign bit.
+        The format consists of:
+        - 1 byte: Exponent (offset by 129)
+        - 5 bytes: Mantissa, with the last bit of the 5th byte as the sign bit.
+
+    Args:
+        real48: TODO: describe.
     """
     if not real48 or len(real48) != 6 or real48[0] == 0:
         return 0.0
@@ -51,9 +53,13 @@ def _read48_to_float(*, real48: bytes) -> float:
 
 
 def _find_marker_index(*, marker: int, start_index: int, byte_array: bytes) -> int:
-    """
-    Finds the index of the first occurrence of a hex marker after a start index.
-    Returns the index right after the marker.
+    """Finds the index of the first occurrence of a hex marker after a start index.
+        Returns the index right after the marker.
+
+    Args:
+        marker: TODO: describe.
+        start_index: TODO: describe.
+        byte_array: TODO: describe.
     """
     # bytearray.find is more efficient than a manual loop
     found_index = byte_array.find(bytes([marker]), start_index)
@@ -65,16 +71,25 @@ def _find_marker_index(*, marker: int, start_index: int, byte_array: bytes) -> i
 
 
 def _get_param_index(*, start_index: int, offset_num: int) -> int:
-    """Calculates the start index of a Real48 parameter."""
+    """Calculates the start index of a Real48 parameter.
+
+    Args:
+        start_index: TODO: describe.
+        offset_num: TODO: describe.
+    """
     return start_index + 6 * offset_num
 
 
 def _extract_byte_parameters(
     *, byte_array: bytes, start_index: int, num_bytes: int
 ) -> bytes:
-    """
-    This function extracts bytes that form a single parameter from the original byte array
-    (contains the bytes from the whole file) into a smaller byte array that it returns.
+    """This function extracts bytes that form a single parameter from the original byte array
+        (contains the bytes from the whole file) into a smaller byte array that it returns.
+
+    Args:
+        byte_array: TODO: describe.
+        start_index: TODO: describe.
+        num_bytes: TODO: describe.
     """
     # Check bounds to avoid index errors
     if start_index + num_bytes > len(byte_array):

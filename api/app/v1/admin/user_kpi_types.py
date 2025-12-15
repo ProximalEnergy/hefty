@@ -18,7 +18,12 @@ async def update_kpi_type_favorite(
     favorite_update: interfaces.UserKPITypes,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """Update the is_favorited field for a user's kpi_type"""
+    """Update the is_favorited field for a user's kpi_type
+
+    Args:
+        favorite_update: TODO: describe.
+        db: TODO: describe.
+    """
     return await update_user_kpi_type_favorite(
         db=db,
         user_id=favorite_update.user_id,
@@ -33,7 +38,12 @@ async def get_user_favorited_kpi_types_route(
     user_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ) -> list[interfaces.UserKPITypes]:
-    """Get all favorited KPI types for a given user"""
+    """Get all favorited KPI types for a given user
+
+    Args:
+        user_id: TODO: describe.
+        db: TODO: describe.
+    """
     db_results = await get_user_favorited_kpi_types(db=db, user_id=user_id)
     return [
         interfaces.UserKPITypes(

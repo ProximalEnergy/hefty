@@ -30,6 +30,14 @@ def get_project_data(
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
 ):
+    """todo
+
+    Args:
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+    """
     if start is None or end is None:
         end = datetime.datetime.utcnow()
         start = end - datetime.timedelta(days=1)
@@ -72,6 +80,25 @@ def get_project_dataframe(
     include_ghost_tags: bool = False,
 ):
     # Either tag_ids or sensor_type_name_shorts must be provided
+    """todo
+
+    Args:
+        tag_ids: TODO: describe.
+        sensor_type_name_shorts: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        device_ids: TODO: describe.
+        fillna_zero: TODO: describe.
+        get_last: TODO: describe.
+        start_offset: TODO: describe.
+        last_offset: TODO: describe.
+        ffill_limit: TODO: describe.
+        interval: TODO: describe.
+        include_ghost_tags: TODO: describe.
+    """
     if tag_ids == [] and sensor_type_name_shorts == [] and device_ids == []:
         raise HTTPException(
             status_code=400,
@@ -160,6 +187,19 @@ def get_llm_time_series(
     tag_ids: Annotated[list[int] | None, Query()] = None,
     sensor_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        interval: TODO: describe.
+        tag_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+    """
     tags = core.crud.project.tags.get_project_tags(
         project_db,
         tag_ids=tag_ids or [],
@@ -238,6 +278,25 @@ def get_project_dataframe_endpoint(
     interval: str | None = Query(default=None),
     include_ghost_tags: bool = False,
 ):
+    """todo
+
+    Args:
+        tag_ids: TODO: describe.
+        sensor_type_name_shorts: TODO: describe.
+        device_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        fillna_zero: TODO: describe.
+        get_last: TODO: describe.
+        start_offset: TODO: describe.
+        last_offset: TODO: describe.
+        ffill_limit: TODO: describe.
+        interval: TODO: describe.
+        include_ghost_tags: TODO: describe.
+    """
     df = get_project_dataframe(
         tag_ids=tag_ids,
         sensor_type_name_shorts=sensor_type_name_shorts,
@@ -275,6 +334,23 @@ def get_time_series(
     include_ghost_tags: Annotated[bool, Query()] = False,
     interval: Annotated[str, Query()] = "5min",
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        tag_ids: TODO: describe.
+        device_ids: TODO: describe.
+        parent_device_id: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        sensor_type_name_shorts: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        include_ghost_tags: TODO: describe.
+        interval: TODO: describe.
+    """
     if parent_device_id:
         devices = core.crud.project.devices.get_project_devices(
             project_db, parent_device_ids=[parent_device_id]
@@ -396,6 +472,20 @@ async def get_timeseries_v3(
     ensure_full_range: bool = False,
     cutoff_now: bool = False,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        operational_db: TODO: describe.
+        project: TODO: describe.
+        tag_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        interval: TODO: describe.
+        ensure_full_range: TODO: describe.
+        cutoff_now: TODO: describe.
+    """
     if tag_ids == [] and sensor_type_ids == []:
         return []
 

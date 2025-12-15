@@ -12,6 +12,12 @@ async def get_rackings(
     db: AsyncSession,
     racking_ids: list[int] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        racking_ids: TODO: describe.
+    """
     query = select(models.Racking)
 
     if racking_ids:
@@ -26,8 +32,11 @@ async def get_racking_manufacturers(
     db: AsyncSession,
     company_id: uuid.UUID | None = None,
 ):
-    """
-    Returns a list of unique manufacturers of rackings.
+    """Returns a list of unique manufacturers of rackings.
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
     """
     query = select(models.Racking.manufacturer).distinct()
 
@@ -46,8 +55,12 @@ async def get_racking_models_given_manufacturer(
     manufacturer: str | None,
     company_id: uuid.UUID | None = None,
 ):
-    """
-    Returns a list of racking models given manufacturer
+    """Returns a list of racking models given manufacturer
+
+    Args:
+        db: TODO: describe.
+        manufacturer: TODO: describe.
+        company_id: TODO: describe.
     """
 
     query = select(models.Racking.model).distinct()
@@ -66,6 +79,14 @@ async def get_racking_ids(
     racking_model: list[str] | None = None,
     company_id: uuid.UUID | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        racking_manufacturer: TODO: describe.
+        racking_model: TODO: describe.
+        company_id: TODO: describe.
+    """
     query = select(models.Racking)
 
     if racking_manufacturer:

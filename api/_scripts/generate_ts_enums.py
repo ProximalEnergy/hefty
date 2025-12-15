@@ -9,6 +9,11 @@ from typing import Any
 
 
 def load_module_from_path(path: str) -> ModuleType:
+    """Handle load module from path.
+
+    Args:
+        path: TODO: describe.
+    """
     spec = importlib.util.spec_from_file_location("enum_module", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Cannot load module from {path}")
@@ -18,12 +23,22 @@ def load_module_from_path(path: str) -> ModuleType:
 
 
 def is_enum_class(obj: Any) -> bool:
+    """Return whether is enum class.
+
+    Args:
+        obj: TODO: describe.
+    """
     return inspect.isclass(obj) and issubclass(obj, Enum) and obj is not Enum
 
 
 def enum_members_in_order(enum_cls: type[Enum]) -> list[Enum]:
     # For IntEnum (and your BaseIntEnum), sort numerically by value.
     # For others (e.g., StrEnum), preserve definition order (the class' __members__.values()).
+    """Handle enum members in order.
+
+    Args:
+        enum_cls: TODO: describe.
+    """
     members = list(enum_cls)  # iteration preserves definition order in CPython
     if issubclass(enum_cls, IntEnum):
         return sorted(members, key=lambda m: int(m.value))
@@ -31,6 +46,11 @@ def enum_members_in_order(enum_cls: type[Enum]) -> list[Enum]:
 
 
 def ts_literal(value: Any) -> str:
+    """Handle ts literal.
+
+    Args:
+        value: TODO: describe.
+    """
     if isinstance(value, str):
         # Escape basic characters for TS string literal
         s = value.replace("\\", "\\\\").replace('"', '\\"')
@@ -42,6 +62,11 @@ def ts_literal(value: Any) -> str:
 
 
 def enum_to_ts_constant(enum_cls: type[Enum]) -> str:
+    """Handle enum to ts constant.
+
+    Args:
+        enum_cls: TODO: describe.
+    """
     name = enum_cls.__name__
     lines: list[str] = [f"export const {name}Enum = {{"]
     for m in enum_members_in_order(enum_cls):
@@ -52,6 +77,7 @@ def enum_to_ts_constant(enum_cls: type[Enum]) -> str:
 
 def main():
     # Hardcoded paths
+    """Handle main."""
     input_path = "../core/src/core/enumerations.py"
     output_path = "../web-app/src/api/enumerations.ts"
 

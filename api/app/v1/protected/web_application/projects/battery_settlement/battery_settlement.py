@@ -28,6 +28,15 @@ def get_battery_settlement_details_dataframe(
     project: models.Project,
     token: str,
 ) -> pd.DataFrame:
+    """todo
+
+    Args:
+        identifier: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        token: TODO: describe.
+    """
     url = "https://api.ptp.energy/v1/markets/ERCOTNodal/endpoints/Battery-Settlement-Details/data"
     headers = {"Authorization": f"Bearer {token}"}
     tz = project.time_zone
@@ -91,6 +100,16 @@ async def get_battery_settlement_details(
     user: models.User = Depends(dependencies.get_user_data_async),
     db_async: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        tps_token: TODO: describe.
+        user: TODO: describe.
+        db_async: TODO: describe.
+    """
     qse_integration = (
         await core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
             db=db_async,
@@ -159,10 +178,16 @@ async def get_battery_settlement_details(
 
     # Make a zero-aligned Series helper
     def zero_series() -> pd.Series[float]:
+        """todo"""
         return pd.Series(0.0, index=df.index, dtype="float64")
 
     # Safely fetch a numeric Series by column name, or a zero series if missing
     def s(col_name: str) -> pd.Series:  # skip-star-syntax
+        """todo
+
+        Args:
+            col_name: TODO: describe.
+        """
         if col_name in df.columns:
             return pd.to_numeric(df[col_name], errors="coerce")
         return zero_series()

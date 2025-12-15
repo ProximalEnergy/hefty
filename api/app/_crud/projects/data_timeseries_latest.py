@@ -13,6 +13,14 @@ def get_data_timeseries_latest_by_device_type(
     sensor_type_ids: list[int] | None = None,
     start: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        device_type_id: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        start: TODO: describe.
+    """
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
             DeviceType.PV_PCS.value: [

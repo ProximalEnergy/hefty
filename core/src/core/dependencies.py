@@ -14,7 +14,11 @@ from core.database import async_engine, engine
 
 @contextmanager
 def with_db(*, schema: str | None) -> Generator[Session, None, None]:
-    """Get a database session with the specified schema."""
+    """Get a database session with the specified schema.
+
+    Args:
+        schema: TODO: describe.
+    """
     if schema:
         schema_translate_map = dict(project=schema)
     else:
@@ -33,7 +37,11 @@ def with_db(*, schema: str | None) -> Generator[Session, None, None]:
 
 @asynccontextmanager
 async def with_db_async(*, schema: str | None) -> AsyncGenerator[AsyncSession, None]:
-    """Get an async database session with the specified schema."""
+    """Get an async database session with the specified schema.
+
+    Args:
+        schema: TODO: describe.
+    """
     if schema:
         schema_translate_map = dict(project=schema)
     else:
@@ -53,6 +61,11 @@ async def with_db_async(*, schema: str | None) -> AsyncGenerator[AsyncSession, N
 
 
 def get_db(*, schema: str | None = None) -> Generator[Session, None, None]:
+    """TODO: add description.
+
+    Args:
+        schema: TODO: describe.
+    """
     with with_db(schema=schema) as db:
         yield db
 
@@ -60,12 +73,21 @@ def get_db(*, schema: str | None = None) -> Generator[Session, None, None]:
 async def get_db_async(
     *, schema: str | None = None
 ) -> AsyncGenerator[AsyncSession, None]:
+    """TODO: add description.
+
+    Args:
+        schema: TODO: describe.
+    """
     async with with_db_async(schema=schema) as db:
         yield db
 
 
 def get_db_session(*, schema: str | None = None) -> Session:
-    """Get a database session directly (not a generator)."""
+    """Get a database session directly (not a generator).
+
+    Args:
+        schema: TODO: describe.
+    """
     return next(get_db(schema=schema))
 
 
@@ -73,7 +95,11 @@ def get_db_session(*, schema: str | None = None) -> Session:
 async def get_db_session_async(
     *, schema: str | None = None
 ) -> AsyncIterator[AsyncSession]:
-    """Get an async database session directly (not a generator)."""
+    """Get an async database session directly (not a generator).
+
+    Args:
+        schema: TODO: describe.
+    """
 
     async with with_db_async(schema=schema) as db:
         yield db
@@ -81,6 +107,11 @@ async def get_db_session_async(
 
 @lru_cache(maxsize=128)
 def get_project_name_short(*, project_id: UUID) -> str | None:
+    """TODO: add description.
+
+    Args:
+        project_id: TODO: describe.
+    """
     with with_db(schema=None) as db:
         project = (
             db.query(models.Project)
@@ -92,6 +123,11 @@ def get_project_name_short(*, project_id: UUID) -> str | None:
 
 @alru_cache(maxsize=128)
 async def get_project_name_short_async(*, project_id: UUID) -> str | None:
+    """TODO: add description.
+
+    Args:
+        project_id: TODO: describe.
+    """
     async with with_db_async(schema=None) as db:
         stmt = select(models.Project).filter(models.Project.project_id == project_id)
         result = await db.execute(stmt)

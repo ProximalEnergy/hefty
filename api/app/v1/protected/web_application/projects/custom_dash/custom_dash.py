@@ -40,6 +40,8 @@ router = APIRouter(
 
 
 class DashboardComponent(BaseModel):
+    """todo"""
+
     component_id: str | int
     component_type: str
     x: int
@@ -50,6 +52,8 @@ class DashboardComponent(BaseModel):
 
 
 class CreateDashboardRequest(BaseModel):
+    """todo"""
+
     dashboard_name: str
     default_time_range: enumerations.DefaultTimeRange
     default_kpi_time_range: enumerations.DefaultKPITimeRange
@@ -57,6 +61,8 @@ class CreateDashboardRequest(BaseModel):
 
 
 class UpdateDashboardRequest(BaseModel):
+    """todo"""
+
     dashboard_id: uuid.UUID
     dashboard_name: str
     default_time_range: enumerations.DefaultTimeRange
@@ -75,6 +81,18 @@ async def get_bar(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        operational_db: TODO: describe.
+        project: TODO: describe.
+        sensor_type_id: TODO: describe.
+        aggregation_type: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
@@ -174,6 +192,18 @@ async def get_gauge(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        operational_db: TODO: describe.
+        project: TODO: describe.
+        measured_variable: TODO: describe.
+        maximum_value: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
@@ -259,6 +289,18 @@ async def get_line(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        operational_db: TODO: describe.
+        project: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        aggregation_types: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
         project_end = pd.Timestamp(end).tz_convert(project.time_zone)
@@ -378,6 +420,18 @@ async def get_scatter(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        operational_db: TODO: describe.
+        project: TODO: describe.
+        x_axis_sensor_type_id: TODO: describe.
+        y_axis_sensor_type_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     MAX_POINTS = 1_000
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
@@ -477,6 +531,13 @@ async def get_user_dashboards(
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user: TODO: describe.
+        project: TODO: describe.
+    """
     user_dashboards = await crud_get_user_dashboards(
         db=db,
         user_id=user.user_id,
@@ -493,6 +554,14 @@ async def create_user_dashboard(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: CreateDashboardRequest,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user: TODO: describe.
+        project: TODO: describe.
+        request: TODO: describe.
+    """
     new_dashboard = await crud_create_user_dashboard(
         db=db,
         owner_user_id=user.user_id,
@@ -513,6 +582,14 @@ async def update_user_dashboard(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     request: UpdateDashboardRequest,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user: TODO: describe.
+        project: TODO: describe.
+        request: TODO: describe.
+    """
     try:
         updated_dashboard = await crud_update_user_dashboard(
             db=db,
@@ -537,6 +614,14 @@ async def get_dashboard(
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
+    """todo
+
+    Args:
+        dashboard_id: TODO: describe.
+        db: TODO: describe.
+        user: TODO: describe.
+        project: TODO: describe.
+    """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
     except ValueError:
@@ -562,6 +647,14 @@ async def delete_dashboard(
     user: Annotated[models.User, Depends(dependencies.get_user_data_async)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
+    """todo
+
+    Args:
+        dashboard_id: TODO: describe.
+        db: TODO: describe.
+        user: TODO: describe.
+        project: TODO: describe.
+    """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
     except ValueError:

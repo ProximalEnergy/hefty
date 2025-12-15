@@ -15,6 +15,15 @@ def get_project_data(
     end: datetime.datetime,
     raw: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        raw: TODO: describe.
+    """
     if raw:
         model = models.DataRaw
     else:
@@ -35,6 +44,14 @@ def get_project_data_latest(
     tag_ids: list[int],
     start: pd.Timestamp | datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+    """
     statement = f"""
     (
         SELECT DISTINCT ON (tag_id)

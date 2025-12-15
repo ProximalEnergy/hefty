@@ -6,6 +6,11 @@ from core.model_list import ModelList
 
 
 def get_device_model_options(*, deep: bool) -> _AbstractLoad:
+    """TODO: add description.
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = selectinload(models.DeviceModel.device_type)
     else:
@@ -20,6 +25,13 @@ def get_device_models(
     deep: bool = False,
     return_query: bool = False,
 ) -> ModelList[models.DeviceModel]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+    """
     options = get_device_model_options(deep=deep)
     query = db.query(models.DeviceModel).options(options)
 

@@ -22,6 +22,13 @@ async def update_user_projects(
     user_ids: list[str],
     operational_project_ids: list[list[uuid.UUID]],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_ids: TODO: describe.
+        operational_project_ids: TODO: describe.
+    """
     await update_user_projects_crud(
         db=db,
         user_ids=user_ids,
@@ -36,7 +43,12 @@ async def get_user_projects(
     user_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """Get all user projects with favorited status for a user"""
+    """Get all user projects with favorited status for a user
+
+    Args:
+        user_id: TODO: describe.
+        db: TODO: describe.
+    """
     query = select(models.UserProject).where(models.UserProject.user_id == user_id)
     result = await db.execute(query)
     user_projects = result.scalars().all()
@@ -52,7 +64,14 @@ async def update_project_favorite(
     favorite_update: interfaces.UserProjectFavoriteUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """Update the is_favorited field for a user's project"""
+    """Update the is_favorited field for a user's project
+
+    Args:
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+        favorite_update: TODO: describe.
+        db: TODO: describe.
+    """
     return await update_user_project_favorite(
         db=db,
         user_id=user_id,

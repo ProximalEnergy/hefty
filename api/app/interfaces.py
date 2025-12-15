@@ -21,10 +21,14 @@ from shapely.geometry import mapping
 
 
 class APIKey(BaseModel):
+    """Apikey model."""
+
     api_key: str | None
 
 
 class User(BaseModel):
+    """User model."""
+
     user_id: str
     user_type_id: UserTypeEnum
     company_id: uuid.UUID
@@ -33,6 +37,8 @@ class User(BaseModel):
 
 
 class UserCreate(BaseModel):
+    """Usercreate model."""
+
     first_name: str
     last_name: str
     email: str
@@ -41,17 +47,23 @@ class UserCreate(BaseModel):
 
 
 class UserType(BaseModel):
+    """Usertype model."""
+
     user_type_id: UserTypeEnum
     name_short: str
 
 
 class UserWithPermissions(BaseModel):
+    """Userwithpermissions model."""
+
     user_id: str
     name_long: str
     permission_ids: list[int]
 
 
 class UserData(BaseModel):
+    """Userdata model."""
+
     user_id: str
     company_id: uuid.UUID
     public_metadata: dict
@@ -61,6 +73,8 @@ class UserData(BaseModel):
 
 
 class UserAuthed(BaseModel):
+    """Userauthed model."""
+
     user_id: str
     company_id: uuid.UUID
     public_metadata: dict
@@ -70,6 +84,8 @@ class UserAuthed(BaseModel):
 
 
 class UserSubscription(BaseModel):
+    """Usersubscription model."""
+
     user_id: str
     operational_project_id: uuid.UUID
     notifications: bool
@@ -77,26 +93,36 @@ class UserSubscription(BaseModel):
 
 
 class UserSubscriptionUpdate(BaseModel):
+    """Usersubscriptionupdate model."""
+
     subscribe: bool
 
 
 class UserProjectFavoriteUpdate(BaseModel):
+    """Userprojectfavoriteupdate model."""
+
     is_favorited: bool
 
 
 class UserKPITypes(BaseModel):
+    """Userkpitypes model."""
+
     user_id: str
     kpi_type_id: int
     is_favorited: bool
 
 
 class Permission(BaseModel):
+    """Permission model."""
+
     permission_id: int
     name_short: str
     name_long: str
 
 
 class UserPermission(BaseModel):
+    """Userpermission model."""
+
     user_id: str
     project_id: uuid.UUID
     permission_id: int
@@ -108,6 +134,11 @@ class UserPermission(BaseModel):
 
 
 def convert(WKBElement):  # skip-star-syntax
+    """Handle convert.
+
+    Args:
+        WKBElement: TODO: describe.
+    """
     if WKBElement is None:
         return None
     # If it's already a dict (GeoJSON), return as-is
@@ -118,16 +149,25 @@ def convert(WKBElement):  # skip-star-syntax
 
 
 class Point(BaseModel):
+    """Point model."""
+
     type: str
     coordinates: conlist(float, min_length=2, max_length=2)  # type: ignore # pyright: ignore
 
     @model_validator(mode="before")  # skip-star-syntax
     @staticmethod
     def convert_point(point):  # skip-star-syntax
+        """Handle convert point.
+
+        Args:
+            point: TODO: describe.
+        """
         return convert(point)
 
 
 class Polygon(BaseModel):
+    """Polygon model."""
+
     type: str
     # TODO: Generate more specific validation for POLYGON or MULTIPOLYGON
     coordinates: list[Any]
@@ -135,20 +175,34 @@ class Polygon(BaseModel):
     @model_validator(mode="before")  # skip-star-syntax
     @staticmethod
     def convert_polygon(polygon):  # skip-star-syntax
+        """Handle convert polygon.
+
+        Args:
+            polygon: TODO: describe.
+        """
         return convert(polygon)
 
 
 class MultiPolygon(BaseModel):
+    """Multipolygon model."""
+
     type: str
     coordinates: list[Any]
 
     @model_validator(mode="before")  # skip-star-syntax
     @staticmethod
     def convert_multipolygon(multipolygon):  # skip-star-syntax
+        """Handle convert multipolygon.
+
+        Args:
+            multipolygon: TODO: describe.
+        """
         return convert(multipolygon)
 
 
 class ProjectType(BaseModel):
+    """Projecttype model."""
+
     project_type_id: int
     name_short: str
     name_long: str
@@ -157,6 +211,8 @@ class ProjectType(BaseModel):
 
 
 class ProjectStatusType(BaseModel):
+    """Projectstatustype model."""
+
     project_status_type_id: int
     name_short: str
     name_long: str
@@ -165,6 +221,8 @@ class ProjectStatusType(BaseModel):
 
 
 class ProjectSpec(BaseModel):
+    """Projectspec model."""
+
     used_device_type_ids: list[int] | None = None
     used_sensor_type_ids: list[int] | None = None
     device_types_with_all_points: list[int] | None = None
@@ -326,12 +384,16 @@ class Project(ProjectShared):
 
 
 class CompanyProject(BaseModel):
+    """Companyproject model."""
+
     company_id: uuid.UUID
     project_id: uuid.UUID
     vector_store_id: str
 
 
 class ProjectDataLastUpdated(BaseModel):
+    """Projectdatalastupdated model."""
+
     project_id: uuid.UUID
     time_error: datetime.datetime | None
     time_empty: datetime.datetime | None
@@ -339,6 +401,8 @@ class ProjectDataLastUpdated(BaseModel):
 
 
 class DeviceType(BaseModel):
+    """Devicetype model."""
+
     device_type_id: int
     name_short: str
     name_long: str
@@ -348,6 +412,8 @@ class DeviceType(BaseModel):
 
 
 class Document(BaseModel):
+    """Document model."""
+
     document_id: uuid.UUID
     name: str
     url: str
@@ -355,6 +421,8 @@ class Document(BaseModel):
 
 
 class Device(BaseModel):
+    """Device model."""
+
     device_id: int
     device_id_path: str | None
     device_type_id: int
@@ -377,6 +445,8 @@ class Device(BaseModel):
 
 
 class PVDCCombiner(BaseModel):
+    """Pvdccombiner model."""
+
     device_id: int
     pv_module_id: int | None
     modules_per_pv_source_circuit: int
@@ -384,6 +454,8 @@ class PVDCCombiner(BaseModel):
 
 
 class SensorType(BaseModel):
+    """Sensortype model."""
+
     sensor_type_id: int
     device_type_id: int
     name_short: str
@@ -394,16 +466,22 @@ class SensorType(BaseModel):
 
 
 class PGDataType(BaseModel):
+    """Pgdatatype model."""
+
     pg_data_type_id: int
     name_short: str
 
 
 class DataType(BaseModel):
+    """Datatype model."""
+
     data_type_id: int
     name_short: str
 
 
 class KPIType(BaseModel):
+    """Kpitype model."""
+
     kpi_type_id: int
     device_type_id: int
     name_short: str
@@ -417,6 +495,8 @@ class KPIType(BaseModel):
 
 
 class KPIInstance(BaseModel):
+    """Kpiinstance model."""
+
     project_id: uuid.UUID
     kpi_type_id: int
     is_visible: bool
@@ -441,18 +521,26 @@ class KPIAlertPost(BaseModel):
 
 
 class KPIAlertAdd(KPIAlertPost):
+    """Kpialertadd model."""
+
     triggered: bool
 
 
 class KPIAlertUpdate(KPIAlertPost):
+    """Kpialertupdate model."""
+
     kpi_alert_id: int
 
 
 class DeviceDataObj(BaseModel):
+    """Devicedataobj model."""
+
     device_values: dict[int, list[int | float | None]]
 
 
 class DeviceAggregationObj(BaseModel):
+    """Deviceaggregationobj model."""
+
     sum: list[float | None]
     mean: list[float | None]
     std: list[float | None]
@@ -465,6 +553,8 @@ class DeviceAggregationObj(BaseModel):
 
 
 class OperationalKPIDataObj(BaseModel):
+    """Operationalkpidataobj model."""
+
     dates: list[datetime.date]
     project_data: list[float]
     weights: list[float | None] | None
@@ -473,12 +563,16 @@ class OperationalKPIDataObj(BaseModel):
 
 
 class OperationalKPIData(BaseModel):
+    """Operationalkpidata model."""
+
     project_id: uuid.UUID
     kpi_type_id: int
     data: OperationalKPIDataObj
 
 
 class KPIAlert(BaseModel):
+    """Kpialert model."""
+
     kpi_alert_id: int
     user_id: str
     project_id: uuid.UUID
@@ -487,10 +581,14 @@ class KPIAlert(BaseModel):
 
 
 class KPIDelete(BaseModel):
+    """Kpidelete model."""
+
     alert_id: int
 
 
 class Tag(BaseModel):
+    """Tag model."""
+
     tag_id: int
     in_tsdb: bool
     device_id: int
@@ -515,12 +613,16 @@ class Tag(BaseModel):
 
 
 class Data(BaseModel):
+    """Data model."""
+
     time: datetime.datetime
     tag_id: int
     value: Any
 
 
 class DataTimeSeries(BaseModel):
+    """Datatimeseries model."""
+
     x: list[str]
     y: list[float | None]
     y_range: list[float | None]
@@ -536,36 +638,50 @@ class DataTimeSeries(BaseModel):
 
 
 class _KPIProjectTemplateData(BaseModel):
+    """kpiprojecttemplatedata model."""
+
     timestamps: list[datetime.datetime]
     values: list[float | None]
 
 
 class KPIProjectTemplate(BaseModel):
+    """Kpiprojecttemplate model."""
+
     data: _KPIProjectTemplateData
 
 
 class _KPIDevicesTemplateData(BaseModel):
+    """kpidevicestemplatedata model."""
+
     timestamps: list[datetime.datetime]
     names: list[str]
     values: list[list[float | None]]
 
 
 class KPIDevicesTemplate(BaseModel):
+    """Kpidevicestemplate model."""
+
     data: _KPIDevicesTemplateData
 
 
 class Report(BaseModel):
+    """Report model."""
+
     filename: str
     data_pdf: str
 
 
 class ReportType(BaseModel):
+    """Reporttype model."""
+
     report_type_id: int
     name_short: str
     name_long: str
 
 
 class ReportInstance(BaseModel):
+    """Reportinstance model."""
+
     project_id: uuid.UUID
     report_type_id: int
     is_visible: bool
@@ -573,15 +689,21 @@ class ReportInstance(BaseModel):
 
 
 class ReportInstanceUpdate(BaseModel):
+    """Reportinstanceupdate model."""
+
     report_type_id: int
     is_visible: bool
 
 
 class ReportInstancesBulkUpdate(BaseModel):
+    """Reportinstancesbulkupdate model."""
+
     report_instances: list[ReportInstanceUpdate]
 
 
 class FailureMode(BaseModel):
+    """Failuremode model."""
+
     failure_mode_id: int
     device_type_id: int
     name_short: str
@@ -589,10 +711,14 @@ class FailureMode(BaseModel):
 
 
 class FailureModeUpdate(BaseModel):
+    """Failuremodeupdate model."""
+
     failure_mode_id: int
 
 
 class RootCause(BaseModel):
+    """Rootcause model."""
+
     root_cause_id: int
     device_type_id: int
     name_short: str
@@ -600,10 +726,14 @@ class RootCause(BaseModel):
 
 
 class RootCauseUpdate(BaseModel):
+    """Rootcauseupdate model."""
+
     root_cause_id: int
 
 
 class Event(BaseModel):
+    """Event model."""
+
     event_id: int
     device_id: int
     failure_mode_id: int
@@ -623,6 +753,8 @@ class Event(BaseModel):
 
 
 class PaginatedEvent(BaseModel):
+    """Paginatedevent model."""
+
     event_id: int
     device_name_full: str
     time_start: datetime.datetime
@@ -637,6 +769,8 @@ class PaginatedEvent(BaseModel):
 
 
 class EventSummary(BaseModel):
+    """Eventsummary model."""
+
     event_id: int
     device_type_name: str
     device_name_full: str
@@ -651,7 +785,11 @@ class EventSummary(BaseModel):
 
 
 class GeoJSON(BaseModel):
+    """Geojson model."""
+
     class Features(BaseModel):
+        """Features model."""
+
         type: str
         properties: Any | None
         geometry: Point | Polygon
@@ -662,6 +800,8 @@ class GeoJSON(BaseModel):
 
 # --- Event Creation (bulk) ---
 class BulkEventItem(BaseModel):
+    """Bulkeventitem model."""
+
     device_id: int
     loss: float
     event_loss_type_id: int = 3
@@ -669,6 +809,8 @@ class BulkEventItem(BaseModel):
 
 
 class BulkCreateEventsRequest(BaseModel):
+    """Bulkcreateeventsrequest model."""
+
     time_start: datetime.datetime
     time_end: datetime.datetime | None = None
     items: list[BulkEventItem]
@@ -676,22 +818,30 @@ class BulkCreateEventsRequest(BaseModel):
 
 
 class BulkCreateEventsResponse(BaseModel):
+    """Bulkcreateeventsresponse model."""
+
     created_event_ids: list[int]
 
 
 class SettlementPointMarket(BaseModel):
+    """Settlementpointmarket model."""
+
     settlement_point_market_id: int
     name_short: str
     name_long: str
 
 
 class SettlementPointType(BaseModel):
+    """Settlementpointtype model."""
+
     settlement_point_type_id: int
     name_short: str
     name_long: str
 
 
 class SettlementPointCore(BaseModel):
+    """Settlementpointcore model."""
+
     settlement_point_id: int
     name: str
     settlement_point_type_id: int
@@ -700,24 +850,32 @@ class SettlementPointCore(BaseModel):
 
 
 class SettlementPoint(SettlementPointCore):
+    """Settlementpoint model."""
+
     settlement_point_type: SettlementPointType | None
     load_zone: SettlementPointCore | None
     trading_hub: SettlementPointCore | None
 
 
 class QSE(BaseModel):
+    """Qse model."""
+
     qse_id: int
     name_short: str
     name_long: str | None
 
 
 class DME(BaseModel):
+    """Dme model."""
+
     dme_id: int
     name_short: str
     name_long: str | None
 
 
 class Resource(BaseModel):
+    """Resource model."""
+
     resource_id: int
     name_gen: str
     name_load: str
@@ -735,6 +893,8 @@ class Resource(BaseModel):
 
 
 class Inspection(BaseModel):
+    """Inspection model."""
+
     date: datetime.datetime | None
     inspection: str | None
     status: str | None
@@ -744,6 +904,8 @@ class Inspection(BaseModel):
 
 
 class Observation(BaseModel):
+    """Observation model."""
+
     type: str | None
     national_type: str | None
     inspection_origin: str | None
@@ -759,6 +921,8 @@ class Observation(BaseModel):
 
 
 class CECPVInverter(BaseModel):
+    """Cecpvinverter model."""
+
     manufacturer: str
     model_number: str
     hybrid_inverter: bool | None
@@ -825,18 +989,24 @@ class CECPVInverter(BaseModel):
 
 
 class CECPVInverterCreate(CECPVInverter):
-    pass
+    """Cecpvinvertercreate model."""
 
 
 class CECPVInverterBulkCreate(BaseModel):
+    """Cecpvinverterbulkcreate model."""
+
     inverters: list[CECPVInverterCreate]
 
 
 class CECPVInverterWithID(CECPVInverter):
+    """Cecpvinverterwithid model."""
+
     cec_pv_inverter_id: int
 
 
 class PVModule(BaseModel):
+    """Pvmodule model."""
+
     pv_module_id: int | None = Field(
         ...,
         description="Unique identifier for the PV module",
@@ -912,6 +1082,8 @@ class PVModule(BaseModel):
 
 class CECPVModule(BaseModel):
     # --- Allow configure from dictionary ---
+    """Cecpvmodule model."""
+
     model_config = ConfigDict(from_attributes=True)
 
     # --- Parameters ---
@@ -956,18 +1128,24 @@ class CECPVModule(BaseModel):
 
 
 class CECPVModuleCreate(CECPVModule):
-    pass
+    """Cecpvmodulecreate model."""
 
 
 class CECPVModuleBulkCreate(BaseModel):
+    """Cecpvmodulebulkcreate model."""
+
     modules: list[CECPVModuleCreate]
 
 
 class CECPVModuleWithID(CECPVModule):
+    """Cecpvmodulewithid model."""
+
     cec_pv_module_id: int
 
 
 class Inverter(BaseModel):
+    """Inverter model."""
+
     inverter_id: int | None
     manufacturer: str
     model: str
@@ -1004,6 +1182,8 @@ class Inverter(BaseModel):
 
 
 class Transformer(BaseModel):
+    """Transformer model."""
+
     transformer_id: int
     manufacturer: str
     model: str
@@ -1013,6 +1193,8 @@ class Transformer(BaseModel):
 
 
 class ContractCreate(BaseModel):
+    """Contractcreate model."""
+
     project_id: uuid.UUID
     document_id: uuid.UUID
     company_id_provider: uuid.UUID
@@ -1030,6 +1212,8 @@ class ContractCreate(BaseModel):
 
 
 class Contract(BaseModel):
+    """Contract model."""
+
     project_id: uuid.UUID
     document_id: uuid.UUID
     company_id_provider: uuid.UUID | None = None
@@ -1039,6 +1223,8 @@ class Contract(BaseModel):
 
 # --- PV Budgeted Performance ---
 class PVBudgetedSeriesIn(BaseModel):
+    """Pvbudgetedseriesin model."""
+
     p_value: str
     frequency: str
     soiling_mode: str | None = None
@@ -1049,10 +1235,14 @@ class PVBudgetedSeriesIn(BaseModel):
 
 
 class PVBudgetedSeries(PVBudgetedSeriesIn):
+    """Pvbudgetedseries model."""
+
     pv_budgeted_series_id: int
 
 
 class PVBudgetedDataRow(BaseModel):
+    """Pvbudgeteddatarow model."""
+
     time_stamp: datetime.datetime
     poi_ac_power: float
     ghi: float | None = None
@@ -1062,12 +1252,16 @@ class PVBudgetedDataRow(BaseModel):
 
 
 class PVBudgetedBulkUpsertRequest(BaseModel):
+    """Pvbudgetedbulkupsertrequest model."""
+
     pv_budgeted_series_id: int | None = None
     series: PVBudgetedSeriesIn | None = None
     rows: list[PVBudgetedDataRow]
 
 
 class ContractWithCompany(BaseModel):
+    """Contractwithcompany model."""
+
     contract_id: int
     project_id: uuid.UUID
     document_id: uuid.UUID
@@ -1092,26 +1286,36 @@ class ContractWithCompany(BaseModel):
 
 
 class ContractCategory(BaseModel):
+    """Contractcategory model."""
+
     contract_category_id: int
     name_short: str
     name_long: str
 
 
 class CompanyCreate(BaseModel):
+    """Companycreate model."""
+
     name_short: str
     name_long: str
 
 
 class Company(CompanyCreate):
+    """Company model."""
+
     company_id: uuid.UUID
 
 
 # --- Admin Teams ---
 class TeamCreate(BaseModel):
+    """Teamcreate model."""
+
     name_long: str
 
 
 class Team(TeamCreate):
+    """Team model."""
+
     team_id: uuid.UUID
     company_id: uuid.UUID
     created_at: datetime.datetime
@@ -1119,23 +1323,33 @@ class Team(TeamCreate):
 
 
 class UserBasic(BaseModel):
+    """Userbasic model."""
+
     user_id: str
     name_long: str
 
 
 class TeamWithMembers(Team):
+    """Teamwithmembers model."""
+
     members: list[UserBasic]
 
 
 class TeamMemberAdd(BaseModel):
+    """Teammemberadd model."""
+
     user_id: str
 
 
 class TeamUpdate(BaseModel):
+    """Teamupdate model."""
+
     name_long: str
 
 
 class ContractKPIs(BaseModel):
+    """Contractkpis model."""
+
     contract_id: int
     kpi_type_id: int
     threshold: dict | None
@@ -1148,6 +1362,8 @@ class ContractKPIs(BaseModel):
 
 
 class KPISummary(BaseModel):
+    """Kpisummary model."""
+
     kpi_type_id: int
     title: str
     value: float | None = None
@@ -1167,11 +1383,15 @@ class KPISummary(BaseModel):
 
 
 class KPITypeWithContracts(KPIType):
+    """Kpitypewithcontracts model."""
+
     contracts: list[ContractWithCompany] = []
     contract_kpis: list[ContractKPIs] = []
 
 
 class ContractInfo(BaseModel):
+    """Contractinfo model."""
+
     contract_id: int
     project_id: uuid.UUID
     execution_date: datetime.date
@@ -1182,6 +1402,8 @@ class ContractInfo(BaseModel):
 
 
 class KPITypeWithContractInfo(KPIType):
+    """Kpitypewithcontractinfo model."""
+
     contract_kpis: list[ContractKPIs] = []
     contracts: list[ContractInfo] = []
     device_type_name: str | None = None
@@ -1191,12 +1413,16 @@ class KPITypeWithContractInfo(KPIType):
 
 
 class CMMSProvider(BaseModel):
+    """Cmmsprovider model."""
+
     cmms_provider_id: int
     name_short: str
     name_long: str
 
 
 class CMMSIntegration(BaseModel):
+    """Cmmsintegration model."""
+
     cmms_integration_id: int
     project_id: uuid.UUID
     cmms_provider_id: int
@@ -1205,12 +1431,16 @@ class CMMSIntegration(BaseModel):
 
 
 class CMMSPermission(BaseModel):
+    """Cmmspermission model."""
+
     cmms_integration_id: int
     company_id: uuid.UUID
     can_view: bool
 
 
 class PVRackings(BaseModel):
+    """Pvrackings model."""
+
     racking_id: int | None = Field(description="Primary Key")
     company_id: uuid.UUID
     racking_type_id: int = Field(description="Foreign Key to racking_types")
@@ -1227,22 +1457,28 @@ class PVRackings(BaseModel):
 
 
 class CalendarItemCategoryBase(BaseModel):
+    """Calendaritemcategorybase model."""
+
     short_name: str
     long_name: str
     color_code: str
 
 
 class CalendarItemCategoryCreate(CalendarItemCategoryBase):
-    pass
+    """Calendaritemcategorycreate model."""
 
 
 class CalendarItemCategoryUpdate(BaseModel):
+    """Calendaritemcategoryupdate model."""
+
     short_name: str | None = None
     long_name: str | None = None
     color_code: str | None = None
 
 
 class CalendarItemCategoryInDBBase(CalendarItemCategoryBase):
+    """Calendaritemcategoryindbbase model."""
+
     category_id: uuid.UUID
     created_at: datetime.datetime
     updated_at: datetime.datetime
@@ -1253,10 +1489,12 @@ class CalendarItemCategoryInDBBase(CalendarItemCategoryBase):
 
 
 class CalendarItemCategory(CalendarItemCategoryInDBBase):
-    pass
+    """Calendaritemcategory model."""
 
 
 class CalendarItemBase(BaseModel):
+    """Calendaritembase model."""
+
     title: str
     description: str | None = None
     calendar_item_category_id: uuid.UUID
@@ -1271,11 +1509,15 @@ class CalendarItemBase(BaseModel):
 
 class CalendarItemCreate(CalendarItemBase):
     # Optional assignees at creation time
+    """Calendaritemcreate model."""
+
     assignee_user_ids: list[str] | None = None
     assignee_team_ids: list[uuid.UUID] | None = None
 
 
 class CalendarItemInDBBase(CalendarItemBase):
+    """Calendaritemindbbase model."""
+
     calendar_item_id: uuid.UUID
     project_id: uuid.UUID
     created_at: datetime.datetime
@@ -1292,11 +1534,13 @@ class CalendarItemInDBBase(CalendarItemBase):
 
 
 class CalendarItem(CalendarItemInDBBase):
-    pass
+    """Calendaritem model."""
 
 
 # Models for CalendarItemException
 class CalendarItemExceptionBase(BaseModel):
+    """Calendaritemexceptionbase model."""
+
     exception_date: datetime.date
     is_cancelled: bool = False
     override_start_time: datetime.datetime | None = None
@@ -1306,6 +1550,8 @@ class CalendarItemExceptionBase(BaseModel):
 
 
 class CalendarItemExceptionCreate(CalendarItemExceptionBase):
+    """Calendaritemexceptioncreate model."""
+
     calendar_item_id: uuid.UUID  # Needed when creating/linking the exception
     # exception_date must be provided on create
 
@@ -1314,6 +1560,8 @@ class CalendarItemExceptionUpdate(BaseModel):
     # For updates, at least one of these should be provided.
     # exception_date is part of the unique key and typically
     # wouldn't be changed via an update;
+    """Calendaritemexceptionupdate model."""
+
     is_cancelled: bool | None = None
     override_start_time: datetime.datetime | None = None
     # To clear a datetime, pass None. If not provided, it's unchanged.
@@ -1321,6 +1569,8 @@ class CalendarItemExceptionUpdate(BaseModel):
 
 
 class CalendarItemException(CalendarItemExceptionBase):
+    """Calendaritemexception model."""
+
     exception_id: uuid.UUID
     calendar_item_id: uuid.UUID
     created_at: datetime.datetime
@@ -1328,6 +1578,8 @@ class CalendarItemException(CalendarItemExceptionBase):
 
 
 class DroneIntegrationBase(BaseModel):
+    """Droneintegrationbase model."""
+
     drone_integration_id: int
     project_id: uuid.UUID
     drone_provider_id: int
@@ -1335,57 +1587,75 @@ class DroneIntegrationBase(BaseModel):
 
 
 class DroneIntegration(DroneIntegrationBase):
+    """Droneintegration model."""
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class DroneProviderBase(BaseModel):
+    """Droneproviderbase model."""
+
     drone_provider_id: int
     name_short: str
     name_long: str
 
 
 class DroneProvider(DroneProviderBase):
+    """Droneprovider model."""
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class DroneProviderCreate(DroneProviderBase):
-    pass
+    """Droneprovidercreate model."""
 
 
 class DronePermissionBase(BaseModel):
+    """Dronepermissionbase model."""
+
     drone_integration_id: int
     company_id: uuid.UUID
     can_view: bool
 
 
 class DronePermission(DronePermissionBase):
+    """Dronepermission model."""
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class DronePermissionCreate(DronePermissionBase):
-    pass
+    """Dronepermissioncreate model."""
 
 
 class DronePermissionUpdate(BaseModel):
+    """Dronepermissionupdate model."""
+
     can_view: bool
 
 
 class DroneIntegrationCreate(DroneIntegrationBase):
-    pass
+    """Droneintegrationcreate model."""
 
 
 class DroneProviderUpdate(BaseModel):
+    """Droneproviderupdate model."""
+
     name_short: str
     name_long: str
 
 
 class DroneIntegrationUpdate(BaseModel):
+    """Droneintegrationupdate model."""
+
     project_id: uuid.UUID
     drone_provider_id: int
     provider_project_id: str
 
 
 class SiteInfo(BaseModel):
+    """Siteinfo model."""
+
     site_uuid: uuid.UUID
     site_id: int
     site_name: str
@@ -1393,6 +1663,8 @@ class SiteInfo(BaseModel):
 
 
 class Grade(BaseModel):
+    """Grade model."""
+
     site_impact_category: str
     grade: str
     power_loss_kw: float
@@ -1402,10 +1674,14 @@ class Grade(BaseModel):
 
 
 class ZeitviewObservation(BaseModel):
+    """Zeitviewobservation model."""
+
     description: str
 
 
 class ZeitviewInspection(BaseModel):
+    """Zeitviewinspection model."""
+
     inspection_uuid: uuid.UUID
     inspection_date: str
     upload_date: str
@@ -1422,6 +1698,8 @@ class ZeitviewInspection(BaseModel):
 
 
 class DroneInspectionCreate(BaseModel):
+    """Droneinspectioncreate model."""
+
     inspection_uuid: uuid.UUID
     inspection_time: datetime.datetime
     upload_time: datetime.datetime
@@ -1433,6 +1711,8 @@ class DroneInspectionCreate(BaseModel):
 
 
 class DroneInspection(BaseModel):
+    """Droneinspection model."""
+
     inspection_uuid: uuid.UUID
     inspection_time: datetime.datetime
     upload_time: datetime.datetime
@@ -1446,6 +1726,8 @@ class DroneInspection(BaseModel):
 
 
 class DroneAnomalyBase(BaseModel):
+    """Droneanomalybase model."""
+
     anomaly_uuid: uuid.UUID
     inspection_uuid: uuid.UUID
     event_id: int | None = None
@@ -1464,8 +1746,10 @@ class DroneAnomalyBase(BaseModel):
 
 
 class DroneAnomaly(DroneAnomalyBase):
+    """Droneanomaly model."""
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class DroneAnomalyCreate(DroneAnomalyBase):
-    pass
+    """Droneanomalycreate model."""

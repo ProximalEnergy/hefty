@@ -7,6 +7,12 @@ from core import models
 
 
 async def get_project_data_last_updated(*, db: AsyncSession, project_id: UUID):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+    """
     result = await db.execute(
         select(models.ProjectDataLastUpdated).filter(
             models.ProjectDataLastUpdated.project_id == project_id
@@ -16,6 +22,12 @@ async def get_project_data_last_updated(*, db: AsyncSession, project_id: UUID):
 
 
 async def get_project_data_last_updateds(*, db: AsyncSession, project_ids: list[UUID]):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_ids: TODO: describe.
+    """
     result = await db.execute(
         select(models.ProjectDataLastUpdated).filter(
             models.ProjectDataLastUpdated.project_id.in_(project_ids)

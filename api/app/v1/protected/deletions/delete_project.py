@@ -29,31 +29,35 @@ async def delete_project_deep(
     ),
     db: AsyncSession = Depends(get_async_db),
 ) -> dict:
-    """
-    Deep delete a project and all related data.
+    """Deep delete a project and all related data.
 
-    **WARNING: This operation is irreversible and will permanently delete:**
-    - The project itself
-    - All user assignments to the project
-    - All user subscriptions for the project
-    - All company associations with the project
-    - All permissions related to the project
-    - All documents associated with the project
-    - All contracts for the project
-    - All KPI alerts, instances, and data
-    - All timeseries data
-    - All report instances
-    - Project metadata and last updated records
+        **WARNING: This operation is irreversible and will permanently delete:**
+        - The project itself
+        - All user assignments to the project
+        - All user subscriptions for the project
+        - All company associations with the project
+        - All permissions related to the project
+        - All documents associated with the project
+        - All contracts for the project
+        - All KPI alerts, instances, and data
+        - All timeseries data
+        - All report instances
+        - Project metadata and last updated records
 
-    **Requirements:**
-    - Must be a superadmin user
-    - Must set `confirm=true` query parameter to proceed
+        **Requirements:**
+        - Must be a superadmin user
+        - Must set `confirm=true` query parameter to proceed
 
-    **Returns:**
-    - Success message if deletion completed
-    - 404 if project not found
-    - 400 if confirmation not provided
-    - 403 if not authorized (not superadmin)
+        **Returns:**
+        - Success message if deletion completed
+        - 404 if project not found
+        - 400 if confirmation not provided
+        - 403 if not authorized (not superadmin)
+
+    Args:
+        project_id: TODO: describe.
+        confirm: TODO: describe.
+        db: TODO: describe.
     """
     raise HTTPException(status_code=499, detail="This operation is banned")
     try:

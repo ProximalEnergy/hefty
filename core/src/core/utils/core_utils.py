@@ -7,6 +7,16 @@ from sqlalchemy.orm import Session
 def get_table_columns(
     db: Session, *, table_name: str, schema: str = "operational"
 ) -> list[str]:
+    """Return ordered column names for a table in the given schema.
+
+    Args:
+        db: Database session used to query information_schema.
+        table_name: Name of the table to inspect.
+        schema: Schema that contains the table. Defaults to "operational".
+
+    Returns:
+        Ordered list of column names.
+    """
     stmt = """
         SELECT column_name
         FROM information_schema.columns

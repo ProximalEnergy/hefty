@@ -26,11 +26,15 @@ router = APIRouter(
 
 # --- Pydantic Schemas ---
 class EventMessageReactionCreate(BaseModel):
+    """todo"""
+
     event_message_id: int
     reaction_type: str  # 'thumbs_up', 'eyes', 'question_mark', etc.
 
 
 class EventMessageReaction(BaseModel):
+    """todo"""
+
     reaction_id: int
     event_message_id: int
     user_id: str
@@ -39,7 +43,11 @@ class EventMessageReaction(BaseModel):
 
 
 def _string_to_reaction_type(*, reaction_type_str: str) -> enumerations.ReactionType:
-    """Convert string reaction type to ReactionType enum."""
+    """Convert string reaction type to ReactionType enum.
+
+    Args:
+        reaction_type_str: TODO: describe.
+    """
     try:
         return enumerations.ReactionType(reaction_type_str)
     except ValueError:
@@ -62,17 +70,22 @@ async def get_event_message_reactions(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> list[EventMessageReaction]:
-    """
-    Get all reactions for a specific event message or all reactions for an event.
+    """Get all reactions for a specific event message or all reactions for an event.
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
-    Query Parameters:
-        event_message_id: The ID of the message to get reactions for (optional)
-        event_id: The ID of the event to get all reactions for (optional)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
+        Query Parameters:
+            event_message_id: The ID of the message to get reactions for (optional)
+            event_id: The ID of the event to get all reactions for (optional)
 
-    Returns:
-        List of reactions for the message(s)
+        Returns:
+            List of reactions for the message(s)
+
+    Args:
+        project_id: TODO: describe.
+        event_message_id: TODO: describe.
+        event_id: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:
@@ -118,17 +131,21 @@ async def toggle_event_message_reaction(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> EventMessageReaction:
-    """
-    Toggle a reaction on a message (add if not exists, remove if exists).
+    """Toggle a reaction on a message (add if not exists, remove if exists).
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
-    Request Body:
-        event_message_id: The ID of the message
-        reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
+        Request Body:
+            event_message_id: The ID of the message
+            reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
 
-    Returns:
-        The created reaction (if added) or the deleted reaction info (if removed)
+        Returns:
+            The created reaction (if added) or the deleted reaction info (if removed)
+
+    Args:
+        project_id: TODO: describe.
+        reaction: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:

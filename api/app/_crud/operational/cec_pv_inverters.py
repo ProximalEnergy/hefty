@@ -10,6 +10,12 @@ async def get_cec_pv_inverters(
     *,
     cec_pv_inverter_ids: list[int] = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        cec_pv_inverter_ids: TODO: describe.
+    """
     query = select(models.CECPVInverter)
 
     if cec_pv_inverter_ids:
@@ -26,6 +32,12 @@ async def upsert_cec_pv_inverters_bulk(
     *,
     inverters: list[interfaces.CECPVInverterCreate],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        inverters: TODO: describe.
+    """
     for inverter_data in inverters:
         inverter_dict = inverter_data.model_dump()
 

@@ -14,7 +14,12 @@ TXT_DTYPES = cs.string()
 
 
 def canon_time(df_part: pl.DataFrame, *, like: pl.DataFrame) -> pl.DataFrame:
-    """Make df_part['time'] exactly match like['time'] in unit and timezone."""
+    """Make df_part['time'] exactly match like['time'] in unit and timezone.
+
+    Args:
+        df_part: TODO: describe.
+        like: TODO: describe.
+    """
     ref_dt = like.schema["time"]
 
     # Handle case where time column is Null (empty or all null values)
@@ -258,11 +263,14 @@ def pivot_timeseries_by_tag(
     df: pd.DataFrame,
     tags: ModelList[models.Tag] | None,
 ) -> pd.DataFrame:
-    """
-    Pivot a long-format timeseries DataFrame with multiple value_* columns
-    into a wide-format DataFrame indexed by time and with tag_id columns.
+    """Pivot a long-format timeseries DataFrame with multiple value_* columns
+        into a wide-format DataFrame indexed by time and with tag_id columns.
 
-    Each tag_id is expected to use only one of the value_* columns.
+        Each tag_id is expected to use only one of the value_* columns.
+
+    Args:
+        df: TODO: describe.
+        tags: TODO: describe.
     """
 
     if tags is None:

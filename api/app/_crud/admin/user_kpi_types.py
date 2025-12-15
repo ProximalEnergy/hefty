@@ -13,7 +13,13 @@ async def update_user_kpi_type_favorite(
     is_favorited: bool,
 ) -> models.UserKPITypes:
     """Update the is_favorited field for a user's kpi_type.
-    If the relationship does not exist, it will be created.
+        If the relationship does not exist, it will be created.
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        kpi_type_id: TODO: describe.
+        is_favorited: TODO: describe.
     """
     try:
         # Find the existing user kpi_type relationship

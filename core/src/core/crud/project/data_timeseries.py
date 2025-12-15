@@ -32,11 +32,13 @@ warnings.filterwarnings(
 
 
 def _interval_to_minutes(*, interval_str: str) -> float:
-    """
-    Convert interval string to minutes for comparison.
+    """Convert interval string to minutes for comparison.
 
-    Parses strings like '1min', '5min', '1hour' by extracting the
-    numeric portion and unit.
+        Parses strings like '1min', '5min', '1hour' by extracting the
+        numeric portion and unit.
+
+    Args:
+        interval_str: TODO: describe.
     """
     # Extract numeric portion and unit from the interval string
     match = re.match(r"(\d+)(min|hour|sec)", interval_str.lower())
@@ -87,6 +89,27 @@ class DataTimeseries:
         return_arrow: bool = True,
     ) -> "DataTimeseries":
         # --- Pre-Processing ---
+        """TODO: add description.
+
+        Args:
+            cls: TODO: describe.
+            project_name_short: TODO: describe.
+            tag_ids: TODO: describe.
+            sensor_type_ids: TODO: describe.
+            query_start: TODO: describe.
+            query_end: TODO: describe.
+            max_lookback_period: TODO: describe.
+            agg_interval: TODO: describe.
+            aggregation: TODO: describe.
+            pagination_limit: TODO: describe.
+            pagination_offset: TODO: describe.
+            dangerous_pagination_override: TODO: describe.
+            project_db: TODO: describe.
+            operational_db: TODO: describe.
+            ffill_limit: TODO: describe.
+            ensure_full_range: TODO: describe.
+            return_arrow: TODO: describe.
+        """
         self = cls()
         (
             timezone,
@@ -176,13 +199,21 @@ class DataTimeseries:
         query_start: datetime,
         query_end: datetime,
     ) -> tuple[str, TimeInterval | None, TimeInterval | None, datetime, datetime]:
-        """
-        Pre-process data timeseries request.
+        """Pre-process data timeseries request.
 
-        Fetches project info and determines whether to use continuous aggregate table.
+                Fetches project info and determines whether to use continuous aggregate table.
 
-        Returns:
-            tuple: (timezone, interval, cagg_interval)
+                Returns:
+                    tuple: (timezone, interval, cagg_interval)
+
+        Args:
+            operational_db: TODO: describe.
+            project_name_short: TODO: describe.
+            tag_ids: TODO: describe.
+            sensor_type_ids: TODO: describe.
+            agg_interval: TODO: describe.
+            query_start: TODO: describe.
+            query_end: TODO: describe.
         """
         # --- Validate Inputs ---
         if tag_ids and sensor_type_ids:
@@ -277,6 +308,21 @@ class DataTimeseries:
         dangerous_pagination_override: bool = False,
     ) -> TextClause:
         # --- Build schema and table in a sql-injection safe manner ---
+        """TODO: add description.
+
+        Args:
+            project_name_short: TODO: describe.
+            tag_ids: TODO: describe.
+            sensor_type_ids: TODO: describe.
+            interval: TODO: describe.
+            cagg_interval: TODO: describe.
+            aggregation: TODO: describe.
+            query_start: TODO: describe.
+            query_end: TODO: describe.
+            pagination_limit: TODO: describe.
+            pagination_offset: TODO: describe.
+            dangerous_pagination_override: TODO: describe.
+        """
         if cagg_interval:
             table_name = f"data_timeseries_{cagg_interval.value}"
         else:
@@ -416,7 +462,16 @@ class DataTimeseries:
         query_start: datetime,
         max_lookback_period: timedelta,
     ) -> TextClause:
-        """Build query to get the last value before query_start for each tag."""
+        """Build query to get the last value before query_start for each tag.
+
+        Args:
+            project_name_short: TODO: describe.
+            tag_ids: TODO: describe.
+            sensor_type_ids: TODO: describe.
+            cagg_interval: TODO: describe.
+            query_start: TODO: describe.
+            max_lookback_period: TODO: describe.
+        """
         # --- Build schema and table in a sql-injection safe manner ---
         if cagg_interval:
             table_name = f"data_timeseries_{cagg_interval.value}"
@@ -509,9 +564,23 @@ class DataTimeseries:
         pagination_limit: int,
         dangerous_pagination_override: bool,
     ) -> tuple[pl.DataFrame, bool]:
-        """
-        Post-process timeseries data: pivot, apply lookback, forward fill,
-        and ensure full range.
+        """Post-process timeseries data: pivot, apply lookback, forward fill,
+                and ensure full range.
+
+        Args:
+            df: TODO: describe.
+            lookback_df: TODO: describe.
+            tag_ids: TODO: describe.
+            sensor_type_ids: TODO: describe.
+            project_db: TODO: describe.
+            timezone: TODO: describe.
+            ffill_limit: TODO: describe.
+            ensure_full_range: TODO: describe.
+            query_start: TODO: describe.
+            query_end: TODO: describe.
+            agg_interval: TODO: describe.
+            pagination_limit: TODO: describe.
+            dangerous_pagination_override: TODO: describe.
         """
         # Check pagination limit
         if len(df) == pagination_limit and not dangerous_pagination_override:
@@ -633,6 +702,17 @@ def get_project_data_timeseries(
     interval: str,
     cagg_interval: str | None = None,
 ) -> ModelList[models.DataTimeseries]:
+    """TODO: add description.
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        interval: TODO: describe.
+        cagg_interval: TODO: describe.
+    """
     if cagg_interval:
         table_name = f"data_timeseries_{cagg_interval}"
     else:

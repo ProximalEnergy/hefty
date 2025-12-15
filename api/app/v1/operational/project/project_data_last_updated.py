@@ -21,6 +21,12 @@ async def get_project_data_last_updated_endpoint(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     last_updated = await get_project_data_last_updated(
         db=db,
         project_id=project_id,

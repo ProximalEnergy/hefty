@@ -26,9 +26,11 @@ from .project_documents import generate_presigned_url
 
 
 def validate_and_clean_date(*, date_string: str | None) -> str | None:
-    """
-    Validate and clean date strings from AI analysis.
-    Returns None for invalid dates, ensuring frontend doesn't crash.
+    """Validate and clean date strings from AI analysis.
+        Returns None for invalid dates, ensuring frontend doesn't crash.
+
+    Args:
+        date_string: TODO: describe.
     """
     if not date_string or not isinstance(date_string, str):
         return None
@@ -68,6 +70,15 @@ async def create_contract(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Create contract data
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        contract: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+        project: TODO: describe.
+    """
     contract_data = contract.model_dump()
     contract_data["project_id"] = project_id
     contract_data["company_id_provider"] = user_data.company_id
@@ -105,6 +116,12 @@ async def get_project_contracts(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
     # Retrieve all contracts for the project
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        project_db: TODO: describe.
+    """
     project_contracts = await crud_get_project_contracts(
         project_db, project_id=project_id
     )
@@ -151,6 +168,13 @@ async def get_contract_kpis(
     contract_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        contract_id: TODO: describe.
+        db: TODO: describe.
+    """
     query = (
         sa.select(
             models.ContractKPI.contract_id,
@@ -175,9 +199,12 @@ async def get_contract_kpis(
 
 
 def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None):
-    """
-    Call OpenAI with structured function calling to extract contract fields.
-    This ensures reliable JSON output without syntax errors.
+    """Call OpenAI with structured function calling to extract contract fields.
+        This ensures reliable JSON output without syntax errors.
+
+    Args:
+        file_id: TODO: describe.
+        user_company_name: TODO: describe.
     """
     client = OpenAI()
 
@@ -469,10 +496,15 @@ async def analyze_contract_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
 ):
-    """
-    Analyze a contract document using OpenAI File Search to extract contract fields.
-    This endpoint uses the document's OpenAI file_id to perform semantic search and
-    extract structured contract information using structured function calling.
+    """Analyze a contract document using OpenAI File Search to extract contract fields.
+        This endpoint uses the document's OpenAI file_id to perform semantic search and
+        extract structured contract information using structured function calling.
+
+    Args:
+        document_id: TODO: describe.
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user: TODO: describe.
     """
     try:
         # Get the document to access its OpenAI file_id
@@ -555,11 +587,17 @@ async def delete_contract(
     ],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
-    """
-    Delete a contract if it has no associated Contractual KPIs.
+    """Delete a contract if it has no associated Contractual KPIs.
 
-    This endpoint will only delete contracts that don't have any Contractual KPIs
-    associated with them, ensuring data integrity.
+        This endpoint will only delete contracts that don't have any Contractual KPIs
+        associated with them, ensuring data integrity.
+
+    Args:
+        project_id: TODO: describe.
+        contract_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+        project: TODO: describe.
     """
     try:
         deleted = await crud_delete_contract(

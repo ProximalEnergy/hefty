@@ -9,6 +9,12 @@ async def get_data_type(
     *,
     data_type_id: int,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        data_type_id: TODO: describe.
+    """
     query = select(models.DataType).filter(models.DataType.data_type_id == data_type_id)
     result = await db.execute(query)
     return result.scalar_one_or_none()
@@ -20,6 +26,13 @@ async def get_data_types(
     data_type_ids: list[int] = [],
     name_short: str = "",
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        data_type_ids: TODO: describe.
+        name_short: TODO: describe.
+    """
     query = select(models.DataType)
 
     if data_type_ids:

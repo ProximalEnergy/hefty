@@ -12,6 +12,13 @@ async def get_user_dashboards(
     user_id: str,
     project_id: uuid.UUID,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     query = (
         select(models.CustomDashboard)
         .filter(models.CustomDashboard.owner_user_id == user_id)
@@ -31,6 +38,17 @@ async def create_user_dashboard(
     default_kpi_time_range: enumerations.DefaultKPITimeRange,
     components: list,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+        dashboard_name: TODO: describe.
+        default_time_range: TODO: describe.
+        default_kpi_time_range: TODO: describe.
+        components: TODO: describe.
+    """
     new_uuid = uuid.uuid4()
 
     # Create dashboard components and add them individually
@@ -93,6 +111,18 @@ async def update_user_dashboard(
     components: list,
 ):
     # First, get the existing dashboard to verify ownership
+    """todo
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+        dashboard_name: TODO: describe.
+        default_time_range: TODO: describe.
+        default_kpi_time_range: TODO: describe.
+        components: TODO: describe.
+    """
     query = (
         select(models.CustomDashboard)
         .filter(models.CustomDashboard.dashboard_id == dashboard_id)
@@ -168,7 +198,14 @@ async def get_dashboard_by_id(
     user_id: str,
     project_id: uuid.UUID,
 ):
-    """Get a single dashboard by ID with all its components."""
+    """Get a single dashboard by ID with all its components.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     # First get the dashboard
     query = (
         select(models.CustomDashboard)
@@ -241,7 +278,14 @@ async def delete_user_dashboard(
     owner_user_id: str,
     project_id: uuid.UUID,
 ):
-    """Delete a dashboard and all its components."""
+    """Delete a dashboard and all its components.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     # First, get the existing dashboard to verify ownership
     query = (
         select(models.CustomDashboard)

@@ -41,7 +41,11 @@ engine = create_engine(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager."""
+    """Application lifespan manager.
+
+    Args:
+        app: TODO: describe.
+    """
     # Startup
     print("SQLAdmin application starting...")
     print("Using existing core database connection")

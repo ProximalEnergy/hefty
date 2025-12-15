@@ -20,6 +20,12 @@ async def get_calendar_items(
     db: AsyncSession = Depends(dependencies.get_async_db),
     notifications_only: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        notifications_only: TODO: describe.
+    """
     return await crud_get_calendar_items(db=db, notifications_only=notifications_only)
 
 
@@ -28,6 +34,12 @@ async def get_calendar_item_exceptions(
     db: AsyncSession = Depends(dependencies.get_async_db),
     calendar_item_ids: Annotated[list[uuid.UUID], Query()] = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        calendar_item_ids: TODO: describe.
+    """
     return await crud_get_calendar_item_exceptions(
         db=db, calendar_item_ids=calendar_item_ids
     )

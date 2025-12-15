@@ -61,10 +61,14 @@ class BatterySettlementAnalysisRequest(BaseModel):
 
 
 class BatterySettlementAnalysisResponse(BaseModel):
+    """todo"""
+
     content: str
 
 
 class ColumnStats(TypedDict):
+    """todo"""
+
     count: int
     mean: float | None
     median: float | None
@@ -76,10 +80,12 @@ class ColumnStats(TypedDict):
 
 
 def _aggregate_timeseries_stats(*, data: TimeseriesData) -> dict[str, ColumnStats]:
-    """
-    Aggregate timeseries data into statistical summaries.
+    """Aggregate timeseries data into statistical summaries.
 
-    Returns dict of {column_name: {stat_name: value}}
+        Returns dict of {column_name: {stat_name: value}}
+
+    Args:
+        data: TODO: describe.
     """
     stats: dict[str, ColumnStats] = {}
     for col_name, values in data.data.items():
@@ -116,7 +122,11 @@ def _aggregate_timeseries_stats(*, data: TimeseriesData) -> dict[str, ColumnStat
 
 
 def _estimate_token_count(*, data: Any) -> int:
-    """Rough estimate of token count for data."""
+    """Rough estimate of token count for data.
+
+    Args:
+        data: TODO: describe.
+    """
     json_str = json.dumps(data)
     # Rough estimate: ~4 characters per token
     return len(json_str) // 4
@@ -125,8 +135,10 @@ def _estimate_token_count(*, data: Any) -> int:
 def _prepare_data_for_llm(
     *, request: BatterySettlementAnalysisRequest
 ) -> dict[str, Any]:
-    """
-    Prepare data for LLM, aggregating if necessary to stay under token limits.
+    """Prepare data for LLM, aggregating if necessary to stay under token limits.
+
+    Args:
+        request: TODO: describe.
     """
     prepared_data: dict[str, Any] = {
         "project_id": request.project_id,
@@ -217,8 +229,11 @@ async def analyze_battery_settlement(
     request: BatterySettlementAnalysisRequest,
     user_data: Annotated[UserData, Depends(get_user_data_async)],
 ):
-    """
-    Analyze battery settlement data using AI and return a single formatted text.
+    """Analyze battery settlement data using AI and return a single formatted text.
+
+    Args:
+        request: TODO: describe.
+        user_data: TODO: describe.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

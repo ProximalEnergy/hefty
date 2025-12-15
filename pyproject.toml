@@ -28,6 +28,10 @@ select = [
     "ANN002",  # checks that *args are typed
     "ASYNC",   # async python checks
     "COM",     # Ending commas
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public function
+    "D103",    # Missing docstring in public method
+    "D417",    # Docstring must describe parameters
     "EXE",     # Executables
     "FA",      # Future Annotations
     "F401",    # Remove unused imports
@@ -90,6 +94,21 @@ ignore = [
 "api/app/_crud/projects/data_timeseries.py" = [
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries
 ]
+"core/_scripts/*.py" = [
+    "D",  # Utility scripts do not require docstrings
+]
+"core/_alembic_migrations/**/*.py" = [
+    "D",  # Alembic migrations do not need docstrings
+]
+"core/src/core/**/*.py" = [
+    "D",  # Skip docstring checks in the core package for now
+]
+"core/src/core/models.py" = [
+    "D",  # Model declarations are self-describing without docstrings
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 # =============================================================================
 # MYPY CONFIGURATION

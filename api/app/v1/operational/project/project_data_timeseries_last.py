@@ -21,6 +21,16 @@ def get_data_timeseries_last(
     device_ids: Annotated[list[int] | None, Query()] = None,
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        tag_ids: TODO: describe.
+        device_type_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        device_ids: TODO: describe.
+        include_ghost_tags: TODO: describe.
+    """
     data = core.crud.project.data_timeseries_last.get_data_timeseries_last(
         project_db=project_db,
         tag_ids=tag_ids,

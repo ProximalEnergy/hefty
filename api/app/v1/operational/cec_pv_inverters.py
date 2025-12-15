@@ -22,6 +22,12 @@ async def get_cec_pv_inverters(
     cec_pv_inverter_ids: Annotated[list[int], Query()] = [],
     db: AsyncSession = Depends(get_async_db),
 ):
+    """todo
+
+    Args:
+        cec_pv_inverter_ids: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_cec_pv_inverters(db, cec_pv_inverter_ids=cec_pv_inverter_ids)
 
 
@@ -30,4 +36,10 @@ async def upsert_cec_pv_inverters_bulk(
     inverters: interfaces.CECPVInverterBulkCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        inverters: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_upsert_cec_pv_inverters_bulk(db, inverters=inverters.inverters)

@@ -14,6 +14,13 @@ async def get_companies(
     company_ids: list[UUID] | None = None,
     name_shorts: list[str] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_ids: TODO: describe.
+        name_shorts: TODO: describe.
+    """
     query = select(models.Company)
 
     if company_ids:
@@ -31,6 +38,12 @@ async def create_company(
     company: interfaces.CompanyCreate,
 ):
     # If a company with the same name_short already exists, return it
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company: TODO: describe.
+    """
     existing_result = await db.execute(
         select(models.Company).where(models.Company.name_short == company.name_short)
     )
@@ -62,6 +75,13 @@ async def create_company(
 
 
 async def search_companies(*, db: AsyncSession, q: str, limit: int = 20):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        q: TODO: describe.
+        limit: TODO: describe.
+    """
     pattern = f"%{q}%"
     stmt = (
         select(models.Company)

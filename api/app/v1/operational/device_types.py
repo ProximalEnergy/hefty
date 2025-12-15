@@ -23,6 +23,15 @@ async def get_device_types(
     only_included_by_default: bool = True,
     db: AsyncSession = Depends(get_async_db),
 ):
+    """todo
+
+    Args:
+        device_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        only_included_by_default: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_device_types(
         db=db,
         device_type_ids=device_type_ids,
@@ -41,6 +50,12 @@ async def get_device_types(
 async def get_device_type(
     device_type_id: int, db: Annotated[AsyncSession, Depends(get_async_db)]
 ):
+    """todo
+
+    Args:
+        device_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     device_type = await crud_get_device_type(db=db, device_type_id=device_type_id)
     utils.check_404(value=device_type, detail=DESCRIPTION_404)
     return device_type

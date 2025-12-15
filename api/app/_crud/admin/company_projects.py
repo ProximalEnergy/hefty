@@ -15,6 +15,14 @@ async def get_company_projects(
     project_ids: list[UUID] | None = None,
     vector_store_ids: str | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_ids: TODO: describe.
+        project_ids: TODO: describe.
+        vector_store_ids: TODO: describe.
+    """
     query = select(models.CompanyProject)
 
     if company_ids:

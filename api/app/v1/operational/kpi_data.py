@@ -52,6 +52,18 @@ def get_kpi_data(
     include_all_dates: bool = True,
 ):
     # Ensure that user has access to all requested projects
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_ids: TODO: describe.
+        kpi_type_ids: TODO: describe.
+        include_device_data: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+        include_all_dates: TODO: describe.
+    """
     project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
 
     # NOTE: Logic was separated out into a helper function so that other endpoints can
@@ -77,6 +89,17 @@ def get_kpi_data_helper(
     include_device_data: bool,
     include_all_dates: bool = True,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project_ids: TODO: describe.
+        kpi_type_ids: TODO: describe.
+        include_device_data: TODO: describe.
+        include_all_dates: TODO: describe.
+    """
     date_range = pd.date_range(start=start, end=end, freq="D", inclusive="left")
 
     # Query KPI data
@@ -199,6 +222,12 @@ async def get_triggered_user_alerts(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     user_alerts = await crud_get_user_triggered_alerts(db, user_id=user_data.user_id)
     data_triggered = [x for x in user_alerts if x.config and x.config["triggered"]]
     return data_triggered
@@ -210,6 +239,13 @@ async def trigger_alert(
     triggered: bool,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        kpi_alert_id: TODO: describe.
+        triggered: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_trigger_user_alert(
         db=db,
         kpi_alert_id=kpi_alert_id,
@@ -228,6 +264,18 @@ async def get_kpi_excel(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        kpi_type_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        sync_db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     kpi_data = get_kpi_data_helper(
         db=sync_db,
         start=start,
@@ -311,6 +359,11 @@ async def get_kpi_excel(
 
     def generate_presigned_url(*, file_key: str) -> str:
         # Generate a pre-signed URL for a file
+        """todo
+
+        Args:
+            file_key: TODO: describe.
+        """
         bucket_name = "proximal-am-documents"
         presigned_url = s3_client.generate_presigned_url(
             "get_object",
@@ -346,6 +399,15 @@ def get_kpi_email_alerts(
     project_id: uuid.UUID,
     db: Session = Depends(get_db),
 ):
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        kpi_type_id: TODO: describe.
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     kpi_data = get_kpi_data_helper(
         db=db,
         start=start,

@@ -2,15 +2,16 @@ def assign_bandgap_parameters(
     *,
     cec_pv_module: dict,
 ):
-    """
+    """Bandgap parameters:
+            * WARNING:  CEC Database uses a fixed eg and degdt that
+                does not depend on material properties.
+            * EgRef: Bandgap at reference conditions in units of [eV]
+            * dEgdT:  Temperature dependence of the bandgap at
+                    reference condnitions in units of [eV/K]
+                    in units of [eV/K]
 
-    Bandgap parameters:
-        * WARNING:  CEC Database uses a fixed eg and degdt that
-            does not depend on material properties.
-        * EgRef: Bandgap at reference conditions in units of [eV]
-        * dEgdT:  Temperature dependence of the bandgap at
-                reference condnitions in units of [eV/K]
-                in units of [eV/K]
+    Args:
+        cec_pv_module: TODO: describe.
     """
     BANDGAP_PARAMS = {
         "eg": 1.121,

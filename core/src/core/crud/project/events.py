@@ -22,7 +22,16 @@ def get_windowed_events(
     return_query: bool = False,
     include_underperformance: bool = True,
 ) -> ModelList[models.Event]:
-    """Query events that start before `end` and end after `start` or are ongoing."""
+    """Query events that start before `end` and end after `start` or are ongoing.
+
+    Args:
+        db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+        include_underperformance: TODO: describe.
+    """
     query = db.query(models.Event)
     query = query.filter(models.Event.time_start <= end)
     query = query.filter(
@@ -41,11 +50,22 @@ def get_windowed_events(
 
 
 def get_maximum_event_id(db: Session) -> int:  # skip-star-syntax
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+    """
     return db.query(func.max(models.Event.event_id)).scalar() or 0
 
 
 # ---- dynamic per-project tables (tsdb.<project>.*) ----
 def get_project_tables(db: Session, *, project: str) -> tuple[sa.Table, sa.Table]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+    """
     md = sa.MetaData(schema=project)
     events = sa.Table("events", md, autoload_with=db.bind)
     event_losses = sa.Table("event_losses", md, autoload_with=db.bind)
@@ -59,6 +79,14 @@ def bulk_insert_events_returning_ids(
     new_event_rows: Iterable[Mapping],
     events_table: sa.Table | None = None,
 ) -> list[int]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+        new_event_rows: TODO: describe.
+        events_table: TODO: describe.
+    """
     if events_table is None:
         events_table, _ = get_project_tables(db, project=project)
 
@@ -115,9 +143,14 @@ def bulk_update_events(
     update_rows: Iterable[Mapping],
     events_table: sa.Table | None = None,
 ) -> int:
-    """
-    update_rows must include 'event_id' and the updatable fields.
-    Returns count of updated rows.
+    """update_rows must include 'event_id' and the updatable fields.
+        Returns count of updated rows.
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+        update_rows: TODO: describe.
+        events_table: TODO: describe.
     """
     if events_table is None:
         events_table, _ = get_project_tables(db, project=project)
@@ -176,10 +209,15 @@ def upsert_event_losses(
     loss_rows: Iterable[Mapping],
     event_losses_table: sa.Table | None = None,
 ) -> int:
-    """
-    loss_rows must include: event_id, time, loss, event_loss_type_id, version.
-    Performs ON CONFLICT DO UPDATE (loss, version).
-    Returns number of affected rows (inserted + updated).
+    """loss_rows must include: event_id, time, loss, event_loss_type_id, version.
+        Performs ON CONFLICT DO UPDATE (loss, version).
+        Returns number of affected rows (inserted + updated).
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+        loss_rows: TODO: describe.
+        event_losses_table: TODO: describe.
     """
     if event_losses_table is None:
         _, event_losses_table = get_project_tables(db, project=project)
@@ -210,6 +248,12 @@ def upsert_event_losses(
 
 
 def get_events_by_id(db: Session, *, event_ids: list[int]) -> ModelList[models.Event]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        event_ids: TODO: describe.
+    """
     return ModelList(
         query=db.query(models.Event).filter(models.Event.event_id.in_(event_ids)),
         return_query=False,
@@ -219,6 +263,13 @@ def get_events_by_id(db: Session, *, event_ids: list[int]) -> ModelList[models.E
 def get_homepage_summary(
     db: Session, *, project_name: str, sort_by: Literal["daily", "total"] = "daily"
 ) -> dict[str, Any]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_name: TODO: describe.
+        sort_by: TODO: describe.
+    """
     query = (
         db.query(models.Event)
         .filter(models.Event.time_end.is_(None))

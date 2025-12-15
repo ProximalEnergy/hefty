@@ -78,11 +78,21 @@ def check_404(*, value: Any, detail: Any = None):
 
 
 def seed_from_project_name(*, name: str) -> None:
+    """Handle seed from project name.
+
+    Args:
+        name: TODO: describe.
+    """
     seed_value = int(hashlib.md5(name.encode()).hexdigest(), 16)
     random.seed(seed_value)
 
 
 def anonymize_projects(*, projects: list[models.Project]) -> list[models.Project]:
+    """Handle anonymize projects.
+
+    Args:
+        projects: TODO: describe.
+    """
     for project in projects:
         seed_from_project_name(name=project.name_long)
         name = generate_random_name()
@@ -96,18 +106,25 @@ def anonymize_projects(*, projects: list[models.Project]) -> list[models.Project
 
 
 def generate_random_name() -> str:
+    """Handle generate random name."""
     adjective = random.choice(PROJECT_NAME_ADJECTIVES)
     noun = random.choice(PROJECT_NAME_NOUNS)
     return f"{adjective} {noun}"
 
 
 def generate_random_location() -> tuple[float, float]:
+    """Handle generate random location."""
     latitude = random.uniform(24.396308, 49.384358)
     longitude = random.uniform(-125.000000, -66.934570)
     return latitude, longitude
 
 
 def generate_random_project(*, name: str) -> tuple[str, float, float]:
+    """Handle generate random project.
+
+    Args:
+        name: TODO: describe.
+    """
     seed_from_project_name(name=name)
 
     name = generate_random_name()
@@ -118,6 +135,11 @@ def generate_random_project(*, name: str) -> tuple[str, float, float]:
 
 def timedelta_to_postgres_interval(*, timedelta: pd.Timedelta) -> str:
     # Extract the components of the timedelta
+    """Handle timedelta to postgres interval.
+
+    Args:
+        timedelta: TODO: describe.
+    """
     days = timedelta.days
     seconds = timedelta.seconds
     microseconds = timedelta.microseconds
@@ -144,6 +166,11 @@ def timedelta_to_postgres_interval(*, timedelta: pd.Timedelta) -> str:
 
 
 def parse_db_data_to_df(*, db_data):
+    """Handle parse db data to df.
+
+    Args:
+        db_data: TODO: describe.
+    """
     if len(db_data) == 0:
         # Return an empty DataFrame with the expected columns so callers can
         # continue gracefully. Previously this function raised a 404, but we
@@ -554,6 +581,12 @@ def get_tag_id_to_tag_name(
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
+    """Get tag id to tag name.
+
+    Args:
+        db: TODO: describe.
+        tags: TODO: describe.
+    """
     sensor_type_ids = list(
         {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
     )
@@ -591,6 +624,12 @@ def get_tag_id_to_sensor_type_name(
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
+    """Get tag id to sensor type name.
+
+    Args:
+        db: TODO: describe.
+        tags: TODO: describe.
+    """
     sensor_type_ids = list(
         {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
     )
@@ -626,6 +665,12 @@ def get_tag_id_to_device_name_long(
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique device ids
+    """Get tag id to device name long.
+
+    Args:
+        db: TODO: describe.
+        tags: TODO: describe.
+    """
     device_ids = list(set([tag.device_id for tag in tags]))
 
     # Get list of devices
@@ -665,22 +710,18 @@ def get_tracking_angles(
     backtrack: bool = False,
     gcr: float = 0.5,
 ) -> pd.DataFrame:
-    """
-    Calculate the tracking angles for a solar tracker based on the site location and specified parameters.
+    """todo
 
     Args:
-        site_location (location.Location): The geographical location of the site.
-        start_date (datetime.datetime): The start date and time for the calculation.
-        end_date (datetime.datetime): The end date and time for the calculation.
-        freq (str, optional): The frequency of the time intervals. Defaults to "5min".
-        axis_tilt (float, optional): The tilt angle of the tracking axis. Defaults to 0.
-        axis_azimuth (float, optional): The azimuth angle of the tracking axis. Defaults to 180.
-        max_angle (float, optional): The maximum angle the tracker can tilt. Defaults to 60.
-        backtrack (bool, optional): Whether to enable backtracking. Defaults to False.
-        gcr (float, optional): Ground coverage ratio. Defaults to 0.5.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the tracking angles and surface azimuth for the specified time range.
+        site_location: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        freq: TODO: describe.
+        axis_tilt: TODO: describe.
+        axis_azimuth: TODO: describe.
+        max_angle: TODO: describe.
+        backtrack: TODO: describe.
+        gcr: TODO: describe.
     """
     # Create date range
     times = pd.date_range(
@@ -718,17 +759,14 @@ def get_truetracking_irradiance(
     tilt: pd.Series,
     surface_azimuth: pd.Series,
 ) -> pd.DataFrame:
-    """
-    Calculate the plane of array (POA) irradiance for a solar panel based on the site location, date, tilt, and surface azimuth.
+    """todo
 
     Args:
-        site_location (location.Location): The geographical location of the solar panel.
-        date (datetime.datetime): The date for which to calculate the irradiance.
-        tilt (float): The tilt angle of the solar panel.
-        surface_azimuth (float): The azimuth angle of the solar panel.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the global horizontal irradiance (GHI) and the plane of array (POA) irradiance.
+        site_location: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        tilt: TODO: describe.
+        surface_azimuth: TODO: describe.
     """
     # Create date range
     times = pd.date_range(
@@ -767,16 +805,25 @@ def get_truetracking_irradiance(
 
 
 def deprecated(reason):
-    """
-    This decorator can be used to mark functions as deprecated.
-    It will result in a warning being emitted when the function is used.
+    """This decorator can be used to mark functions as deprecated.
+        It will result in a warning being emitted when the function is used.
 
-    :param reason: A message indicating why the function is deprecated.
+        :param reason: A message indicating why the function is deprecated.
+
+    Args:
+        reason: TODO: describe.
     """
 
     def decorator(func):
+        """todo
+
+        Args:
+            func: TODO: describe.
+        """
+
         @functools.wraps(func)
         def new_func(*args: str, **kwargs):
+            """Handle new func."""
             warnings.warn(
                 f"Call to deprecated function {func.__name__}. {reason}",
                 category=DeprecationWarning,
@@ -794,8 +841,11 @@ def map_ancestors_to_descendents(
     ancestors: list[models.Device],
     descendents: list[models.Device],
 ) -> dict[int, list[int]]:
-    """
-    Map ancestor device ids to a list of descendent device ids.
+    """Map ancestor device ids to a list of descendent device ids.
+
+    Args:
+        ancestors: TODO: describe.
+        descendents: TODO: describe.
     """
     # Get all ancestor device_ids
     ids_ancestors = {a.device_id for a in ancestors}

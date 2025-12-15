@@ -20,6 +20,13 @@ class DTN(
         data_type: MapDataType,
         time_span: timedelta | None = None,
     ):
+        """todo
+
+        Args:
+            self: TODO: describe.
+            data_type: TODO: describe.
+            time_span: TODO: describe.
+        """
         match data_type:
             case MapDataType.HAIL_FORECAST_POLYGON:
                 match time_span:
@@ -50,7 +57,12 @@ class DTN(
         *,
         arcgis_layer_id: int,
     ):
-        """Get hail forecast polygon data from ArcGIS REST API"""
+        """Get hail forecast polygon data from ArcGIS REST API
+
+        Args:
+            self: TODO: describe.
+            arcgis_layer_id: TODO: describe.
+        """
 
         # Get the authentication token
         token = await self.arcgis_token()
@@ -106,7 +118,12 @@ class DTN(
                 )
 
     def _parse_polygons_response(self, *, data: dict) -> list[shapely.geometry.Polygon]:
-        """Parse ArcGIS response and extract polygons"""
+        """Parse ArcGIS response and extract polygons
+
+        Args:
+            self: TODO: describe.
+            data: TODO: describe.
+        """
         if "error" in data:
             error_msg = data["error"].get("message", "Unknown error")
             raise ValueError(f"ArcGIS API error: {error_msg}")

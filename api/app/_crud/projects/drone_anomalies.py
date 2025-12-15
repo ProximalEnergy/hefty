@@ -15,8 +15,12 @@ def bulk_create_drone_anomalies(
     anomalies_data: list[DroneAnomalyCreate],
     inspection_uuid: uuid.UUID,
 ):
-    """
-    Delete all existing anomalies for an inspection and bulk insert new ones.
+    """Delete all existing anomalies for an inspection and bulk insert new ones.
+
+    Args:
+        db: TODO: describe.
+        anomalies_data: TODO: describe.
+        inspection_uuid: TODO: describe.
     """
     # Delete existing anomalies for this inspection to ensure a clean sync
     db.query(DroneAnomaly).filter(
@@ -31,8 +35,11 @@ def bulk_create_drone_anomalies(
 def get_anomalies_by_inspection_uuid(
     *, db: Session, inspection_uuid: uuid.UUID
 ) -> Sequence[DroneAnomaly]:
-    """
-    Get all anomalies for a given inspection from the project-specific schema.
+    """Get all anomalies for a given inspection from the project-specific schema.
+
+    Args:
+        db: TODO: describe.
+        inspection_uuid: TODO: describe.
     """
     return (
         db.query(DroneAnomaly)
@@ -44,8 +51,11 @@ def get_anomalies_by_inspection_uuid(
 def get_anomaly_count_by_inspection_uuid(
     *, db: Session, inspection_uuid: uuid.UUID
 ) -> int:
-    """
-    Get the count of anomalies for a given inspection from the project-specific schema.
+    """Get the count of anomalies for a given inspection from the project-specific schema.
+
+    Args:
+        db: TODO: describe.
+        inspection_uuid: TODO: describe.
     """
     return (
         db.query(DroneAnomaly)
@@ -60,8 +70,12 @@ def bulk_create_drone_anomalies_incremental(
     anomalies_data: list[DroneAnomalyCreate],
     inspection_uuid: uuid.UUID,
 ):
-    """
-    Bulk insert new anomalies without deleting existing ones.
+    """Bulk insert new anomalies without deleting existing ones.
+
+    Args:
+        db: TODO: describe.
+        anomalies_data: TODO: describe.
+        inspection_uuid: TODO: describe.
     """
     db_anomalies = [DroneAnomaly(**data.model_dump()) for data in anomalies_data]
     db.add_all(db_anomalies)
@@ -74,9 +88,13 @@ def update_anomalies_with_event_id(
     anomaly_uuids: list[uuid.UUID],
     event_id: int,
 ):
-    """
-    Update drone anomalies with the event_id they are associated with.
-    Note: This function does NOT commit the transaction - it should be called within an existing transaction.
+    """Update drone anomalies with the event_id they are associated with.
+        Note: This function does NOT commit the transaction - it should be called within an existing transaction.
+
+    Args:
+        db: TODO: describe.
+        anomaly_uuids: TODO: describe.
+        event_id: TODO: describe.
     """
     logging.info(
         f"🔧 update_anomalies_with_event_id called: event_id={event_id}, anomaly_uuids={anomaly_uuids}"
@@ -151,7 +169,10 @@ def bulk_update_anomalies_with_event_ids(
 
 
 def get_anomalies_by_event_id(*, db: Session, event_id: int) -> Sequence[DroneAnomaly]:
-    """
-    Get all anomalies for a given event from the project-specific schema.
+    """Get all anomalies for a given event from the project-specific schema.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
     """
     return db.query(DroneAnomaly).filter(DroneAnomaly.event_id == event_id).all()

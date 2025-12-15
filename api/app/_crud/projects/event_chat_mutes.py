@@ -12,7 +12,13 @@ async def get_event_chat_mutes(
     event_id: int | None = None,
     user_id: str | None = None,
 ) -> list[models.EventChatMute]:
-    """Get event chat mutes, optionally filtered."""
+    """Get event chat mutes, optionally filtered.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+        user_id: TODO: describe.
+    """
     stmt = select(models.EventChatMute)
 
     if event_id is not None:
@@ -30,7 +36,13 @@ async def is_event_chat_muted(
     event_id: int,
     user_id: str,
 ) -> bool:
-    """Check if a user has muted an event chat."""
+    """Check if a user has muted an event chat.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+        user_id: TODO: describe.
+    """
     stmt = (
         select(models.EventChatMute)
         .where(models.EventChatMute.event_id == event_id)
@@ -47,7 +59,12 @@ async def toggle_event_chat_mute(
     user_id: str,
 ) -> bool:
     """Toggle mute status for an event chat.
-    Returns True if muted, False if unmuted.
+        Returns True if muted, False if unmuted.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+        user_id: TODO: describe.
     """
     existing = await get_event_chat_mutes(db=db, event_id=event_id, user_id=user_id)
 

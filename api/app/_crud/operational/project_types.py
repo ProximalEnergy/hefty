@@ -4,6 +4,12 @@ from core import models
 
 
 def get_project_type(*, db: Session, project_type_id: int):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_type_id: TODO: describe.
+    """
     return (
         db.query(models.ProjectType)
         .filter(models.ProjectType.project_type_id == project_type_id)
@@ -18,6 +24,14 @@ def get_project_types(
     name_short: str = "",
     name_long: str = "",
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+    """
     query = db.query(models.ProjectType)
 
     if project_type_ids:

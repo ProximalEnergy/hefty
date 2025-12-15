@@ -5,6 +5,12 @@ from core import models
 
 
 def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        sensor_type: TODO: describe.
+    """
     db_sensor_type = models.SensorType(
         sensor_type_id=sensor_type.sensor_type_id,
         device_type_id=sensor_type.device_type_id,
@@ -23,6 +29,13 @@ def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
 def update_sensor_type(
     *, db: Session, sensor_type_id: int, sensor_type: interfaces.SensorType
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        sensor_type_id: TODO: describe.
+        sensor_type: TODO: describe.
+    """
     db_sensor_type = (
         db.query(models.SensorType)
         .filter(models.SensorType.sensor_type_id == sensor_type_id)
@@ -45,7 +58,11 @@ def update_sensor_type(
 
 
 def get_next_sensor_type_id(*, db: Session) -> int:
-    """Get the next available sensor_type_id"""
+    """Get the next available sensor_type_id
+
+    Args:
+        db: TODO: describe.
+    """
     max_id = (
         db.query(models.SensorType.sensor_type_id)
         .order_by(models.SensorType.sensor_type_id.desc())

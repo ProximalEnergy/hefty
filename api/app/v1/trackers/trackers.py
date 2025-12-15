@@ -18,6 +18,13 @@ def get_tracking_angles(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Convert to project timezone
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+    """
     start = pd.to_datetime(start).tz_localize("UTC").tz_convert(project.time_zone)
     end = pd.to_datetime(end).tz_localize("UTC").tz_convert(project.time_zone)
     lon, lat = project.point.coordinates  # type: ignore

@@ -40,6 +40,12 @@ async def get_inverters(
     inverter_ids: Annotated[list[int], Query()] = [],
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        inverter_ids: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_inverters(
         db=db,
         inverter_ids=inverter_ids,
@@ -58,6 +64,14 @@ async def get_inverter_ids(
     inverter_model: Annotated[list[str], Query()] = [],
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        authorized_company_id: TODO: describe.
+        inverter_manufacturer: TODO: describe.
+        inverter_model: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_inverter_ids(
         db=db,
         inverter_manufacturer=inverter_manufacturer,
@@ -75,6 +89,12 @@ async def get_proximal_inverter_manufacturers(
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        authorized_company_id: TODO: describe.
+        db: TODO: describe.
+    """
     manufacturers = await get_inverter_manufacturers(
         db=db,
         company_id=authorized_company_id,
@@ -95,6 +115,13 @@ async def get_proximal_inverter_models(
     authorized_company_id: uuid.UUID | None = Depends(require_user_company),
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        manufacturer: TODO: describe.
+        authorized_company_id: TODO: describe.
+        db: TODO: describe.
+    """
     models = await get_inverter_models_given_manufacturer(
         db=db, manufacturer=manufacturer, company_id=authorized_company_id
     )
@@ -114,13 +141,18 @@ async def get_inverter_ids_by_manufacturer_and_model(
     models: Annotated[list[str], Query()],
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Get inverter IDs for each manufacturer and model pair.
+    """Get inverter IDs for each manufacturer and model pair.
 
-    corresponding inverter IDs in the same order. Returns None for any pairs
-    that don't exist in the database.
+        corresponding inverter IDs in the same order. Returns None for any pairs
+        that don't exist in the database.
 
-    The input lists must have the same length.
+        The input lists must have the same length.
+
+    Args:
+        authorized_company_id: TODO: describe.
+        manufacturers: TODO: describe.
+        models: TODO: describe.
+        db: TODO: describe.
     """
     try:
         inverter_ids = await get_inverter_ids_by_manufacturer_model(
@@ -148,11 +180,15 @@ async def create_inverter(
     inverter: interfaces.Inverter,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Create a new PV inverter or update an existing one.
+    """Create a new PV inverter or update an existing one.
 
-    If an inverter with the same inverter_id already exists, it will be updated.
-    If the inverter doesn't exist, a new one will be created.
+        If an inverter with the same inverter_id already exists, it will be updated.
+        If the inverter doesn't exist, a new one will be created.
+
+    Args:
+        authorized_company_id: TODO: describe.
+        inverter: TODO: describe.
+        db: TODO: describe.
     """
     if authorized_company_id is None:
         pass
@@ -181,25 +217,27 @@ async def parse_ond_file(
     *,
     file: UploadFile = File(...),
 ):
-    """
-    Upload an OND file and retrieve inverter information from it.
+    """Upload an OND file and retrieve inverter information from it.
 
-    This endpoint accepts an OND file upload, processes it using the parse_ond
-    function,
-    and returns the extracted information in JSON format.
+        This endpoint accepts an OND file upload, processes it using the parse_ond
+        function,
+        and returns the extracted information in JSON format.
 
-    The processing pipeline includes:
-    1. Reading the OND file structure
-    2. Formatting the data into a standardized inverter configuration
-    3. Calculating DC nominal power
-    4. Computing Sandia inverter model parameters
-    5. Validating the resulting configuration
+        The processing pipeline includes:
+        1. Reading the OND file structure
+        2. Formatting the data into a standardized inverter configuration
+        3. Calculating DC nominal power
+        4. Computing Sandia inverter model parameters
+        5. Validating the resulting configuration
 
-    Returns:
-        A JSON object with the following structure:
-        - success: Boolean indicating if parsing was successful
-        - message: Status message
-        - inverter_data: The complete inverter configuration with all parameters
+        Returns:
+            A JSON object with the following structure:
+            - success: Boolean indicating if parsing was successful
+            - message: Status message
+            - inverter_data: The complete inverter configuration with all parameters
+
+    Args:
+        file: TODO: describe.
     """
     try:
         file_content = await file.read()
@@ -230,6 +268,13 @@ async def calculate_and_update_sandia_parameters(
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     # Get the inverter from the database
+    """todo
+
+    Args:
+        inverter_id: TODO: describe.
+        authorized_company_id: TODO: describe.
+        db: TODO: describe.
+    """
     db_inverter = await crud_get_inverter_by_id(
         db=db,
         inverter_id=inverter_id,

@@ -7,6 +7,13 @@ from core.model_list import ModelItem, ModelList
 def get_sensor_type(
     *, db: Session, sensor_type_id: int, return_query: bool = False
 ) -> ModelItem[models.SensorType]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        sensor_type_id: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.SensorType).filter(
         models.SensorType.sensor_type_id == sensor_type_id
     )
@@ -23,6 +30,17 @@ def get_sensor_types(
     unit: str = "",
     return_query: bool = False,
 ) -> ModelList[models.SensorType]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        name_metric: TODO: describe.
+        unit: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.SensorType)
 
     if sensor_type_ids:

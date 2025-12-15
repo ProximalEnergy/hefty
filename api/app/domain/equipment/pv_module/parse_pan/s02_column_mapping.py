@@ -8,12 +8,14 @@ def format_pan_to_pvmodule(
     pan_data: dict[str, Any],
     pan_format: PANformat,
 ) -> dict[str, Any]:
-    """
-    Formats the parsed PAN file data into the structure of the PVModule model.
+    """Formats the parsed PAN file data into the structure of the PVModule model.
 
-    WARNINGS:
-        - Binary PAN files sets length and width to -999.9
+        WARNINGS:
+            - Binary PAN files sets length and width to -999.9
 
+    Args:
+        pan_data: TODO: describe.
+        pan_format: TODO: describe.
     """
     match pan_format:
         case PANformat.TEXT:

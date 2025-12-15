@@ -20,6 +20,13 @@ def _normalize_timestamp(
     value: datetime.datetime | pd.Timestamp | None,
     default_to_start_of_day: bool,
 ) -> pd.Timestamp:
+    """todo
+
+    Args:
+        project: TODO: describe.
+        value: TODO: describe.
+        default_to_start_of_day: TODO: describe.
+    """
     if value is None:
         if default_to_start_of_day:
             normalized = pd.Timestamp.now(tz=project.time_zone).floor("D")
@@ -44,6 +51,16 @@ async def _fetch_timeseries_dataframe(
     end: datetime.datetime,
     operational_db: AsyncSession,
 ) -> pd.DataFrame:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        tags: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        operational_db: TODO: describe.
+    """
     if len(tags) == 0:
         return pd.DataFrame()
 
@@ -102,6 +119,17 @@ async def _get_equipment_analysis_frames_async(
     start: datetime.datetime,
     end: datetime.datetime,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        block_tags: TODO: describe.
+        pcs_tags: TODO: describe.
+        pcs_module_tags: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     async with get_db_session_async(schema=None) as operational_db:
         df_block = await _fetch_timeseries_dataframe(
             project_db=project_db,

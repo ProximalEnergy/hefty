@@ -11,6 +11,12 @@ CUSTOMER_FEEDBACK_LABEL_ID = "a853e6d3-085f-4069-872b-c48ada6b5485"
 
 
 async def get_company_id_by_email(*, client, email: str) -> str | None:
+    """todo
+
+    Args:
+        client: TODO: describe.
+        email: TODO: describe.
+    """
     try:
         domain = email.split("@")[1]
     except IndexError:
@@ -49,6 +55,15 @@ async def create_linear_issue(
     url: str | None = None,
     screenshot_data_uri: str | None = None,
 ):
+    """todo
+
+    Args:
+        title: TODO: describe.
+        description: TODO: describe.
+        user_email: TODO: describe.
+        url: TODO: describe.
+        screenshot_data_uri: TODO: describe.
+    """
     transport = AIOHTTPTransport(
         url="https://api.linear.app/graphql",
         headers={"Authorization": f"{LINEAR_API_KEY}"},

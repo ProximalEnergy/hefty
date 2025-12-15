@@ -11,21 +11,26 @@ def get_project_cmms_devices(
     device_ids: list[int] | None = None,
     return_query: bool = False,
 ) -> ModelList[models.CMMSDevice]:
-    """
-    Get the CMMS devices for a project
+    """Get the CMMS devices for a project
 
-    Parameters:
-    -----------
-    project_db: Session
-        The database session for the project
-    cmms_integration_ids: Optional[list[int]]
-        The list of CMMS integration IDs to filter by
-    device_ids: Optional[list[int]]
-        The list of device IDs to filter by
-    Returns:
-    --------
-    List[models.CMMSDevice]
-        The list of CMMS devices for the project
+        Parameters:
+        -----------
+        project_db: Session
+            The database session for the project
+        cmms_integration_ids: Optional[list[int]]
+            The list of CMMS integration IDs to filter by
+        device_ids: Optional[list[int]]
+            The list of device IDs to filter by
+        Returns:
+        --------
+        List[models.CMMSDevice]
+            The list of CMMS devices for the project
+
+    Args:
+        project_db: TODO: describe.
+        cmms_integration_ids: TODO: describe.
+        device_ids: TODO: describe.
+        return_query: TODO: describe.
     """
     query = project_db.query(models.CMMSDevice).options(
         selectinload(models.CMMSDevice.device),

@@ -22,8 +22,10 @@ class UserDict(TypedDict):
 
 
 def create_user(*, user: UserDict) -> None:
-    """
-    Create a user in Clerk.
+    """Create a user in Clerk.
+
+    Args:
+        user: TODO: describe.
     """
 
     # Generate a random password

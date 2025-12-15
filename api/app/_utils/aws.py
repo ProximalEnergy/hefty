@@ -47,6 +47,13 @@ def _iterate_parameter_pages(
     path: str,
     recursive: bool,
 ) -> Generator[dict[str, Any], None, None]:
+    """todo
+
+    Args:
+        client: TODO: describe.
+        path: TODO: describe.
+        recursive: TODO: describe.
+    """
     try:
         paginator = client.get_paginator("get_parameters_by_path")
         yield from paginator.paginate(
@@ -65,7 +72,13 @@ def get_parameters_by_path(
     region_name: str | None = "us-east-2",
     recursive: bool = False,
 ) -> dict[str, str]:
-    """Retrieve decrypted parameters stored under an SSM parameter path."""
+    """Retrieve decrypted parameters stored under an SSM parameter path.
+
+    Args:
+        path: TODO: describe.
+        region_name: TODO: describe.
+        recursive: TODO: describe.
+    """
 
     session = boto3.session.Session()
     client = session.client(service_name="ssm", region_name=region_name)

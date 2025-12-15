@@ -11,6 +11,12 @@ from core import models
 
 
 async def get_teams(*, db: AsyncSession, company_id: uuid.UUID):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+    """
     query = (
         select(models.Team)
         .filter(models.Team.company_id == company_id)
@@ -21,6 +27,13 @@ async def get_teams(*, db: AsyncSession, company_id: uuid.UUID):
 
 
 async def create_team(*, db: AsyncSession, company_id: uuid.UUID, team: TeamCreate):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+        team: TODO: describe.
+    """
     db_team = models.Team(company_id=company_id, name_long=team.name_long)
     db.add(db_team)
     try:
@@ -35,6 +48,12 @@ async def create_team(*, db: AsyncSession, company_id: uuid.UUID, team: TeamCrea
 async def get_teams_with_members(
     *, db: AsyncSession, company_id: uuid.UUID
 ) -> list[TeamWithMembers]:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+    """
     teams = await get_teams(db=db, company_id=company_id)
     results: list[TeamWithMembers] = []
     for t in teams:
@@ -64,6 +83,13 @@ async def get_teams_with_members(
 
 async def add_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: str):
     # ensure team exists
+    """todo
+
+    Args:
+        db: TODO: describe.
+        team_id: TODO: describe.
+        user_id: TODO: describe.
+    """
     query = select(models.Team).filter(models.Team.team_id == team_id)
     result = await db.execute(query)
     team = result.scalars().first()
@@ -87,6 +113,13 @@ async def add_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: str)
 
 
 async def remove_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: str):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        team_id: TODO: describe.
+        user_id: TODO: describe.
+    """
     query = delete(models.TeamMember).filter(
         models.TeamMember.team_id == team_id, models.TeamMember.user_id == user_id
     )
@@ -95,13 +128,16 @@ async def remove_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: s
 
 
 async def delete_team(*, db: AsyncSession, team_id: uuid.UUID) -> dict[str, int]:
-    """
-    Delete a team and clean up dependent rows that reference it.
+    """Delete a team and clean up dependent rows that reference it.
 
-    Order matters due to FK constraints:
-    1) operational.calendar_item_assignments (FK to admin.teams.team_id)
-    2) admin.team_members (FK to admin.teams.team_id)
-    3) admin.teams
+        Order matters due to FK constraints:
+        1) operational.calendar_item_assignments (FK to admin.teams.team_id)
+        2) admin.team_members (FK to admin.teams.team_id)
+        3) admin.teams
+
+    Args:
+        db: TODO: describe.
+        team_id: TODO: describe.
     """
     # 1) Remove calendar assignments referencing this team (operational schema)
     deleted_assignments = 0
@@ -133,6 +169,13 @@ async def delete_team(*, db: AsyncSession, team_id: uuid.UUID) -> dict[str, int]
 
 
 async def rename_team(*, db: AsyncSession, team_id: uuid.UUID, payload: TeamUpdate):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        team_id: TODO: describe.
+        payload: TODO: describe.
+    """
     query = select(models.Team).filter(models.Team.team_id == team_id)
     result = await db.execute(query)
     team = result.scalars().first()

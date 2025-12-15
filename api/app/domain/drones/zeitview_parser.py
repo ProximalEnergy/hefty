@@ -7,11 +7,20 @@ from app.logger import logger
 
 
 class ZeitviewAPI:
+    """todo"""
+
     BASE_URL = "https://helio-external-api.production.zeitview.com"
 
     def __init__(
         self, *, drone_integration_id: int | None = None, api_key: str | None = None
     ):
+        """todo
+
+        Args:
+            self: TODO: describe.
+            drone_integration_id: TODO: describe.
+            api_key: TODO: describe.
+        """
         if api_key:
             self.api_key = api_key
         elif drone_integration_id:
@@ -41,7 +50,12 @@ class ZeitviewAPI:
 
     @classmethod
     def from_api_key(cls, *, api_key: str):
-        """Create a ZeitviewAPI instance using a direct API key."""
+        """Create a ZeitviewAPI instance using a direct API key.
+
+        Args:
+            cls: TODO: describe.
+            api_key: TODO: describe.
+        """
         return cls(api_key=api_key)
 
     async def _make_request(
@@ -52,7 +66,15 @@ class ZeitviewAPI:
         json_data: dict | None = None,
         max_retries: int = 3,
     ) -> dict[str, Any]:
-        """Make a request to the Zeitview API with retry logic and rate limiting"""
+        """Make a request to the Zeitview API with retry logic and rate limiting
+
+        Args:
+            self: TODO: describe.
+            endpoint: TODO: describe.
+            method: TODO: describe.
+            json_data: TODO: describe.
+            max_retries: TODO: describe.
+        """
         url = f"{self.BASE_URL}{endpoint}"
         logger.debug(f"Making request to: {url}")
         logger.debug(f"Request payload: {json_data}")
@@ -114,7 +136,12 @@ class ZeitviewAPI:
         raise Exception("Max retries exceeded")
 
     async def query_sites(self, *, site_name: str | None = None) -> dict[str, Any]:
-        """Query all sites or filter by site name"""
+        """Query all sites or filter by site name
+
+        Args:
+            self: TODO: describe.
+            site_name: TODO: describe.
+        """
         # According to API spec, only certain fields are allowed in query endpoint
         # We'll query with minimal fields first, then enrich with individual queries
         payload: dict[str, Any] = {
@@ -148,7 +175,12 @@ class ZeitviewAPI:
         return sites_response
 
     async def query_site_by_uuid(self, *, site_uuid: str) -> dict[str, Any]:
-        """Query a site by its UUID"""
+        """Query a site by its UUID
+
+        Args:
+            self: TODO: describe.
+            site_uuid: TODO: describe.
+        """
         payload = {"fields": ["site_id", "site_capacity_mw", "site_name", "site_uuid"]}
         return await self._make_request(
             endpoint=f"/sites/{site_uuid}/query", json_data=payload
@@ -157,7 +189,13 @@ class ZeitviewAPI:
     async def query_site_inspections(
         self, *, site_uuid: str, only_latest: bool = False
     ) -> dict[str, Any]:
-        """Query all inspections for a specific site, handling pagination."""
+        """Query all inspections for a specific site, handling pagination.
+
+        Args:
+            self: TODO: describe.
+            site_uuid: TODO: describe.
+            only_latest: TODO: describe.
+        """
         all_inspections = []
         page = 1
         page_size = 200  # Fetch 200 at a time to be more efficient

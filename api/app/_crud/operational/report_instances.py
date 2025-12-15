@@ -15,6 +15,15 @@ async def get_report_instances(
     report_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_ids: TODO: describe.
+        is_visible: TODO: describe.
+        report_type_ids: TODO: describe.
+        deep: TODO: describe.
+    """
     query = select(models.ReportInstance)
     if project_ids is not None:
         query = query.where(models.ReportInstance.project_id.in_(project_ids))
@@ -90,6 +99,11 @@ async def bulk_upsert_report_instances(
 
 
 def _get_report_instances_options(*, deep: bool):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = selectinload(models.ReportInstance.report_type)
     else:

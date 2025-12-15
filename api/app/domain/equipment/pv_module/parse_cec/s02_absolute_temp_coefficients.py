@@ -5,9 +5,11 @@ def calc_absolute_temp_coefficients(
     *,
     cec_pv_module: dict,
 ) -> dict:
-    """
-    Calculate the absolute temperature coefficients for a PV module if they are not
-    provided.
+    """Calculate the absolute temperature coefficients for a PV module if they are not
+        provided.
+
+    Args:
+        cec_pv_module: TODO: describe.
     """
     # --- Quality Control of Current Temperature Coefficients ---
     if (cec_pv_module.get("alpha_isc") is None) & (

@@ -11,12 +11,32 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get API Key */
+        /**
+         * Get API Key
+         * @description todo
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         */
         get: operations["get_api_key_v1_admin_api_key_get"];
         put?: never;
-        /** Create API Key */
+        /**
+         * Create API Key
+         * @description todo
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["create_api_key_v1_admin_api_key_post"];
-        /** Delete API Key */
+        /**
+         * Delete API Key
+         * @description todo
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
+         */
         delete: operations["delete_api_key_v1_admin_api_key_delete"];
         options?: never;
         head?: never;
@@ -33,6 +53,9 @@ export interface paths {
         /**
          * Get all permissions
          * @description Get all available permissions in the system. Requires admin access.
+         *
+         *     Args:
+         *         db: TODO: describe.
          */
         get: operations["get_all_permissions_v1_admin_permissions_get"];
         put?: never;
@@ -53,6 +76,11 @@ export interface paths {
         /**
          * Get user permissions by project
          * @description Get all permissions for the requesting user at a given project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_user_permissions_v1_admin_permissions_projects__project_id__user_get"];
         put?: never;
@@ -75,11 +103,23 @@ export interface paths {
         /**
          * Add User Permission
          * @description Add a user permission for a user at a project. Requires admin access.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         user_id: TODO: describe.
+         *         user_permission: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["add_user_permission_v1_admin_permissions_projects__project_id__users__user_id__post"];
         /**
          * Delete User Permission
          * @description Delete a user permission for a user at a project. Requires admin access.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         user_id: TODO: describe.
+         *         user_permission: TODO: describe.
+         *         db: TODO: describe.
          */
         delete: operations["delete_user_permission_v1_admin_permissions_projects__project_id__users__user_id__delete"];
         options?: never;
@@ -97,6 +137,11 @@ export interface paths {
         /**
          * Get company permissions by project
          * @description Get all permissions for the requesting user's company at a given project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_company_permissions_v1_admin_permissions_projects__project_id__company_get"];
         put?: never;
@@ -117,7 +162,12 @@ export interface paths {
         /**
          * Get company users with permissions by project
          * @description Get all users, and their permissions, with access to a given project
-         *     for the requesting user's company. Requires admin access.
+         *         for the requesting user's company. Requires admin access.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_users_permissions_v1_admin_permissions_projects__project_id__company_users_get"];
         put?: never;
@@ -138,11 +188,21 @@ export interface paths {
         /**
          * Get Report Preferences
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_report_preferences_v1_admin_report_preferences_get"];
         /**
          * Update Report Preferences
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["update_report_preferences_v1_admin_report_preferences_put"];
         post?: never;
@@ -185,7 +245,16 @@ export interface paths {
          *             Requires admin permissions.
          */
         get: operations["get_notification_emails_v1_admin_subscriptions_notifications__project_id__get"];
-        /** Update Notification Subscription */
+        /**
+         * Update Notification Subscription
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         data: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         put: operations["update_notification_subscription_v1_admin_subscriptions_notifications__project_id__put"];
         post?: never;
         delete?: never;
@@ -206,7 +275,16 @@ export interface paths {
          * @description Get all emails subscribed to reports for a project.
          */
         get: operations["get_report_emails_v1_admin_subscriptions_reports__project_id__get"];
-        /** Update Report Subscription */
+        /**
+         * Update Report Subscription
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         data: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         put: operations["update_report_subscription_v1_admin_subscriptions_reports__project_id__put"];
         post?: never;
         delete?: never;
@@ -222,7 +300,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Company Projects */
+        /**
+         * Get Company Projects
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         get: operations["get_company_projects_v1_admin_company_projects_projects__project_id__get"];
         put?: never;
         post?: never;
@@ -243,8 +329,13 @@ export interface paths {
          * Get All Company Projects For Project
          * @description Get all companies with access to a project.
          *
-         *     This endpoint is used by the event chat visibility dropdown to show
-         *     which companies can see messages posted to the project.
+         *         This endpoint is used by the event chat visibility dropdown to show
+         *         which companies can see messages posted to the project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_all_company_projects_for_project_v1_admin_company_projects_projects__project_id__all_companies_get"];
         put?: never;
@@ -262,10 +353,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Companies */
+        /**
+         * Get Companies
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         company_ids: TODO: describe.
+         *         name_shorts: TODO: describe.
+         */
         get: operations["get_companies_v1_admin_companies_get"];
         put?: never;
-        /** Create Company */
+        /**
+         * Create Company
+         * @description todo
+         *
+         *     Args:
+         *         company: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["create_company_v1_admin_companies_post"];
         delete?: never;
         options?: never;
@@ -280,7 +386,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search Companies */
+        /**
+         * Search Companies
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         q: TODO: describe.
+         *         limit: TODO: describe.
+         */
         get: operations["search_companies_v1_admin_companies_search_get"];
         put?: never;
         post?: never;
@@ -297,10 +411,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Teams */
+        /**
+         * Get Teams
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         company_id: TODO: describe.
+         */
         get: operations["get_teams_v1_admin_teams_get"];
         put?: never;
-        /** Create Team */
+        /**
+         * Create Team
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         team: TODO: describe.
+         */
         post: operations["create_team_v1_admin_teams_post"];
         delete?: never;
         options?: never;
@@ -318,6 +447,10 @@ export interface paths {
         /**
          * Get Company Teams
          * @description Get teams for the current user's company. No admin required.
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_company_teams_v1_admin_teams_company_get"];
         put?: never;
@@ -338,6 +471,10 @@ export interface paths {
         /**
          * Get Company Teams With Members
          * @description Get teams with members for the current user's company. No admin required.
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_company_teams_with_members_v1_admin_teams_company_members_get"];
         put?: never;
@@ -355,7 +492,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Teams With Members */
+        /**
+         * Get Teams With Members
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         company_id: TODO: describe.
+         */
         get: operations["get_teams_with_members_v1_admin_teams_members_get"];
         put?: never;
         post?: never;
@@ -374,7 +518,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add Member */
+        /**
+         * Add Member
+         * @description todo
+         *
+         *     Args:
+         *         team_id: TODO: describe.
+         *         payload: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["add_member_v1_admin_teams__team_id__members_post"];
         delete?: never;
         options?: never;
@@ -392,7 +544,15 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Remove Member */
+        /**
+         * Remove Member
+         * @description todo
+         *
+         *     Args:
+         *         team_id: TODO: describe.
+         *         user_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         delete: operations["remove_member_v1_admin_teams__team_id__members__user_id__delete"];
         options?: never;
         head?: never;
@@ -409,11 +569,26 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Team */
+        /**
+         * Delete Team
+         * @description todo
+         *
+         *     Args:
+         *         team_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         delete: operations["delete_team_v1_admin_teams__team_id__delete"];
         options?: never;
         head?: never;
-        /** Update Team */
+        /**
+         * Update Team
+         * @description todo
+         *
+         *     Args:
+         *         team_id: TODO: describe.
+         *         payload: TODO: describe.
+         *         db: TODO: describe.
+         */
         patch: operations["update_team_v1_admin_teams__team_id__patch"];
         trace?: never;
     };
@@ -424,7 +599,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Users */
+        /**
+         * Get Users
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         company_ids: TODO: describe.
+         *         user_ids: TODO: describe.
+         *         include_image_urls: TODO: describe.
+         *         api_prod: TODO: describe.
+         */
         get: operations["get_users_v1_admin_users_get"];
         put?: never;
         post?: never;
@@ -441,7 +626,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Self */
+        /**
+         * Get Self
+         * @description todo
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         */
         get: operations["get_self_v1_admin_users_self_get"];
         put?: never;
         post?: never;
@@ -460,7 +651,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create User */
+        /**
+         * Create User
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         */
         post: operations["create_user_v1_admin_users_create_with_clerk_post"];
         delete?: never;
         options?: never;
@@ -478,7 +676,14 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete User */
+        /**
+         * Delete User
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_id: TODO: describe.
+         */
         delete: operations["delete_user_v1_admin_users__user_id__delete"];
         options?: never;
         head?: never;
@@ -496,6 +701,10 @@ export interface paths {
         /**
          * Update Self Clerk Theme
          * @description Update the current user's theme in Clerk.
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         *         request: TODO: describe.
          */
         put: operations["update_self_clerk_theme_v1_admin_users_self_clerk_theme_put"];
         post?: never;
@@ -516,6 +725,10 @@ export interface paths {
         /**
          * Update Self Clerk Demo Mode
          * @description Update the current user's demo mode in Clerk.
+         *
+         *     Args:
+         *         user_data: TODO: describe.
+         *         request: TODO: describe.
          */
         put: operations["update_self_clerk_demo_mode_v1_admin_users_self_clerk_demo_mode_put"];
         post?: never;
@@ -534,7 +747,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Update User Projects */
+        /**
+         * Update User Projects
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_ids: TODO: describe.
+         *         operational_project_ids: TODO: describe.
+         */
         post: operations["update_user_projects_v1_admin_user_projects_update_user_projects_post"];
         delete?: never;
         options?: never;
@@ -552,6 +773,10 @@ export interface paths {
         /**
          * Get User Projects
          * @description Get all user projects with favorited status for a user
+         *
+         *     Args:
+         *         user_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_user_projects_v1_admin_user_projects__user_id__get"];
         put?: never;
@@ -578,6 +803,12 @@ export interface paths {
         /**
          * Update Project Favorite
          * @description Update the is_favorited field for a user's project
+         *
+         *     Args:
+         *         user_id: TODO: describe.
+         *         project_id: TODO: describe.
+         *         favorite_update: TODO: describe.
+         *         db: TODO: describe.
          */
         patch: operations["update_project_favorite_v1_admin_user_projects__user_id__projects__project_id__favorite_patch"];
         trace?: never;
@@ -592,6 +823,10 @@ export interface paths {
         /**
          * Get User Favorited Kpi Types Route
          * @description Get all favorited KPI types for a given user
+         *
+         *     Args:
+         *         user_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_user_favorited_kpi_types_route_v1_admin_user_kpi_types_favorite_get"];
         put?: never;
@@ -602,6 +837,10 @@ export interface paths {
         /**
          * Update Kpi Type Favorite
          * @description Update the is_favorited field for a user's kpi_type
+         *
+         *     Args:
+         *         favorite_update: TODO: describe.
+         *         db: TODO: describe.
          */
         patch: operations["update_kpi_type_favorite_v1_admin_user_kpi_types_favorite_patch"];
         trace?: never;
@@ -613,7 +852,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get User Type */
+        /**
+         * Get User Type
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         get: operations["get_user_type_v1_admin_user_type_get"];
         put?: never;
         post?: never;
@@ -633,6 +879,12 @@ export interface paths {
         /**
          * Get Subscribed Alert Emails
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         api_prod: TODO: describe.
          */
         get: operations["get_subscribed_alert_emails_v1_admin_subscribed_alert_emails_get"];
         put?: never;
@@ -653,6 +905,12 @@ export interface paths {
         /**
          * Get Subscribed Report Emails
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         api_prod: TODO: describe.
          */
         get: operations["get_subscribed_report_emails_v1_admin_subscribed_report_emails_get"];
         put?: never;
@@ -670,7 +928,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get User Email */
+        /**
+         * Get User Email
+         * @description todo
+         *
+         *     Args:
+         *         user_id: TODO: describe.
+         *         api_prod: TODO: describe.
+         */
         get: operations["get_user_email_v1_admin_user_email_get"];
         put?: never;
         post?: never;
@@ -687,7 +952,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get User Emails */
+        /**
+         * Get User Emails
+         * @description todo
+         *
+         *     Args:
+         *         api_prod: TODO: describe.
+         *         user_ids: TODO: describe.
+         */
         get: operations["get_user_emails_v1_admin_user_emails_get"];
         put?: never;
         post?: never;
@@ -704,7 +976,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pcs */
+        /**
+         * Get Pcs
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_pcs_v1_analytics__project_id__gis_pcs_get"];
         put?: never;
         post?: never;
@@ -721,7 +1004,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Tracker */
+        /**
+         * Get Tracker
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_tracker_v1_analytics__project_id__gis_tracker_get"];
         put?: never;
         post?: never;
@@ -738,7 +1030,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Tracker By Block */
+        /**
+         * Get Tracker By Block
+         * @description todo
+         *
+         *     Args:
+         *         block_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_tracker_by_block_v1_analytics__project_id__gis_tracker_by_block__block_id__get"];
         put?: never;
         post?: never;
@@ -755,7 +1057,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Bess Enclosure */
+        /**
+         * Get Bess Enclosure
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         */
         get: operations["get_bess_enclosure_v1_analytics__project_id__gis_bess_enclosure_get"];
         put?: never;
         post?: never;
@@ -775,9 +1083,19 @@ export interface paths {
         /**
          * Get Devices In Viewport
          * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *     Optionally filters by device_type_ids.
-         *     If power_device_type_id is provided, fetches and includes latest actual/expected power
-         *     for devices matching that type within the viewport.
+         *         Optionally filters by device_type_ids.
+         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
+         *         for devices matching that type within the viewport.
+         *
+         *     Args:
+         *         north: TODO: describe.
+         *         east: TODO: describe.
+         *         south: TODO: describe.
+         *         west: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         power_device_type_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_devices_in_viewport_v1_analytics__project_id__gis_devices_in_viewport_get"];
         put?: never;
@@ -795,7 +1113,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Combiner Block Performance */
+        /**
+         * Get Combiner Block Performance
+         * @description todo
+         *
+         *     Args:
+         *         block_device_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_combiner_block_performance_v1_analytics__project_id__gis_combiner__block_device_id__get"];
         put?: never;
         post?: never;
@@ -812,7 +1138,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Geo */
+        /**
+         * Get Project Geo
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_project_geo_v1_analytics__project_id__geo_get"];
         put?: never;
         post?: never;
@@ -829,7 +1164,23 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Time Series */
+        /**
+         * Get Time Series
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         parent_device_id: TODO: describe.
+         *         sensor_type_name_shorts: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
+         */
         get: operations["get_time_series_v1_analytics__project_id__time_series_get"];
         put?: never;
         post?: never;
@@ -846,7 +1197,21 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Heatmap */
+        /**
+         * Get Heatmap
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         sensor_type_name_short: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         agg: TODO: describe.
+         *         fillna_zero: TODO: describe.
+         */
         get: operations["get_heatmap_v1_analytics__project_id__heatmap__sensor_type_name_short__get"];
         put?: never;
         post?: never;
@@ -863,7 +1228,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Expected Power Endpoint */
+        /**
+         * Get Expected Power Endpoint
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_expected_power_endpoint_v1_analytics__project_id__expecter_power_get"];
         put?: never;
         post?: never;
@@ -880,7 +1256,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Meter Power And Expected Power */
+        /**
+         * Get Meter Power And Expected Power
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_meter_power_and_expected_power_v1_analytics__project_id__meter_power_and_expected_power_get"];
         put?: never;
         post?: never;
@@ -900,6 +1286,13 @@ export interface paths {
         /**
          * Get Equipment Analysis Combiner
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
          */
         get: operations["get_equipment_analysis_combiner_v1_analytics__project_id__equipment_analysis_combiner_get"];
         put?: never;
@@ -917,7 +1310,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Weather */
+        /**
+         * Get Project Weather
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_project_weather_v1_analytics__project_id__project_weather_get"];
         put?: never;
         post?: never;
@@ -934,7 +1334,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Weather Forecast */
+        /**
+         * Get Project Weather Forecast
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_project_weather_forecast_v1_analytics__project_id__project_weather_forecast_get"];
         put?: never;
         post?: never;
@@ -951,7 +1358,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Clearsky Poa */
+        /**
+         * Get Clearsky Poa
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         resample_rate: TODO: describe.
+         */
         get: operations["get_clearsky_poa_v1_analytics__project_id__clearsky_poa_get"];
         put?: never;
         post?: never;
@@ -968,7 +1386,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Degradation Poa */
+        /**
+         * Get Degradation Poa
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_degradation_poa_v1_analytics__project_id__degradation_poa_get"];
         put?: never;
         post?: never;
@@ -985,7 +1413,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Dc Amperage Report V2 */
+        /**
+         * Dc Amperage Report V2
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         min_poa: TODO: describe.
+         *         max_poa_1d: TODO: describe.
+         *         max_poa_std: TODO: describe.
+         *         rolling_window: TODO: describe.
+         *         use_poa_1d: TODO: describe.
+         *         use_poa_std: TODO: describe.
+         *         resample_rate: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         async_project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["dc_amperage_report_v2_v1_analytics__project_id__dc_amperage_report_v2_get"];
         put?: never;
         post?: never;
@@ -1004,15 +1450,12 @@ export interface paths {
         };
         /**
          * Combiner Correlation Analysis
-         * @description Analyze combiner box correlations to identify potential sensor swaps using AWS Lambda.
+         * @description todo
          *
          *     Args:
-         *         project_id: UUID of the project
-         *         analysis_date: Optional date to analyze. If None, uses yesterday
-         *         block_names: Optional list of block names to analyze. If None, analyzes all blocks
-         *
-         *     Returns:
-         *         dict: Analysis results including recommended swaps and correlation matrices
+         *         analysis_date: TODO: describe.
+         *         block_names: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["combiner_correlation_analysis_v1_analytics__project_id__combiner_correlation_analysis_get"];
         put?: never;
@@ -1030,7 +1473,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Tracking Angles */
+        /**
+         * Get Tracking Angles
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_tracking_angles_v1_analytics__project_id__tracking_angles_get"];
         put?: never;
         post?: never;
@@ -1052,6 +1503,10 @@ export interface paths {
         /**
          * Analyze Battery Settlement
          * @description Analyze battery settlement data using AI and return a single formatted text.
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["analyze_battery_settlement_v1_ai_battery_settlement_analysis_post"];
         delete?: never;
@@ -1073,8 +1528,12 @@ export interface paths {
          * Generate Daily Performance Summary
          * @description Generate an AI-written summary of daily project performance.
          *
-         *     Uses OpenAI to analyze key performance metrics and provide a written
-         *     summary of the project's performance for the selected day.
+         *         Uses OpenAI to analyze key performance metrics and provide a written
+         *         summary of the project's performance for the selected day.
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["generate_daily_performance_summary_v1_ai_daily_performance_summary_post"];
         delete?: never;
@@ -1095,7 +1554,11 @@ export interface paths {
         /**
          * Create Voice Chat Session
          * @description Create a new voice chat session by generating a client ephemeral token.
-         *     This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+         *         This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["create_voice_chat_session_v1_ai_voice_chat_session_post"];
         delete?: never;
@@ -1116,7 +1579,11 @@ export interface paths {
         /**
          * Ensure Vector Store
          * @description Ensure an OpenAI vector store exists for the provided file id. If needed, create it.
-         *     Returns the vector_store_id.
+         *         Returns the vector_store_id.
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["ensure_vector_store_v1_ai_vector_store_ensure_post"];
         delete?: never;
@@ -1138,8 +1605,12 @@ export interface paths {
          * Suggest Root Cause
          * @description Suggest a root cause for each (IR, RGB) signal pair.
          *
-         *     Uses OpenAI Responses API to select the best candidate root cause
-         *     id from the provided list, based on IR/RGB signals.
+         *         Uses OpenAI Responses API to select the best candidate root cause
+         *         id from the provided list, based on IR/RGB signals.
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["suggest_root_cause_v1_ai_root_cause_suggest_post"];
         delete?: never;
@@ -1155,7 +1626,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health Check */
+        /**
+         * Health Check
+         * @description todo
+         */
         get: operations["health_check_v1_commissioning_projects__project_id__system_health_get"];
         put?: never;
         post?: never;
@@ -1173,7 +1647,15 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** read google sheets data into the s3 parquet */
+        /**
+         * read google sheets data into the s3 parquet
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         put: operations["import_google_sheet_route_v1_commissioning_projects__project_id__system_import_put"];
         post?: never;
         delete?: never;
@@ -1189,7 +1671,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Settlement Point Markets */
+        /**
+         * Get Settlement Point Markets
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         */
         get: operations["get_settlement_point_markets_v1_development_ercot_settlement_point_markets_get"];
         put?: never;
         post?: never;
@@ -1206,7 +1694,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Settlement Point Types */
+        /**
+         * Get Settlement Point Types
+         * @description todo
+         *
+         *     Args:
+         *         name_long: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_settlement_point_types_v1_development_ercot_settlement_point_types_get"];
         put?: never;
         post?: never;
@@ -1223,7 +1718,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Settlement Points */
+        /**
+         * Get Settlement Points
+         * @description todo
+         *
+         *     Args:
+         *         deep: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_settlement_points_v1_development_ercot_settlement_points_get"];
         put?: never;
         post?: never;
@@ -1240,7 +1742,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Qses */
+        /**
+         * Get Qses
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         */
         get: operations["get_qses_v1_development_ercot_qses_get"];
         put?: never;
         post?: never;
@@ -1257,7 +1765,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Dmes */
+        /**
+         * Get Dmes
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         */
         get: operations["get_dmes_v1_development_ercot_dmes_get"];
         put?: never;
         post?: never;
@@ -1274,7 +1788,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Resources */
+        /**
+         * Get Resources
+         * @description todo
+         *
+         *     Args:
+         *         deep: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_resources_v1_development_ercot_resources_get"];
         put?: never;
         post?: never;
@@ -1291,7 +1812,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Resource */
+        /**
+         * Get Resource
+         * @description todo
+         *
+         *     Args:
+         *         resource_id: TODO: describe.
+         *         deep: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_resource_v1_development_ercot_resources__resource_id__get"];
         put?: never;
         post?: never;
@@ -1308,7 +1837,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Resource Net Power */
+        /**
+         * Get Resource Net Power
+         * @description todo
+         *
+         *     Args:
+         *         resource_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_resource_net_power_v1_development_ercot_resources__resource_id__net_power_get"];
         put?: never;
         post?: never;
@@ -1325,7 +1861,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Prices */
+        /**
+         * Get Prices
+         * @description todo
+         *
+         *     Args:
+         *         settlement_point_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_prices_v1_development_ercot_prices_get"];
         put?: never;
         post?: never;
@@ -1344,7 +1889,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create Feedback */
+        /**
+         * Create Feedback
+         * @description todo
+         *
+         *     Args:
+         *         user_id: TODO: describe.
+         *         email: TODO: describe.
+         *         subject: TODO: describe.
+         *         url: TODO: describe.
+         *         comment: TODO: describe.
+         *         screenshot: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["create_feedback_v1_feedback_post"];
         delete?: never;
         options?: never;
@@ -1433,7 +1990,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Calendar Items */
+        /**
+         * Get Calendar Items
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         notifications_only: TODO: describe.
+         */
         get: operations["get_calendar_items"];
         put?: never;
         post?: never;
@@ -1450,7 +2014,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Calendar Item Exceptions */
+        /**
+         * Get Calendar Item Exceptions
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         calendar_item_ids: TODO: describe.
+         */
         get: operations["get_calendar_item_exceptions_v1_operational_calendar_item_exceptions_get"];
         put?: never;
         post?: never;
@@ -1467,10 +2038,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Cec Pv Inverters */
+        /**
+         * Get Cec Pv Inverters
+         * @description todo
+         *
+         *     Args:
+         *         cec_pv_inverter_ids: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_cec_pv_inverters_v1_operational_cec_pv_inverters_get"];
         put?: never;
-        /** Upsert Cec Pv Inverters Bulk */
+        /**
+         * Upsert Cec Pv Inverters Bulk
+         * @description todo
+         *
+         *     Args:
+         *         inverters: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["upsert_cec_pv_inverters_bulk_v1_operational_cec_pv_inverters_post"];
         delete?: never;
         options?: never;
@@ -1485,10 +2070,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Cec Pv Modules */
+        /**
+         * Get Cec Pv Modules
+         * @description todo
+         *
+         *     Args:
+         *         cec_pv_module_ids: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules_get"];
         put?: never;
-        /** Upsert Cec Pv Modules Bulk */
+        /**
+         * Upsert Cec Pv Modules Bulk
+         * @description todo
+         *
+         *     Args:
+         *         modules: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules_post"];
         delete?: never;
         options?: never;
@@ -1503,7 +2102,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Cec Pv Modules In Proximal Format */
+        /**
+         * Get Cec Pv Modules In Proximal Format
+         * @description todo
+         *
+         *     Args:
+         *         cec_pv_module_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_cec_pv_modules_in_proximal_format_v1_operational_cec_pv_modules_proximal_format_get"];
         put?: never;
         post?: never;
@@ -1520,7 +2126,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Cec Pv Module Ids */
+        /**
+         * Get Cec Pv Module Ids
+         * @description todo
+         *
+         *     Args:
+         *         pv_module_manufacturer: TODO: describe.
+         *         pv_module_model: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_cec_pv_module_ids_v1_operational_cec_pv_modules_ids_get"];
         put?: never;
         post?: never;
@@ -1541,10 +2155,15 @@ export interface paths {
          * Get CEC PV module IDs based on manufacturer and model pairs
          * @description Get CEC PV module IDs for each manufacturer and model pair.
          *
-         *     Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
-         *     that don't exist in the database.
+         *         Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
+         *         that don't exist in the database.
          *
-         *     The input lists must have the same length.
+         *         The input lists must have the same length.
+         *
+         *     Args:
+         *         manufacturers: TODO: describe.
+         *         models: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_cec_pv_module_ids_by_manufacturer_and_model_v1_operational_cec_pv_modules_lookup_ids_get"];
         put?: never;
@@ -1562,7 +2181,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all CEC PV module manufacturers from the database */
+        /**
+         * Get all CEC PV module manufacturers from the database
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_cec_pv_module_manufacturers_v1_operational_cec_pv_modules_manufacturers_get"];
         put?: never;
         post?: never;
@@ -1579,7 +2204,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all CEC PV module models from the database, optionally filtered by a selected manufacturer */
+        /**
+         * Get all CEC PV module models from the database, optionally filtered by a selected manufacturer
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         manufacturer: TODO: describe.
+         */
         get: operations["get_proximal_cec_pv_module_models_v1_operational_cec_pv_modules_models_get"];
         put?: never;
         post?: never;
@@ -1596,7 +2228,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Data Types */
+        /**
+         * Get Data Types
+         * @description todo
+         *
+         *     Args:
+         *         data_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_data_types_v1_operational_data_types_get"];
         put?: never;
         post?: never;
@@ -1613,7 +2253,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Data Type */
+        /**
+         * Get Data Type
+         * @description todo
+         *
+         *     Args:
+         *         data_type_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_data_type_v1_operational_data_types__data_type_id__get"];
         put?: never;
         post?: never;
@@ -1630,7 +2277,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Device Types */
+        /**
+         * Get Device Types
+         * @description todo
+         *
+         *     Args:
+         *         device_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         name_long: TODO: describe.
+         *         only_included_by_default: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_device_types"];
         put?: never;
         post?: never;
@@ -1647,7 +2304,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Device Type */
+        /**
+         * Get Device Type
+         * @description todo
+         *
+         *     Args:
+         *         device_type_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_device_type_by_id"];
         put?: never;
         post?: never;
@@ -1664,7 +2328,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Failure Modes */
+        /**
+         * Get Failure Modes
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         failure_mode_ids: TODO: describe.
+         */
         get: operations["get_failure_modes"];
         put?: never;
         post?: never;
@@ -1684,6 +2355,13 @@ export interface paths {
         /**
          * Get Project Types Legacy
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         name_long: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_project_types_legacy"];
         put?: never;
@@ -1704,6 +2382,11 @@ export interface paths {
         /**
          * Get Project Type Legacy
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_type_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_project_type_by_id_legacy"];
         put?: never;
@@ -1725,14 +2408,20 @@ export interface paths {
          * Get Event Message Reactions
          * @description Get all reactions for a specific event message or all reactions for an event.
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
-         *     Query Parameters:
-         *         event_message_id: The ID of the message to get reactions for (optional)
-         *         event_id: The ID of the event to get all reactions for (optional)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Query Parameters:
+         *             event_message_id: The ID of the message to get reactions for (optional)
+         *             event_id: The ID of the event to get all reactions for (optional)
          *
-         *     Returns:
-         *         List of reactions for the message(s)
+         *         Returns:
+         *             List of reactions for the message(s)
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
         put?: never;
@@ -1740,14 +2429,19 @@ export interface paths {
          * Toggle Event Message Reaction
          * @description Toggle a reaction on a message (add if not exists, remove if exists).
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
-         *     Request Body:
-         *         event_message_id: The ID of the message
-         *         reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Request Body:
+         *             event_message_id: The ID of the message
+         *             reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
          *
-         *     Returns:
-         *         The created reaction (if added) or the deleted reaction info (if removed)
+         *         Returns:
+         *             The created reaction (if added) or the deleted reaction info (if removed)
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         reaction: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
         delete?: never;
@@ -1767,13 +2461,18 @@ export interface paths {
          * Get Event Messages
          * @description Get all non-deleted messages for a specific event.
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
-         *     Query Parameters:
-         *         event_id: The ID of the event to get messages for
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Query Parameters:
+         *             event_id: The ID of the event to get messages for
          *
-         *     Returns:
-         *         List of event messages, ordered by created_at (ascending)
+         *         Returns:
+         *             List of event messages, ordered by created_at (ascending)
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
         put?: never;
@@ -1781,20 +2480,28 @@ export interface paths {
          * Create Event Message
          * @description Create a new event message.
          *
-         *     - Extracts @mentions from the message body
-         *     - Stores mentions as comma-separated usernames
-         *     - Sends email notifications in the background to:
-         *         - First message: all company users
-         *         - Subsequent messages: users who have posted (excluding muted users)
+         *         - Extracts @mentions from the message body
+         *         - Stores mentions as comma-separated usernames
+         *         - Sends email notifications in the background to:
+         *             - First message: all company users
+         *             - Subsequent messages: users who have posted (excluding muted users)
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
-         *     Request Body:
-         *         event_id: The ID of the event
-         *         body: The message content (may contain @mentions)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Request Body:
+         *             event_id: The ID of the event
+         *             body: The message content (may contain @mentions)
          *
-         *     Returns:
-         *         The created event message
+         *         Returns:
+         *             The created event message
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         message: TODO: describe.
+         *         background_tasks: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         api_prod: TODO: describe.
          */
         post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
         delete?: never;
@@ -1814,11 +2521,16 @@ export interface paths {
          * Get Event Chat Notification Status
          * @description Get event chat notification status for a project.
          *
-         *     Path Parameters:
-         *         project_id: The project ID
+         *         Path Parameters:
+         *             project_id: The project ID
          *
-         *     Returns:
-         *         {"enabled": bool} - True if enabled, False if disabled
+         *         Returns:
+         *             {"enabled": bool} - True if enabled, False if disabled
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_event_chat_notification_status_v1_operational_projects__project_id__event_messages_notifications_status_get"];
         put?: never;
@@ -1841,11 +2553,17 @@ export interface paths {
          * Update Event Chat Notification Setting
          * @description Update event chat notification setting for a project.
          *
-         *     Query Parameters:
-         *         enabled: True to enable, False to disable
+         *         Query Parameters:
+         *             enabled: True to enable, False to disable
          *
-         *     Returns:
-         *         {"enabled": bool} - The new enabled status
+         *         Returns:
+         *             {"enabled": bool} - The new enabled status
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         enabled: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         put: operations["update_event_chat_notification_setting_v1_operational_projects__project_id__event_messages_notifications_put"];
         post?: never;
@@ -1867,17 +2585,24 @@ export interface paths {
          * Update Event Message
          * @description Update an existing event message.
          *
-         *     Validates:
-         *     - User owns the message
-         *     - Message exists and is not deleted
+         *         Validates:
+         *         - User owns the message
+         *         - Message exists and is not deleted
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
-         *     Request Body:
-         *         body: The updated message content (may contain @mentions)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Request Body:
+         *             body: The updated message content (may contain @mentions)
          *
-         *     Returns:
-         *         The updated event message
+         *         Returns:
+         *             The updated event message
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         message: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
         post?: never;
@@ -1885,15 +2610,21 @@ export interface paths {
          * Delete Event Message
          * @description Delete an existing event message (soft delete).
          *
-         *     Validates:
-         *     - User owns the message
-         *     - Message exists
+         *         Validates:
+         *         - User owns the message
+         *         - Message exists
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
          *
-         *     Returns:
-         *         The deleted event message (with deleted_at set)
+         *         Returns:
+         *             The deleted event message (with deleted_at set)
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
         options?: never;
@@ -1914,11 +2645,16 @@ export interface paths {
          * Toggle Event Chat Mute
          * @description Toggle mute status for an event chat.
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
          *
-         *     Returns:
-         *         {"muted": bool} - True if muted, False if unmuted
+         *         Returns:
+         *             {"muted": bool} - True if muted, False if unmuted
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
         delete?: never;
@@ -1938,11 +2674,16 @@ export interface paths {
          * Get Event Chat Mute Status
          * @description Get mute status for an event chat.
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
          *
-         *     Returns:
-         *         {"muted": bool} - True if muted, False if not muted
+         *         Returns:
+         *             {"muted": bool} - True if muted, False if not muted
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
         put?: never;
@@ -1966,23 +2707,30 @@ export interface paths {
          * Upload Event Message Image
          * @description Upload an image for an event message.
          *
-         *     Validates:
-         *     - User has access to the event (via message ownership or event access)
-         *     - File is a valid image type (jpeg, png, gif, webp)
-         *     - File size is within limit (10MB)
+         *         Validates:
+         *         - User has access to the event (via message ownership or event access)
+         *         - File is a valid image type (jpeg, png, gif, webp)
+         *         - File size is within limit (10MB)
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
          *
-         *     Returns:
-         *         {
-         *             "event_message_image_id": UUID,
-         *             "s3_key": str,
-         *             "filename": str,
-         *             "content_type": str,
-         *             "file_size": int,
-         *             "presigned_url": str
-         *         }
+         *         Returns:
+         *             {
+         *                 "event_message_image_id": UUID,
+         *                 "s3_key": str,
+         *                 "filename": str,
+         *                 "content_type": str,
+         *                 "file_size": int,
+         *                 "presigned_url": str
+         *             }
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         file: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
         delete?: never;
@@ -2002,13 +2750,19 @@ export interface paths {
          * Get Event Message Image Url
          * @description Get a presigned URL for an event message image.
          *
-         *     Validates user has access to the event before generating URL.
+         *         Validates user has access to the event before generating URL.
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
          *
-         *     Returns:
-         *         {"presigned_url": str, "s3_key": str}
+         *         Returns:
+         *             {"presigned_url": str, "s3_key": str}
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         image_id: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
         put?: never;
@@ -2030,11 +2784,17 @@ export interface paths {
          * Get Event Message Images
          * @description Get all images for an event message with presigned URLs.
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
          *
-         *     Returns:
-         *         List of image objects with presigned URLs
+         *         Returns:
+         *             List of image objects with presigned URLs
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         event_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
         put?: never;
@@ -2058,17 +2818,22 @@ export interface paths {
          * Get Event Chat Notification Statuses Batch
          * @description Get event chat notification statuses for multiple projects in a single request.
          *
-         *     Request Body:
-         *         project_ids: List of project IDs to get statuses for
+         *         Request Body:
+         *             project_ids: List of project IDs to get statuses for
          *
-         *     Returns:
-         *         {
-         *             "statuses": {
-         *                 "project_id_1": true,
-         *                 "project_id_2": false,
-         *                 ...
+         *         Returns:
+         *             {
+         *                 "statuses": {
+         *                     "project_id_1": true,
+         *                     "project_id_2": false,
+         *                     ...
+         *                 }
          *             }
-         *         }
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["get_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_status_batch_post"];
         delete?: never;
@@ -2089,17 +2854,22 @@ export interface paths {
          * Update Event Chat Notification Statuses Batch
          * @description Update event chat notification statuses for multiple projects in a single request.
          *
-         *     Request Body:
-         *         statuses: Dictionary mapping project_id (string) -> enabled (bool)
+         *         Request Body:
+         *             statuses: Dictionary mapping project_id (string) -> enabled (bool)
          *
-         *     Returns:
-         *         {
-         *             "statuses": {
-         *                 "project_id_1": true,
-         *                 "project_id_2": false,
-         *                 ...
+         *         Returns:
+         *             {
+         *                 "statuses": {
+         *                     "project_id_1": true,
+         *                     "project_id_2": false,
+         *                     ...
+         *                 }
          *             }
-         *         }
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         put: operations["update_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_batch_put"];
         post?: never;
@@ -2116,10 +2886,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Contracts */
+        /**
+         * Get Project Contracts
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_project_contracts_v1_operational_projects__project_id__contracts_get"];
         put?: never;
-        /** Create Contract */
+        /**
+         * Create Contract
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         contract: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         project: TODO: describe.
+         */
         post: operations["create_contract_v1_operational_projects__project_id__contracts_post"];
         delete?: never;
         options?: never;
@@ -2134,7 +2921,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Contract Kpis */
+        /**
+         * Get Contract Kpis
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         contract_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_contract_kpis_v1_operational_projects__project_id__contracts__contract_id__kpis_get"];
         put?: never;
         post?: never;
@@ -2156,8 +2951,14 @@ export interface paths {
         /**
          * Analyze Contract Document
          * @description Analyze a contract document using OpenAI File Search to extract contract fields.
-         *     This endpoint uses the document's OpenAI file_id to perform semantic search and
-         *     extract structured contract information using structured function calling.
+         *         This endpoint uses the document's OpenAI file_id to perform semantic search and
+         *         extract structured contract information using structured function calling.
+         *
+         *     Args:
+         *         document_id: TODO: describe.
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user: TODO: describe.
          */
         post: operations["analyze_contract_document_v1_operational_projects__project_id__contracts_analyze_document__document_id__post"];
         delete?: never;
@@ -2180,8 +2981,15 @@ export interface paths {
          * Delete Contract
          * @description Delete a contract if it has no associated Contractual KPIs.
          *
-         *     This endpoint will only delete contracts that don't have any Contractual KPIs
-         *     associated with them, ensuring data integrity.
+         *         This endpoint will only delete contracts that don't have any Contractual KPIs
+         *         associated with them, ensuring data integrity.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         contract_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         project: TODO: describe.
          */
         delete: operations["delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete"];
         options?: never;
@@ -2196,7 +3004,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Data */
+        /**
+         * Get Project Data
+         * @description todo
+         *
+         *     Args:
+         *         tag_ids: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_project_data_v1_operational_projects__project_id__data_get"];
         put?: never;
         post?: never;
@@ -2213,7 +3030,21 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Llm Time Series */
+        /**
+         * Get Llm Time Series
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         interval: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         */
         get: operations["get_llm_time_series_v1_operational_projects__project_id__llm_time_series_get"];
         put?: never;
         post?: never;
@@ -2230,7 +3061,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Dataframe Endpoint */
+        /**
+         * Get Project Dataframe Endpoint
+         * @description todo
+         *
+         *     Args:
+         *         tag_ids: TODO: describe.
+         *         sensor_type_name_shorts: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         fillna_zero: TODO: describe.
+         *         get_last: TODO: describe.
+         *         start_offset: TODO: describe.
+         *         last_offset: TODO: describe.
+         *         ffill_limit: TODO: describe.
+         *         interval: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
+         */
         get: operations["get_project_dataframe_endpoint_v1_operational_projects__project_id__dataframe_get"];
         put?: never;
         post?: never;
@@ -2247,7 +3098,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Time Series */
+        /**
+         * Get Time Series
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         parent_device_id: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         *         sensor_type_name_shorts: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
+         *         interval: TODO: describe.
+         */
         get: operations["get_time_series_v1_operational_projects__project_id__time_series_get"];
         put?: never;
         post?: never;
@@ -2264,7 +3133,22 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Timeseries V3 */
+        /**
+         * Get Timeseries V3
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         operational_db: TODO: describe.
+         *         project: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         interval: TODO: describe.
+         *         ensure_full_range: TODO: describe.
+         *         cutoff_now: TODO: describe.
+         */
         get: operations["get_timeseries_v3_v1_operational_projects__project_id__data_timeseries_v3_get"];
         put?: never;
         post?: never;
@@ -2281,7 +3165,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Data Last Updated Endpoint */
+        /**
+         * Get Project Data Last Updated Endpoint
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated_get"];
         put?: never;
         post?: never;
@@ -2298,7 +3189,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Data Timeseries Last */
+        /**
+         * Get Data Timeseries Last
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
+         */
         get: operations["get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last_get"];
         put?: never;
         post?: never;
@@ -2315,7 +3217,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Device */
+        /**
+         * Get Project Device
+         * @description todo
+         *
+         *     Args:
+         *         device_id: TODO: describe.
+         *         deep: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_project_device_by_id"];
         put?: never;
         post?: never;
@@ -2364,7 +3274,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Events */
+        /**
+         * Get Events
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         device_id: TODO: describe.
+         *         time_end_gte: TODO: describe.
+         *         time_end_lt: TODO: describe.
+         *         open: TODO: describe.
+         *         event_ids: TODO: describe.
+         *         open_at: TODO: describe.
+         */
         get: operations["get_events_v1_operational_projects__project_id__events_get"];
         put?: never;
         post?: never;
@@ -2381,7 +3304,23 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Paginated Events */
+        /**
+         * Get Paginated Events
+         * @description todo
+         *
+         *     Args:
+         *         page: TODO: describe.
+         *         page_size: TODO: describe.
+         *         sort_column: TODO: describe.
+         *         sort_direction: TODO: describe.
+         *         open: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_paginated_events_v1_operational_projects__project_id__events_paginated_events_get"];
         put?: never;
         post?: never;
@@ -2402,8 +3341,15 @@ export interface paths {
          * Get Event Losses
          * @description Get event losses with optimized query parameters.
          *
-         *     This function uses a single database query with all filters applied at once
-         *     to minimize database round trips.
+         *         This function uses a single database query with all filters applied at once
+         *         to minimize database round trips.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         time_equals: TODO: describe.
+         *         time_gte: TODO: describe.
+         *         time_lt: TODO: describe.
+         *         event_ids: TODO: describe.
          */
         get: operations["get_event_losses_v1_operational_projects__project_id__events_event_losses_get"];
         put?: never;
@@ -2422,7 +3368,15 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Update Event Failure Mode */
+        /**
+         * Update Event Failure Mode
+         * @description todo
+         *
+         *     Args:
+         *         failure_mode: TODO: describe.
+         *         event_id: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         put: operations["update_event_failure_mode_v1_operational_projects__project_id__events__event_id__failure_mode_put"];
         post?: never;
         delete?: never;
@@ -2439,7 +3393,15 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Update Event Root Cause */
+        /**
+         * Update Event Root Cause
+         * @description todo
+         *
+         *     Args:
+         *         root_cause: TODO: describe.
+         *         event_id: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         put: operations["update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put"];
         post?: never;
         delete?: never;
@@ -2459,8 +3421,14 @@ export interface paths {
          * Get Windowed Events
          * @description Get events within a specific time window.
          *
-         *     This optimized version uses a single database query with
-         *     appropriate joins when deep=True.
+         *         This optimized version uses a single database query with
+         *         appropriate joins when deep=True.
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         deep: TODO: describe.
          */
         get: operations["get_windowed_events_v1_operational_projects__project_id__events_windowed_events_get"];
         put?: never;
@@ -2478,7 +3446,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Event Devices */
+        /**
+         * Get Event Devices
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_event_devices_v1_operational_projects__project_id__events_event_devices_get"];
         put?: never;
         post?: never;
@@ -2498,6 +3473,17 @@ export interface paths {
         /**
          * Get Events Summary
          * @description Generate a summary of events with associated device/failure/root-cause and loss info.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         open: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         project_id: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_events_summary_v1_operational_projects__project_id__events_get_events_summary_get"];
         put?: never;
@@ -2515,7 +3501,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Uptime */
+        /**
+         * Get Uptime
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_uptime_v1_operational_projects__project_id__events_uptime_get"];
         put?: never;
         post?: never;
@@ -2532,7 +3528,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Event Trace Tags */
+        /**
+         * Get Event Trace Tags
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         device_id: TODO: describe.
+         */
         get: operations["get_event_trace_tags_v1_operational_projects__project_id__events_event_trace_tags_get"];
         put?: never;
         post?: never;
@@ -2549,7 +3552,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Llm Event Losses */
+        /**
+         * Get Llm Event Losses
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_llm_event_losses_v1_operational_projects__project_id__events_llm_event_losses_get"];
         put?: never;
         post?: never;
@@ -2566,7 +3578,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Count Open */
+        /**
+         * Get Count Open
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         */
         get: operations["get_count_open_v1_operational_projects__project_id__events_count_open_get"];
         put?: never;
         post?: never;
@@ -2589,10 +3607,16 @@ export interface paths {
          * Bulk Create Events
          * @description Create events in bulk for a set of device_ids and attach a single loss row each.
          *
-         *     - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
-         *     - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-         *     - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
-         *       name_short 'proximal_pv_dc_capacity'.
+         *         - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
+         *         - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
+         *         - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
+         *           name_short 'proximal_pv_dc_capacity'.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         project_id: TODO: describe.
+         *         payload: TODO: describe.
          */
         post: operations["bulk_create_events_v1_operational_projects__project_id__events_bulk_create_post"];
         delete?: never;
@@ -2611,7 +3635,11 @@ export interface paths {
         /**
          * Get Event Anomalies
          * @description Get all drone anomalies associated with a specific event.
-         *     Anomalies are linked to events via the event_id column.
+         *         Anomalies are linked to events via the event_id column.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
          */
         get: operations["get_event_anomalies_v1_operational_projects__project_id__events__event_id__anomalies_get"];
         put?: never;
@@ -2629,7 +3657,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Event Losses Summary */
+        /**
+         * Get Event Losses Summary
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         */
         get: operations["get_event_losses_summary_v1_operational_projects__project_id__events_event_losses_summary_get"];
         put?: never;
         post?: never;
@@ -2646,7 +3681,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Kpi Summary */
+        /**
+         * Get Project Kpi Summary
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         is_superadmin: TODO: describe.
+         *         kpi_type_ids: TODO: describe.
+         *         device_type_id: TODO: describe.
+         *         start: TODO: describe.
+         */
         get: operations["get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get"];
         put?: never;
         post?: never;
@@ -2663,12 +3711,37 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get User Kpi Alerts */
+        /**
+         * Get User Kpi Alerts
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         kpi_type_id: TODO: describe.
+         */
         get: operations["get_user_kpi_alerts_v1_operational_projects__project_id__kpi_data_kpi_alerts_get"];
         put?: never;
-        /** Get Project Kpi Alerts */
+        /**
+         * Get Project Kpi Alerts
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         data: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         post: operations["get_project_kpi_alerts_v1_operational_projects__project_id__kpi_data_kpi_alerts_post"];
-        /** Delete Kpi Alert */
+        /**
+         * Delete Kpi Alert
+         * @description todo
+         *
+         *     Args:
+         *         data: TODO: describe.
+         *         db: TODO: describe.
+         */
         delete: operations["delete_kpi_alert_v1_operational_projects__project_id__kpi_data_kpi_alerts_delete"];
         options?: never;
         head?: never;
@@ -2683,7 +3756,16 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Update Kpi Alert */
+        /**
+         * Update Kpi Alert
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         data: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         put: operations["update_kpi_alert_v1_operational_projects__project_id__kpi_data_update_kpi_alert_put"];
         post?: never;
         delete?: never;
@@ -2702,6 +3784,10 @@ export interface paths {
         /**
          * Get Contract Kpis
          * @description Get all contract KPIs for a project with counterparty information
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_project_contract_kpis"];
         put?: never;
@@ -2722,6 +3808,13 @@ export interface paths {
         /**
          * Get Llm Kpis
          * @description This endpoint is for the chat application to fetch KPI data.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         kpi_type_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_llm_kpis_v1_operational_projects__project_id__kpi_data_llm_kpis_get"];
         put?: never;
@@ -2739,7 +3832,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Rte */
+        /**
+         * Get Rte
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         level: TODO: describe.
+         */
         get: operations["get_rte_v1_operational_projects__project_id__kpi_data_rte_get"];
         put?: never;
         post?: never;
@@ -2756,7 +3859,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Reports */
+        /**
+         * Get Project Reports
+         * @description todo
+         */
         get: operations["get_project_reports_v1_operational_projects__project_id__reports_get"];
         put?: never;
         post?: never;
@@ -2773,7 +3879,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pcs Apparent Vs Voltage */
+        /**
+         * Get Pcs Apparent Vs Voltage
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get"];
         put?: never;
         post?: never;
@@ -2790,12 +3906,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Reports Instances */
+        /**
+         * Get Project Reports Instances
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         is_superadmin: TODO: describe.
+         *         report_type_ids: TODO: describe.
+         *         deep: TODO: describe.
+         */
         get: operations["get_project_reports_instances_v1_operational_projects__project_id__report_instances_get"];
         /**
          * Bulk Update Project Report Instances
          * @description Bulk update report instances for a project.
-         *     Only accessible by superadmins.
+         *         Only accessible by superadmins.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         data: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put"];
         post?: never;
@@ -2812,7 +3943,22 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Tags */
+        /**
+         * Get Project Tags
+         * @description todo
+         *
+         *     Args:
+         *         tag_ids: TODO: describe.
+         *         in_tsdb: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         name_long: TODO: describe.
+         *         deep: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_project_tags_v1_operational_projects__project_id__tags_get"];
         put?: never;
         post?: never;
@@ -2829,7 +3975,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Tags By Regex */
+        /**
+         * Get Tags By Regex
+         * @description todo
+         *
+         *     Args:
+         *         regex: TODO: describe.
+         *         limit: TODO: describe.
+         *         deep: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
         put?: never;
         post?: never;
@@ -2846,7 +4001,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Device */
+        /**
+         * Get Project Device
+         * @description todo
+         *
+         *     Args:
+         *         tag_id: TODO: describe.
+         *         deep: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_project_device_v1_operational_projects__project_id__tags__tag_id__get"];
         put?: never;
         post?: never;
@@ -2863,7 +4026,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Interpret */
+        /**
+         * Interpret
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         status_tags: TODO: describe.
+         *         status_values: TODO: describe.
+         */
         get: operations["interpret_v1_operational_projects__project_id__status_interpret_get"];
         put?: never;
         post?: never;
@@ -2883,9 +4054,19 @@ export interface paths {
         /**
          * Get Status Time Series
          * @description sensor_types: list[SensorType] | None = None
-         *     Only queries statuses for the provided sensor types.
-         *     However, the provided list must be a subset of the supported sensor types.
-         *     If not provided, all supported sensor types will be used.
+         *         Only queries statuses for the provided sensor types.
+         *         However, the provided list must be a subset of the supported sensor types.
+         *         If not provided, all supported sensor types will be used.
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         sensor_types: TODO: describe.
          */
         get: operations["get_status_time_series_v1_operational_projects__project_id__status_time_series_get"];
         put?: never;
@@ -2903,7 +4084,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Status Time Series Python */
+        /**
+         * Get Status Time Series Python
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         sensor_types: TODO: describe.
+         */
         get: operations["get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get"];
         put?: never;
         post?: never;
@@ -2920,10 +4114,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Pv Budgeted Series */
+        /**
+         * List Pv Budgeted Series
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
+         */
         get: operations["list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get"];
         put?: never;
-        /** Create Pv Budgeted Series */
+        /**
+         * Create Pv Budgeted Series
+         * @description todo
+         *
+         *     Args:
+         *         payload: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         post: operations["create_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_post"];
         delete?: never;
         options?: never;
@@ -2938,7 +4148,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pv Budgeted Data */
+        /**
+         * Get Pv Budgeted Data
+         * @description todo
+         *
+         *     Args:
+         *         pv_budgeted_series_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get"];
         put?: never;
         post?: never;
@@ -2958,7 +4177,15 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Pv Budgeted Series */
+        /**
+         * Delete Pv Budgeted Series
+         * @description todo
+         *
+         *     Args:
+         *         pv_budgeted_series_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         delete: operations["delete_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series__pv_budgeted_series_id__delete"];
         options?: never;
         head?: never;
@@ -2974,7 +4201,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Bulk Upsert Pv Budgeted Data */
+        /**
+         * Bulk Upsert Pv Budgeted Data
+         * @description todo
+         *
+         *     Args:
+         *         payload: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         post: operations["bulk_upsert_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_bulk_upsert_post"];
         delete?: never;
         options?: never;
@@ -2989,7 +4225,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Expected Power */
+        /**
+         * Get Expected Power
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         expected_metric_ids: TODO: describe.
+         *         highest_priority_only: TODO: describe.
+         *         cutoff_now: TODO: describe.
+         */
         get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected_get"];
         put?: never;
         post?: never;
@@ -3006,7 +4255,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Inspections */
+        /**
+         * Get Inspections
+         * @description todo
+         */
         get: operations["get_inspections_v1_operational_projects__project_id__quality_inspections_get"];
         put?: never;
         post?: never;
@@ -3023,7 +4275,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Observations */
+        /**
+         * Get Observations
+         * @description todo
+         */
         get: operations["get_observations_v1_operational_projects__project_id__quality_observations_get"];
         put?: never;
         post?: never;
@@ -3040,10 +4295,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Documents */
+        /**
+         * Get Project Documents
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         */
         get: operations["get_project_documents_v1_operational_projects__project_id__documents_get"];
         put?: never;
-        /** Upload Project Document */
+        /**
+         * Upload Project Document
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         file: TODO: describe.
+         */
         post: operations["upload_project_document_v1_operational_projects__project_id__documents_post"];
         delete?: never;
         options?: never;
@@ -3063,8 +4335,16 @@ export interface paths {
         /**
          * Search Contract Content
          * @description Search for relevant contract content using OpenAI's Responses API with file search.
-         *     Uses vector stores for efficient retrieval of relevant contract information.
-         *     Returns the most relevant chunks of text based on the query.
+         *         Uses vector stores for efficient retrieval of relevant contract information.
+         *         Returns the most relevant chunks of text based on the query.
+         *
+         *     Args:
+         *         document_id: TODO: describe.
+         *         project_id: TODO: describe.
+         *         query: TODO: describe.
+         *         vector_store_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user: TODO: describe.
          */
         post: operations["search_contract_content_v1_operational_projects__project_id__documents_search_contract__document_id__post"];
         delete?: never;
@@ -3083,7 +4363,14 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Project Document */
+        /**
+         * Delete Project Document
+         * @description todo
+         *
+         *     Args:
+         *         document_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
         options?: never;
         head?: never;
@@ -3097,7 +4384,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pg Data Types */
+        /**
+         * Get Pg Data Types
+         * @description todo
+         *
+         *     Args:
+         *         pg_data_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_pg_data_types_v1_operational_pg_data_types_get"];
         put?: never;
         post?: never;
@@ -3114,7 +4409,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pg Data Type */
+        /**
+         * Get Pg Data Type
+         * @description todo
+         *
+         *     Args:
+         *         pg_data_type_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_pg_data_type_v1_operational_pg_data_types__pg_data_type_id__get"];
         put?: never;
         post?: never;
@@ -3135,22 +4437,31 @@ export interface paths {
          * Get Cmms Tickets
          * @description Pulls the first 50 tickets for each CMMS provider.
          *
-         *     Parameters:
-         *     -----------
-         *     project_id : UUID
-         *         The project identifier
-         *     db : AsyncSession
-         *         Database session
-         *     project_db : AsyncSession
-         *         Project database session
-         *     user : interfaces.UserData
-         *         To get the company id
-         *     start : Optional[str]
-         *         The start date of the tickets
-         *     end : Optional[str]
-         *         The end date of the tickets
-         *     device_ids : Optional[List[int]]
-         *         The list of device ids to filter the tickets by
+         *         Parameters:
+         *         -----------
+         *         project_id : UUID
+         *             The project identifier
+         *         db : AsyncSession
+         *             Database session
+         *         project_db : AsyncSession
+         *             Project database session
+         *         user : interfaces.UserData
+         *             To get the company id
+         *         start : Optional[str]
+         *             The start date of the tickets
+         *         end : Optional[str]
+         *             The end date of the tickets
+         *         device_ids : Optional[List[int]]
+         *             The list of device ids to filter the tickets by
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         user: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_ids: TODO: describe.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
         put?: never;
@@ -3168,7 +4479,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description todo
+         */
         get: operations["health_v1_operational_projects__project_id__qc_combiner_swaps_health_get"];
         put?: never;
         post?: never;
@@ -3188,7 +4502,14 @@ export interface paths {
         /**
          * Validate Combiner Data
          * @description This function is used in combiner swaps functionality to figure out
-         *     if there is enough good combiner data.
+         *         if there is enough good combiner data.
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
          */
         get: operations["validate_combiner_data_v1_operational_projects__project_id__qc_combiner_swaps_validate_combiner_data_get"];
         put?: never;
@@ -3206,7 +4527,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description todo
+         */
         get: operations["health_v1_operational_projects__project_id__qc_health_get"];
         put?: never;
         post?: never;
@@ -3223,7 +4547,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Waterfall */
+        /**
+         * Get Project Waterfall
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         async_project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         level: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_project_waterfall_v1_operational_projects__project_id__waterfall_get"];
         put?: never;
         post?: never;
@@ -3243,6 +4580,10 @@ export interface paths {
         /**
          * Get Db Inspections
          * @description Get a list of historical inspections from the database for a given project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_db_inspections_v1_operational_projects__project_id__drone_inspections_get"];
         put?: never;
@@ -3263,6 +4604,11 @@ export interface paths {
         /**
          * Get Zeitview Inspections
          * @description Get a list of historical inspections from Zeitview for a given project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
          */
         get: operations["get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get"];
         put?: never;
@@ -3283,6 +4629,10 @@ export interface paths {
         /**
          * Get Db Anomalies
          * @description Get a list of anomalies from the database for a given inspection.
+         *
+         *     Args:
+         *         inspection_uuid: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_db_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_get"];
         put?: never;
@@ -3305,7 +4655,13 @@ export interface paths {
         /**
          * Sync Zeitview Anomalies
          * @description Fetch anomalies from Zeitview and store them in the database incrementally.
-         *     Can resume from where it left off if interrupted.
+         *         Can resume from where it left off if interrupted.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         inspection_uuid: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
          */
         post: operations["sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post"];
         delete?: never;
@@ -3324,7 +4680,13 @@ export interface paths {
         /**
          * Read Calendar Item Categories
          * @description Retrieve all calendar item categories.
-         *     Even though project_id is in the path, categories are currently global.
+         *         Even though project_id is in the path, categories are currently global.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         skip: TODO: describe.
+         *         limit: TODO: describe.
          */
         get: operations["read_calendar_item_categories_v1_operational_projects__project_id__calendar_item_categories_get"];
         put?: never;
@@ -3345,12 +4707,23 @@ export interface paths {
         /**
          * Get Calendar Items
          * @description Retrieve all calendar items for the specified project, including category color.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         get: operations["get_calendar_items_v1_operational_projects__project_id__calendar_events_get"];
         put?: never;
         /**
          * Create Calendar Item Endpoint
          * @description Create a new calendar item for a project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         item: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["create_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events_post"];
         delete?: never;
@@ -3370,12 +4743,25 @@ export interface paths {
         /**
          * Update Calendar Item Endpoint
          * @description Update a calendar item.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         calendar_item_id: TODO: describe.
+         *         item: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         put: operations["update_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__put"];
         post?: never;
         /**
          * Delete Calendar Item Endpoint
          * @description Delete a calendar item by its ID.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         calendar_item_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         delete: operations["delete_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__delete"];
         options?: never;
@@ -3395,8 +4781,16 @@ export interface paths {
         /**
          * Post Calendar Item Exception
          * @description Create or update an exception for a specific occurrence of a recurring calendar item.
-         *     To "delete" an occurrence, pass `is_cancelled: true` in the payload.
-         *     The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
+         *         To "delete" an occurrence, pass `is_cancelled: true` in the payload.
+         *         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         calendar_item_id: TODO: describe.
+         *         exception_date_str: TODO: describe.
+         *         exception_payload: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["post_calendar_item_exception_v1_operational_projects__project_id__calendar_events__calendar_item_id__exceptions__exception_date_str__post"];
         delete?: never;
@@ -3412,10 +4806,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Om Contractor Scopes */
+        /**
+         * Get Project Om Contractor Scopes
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get"];
         put?: never;
-        /** Create Project Om Contractor Scope */
+        /**
+         * Create Project Om Contractor Scope
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         payload: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post"];
         delete?: never;
         options?: never;
@@ -3431,10 +4840,27 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Update Project Om Contractor Scope */
+        /**
+         * Update Project Om Contractor Scope
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         om_contractor_scope_id: TODO: describe.
+         *         payload: TODO: describe.
+         *         db: TODO: describe.
+         */
         put: operations["update_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__put"];
         post?: never;
-        /** Delete Project Om Contractor Scope */
+        /**
+         * Delete Project Om Contractor Scope
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         om_contractor_scope_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         delete: operations["delete_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__delete"];
         options?: never;
         head?: never;
@@ -3448,12 +4874,36 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Projects */
+        /**
+         * Get Projects
+         * @description todo
+         *
+         *     Args:
+         *         project_ids: TODO: describe.
+         *         project_ids_excluded: TODO: describe.
+         *         project_type_ids: TODO: describe.
+         *         project_status_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         name_shorts: TODO: describe.
+         *         name_long: TODO: describe.
+         *         has_pv_pcs_modules: TODO: describe.
+         *         kpi_instance_kpi_type_ids: TODO: describe.
+         *         report_instance_report_type_ids: TODO: describe.
+         *         deep: TODO: describe.
+         *         db: TODO: describe.
+         *         db_async: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         get: operations["get_projects"];
         put?: never;
         /**
          * Create Project
          * @description Create a new project.
+         *
+         *     Args:
+         *         project_in: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
          */
         post: operations["create_project_v1_operational_projects_post"];
         delete?: never;
@@ -3469,12 +4919,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project */
+        /**
+         * Get Project
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         deep: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         get: operations["get_project_by_id"];
         /**
          * Update Project
          * @description Update an existing project.
-         *     Only company admins and super admins can update projects.
+         *         Only company admins and super admins can update projects.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         project_update: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["update_project"];
         post?: never;
@@ -3491,7 +4955,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Data */
+        /**
+         * Get Kpi Data
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_ids: TODO: describe.
+         *         kpi_type_ids: TODO: describe.
+         *         include_device_data: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         include_all_dates: TODO: describe.
+         */
         get: operations["get_kpi_data"];
         put?: never;
         post?: never;
@@ -3508,7 +4985,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Triggered User Alerts */
+        /**
+         * Get Triggered User Alerts
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
         get: operations["get_triggered_user_alerts_v1_operational_kpi_data_user_triggered_alerts_get"];
         put?: never;
         post?: never;
@@ -3527,7 +5011,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Trigger Alert */
+        /**
+         * Trigger Alert
+         * @description todo
+         *
+         *     Args:
+         *         kpi_alert_id: TODO: describe.
+         *         triggered: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["trigger_alert_v1_operational_kpi_data_trigger_user_alert_post"];
         delete?: never;
         options?: never;
@@ -3542,7 +5034,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Excel */
+        /**
+         * Get Kpi Excel
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         kpi_type_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         sync_db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_kpi_excel_v1_operational_kpi_data__project_id__excel_get"];
         put?: never;
         post?: never;
@@ -3559,7 +5064,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Email Alerts */
+        /**
+         * Get Kpi Email Alerts
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         kpi_type_id: TODO: describe.
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get"];
         put?: never;
         post?: never;
@@ -3576,7 +5091,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Instances */
+        /**
+         * Get Kpi Instances
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         is_superadmin: TODO: describe.
+         *         project_ids: TODO: describe.
+         *         kpi_type_ids: TODO: describe.
+         *         deep: TODO: describe.
+         */
         get: operations["get_kpi_instances_v1_operational_kpi_instances_get"];
         put?: never;
         post?: never;
@@ -3593,7 +5118,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Type By Name */
+        /**
+         * Get Kpi Type By Name
+         * @description todo
+         *
+         *     Args:
+         *         name_short: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_kpi_type_by_name_v1_operational_kpi_types_by_name__name_short__get"];
         put?: never;
         post?: never;
@@ -3610,7 +5142,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Types */
+        /**
+         * Get Kpi Types
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         kpi_type_ids: TODO: describe.
+         */
         get: operations["get_kpi_types"];
         put?: never;
         post?: never;
@@ -3627,7 +5166,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Type */
+        /**
+         * Get Kpi Type
+         * @description todo
+         *
+         *     Args:
+         *         kpi_type_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_kpi_type_by_id"];
         put?: never;
         post?: never;
@@ -3644,7 +5190,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Kpi Types By Project */
+        /**
+         * Get Kpi Types By Project
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_kpi_types_by_project"];
         put?: never;
         post?: never;
@@ -3664,6 +5217,10 @@ export interface paths {
         /**
          * Get Report Types Legacy
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
          */
         get: operations["get_report_types_legacy"];
         put?: never;
@@ -3684,6 +5241,11 @@ export interface paths {
         /**
          * Get Report Type Legacy
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         report_type_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_report_type_by_id_legacy"];
         put?: never;
@@ -3701,7 +5263,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Report Instances */
+        /**
+         * Get Report Instances
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         is_superadmin: TODO: describe.
+         *         project_ids: TODO: describe.
+         *         report_type_ids: TODO: describe.
+         *         deep: TODO: describe.
+         */
         get: operations["get_report_instances"];
         put?: never;
         post?: never;
@@ -3754,12 +5326,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Sensor Types */
+        /**
+         * Get Sensor Types
+         * @description todo
+         *
+         *     Args:
+         *         sensor_type_ids: TODO: describe.
+         *         name_short: TODO: describe.
+         *         name_long: TODO: describe.
+         *         name_metric: TODO: describe.
+         *         unit: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_sensor_types"];
         put?: never;
         /**
          * Create Sensor Type
          * @description Create a new sensor type. Only superadmins can create sensor types.
+         *
+         *     Args:
+         *         sensor_type: TODO: describe.
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_sensor_type"];
         delete?: never;
@@ -3775,11 +5363,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Sensor Type */
+        /**
+         * Get Sensor Type
+         * @description todo
+         *
+         *     Args:
+         *         sensor_type_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_sensor_type"];
         /**
          * Update Sensor Type
          * @description Update an existing sensor type. Only superadmins can update sensor types.
+         *
+         *     Args:
+         *         sensor_type_id: TODO: describe.
+         *         sensor_type: TODO: describe.
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["update_sensor_type"];
         post?: never;
@@ -3796,7 +5397,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Statuses */
+        /**
+         * Get Statuses
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         status_lookup_ids: TODO: describe.
+         */
         get: operations["get_device_statuses"];
         put?: never;
         post?: never;
@@ -3813,7 +5421,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Status Binary */
+        /**
+         * Get Status Binary
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         status_binary_ids: TODO: describe.
+         */
         get: operations["get_device_status_binary"];
         put?: never;
         post?: never;
@@ -3830,15 +5445,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pv Modules */
+        /**
+         * Get Pv Modules
+         * @description todo
+         *
+         *     Args:
+         *         pv_module_ids: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_pv_modules"];
         put?: never;
         /**
          * Create or update a PV module
          * @description Create a new PV module or update an existing one.
          *
-         *     If a PV module with the same pv_module_id already exists, it will be updated.
-         *     If the PV module doesn't exist, a new one will be created.
+         *         If a PV module with the same pv_module_id already exists, it will be updated.
+         *         If the PV module doesn't exist, a new one will be created.
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         pv_module: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_pv_module_v1_operational_pv_modules_post"];
         delete?: never;
@@ -3854,7 +5481,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Pv Module Ids */
+        /**
+         * Get Pv Module Ids
+         * @description todo
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         pv_module_manufacturer: TODO: describe.
+         *         pv_module_model: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_pv_module_ids"];
         put?: never;
         post?: never;
@@ -3871,7 +5507,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all PV module manufacturers from the proximal database */
+        /**
+         * Get all PV module manufacturers from the proximal database
+         * @description todo
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_pv_module_manufacturers"];
         put?: never;
         post?: never;
@@ -3888,7 +5531,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all PV module models from the proximal database, optionally filtered by a selected manufacturer */
+        /**
+         * Get all PV module models from the proximal database, optionally filtered by a selected manufacturer
+         * @description todo
+         *
+         *     Args:
+         *         manufacturer: TODO: describe.
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_pv_module_models_given_manufacturer"];
         put?: never;
         post?: never;
@@ -3909,10 +5560,16 @@ export interface paths {
          * Get PV module IDs based on manufacturer and model pairs
          * @description Get PV module IDs for each manufacturer and model pair.
          *
-         *     Returns corresponding PV module IDs in the same order. Returns None for any pairs
-         *     that don't exist in the database.
+         *         Returns corresponding PV module IDs in the same order. Returns None for any pairs
+         *         that don't exist in the database.
          *
-         *     The input lists must have the same length.
+         *         The input lists must have the same length.
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         manufacturers: TODO: describe.
+         *         models: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_pv_module_ids_by_manufacturer_and_model_v1_operational_pv_modules_lookup_ids_get"];
         put?: never;
@@ -3936,19 +5593,22 @@ export interface paths {
          * Parse PAN file and return pv_module information
          * @description Upload an PAN file and retrieve pv module information from it.
          *
-         *     This endpoint accepts an PAN file upload, processes it using the parse_pan
-         *     function,
-         *     and returns the extracted information in JSON format.
+         *         This endpoint accepts an PAN file upload, processes it using the parse_pan
+         *         function,
+         *         and returns the extracted information in JSON format.
          *
-         *     The processing pipeline includes:
-         *     1. Reading the PAN file structure
-         *     2. Formatting the data into a standardized pv_module configuration
+         *         The processing pipeline includes:
+         *         1. Reading the PAN file structure
+         *         2. Formatting the data into a standardized pv_module configuration
          *
-         *     Returns:
-         *         A JSON object with the following structure:
-         *         - success: Boolean indicating if parsing was successful
-         *         - message: Status message
-         *         - pv_module_data: The complete pv_module configuration with all parameters
+         *         Returns:
+         *             A JSON object with the following structure:
+         *             - success: Boolean indicating if parsing was successful
+         *             - message: Status message
+         *             - pv_module_data: The complete pv_module configuration with all parameters
+         *
+         *     Args:
+         *         file: TODO: describe.
          */
         post: operations["parse_pan_file_v1_operational_pv_modules_parse_pan_post"];
         delete?: never;
@@ -3968,7 +5628,12 @@ export interface paths {
         /**
          * Recalculate single diode parameters for a PV module
          * @description Get a PV module from the database, recalculate its single diode parameters,
-         *     and update the database with the new parameters.
+         *         and update the database with the new parameters.
+         *
+         *     Args:
+         *         pv_module_id: TODO: describe.
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["recalculate_single_diode_parameters_v1_operational_pv_modules_recalculate_single_diode_put"];
         post?: never;
@@ -3985,15 +5650,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Racking */
+        /**
+         * Get Racking
+         * @description todo
+         *
+         *     Args:
+         *         racking_ids: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_rackings"];
         put?: never;
         /**
          * Create or update a PV racking
          * @description Create a new PV racking or update an existing one.
          *
-         *     If a racking with the same model already exists, it will be updated.
-         *     If the racking doesn't exist, a new one will be created.
+         *         If a racking with the same model already exists, it will be updated.
+         *         If the racking doesn't exist, a new one will be created.
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         racking: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_racking_v1_operational_pv_rackings_post"];
         delete?: never;
@@ -4009,7 +5686,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all PV racking manufacturers from the proximal database */
+        /**
+         * Get all PV racking manufacturers from the proximal database
+         * @description todo
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_racking_manufacturers"];
         put?: never;
         post?: never;
@@ -4026,7 +5710,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all PV racking models from the proximal database, optionally filtered by a selected manufacturer */
+        /**
+         * Get all PV racking models from the proximal database, optionally filtered by a selected manufacturer
+         * @description todo
+         *
+         *     Args:
+         *         manufacturer: TODO: describe.
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_racking_models_given_manufacturer"];
         put?: never;
         post?: never;
@@ -4047,10 +5739,16 @@ export interface paths {
          * Get racking IDs based on manufacturer and model pairs
          * @description Get racking IDs for each manufacturer and model pair.
          *
-         *     corresponding racking IDs in the same order. Returns None for any pairs
-         *     that don't exist in the database.
+         *         corresponding racking IDs in the same order. Returns None for any pairs
+         *         that don't exist in the database.
          *
-         *     The input lists must have the same length.
+         *         The input lists must have the same length.
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         manufacturers: TODO: describe.
+         *         models: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_racking_ids_by_manufacturer_and_model"];
         put?: never;
@@ -4068,15 +5766,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Inverters */
+        /**
+         * Get Inverters
+         * @description todo
+         *
+         *     Args:
+         *         inverter_ids: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_inverters"];
         put?: never;
         /**
          * Create or update a PV inverter
          * @description Create a new PV inverter or update an existing one.
          *
-         *     If an inverter with the same inverter_id already exists, it will be updated.
-         *     If the inverter doesn't exist, a new one will be created.
+         *         If an inverter with the same inverter_id already exists, it will be updated.
+         *         If the inverter doesn't exist, a new one will be created.
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         inverter: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_inverter_v1_operational_pv_inverters_post"];
         delete?: never;
@@ -4092,7 +5802,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Inverter Ids */
+        /**
+         * Get Inverter Ids
+         * @description todo
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         inverter_manufacturer: TODO: describe.
+         *         inverter_model: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_inverter_ids"];
         put?: never;
         post?: never;
@@ -4109,7 +5828,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all PV inverter manufacturers from the proximal database */
+        /**
+         * Get all PV inverter manufacturers from the proximal database
+         * @description todo
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_inverter_manufacturers"];
         put?: never;
         post?: never;
@@ -4126,7 +5852,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get all PV inverter models from the proximal database, optionally filtered by a selected manufacturer */
+        /**
+         * Get all PV inverter models from the proximal database, optionally filtered by a selected manufacturer
+         * @description todo
+         *
+         *     Args:
+         *         manufacturer: TODO: describe.
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         get: operations["get_proximal_inverter_models_given_manufacturer"];
         put?: never;
         post?: never;
@@ -4147,10 +5881,16 @@ export interface paths {
          * Get inverter IDs based on manufacturer and model pairs
          * @description Get inverter IDs for each manufacturer and model pair.
          *
-         *     corresponding inverter IDs in the same order. Returns None for any pairs
-         *     that don't exist in the database.
+         *         corresponding inverter IDs in the same order. Returns None for any pairs
+         *         that don't exist in the database.
          *
-         *     The input lists must have the same length.
+         *         The input lists must have the same length.
+         *
+         *     Args:
+         *         authorized_company_id: TODO: describe.
+         *         manufacturers: TODO: describe.
+         *         models: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_inverter_ids_by_manufacturer_and_model"];
         put?: never;
@@ -4174,22 +5914,25 @@ export interface paths {
          * Parse OND file and return inverter information
          * @description Upload an OND file and retrieve inverter information from it.
          *
-         *     This endpoint accepts an OND file upload, processes it using the parse_ond
-         *     function,
-         *     and returns the extracted information in JSON format.
+         *         This endpoint accepts an OND file upload, processes it using the parse_ond
+         *         function,
+         *         and returns the extracted information in JSON format.
          *
-         *     The processing pipeline includes:
-         *     1. Reading the OND file structure
-         *     2. Formatting the data into a standardized inverter configuration
-         *     3. Calculating DC nominal power
-         *     4. Computing Sandia inverter model parameters
-         *     5. Validating the resulting configuration
+         *         The processing pipeline includes:
+         *         1. Reading the OND file structure
+         *         2. Formatting the data into a standardized inverter configuration
+         *         3. Calculating DC nominal power
+         *         4. Computing Sandia inverter model parameters
+         *         5. Validating the resulting configuration
          *
-         *     Returns:
-         *         A JSON object with the following structure:
-         *         - success: Boolean indicating if parsing was successful
-         *         - message: Status message
-         *         - inverter_data: The complete inverter configuration with all parameters
+         *         Returns:
+         *             A JSON object with the following structure:
+         *             - success: Boolean indicating if parsing was successful
+         *             - message: Status message
+         *             - inverter_data: The complete inverter configuration with all parameters
+         *
+         *     Args:
+         *         file: TODO: describe.
          */
         post: operations["parse_ond_file_v1_operational_pv_inverters_parse_ond_post"];
         delete?: never;
@@ -4206,7 +5949,15 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Calculate and update Sandia parameters for an inverter */
+        /**
+         * Calculate and update Sandia parameters for an inverter
+         * @description todo
+         *
+         *     Args:
+         *         inverter_id: TODO: describe.
+         *         authorized_company_id: TODO: describe.
+         *         db: TODO: describe.
+         */
         put: operations["calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put"];
         post?: never;
         delete?: never;
@@ -4225,6 +5976,10 @@ export interface paths {
         /**
          * Get Pv Budgeted Series
          * @description Get all budgeted series for a project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_pv_budgeted_series"];
         put?: never;
@@ -4353,12 +6108,19 @@ export interface paths {
         /**
          * Get Drone Integrations
          * @description Retrieve all drone integrations.
+         *
+         *     Args:
+         *         db: TODO: describe.
          */
         get: operations["get_drone_integrations__v1_operational_drone_integrations_get"];
         put?: never;
         /**
          * Create Drone Integration
          * @description Create a new drone integration.
+         *
+         *     Args:
+         *         drone_integration: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_drone_integration__v1_operational_drone_integrations_post"];
         delete?: never;
@@ -4378,12 +6140,21 @@ export interface paths {
         /**
          * Update Drone Integration
          * @description Update a drone integration.
+         *
+         *     Args:
+         *         drone_integration_id: TODO: describe.
+         *         drone_integration: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["update_drone_integration__v1_operational_drone_integrations__drone_integration_id__put"];
         post?: never;
         /**
          * Delete Drone Integration
          * @description Delete a drone integration.
+         *
+         *     Args:
+         *         drone_integration_id: TODO: describe.
+         *         db: TODO: describe.
          */
         delete: operations["delete_drone_integration__v1_operational_drone_integrations__drone_integration_id__delete"];
         options?: never;
@@ -4403,6 +6174,12 @@ export interface paths {
         /**
          * Order Drone Inspection
          * @description Send a drone inspection order email to the provider.
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
+         *         api_prod: TODO: describe.
          */
         post: operations["order_drone_inspection_v1_operational_drone_integrations_order_inspection_post"];
         delete?: never;
@@ -4423,7 +6200,10 @@ export interface paths {
         /**
          * Query Provider Sites
          * @description Query sites from a drone provider using an API key.
-         *     Currently supports Zeitview (provider_id = 0).
+         *         Currently supports Zeitview (provider_id = 0).
+         *
+         *     Args:
+         *         request: TODO: describe.
          */
         post: operations["query_provider_sites_v1_operational_drone_integrations_query_provider_sites_post"];
         delete?: never;
@@ -4442,12 +6222,19 @@ export interface paths {
         /**
          * Get Drone Providers
          * @description Retrieve all drone providers.
+         *
+         *     Args:
+         *         db: TODO: describe.
          */
         get: operations["get_drone_providers__v1_operational_drone_providers_get"];
         put?: never;
         /**
          * Create Drone Provider
          * @description Create a new drone provider.
+         *
+         *     Args:
+         *         drone_provider: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_drone_provider__v1_operational_drone_providers_post"];
         delete?: never;
@@ -4467,12 +6254,21 @@ export interface paths {
         /**
          * Update Drone Provider
          * @description Update a drone provider.
+         *
+         *     Args:
+         *         drone_provider_id: TODO: describe.
+         *         drone_provider: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["update_drone_provider__v1_operational_drone_providers__drone_provider_id__put"];
         post?: never;
         /**
          * Delete Drone Provider
          * @description Delete a drone provider.
+         *
+         *     Args:
+         *         drone_provider_id: TODO: describe.
+         *         db: TODO: describe.
          */
         delete: operations["delete_drone_provider__v1_operational_drone_providers__drone_provider_id__delete"];
         options?: never;
@@ -4490,12 +6286,19 @@ export interface paths {
         /**
          * Get Drone Permissions
          * @description Retrieve all drone permissions.
+         *
+         *     Args:
+         *         db: TODO: describe.
          */
         get: operations["get_drone_permissions__v1_operational_drone_permissions_get"];
         put?: never;
         /**
          * Create Drone Permission
          * @description Create a new drone permission.
+         *
+         *     Args:
+         *         drone_permission: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["create_drone_permission__v1_operational_drone_permissions_post"];
         delete?: never;
@@ -4515,12 +6318,23 @@ export interface paths {
         /**
          * Update Drone Permission
          * @description Update a drone permission.
+         *
+         *     Args:
+         *         drone_integration_id: TODO: describe.
+         *         company_id: TODO: describe.
+         *         drone_permission: TODO: describe.
+         *         db: TODO: describe.
          */
         put: operations["update_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__put"];
         post?: never;
         /**
          * Delete Drone Permission
          * @description Delete a drone permission.
+         *
+         *     Args:
+         *         drone_integration_id: TODO: describe.
+         *         company_id: TODO: describe.
+         *         db: TODO: describe.
          */
         delete: operations["delete_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__delete"];
         options?: never;
@@ -4535,7 +6349,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Project Data Last Updated Endpoint */
+        /**
+         * Get Project Data Last Updated Endpoint
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project_ids: TODO: describe.
+         */
         get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
         put?: never;
         post?: never;
@@ -4552,7 +6373,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Users */
+        /**
+         * Get Users
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         user_ids: TODO: describe.
+         *         include_image_urls: TODO: describe.
+         *         api_prod: TODO: describe.
+         */
         get: operations["get_users_v1_operational_users_get"];
         put?: never;
         post?: never;
@@ -4569,7 +6400,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Contract Categories */
+        /**
+         * List Contract Categories
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         */
         get: operations["list_contract_categories_v1_operational_contract_categories_get"];
         put?: never;
         post?: never;
@@ -4586,7 +6423,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Home */
+        /**
+         * Get Home
+         * @description todo
+         *
+         *     Args:
+         *         project_ids: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         time: TODO: describe.
+         */
         get: operations["get_home_v1_protected_web_application_portfolio_home_get"];
         put?: never;
         post?: never;
@@ -4606,6 +6452,11 @@ export interface paths {
         /**
          * Get Portfolio Calendar Events
          * @description Get all calendar events for all projects in the user's portfolio.
+         *
+         *     Args:
+         *         project_ids: TODO: describe.
+         *         user_data: TODO: describe.
+         *         db: TODO: describe.
          */
         get: operations["get_portfolio_calendar_events_v1_protected_web_application_portfolio_calendar_get"];
         put?: never;
@@ -4626,6 +6477,9 @@ export interface paths {
         /**
          * Get Portfolio Calendar Categories
          * @description Get all calendar event categories for all projects in the user's portfolio.
+         *
+         *     Args:
+         *         db: TODO: describe.
          */
         get: operations["get_portfolio_calendar_categories_v1_protected_web_application_portfolio_calendar_categories_get"];
         put?: never;
@@ -4643,7 +6497,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Bess */
+        /**
+         * Get Bess
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get"];
         put?: never;
         post?: never;
@@ -4660,7 +6524,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Bess Pcs */
+        /**
+         * Get Bess Pcs
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get"];
         put?: never;
         post?: never;
@@ -4680,6 +6554,13 @@ export interface paths {
         /**
          * Get Equipment Analysis Combiner
          * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
          */
         get: operations["get_equipment_analysis_combiner_v1_protected_web_application_projects__project_id__equipment_analysis_combiner_get"];
         put?: never;
@@ -4697,7 +6578,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Tracker */
+        /**
+         * Get Tracker
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         project_id: TODO: describe.
+         */
         get: operations["get_tracker_v1_protected_web_application_projects__project_id__equipment_analysis_tracker_get"];
         put?: never;
         post?: never;
@@ -4714,7 +6605,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Tracker By Pv Block Id */
+        /**
+         * Get Tracker By Pv Block Id
+         * @description todo
+         *
+         *     Args:
+         *         pv_block_id: TODO: describe.
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get"];
         put?: never;
         post?: never;
@@ -4731,7 +6633,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Equipment Analysis Pcs */
+        /**
+         * Get Equipment Analysis Pcs
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get"];
         put?: never;
         post?: never;
@@ -4748,7 +6659,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Sunburst Data */
+        /**
+         * Get Sunburst Data
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         mode: TODO: describe.
+         *         ignored_device_type_ids: TODO: describe.
+         */
         get: operations["get_sunburst_data_v1_protected_web_application_projects__project_id__equipment_analysis_sunburst_data_get"];
         put?: never;
         post?: never;
@@ -4765,7 +6685,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Horizontal Bess */
+        /**
+         * Get Horizontal Bess
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get"];
         put?: never;
         post?: never;
@@ -4782,7 +6711,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Horizontal Pv */
+        /**
+         * Get Horizontal Pv
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_horizontal_pv_v1_protected_web_application_projects__project_id__device_details_horizontal_pv_get"];
         put?: never;
         post?: never;
@@ -4799,7 +6737,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Single By Device Id */
+        /**
+         * Get Single By Device Id
+         * @description todo
+         *
+         *     Args:
+         *         device_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get"];
         put?: never;
         post?: never;
@@ -4816,7 +6764,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Vertical Controller */
+        /**
+         * Get Vertical Controller
+         * @description todo
+         *
+         *     Args:
+         *         device_id: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get"];
         put?: never;
         post?: never;
@@ -4833,7 +6790,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Vertical */
+        /**
+         * Get Vertical
+         * @description todo
+         *
+         *     Args:
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         *         device_ids: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_vertical_v1_protected_web_application_projects__project_id__device_details_vertical_get"];
         put?: never;
         post?: never;
@@ -4850,7 +6817,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Data Availability */
+        /**
+         * Get Data Availability
+         * @description todo
+         *
+         *     Args:
+         *         device_type_ids: TODO: describe.
+         *         project_db: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
+         */
         get: operations["get_data_availability_v1_protected_web_application_projects__project_id__device_details_data_availability_get"];
         put?: never;
         post?: never;
@@ -4870,9 +6845,14 @@ export interface paths {
         /**
          * Get Data Availability V2
          * @description Calculates data availability and staleness for a given set of device types.
-         *     This implementation uses a Common Table Expression (CTE) and the PostgreSQL
-         *     ANY() operator to efficiently handle a large number of device_type_ids,
-         *     avoiding the 32,767 parameter limit.
+         *         This implementation uses a Common Table Expression (CTE) and the PostgreSQL
+         *         ANY() operator to efficiently handle a large number of device_type_ids,
+         *         avoiding the 32,767 parameter limit.
+         *
+         *     Args:
+         *         device_type_ids: TODO: describe.
+         *         project_db: TODO: describe.
+         *         include_ghost_tags: TODO: describe.
          */
         get: operations["get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get"];
         put?: never;
@@ -4893,7 +6873,11 @@ export interface paths {
         /**
          * Get Unique Tag Types
          * @description Get unique tag types for the current project.
-         *     This endpoint is only accessible to superadmins.
+         *         This endpoint is only accessible to superadmins.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get"];
         put?: never;
@@ -4914,7 +6898,11 @@ export interface paths {
         /**
          * Get Sensor Type Assignments
          * @description Get sensor types and their current assignments for the current project.
-         *     This endpoint is only accessible to superadmins.
+         *         This endpoint is only accessible to superadmins.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_sensor_type_assignments_v1_protected_web_application_projects__project_id__project_tag_explorer_sensor_type_assignments_get"];
         put?: never;
@@ -4937,7 +6925,13 @@ export interface paths {
         /**
          * Assign Sensor Type To Tag
          * @description Assign a sensor type to a specific tag in a project.
-         *     This endpoint is only accessible to superadmins.
+         *         This endpoint is only accessible to superadmins.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         tag_name_short: TODO: describe.
+         *         sensor_type_id: TODO: describe.
+         *         db: TODO: describe.
          */
         post: operations["assign_sensor_type_to_tag_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_sensor_type_post"];
         delete?: never;
@@ -4955,7 +6949,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Assign Sensor Type To Pattern */
+        /**
+         * Assign Sensor Type To Pattern
+         * @description todo
+         *
+         *     Args:
+         *         request: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         db: TODO: describe.
+         */
         post: operations["assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post"];
         delete?: never;
         options?: never;
@@ -4973,7 +6976,12 @@ export interface paths {
         /**
          * Get Tag Samples
          * @description Get sample values for a specific tag by tag_id.
-         *     Returns sample values from the last 3 days of data.
+         *         Returns sample values from the last 3 days of data.
+         *
+         *     Args:
+         *         tag_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_tag_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_samples__tag_id__get"];
         put?: never;
@@ -4992,7 +7000,14 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Put Unique Tag Patterns */
+        /**
+         * Put Unique Tag Patterns
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         put: operations["put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put"];
         post?: never;
         delete?: never;
@@ -5011,7 +7026,14 @@ export interface paths {
         /**
          * Get Tag Pattern Samples
          * @description Get sample values for all tags in a specific pattern.
-         *     Returns up to 10 random tags from the pattern with their sample values.
+         *         Returns up to 10 random tags from the pattern with their sample values.
+         *
+         *     Args:
+         *         tag_pattern: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_tag_pattern_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_samples__tag_pattern__get"];
         put?: never;
@@ -5032,7 +7054,11 @@ export interface paths {
         /**
          * Get Tag Pattern Tags
          * @description Fetch all tags that match a given tag pattern (with [INT] wildcards).
-         *     Returns lightweight tag info for client-side processing.
+         *         Returns lightweight tag info for client-side processing.
+         *
+         *     Args:
+         *         tag_pattern: TODO: describe.
+         *         project_db: TODO: describe.
          */
         get: operations["get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get"];
         put?: never;
@@ -5050,7 +7076,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get By Device Type Id */
+        /**
+         * Get By Device Type Id
+         * @description todo
+         *
+         *     Args:
+         *         device_type_id: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         *         project_db: TODO: describe.
+         */
         get: operations["get_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__get"];
         put?: never;
         post?: never;
@@ -5071,8 +7105,12 @@ export interface paths {
          * Get Device Type Power Summary
          * @description Get power summary for all device types in the project.
          *
-         *     This endpoint efficiently calculates actual power for all device types
-         *     using the same proven logic as the GIS and plotting endpoints.
+         *         This endpoint efficiently calculates actual power for all device types
+         *         using the same proven logic as the GIS and plotting endpoints.
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get"];
         put?: never;
@@ -5090,7 +7128,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Meta Analysis */
+        /**
+         * Get Meta Analysis
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project_db_async: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get"];
         put?: never;
         post?: never;
@@ -5107,7 +7155,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Events Home Page Summary */
+        /**
+         * Get Events Home Page Summary
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         sort_by: TODO: describe.
+         */
         get: operations["get_events_home_page_summary_v1_protected_web_application_projects__project_id__events_home_page_summary_get"];
         put?: never;
         post?: never;
@@ -5124,7 +7180,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Bar */
+        /**
+         * Get Bar
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         operational_db: TODO: describe.
+         *         project: TODO: describe.
+         *         sensor_type_id: TODO: describe.
+         *         aggregation_type: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_bar_v1_protected_web_application_projects__project_id__custom_dash_bar_get"];
         put?: never;
         post?: never;
@@ -5141,7 +7210,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Gauge */
+        /**
+         * Get Gauge
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         operational_db: TODO: describe.
+         *         project: TODO: describe.
+         *         measured_variable: TODO: describe.
+         *         maximum_value: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_gauge_v1_protected_web_application_projects__project_id__custom_dash_gauge_get"];
         put?: never;
         post?: never;
@@ -5158,7 +7240,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Line */
+        /**
+         * Get Line
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         operational_db: TODO: describe.
+         *         project: TODO: describe.
+         *         sensor_type_ids: TODO: describe.
+         *         aggregation_types: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_line_v1_protected_web_application_projects__project_id__custom_dash_line_get"];
         put?: never;
         post?: never;
@@ -5175,7 +7270,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Scatter */
+        /**
+         * Get Scatter
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         db: TODO: describe.
+         *         operational_db: TODO: describe.
+         *         project: TODO: describe.
+         *         x_axis_sensor_type_id: TODO: describe.
+         *         y_axis_sensor_type_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         */
         get: operations["get_scatter_v1_protected_web_application_projects__project_id__custom_dash_scatter_get"];
         put?: never;
         post?: never;
@@ -5192,7 +7300,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get User Dashboards */
+        /**
+         * Get User Dashboards
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_user_dashboards_get"];
         put?: never;
         post?: never;
@@ -5211,7 +7327,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create User Dashboard */
+        /**
+         * Create User Dashboard
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         request: TODO: describe.
+         */
         post: operations["create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post"];
         delete?: never;
         options?: never;
@@ -5227,7 +7352,16 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Update User Dashboard */
+        /**
+         * Update User Dashboard
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         request: TODO: describe.
+         */
         put: operations["update_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put"];
         post?: never;
         delete?: never;
@@ -5243,11 +7377,29 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Dashboard */
+        /**
+         * Get Dashboard
+         * @description todo
+         *
+         *     Args:
+         *         dashboard_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         */
         get: operations["get_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__get"];
         put?: never;
         post?: never;
-        /** Delete Dashboard */
+        /**
+         * Delete Dashboard
+         * @description todo
+         *
+         *     Args:
+         *         dashboard_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         */
         delete: operations["delete_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__delete"];
         options?: never;
         head?: never;
@@ -5261,7 +7413,18 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Battery Settlement Details */
+        /**
+         * Get Battery Settlement Details
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         tps_token: TODO: describe.
+         *         user: TODO: describe.
+         *         db_async: TODO: describe.
+         */
         get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
         put?: never;
         post?: never;
@@ -5278,7 +7441,22 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Meter Power And Expected Power V2 */
+        /**
+         * Get Meter Power And Expected Power V2
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         include_storage: TODO: describe.
+         *         include_setpoint: TODO: describe.
+         *         include_soiling: TODO: describe.
+         *         include_degradation: TODO: describe.
+         *         interval: TODO: describe.
+         */
         get: operations["get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get"];
         put?: never;
         post?: never;
@@ -5320,9 +7498,17 @@ export interface paths {
         /**
          * backfill expected energy model
          * @description Start dates of given projects:
-         *         double_black_diamond: 2024-08-01
-         *         sun_streams_4: 2024-12-01
-         *         serrano: 2025-02-15
+         *             double_black_diamond: 2024-08-01
+         *             sun_streams_4: 2024-12-01
+         *             serrano: 2025-02-15
+         *
+         *     Args:
+         *         background_tasks: TODO: describe.
+         *         request: TODO: describe.
+         *         energy_model_version: TODO: describe.
+         *         project_name_short: TODO: describe.
+         *         simulation_start: TODO: describe.
+         *         simulation_end: TODO: describe.
          */
         post: operations["backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill_post"];
         delete?: never;
@@ -5341,9 +7527,18 @@ export interface paths {
         /**
          * Utility Expected
          * @description This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.
-         *     Data returned includes parent device tree up to root, expected power data, and actual power data.
-         *     This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
-         *     fit the use case of the page.
+         *         Data returned includes parent device tree up to root, expected power data, and actual power data.
+         *         This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
+         *         fit the use case of the page.
+         *
+         *     Args:
+         *         device_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         warranted_degradation: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         get: operations["utility_expected_v1_protected__project_id__pv_expected_energy_plot_get"];
         put?: never;
@@ -5361,7 +7556,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health Check */
+        /**
+         * Health Check
+         * @description todo
+         */
         get: operations["health_check_v1_protected__project_id__pv_expected_energy_health_get"];
         put?: never;
         post?: never;
@@ -5385,28 +7583,33 @@ export interface paths {
          * Delete Project Deep
          * @description Deep delete a project and all related data.
          *
-         *     **WARNING: This operation is irreversible and will permanently delete:**
-         *     - The project itself
-         *     - All user assignments to the project
-         *     - All user subscriptions for the project
-         *     - All company associations with the project
-         *     - All permissions related to the project
-         *     - All documents associated with the project
-         *     - All contracts for the project
-         *     - All KPI alerts, instances, and data
-         *     - All timeseries data
-         *     - All report instances
-         *     - Project metadata and last updated records
+         *         **WARNING: This operation is irreversible and will permanently delete:**
+         *         - The project itself
+         *         - All user assignments to the project
+         *         - All user subscriptions for the project
+         *         - All company associations with the project
+         *         - All permissions related to the project
+         *         - All documents associated with the project
+         *         - All contracts for the project
+         *         - All KPI alerts, instances, and data
+         *         - All timeseries data
+         *         - All report instances
+         *         - Project metadata and last updated records
          *
-         *     **Requirements:**
-         *     - Must be a superadmin user
-         *     - Must set `confirm=true` query parameter to proceed
+         *         **Requirements:**
+         *         - Must be a superadmin user
+         *         - Must set `confirm=true` query parameter to proceed
          *
-         *     **Returns:**
-         *     - Success message if deletion completed
-         *     - 404 if project not found
-         *     - 400 if confirmation not provided
-         *     - 403 if not authorized (not superadmin)
+         *         **Returns:**
+         *         - Success message if deletion completed
+         *         - 404 if project not found
+         *         - 400 if confirmation not provided
+         *         - 403 if not authorized (not superadmin)
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         confirm: TODO: describe.
+         *         db: TODO: describe.
          */
         delete: operations["delete_project_deep_v1_protected_deletions__project_id__delete"];
         options?: never;
@@ -5457,7 +7660,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Trigger Kpi Backfill Lambda */
+        /**
+         * Trigger Kpi Backfill Lambda
+         * @description todo
+         *
+         *     Args:
+         *         event: TODO: describe.
+         */
         post: operations["trigger_kpi_backfill_lambda_v1_protected_kpi_backfill_post"];
         delete?: never;
         options?: never;
@@ -5512,7 +7721,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Auth */
+        /**
+         * Get Auth
+         * @description todo
+         *
+         *     Args:
+         *         user: TODO: describe.
+         */
         get: operations["get_auth_v1_auth_get"];
         put?: never;
         post?: never;
@@ -5529,7 +7744,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Auth Require Admin */
+        /**
+         * Get Auth Require Admin
+         * @description todo
+         *
+         *     Args:
+         *         user: TODO: describe.
+         */
         get: operations["get_auth_require_admin_v1_auth_require_admin_get"];
         put?: never;
         post?: never;
@@ -5546,7 +7767,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Auth Require Superadmin */
+        /**
+         * Get Auth Require Superadmin
+         * @description todo
+         *
+         *     Args:
+         *         user: TODO: describe.
+         */
         get: operations["get_auth_require_superadmin_v1_auth_require_superadmin_get"];
         put?: never;
         post?: never;
@@ -5563,7 +7790,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Auth Require Jwt Or Api Superadmin */
+        /**
+         * Get Auth Require Jwt Or Api Superadmin
+         * @description todo
+         *
+         *     Args:
+         *         user: TODO: describe.
+         */
         get: operations["get_auth_require_jwt_or_api_superadmin_v1_auth_require_jwt_or_api_superadmin_get"];
         put?: never;
         post?: never;
@@ -5580,7 +7813,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Auth Require User Permission */
+        /**
+         * Get Auth Require User Permission
+         * @description todo
+         *
+         *     Args:
+         *         user: TODO: describe.
+         *         project_id: TODO: describe.
+         */
         get: operations["get_auth_require_user_permission_v1_auth_require_user_permission__project_id__get"];
         put?: never;
         post?: never;
@@ -5597,7 +7837,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Root */
+        /**
+         * Get Root
+         * @description Get root.
+         */
         get: operations["get_root__get"];
         put?: never;
         post?: never;
@@ -5614,7 +7857,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Version */
+        /**
+         * Get Version
+         * @description Get version.
+         */
         get: operations["get_version_version_get"];
         put?: never;
         post?: never;
@@ -5631,7 +7877,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Core Version */
+        /**
+         * Get Core Version
+         * @description Get core version.
+         */
         get: operations["get_core_version_version_core_get"];
         put?: never;
         post?: never;
@@ -5645,12 +7894,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** APIKey */
+        /**
+         * APIKey
+         * @description Apikey model.
+         */
         APIKey: {
             /** Api Key */
             api_key: string | null;
         };
-        /** AssignPatternSensorTypeRequest */
+        /**
+         * AssignPatternSensorTypeRequest
+         * @description todo
+         */
         AssignPatternSensorTypeRequest: {
             /** Project Id */
             project_id: string;
@@ -5665,7 +7920,10 @@ export interface components {
             /** Unit Scada */
             unit_scada?: string | null;
         };
-        /** BackfillRequest */
+        /**
+         * BackfillRequest
+         * @description todo
+         */
         BackfillRequest: {
             /**
              * Single Diode Model
@@ -5730,12 +7988,18 @@ export interface components {
              */
             model: string;
         };
-        /** BatterySettlementAnalysisResponse */
+        /**
+         * BatterySettlementAnalysisResponse
+         * @description todo
+         */
         BatterySettlementAnalysisResponse: {
             /** Content */
             content: string;
         };
-        /** BlockDropdownItem */
+        /**
+         * BlockDropdownItem
+         * @description todo
+         */
         BlockDropdownItem: {
             /** Device Id */
             device_id: number;
@@ -5796,7 +8060,10 @@ export interface components {
              */
             file: string;
         };
-        /** BulkCreateEventsRequest */
+        /**
+         * BulkCreateEventsRequest
+         * @description Bulkcreateeventsrequest model.
+         */
         BulkCreateEventsRequest: {
             /**
              * Time Start
@@ -5810,12 +8077,18 @@ export interface components {
             /** Root Cause Id */
             root_cause_id?: number | null;
         };
-        /** BulkCreateEventsResponse */
+        /**
+         * BulkCreateEventsResponse
+         * @description Bulkcreateeventsresponse model.
+         */
         BulkCreateEventsResponse: {
             /** Created Event Ids */
             created_event_ids: number[];
         };
-        /** BulkEventItem */
+        /**
+         * BulkEventItem
+         * @description Bulkeventitem model.
+         */
         BulkEventItem: {
             /** Device Id */
             device_id: number;
@@ -5829,7 +8102,10 @@ export interface components {
             /** Anomaly Uuids */
             anomaly_uuids?: string[] | null;
         };
-        /** CECPVInverter */
+        /**
+         * CECPVInverter
+         * @description Cecpvinverter model.
+         */
         CECPVInverter: {
             /** Manufacturer */
             manufacturer: string;
@@ -5958,12 +8234,18 @@ export interface components {
             /** Last Update */
             last_update: string | null;
         };
-        /** CECPVInverterBulkCreate */
+        /**
+         * CECPVInverterBulkCreate
+         * @description Cecpvinverterbulkcreate model.
+         */
         CECPVInverterBulkCreate: {
             /** Inverters */
             inverters: components["schemas"]["CECPVInverterCreate"][];
         };
-        /** CECPVInverterCreate */
+        /**
+         * CECPVInverterCreate
+         * @description Cecpvinvertercreate model.
+         */
         CECPVInverterCreate: {
             /** Manufacturer */
             manufacturer: string;
@@ -6092,7 +8374,10 @@ export interface components {
             /** Last Update */
             last_update: string | null;
         };
-        /** CECPVInverterWithID */
+        /**
+         * CECPVInverterWithID
+         * @description Cecpvinverterwithid model.
+         */
         CECPVInverterWithID: {
             /** Manufacturer */
             manufacturer: string;
@@ -6223,7 +8508,10 @@ export interface components {
             /** Cec Pv Inverter Id */
             cec_pv_inverter_id: number;
         };
-        /** CECPVModule */
+        /**
+         * CECPVModule
+         * @description Cecpvmodule model.
+         */
         CECPVModule: {
             /** Cec Pv Module Id */
             cec_pv_module_id: number;
@@ -6302,12 +8590,18 @@ export interface components {
             /** Last Update */
             last_update: string | null;
         };
-        /** CECPVModuleBulkCreate */
+        /**
+         * CECPVModuleBulkCreate
+         * @description Cecpvmodulebulkcreate model.
+         */
         CECPVModuleBulkCreate: {
             /** Modules */
             modules: components["schemas"]["CECPVModuleCreate"][];
         };
-        /** CECPVModuleCreate */
+        /**
+         * CECPVModuleCreate
+         * @description Cecpvmodulecreate model.
+         */
         CECPVModuleCreate: {
             /** Cec Pv Module Id */
             cec_pv_module_id: number;
@@ -6386,7 +8680,10 @@ export interface components {
             /** Last Update */
             last_update: string | null;
         };
-        /** CECPVModuleWithID */
+        /**
+         * CECPVModuleWithID
+         * @description Cecpvmodulewithid model.
+         */
         CECPVModuleWithID: {
             /** Cec Pv Module Id */
             cec_pv_module_id: number;
@@ -6465,18 +8762,27 @@ export interface components {
             /** Last Update */
             last_update: string | null;
         };
-        /** CMMSMetadata */
+        /**
+         * CMMSMetadata
+         * @description todo
+         */
         CMMSMetadata: {
             /** Integration Configured */
             integration_configured: boolean;
         };
-        /** CMMSResponse */
+        /**
+         * CMMSResponse
+         * @description todo
+         */
         CMMSResponse: {
             metadata: components["schemas"]["CMMSMetadata"];
             /** Data */
             data: components["schemas"]["CMMSTicket"][];
         };
-        /** CMMSTicket */
+        /**
+         * CMMSTicket
+         * @description todo
+         */
         CMMSTicket: {
             /** Cmms Provider */
             cmms_provider: string;
@@ -6511,7 +8817,10 @@ export interface components {
             /** Link */
             link?: string | null;
         };
-        /** CalendarItem */
+        /**
+         * CalendarItem
+         * @description Calendaritem model.
+         */
         CalendarItem: {
             /** Title */
             title: string;
@@ -6574,7 +8883,10 @@ export interface components {
             /** Assignee Team Ids */
             assignee_team_ids?: string[] | null;
         };
-        /** CalendarItemCategory */
+        /**
+         * CalendarItemCategory
+         * @description Calendaritemcategory model.
+         */
         CalendarItemCategory: {
             /** Short Name */
             short_name: string;
@@ -6598,7 +8910,10 @@ export interface components {
              */
             updated_at: string;
         };
-        /** CalendarItemCreate */
+        /**
+         * CalendarItemCreate
+         * @description Calendaritemcreate model.
+         */
         CalendarItemCreate: {
             /** Title */
             title: string;
@@ -6637,7 +8952,10 @@ export interface components {
             /** Assignee Team Ids */
             assignee_team_ids?: string[] | null;
         };
-        /** CalendarItemException */
+        /**
+         * CalendarItemException
+         * @description Calendaritemexception model.
+         */
         CalendarItemException: {
             /**
              * Exception Date
@@ -6674,7 +8992,10 @@ export interface components {
              */
             updated_at: string;
         };
-        /** CalendarItemExceptionUpdate */
+        /**
+         * CalendarItemExceptionUpdate
+         * @description Calendaritemexceptionupdate model.
+         */
         CalendarItemExceptionUpdate: {
             /** Is Cancelled */
             is_cancelled?: boolean | null;
@@ -6683,7 +9004,10 @@ export interface components {
             /** Override End Time */
             override_end_time?: string | null;
         };
-        /** Company */
+        /**
+         * Company
+         * @description Company model.
+         */
         Company: {
             /** Name Short */
             name_short: string;
@@ -6695,14 +9019,20 @@ export interface components {
              */
             company_id: string;
         };
-        /** CompanyCreate */
+        /**
+         * CompanyCreate
+         * @description Companycreate model.
+         */
         CompanyCreate: {
             /** Name Short */
             name_short: string;
             /** Name Long */
             name_long: string;
         };
-        /** CompanyProject */
+        /**
+         * CompanyProject
+         * @description Companyproject model.
+         */
         CompanyProject: {
             /**
              * Company Id
@@ -6717,7 +9047,10 @@ export interface components {
             /** Vector Store Id */
             vector_store_id: string;
         };
-        /** Contract */
+        /**
+         * Contract
+         * @description Contract model.
+         */
         Contract: {
             /**
              * Project Id
@@ -6736,7 +9069,10 @@ export interface components {
             /** Execution Date */
             execution_date?: string | null;
         };
-        /** ContractCategory */
+        /**
+         * ContractCategory
+         * @description Contractcategory model.
+         */
         ContractCategory: {
             /** Contract Category Id */
             contract_category_id: number;
@@ -6745,7 +9081,10 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** ContractCreate */
+        /**
+         * ContractCreate
+         * @description Contractcreate model.
+         */
         ContractCreate: {
             /**
              * Project Id
@@ -6789,7 +9128,10 @@ export interface components {
             /** Contract Summary */
             contract_summary?: string | null;
         };
-        /** ContractInfo */
+        /**
+         * ContractInfo
+         * @description Contractinfo model.
+         */
         ContractInfo: {
             /** Contract Id */
             contract_id: number;
@@ -6808,7 +9150,10 @@ export interface components {
             /** Counter Company */
             counter_company: string;
         };
-        /** ContractKPIs */
+        /**
+         * ContractKPIs
+         * @description Contractkpis model.
+         */
         ContractKPIs: {
             /** Contract Id */
             contract_id: number;
@@ -6835,7 +9180,10 @@ export interface components {
             /** Document Url */
             document_url?: string | null;
         };
-        /** ContractWithCompany */
+        /**
+         * ContractWithCompany
+         * @description Contractwithcompany model.
+         */
         ContractWithCompany: {
             /** Contract Id */
             contract_id: number;
@@ -6903,7 +9251,10 @@ export interface components {
             /** Content */
             content: string;
         };
-        /** CreateDashboardRequest */
+        /**
+         * CreateDashboardRequest
+         * @description todo
+         */
         CreateDashboardRequest: {
             /** Dashboard Name */
             dashboard_name: string;
@@ -6912,7 +9263,10 @@ export interface components {
             /** Components */
             components: components["schemas"]["DashboardComponent"][];
         };
-        /** DME */
+        /**
+         * DME
+         * @description Dme model.
+         */
         DME: {
             /** Dme Id */
             dme_id: number;
@@ -6987,7 +9341,10 @@ export interface components {
             /** Summary */
             summary: string;
         };
-        /** DashboardComponent */
+        /**
+         * DashboardComponent
+         * @description todo
+         */
         DashboardComponent: {
             /** Component Id */
             component_id: string | number;
@@ -7006,7 +9363,10 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        /** Data */
+        /**
+         * Data
+         * @description Data model.
+         */
         Data: {
             /**
              * Time
@@ -7018,7 +9378,10 @@ export interface components {
             /** Value */
             value: unknown;
         };
-        /** DataTimeSeries */
+        /**
+         * DataTimeSeries
+         * @description Datatimeseries model.
+         */
         DataTimeSeries: {
             /** X */
             x: string[];
@@ -7045,7 +9408,10 @@ export interface components {
             /** Tag Id */
             tag_id: number;
         };
-        /** DataType */
+        /**
+         * DataType
+         * @description Datatype model.
+         */
         DataType: {
             /** Data Type Id */
             data_type_id: number;
@@ -7062,14 +9428,20 @@ export interface components {
          * @enum {integer}
          */
         DefaultTimeRange: 1 | 2 | 3 | 4;
-        /** DemoModeUpdateRequest */
+        /**
+         * DemoModeUpdateRequest
+         * @description todo
+         */
         DemoModeUpdateRequest: {
             /** Demo Mode */
             demo_mode: boolean;
             /** Vite Environment */
             vite_environment: string;
         };
-        /** Device */
+        /**
+         * Device
+         * @description Device model.
+         */
         Device: {
             /** Device Id */
             device_id: number;
@@ -7101,7 +9473,10 @@ export interface components {
             /** Name Full */
             name_full?: string | null;
         };
-        /** DeviceAggregationObj */
+        /**
+         * DeviceAggregationObj
+         * @description Deviceaggregationobj model.
+         */
         DeviceAggregationObj: {
             /** Sum */
             sum: (number | null)[];
@@ -7122,14 +9497,20 @@ export interface components {
             /** Available Data */
             available_data: (number | null)[];
         };
-        /** DeviceDataObj */
+        /**
+         * DeviceDataObj
+         * @description Devicedataobj model.
+         */
         DeviceDataObj: {
             /** Device Values */
             device_values: {
                 [key: string]: (number | null)[];
             };
         };
-        /** DeviceDetailsHorizonalData */
+        /**
+         * DeviceDetailsHorizonalData
+         * @description todo
+         */
         DeviceDetailsHorizonalData: {
             /** Values */
             values: number[];
@@ -7138,7 +9519,10 @@ export interface components {
             /** Device Id */
             device_id: number;
         };
-        /** DeviceDetailsHorizontalPV */
+        /**
+         * DeviceDetailsHorizontalPV
+         * @description todo
+         */
         DeviceDetailsHorizontalPV: {
             /** Times */
             times: string[];
@@ -7149,7 +9533,10 @@ export interface components {
             /** Pcs */
             pcs: components["schemas"]["DeviceDetailsHorizonalData"][];
         };
-        /** DeviceTotals */
+        /**
+         * DeviceTotals
+         * @description todo
+         */
         DeviceTotals: {
             /** Device Type Id */
             device_type_id: number;
@@ -7162,7 +9549,10 @@ export interface components {
             /** Total Hours */
             total_hours: number[];
         };
-        /** DeviceType */
+        /**
+         * DeviceType
+         * @description Devicetype model.
+         */
         DeviceType: {
             /** Device Type Id */
             device_type_id: number;
@@ -7245,7 +9635,10 @@ export interface components {
              */
             fields: string[];
         };
-        /** Document */
+        /**
+         * Document
+         * @description Document model.
+         */
         Document: {
             /**
              * Document Id
@@ -7259,7 +9652,10 @@ export interface components {
             /** Contract Name */
             contract_name?: string | null;
         };
-        /** DroneAnomaly */
+        /**
+         * DroneAnomaly
+         * @description Droneanomaly model.
+         */
         DroneAnomaly: {
             /**
              * Anomaly Uuid
@@ -7298,7 +9694,10 @@ export interface components {
             /** Client Status Id */
             client_status_id?: number | null;
         };
-        /** DroneInspection */
+        /**
+         * DroneInspection
+         * @description Droneinspection model.
+         */
         DroneInspection: {
             /**
              * Inspection Uuid
@@ -7326,7 +9725,10 @@ export interface components {
             /** Report Summary */
             report_summary?: string | null;
         };
-        /** DroneInspectionOrderRequest */
+        /**
+         * DroneInspectionOrderRequest
+         * @description todo
+         */
         DroneInspectionOrderRequest: {
             /**
              * Project Id
@@ -7338,7 +9740,10 @@ export interface components {
             /** Timing */
             timing: string;
         };
-        /** DroneIntegration */
+        /**
+         * DroneIntegration
+         * @description Droneintegration model.
+         */
         DroneIntegration: {
             /** Drone Integration Id */
             drone_integration_id: number;
@@ -7352,7 +9757,10 @@ export interface components {
             /** Provider Project Id */
             provider_project_id: string;
         };
-        /** DroneIntegrationCreate */
+        /**
+         * DroneIntegrationCreate
+         * @description Droneintegrationcreate model.
+         */
         DroneIntegrationCreate: {
             /** Drone Integration Id */
             drone_integration_id: number;
@@ -7366,7 +9774,10 @@ export interface components {
             /** Provider Project Id */
             provider_project_id: string;
         };
-        /** DroneIntegrationUpdate */
+        /**
+         * DroneIntegrationUpdate
+         * @description Droneintegrationupdate model.
+         */
         DroneIntegrationUpdate: {
             /**
              * Project Id
@@ -7378,7 +9789,10 @@ export interface components {
             /** Provider Project Id */
             provider_project_id: string;
         };
-        /** DronePermission */
+        /**
+         * DronePermission
+         * @description Dronepermission model.
+         */
         DronePermission: {
             /** Drone Integration Id */
             drone_integration_id: number;
@@ -7390,7 +9804,10 @@ export interface components {
             /** Can View */
             can_view: boolean;
         };
-        /** DronePermissionCreate */
+        /**
+         * DronePermissionCreate
+         * @description Dronepermissioncreate model.
+         */
         DronePermissionCreate: {
             /** Drone Integration Id */
             drone_integration_id: number;
@@ -7402,12 +9819,18 @@ export interface components {
             /** Can View */
             can_view: boolean;
         };
-        /** DronePermissionUpdate */
+        /**
+         * DronePermissionUpdate
+         * @description Dronepermissionupdate model.
+         */
         DronePermissionUpdate: {
             /** Can View */
             can_view: boolean;
         };
-        /** DroneProvider */
+        /**
+         * DroneProvider
+         * @description Droneprovider model.
+         */
         DroneProvider: {
             /** Drone Provider Id */
             drone_provider_id: number;
@@ -7416,7 +9839,10 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** DroneProviderCreate */
+        /**
+         * DroneProviderCreate
+         * @description Droneprovidercreate model.
+         */
         DroneProviderCreate: {
             /** Drone Provider Id */
             drone_provider_id: number;
@@ -7425,26 +9851,38 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** DroneProviderUpdate */
+        /**
+         * DroneProviderUpdate
+         * @description Droneproviderupdate model.
+         */
         DroneProviderUpdate: {
             /** Name Short */
             name_short: string;
             /** Name Long */
             name_long: string;
         };
-        /** EnsureVectorStoreRequest */
+        /**
+         * EnsureVectorStoreRequest
+         * @description todo
+         */
         EnsureVectorStoreRequest: {
             /** Openai File Id */
             openai_file_id: string;
             /** Name */
             name?: string | null;
         };
-        /** EnsureVectorStoreResponse */
+        /**
+         * EnsureVectorStoreResponse
+         * @description todo
+         */
         EnsureVectorStoreResponse: {
             /** Vector Store Id */
             vector_store_id: string;
         };
-        /** Event */
+        /**
+         * Event
+         * @description Event model.
+         */
         Event: {
             /** Event Id */
             event_id: number;
@@ -7478,26 +9916,38 @@ export interface components {
             /** Version */
             version?: string | null;
         };
-        /** EventChatNotificationStatusesBatchRequest */
+        /**
+         * EventChatNotificationStatusesBatchRequest
+         * @description todo
+         */
         EventChatNotificationStatusesBatchRequest: {
             /** Project Ids */
             project_ids: string[];
         };
-        /** EventChatNotificationStatusesBatchResponse */
+        /**
+         * EventChatNotificationStatusesBatchResponse
+         * @description todo
+         */
         EventChatNotificationStatusesBatchResponse: {
             /** Statuses */
             statuses: {
                 [key: string]: boolean;
             };
         };
-        /** EventChatNotificationStatusesBatchUpdateRequest */
+        /**
+         * EventChatNotificationStatusesBatchUpdateRequest
+         * @description todo
+         */
         EventChatNotificationStatusesBatchUpdateRequest: {
             /** Statuses */
             statuses: {
                 [key: string]: boolean;
             };
         };
-        /** EventChatNotificationStatusesBatchUpdateResponse */
+        /**
+         * EventChatNotificationStatusesBatchUpdateResponse
+         * @description todo
+         */
         EventChatNotificationStatusesBatchUpdateResponse: {
             /** Statuses */
             statuses: {
@@ -7518,7 +9968,10 @@ export interface components {
             /** Status */
             status: string;
         };
-        /** EventMessage */
+        /**
+         * EventMessage
+         * @description todo
+         */
         EventMessage: {
             /** Event Message Id */
             event_message_id: number;
@@ -7549,7 +10002,10 @@ export interface components {
              */
             private: boolean;
         };
-        /** EventMessageCreate */
+        /**
+         * EventMessageCreate
+         * @description todo
+         */
         EventMessageCreate: {
             /** Event Id */
             event_id: number;
@@ -7563,7 +10019,10 @@ export interface components {
              */
             private: boolean;
         };
-        /** EventMessageReaction */
+        /**
+         * EventMessageReaction
+         * @description todo
+         */
         EventMessageReaction: {
             /** Reaction Id */
             reaction_id: number;
@@ -7579,21 +10038,30 @@ export interface components {
              */
             created_at: string;
         };
-        /** EventMessageReactionCreate */
+        /**
+         * EventMessageReactionCreate
+         * @description todo
+         */
         EventMessageReactionCreate: {
             /** Event Message Id */
             event_message_id: number;
             /** Reaction Type */
             reaction_type: string;
         };
-        /** EventMessageUpdate */
+        /**
+         * EventMessageUpdate
+         * @description todo
+         */
         EventMessageUpdate: {
             /** Body */
             body: string;
             /** Image Ids */
             image_ids?: string[] | null;
         };
-        /** EventMetaData */
+        /**
+         * EventMetaData
+         * @description todo
+         */
         EventMetaData: {
             /** Metrics */
             metrics: components["schemas"]["EventMetrics"][];
@@ -7604,7 +10072,10 @@ export interface components {
             /** Device Totals */
             device_totals: components["schemas"]["DeviceTotals"][];
         };
-        /** EventMetrics */
+        /**
+         * EventMetrics
+         * @description todo
+         */
         EventMetrics: {
             /** Device Type Id */
             device_type_id: number;
@@ -7619,7 +10090,10 @@ export interface components {
             /** Unavailability Contribution */
             unavailability_contribution: number;
         };
-        /** EventSummary */
+        /**
+         * EventSummary
+         * @description Eventsummary model.
+         */
         EventSummary: {
             /** Event Id */
             event_id: number;
@@ -7647,7 +10121,10 @@ export interface components {
             /** Loss Daily Energy */
             loss_daily_energy: number | null;
         };
-        /** FailureMode */
+        /**
+         * FailureMode
+         * @description Failuremode model.
+         */
         FailureMode: {
             /** Failure Mode Id */
             failure_mode_id: number;
@@ -7658,12 +10135,18 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** FailureModeUpdate */
+        /**
+         * FailureModeUpdate
+         * @description Failuremodeupdate model.
+         */
         FailureModeUpdate: {
             /** Failure Mode Id */
             failure_mode_id: number;
         };
-        /** Features */
+        /**
+         * Features
+         * @description Features model.
+         */
         Features: {
             /** Type */
             type: string;
@@ -7672,14 +10155,20 @@ export interface components {
             /** Geometry */
             geometry: components["schemas"]["Point"] | components["schemas"]["Polygon"];
         };
-        /** GeoJSON */
+        /**
+         * GeoJSON
+         * @description Geojson model.
+         */
         GeoJSON: {
             /** Type */
             type: string;
             /** Features */
             features: components["schemas"]["Features"][];
         };
-        /** Grade */
+        /**
+         * Grade
+         * @description Grade model.
+         */
         Grade: {
             /** Site Impact Category */
             site_impact_category: string;
@@ -7699,7 +10188,10 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** Inspection */
+        /**
+         * Inspection
+         * @description Inspection model.
+         */
         Inspection: {
             /** Date */
             date: string | null;
@@ -7714,7 +10206,10 @@ export interface components {
             /** Device Id */
             device_id: number;
         };
-        /** Inverter */
+        /**
+         * Inverter
+         * @description Inverter model.
+         */
         Inverter: {
             /** Inverter Id */
             inverter_id: number | null;
@@ -7770,7 +10265,10 @@ export interface components {
             /** Night Tare */
             night_tare: number;
         };
-        /** KPIAlert */
+        /**
+         * KPIAlert
+         * @description Kpialert model.
+         */
         KPIAlert: {
             /** Kpi Alert Id */
             kpi_alert_id: number;
@@ -7788,7 +10286,10 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        /** KPIAlertAdd */
+        /**
+         * KPIAlertAdd
+         * @description Kpialertadd model.
+         */
         KPIAlertAdd: {
             /** Project Id */
             project_id: string;
@@ -7809,7 +10310,10 @@ export interface components {
             /** Triggered */
             triggered: boolean;
         };
-        /** KPIAlertUpdate */
+        /**
+         * KPIAlertUpdate
+         * @description Kpialertupdate model.
+         */
         KPIAlertUpdate: {
             /** Project Id */
             project_id: string;
@@ -7830,7 +10334,10 @@ export interface components {
             /** Kpi Alert Id */
             kpi_alert_id: number;
         };
-        /** KPIBackfillEvent */
+        /**
+         * KPIBackfillEvent
+         * @description todo
+         */
         KPIBackfillEvent: {
             /**
              * Start
@@ -7852,12 +10359,18 @@ export interface components {
             /** Kpi Type Ids */
             kpi_type_ids?: number[] | null;
         };
-        /** KPIDelete */
+        /**
+         * KPIDelete
+         * @description Kpidelete model.
+         */
         KPIDelete: {
             /** Alert Id */
             alert_id: number;
         };
-        /** KPIInstance */
+        /**
+         * KPIInstance
+         * @description Kpiinstance model.
+         */
         KPIInstance: {
             /**
              * Project Id
@@ -7870,7 +10383,10 @@ export interface components {
             is_visible: boolean;
             kpi_type: components["schemas"]["KPIType"] | null;
         };
-        /** KPIType */
+        /**
+         * KPIType
+         * @description Kpitype model.
+         */
         KPIType: {
             /** Kpi Type Id */
             kpi_type_id: number;
@@ -7892,7 +10408,10 @@ export interface components {
             /** Doc Url */
             doc_url: string | null;
         };
-        /** KPITypeWithContractInfo */
+        /**
+         * KPITypeWithContractInfo
+         * @description Kpitypewithcontractinfo model.
+         */
         KPITypeWithContractInfo: {
             /** Kpi Type Id */
             kpi_type_id: number;
@@ -7931,7 +10450,10 @@ export interface components {
              */
             is_visible: boolean | null;
         };
-        /** KPITypeWithContracts */
+        /**
+         * KPITypeWithContracts
+         * @description Kpitypewithcontracts model.
+         */
         KPITypeWithContracts: {
             /** Kpi Type Id */
             kpi_type_id: number;
@@ -7963,14 +10485,20 @@ export interface components {
              */
             contract_kpis: components["schemas"]["ContractKPIs"][];
         };
-        /** MultiPolygon */
+        /**
+         * MultiPolygon
+         * @description Multipolygon model.
+         */
         MultiPolygon: {
             /** Type */
             type: string;
             /** Coordinates */
             coordinates: unknown[];
         };
-        /** Observation */
+        /**
+         * Observation
+         * @description Observation model.
+         */
         Observation: {
             /** Type */
             type: string | null;
@@ -7997,7 +10525,10 @@ export interface components {
             /** Device Id */
             device_id: number;
         };
-        /** OperationalKPIData */
+        /**
+         * OperationalKPIData
+         * @description Operationalkpidata model.
+         */
         OperationalKPIData: {
             /**
              * Project Id
@@ -8008,7 +10539,10 @@ export interface components {
             kpi_type_id: number;
             data: components["schemas"]["OperationalKPIDataObj"];
         };
-        /** OperationalKPIDataObj */
+        /**
+         * OperationalKPIDataObj
+         * @description Operationalkpidataobj model.
+         */
         OperationalKPIDataObj: {
             /** Dates */
             dates: string[];
@@ -8019,14 +10553,20 @@ export interface components {
             device_data_obj: components["schemas"]["DeviceDataObj"] | null;
             device_aggregation_obj: components["schemas"]["DeviceAggregationObj"] | null;
         };
-        /** PGDataType */
+        /**
+         * PGDataType
+         * @description Pgdatatype model.
+         */
         PGDataType: {
             /** Pg Data Type Id */
             pg_data_type_id: number;
             /** Name Short */
             name_short: string;
         };
-        /** PVBudgetedBulkUpsertRequest */
+        /**
+         * PVBudgetedBulkUpsertRequest
+         * @description Pvbudgetedbulkupsertrequest model.
+         */
         PVBudgetedBulkUpsertRequest: {
             /** Pv Budgeted Series Id */
             pv_budgeted_series_id?: number | null;
@@ -8034,7 +10574,10 @@ export interface components {
             /** Rows */
             rows: components["schemas"]["PVBudgetedDataRow"][];
         };
-        /** PVBudgetedDataRow */
+        /**
+         * PVBudgetedDataRow
+         * @description Pvbudgeteddatarow model.
+         */
         PVBudgetedDataRow: {
             /**
              * Time Stamp
@@ -8052,7 +10595,10 @@ export interface components {
             /** Soiling Percentage */
             soiling_percentage?: number | null;
         };
-        /** PVBudgetedSeries */
+        /**
+         * PVBudgetedSeries
+         * @description Pvbudgetedseries model.
+         */
         PVBudgetedSeries: {
             /** P Value */
             p_value: string;
@@ -8071,7 +10617,10 @@ export interface components {
             /** Pv Budgeted Series Id */
             pv_budgeted_series_id: number;
         };
-        /** PVBudgetedSeriesIn */
+        /**
+         * PVBudgetedSeriesIn
+         * @description Pvbudgetedseriesin model.
+         */
         PVBudgetedSeriesIn: {
             /** P Value */
             p_value: string;
@@ -8088,7 +10637,10 @@ export interface components {
             /** Filename */
             filename?: string | null;
         };
-        /** PVModule */
+        /**
+         * PVModule
+         * @description Pvmodule model.
+         */
         PVModule: {
             /**
              * Pv Module Id
@@ -8261,7 +10813,10 @@ export interface components {
              */
             half_cut: boolean;
         };
-        /** PVRackings */
+        /**
+         * PVRackings
+         * @description Pvrackings model.
+         */
         PVRackings: {
             /**
              * Racking Id
@@ -8319,7 +10874,10 @@ export interface components {
              */
             snow_stow_angle: number;
         };
-        /** PaginatedEvent */
+        /**
+         * PaginatedEvent
+         * @description Paginatedevent model.
+         */
         PaginatedEvent: {
             /** Event Id */
             event_id: number;
@@ -8347,7 +10905,10 @@ export interface components {
             /** Root Cause */
             root_cause: string;
         };
-        /** Permission */
+        /**
+         * Permission
+         * @description Permission model.
+         */
         Permission: {
             /** Permission Id */
             permission_id: number;
@@ -8356,21 +10917,30 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** Point */
+        /**
+         * Point
+         * @description Point model.
+         */
         Point: {
             /** Type */
             type: string;
             /** Coordinates */
             coordinates: number[];
         };
-        /** Polygon */
+        /**
+         * Polygon
+         * @description Polygon model.
+         */
         Polygon: {
             /** Type */
             type: string;
             /** Coordinates */
             coordinates: unknown[];
         };
-        /** PortfolioHome */
+        /**
+         * PortfolioHome
+         * @description todo
+         */
         PortfolioHome: {
             /**
              * Project Id
@@ -8632,7 +11202,10 @@ export interface components {
             /** Longitude */
             longitude: number;
         };
-        /** ProjectDataLastUpdated */
+        /**
+         * ProjectDataLastUpdated
+         * @description Projectdatalastupdated model.
+         */
         ProjectDataLastUpdated: {
             /**
              * Project Id
@@ -8646,7 +11219,10 @@ export interface components {
             /** Time Last */
             time_last: string | null;
         };
-        /** ProjectSpec */
+        /**
+         * ProjectSpec
+         * @description Projectspec model.
+         */
         ProjectSpec: {
             /** Used Device Type Ids */
             used_device_type_ids?: number[] | null;
@@ -8662,7 +11238,10 @@ export interface components {
          * @enum {integer}
          */
         ProjectStatusType: 1 | 2 | 3;
-        /** ProjectType */
+        /**
+         * ProjectType
+         * @description Projecttype model.
+         */
         ProjectType: {
             /** Project Type Id */
             project_type_id: number;
@@ -8731,7 +11310,10 @@ export interface components {
             /** Interconnecting Node Code */
             interconnecting_node_code?: string | null;
         };
-        /** ProviderSite */
+        /**
+         * ProviderSite
+         * @description todo
+         */
         ProviderSite: {
             /** Site Name */
             site_name?: string | null;
@@ -8740,7 +11322,10 @@ export interface components {
             /** Site Id */
             site_id?: number | null;
         };
-        /** QSE */
+        /**
+         * QSE
+         * @description Qse model.
+         */
         QSE: {
             /** Qse Id */
             qse_id: number;
@@ -8749,26 +11334,38 @@ export interface components {
             /** Name Long */
             name_long: string | null;
         };
-        /** QueryProviderSitesRequest */
+        /**
+         * QueryProviderSitesRequest
+         * @description todo
+         */
         QueryProviderSitesRequest: {
             /** Api Key */
             api_key: string;
             /** Provider Id */
             provider_id: number;
         };
-        /** RTEResponse */
+        /**
+         * RTEResponse
+         * @description todo
+         */
         RTEResponse: {
             /** Rte */
             rte: number | null;
         };
-        /** Report */
+        /**
+         * Report
+         * @description Report model.
+         */
         Report: {
             /** Filename */
             filename: string;
             /** Data Pdf */
             data_pdf: string;
         };
-        /** ReportInstance */
+        /**
+         * ReportInstance
+         * @description Reportinstance model.
+         */
         ReportInstance: {
             /**
              * Project Id
@@ -8781,19 +11378,28 @@ export interface components {
             is_visible: boolean;
             report_type: components["schemas"]["ReportType"] | null;
         };
-        /** ReportInstanceUpdate */
+        /**
+         * ReportInstanceUpdate
+         * @description Reportinstanceupdate model.
+         */
         ReportInstanceUpdate: {
             /** Report Type Id */
             report_type_id: number;
             /** Is Visible */
             is_visible: boolean;
         };
-        /** ReportInstancesBulkUpdate */
+        /**
+         * ReportInstancesBulkUpdate
+         * @description Reportinstancesbulkupdate model.
+         */
         ReportInstancesBulkUpdate: {
             /** Report Instances */
             report_instances: components["schemas"]["ReportInstanceUpdate"][];
         };
-        /** ReportType */
+        /**
+         * ReportType
+         * @description Reporttype model.
+         */
         ReportType: {
             /** Report Type Id */
             report_type_id: number;
@@ -8802,7 +11408,10 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** Resource */
+        /**
+         * Resource
+         * @description Resource model.
+         */
         Resource: {
             /** Resource Id */
             resource_id: number;
@@ -8828,7 +11437,10 @@ export interface components {
             dme: components["schemas"]["DME"] | null;
             settlement_point: components["schemas"]["SettlementPoint"] | null;
         };
-        /** RootCause */
+        /**
+         * RootCause
+         * @description Rootcause model.
+         */
         RootCause: {
             /** Root Cause Id */
             root_cause_id: number;
@@ -8839,7 +11451,10 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** RootCauseCandidate */
+        /**
+         * RootCauseCandidate
+         * @description todo
+         */
         RootCauseCandidate: {
             /** Root Cause Id */
             root_cause_id: number;
@@ -8850,7 +11465,10 @@ export interface components {
             /** Device Type Id */
             device_type_id: number;
         };
-        /** RootCauseUpdate */
+        /**
+         * RootCauseUpdate
+         * @description Rootcauseupdate model.
+         */
         RootCauseUpdate: {
             /** Root Cause Id */
             root_cause_id: number;
@@ -8871,7 +11489,10 @@ export interface components {
             /** Y */
             y: (number | null)[];
         };
-        /** SettlementPoint */
+        /**
+         * SettlementPoint
+         * @description Settlementpoint model.
+         */
         SettlementPoint: {
             /** Settlement Point Id */
             settlement_point_id: number;
@@ -8887,7 +11508,10 @@ export interface components {
             load_zone: components["schemas"]["SettlementPointCore"] | null;
             trading_hub: components["schemas"]["SettlementPointCore"] | null;
         };
-        /** SettlementPointCore */
+        /**
+         * SettlementPointCore
+         * @description Settlementpointcore model.
+         */
         SettlementPointCore: {
             /** Settlement Point Id */
             settlement_point_id: number;
@@ -8900,7 +11524,10 @@ export interface components {
             /** Trading Hub Id */
             trading_hub_id: number | null;
         };
-        /** SettlementPointMarket */
+        /**
+         * SettlementPointMarket
+         * @description Settlementpointmarket model.
+         */
         SettlementPointMarket: {
             /** Settlement Point Market Id */
             settlement_point_market_id: number;
@@ -8909,7 +11536,10 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** SettlementPointType */
+        /**
+         * SettlementPointType
+         * @description Settlementpointtype model.
+         */
         SettlementPointType: {
             /** Settlement Point Type Id */
             settlement_point_type_id: number;
@@ -8918,14 +11548,20 @@ export interface components {
             /** Name Long */
             name_long: string;
         };
-        /** SignalPair */
+        /**
+         * SignalPair
+         * @description todo
+         */
         SignalPair: {
             /** Ir Signal */
             ir_signal?: string | null;
             /** Rgb Signal */
             rgb_signal?: string | null;
         };
-        /** SiteInfo */
+        /**
+         * SiteInfo
+         * @description Siteinfo model.
+         */
         SiteInfo: {
             /**
              * Site Uuid
@@ -8939,7 +11575,10 @@ export interface components {
             /** Site Capacity Mw */
             site_capacity_mw: number;
         };
-        /** StatusTimeSeries */
+        /**
+         * StatusTimeSeries
+         * @description todo
+         */
         StatusTimeSeries: {
             /** X */
             x: string[];
@@ -8952,7 +11591,10 @@ export interface components {
             /** Tag Id */
             tag_id: number;
         };
-        /** SuggestRootCauseRequest */
+        /**
+         * SuggestRootCauseRequest
+         * @description todo
+         */
         SuggestRootCauseRequest: {
             /** Pairs */
             pairs: components["schemas"]["SignalPair"][];
@@ -8964,12 +11606,18 @@ export interface components {
              */
             model: string;
         };
-        /** SuggestRootCauseResponse */
+        /**
+         * SuggestRootCauseResponse
+         * @description todo
+         */
         SuggestRootCauseResponse: {
             /** Suggestions */
             suggestions: components["schemas"]["SuggestedRootCause"][];
         };
-        /** SuggestedRootCause */
+        /**
+         * SuggestedRootCause
+         * @description todo
+         */
         SuggestedRootCause: {
             /** Index */
             index: number;
@@ -8980,7 +11628,10 @@ export interface components {
             /** Rationale */
             rationale?: string | null;
         };
-        /** Tag */
+        /**
+         * Tag
+         * @description Tag model.
+         */
         Tag: {
             /** Tag Id */
             tag_id: number;
@@ -9018,7 +11669,10 @@ export interface components {
             /** Status Lookup Id */
             status_lookup_id: number | null;
         };
-        /** Team */
+        /**
+         * Team
+         * @description Team model.
+         */
         Team: {
             /** Name Long */
             name_long: string;
@@ -9043,22 +11697,34 @@ export interface components {
              */
             updated_at: string;
         };
-        /** TeamCreate */
+        /**
+         * TeamCreate
+         * @description Teamcreate model.
+         */
         TeamCreate: {
             /** Name Long */
             name_long: string;
         };
-        /** TeamMemberAdd */
+        /**
+         * TeamMemberAdd
+         * @description Teammemberadd model.
+         */
         TeamMemberAdd: {
             /** User Id */
             user_id: string;
         };
-        /** TeamUpdate */
+        /**
+         * TeamUpdate
+         * @description Teamupdate model.
+         */
         TeamUpdate: {
             /** Name Long */
             name_long: string;
         };
-        /** TeamWithMembers */
+        /**
+         * TeamWithMembers
+         * @description Teamwithmembers model.
+         */
         TeamWithMembers: {
             /** Name Long */
             name_long: string;
@@ -9085,7 +11751,10 @@ export interface components {
             /** Members */
             members: components["schemas"]["UserBasic"][];
         };
-        /** ThemeUpdateRequest */
+        /**
+         * ThemeUpdateRequest
+         * @description todo
+         */
         ThemeUpdateRequest: {
             /** Theme */
             theme: string;
@@ -9094,6 +11763,7 @@ export interface components {
         };
         /**
          * TimeFrame
+         * @description todo
          * @enum {string}
          */
         TimeFrame: "24h" | "30d";
@@ -9113,7 +11783,10 @@ export interface components {
                 [key: string]: (number | null)[];
             };
         };
-        /** UpdateDashboardRequest */
+        /**
+         * UpdateDashboardRequest
+         * @description todo
+         */
         UpdateDashboardRequest: {
             /**
              * Dashboard Id
@@ -9127,14 +11800,20 @@ export interface components {
             /** Components */
             components: components["schemas"]["DashboardComponent"][];
         };
-        /** UserBasic */
+        /**
+         * UserBasic
+         * @description Userbasic model.
+         */
         UserBasic: {
             /** User Id */
             user_id: string;
             /** Name Long */
             name_long: string;
         };
-        /** UserCreate */
+        /**
+         * UserCreate
+         * @description Usercreate model.
+         */
         UserCreate: {
             /** First Name */
             first_name: string;
@@ -9150,7 +11829,10 @@ export interface components {
             /** Company Name Short */
             company_name_short: string;
         };
-        /** UserKPITypes */
+        /**
+         * UserKPITypes
+         * @description Userkpitypes model.
+         */
         UserKPITypes: {
             /** User Id */
             user_id: string;
@@ -9159,7 +11841,10 @@ export interface components {
             /** Is Favorited */
             is_favorited: boolean;
         };
-        /** UserPermission */
+        /**
+         * UserPermission
+         * @description Userpermission model.
+         */
         UserPermission: {
             /** User Id */
             user_id: string;
@@ -9171,17 +11856,26 @@ export interface components {
             /** Permission Id */
             permission_id: number;
         };
-        /** UserPermissionRequest */
+        /**
+         * UserPermissionRequest
+         * @description todo
+         */
         UserPermissionRequest: {
             /** Permission Id */
             permission_id: number;
         };
-        /** UserProjectFavoriteUpdate */
+        /**
+         * UserProjectFavoriteUpdate
+         * @description Userprojectfavoriteupdate model.
+         */
         UserProjectFavoriteUpdate: {
             /** Is Favorited */
             is_favorited: boolean;
         };
-        /** UserSubscription */
+        /**
+         * UserSubscription
+         * @description Usersubscription model.
+         */
         UserSubscription: {
             /** User Id */
             user_id: string;
@@ -9195,12 +11889,18 @@ export interface components {
             /** Reports */
             reports: boolean;
         };
-        /** UserSubscriptionUpdate */
+        /**
+         * UserSubscriptionUpdate
+         * @description Usersubscriptionupdate model.
+         */
         UserSubscriptionUpdate: {
             /** Subscribe */
             subscribe: boolean;
         };
-        /** UserType */
+        /**
+         * UserType
+         * @description Usertype model.
+         */
         UserType: {
             user_type_id: components["schemas"]["UserTypeEnum"];
             /** Name Short */
@@ -9211,7 +11911,10 @@ export interface components {
          * @enum {integer}
          */
         UserTypeEnum: 1 | 2 | 3;
-        /** UserWithPermissions */
+        /**
+         * UserWithPermissions
+         * @description Userwithpermissions model.
+         */
         UserWithPermissions: {
             /** User Id */
             user_id: string;
@@ -9220,7 +11923,10 @@ export interface components {
             /** Permission Ids */
             permission_ids: number[];
         };
-        /** UtilityExpectedResponse */
+        /**
+         * UtilityExpectedResponse
+         * @description todo
+         */
         UtilityExpectedResponse: {
             /** Parent Devices */
             parent_devices: components["schemas"]["Device"][];
@@ -9256,7 +11962,10 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** VoiceChatSessionRequest */
+        /**
+         * VoiceChatSessionRequest
+         * @description todo
+         */
         VoiceChatSessionRequest: {
             /**
              * Model
@@ -9264,14 +11973,20 @@ export interface components {
              */
             model: string;
         };
-        /** VoiceChatSessionResponse */
+        /**
+         * VoiceChatSessionResponse
+         * @description todo
+         */
         VoiceChatSessionResponse: {
             /** Client Secret */
             client_secret: string;
             /** Expires At */
             expires_at: string;
         };
-        /** ZeitviewInspection */
+        /**
+         * ZeitviewInspection
+         * @description Zeitviewinspection model.
+         */
         ZeitviewInspection: {
             /**
              * Inspection Uuid
@@ -9298,12 +12013,18 @@ export interface components {
             /** Report Summary */
             report_summary?: string | null;
         };
-        /** ZeitviewObservation */
+        /**
+         * ZeitviewObservation
+         * @description Zeitviewobservation model.
+         */
         ZeitviewObservation: {
             /** Description */
             description: string;
         };
-        /** SensorType */
+        /**
+         * SensorType
+         * @description Sensortype model.
+         */
         app__interfaces__SensorType: {
             /** Sensor Type Id */
             sensor_type_id: number;

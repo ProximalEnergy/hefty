@@ -13,6 +13,12 @@ async def parse_equipment_inverters(
     system: pd.DataFrame,
 ) -> pd.DataFrame:
     # --- Get racking id ---
+    """todo
+
+    Args:
+        db: TODO: describe.
+        system: TODO: describe.
+    """
     system["gsheet_inverter_id"] = (
         pd.factorize(
             system[["PCS Manufacturer", "PCS Model"]].astype(str).agg("-".join, axis=1),

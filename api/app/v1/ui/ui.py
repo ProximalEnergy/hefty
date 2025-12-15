@@ -22,6 +22,8 @@ router = APIRouter(
 
 
 class BlockDropdownItem(BaseModel):
+    """todo"""
+
     device_id: int
     name_full: str
 
@@ -37,6 +39,11 @@ class BlockDropdownItem(BaseModel):
 def get_block_dropdown(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+    """
     BLOCK_DEVICE_TYPE_ID = 6
 
     # Fetch block devices
@@ -68,4 +75,10 @@ def get_recursive_parents(
     device_id: int,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
+    """todo
+
+    Args:
+        device_id: TODO: describe.
+        project_db: TODO: describe.
+    """
     return utils_get_recursive_parents(db=project_db, device_id=device_id)

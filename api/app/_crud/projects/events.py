@@ -17,6 +17,18 @@ def get_project_events(
     event_ids: list[int] | None = None,
     open_at: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        device_id: TODO: describe.
+        time_end_gte: TODO: describe.
+        time_end_lt: TODO: describe.
+        open: TODO: describe.
+        device_ids: TODO: describe.
+        event_ids: TODO: describe.
+        open_at: TODO: describe.
+    """
     query = db.query(models.Event)
 
     query = query.options(
@@ -45,6 +57,11 @@ def get_project_events(
 
 
 def get_event_device_ids(db: Session) -> list[int]:  # skip-star-syntax
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     query = db.query(models.Event)
     query = query.distinct(models.Event.device_id)
     query_return = query.all()
@@ -59,6 +76,14 @@ def get_project_events_by_id(
     open: bool = True,
     deep: bool = True,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+        open: TODO: describe.
+        deep: TODO: describe.
+    """
     query = db.query(models.Event)
     if isinstance(event_id, list):
         query = query.filter(models.Event.event_id.in_(event_id))
@@ -84,6 +109,20 @@ def get_paginated_events(
     start: datetime.datetime | None,
     end: datetime.datetime | None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        page: TODO: describe.
+        page_size: TODO: describe.
+        sort_column: TODO: describe.
+        sort_direction: TODO: describe.
+        open: TODO: describe.
+        device_type_id: TODO: describe.
+        device_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     query = db.query(models.Event)
     if open:
         query = query.filter(models.Event.time_end.is_(None))
@@ -148,8 +187,21 @@ def get_events_with_device_info(
 ):
     """Get events with joined device and device_type information.
 
-    This function provides a more efficient way to fetch events with their related
-    device and device type data in a single query using joinedload.
+        This function provides a more efficient way to fetch events with their related
+        device and device type data in a single query using joinedload.
+
+    Args:
+        db: TODO: describe.
+        device_id: TODO: describe.
+        time_end_gte: TODO: describe.
+        time_end_lt: TODO: describe.
+        open: TODO: describe.
+        device_ids: TODO: describe.
+        event_ids: TODO: describe.
+        open_at: TODO: describe.
+        device_type_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
     """
     query = db.query(models.Event).options(
         selectinload(models.Event.device).selectinload(models.Device.device_type)
@@ -198,9 +250,16 @@ def get_events_summary(
     device_type_ids: list[int] | None = None,
     device_ids: list[int] | None = None,
 ):
-    """
-    Get events with filters applied, along with device and device type information.
-    This is specifically designed for generating event summaries with device info.
+    """Get events with filters applied, along with device and device type information.
+        This is specifically designed for generating event summaries with device info.
+
+    Args:
+        db: TODO: describe.
+        open: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_type_ids: TODO: describe.
+        device_ids: TODO: describe.
     """
     query = db.query(models.Event).options(
         selectinload(models.Event.device).selectinload(models.Device.device_type),
@@ -229,6 +288,11 @@ def get_count_open(
     *,
     db: Session,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     query = db.query(models.Event)
     query = query.filter(models.Event.time_end.is_(None))
     return query.count()
@@ -240,7 +304,10 @@ def get_maximum_event_id(
 ) -> int:
     """Get the maximum event_id from the events table.
 
-    Returns 0 if no events exist in the table.
+        Returns 0 if no events exist in the table.
+
+    Args:
+        db: TODO: describe.
     """
     result = db.query(func.max(models.Event.event_id)).scalar()
     return result if result is not None else 0

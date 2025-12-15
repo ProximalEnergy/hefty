@@ -12,6 +12,8 @@ import app.integrations.providers.tenaska as tenaska
 
 
 class TokenResponse(TypedDict):
+    """todo"""
+
     access_token: str
     expires_in: int  # seconds
     token_type: str
@@ -29,6 +31,14 @@ class TokenManager:
         refresh_margin_s: int = 120,
         jitter_s: int = 30,
     ) -> None:
+        """todo
+
+        Args:
+            self: TODO: describe.
+            fetch_token: TODO: describe.
+            refresh_margin_s: TODO: describe.
+            jitter_s: TODO: describe.
+        """
         self._fetch_token_cb = fetch_token
         self._refresh_margin_s = refresh_margin_s
         self._jitter_s = jitter_s
@@ -38,15 +48,31 @@ class TokenManager:
         self._lock = asyncio.Lock()
 
     def _now(self) -> int:
+        """todo
+
+        Args:
+            self: TODO: describe.
+        """
         return int(time.time())
 
     def _needs_refresh(self, force: bool = False) -> bool:  # skip-star-syntax
+        """todo
+
+        Args:
+            self: TODO: describe.
+            force: TODO: describe.
+        """
         if self._token is None or force:
             return True
         jitter = random.randint(0, self._jitter_s) if self._jitter_s > 0 else 0
         return self._now() + self._refresh_margin_s + jitter >= self._expiry
 
     async def _refresh_under_lock(self) -> str:
+        """todo
+
+        Args:
+            self: TODO: describe.
+        """
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
@@ -56,6 +82,11 @@ class TokenManager:
         return self._token
 
     async def get_token(self) -> str:
+        """todo
+
+        Args:
+            self: TODO: describe.
+        """
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
@@ -66,6 +97,11 @@ class TokenManager:
             return await self._refresh_under_lock()
 
     async def force_refresh_and_get(self) -> str:
+        """todo
+
+        Args:
+            self: TODO: describe.
+        """
         async with self._lock:
             return await self._refresh_under_lock()
 
@@ -74,4 +110,5 @@ class TokenManager:
 @lru_cache(maxsize=1)
 def get_tps_token_manager() -> TokenManager:
     # lru_cache returns the same instance within the process
+    """todo"""
     return TokenManager(fetch_token=tenaska.fetch_tps_token)

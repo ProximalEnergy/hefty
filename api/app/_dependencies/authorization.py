@@ -12,8 +12,12 @@ from app.interfaces import UserAuthed
 
 async def require_jwt_or_api_superadmin(*, user: UserAuthed = Depends(get_user)):
     """Require the user to be a superadmin or authenticated via JWT.
-    This is helpful for UI-only routes which should not be accessible to users
-    directly via the API."""
+        This is helpful for UI-only routes which should not be accessible to users
+        directly via the API.
+
+    Args:
+        user: TODO: describe.
+    """
     if not (
         user.authentication_method == "jwt"
         or user.user_type_id == UserTypeEnum.SUPERADMIN
@@ -29,7 +33,12 @@ async def require_user_project(
     project_id: UUID = Path(...),
     user: UserAuthed = Depends(get_user),
 ):
-    """Require the user to have access to the requested project."""
+    """Require the user to have access to the requested project.
+
+    Args:
+        project_id: TODO: describe.
+        user: TODO: describe.
+    """
     if project_id not in user.operational_project_ids:
         raise HTTPException(
             status_code=403,
@@ -42,7 +51,12 @@ async def require_user_projects(
     project_ids: list[UUID] = Query(...),
     user: UserAuthed = Depends(get_user),
 ):
-    """Require the user to have access to all of the requested projects."""
+    """Require the user to have access to all of the requested projects.
+
+    Args:
+        project_ids: TODO: describe.
+        user: TODO: describe.
+    """
     if not all(
         project_id in user.operational_project_ids for project_id in project_ids
     ):
@@ -53,9 +67,18 @@ async def require_user_projects(
 
 
 def require_user_type(*, user_type_id: UserTypeEnum):
-    """Require the user to have at least the specified user type."""
+    """Require the user to have at least the specified user type.
+
+    Args:
+        user_type_id: TODO: describe.
+    """
 
     async def dependency(*, user: UserAuthed = Depends(get_user)) -> None:
+        """todo
+
+        Args:
+            user: TODO: describe.
+        """
         if user.user_type_id > user_type_id:
             raise HTTPException(
                 status_code=403,
@@ -66,7 +89,11 @@ def require_user_type(*, user_type_id: UserTypeEnum):
 
 
 def require_user_permissions(*, permission_ids: list[int]):
-    """Require the user to have the specified permissions on the requested project."""
+    """Require the user to have the specified permissions on the requested project.
+
+    Args:
+        permission_ids: TODO: describe.
+    """
 
     async def dependency(
         *,
@@ -74,6 +101,13 @@ def require_user_permissions(*, permission_ids: list[int]):
         user: UserAuthed = Depends(get_user),
         project_id: UUID = Path(...),
     ) -> None:
+        """todo
+
+        Args:
+            db: TODO: describe.
+            user: TODO: describe.
+            project_id: TODO: describe.
+        """
         user_permissions = await get_user_permissions(
             db=db,
             user_ids=[user.user_id],
@@ -101,13 +135,18 @@ async def require_user_company(
     user: UserAuthed = Depends(get_user),
 ) -> UUID | None:
     """Require appropriate company access.
-    - Superadmins (user_type_id == UserTypeEnum.SUPERADMIN) can access any
-    company's data or all
-      companies if company_id is None
-    - Regular users must specify their own company_id and can only access their
-      own company's data
-    Returns the appropriate company_id to use for database filtering
-    (None means all companies for superusers)."""
+        - Superadmins (user_type_id == UserTypeEnum.SUPERADMIN) can access any
+        company's data or all
+          companies if company_id is None
+        - Regular users must specify their own company_id and can only access their
+          own company's data
+        Returns the appropriate company_id to use for database filtering
+        (None means all companies for superusers).
+
+    Args:
+        company_id: TODO: describe.
+        user: TODO: describe.
+    """
 
     # For superusers
     if user.user_type_id == UserTypeEnum.SUPERADMIN:

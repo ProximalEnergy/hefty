@@ -6,6 +6,11 @@ from core import models
 
 
 def get_ercot_settlement_point_options(*, deep: bool):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = (
             selectinload(models.SettlementPoint.settlement_point_type),
@@ -23,6 +28,12 @@ def get_ercot_settlement_point_options(*, deep: bool):
 
 
 async def get_ercot_settlement_points(*, db: AsyncSession, deep: bool = False):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        deep: TODO: describe.
+    """
     options = get_ercot_settlement_point_options(deep=deep)
     query = select(models.SettlementPoint).options(*options)
     result = await db.execute(query)

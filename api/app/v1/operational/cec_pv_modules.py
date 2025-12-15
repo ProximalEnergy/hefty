@@ -34,6 +34,12 @@ async def get_cec_pv_modules(
     cec_pv_module_ids: Annotated[list[int], Query()] = [],
     db: AsyncSession = Depends(get_async_db),
 ):
+    """todo
+
+    Args:
+        cec_pv_module_ids: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_cec_pv_modules(db, cec_pv_module_ids=cec_pv_module_ids)
 
 
@@ -42,6 +48,12 @@ async def get_cec_pv_modules_in_proximal_format(
     cec_pv_module_id: int,
     db: AsyncSession = Depends(get_async_db),
 ):
+    """todo
+
+    Args:
+        cec_pv_module_id: TODO: describe.
+        db: TODO: describe.
+    """
     cec_pv_modules = await crud_get_cec_pv_modules(
         db,
         cec_pv_module_ids=[cec_pv_module_id],
@@ -61,6 +73,13 @@ async def get_cec_pv_module_ids(
     pv_module_model: Annotated[list[str], Query()] = [],
     db: AsyncSession = Depends(get_async_db),
 ):
+    """todo
+
+    Args:
+        pv_module_manufacturer: TODO: describe.
+        pv_module_model: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_cec_pv_module_ids(
         db=db,
         pv_module_manufacturers=pv_module_manufacturer,
@@ -79,13 +98,17 @@ async def get_cec_pv_module_ids_by_manufacturer_and_model(
     models: Annotated[list[str], Query()],
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Get CEC PV module IDs for each manufacturer and model pair.
+    """Get CEC PV module IDs for each manufacturer and model pair.
 
-    Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
-    that don't exist in the database.
+        Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
+        that don't exist in the database.
 
-    The input lists must have the same length.
+        The input lists must have the same length.
+
+    Args:
+        manufacturers: TODO: describe.
+        models: TODO: describe.
+        db: TODO: describe.
     """
     try:
         cec_pv_module_ids = await get_cec_pv_module_ids_by_manufacturer_model(
@@ -108,6 +131,11 @@ async def get_cec_pv_module_ids_by_manufacturer_and_model(
 async def get_proximal_cec_pv_module_manufacturers(
     db: AsyncSession = Depends(get_async_db),
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     manufacturers = await get_cec_pv_module_manufacturers(db=db)
     return manufacturers
 
@@ -123,6 +151,12 @@ async def get_proximal_cec_pv_module_models(
     db: AsyncSession = Depends(get_async_db),
     manufacturer: str | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        manufacturer: TODO: describe.
+    """
     models = await get_cec_pv_module_models_given_manufacturer(
         db=db,
         manufacturer=manufacturer,
@@ -135,4 +169,10 @@ async def upsert_cec_pv_modules_bulk(
     modules: interfaces.CECPVModuleBulkCreate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        modules: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_upsert_cec_pv_modules_bulk(db, modules=modules.modules)

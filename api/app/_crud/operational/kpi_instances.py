@@ -13,6 +13,15 @@ def get_kpi_instances(
     kpi_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_ids: TODO: describe.
+        is_visible: TODO: describe.
+        kpi_type_ids: TODO: describe.
+        deep: TODO: describe.
+    """
     query = db.query(models.KPIInstance)
     if project_ids is not None:
         query = query.filter(models.KPIInstance.project_id.in_(project_ids))
@@ -29,6 +38,11 @@ def get_kpi_instances(
 
 
 def _get_kpi_instances_options(*, deep: bool):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = selectinload(models.KPIInstance.kpi_type)
     else:

@@ -17,9 +17,12 @@ from app.domain.equipment._utils.real48_utils import (
 def _extract_eff_curve(
     *, start_idx: int, byte_data: bytes
 ) -> list[tuple[float, float]]:
-    """
-    Extracts the 7 efficiency points for a single curve.
-    Each point is a pair of P_in (DC power) and an efficiency-related value.
+    """Extracts the 7 efficiency points for a single curve.
+        Each point is a pair of P_in (DC power) and an efficiency-related value.
+
+    Args:
+        start_idx: TODO: describe.
+        byte_data: TODO: describe.
     """
     curve: list[tuple[float, float]] = []
     if not start_idx or start_idx >= len(byte_data):
@@ -51,9 +54,13 @@ def _parse_efficiency_section(
     byte_array: bytes,
     real48_start_index: int,
 ) -> int:
-    """
-    Parses the entire efficiency section, handling both single and multi-curve files.
-    Returns the index of the last byte parsed.
+    """Parses the entire efficiency section, handling both single and multi-curve files.
+        Returns the index of the last byte parsed.
+
+    Args:
+        data: TODO: describe.
+        byte_array: TODO: describe.
+        real48_start_index: TODO: describe.
     """
     # This dictionary will hold all efficiency-related data
     eff_data: dict[str, list[tuple[float, float]]] = {
@@ -174,7 +181,12 @@ def _parse_efficiency_section(
 
 
 def _parse_remarks(*, byte_array: bytes, start_index: int) -> dict:
-    """Parses the final part of the file for remarks and checks for 'Bipolar'."""
+    """Parses the final part of the file for remarks and checks for 'Bipolar'.
+
+    Args:
+        byte_array: TODO: describe.
+        start_index: TODO: describe.
+    """
     remarks_data = {"IsBipolar": False, "RemarksHex": ""}
     if start_index > 0 and start_index < len(byte_array):
         remaining_bytes = byte_array[start_index:]
@@ -186,9 +198,11 @@ def _parse_remarks(*, byte_array: bytes, start_index: int) -> dict:
 
 
 def read_ond_binary(*, file_content: bytes) -> dict:
-    """
-    Parses a binary .OND file and returns its contents as a dictionary.
-    This is a full translation of the VBA logic, handling multiple file formats.
+    """Parses a binary .OND file and returns its contents as a dictionary.
+        This is a full translation of the VBA logic, handling multiple file formats.
+
+    Args:
+        file_content: TODO: describe.
     """
     data: dict[str, Any] = {}
     byte_array = file_content

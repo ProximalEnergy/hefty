@@ -19,6 +19,7 @@ router = APIRouter(
 
 @router.get("/health")
 async def health():
+    """todo"""
     return {"status": "ok"}
 
 
@@ -30,10 +31,15 @@ def validate_combiner_data(
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
-    """
-    This function is used in combiner swaps functionality to figure out
-    if there is enough good combiner data.
+    """This function is used in combiner swaps functionality to figure out
+        if there is enough good combiner data.
 
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        device_ids: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
     """
     try:
         # Validate start and end times

@@ -32,7 +32,12 @@ async def get_pv_budgeted_series(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """Get all budgeted series for a project."""
+    """Get all budgeted series for a project.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_pv_budgeted_series(
         db=db,
         project_id=project_id,

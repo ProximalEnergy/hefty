@@ -13,6 +13,14 @@ async def get_user_kpi_alerts(
     project_id: UUID,
     kpi_type_id: int | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+        kpi_type_id: TODO: describe.
+    """
     query = select(models.KPIAlert)
     query = query.filter(models.KPIAlert.user_id == user_id)
     query = query.filter(models.KPIAlert.project_id == project_id)
@@ -27,6 +35,12 @@ async def get_user_triggered_alerts(
     *,
     user_id: str,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+    """
     query = select(models.KPIAlert)
     query = query.filter(models.KPIAlert.user_id == user_id)
     result = await db.execute(query)
@@ -39,6 +53,13 @@ async def trigger_user_alert(
     kpi_alert_id: int,
     triggered: bool,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        kpi_alert_id: TODO: describe.
+        triggered: TODO: describe.
+    """
     query = select(models.KPIAlert)
     query = query.filter(models.KPIAlert.kpi_alert_id == kpi_alert_id)
     result = await db.execute(query)
@@ -63,6 +84,15 @@ async def add_kpi_alert(
     kpi_type_id: int,
     config: dict,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+        kpi_type_id: TODO: describe.
+        config: TODO: describe.
+    """
     db_alert = models.KPIAlert(
         user_id=str(user_id),
         project_id=project_id,
@@ -82,6 +112,15 @@ async def update_kpi_alert(
     kpi_type_id: int,
     config: dict,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+        kpi_type_id: TODO: describe.
+        config: TODO: describe.
+    """
     query = select(models.KPIAlert).filter(
         models.KPIAlert.kpi_alert_id == config["kpi_alert_id"]
     )
@@ -109,6 +148,12 @@ async def delete_kpi_alert(
     *,
     alert_id: int,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        alert_id: TODO: describe.
+    """
     query = select(models.KPIAlert).filter(models.KPIAlert.kpi_alert_id == alert_id)
     result = await db.execute(query)
     db_alert = result.scalars().first()

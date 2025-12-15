@@ -17,10 +17,14 @@ TEST_PROJECT_ID = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
 # --- Mock Classes (MockPoint, MockPolygon, MockProjectSpec, MockProjectType, MockProject) ---
 # (Keep these as they were defined in the previous correct version)
 class MockPoint:
+    """todo"""
+
     def __init__(self, type, coordinates):  # skip-star-syntax
+        """todo"""
         self.type, self.coordinates = type, coordinates
 
     def __eq__(self, other):  # skip-star-syntax
+        """todo"""
         return (
             isinstance(other, MockPoint)
             and self.type == other.type
@@ -29,10 +33,14 @@ class MockPoint:
 
 
 class MockPolygon:
+    """todo"""
+
     def __init__(self, type, coordinates):  # skip-star-syntax
+        """todo"""
         self.type, self.coordinates = type, coordinates
 
     def __eq__(self, other):  # skip-star-syntax
+        """todo"""
         return (
             isinstance(other, MockPolygon)
             and self.type == other.type
@@ -41,27 +49,39 @@ class MockPolygon:
 
 
 class MockProjectSpec:
+    """todo"""
+
     def __init__(self, **kwargs):  # skip-star-syntax
+        """todo"""
         self.__dict__.update(kwargs)
 
     def __eq__(self, other):  # skip-star-syntax
+        """todo"""
         return isinstance(other, MockProjectSpec) and self.__dict__ == other.__dict__
 
 
 class MockProjectType:
+    """todo"""
+
     def __init__(self, **kwargs):  # skip-star-syntax
+        """todo"""
         self.__dict__.update(kwargs)
 
     def __eq__(self, other):  # skip-star-syntax
+        """todo"""
         return isinstance(other, MockProjectType) and self.__dict__ == other.__dict__
 
 
 class MockProject:
+    """todo"""
+
     def __init__(self, **kwargs):  # skip-star-syntax
+        """todo"""
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __eq__(self, other):  # skip-star-syntax
+        """todo"""
         return isinstance(other, MockProject) and self.__dict__ == other.__dict__
 
 

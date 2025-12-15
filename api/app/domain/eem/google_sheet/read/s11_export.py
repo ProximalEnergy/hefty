@@ -8,7 +8,12 @@ def export_system(
     system,
     project_name_short,
 ):
-    """Export a system to S3"""
+    """Export a system to S3
+
+    Args:
+        system: TODO: describe.
+        project_name_short: TODO: describe.
+    """
 
     # Environment Variables
     AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID

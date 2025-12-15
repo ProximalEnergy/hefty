@@ -13,6 +13,14 @@ async def get_ercot_dam_spp(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        settlement_point_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     query = select(models.DAMSPP)
 
     if settlement_point_ids:

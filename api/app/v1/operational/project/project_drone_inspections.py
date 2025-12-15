@@ -42,8 +42,11 @@ def get_db_inspections(
     project_id: uuid.UUID,
     db: Session = Depends(get_project_db),
 ):
-    """
-    Get a list of historical inspections from the database for a given project.
+    """Get a list of historical inspections from the database for a given project.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
     """
     try:
         inspections = get_drone_inspections(db=db)
@@ -67,8 +70,12 @@ async def get_zeitview_inspections(
     db: AsyncSession = Depends(get_async_db),
     project_db: Session = Depends(get_project_db),
 ):
-    """
-    Get a list of historical inspections from Zeitview for a given project.
+    """Get a list of historical inspections from Zeitview for a given project.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
     """
     integration = await get_drone_integration_by_project_id(
         db=db, project_id=project_id
@@ -136,8 +143,11 @@ def get_db_anomalies(
     inspection_uuid: uuid.UUID,
     db: Session = Depends(get_project_db),
 ):
-    """
-    Get a list of anomalies from the database for a given inspection.
+    """Get a list of anomalies from the database for a given inspection.
+
+    Args:
+        inspection_uuid: TODO: describe.
+        db: TODO: describe.
     """
     try:
         anomalies = get_anomalies_by_inspection_uuid(
@@ -166,9 +176,14 @@ async def sync_zeitview_anomalies(
     db: AsyncSession = Depends(get_async_db),
     project_db: Session = Depends(get_project_db),
 ):
-    """
-    Fetch anomalies from Zeitview and store them in the database incrementally.
-    Can resume from where it left off if interrupted.
+    """Fetch anomalies from Zeitview and store them in the database incrementally.
+        Can resume from where it left off if interrupted.
+
+    Args:
+        project_id: TODO: describe.
+        inspection_uuid: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
     """
     integration = await get_drone_integration_by_project_id(
         db=db, project_id=project_id
@@ -204,7 +219,12 @@ async def sync_zeitview_anomalies(
         is_first_page = True
 
         async def process_page(anomalies: list, page: int):
-            """Process a single page of anomalies and insert them into the database"""
+            """Process a single page of anomalies and insert them into the database
+
+            Args:
+                anomalies: TODO: describe.
+                page: TODO: describe.
+            """
             nonlocal total_synced, is_first_page
 
             if not anomalies:
@@ -250,6 +270,11 @@ async def sync_zeitview_anomalies(
                 if isinstance(raw_images, dict):
                     # Fix URL encoding where Zeitview returns "%2520" so they become usable ("%20")
                     def _fix_url(*, url: str | None) -> str | None:
+                        """todo
+
+                        Args:
+                            url: TODO: describe.
+                        """
                         if not isinstance(url, str):
                             return url
                         return url.replace("%25", "%")

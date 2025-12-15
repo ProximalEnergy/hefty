@@ -12,6 +12,7 @@ router = APIRouter(prefix="/projects/{project_id}/quality")
 @router.get("/inspections", response_model=list[interfaces.Inspection])
 def get_inspections():
     # Get folder of current file
+    """todo"""
     folder = os.path.dirname(os.path.abspath(__file__))
 
     df: pd.DataFrame = pd.read_pickle(f"{folder}/quality_data/quality_inspections.pkl")  # type: ignore
@@ -30,6 +31,7 @@ def get_inspections():
 )
 def get_observations():
     # Get folder of current file
+    """todo"""
     folder = os.path.dirname(os.path.abspath(__file__))
 
     df: pd.DataFrame = pd.read_pickle(f"{folder}/quality_data/quality_observations.pkl")  # type: ignore

@@ -14,6 +14,16 @@ def get_project_data_raw(
     end: pd.Timestamp,
     interval: str,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        interval: TODO: describe.
+    """
     statement = f"""
     SELECT
         time_bucket(:interval, time) + interval :interval as time_bucket,
@@ -53,6 +63,15 @@ def get_project_data_raw_last(
     start: pd.Timestamp,
     end: pd.Timestamp,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     statement = f"""
     (
         SELECT DISTINCT ON (tag_id)
@@ -90,6 +109,14 @@ def get_project_data_raw_latest(
     tag_ids: list[int],
     start: pd.Timestamp | datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+    """
     statement = f"""
     (
         SELECT DISTINCT ON (tag_id)

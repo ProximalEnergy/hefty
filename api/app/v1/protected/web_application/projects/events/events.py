@@ -23,6 +23,8 @@ router = APIRouter(
 
 
 class EventMetrics(BaseModel):
+    """todo"""
+
     device_type_id: int
     device_type_name: str
     MTBF_hours: float | None
@@ -32,6 +34,8 @@ class EventMetrics(BaseModel):
 
 
 class DeviceTotals(BaseModel):
+    """todo"""
+
     device_type_id: int
     device_ids: list[int]
     device_names: list[str]
@@ -40,17 +44,22 @@ class DeviceTotals(BaseModel):
 
 
 class EventMetaData(BaseModel):
+    """todo"""
+
     metrics: list[EventMetrics]
     daily_totals: dict[str, list[str] | list[int]]
     device_totals: list[DeviceTotals]
 
 
 def _ensure_tz_aware(ts: pd.Series, tz: str) -> pd.Series:  # skip-star-syntax
-    """
-    Convert a datetime series to timezone-aware (project tz).
-    - If any values are tz-aware already, use tz_convert.
-    - If entirely naive or entirely None, localize.
-    Mirrors original try/except behavior but clearer and safer.
+    """Convert a datetime series to timezone-aware (project tz).
+        - If any values are tz-aware already, use tz_convert.
+        - If entirely naive or entirely None, localize.
+        Mirrors original try/except behavior but clearer and safer.
+
+    Args:
+        ts: TODO: describe.
+        tz: TODO: describe.
     """
     s = pd.to_datetime(ts)
     if s.dt.tz is None:
@@ -65,6 +74,13 @@ def _clip_to_window(  # skip-star-syntax
     start: pd.Timestamp,
     end: pd.Timestamp,
 ) -> pd.Series:
+    """todo
+
+    Args:
+        s: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     return s.clip(lower=start, upper=end)  # type: ignore
 
 
@@ -79,6 +95,15 @@ async def get_meta_analysis(
     # -----------------------
     # Window setup (unchanged outputs)
     # -----------------------
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project_db_async: TODO: describe.
+        project: TODO: describe.
+    """
     if not start or not end:
         start = pd.Timestamp.now(tz=project.time_zone).normalize() - pd.Timedelta(
             days=1
@@ -340,6 +365,13 @@ def get_events_home_page_summary(
     project: models.Project = Depends(get_project_api),
     sort_by: Literal["daily", "total"] = "daily",
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        sort_by: TODO: describe.
+    """
     data = core.crud.project.events.get_homepage_summary(
         project_db, project_name=project.name_short, sort_by=sort_by
     )

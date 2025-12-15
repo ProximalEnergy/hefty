@@ -7,9 +7,11 @@ from core import models
 
 
 def _convert_pattern_to_regex(*, pattern: str) -> str:
-    """
-    Convert pattern to regex: replace [INT] with ([0-9]+) and escape the rest.
-    Preserves digit groups while escaping special regex characters.
+    """Convert pattern to regex: replace [INT] with ([0-9]+) and escape the rest.
+        Preserves digit groups while escaping special regex characters.
+
+    Args:
+        pattern: TODO: describe.
     """
     # Convert pattern to regex: replace [INT] with ([0-9]+) and escape the rest
     regex = pattern.replace("[INT]", "([0-9]+)")
@@ -25,8 +27,10 @@ def _convert_pattern_to_regex(*, pattern: str) -> str:
 
 
 def get_sensor_type_assignments(*, project_db: Session):
-    """
-    Get sensor types and their current assignments for a project.
+    """Get sensor types and their current assignments for a project.
+
+    Args:
+        project_db: TODO: describe.
     """
     sensor_types = project_db.query(models.SensorType).all()
     assignments = []
@@ -57,8 +61,11 @@ def get_sensor_type_assignments(*, project_db: Session):
 
 
 def get_tag_by_name_short(project_db: Session, *, name_short: str):
-    """
-    Get a tag by its name_short.
+    """Get a tag by its name_short.
+
+    Args:
+        project_db: TODO: describe.
+        name_short: TODO: describe.
     """
     return (
         project_db.query(models.Tag)
@@ -76,8 +83,12 @@ def update_tag_sensor_type(
     tag: models.Tag,
     sensor_type_id: int,
 ):
-    """
-    Update a tag's sensor_type_id.
+    """Update a tag's sensor_type_id.
+
+    Args:
+        project_db: TODO: describe.
+        tag: TODO: describe.
+        sensor_type_id: TODO: describe.
     """
     tag.sensor_type_id = sensor_type_id
     project_db.commit()
@@ -85,9 +96,12 @@ def update_tag_sensor_type(
 
 
 def get_tags_by_pattern_digits_only(project_db: Session, *, pattern: str):
-    """
-    Get all tags that match a given pattern where [INT] matches digits only.
-    Uses Postgres regex (~) and escapes literal pieces.
+    """Get all tags that match a given pattern where [INT] matches digits only.
+        Uses Postgres regex (~) and escapes literal pieces.
+
+    Args:
+        project_db: TODO: describe.
+        pattern: TODO: describe.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
@@ -104,8 +118,14 @@ def update_tags_sensor_type(
     unit_scale: float | None = None,
     unit_offset: float | None = None,
 ):
-    """
-    Update sensor_type_id and optionally unit_scale/unit_offset for multiple tags.
+    """Update sensor_type_id and optionally unit_scale/unit_offset for multiple tags.
+
+    Args:
+        project_db: TODO: describe.
+        tags: TODO: describe.
+        sensor_type_id: TODO: describe.
+        unit_scale: TODO: describe.
+        unit_offset: TODO: describe.
     """
     updated_count = 0
     for tag in tags:
@@ -130,11 +150,19 @@ def update_tags_sensor_type_by_pattern_bulk(
     unit_scada: str | None = None,
     unit_scada_provided: bool = False,
 ):
-    """
-    Bulk update sensor_type_id and optionally unit_scale/unit_offset/unit_scada for tags matching a pattern.
-    Uses SQLAlchemy bulk update for better performance with large tag sets.
+    """Bulk update sensor_type_id and optionally unit_scale/unit_offset/unit_scada for tags matching a pattern.
+        Uses SQLAlchemy bulk update for better performance with large tag sets.
 
-    If unit_scada_provided is True, unit_scada will be updated even if it's None (to clear the value).
+        If unit_scada_provided is True, unit_scada will be updated even if it's None (to clear the value).
+
+    Args:
+        project_db: TODO: describe.
+        pattern: TODO: describe.
+        sensor_type_id: TODO: describe.
+        unit_scale: TODO: describe.
+        unit_offset: TODO: describe.
+        unit_scada: TODO: describe.
+        unit_scada_provided: TODO: describe.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
@@ -158,8 +186,11 @@ def update_tags_sensor_type_by_pattern_bulk(
 
 
 def get_tag_by_id(project_db: Session, *, tag_id: int):
-    """
-    Get a tag by its ID.
+    """Get a tag by its ID.
+
+    Args:
+        project_db: TODO: describe.
+        tag_id: TODO: describe.
     """
     return project_db.query(models.Tag).filter(models.Tag.tag_id == tag_id).first()
 
@@ -170,9 +201,13 @@ def get_sample_tags_by_pattern_digits_only(
     pattern: str,
     limit: int = 5,
 ):
-    """
-    Get sample tags that match a given pattern where [INT] matches digits only.
-    Uses Postgres regex (~) and escapes literal pieces.
+    """Get sample tags that match a given pattern where [INT] matches digits only.
+        Uses Postgres regex (~) and escapes literal pieces.
+
+    Args:
+        project_db: TODO: describe.
+        pattern: TODO: describe.
+        limit: TODO: describe.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 

@@ -10,6 +10,12 @@ from core.model_list import ModelItem, ModelList
 
 
 def get_project_device_options(*, deep: bool, include_name_long: bool = False) -> Any:
+    """TODO: add description.
+
+    Args:
+        deep: TODO: describe.
+        include_name_long: TODO: describe.
+    """
     if deep:
         options = joinedload(models.Device.device_type)
     elif include_name_long:
@@ -100,6 +106,15 @@ def get_project_device(
     include_name_long: bool = False,
     return_query: bool = False,
 ) -> ModelItem[models.Device]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        device_id: TODO: describe.
+        deep: TODO: describe.
+        include_name_long: TODO: describe.
+        return_query: TODO: describe.
+    """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
     query = (
         db.query(models.Device)
@@ -182,6 +197,14 @@ async def get_project_devices_async(
 async def get_project_device_async(
     *, db: AsyncSession, device_id: int, deep: bool, include_name_long: bool = False
 ) -> models.Device | None:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        device_id: TODO: describe.
+        deep: TODO: describe.
+        include_name_long: TODO: describe.
+    """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
     stmt = (
         select(models.Device)

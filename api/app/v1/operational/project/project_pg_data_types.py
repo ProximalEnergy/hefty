@@ -22,6 +22,13 @@ def get_pg_data_types(
     name_short: str = "",
     db: Session = Depends(get_db),
 ):
+    """todo
+
+    Args:
+        pg_data_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        db: TODO: describe.
+    """
     return crud_get_pg_data_types(
         db=db,
         pg_data_type_ids=pg_data_type_ids,
@@ -35,6 +42,12 @@ def get_pg_data_types(
     responses={404: {"description": DESCRIPTION_404}},
 )
 def get_pg_data_type(pg_data_type_id: int, db=Depends(get_db)):
+    """todo
+
+    Args:
+        pg_data_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     pg_data_type = crud_get_pg_data_type(db=db, pg_data_type_id=pg_data_type_id)
     utils.check_404(value=pg_data_type, detail=DESCRIPTION_404)
     return pg_data_type
