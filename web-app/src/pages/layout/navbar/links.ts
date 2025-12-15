@@ -111,7 +111,6 @@ export const projectLinks: DropdownLink[] = [
     to: (projectId: string) => `/projects/${projectId}/reports`,
     label: 'Reports',
     icon: icons.IconFileText,
-    requiresReportIntegration: true,
   },
   {
     label: 'Finances',
