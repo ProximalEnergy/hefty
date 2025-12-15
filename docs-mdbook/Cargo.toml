@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mdbook = "0.4.51"
+mdbook = "0.5.0"
 mdbook-katex = "0.9.4"
-mdbook-mermaid = "0.16.2"
+mdbook-mermaid = "0.17.0"
