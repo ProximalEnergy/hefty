@@ -100,31 +100,27 @@ class ReleaseUpdater:
             # Find the right place to insert the new version
             # We want to insert in descending version order
             lines = existing_content.split("\n")
-            insert_index = 0
+            insert_index = None
 
             # Find where to insert based on version comparison
             for i, line in enumerate(lines):
                 if line.startswith("# v"):
                     existing_version = line[3:]  # Remove "# v"
                     if self._compare_versions(version, existing_version) > 0:
+                        # New version is greater, insert before this line
                         insert_index = i
                         break
-                    insert_index = i + 1
 
             # Insert the new entry
-            if insert_index == 0:
-                # Insert at the beginning
+            if insert_index is None or insert_index == 0:
+                # Insert at the beginning (new version is greater than all)
                 new_content = new_entry + existing_content
             else:
-                # Find the end of the previous entry
-                while insert_index < len(lines) and lines[insert_index].strip() != "":
-                    insert_index += 1
-
-                # Insert after the previous entry
-                lines.insert(insert_index, "")
-                lines.insert(insert_index + 1, f"# v{version}")
-                lines.insert(insert_index + 2, "")
-                lines.insert(insert_index + 3, f"- {message}")
+                # Insert at the found position
+                lines.insert(insert_index, f"# v{version}")
+                lines.insert(insert_index + 1, "")
+                lines.insert(insert_index + 2, f"- {message}")
+                lines.insert(insert_index + 3, "")
 
                 new_content = "\n".join(lines)
         else:
