@@ -1,10 +1,8 @@
 import logging
-import uuid
 from typing import Annotated
 
 import httpx
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces, settings
@@ -13,19 +11,17 @@ from app.v1.admin import (
     companies,
     company_projects,
     permissions,
-    report_preferences,
     subscriptions,
     teams,
     user_kpi_types,
     user_projects,
     users,
 )
-from core import crud, models
+from core import crud
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 router.include_router(api_key.router)
 router.include_router(permissions.router)
-router.include_router(report_preferences.router)
 router.include_router(subscriptions.router)
 router.include_router(company_projects.router)
 router.include_router(companies.router)
@@ -63,130 +59,6 @@ async def get_user_type(
     user_type = result.scalar_one_or_none()
 
     return user_type
-
-
-@router.get(
-    "/subscribed-alert-emails",
-    dependencies=[Depends(dependencies.requires_superadmin_async)],
-    deprecated=True,
-)
-async def get_subscribed_alert_emails(
-    project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        api_prod: TODO: describe.
-    """
-    query = (
-        select(models.User.user_id)
-        .join(
-            models.UserPermission,
-            models.User.user_id == models.UserPermission.user_id,
-        )
-        .filter(
-            models.User.subscribed_to_alerts,  # type: ignore
-            models.UserPermission.operational_project_id == project_id,  # type: ignore
-        )
-        .distinct()
-    )
-    result = await db.execute(query)
-    user_ids = [t[0] for t in result.all()]
-
-    data = {}
-
-    for user_id in user_ids:
-        try:
-            if api_prod:
-                clerk_secret = settings.CLERK_SECRET_KEY
-            else:
-                clerk_secret = settings.CLERK_SECRET_KEY_DEVELOPMENT
-
-            async with httpx.AsyncClient() as client:
-                clerk_response = await client.get(
-                    f"https://api.clerk.com/v1/users/{user_id}",
-                    headers={"Authorization": f"Bearer {clerk_secret}"},
-                )
-
-            clerk_data = clerk_response.json()
-            primary_email_address_id = clerk_data.get("primary_email_address_id")
-            email_address = [
-                address["email_address"]
-                for address in clerk_data["email_addresses"]
-                if address["id"] == primary_email_address_id
-            ][0]
-
-            data[user_id] = email_address
-        except Exception:
-            logging.error(f"Could not fetch email address for user {user_id}")
-
-    return list(set(list(data.values())))
-
-
-@router.get(
-    "/subscribed-report-emails",
-    dependencies=[Depends(dependencies.requires_superadmin_async)],
-    deprecated=True,
-)
-async def get_subscribed_report_emails(
-    project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        api_prod: TODO: describe.
-    """
-    query = (
-        select(models.User.user_id)
-        .join(
-            models.UserPermission,
-            models.User.user_id == models.UserPermission.user_id,
-        )
-        .filter(
-            models.User.subscribed_to_reports,  # type: ignore
-            models.UserPermission.operational_project_id == project_id,  # type: ignore
-        )
-        .distinct()
-    )
-    result = await db.execute(query)
-    user_ids = [t[0] for t in result.all()]
-
-    data = {}
-
-    for user_id in user_ids:
-        try:
-            if api_prod:
-                clerk_secret = settings.CLERK_SECRET_KEY
-            else:
-                clerk_secret = settings.CLERK_SECRET_KEY_DEVELOPMENT
-
-            async with httpx.AsyncClient() as client:
-                clerk_response = await client.get(
-                    f"https://api.clerk.com/v1/users/{user_id}",
-                    headers={"Authorization": f"Bearer {clerk_secret}"},
-                )
-
-            clerk_data = clerk_response.json()
-            primary_email_address_id = clerk_data.get("primary_email_address_id")
-            email_address = [
-                address["email_address"]
-                for address in clerk_data["email_addresses"]
-                if address["id"] == primary_email_address_id
-            ][0]
-
-            data[user_id] = email_address
-        except Exception:
-            logging.error(f"Could not fetch email address for user {user_id}")
-
-    return list(set(list(data.values())))
 
 
 @router.get("/user-email")

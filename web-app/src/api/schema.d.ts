@@ -178,40 +178,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/report-preferences": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Report Preferences
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_report_preferences_v1_admin_report_preferences_get"];
-        /**
-         * Update Report Preferences
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
-         */
-        put: operations["update_report_preferences_v1_admin_report_preferences_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/admin/subscriptions": {
         parameters: {
             query?: never;
@@ -861,58 +827,6 @@ export interface paths {
          *         user_data: TODO: describe.
          */
         get: operations["get_user_type_v1_admin_user_type_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/subscribed-alert-emails": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Subscribed Alert Emails
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         api_prod: TODO: describe.
-         */
-        get: operations["get_subscribed_alert_emails_v1_admin_subscribed_alert_emails_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/subscribed-report-emails": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Subscribed Report Emails
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         api_prod: TODO: describe.
-         */
-        get: operations["get_subscribed_report_emails_v1_admin_subscribed_report_emails_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2353,8 +2267,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Types Legacy
-         * @deprecated
+         * Get Project Types
          * @description todo
          *
          *     Args:
@@ -2363,7 +2276,7 @@ export interface paths {
          *         name_long: TODO: describe.
          *         db: TODO: describe.
          */
-        get: operations["get_project_types_legacy"];
+        get: operations["get_project_types"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2380,15 +2293,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Type Legacy
-         * @deprecated
+         * Get Project Type
          * @description todo
          *
          *     Args:
          *         project_type_id: TODO: describe.
          *         db: TODO: describe.
          */
-        get: operations["get_project_type_by_id_legacy"];
+        get: operations["get_project_type_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5215,14 +5127,13 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Types Legacy
-         * @deprecated
+         * Get Report Types
          * @description todo
          *
          *     Args:
          *         db: TODO: describe.
          */
-        get: operations["get_report_types_legacy"];
+        get: operations["get_report_types"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5239,15 +5150,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Type Legacy
-         * @deprecated
+         * Get Report Type
          * @description todo
          *
          *     Args:
          *         report_type_id: TODO: describe.
          *         db: TODO: describe.
          */
-        get: operations["get_report_type_by_id_legacy"];
+        get: operations["get_report_type_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12498,70 +12408,6 @@ export interface operations {
             };
         };
     };
-    get_report_preferences_v1_admin_report_preferences_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_report_preferences_v1_admin_report_preferences_put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_requesting_user_subscriptions_v1_admin_subscriptions_get: {
         parameters: {
             query?: never;
@@ -13626,74 +13472,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserType"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_subscribed_alert_emails_v1_admin_subscribed_alert_emails_get: {
-        parameters: {
-            query: {
-                project_id: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_subscribed_report_emails_v1_admin_subscribed_report_emails_get: {
-        parameters: {
-            query: {
-                project_id: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -15770,7 +15548,7 @@ export interface operations {
             };
         };
     };
-    get_project_types_legacy: {
+    get_project_types: {
         parameters: {
             query?: {
                 project_type_ids?: number[];
@@ -15807,7 +15585,7 @@ export interface operations {
             };
         };
     };
-    get_project_type_by_id_legacy: {
+    get_project_type_by_id: {
         parameters: {
             query?: {
                 schema?: string | null;
@@ -20000,11 +19778,9 @@ export interface operations {
             };
         };
     };
-    get_report_types_legacy: {
+    get_report_types: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20034,11 +19810,9 @@ export interface operations {
             };
         };
     };
-    get_report_type_by_id_legacy: {
+    get_report_type_by_id: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
