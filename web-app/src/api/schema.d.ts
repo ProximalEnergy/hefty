@@ -567,14 +567,14 @@ export interface paths {
         };
         /**
          * Get Users
-         * @description todo
+         * @description List users along with their operational project assignments.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         company_ids: TODO: describe.
-         *         user_ids: TODO: describe.
-         *         include_image_urls: TODO: describe.
-         *         api_prod: TODO: describe.
+         *         db: Async session for the admin database.
+         *         company_ids: Optional list of companies to scope returned users.
+         *         user_ids: Optional list of Clerk user IDs to filter by.
+         *         include_image_urls: Whether to request profile images from Clerk.
+         *         api_prod: Flag indicating if requests should target the prod Clerk API.
          */
         get: operations["get_users_v1_admin_users_get"];
         put?: never;
@@ -594,10 +594,10 @@ export interface paths {
         };
         /**
          * Get Self
-         * @description todo
+         * @description Return the authenticated user's session data.
          *
          *     Args:
-         *         user_data: TODO: describe.
+         *         user_data: Context data injected from the authentication middleware.
          */
         get: operations["get_self_v1_admin_users_self_get"];
         put?: never;
@@ -619,11 +619,11 @@ export interface paths {
         put?: never;
         /**
          * Create User
-         * @description todo
+         * @description Create a user in Clerk and persist metadata in the admin database.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
+         *         db: Async session for admin persistence actions.
+         *         user: UserCreate payload containing Clerk and company details.
          */
         post: operations["create_user_v1_admin_users_create_with_clerk_post"];
         delete?: never;
@@ -3131,12 +3131,12 @@ export interface paths {
         };
         /**
          * Get Project Device
-         * @description todo
+         * @description Return a single project device with optional relationship data.
          *
          *     Args:
-         *         device_id: TODO: describe.
-         *         deep: TODO: describe.
-         *         project_db: TODO: describe.
+         *         device_id: Identifier of the device to fetch.
+         *         deep: Whether to include related entities such as children and tags.
+         *         project_db: Database session for the current project.
          */
         get: operations["get_project_device_by_id"];
         put?: never;
@@ -4367,13 +4367,13 @@ export interface paths {
          *             The list of device ids to filter the tickets by
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         user: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_ids: TODO: describe.
+         *         project_id: Operational project identifier for scoping CMMS data.
+         *         db: Primary application database session used for permissions lookup.
+         *         project_db: Project-level async session for ticket and device queries.
+         *         user: Authenticated user context containing company membership.
+         *         start: Optional ISO date string to filter tickets created after this time.
+         *         end: Optional ISO date string limiting tickets created before this time.
+         *         device_ids: Optional list of project device IDs to filter matching tickets.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
         put?: never;
@@ -7472,19 +7472,19 @@ export interface paths {
         };
         /**
          * Get Meter Power And Expected Power V2
-         * @description todo
+         * @description Return meter and expected power traces for a project.
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         include_storage: TODO: describe.
-         *         include_setpoint: TODO: describe.
-         *         include_soiling: TODO: describe.
-         *         include_degradation: TODO: describe.
-         *         interval: TODO: describe.
+         *         start: Optional start datetime for the time window (project timezone).
+         *         end: Optional end datetime for the time window (project timezone).
+         *         project: Project model provided by dependency injection.
+         *         db: Shared application database session for fetching tag metadata.
+         *         project_db: Project database session used for time-series queries.
+         *         include_storage: Whether to include PV/BESS circuit power in results.
+         *         include_setpoint: Whether to include PPC active power setpoint values.
+         *         include_soiling: Whether to request expected power adjusted for soiling.
+         *         include_degradation: Whether to include degradation-adjusted expectation.
+         *         interval: Resampling interval used for tag retrieval (e.g., "5min").
          */
         get: operations["get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get"];
         put?: never;
@@ -8793,7 +8793,7 @@ export interface components {
         };
         /**
          * CMMSMetadata
-         * @description todo
+         * @description Metadata about CMMS integration availability for the project.
          */
         CMMSMetadata: {
             /** Integration Configured */
@@ -8801,7 +8801,7 @@ export interface components {
         };
         /**
          * CMMSResponse
-         * @description todo
+         * @description Response wrapper containing integration state and ticket results.
          */
         CMMSResponse: {
             metadata: components["schemas"]["CMMSMetadata"];
@@ -8810,7 +8810,7 @@ export interface components {
         };
         /**
          * CMMSTicket
-         * @description todo
+         * @description A CMMS ticket with provider metadata and scheduling details.
          */
         CMMSTicket: {
             /** Cmms Provider */
@@ -9459,7 +9459,7 @@ export interface components {
         DefaultTimeRange: 1 | 2 | 3 | 4;
         /**
          * DemoModeUpdateRequest
-         * @description todo
+         * @description Request body for toggling demo mode flags for a Clerk user.
          */
         DemoModeUpdateRequest: {
             /** Demo Mode */
@@ -11798,7 +11798,7 @@ export interface components {
         };
         /**
          * ThemeUpdateRequest
-         * @description todo
+         * @description Request body for updating the user's theme preferences in Clerk.
          */
         ThemeUpdateRequest: {
             /** Theme */

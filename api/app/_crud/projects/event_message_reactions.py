@@ -14,8 +14,8 @@ async def get_event_message_reactions(
     """Get event message reactions, optionally filtered by event_message_id.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
+        db: Async database session connected to the operational store.
+        event_message_id: Optional message identifier to filter reactions for.
     """
     stmt = select(models.EventMessageReaction)
 
@@ -38,8 +38,8 @@ async def get_event_message_reactions_by_event_id(
     """Get all event message reactions for a specific event.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session connected to the operational store.
+        event_id: Event identifier used to scope associated message reactions.
     """
     stmt = (
         select(models.EventMessageReaction)
@@ -63,10 +63,10 @@ async def get_event_message_reaction(
     """Get a specific reaction if it exists.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        user_id: TODO: describe.
-        reaction_type: TODO: describe.
+        db: Async database session connected to the operational store.
+        event_message_id: Message identifier for the reaction being queried.
+        user_id: Unique identifier of the reacting user.
+        reaction_type: Specific reaction enum to match (e.g., like, dislike).
     """
     stmt = (
         select(models.EventMessageReaction)
@@ -88,10 +88,10 @@ async def create_event_message_reaction(
     """Create a new event message reaction.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        user_id: TODO: describe.
-        reaction_type: TODO: describe.
+        db: Async database session connected to the operational store.
+        event_message_id: Message identifier the reaction belongs to.
+        user_id: Unique identifier of the reacting user.
+        reaction_type: Enum value describing the reaction being added.
     """
     now = datetime.datetime.now(datetime.UTC)
     reaction = models.EventMessageReaction(
@@ -114,8 +114,8 @@ async def delete_event_message_reaction(
     """Delete an event message reaction.
 
     Args:
-        db: TODO: describe.
-        reaction: TODO: describe.
+        db: Async database session connected to the operational store.
+        reaction: Reaction model instance to remove from the database.
     """
     await db.delete(reaction)
     await db.flush()

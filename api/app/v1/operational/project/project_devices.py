@@ -50,12 +50,12 @@ def get_project_device(
     deep: custom_types.AnnotatedDeep = False,
     project_db: Session = Depends(get_project_db),
 ):
-    """todo
+    """Return a single project device with optional relationship data.
 
     Args:
-        device_id: TODO: describe.
-        deep: TODO: describe.
-        project_db: TODO: describe.
+        device_id: Identifier of the device to fetch.
+        deep: Whether to include related entities such as children and tags.
+        project_db: Database session for the current project.
     """
     device = core.crud.project.devices.get_project_device(
         db=project_db,
@@ -91,13 +91,13 @@ async def get_project_devices_v2(
     filters: DevicesFilterRequest,
     project_db: Session = Depends(get_project_db),
 ):
-    # Validate format
-    """todo
+    """Return filtered project devices supporting large payloads and formats.
 
     Args:
-        filters: TODO: describe.
-        project_db: TODO: describe.
+        filters: Request payload containing filtering, paging, and format options.
+        project_db: Database session for the current project.
     """
+    # Validate format
     if filters.format not in ["json", "arrow", "parquet"]:
         raise HTTPException(
             status_code=400, detail="Format must be one of: json, arrow, parquet"
@@ -126,10 +126,10 @@ async def get_project_devices_v2(
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
     def wkb_to_geojson(wkb_bytes):  # skip-star-syntax
-        """todo
+        """Convert WKB bytes into a GeoJSON string representation.
 
         Args:
-            wkb_bytes: TODO: describe.
+            wkb_bytes: Geometry data in Well-Known Binary format.
         """
         if wkb_bytes is None:
             return None

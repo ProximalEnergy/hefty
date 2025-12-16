@@ -16,7 +16,7 @@ router = APIRouter(prefix="/projects/{project_id}/cmms-tickets", tags=["cmms-tic
 
 
 class CMMSTicket(BaseModel):
-    """todo"""
+    """A CMMS ticket with provider metadata and scheduling details."""
 
     cmms_provider: str
     id: int  # machine readable identifier
@@ -37,13 +37,13 @@ class CMMSTicket(BaseModel):
 
 
 class CMMSMetadata(BaseModel):
-    """todo"""
+    """Metadata about CMMS integration availability for the project."""
 
     integration_configured: bool
 
 
 class CMMSResponse(BaseModel):
-    """todo"""
+    """Response wrapper containing integration state and ticket results."""
 
     metadata: CMMSMetadata
     data: list[CMMSTicket]
@@ -82,13 +82,13 @@ async def get_cmms_tickets(
             The list of device ids to filter the tickets by
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        user: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_ids: TODO: describe.
+        project_id: Operational project identifier for scoping CMMS data.
+        db: Primary application database session used for permissions lookup.
+        project_db: Project-level async session for ticket and device queries.
+        user: Authenticated user context containing company membership.
+        start: Optional ISO date string to filter tickets created after this time.
+        end: Optional ISO date string limiting tickets created before this time.
+        device_ids: Optional list of project device IDs to filter matching tickets.
     """
     # First get integrations to see if there are any configured
 

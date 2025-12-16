@@ -33,19 +33,19 @@ def get_meter_power_and_expected_power_v2(
     include_degradation: bool = False,
     interval: str = "5min",
 ):
-    """todo
+    """Return meter and expected power traces for a project.
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        include_storage: TODO: describe.
-        include_setpoint: TODO: describe.
-        include_soiling: TODO: describe.
-        include_degradation: TODO: describe.
-        interval: TODO: describe.
+        start: Optional start datetime for the time window (project timezone).
+        end: Optional end datetime for the time window (project timezone).
+        project: Project model provided by dependency injection.
+        db: Shared application database session for fetching tag metadata.
+        project_db: Project database session used for time-series queries.
+        include_storage: Whether to include PV/BESS circuit power in results.
+        include_setpoint: Whether to include PPC active power setpoint values.
+        include_soiling: Whether to request expected power adjusted for soiling.
+        include_degradation: Whether to include degradation-adjusted expectation.
+        interval: Resampling interval used for tag retrieval (e.g., "5min").
     """
     if include_soiling:
         if include_degradation:

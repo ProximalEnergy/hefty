@@ -27,10 +27,10 @@ def get_project_cmms_devices(
             The list of CMMS devices for the project
 
     Args:
-        project_db: TODO: describe.
-        cmms_integration_ids: TODO: describe.
-        device_ids: TODO: describe.
-        return_query: TODO: describe.
+        project_db: Project-scoped SQLAlchemy session for CMMS queries.
+        cmms_integration_ids: Optional list of integration IDs to filter on.
+        device_ids: Optional list of device IDs to narrow the CMMS devices.
+        return_query: When True, return the query instead of executing it.
     """
     query = project_db.query(models.CMMSDevice).options(
         selectinload(models.CMMSDevice.device),
