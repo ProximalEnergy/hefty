@@ -5608,7 +5608,7 @@ export interface paths {
          *             - pv_module_data: The complete pv_module configuration with all parameters
          *
          *     Args:
-         *         file: TODO: describe.
+         *         file: Uploaded PAN file to parse.
          */
         post: operations["parse_pan_file_v1_operational_pv_modules_parse_pan_post"];
         delete?: never;
