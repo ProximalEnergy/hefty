@@ -3,6 +3,7 @@ import { useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
 import {
   DashboardComponent,
   useAddUserDashboard,
+  useDuplicateUserDashboard,
   useGetBarData,
   useGetDashboard,
   useGetGaugeData,
@@ -20,7 +21,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 // import { GISContext } from '@/contexts/GISContext'
-import { useGetKPIType } from '@/hooks/api'
+import { useGetDevicesV2, useGetKPIType, useGetTags } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 // import * as gisUtils from '@/utils/GIS'
 import {
@@ -28,6 +29,7 @@ import {
   Button,
   Drawer,
   Group,
+  Modal,
   Paper,
   RingProgress,
   Select,
@@ -39,8 +41,9 @@ import {
   useComputedColorScheme,
   useDrawersStack,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { Link, RichTextEditor } from '@mantine/tiptap'
-import { IconTrash } from '@tabler/icons-react'
+import { IconAlertTriangle, IconEdit, IconTrash } from '@tabler/icons-react'
 import { UseQueryResult } from '@tanstack/react-query'
 import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -241,6 +244,9 @@ export interface LineConfig {
     id: string
     sensorTypeId: string | null
     aggregationMethod: string | null
+    tagIds?: number[]
+    maximum?: number | null
+    minimum?: number | null
   }>
 }
 
@@ -547,18 +553,34 @@ const LineComponent = ({
   startQuery,
   endQuery,
   sensorTypes,
+  usedSensorTypeIds,
 }: {
   component: DashboardComponent & { config: LineConfig }
   projectId: string | undefined
   startQuery: string
   endQuery: string
   sensorTypes: UseQueryResult<SensorType[], AxiosError<unknown>>
+  usedSensorTypeIds: number[] | undefined
 }) => {
   const uniqueSensorTypeIds = component.config.traces
     .map((trace: { sensorTypeId: string | null }) => trace.sensorTypeId)
     .filter((id: string | null) => id !== null)
   const uniqueSensorTypeIdsData = sensorTypes.data?.filter((sensorType) =>
     uniqueSensorTypeIds.includes(sensorType.sensor_type_id.toString()),
+  )
+
+  // Check if any sensor types are out of spec (before query)
+  const sensorTypeIdsNumeric = uniqueSensorTypeIds
+    .map((id) => Number(id))
+    .filter((id) => !isNaN(id))
+  const hasOutOfSpecSensorTypes =
+    usedSensorTypeIds &&
+    sensorTypeIdsNumeric.some((id) => !usedSensorTypeIds.includes(id))
+
+  // Check if any tag IDs are placeholder values (-1) indicating they need to be reconfigured
+  const hasPlaceholderTagIds = component.config.traces.some(
+    (trace: { tagIds?: number[] }) =>
+      trace.tagIds && trace.tagIds.length > 0 && trace.tagIds.includes(-1),
   )
 
   const lineData = useGetLineData({
@@ -575,11 +597,27 @@ const LineComponent = ({
             trace.aggregationMethod,
         )
         .filter((method: string | null) => method !== null) as string[],
+      tag_ids: component.config.traces.map((trace: { tagIds?: number[] }) => {
+        if (!trace.tagIds || trace.tagIds.length === 0) {
+          return ''
+        }
+        // Filter out placeholder tag IDs (-1) before sending to API
+        const validTagIds = trace.tagIds.filter((tagId) => tagId !== -1)
+        return validTagIds.length > 0 ? validTagIds.join(',') : ''
+      }),
+      maximum: component.config.traces.map(
+        (trace: { maximum?: number | null }) => trace.maximum ?? null,
+      ),
+      minimum: component.config.traces.map(
+        (trace: { minimum?: number | null }) => trace.minimum ?? null,
+      ),
       start: startQuery,
       end: endQuery,
     },
     queryOptions: {
       enabled:
+        !hasOutOfSpecSensorTypes &&
+        !hasPlaceholderTagIds &&
         !!projectId &&
         component.config.traces.length > 0 &&
         !!startQuery &&
@@ -595,6 +633,32 @@ const LineComponent = ({
 
   if (lineData.isLoading) {
     return <PageLoader />
+  }
+
+  if (hasOutOfSpecSensorTypes) {
+    return (
+      <Stack align="center" justify="center" h="100%" gap="md">
+        <IconAlertTriangle size={48} color="var(--mantine-color-yellow-6)" />
+        <Text size="sm" ta="center" c="dimmed">
+          This component uses sensor types that are not available in this
+          project. Please update the component configuration to use valid sensor
+          types.
+        </Text>
+      </Stack>
+    )
+  }
+
+  if (hasPlaceholderTagIds) {
+    return (
+      <Stack align="center" justify="center" h="100%" gap="md">
+        <IconAlertTriangle size={48} color="var(--mantine-color-yellow-6)" />
+        <Text size="sm" ta="center" c="dimmed">
+          This component was duplicated from another project and contains tag
+          references that need to be reconfigured. Please update the component
+          configuration to select valid tags for this project.
+        </Text>
+      </Stack>
+    )
   }
 
   if (!lineData.data || lineData.data.length === 0) {
@@ -634,6 +698,11 @@ const LineComponent = ({
   const unitKeys = Object.keys(unitGroups)
 
   // Transform the data for Plotly with y-axis assignments
+  // Also collect threshold values (maximum/minimum) with their y-axis assignments
+  const thresholdMap = new Map<
+    string,
+    { value: number; yaxis: string; type: 'maximum' | 'minimum' }
+  >()
   const plotData = lineData.data
     .map((traceData, index) => {
       const unit = traceData.unit || 'Unitless'
@@ -648,6 +717,28 @@ const LineComponent = ({
         yAxis = 'y3'
       } else if (unitIndex === 3) {
         yAxis = 'y4'
+      }
+
+      // Collect maximum and minimum values with their y-axis assignments
+      if (traceData.maximum !== null && traceData.maximum !== undefined) {
+        const key = `max_${traceData.maximum}_${yAxis}`
+        if (!thresholdMap.has(key)) {
+          thresholdMap.set(key, {
+            value: traceData.maximum,
+            yaxis: yAxis,
+            type: 'maximum',
+          })
+        }
+      }
+      if (traceData.minimum !== null && traceData.minimum !== undefined) {
+        const key = `min_${traceData.minimum}_${yAxis}`
+        if (!thresholdMap.has(key)) {
+          thresholdMap.set(key, {
+            value: traceData.minimum,
+            yaxis: yAxis,
+            type: 'minimum',
+          })
+        }
       }
 
       return {
@@ -665,12 +756,58 @@ const LineComponent = ({
     })
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
 
+  // Add threshold traces for maximum and minimum values
+  // Get the actual x-axis range from the data traces to ensure proper alignment
+  const allXValues = lineData.data.flatMap((traceData) => traceData.x)
+  let xRange: [string, string]
+  if (allXValues.length > 0) {
+    // Use the first and last x values from the data to ensure timezone alignment
+    const sortedX = [...allXValues].sort()
+    xRange = [sortedX[0], sortedX[sortedX.length - 1]]
+  } else {
+    // Fallback to startQuery and endQuery if no data
+    xRange = [startQuery, endQuery]
+  }
+
+  thresholdMap.forEach((threshold) => {
+    // Get the unit for this y-axis to include in the name
+    const yAxisIndex =
+      threshold.yaxis === 'y'
+        ? 0
+        : threshold.yaxis === 'y2'
+          ? 1
+          : threshold.yaxis === 'y3'
+            ? 2
+            : 3
+    const unit = unitKeys[yAxisIndex] || ''
+
+    const thresholdName =
+      threshold.type === 'maximum'
+        ? `Max Threshold (${threshold.value}${unit ? ` ${unit}` : ''})`
+        : `Min Threshold (${threshold.value}${unit ? ` ${unit}` : ''})`
+
+    plotData.push({
+      x: xRange,
+      y: [threshold.value, threshold.value],
+      type: 'scatter' as PlotType,
+      mode: 'lines' as const,
+      name: thresholdName,
+      yaxis: threshold.yaxis,
+      hoverlabel: { namelength: -1 },
+      line: {
+        color: 'black',
+        width: 1,
+        dash: 'dot',
+      } as { color: string; width: number; dash: string },
+    } as (typeof plotData)[0])
+  })
+
   // Create layout with multiple y-axes
   const layout: Record<string, unknown> = {
     showlegend: lineData.data.length > 1,
     margin: { t: 20, b: 50, l: 80, r: 80 },
     xaxis: {
-      title: 'Time',
+      title: { text: 'Time' },
       showgrid: true,
       zeroline: true,
       showline: true,
@@ -687,7 +824,7 @@ const LineComponent = ({
       },
     },
     yaxis: {
-      title: unitKeys[0] || 'Value',
+      title: { text: unitKeys[0] || 'Value' },
       side: 'left',
       showgrid: true,
       zeroline: true,
@@ -709,7 +846,7 @@ const LineComponent = ({
   // Add secondary y-axis if we have more than one unit
   if (unitKeys.length > 1) {
     layout.yaxis2 = {
-      title: unitKeys[1],
+      title: { text: unitKeys[1] },
       side: 'right',
       overlaying: 'y',
       showgrid: false,
@@ -732,7 +869,7 @@ const LineComponent = ({
   // Add third y-axis if we have more than two units
   if (unitKeys.length > 2) {
     layout.yaxis3 = {
-      title: unitKeys[2],
+      title: { text: unitKeys[2] },
       side: 'right',
       overlaying: 'y',
       position: -1, // Offset to the right to avoid overlap
@@ -756,7 +893,7 @@ const LineComponent = ({
   // Add fourth y-axis if we have more than three units
   if (unitKeys.length > 3) {
     layout.yaxis4 = {
-      title: unitKeys[3],
+      title: { text: unitKeys[3] },
       side: 'left',
       overlaying: 'y',
       position: 0.05, // Offset to the left to avoid overlap
@@ -777,6 +914,13 @@ const LineComponent = ({
     }
   }
 
+  const lineCardName =
+    plotData.length === 1
+      ? plotData[0]?.name
+      : uniqueSensorTypeIdsData && uniqueSensorTypeIdsData.length === 1
+        ? uniqueSensorTypeIdsData[0].name_long
+        : `Selected Metrics (${uniqueSensorTypeIdsData?.length ?? 0} Types)`
+
   return (
     <Stack h="100%">
       <Group justify="space-between" align="center">
@@ -793,9 +937,7 @@ const LineComponent = ({
           }
         >
           <Text fw={600} size="sm" mb="xs">
-            {uniqueSensorTypeIdsData?.length === 1
-              ? uniqueSensorTypeIdsData[0].name_long
-              : `Selected Metrics (${uniqueSensorTypeIdsData?.length} Types)`}
+            {lineCardName}
           </Text>
         </Tooltip>
       </Group>
@@ -813,12 +955,29 @@ const ScatterComponent = ({
   projectId,
   startQuery,
   endQuery,
+  usedSensorTypeIds,
 }: {
   component: DashboardComponent & { config: ScatterConfig }
   projectId: string | undefined
   startQuery: string
   endQuery: string
+  usedSensorTypeIds: number[] | undefined
 }) => {
+  // Check if sensor types are out of spec
+  const xAxisSensorTypeId = component.config.xAxisSensorTypeId
+    ? Number(component.config.xAxisSensorTypeId)
+    : null
+  const yAxisSensorTypeId = component.config.yAxisSensorTypeId
+    ? Number(component.config.yAxisSensorTypeId)
+    : null
+
+  const hasOutOfSpecSensorTypes =
+    usedSensorTypeIds &&
+    ((xAxisSensorTypeId !== null &&
+      !usedSensorTypeIds.includes(xAxisSensorTypeId)) ||
+      (yAxisSensorTypeId !== null &&
+        !usedSensorTypeIds.includes(yAxisSensorTypeId)))
+
   const scatter = useGetScatterData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -833,6 +992,7 @@ const ScatterComponent = ({
     },
     queryOptions: {
       enabled:
+        !hasOutOfSpecSensorTypes &&
         !!projectId &&
         !!component.config.xAxisSensorTypeId &&
         !!component.config.yAxisSensorTypeId &&
@@ -843,6 +1003,19 @@ const ScatterComponent = ({
 
   if (scatter.isLoading) {
     return <PageLoader />
+  }
+
+  if (hasOutOfSpecSensorTypes) {
+    return (
+      <Stack align="center" justify="center" h="100%" gap="md">
+        <IconAlertTriangle size={48} color="var(--mantine-color-yellow-6)" />
+        <Text size="sm" ta="center" c="dimmed">
+          This component uses sensor types that are not available in this
+          project. Please update the component configuration to use valid sensor
+          types.
+        </Text>
+      </Stack>
+    )
   }
 
   return (
@@ -886,12 +1059,24 @@ const BarComponent = ({
   projectId,
   startQuery,
   endQuery,
+  usedSensorTypeIds,
 }: {
   component: DashboardComponent & { config: BarConfig }
   projectId: string | undefined
   startQuery: string
   endQuery: string
+  usedSensorTypeIds: number[] | undefined
 }) => {
+  // Check if sensor type is out of spec
+  const sensorTypeId = component.config.sensorTypeId
+    ? Number(component.config.sensorTypeId)
+    : null
+
+  const hasOutOfSpecSensorTypes =
+    usedSensorTypeIds &&
+    sensorTypeId !== null &&
+    !usedSensorTypeIds.includes(sensorTypeId)
+
   const barData = useGetBarData({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -904,6 +1089,7 @@ const BarComponent = ({
     },
     queryOptions: {
       enabled:
+        !hasOutOfSpecSensorTypes &&
         !!projectId &&
         !!component.config.sensorTypeId &&
         !!component.config.aggregationMethod &&
@@ -914,6 +1100,19 @@ const BarComponent = ({
 
   if (barData.isLoading) {
     return <PageLoader />
+  }
+
+  if (hasOutOfSpecSensorTypes) {
+    return (
+      <Stack align="center" justify="center" h="100%" gap="md">
+        <IconAlertTriangle size={48} color="var(--mantine-color-yellow-6)" />
+        <Text size="sm" ta="center" c="dimmed">
+          This component uses sensor types that are not available in this
+          project. Please update the component configuration to use valid sensor
+          types.
+        </Text>
+      </Stack>
+    )
   }
 
   if (!barData.data || !barData.data.x || !barData.data.y) {
@@ -1174,6 +1373,7 @@ const RenderComponent = ({
   isEditing,
   startQuery,
   endQuery,
+  usedSensorTypeIds,
 }: {
   component: DashboardComponent
   projectId: string | undefined
@@ -1186,6 +1386,7 @@ const RenderComponent = ({
   isEditing: boolean
   startQuery: string
   endQuery: string
+  usedSensorTypeIds: number[] | undefined
 }) => {
   switch (component.component_type) {
     case 'gauge':
@@ -1216,6 +1417,7 @@ const RenderComponent = ({
           startQuery={startQuery}
           endQuery={endQuery}
           sensorTypes={sensorTypes}
+          usedSensorTypeIds={usedSensorTypeIds}
         />
       )
     case 'scatter':
@@ -1227,6 +1429,7 @@ const RenderComponent = ({
           projectId={projectId}
           startQuery={startQuery}
           endQuery={endQuery}
+          usedSensorTypeIds={usedSensorTypeIds}
         />
       )
     case 'bar':
@@ -1236,6 +1439,7 @@ const RenderComponent = ({
           projectId={projectId}
           startQuery={startQuery}
           endQuery={endQuery}
+          usedSensorTypeIds={usedSensorTypeIds}
         />
       )
     case 'rich_text':
@@ -1307,6 +1511,24 @@ const Page = () => {
   const [dashboardName, setDashboardName] = useState('')
   const [defaultTimeRange, setDefaultTimeRange] = useState(1)
   const [defaultKPITimeRange, setDefaultKPITimeRange] = useState(1)
+  const [editingLineComponentId, setEditingLineComponentId] = useState<
+    string | null
+  >(null)
+  const [editingGaugeComponentId, setEditingGaugeComponentId] = useState<
+    string | null
+  >(null)
+  const [editingBarComponentId, setEditingBarComponentId] = useState<
+    string | null
+  >(null)
+  const [editingKPIComponentId, setEditingKPIComponentId] = useState<
+    string | null
+  >(null)
+  const [editingScatterComponentId, setEditingScatterComponentId] = useState<
+    string | null
+  >(null)
+  const [editingRichTextComponentId, setEditingRichTextComponentId] = useState<
+    string | null
+  >(null)
   // Sample data for scatter plot preview (computed once on mount)
   const [scatterPreviewY] = useState(() =>
     Array.from({ length: 10 }, () => Math.random() * 10),
@@ -1325,12 +1547,20 @@ const Page = () => {
   // Initialize the mutations
   const addUserDashboardMutation = useAddUserDashboard()
   const updateUserDashboardMutation = useUpdateUserDashboard()
+  const duplicateUserDashboardMutation = useDuplicateUserDashboard()
+
+  // Duplicate modal state
+  const [
+    duplicateModalOpened,
+    { open: openDuplicateModal, close: closeDuplicateModal },
+  ] = useDisclosure(false)
 
   // Load dashboard data when available
   useEffect(() => {
     if (dashboard.data && !isNewDashboard) {
       const components = dashboard.data.components.map((component) => ({
         ...component,
+        component_id: String(component.component_id), // Ensure component_id is always a string
         config:
           typeof component.config === 'string'
             ? JSON.parse(component.config)
@@ -1393,6 +1623,30 @@ const Page = () => {
       enabled: !!project.data?.project_id,
     },
   })
+  // - useGetTags
+  const tags = useGetTags({
+    pathParams: {
+      projectId: projectId || '-1',
+    },
+    queryParams: {
+      include_ghost_tags: false,
+    },
+    queryOptions: {
+      enabled: !!project.data?.project_id,
+    },
+  })
+  // - useGetDevices
+  const devices = useGetDevicesV2({
+    pathParams: {
+      projectId: projectId || '-1',
+    },
+    filters: {
+      with_tags: true,
+    },
+    queryOptions: {
+      enabled: !!project.data?.project_id,
+    },
+  })
   // - useGetDeviceTypes
   // const deviceTypes = useGetDeviceTypes({
   //   queryParams: {
@@ -1446,6 +1700,78 @@ const Page = () => {
       ...gridPos,
     }
     setDashboardComponents((prev) => [...prev, newComponent])
+    stack.closeAll()
+  }
+
+  const updateLineComponent = (componentId: string, config: LineConfig) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config }
+          : component,
+      ),
+    )
+    stack.closeAll()
+  }
+
+  const updateGaugeComponent = (componentId: string, config: GaugeConfig) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config }
+          : component,
+      ),
+    )
+    stack.closeAll()
+  }
+
+  const updateKPIComponent = (componentId: string, config: KPIConfig) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config }
+          : component,
+      ),
+    )
+    stack.closeAll()
+  }
+
+  const updateBarComponent = (componentId: string, config: BarConfig) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config }
+          : component,
+      ),
+    )
+    stack.closeAll()
+  }
+
+  const updateScatterComponent = (
+    componentId: string,
+    config: ScatterConfig,
+  ) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config }
+          : component,
+      ),
+    )
+    stack.closeAll()
+  }
+
+  const updateRichTextComponent = (
+    componentId: string,
+    config: RichTextConfig,
+  ) => {
+    setDashboardComponents((prev) =>
+      prev.map((component) =>
+        component.component_id === componentId
+          ? { ...component, config }
+          : component,
+      ),
+    )
     stack.closeAll()
   }
 
@@ -1562,12 +1888,20 @@ const Page = () => {
       }
 
       try {
+        // Ensure all component IDs are strings for consistency
+        const componentsWithStringIds = dashboardComponents.map(
+          (component) => ({
+            ...component,
+            component_id: String(component.component_id),
+          }),
+        )
+
         const response = await addUserDashboardMutation.mutateAsync({
           project_id: projectId || '',
           dashboard_name: dashboardName,
           default_time_range: defaultTimeRange,
           default_kpi_time_range: defaultKPITimeRange,
-          components: dashboardComponents,
+          components: componentsWithStringIds,
         })
 
         // Extract dashboard_id from response
@@ -1591,16 +1925,28 @@ const Page = () => {
       }
 
       try {
+        // Ensure all component IDs are strings for consistency
+        const componentsWithStringIds = dashboardComponents.map(
+          (component) => ({
+            ...component,
+            component_id: String(component.component_id),
+          }),
+        )
+
         const updateData = {
           project_id: projectId || '',
           dashboard_id: dashboardId,
           dashboard_name: dashboardName,
           default_time_range: defaultTimeRange,
           default_kpi_time_range: defaultKPITimeRange,
-          components: dashboardComponents,
+          components: componentsWithStringIds,
         }
 
         await updateUserDashboardMutation.mutateAsync(updateData)
+
+        // Invalidate and refetch dashboard to get updated component IDs
+        // This ensures component IDs stay in sync with the database
+        dashboard.refetch()
 
         // Reset editing state after successful update
         setEditing(false)
@@ -1825,42 +2171,231 @@ const Page = () => {
             </Paper>
           </Stack>
         </Drawer>
-        <Drawer {...stack.register('gauge-config')} position="left">
-          <GaugeConfigComp stack={stack} onAdd={addGaugeComponent} />
+        <Drawer
+          {...(() => {
+            const drawerProps = stack.register('gauge-config')
+            const originalOnClose = drawerProps.onClose
+            return {
+              ...drawerProps,
+              onClose: () => {
+                originalOnClose?.()
+                setEditingGaugeComponentId(null)
+              },
+            }
+          })()}
+          position="left"
+        >
+          <GaugeConfigComp
+            mode={editingGaugeComponentId !== null ? 'edit' : 'create'}
+            stack={stack}
+            onAdd={(config) => {
+              if (editingGaugeComponentId) {
+                updateGaugeComponent(editingGaugeComponentId, config)
+                setEditingGaugeComponentId(null)
+              } else {
+                addGaugeComponent(config)
+              }
+            }}
+            initialConfig={
+              editingGaugeComponentId
+                ? (
+                    dashboardComponents.find(
+                      (c) => c.component_id === editingGaugeComponentId,
+                    ) as DashboardComponent & { config: GaugeConfig }
+                  )?.config
+                : undefined
+            }
+          />
         </Drawer>
-        <Drawer {...stack.register('kpi-config')} position="left">
+        <Drawer
+          {...(() => {
+            const drawerProps = stack.register('kpi-config')
+            const originalOnClose = drawerProps.onClose
+            return {
+              ...drawerProps,
+              onClose: () => {
+                originalOnClose?.()
+                setEditingKPIComponentId(null)
+              },
+            }
+          })()}
+          position="left"
+        >
           <KPIConfigComp
+            mode={editingKPIComponentId !== null ? 'edit' : 'create'}
             stack={stack}
             kpiTypes={kpiTypes}
-            onAdd={addKPIComponent}
+            onAdd={(config) => {
+              if (editingKPIComponentId) {
+                updateKPIComponent(editingKPIComponentId, config)
+                setEditingKPIComponentId(null)
+              } else {
+                addKPIComponent(config)
+              }
+            }}
+            initialConfig={
+              editingKPIComponentId
+                ? (
+                    dashboardComponents.find(
+                      (c) => c.component_id === editingKPIComponentId,
+                    ) as DashboardComponent & { config: KPIConfig }
+                  )?.config
+                : undefined
+            }
           />
         </Drawer>
         {/* <Drawer {...stack.register('gis-config')} position="left">
           <GISConfig stack={stack} onAdd={addGISComponent} />
         </Drawer> */}
-        <Drawer {...stack.register('bar-config')} position="left">
+        <Drawer
+          {...(() => {
+            const drawerProps = stack.register('bar-config')
+            const originalOnClose = drawerProps.onClose
+            return {
+              ...drawerProps,
+              onClose: () => {
+                originalOnClose?.()
+                setEditingBarComponentId(null)
+              },
+            }
+          })()}
+          position="left"
+        >
           <BarConfigComp
+            mode={editingBarComponentId !== null ? 'edit' : 'create'}
             stack={stack}
             sensorTypes={sensorTypes}
-            onAdd={addBarComponent}
+            onAdd={(config) => {
+              if (editingBarComponentId) {
+                updateBarComponent(editingBarComponentId, config)
+                setEditingBarComponentId(null)
+              } else {
+                addBarComponent(config)
+              }
+            }}
+            initialConfig={
+              editingBarComponentId
+                ? (
+                    dashboardComponents.find(
+                      (c) => c.component_id === editingBarComponentId,
+                    ) as DashboardComponent & { config: BarConfig }
+                  )?.config
+                : undefined
+            }
           />
         </Drawer>
-        <Drawer size="lg" {...stack.register('line-config')} position="left">
+        <Drawer
+          size="lg"
+          {...(() => {
+            const drawerProps = stack.register('line-config')
+            const originalOnClose = drawerProps.onClose
+            return {
+              ...drawerProps,
+              onClose: () => {
+                originalOnClose?.()
+                setEditingLineComponentId(null)
+              },
+            }
+          })()}
+          position="left"
+        >
           <LineConfigComp
+            mode={editingLineComponentId !== null ? 'edit' : 'create'}
             stack={stack}
             sensorTypes={sensorTypes}
-            onAdd={addLineComponent}
+            tags={tags}
+            devices={devices}
+            onAdd={(config) => {
+              if (editingLineComponentId) {
+                updateLineComponent(editingLineComponentId, config)
+                setEditingLineComponentId(null)
+              } else {
+                addLineComponent(config)
+              }
+            }}
+            initialConfig={
+              editingLineComponentId
+                ? (
+                    dashboardComponents.find(
+                      (c) => c.component_id === editingLineComponentId,
+                    ) as DashboardComponent & { config: LineConfig }
+                  )?.config
+                : undefined
+            }
           />
         </Drawer>
-        <Drawer {...stack.register('scatter-config')} position="left">
+        <Drawer
+          {...(() => {
+            const drawerProps = stack.register('scatter-config')
+            const originalOnClose = drawerProps.onClose
+            return {
+              ...drawerProps,
+              onClose: () => {
+                originalOnClose?.()
+                setEditingScatterComponentId(null)
+              },
+            }
+          })()}
+          position="left"
+        >
           <ScatterConfigComp
+            mode={editingScatterComponentId !== null ? 'edit' : 'create'}
             stack={stack}
             sensorTypes={sensorTypes}
-            onAdd={addScatterComponent}
+            onAdd={(config) => {
+              if (editingScatterComponentId) {
+                updateScatterComponent(editingScatterComponentId, config)
+                setEditingScatterComponentId(null)
+              } else {
+                addScatterComponent(config)
+              }
+            }}
+            initialConfig={
+              editingScatterComponentId
+                ? (
+                    dashboardComponents.find(
+                      (c) => c.component_id === editingScatterComponentId,
+                    ) as DashboardComponent & { config: ScatterConfig }
+                  )?.config
+                : undefined
+            }
           />
         </Drawer>
-        <Drawer {...stack.register('rich-text-config')} position="left">
-          <RichTextConfigComp stack={stack} onAdd={addRichTextComponent} />
+        <Drawer
+          {...(() => {
+            const drawerProps = stack.register('rich-text-config')
+            const originalOnClose = drawerProps.onClose
+            return {
+              ...drawerProps,
+              onClose: () => {
+                originalOnClose?.()
+                setEditingRichTextComponentId(null)
+              },
+            }
+          })()}
+          position="left"
+        >
+          <RichTextConfigComp
+            mode={editingRichTextComponentId !== null ? 'edit' : 'create'}
+            stack={stack}
+            onAdd={(config) => {
+              if (editingRichTextComponentId) {
+                updateRichTextComponent(editingRichTextComponentId, config)
+                setEditingRichTextComponentId(null)
+              } else {
+                addRichTextComponent(config)
+              }
+            }}
+            initialConfig={
+              editingRichTextComponentId
+                ? (
+                    dashboardComponents.find(
+                      (c) => c.component_id === editingRichTextComponentId,
+                    ) as DashboardComponent & { config: RichTextConfig }
+                  )?.config
+                : undefined
+            }
+          />
         </Drawer>
       </Drawer.Stack>
       <Group justify="space-between" align="center">
@@ -1965,17 +2500,29 @@ const Page = () => {
             }
             disabled={!editing || dashboardName.trim() !== ''}
           >
-            <Button
-              variant={editing ? 'filled' : 'outline'}
-              onClick={editing ? handleSave : toggleEditing}
-              disabled={editing && !dashboardName.trim()}
-              loading={
-                addUserDashboardMutation.isPending ||
-                updateUserDashboardMutation.isPending
-              }
-            >
-              {editing ? 'Save Layout' : 'Edit Layout'}
-            </Button>
+            {dashboard.data?.is_owner || isNewDashboard ? (
+              <Button
+                variant={editing ? 'filled' : 'outline'}
+                onClick={editing ? handleSave : toggleEditing}
+                disabled={editing && !dashboardName.trim()}
+                loading={
+                  addUserDashboardMutation.isPending ||
+                  updateUserDashboardMutation.isPending
+                }
+              >
+                {editing ? 'Save Layout' : 'Edit Layout'}
+              </Button>
+            ) : (
+              <Tooltip label="Duplicate this dashboard to edit the components.">
+                <Button
+                  variant="outline"
+                  color="gray"
+                  onClick={openDuplicateModal}
+                >
+                  Duplicate
+                </Button>
+              </Tooltip>
+            )}
           </Tooltip>
           {editing && (
             <Button
@@ -2064,6 +2611,7 @@ const Page = () => {
                     isEditing={editing}
                     startQuery={startQuery || ''}
                     endQuery={endQuery || ''}
+                    usedSensorTypeIds={project.data?.spec.used_sensor_type_ids}
                   />
                 </div>
               ) : (
@@ -2082,22 +2630,64 @@ const Page = () => {
                   }}
                 >
                   {editing && (
-                    <ActionIcon
-                      size="sm"
-                      variant="subtle"
-                      color="red"
-                      onClick={() => removeComponent(component.component_id)}
+                    <Group
+                      gap={4}
                       style={{
                         position: 'absolute',
                         top: 8,
                         right: 8,
                         zIndex: 10,
                       }}
-                      onMouseEnter={() => setCanDrag(false)}
-                      onMouseLeave={() => setCanDrag(true)}
                     >
-                      <IconTrash size={14} />
-                    </ActionIcon>
+                      {component.component_type !== 'gis' && (
+                        <ActionIcon
+                          size="sm"
+                          variant="subtle"
+                          color="blue"
+                          onClick={() => {
+                            if (component.component_type === 'line') {
+                              setEditingLineComponentId(component.component_id)
+                              stack.open('line-config')
+                            } else if (component.component_type === 'gauge') {
+                              setEditingGaugeComponentId(component.component_id)
+                              stack.open('gauge-config')
+                            } else if (component.component_type === 'kpi') {
+                              setEditingKPIComponentId(component.component_id)
+                              stack.open('kpi-config')
+                            } else if (component.component_type === 'bar') {
+                              setEditingBarComponentId(component.component_id)
+                              stack.open('bar-config')
+                            } else if (component.component_type === 'scatter') {
+                              setEditingScatterComponentId(
+                                component.component_id,
+                              )
+                              stack.open('scatter-config')
+                            } else if (
+                              component.component_type === 'rich_text'
+                            ) {
+                              setEditingRichTextComponentId(
+                                component.component_id,
+                              )
+                              stack.open('rich-text-config')
+                            }
+                          }}
+                          onMouseEnter={() => setCanDrag(false)}
+                          onMouseLeave={() => setCanDrag(true)}
+                        >
+                          <IconEdit size={14} />
+                        </ActionIcon>
+                      )}
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        color="red"
+                        onClick={() => removeComponent(component.component_id)}
+                        onMouseEnter={() => setCanDrag(false)}
+                        onMouseLeave={() => setCanDrag(true)}
+                      >
+                        <IconTrash size={14} />
+                      </ActionIcon>
+                    </Group>
                   )}
                   <RenderComponent
                     component={component}
@@ -2111,6 +2701,7 @@ const Page = () => {
                     isEditing={editing}
                     startQuery={startQuery || ''}
                     endQuery={endQuery || ''}
+                    usedSensorTypeIds={project.data?.spec.used_sensor_type_ids}
                   />
                 </Paper>
               )}
@@ -2143,6 +2734,58 @@ const Page = () => {
           </Stack>
         </Paper>
       )}
+
+      {/* Duplicate Dashboard Confirmation Modal */}
+      <Modal
+        opened={duplicateModalOpened}
+        onClose={closeDuplicateModal}
+        title="Duplicate Dashboard"
+        centered
+      >
+        <Stack>
+          <Text>
+            Are you sure you want to duplicate the dashboard &quot;
+            {dashboard.data?.dashboard_name}&quot;? A copy will be created with
+            the name &quot;Copy of {dashboard.data?.dashboard_name}&quot;. You
+            will be the owner of the new dashboard.
+          </Text>
+          <Group justify="flex-end" mt="md">
+            <Button variant="outline" onClick={closeDuplicateModal}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!dashboardId || !projectId) return
+
+                try {
+                  const response =
+                    await duplicateUserDashboardMutation.mutateAsync({
+                      project_id: projectId,
+                      dashboard_id: dashboardId,
+                      // No target_project_ids means duplicate to same project
+                    })
+                  closeDuplicateModal()
+
+                  // Navigate to the duplicated dashboard
+                  const newDashboardId =
+                    response.data.dashboard_ids?.[0] ||
+                    response.data.dashboard_id
+                  if (newDashboardId) {
+                    navigate(
+                      `/projects/${projectId}/custom-dash/${newDashboardId}`,
+                    )
+                  }
+                } catch (error) {
+                  console.error('Failed to duplicate dashboard:', error)
+                }
+              }}
+              loading={duplicateUserDashboardMutation.isPending}
+            >
+              Duplicate
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   )
 }

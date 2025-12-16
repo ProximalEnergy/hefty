@@ -7253,6 +7253,9 @@ export interface paths {
          *         aggregation_types: TODO: describe.
          *         start: TODO: describe.
          *         end: TODO: describe.
+         *         tag_ids: TODO: describe.
+         *         maximum: TODO: describe.
+         *         minimum: TODO: describe.
          */
         get: operations["get_line_v1_protected_web_application_projects__project_id__custom_dash_line_get"];
         put?: never;
@@ -7318,6 +7321,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/custom-dash/shared-user-dashboards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Shared User Dashboards
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/web-application/projects/{project_id}/custom-dash/create-dashboard": {
         parameters: {
             query?: never;
@@ -7338,6 +7366,33 @@ export interface paths {
          *         request: TODO: describe.
          */
         post: operations["create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/custom-dash/duplicate/{dashboard_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Duplicate User Dashboard
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         dashboard_id: TODO: describe.
+         *         request: TODO: describe.
+         */
+        post: operations["duplicate_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_duplicate__dashboard_id__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7401,6 +7456,70 @@ export interface paths {
          *         project: TODO: describe.
          */
         delete: operations["delete_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/custom-dash/share/{dashboard_id}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Dashboard Shared Users Endpoint
+         * @description Get all users who have share access to a dashboard.
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         dashboard_id: TODO: describe.
+         */
+        get: operations["get_dashboard_shared_users_endpoint_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/custom-dash/share/{dashboard_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Share Dashboard
+         * @description todo
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         dashboard_id: TODO: describe.
+         *         request: TODO: describe.
+         */
+        post: operations["share_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__post"];
+        /**
+         * Unshare Dashboard
+         * @description Unshare a dashboard with a user.
+         *
+         *     Args:
+         *         db: TODO: describe.
+         *         user: TODO: describe.
+         *         project: TODO: describe.
+         *         dashboard_id: TODO: describe.
+         *         request: TODO: describe.
+         */
+        delete: operations["unshare_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -9862,6 +9981,14 @@ export interface components {
             name_long: string;
         };
         /**
+         * DuplicateDashboardRequest
+         * @description todo
+         */
+        DuplicateDashboardRequest: {
+            /** Target Project Ids */
+            target_project_ids?: string[] | null;
+        };
+        /**
          * EnsureVectorStoreRequest
          * @description todo
          */
@@ -11547,6 +11674,14 @@ export interface components {
             name_short: string;
             /** Name Long */
             name_long: string;
+        };
+        /**
+         * ShareDashboardRequest
+         * @description todo
+         */
+        ShareDashboardRequest: {
+            /** Shared User Id */
+            shared_user_id: string;
         };
         /**
          * SignalPair
@@ -22947,6 +23082,9 @@ export interface operations {
                 aggregation_types: string[];
                 start: string;
                 end: string;
+                tag_ids?: string[] | null;
+                maximum?: string[] | null;
+                minimum?: string[] | null;
                 schema?: string | null;
             };
             header?: {
@@ -23056,6 +23194,42 @@ export interface operations {
             };
         };
     };
+    get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post: {
         parameters: {
             query?: {
@@ -23073,6 +23247,47 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateDashboardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    duplicate_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_duplicate__dashboard_id__post: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                dashboard_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DuplicateDashboardRequest"] | null;
             };
         };
         responses: {
@@ -23189,6 +23404,125 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dashboard_shared_users_endpoint_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__users_get: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                dashboard_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    share_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__post: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                dashboard_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareDashboardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unshare_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__delete: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                dashboard_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareDashboardRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

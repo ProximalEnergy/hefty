@@ -88,6 +88,8 @@ interface DataCustomLine {
   sensor_type_id: number
   name: string
   unit: string
+  maximum?: number
+  minimum?: number
 }
 
 interface DataCustomScatter {
@@ -106,6 +108,7 @@ interface Dashboard {
   default_time_range: string
   default_kpi_time_range: string
   components: DashboardComponent[]
+  is_owner: boolean
 }
 
 export const useGetUserDashboards = ({
@@ -127,6 +130,31 @@ export const useGetUserDashboards = ({
   return useCustomQuery<UserDashboard[]>({
     axiosConfig,
     queryName: 'getUserDashboards',
+    pathParams,
+    queryParams: {},
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useGetSharedUserDashboards = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/shared-user-dashboards`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  return useCustomQuery<UserDashboard[]>({
+    axiosConfig,
+    queryName: 'getSharedUserDashboards',
     pathParams,
     queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
@@ -168,6 +196,37 @@ export const useAddUserDashboard = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getUserDashboards'] })
+    },
+  })
+}
+
+export const useDuplicateUserDashboard = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      dashboard_id,
+      target_project_ids,
+    }: {
+      project_id: string
+      dashboard_id: string
+      target_project_ids?: string[]
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/protected/web-application/projects/${project_id}/custom-dash/duplicate/${dashboard_id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: target_project_ids ? { target_project_ids } : undefined,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getUserDashboards'] })
+      queryClient.invalidateQueries({ queryKey: ['getSharedUserDashboards'] })
     },
   })
 }
@@ -315,6 +374,9 @@ export const useGetLineData = ({
   queryParams?: {
     sensor_type_ids?: number[]
     aggregation_types?: string[]
+    tag_ids?: string[]
+    maximum?: (number | null)[]
+    minimum?: (number | null)[]
     start?: string
     end?: string
   }
@@ -369,6 +431,115 @@ export const useGetScatterData = ({
     pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useGetDashboardSharedUsers = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string; dashboardId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/share/${pathParams.dashboardId}/users`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  return useCustomQuery<{ shared_user_ids: string[] }>({
+    axiosConfig,
+    queryName: 'getDashboardSharedUsers',
+    pathParams,
+    queryParams: {},
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useShareUserDashboard = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      dashboard_id,
+      shared_user_id,
+    }: {
+      project_id: string
+      dashboard_id: string
+      shared_user_id: string
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/protected/web-application/projects/${project_id}/custom-dash/share/${dashboard_id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          shared_user_id,
+        },
+      })
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['getUserDashboards'] })
+      queryClient.invalidateQueries({ queryKey: ['getSharedUserDashboards'] })
+      queryClient.invalidateQueries({
+        queryKey: [
+          'getDashboardSharedUsers',
+          {
+            projectId: variables.project_id,
+            dashboardId: variables.dashboard_id,
+          },
+        ],
+      })
+    },
+  })
+}
+
+export const useUnshareUserDashboard = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      project_id,
+      dashboard_id,
+      shared_user_id,
+    }: {
+      project_id: string
+      dashboard_id: string
+      shared_user_id: string
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'delete',
+        url: `${baseURL}/v1/protected/web-application/projects/${project_id}/custom-dash/share/${dashboard_id}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          shared_user_id,
+        },
+      })
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['getUserDashboards'] })
+      queryClient.invalidateQueries({ queryKey: ['getSharedUserDashboards'] })
+      queryClient.invalidateQueries({
+        queryKey: [
+          'getDashboardSharedUsers',
+          {
+            projectId: variables.project_id,
+            dashboardId: variables.dashboard_id,
+          },
+        ],
+      })
+    },
   })
 }
 

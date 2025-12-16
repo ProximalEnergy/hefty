@@ -15,16 +15,20 @@ import { useState } from 'react'
 import { KPIConfig as KPIConfigType } from './CustomDash'
 
 const KPIConfig = ({
+  mode,
   stack,
   kpiTypes,
   onAdd,
+  initialConfig,
 }: {
+  mode: 'create' | 'edit'
   stack: { close: (drawerId: 'kpi-config') => void }
   kpiTypes: UseQueryResult<KPITypeWithContractInfo[], AxiosError<unknown>>
   onAdd: (config: KPIConfigType) => void
+  initialConfig?: KPIConfigType
 }) => {
   const [selectedKpiTypeId, setSelectedKpiTypeId] = useState<string | null>(
-    null,
+    initialConfig?.kpiTypeId ?? null,
   )
 
   const addKPI = () => {
@@ -45,7 +49,8 @@ const KPIConfig = ({
   const allowCreate = !!selectedKpiTypeId
   return (
     <Stack>
-      <Title>Add KPI Card</Title>
+      {mode === 'create' && <Title>Add KPI Card</Title>}
+      {mode === 'edit' && <Title>Edit KPI Card</Title>}
       {kpiTypes.isLoading ? (
         <Skeleton height={60} />
       ) : (
@@ -71,7 +76,7 @@ const KPIConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addKPI} disabled={!allowCreate}>
-            Add KPI Component
+            {mode === 'edit' ? 'Update KPI Component' : 'Add KPI Component'}
           </Button>
         </Tooltip>
       </Group>
