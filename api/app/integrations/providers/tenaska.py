@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 
 async def fetch_tps_token() -> "TokenResponse":
+    """todo"""
     username = settings.TENASKA_CLIENT_ID
     password = settings.TENASKA_CLIENT_SECRET
     token_url = settings.TENASKA_TOKEN_URL

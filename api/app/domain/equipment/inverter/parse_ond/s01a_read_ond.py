@@ -3,14 +3,10 @@ from typing import Any
 
 
 def read_ond(*, file_content: bytes) -> dict:
-    """
-    Read and parse an ONDx file.
+    """todo
 
     Args:
-        file_path: The full path to the ONDx file
-
-    Returns:
-        A dictionary containing the parsed ONDx data
+        file_content: TODO: describe.
     """
     with io.StringIO(file_content.decode("utf-8-sig")) as file:
         lines = [

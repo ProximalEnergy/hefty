@@ -24,11 +24,15 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 class ThemeUpdateRequest(BaseModel):
+    """todo"""
+
     theme: str
     vite_environment: str
 
 
 class DemoModeUpdateRequest(BaseModel):
+    """todo"""
+
     demo_mode: bool
     vite_environment: str
 
@@ -46,6 +50,15 @@ async def get_users(
     ),
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)] = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_ids: TODO: describe.
+        user_ids: TODO: describe.
+        include_image_urls: TODO: describe.
+        api_prod: TODO: describe.
+    """
     users = await crud_get_users(db=db, company_ids=company_ids, user_ids=user_ids)
 
     # Process each user tuple and add operational_project_ids and optionally image URLs
@@ -74,6 +87,11 @@ async def get_users(
 async def get_self(
     user_data: Annotated[dict, Depends(dependencies.get_user_data_async)],
 ):
+    """todo
+
+    Args:
+        user_data: TODO: describe.
+    """
     return user_data
 
 
@@ -86,6 +104,12 @@ async def create_user(
     user: UserCreate,
 ):
     # Create user in Clerk
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user: TODO: describe.
+    """
     new_user_data = await create_clerk_user(
         user=user,
         company_name_short=user.company_name_short,
@@ -120,6 +144,12 @@ async def delete_user(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_id: str,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+    """
     await delete_clerk_user(user_id=user_id)
     await delete_user_crud(db=db, user_id=user_id)
 
@@ -134,7 +164,12 @@ async def update_self_clerk_theme(
     ],
     request: ThemeUpdateRequest,
 ):
-    """Update the current user's theme in Clerk."""
+    """Update the current user's theme in Clerk.
+
+    Args:
+        user_data: TODO: describe.
+        request: TODO: describe.
+    """
     user_id = user_data.user_id
     return await update_clerk_user_theme(
         user_id=user_id,
@@ -153,7 +188,12 @@ async def update_self_clerk_demo_mode(
     ],
     request: DemoModeUpdateRequest,
 ):
-    """Update the current user's demo mode in Clerk."""
+    """Update the current user's demo mode in Clerk.
+
+    Args:
+        user_data: TODO: describe.
+        request: TODO: describe.
+    """
     user_id = user_data.user_id
     return await update_clerk_user_demo_mode(
         user_id=user_id,

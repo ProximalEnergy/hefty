@@ -30,7 +30,13 @@ async def get_user(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_async_db),
 ) -> UserAuthed:
-    """Get the user from the database using the API key or JWT token."""
+    """Get the user from the database using the API key or JWT token.
+
+    Args:
+        api_key: TODO: describe.
+        authorization: TODO: describe.
+        db: TODO: describe.
+    """
     jwt_token = _get_jwt_token(authorization=authorization)
 
     # If no API key or JWT token is provided, raise an error
@@ -69,6 +75,12 @@ async def get_user(
 
 async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
     # Query the database for a user with the given API key
+    """todo
+
+    Args:
+        db: TODO: describe.
+        api_key: TODO: describe.
+    """
     query = select(User).filter(User.api_key == api_key)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
@@ -97,6 +109,12 @@ async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
 
 
 async def _get_jwt_user(*, db: AsyncSession, jwt_token: str) -> UserAuthed:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        jwt_token: TODO: describe.
+    """
     clerk_url_jwks = _get_clerk_url_jwks()
 
     # Verify and decode the JWT
@@ -133,6 +151,14 @@ async def _generate_user_data(
     authentication_method: Literal["api-key", "jwt"],
 ) -> UserAuthed:
     # Get the user projects from the database
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user: TODO: describe.
+        public_metadata: TODO: describe.
+        authentication_method: TODO: describe.
+    """
     query = select(UserProject).filter(UserProject.user_id == user.user_id)
     result = await db.execute(query)
     user_projects = result.scalars().all()
@@ -149,6 +175,11 @@ async def _generate_user_data(
 
 
 def _get_jwt_token(*, authorization: str) -> str | None:
+    """todo
+
+    Args:
+        authorization: TODO: describe.
+    """
     if authorization and authorization.startswith("Bearer "):
         return authorization.replace("Bearer ", "")
     else:
@@ -157,6 +188,7 @@ def _get_jwt_token(*, authorization: str) -> str | None:
 
 def _get_clerk_secret_key() -> str:
     # Get the Clerk application based on the environment
+    """todo"""
     clerk_application = _get_clerk_application()
 
     # Get the Clerk secret key based on the application
@@ -175,6 +207,7 @@ def _get_clerk_secret_key() -> str:
 
 def _get_clerk_url_jwks() -> str:
     # Get the Clerk application based on the environment
+    """todo"""
     clerk_application = _get_clerk_application()
 
     # Get the Clerk URL JWKS based on the application
@@ -192,6 +225,7 @@ def _get_clerk_url_jwks() -> str:
 
 
 def _get_clerk_application() -> Literal["development", "production"]:
+    """todo"""
     environment = settings.ENVIRONMENT
     if environment == "production":
         return "production"

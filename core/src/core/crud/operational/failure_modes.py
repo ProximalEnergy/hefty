@@ -14,6 +14,13 @@ def get_failure_modes(
     failure_mode_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.FailureMode]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        failure_mode_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.FailureMode)
     if failure_mode_ids:
         query = query.filter(models.FailureMode.failure_mode_id.in_(failure_mode_ids))

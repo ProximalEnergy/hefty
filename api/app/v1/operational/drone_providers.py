@@ -17,8 +17,10 @@ router = APIRouter(prefix="/drone-providers")
 async def get_drone_providers_(
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Retrieve all drone providers.
+    """Retrieve all drone providers.
+
+    Args:
+        db: TODO: describe.
     """
     return await get_drone_providers(db=db)
 
@@ -30,8 +32,11 @@ async def create_drone_provider_(
     drone_provider: DroneProviderCreate,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Create a new drone provider.
+    """Create a new drone provider.
+
+    Args:
+        drone_provider: TODO: describe.
+        db: TODO: describe.
     """
     return await create_drone_provider(db=db, drone_provider=drone_provider)
 
@@ -46,8 +51,12 @@ async def update_drone_provider_(
     drone_provider: DroneProviderUpdate,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Update a drone provider.
+    """Update a drone provider.
+
+    Args:
+        drone_provider_id: TODO: describe.
+        drone_provider: TODO: describe.
+        db: TODO: describe.
     """
     return await update_drone_provider(
         db=db,
@@ -63,8 +72,11 @@ async def delete_drone_provider_(
     drone_provider_id: int,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Delete a drone provider.
+    """Delete a drone provider.
+
+    Args:
+        drone_provider_id: TODO: describe.
+        db: TODO: describe.
     """
     await delete_drone_provider(db=db, drone_provider_id=drone_provider_id)
     return HTTPException(status_code=200, detail="Drone provider deleted")

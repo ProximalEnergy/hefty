@@ -33,6 +33,20 @@ def get_meter_power_and_expected_power_v2(
     include_degradation: bool = False,
     interval: str = "5min",
 ):
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        include_storage: TODO: describe.
+        include_setpoint: TODO: describe.
+        include_soiling: TODO: describe.
+        include_degradation: TODO: describe.
+        interval: TODO: describe.
+    """
     if include_soiling:
         if include_degradation:
             expected_metric_ids = [6]

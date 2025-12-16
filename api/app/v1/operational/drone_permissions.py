@@ -19,8 +19,10 @@ router = APIRouter(prefix="/drone-permissions")
 async def get_drone_permissions_(
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Retrieve all drone permissions.
+    """Retrieve all drone permissions.
+
+    Args:
+        db: TODO: describe.
     """
     return await get_drone_permissions(db=db)
 
@@ -34,8 +36,11 @@ async def create_drone_permission_(
     drone_permission: DronePermissionCreate,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Create a new drone permission.
+    """Create a new drone permission.
+
+    Args:
+        drone_permission: TODO: describe.
+        db: TODO: describe.
     """
     return await create_drone_permission(db=db, drone_permission=drone_permission)
 
@@ -51,8 +56,13 @@ async def update_drone_permission_(
     drone_permission: DronePermissionUpdate,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Update a drone permission.
+    """Update a drone permission.
+
+    Args:
+        drone_integration_id: TODO: describe.
+        company_id: TODO: describe.
+        drone_permission: TODO: describe.
+        db: TODO: describe.
     """
     return await update_drone_permission(
         db=db,
@@ -71,8 +81,12 @@ async def delete_drone_permission_(
     company_id: uuid.UUID,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """
-    Delete a drone permission.
+    """Delete a drone permission.
+
+    Args:
+        drone_integration_id: TODO: describe.
+        company_id: TODO: describe.
+        db: TODO: describe.
     """
     await delete_drone_permission(
         db=db,

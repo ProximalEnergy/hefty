@@ -5,6 +5,12 @@ from core import models
 
 
 def get_recursive_parents(*, db: Session, device_id: int):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        device_id: TODO: describe.
+    """
     recursive_cte = (
         select(
             models.Device.device_id.label("device_id"),

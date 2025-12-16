@@ -17,6 +17,15 @@ def get_data_timeseries_latest_by_device_type(
     sensor_type_ids: list[int] | None = None,
     return_query: bool = False,
 ) -> ModelList[models.DataTimeseriesLast]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+        device_type_id: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
             DeviceType.PV_PCS.value: [
@@ -51,6 +60,18 @@ def get_data_timeseries_last(
     return_query: bool = False,
     include_ghost_tags: bool = False,
 ) -> ModelList[models.DataTimeseriesLast]:
+    """TODO: add description.
+
+    Args:
+        project_db: TODO: describe.
+        device_type_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        tag_ids: TODO: describe.
+        device_ids: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+        include_ghost_tags: TODO: describe.
+    """
     query = project_db.query(models.DataTimeseriesLast)
     tag_sets: list[set[int]] = []
     if sensor_type_ids:
@@ -113,16 +134,25 @@ def get_data_timeseries_last_v2(
     return_query: bool = True,
     include_ghost_tags: bool = False,
 ) -> ModelList[models.DataTimeseriesLast]:
-    """
-    Fetches the latest timeseries data.
+    """Fetches the latest timeseries data.
 
-    If `load_only_columns` is provided, it builds an optimized query that joins
-    tables and selects only the specified columns, returning a list of Rows.
-    This is highly efficient for endpoints that need specific data fields.
+        If `load_only_columns` is provided, it builds an optimized query that joins
+        tables and selects only the specified columns, returning a list of Rows.
+        This is highly efficient for endpoints that need specific data fields.
 
-    If `load_only_columns` is None, it uses an efficient subquery to filter
-    tags and then fetches full `DataTimeseriesLast` ORM objects, which is
-    ideal for general-purpose use.
+        If `load_only_columns` is None, it uses an efficient subquery to filter
+        tags and then fetches full `DataTimeseriesLast` ORM objects, which is
+        ideal for general-purpose use.
+
+    Args:
+        project_db: TODO: describe.
+        device_type_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        tag_ids: TODO: describe.
+        device_ids: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+        include_ghost_tags: TODO: describe.
     """
     # 1. Define the age calculation once to reuse it.
     age_in_seconds = extract("epoch", func.now() - models.DataTimeseriesLast.time)

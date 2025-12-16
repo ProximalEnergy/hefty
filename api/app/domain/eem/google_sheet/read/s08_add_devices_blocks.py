@@ -11,6 +11,12 @@ def add_devices_blocks(
     system: pd.DataFrame,
 ) -> pd.DataFrame:
     # --- Get devices from the database ---
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        system: TODO: describe.
+    """
     transformers_data = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_type_ids=[DeviceType.MVT],

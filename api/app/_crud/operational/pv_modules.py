@@ -13,6 +13,13 @@ async def get_pv_modules(
     pv_module_ids: list[int] | None = None,
     company_id: uuid.UUID | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        pv_module_ids: TODO: describe.
+        company_id: TODO: describe.
+    """
     query = select(models.PVModule)
 
     if pv_module_ids:
@@ -56,8 +63,11 @@ async def get_pv_module_manufacturers(
     db: AsyncSession,
     company_id: uuid.UUID | None = None,
 ):
-    """
-    Returns a list of unique manufacturers of PV modules.
+    """Returns a list of unique manufacturers of PV modules.
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
     """
     query = select(models.PVModule.manufacturer).distinct()
 
@@ -75,8 +85,12 @@ async def get_pv_module_models_given_manufacturer(
     manufacturer: str | None,
     company_id: uuid.UUID | None = None,
 ):
-    """
-    Returns a list of modules given manufacturer
+    """Returns a list of modules given manufacturer
+
+    Args:
+        db: TODO: describe.
+        manufacturer: TODO: describe.
+        company_id: TODO: describe.
     """
 
     query = select(models.PVModule.model).distinct()
@@ -95,6 +109,14 @@ async def get_pv_module_ids(
     pv_module_models: list[str] | None = None,
     company_id: uuid.UUID | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        pv_module_manufacturers: TODO: describe.
+        pv_module_models: TODO: describe.
+        company_id: TODO: describe.
+    """
     query = select(models.PVModule)
 
     if pv_module_manufacturers:

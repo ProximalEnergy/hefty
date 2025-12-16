@@ -9,7 +9,12 @@ async def get_permissions(
     *,
     permission_ids: list[int] | None = None,
 ) -> list[models.Permission]:
-    """Query the permissions table"""
+    """Query the permissions table
+
+    Args:
+        db: TODO: describe.
+        permission_ids: TODO: describe.
+    """
     query = select(models.Permission)
     # Cannot be `if permission_ids` because permission_ids can be an empty list
     # which is falsy

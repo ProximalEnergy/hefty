@@ -39,6 +39,15 @@ def get_bess(
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     return get_bess_data(
         project=project,
         project_db=project_db,
@@ -58,6 +67,15 @@ def get_bess_pcs(
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     return get_bess_pcs_data(
         project=project,
         project_db=project_db,
@@ -77,6 +95,14 @@ def get_equipment_analysis_combiner(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     return get_equipment_analysis_combiner_data(
         project_db=project_db,
         project=project,
@@ -96,6 +122,15 @@ def get_tracker(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_id,
 ):
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        project_id: TODO: describe.
+    """
     return get_tracker_data(
         start=start,
         end=end,
@@ -116,6 +151,16 @@ def get_tracker_by_pv_block_id(
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
+    """todo
+
+    Args:
+        pv_block_id: TODO: describe.
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     return get_tracker_by_pv_block_id_data(
         pv_block_id=pv_block_id,
         project=project,
@@ -132,6 +177,14 @@ async def get_equipment_analysis_pcs(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     return await get_equipment_analysis_pcs_data(
         start=start,
         end=end,
@@ -147,6 +200,14 @@ async def get_sunburst_data(
     mode: str = "events",
     ignored_device_type_ids: list[int] = [4, 5, 7, 10, 19, 20, 29, 30],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_db: TODO: describe.
+        mode: TODO: describe.
+        ignored_device_type_ids: TODO: describe.
+    """
     devices = core.crud.project.devices.get_project_devices(project_db).models()
 
     if len(devices) == 0:
@@ -226,6 +287,12 @@ async def get_sunburst_data(
 
         def update_parents(*, device, hierarchy):
             # Find the parent of the current device
+            """todo
+
+            Args:
+                device: TODO: describe.
+                hierarchy: TODO: describe.
+            """
             if device.parent_device_id:
                 parent_device = [
                     x for x in devices if x.device_id == device.parent_device_id

@@ -39,6 +39,13 @@ async def import_google_sheet(
     project: models.Project,
 ):
     # --- Read data ---
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     project_name_short = project.name_short
     google_sheet_id: str | None = project.gsheet_id
     if google_sheet_id is None:

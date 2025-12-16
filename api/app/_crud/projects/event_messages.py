@@ -17,9 +17,13 @@ async def get_event_messages(
     event_id: int | None = None,
 ) -> list[models.EventMessage]:
     """Get event messages, optionally filtered by event_id.
-    Includes all messages (both deleted and non-deleted) so deleted messages
-    can be displayed with "This message was deleted." text.
-    Loads images relationship.
+        Includes all messages (both deleted and non-deleted) so deleted messages
+        can be displayed with "This message was deleted." text.
+        Loads images relationship.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
     """
     # Get all messages (including deleted ones)
     stmt = select(models.EventMessage).options(selectinload(models.EventMessage.images))
@@ -39,7 +43,11 @@ async def get_event_message_by_id(
     event_message_id: int,
 ) -> models.EventMessage | None:
     """Get a single event message by ID.
-    Loads images relationship.
+        Loads images relationship.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
     """
     stmt = (
         select(models.EventMessage)
@@ -61,7 +69,17 @@ async def create_event_message(
     parent_message_id: int | None = None,
     private: bool = False,
 ) -> models.EventMessage:
-    """Create a new event message."""
+    """Create a new event message.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+        user_id: TODO: describe.
+        body: TODO: describe.
+        mentions: TODO: describe.
+        parent_message_id: TODO: describe.
+        private: TODO: describe.
+    """
     now = datetime.datetime.now(datetime.UTC)
     event_message = models.EventMessage(
         event_id=event_id,
@@ -85,7 +103,14 @@ async def update_event_message(
     body: str,
     mentions: str | None = None,
 ) -> models.EventMessage | None:
-    """Update an event message body and mentions, set edited_at timestamp."""
+    """Update an event message body and mentions, set edited_at timestamp.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
+        body: TODO: describe.
+        mentions: TODO: describe.
+    """
     event_message = await get_event_message_by_id(
         db=db, event_message_id=event_message_id
     )
@@ -106,7 +131,13 @@ async def update_event_message_image_s3_keys(
     event_message_id: int,
     image_s3_keys: str | None,
 ) -> models.EventMessage | None:
-    """Update the image_s3_keys field for an event message."""
+    """Update the image_s3_keys field for an event message.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
+        image_s3_keys: TODO: describe.
+    """
     event_message = await get_event_message_by_id(
         db=db, event_message_id=event_message_id
     )
@@ -124,7 +155,12 @@ async def get_users_who_posted_to_event(
     db: AsyncSession,
     event_id: int,
 ) -> set[str]:
-    """Get all user_ids who have posted messages to an event."""
+    """Get all user_ids who have posted messages to an event.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+    """
     stmt = (
         select(models.EventMessage.user_id)
         .where(models.EventMessage.event_id == event_id)
@@ -140,7 +176,12 @@ async def get_all_mentioned_users_for_event(
     db: AsyncSession,
     event_id: int,
 ) -> set[str]:
-    """Get all unique usernames mentioned in messages for an event."""
+    """Get all unique usernames mentioned in messages for an event.
+
+    Args:
+        db: TODO: describe.
+        event_id: TODO: describe.
+    """
     messages = await get_event_messages(db=db, event_id=event_id)
     mentioned_users = set()
 
@@ -159,7 +200,12 @@ async def delete_event_message(
     user_id: str,
 ) -> models.EventMessage | None:
     """Soft delete an event message by setting deleted_at timestamp.
-    Validates that the user owns the message.
+        Validates that the user owns the message.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
+        user_id: TODO: describe.
     """
     # Get message without deleted_at filter to allow checking ownership
     stmt = (

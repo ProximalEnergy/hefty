@@ -4,6 +4,11 @@ from core import models
 
 
 def _get_kpi_types_options(*, deep: bool):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = (selectinload(models.KPIType.device_type),)
     else:
@@ -18,6 +23,13 @@ def get_kpi_types(
     kpi_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        kpi_type_ids: TODO: describe.
+        deep: TODO: describe.
+    """
     options = _get_kpi_types_options(deep=deep)
 
     query = db.query(models.KPIType).options(*options)

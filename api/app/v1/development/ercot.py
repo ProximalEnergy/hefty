@@ -30,34 +30,51 @@ router = APIRouter(prefix="/ercot", tags=["ercot"])
 
 
 @router.get(
-    "/settlement_point_markets",
+    "/settlement-point-markets",
     response_model=list[interfaces.SettlementPointMarket],
 )
 async def get_settlement_point_markets(
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     return await crud_get_ercot_settlement_point_markets(db=db)
 
 
 @router.get(
-    "/settlement_point_types",
+    "/settlement-point-types",
     response_model=list[interfaces.SettlementPointType],
 )
 async def get_settlement_point_types(
     name_long: str = "",
     db: AsyncSession = Depends(dependencies.get_ercot_db_async),
 ):
+    """todo
+
+    Args:
+        name_long: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_ercot_settlement_point_types(db=db, name_long=name_long)
 
 
 @router.get(
-    "/settlement_points",
+    "/settlement-points",
     response_model=list[interfaces.SettlementPoint],
 )
 async def get_settlement_points(
     deep: custom_types.AnnotatedDeep = False,
     db: AsyncSession = Depends(dependencies.get_ercot_db_async),
 ):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_ercot_settlement_points(db=db, deep=deep)
 
 
@@ -68,6 +85,11 @@ async def get_settlement_points(
 async def get_qses(
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     return await crud_get_ercot_qses(db=db)
 
 
@@ -78,6 +100,11 @@ async def get_qses(
 async def get_dmes(
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     return await crud_get_ercot_dmes(db=db)
 
 
@@ -89,6 +116,12 @@ async def get_resources(
     deep: custom_types.AnnotatedDeep = False,
     db: AsyncSession = Depends(dependencies.get_ercot_db_async),
 ):
+    """todo
+
+    Args:
+        deep: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_ercot_resources(db=db, deep=deep)
 
 
@@ -101,6 +134,13 @@ async def get_resource(
     deep: custom_types.AnnotatedDeep = False,
     db: AsyncSession = Depends(dependencies.get_ercot_db_async),
 ):
+    """todo
+
+    Args:
+        resource_id: TODO: describe.
+        deep: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_get_ercot_resource(db=db, resource_id=resource_id, deep=deep)
 
 
@@ -111,6 +151,12 @@ async def get_resource_net_power(
     resource_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
+    """todo
+
+    Args:
+        resource_id: TODO: describe.
+        db: TODO: describe.
+    """
     start = pd.Timestamp.now(tz="US/Central").floor("D") - DateOffset(days=60)
     end = start + DateOffset(days=1)
 
@@ -201,6 +247,14 @@ async def get_prices(
     end: datetime.datetime,
     db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
 ):
+    """todo
+
+    Args:
+        settlement_point_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+    """
     dam_spp = await crud_get_ercot_dam_spp(
         db,
         settlement_point_ids=[settlement_point_id],

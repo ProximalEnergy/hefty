@@ -30,18 +30,41 @@ class FunctionVisitor(ast.NodeVisitor):
     """Collect functions that do not enforce keyword-only arguments."""
 
     def __init__(self) -> None:
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         self.errors: list[tuple[int | None, int | None, str | None]] = []
         self.source_lines: list[str] = []
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            node: TODO: describe.
+        """
         self._check_function(node=node)
         self.generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:  # noqa: N802
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            node: TODO: describe.
+        """
         self._check_function(node=node)
         self.generic_visit(node)
 
     def _check_function(self, *, node: ast.AST) -> None:
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            node: TODO: describe.
+        """
         if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             return
 
@@ -124,10 +147,21 @@ class FunctionVisitor(ast.NodeVisitor):
             )
 
     def set_source_lines(self, *, source_lines: list[str]) -> None:
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            source_lines: TODO: describe.
+        """
         self.source_lines = source_lines
 
 
 def parse_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """TODO: add description.
+
+    Args:
+        argv: TODO: describe.
+    """
     parser = argparse.ArgumentParser(
         description="Ensure Python functions enforce keyword-only arguments using '*'"
     )
@@ -151,6 +185,12 @@ def parse_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:
 def resolve_paths(
     *, paths: Iterable[str], default_directory: Path | None
 ) -> list[Path]:
+    """TODO: add description.
+
+    Args:
+        paths: TODO: describe.
+        default_directory: TODO: describe.
+    """
     resolved: list[Path] = []
     for raw_path in paths:
         path = Path(raw_path)
@@ -174,6 +214,11 @@ def resolve_paths(
 
 
 def find_python_files(*, directory: Path) -> list[Path]:
+    """TODO: add description.
+
+    Args:
+        directory: TODO: describe.
+    """
     python_files: list[Path] = []
     for path in directory.rglob("*.py"):
         if path.is_file():
@@ -182,6 +227,11 @@ def find_python_files(*, directory: Path) -> list[Path]:
 
 
 def check_file(*, filename: Path) -> list[tuple[int | None, int | None, str | None]]:
+    """TODO: add description.
+
+    Args:
+        filename: TODO: describe.
+    """
     try:
         content = filename.read_text(encoding="utf-8")
         source_lines = content.splitlines()
@@ -197,6 +247,11 @@ def check_file(*, filename: Path) -> list[tuple[int | None, int | None, str | No
 
 
 def is_fastapi_route_decorator(*, decorator: ast.AST) -> bool:
+    """TODO: add description.
+
+    Args:
+        decorator: TODO: describe.
+    """
     if isinstance(decorator, ast.Name):
         return decorator.id == "router"
     if isinstance(decorator, ast.Attribute):
@@ -221,6 +276,11 @@ def is_fastapi_route_decorator(*, decorator: ast.AST) -> bool:
 
 
 def _extract_attribute_chain(*, node: ast.AST) -> list[str]:
+    """TODO: add description.
+
+    Args:
+        node: TODO: describe.
+    """
     if isinstance(node, ast.Name):
         return [node.id]
     if isinstance(node, ast.Attribute):
@@ -229,6 +289,11 @@ def _extract_attribute_chain(*, node: ast.AST) -> list[str]:
 
 
 def main(*, argv: Sequence[str] | None = None) -> int:
+    """TODO: add description.
+
+    Args:
+        argv: TODO: describe.
+    """
     args = parse_args(argv=argv)
     search_directory = args.directory
     files = resolve_paths(paths=args.paths, default_directory=search_directory)

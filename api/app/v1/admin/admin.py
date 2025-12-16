@@ -45,6 +45,12 @@ async def get_user_type(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     user_type_id = user_data.user_type_id
 
     model_list = crud.admin.user_types.get_user_type(
@@ -69,6 +75,13 @@ async def get_subscribed_alert_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        api_prod: TODO: describe.
+    """
     query = (
         select(models.User.user_id)
         .join(
@@ -124,6 +137,13 @@ async def get_subscribed_report_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        api_prod: TODO: describe.
+    """
     query = (
         select(models.User.user_id)
         .join(
@@ -174,6 +194,12 @@ async def get_user_email(
     user_id: str,
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
+    """todo
+
+    Args:
+        user_id: TODO: describe.
+        api_prod: TODO: describe.
+    """
     try:
         if api_prod:
             clerk_secret = settings.CLERK_SECRET_KEY
@@ -205,6 +231,12 @@ async def get_user_emails(
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
     user_ids: list[str] = Query(default=[]),
 ):
+    """todo
+
+    Args:
+        api_prod: TODO: describe.
+        user_ids: TODO: describe.
+    """
     try:
         if api_prod:
             clerk_secret = settings.CLERK_SECRET_KEY

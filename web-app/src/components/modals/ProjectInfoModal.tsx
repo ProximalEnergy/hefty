@@ -6,6 +6,7 @@ import { useGetProjectTypes } from '@/api/v1/operational/project_types'
 import { Project } from '@/api/v1/operational/projects'
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import {
+  Alert,
   Button,
   Card,
   Divider,
@@ -20,6 +21,7 @@ import {
   Title,
   useComputedColorScheme,
 } from '@mantine/core'
+import { IconAlertCircle } from '@tabler/icons-react'
 import { useNavigate, useParams } from 'react-router'
 
 interface ProjectInfoModalProps {
@@ -493,12 +495,18 @@ export default function ProjectInfoModal({
             <ScrollArea h={600}>
               <Stack gap="md">
                 <Card withBorder p="md">
-                  <Stack gap="lg">
-                    <Title order={3} mb="md">
-                      Equipment Summary
-                    </Title>
+                  <Stack>
+                    <Title order={3}>Equipment Summary</Title>
 
-                    <Group gap="xs" mb="md">
+                    <Alert
+                      icon={<IconAlertCircle size={16} />}
+                      title="Placeholder Data"
+                    >
+                      This is placeholder data. Equipment information specific
+                      to this project will be added soon.
+                    </Alert>
+
+                    <Group gap="xs">
                       <img
                         src="/icon-substation.svg"
                         alt="PPC/SCADA"
@@ -510,7 +518,7 @@ export default function ProjectInfoModal({
                         PPC/SCADA
                       </Title>
                     </Group>
-                    <Stack gap="md">
+                    <Stack>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">
                           Provider:
@@ -521,9 +529,9 @@ export default function ProjectInfoModal({
                       </Group>
                     </Stack>
 
-                    <Divider my="lg" />
+                    <Divider />
 
-                    <Group gap="xs" mb="md">
+                    <Group gap="xs">
                       <img
                         src="/icon-substation.svg"
                         alt="Substation Transformer"
@@ -531,11 +539,9 @@ export default function ProjectInfoModal({
                         height={20}
                         style={getIconStyle()}
                       />
-                      <Title order={4} mb={0}>
-                        Substation Transformer
-                      </Title>
+                      <Title order={4}>Substation Transformer</Title>
                     </Group>
-                    <Stack gap="md">
+                    <Stack>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">
                           HV Voltage:
@@ -573,9 +579,9 @@ export default function ProjectInfoModal({
                       </Group>
                     </Stack>
 
-                    <Divider my="lg" />
+                    <Divider />
 
-                    <Group gap="xs" mb="md">
+                    <Group gap="xs">
                       <img
                         src="/icon_bess_mvt.svg"
                         alt="BESS MVT"
@@ -583,11 +589,9 @@ export default function ProjectInfoModal({
                         height={20}
                         style={getIconStyle()}
                       />
-                      <Title order={4} mb={0}>
-                        BESS MVT
-                      </Title>
+                      <Title order={4}>BESS MVT</Title>
                     </Group>
-                    <Stack gap="md">
+                    <Stack>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">
                           MV:
@@ -622,9 +626,9 @@ export default function ProjectInfoModal({
                       </Group>
                     </Stack>
 
-                    <Divider my="lg" />
+                    <Divider />
 
-                    <Group gap="xs" mb="md">
+                    <Group gap="xs">
                       <img
                         src="/icon-substation.svg"
                         alt="MV Switchgear"
@@ -632,11 +636,9 @@ export default function ProjectInfoModal({
                         height={20}
                         style={getIconStyle()}
                       />
-                      <Title order={4} mb={0}>
-                        MV Switchgear
-                      </Title>
+                      <Title order={4}>MV Switchgear</Title>
                     </Group>
-                    <Stack gap="md">
+                    <Stack>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">
                           Specification:
@@ -647,9 +649,9 @@ export default function ProjectInfoModal({
                       </Group>
                     </Stack>
 
-                    <Divider my="lg" />
+                    <Divider />
 
-                    <Group gap="xs" mb="md">
+                    <Group gap="xs">
                       <img
                         src="/icon_bess_pcs.svg"
                         alt="BESS PCS"
@@ -657,11 +659,9 @@ export default function ProjectInfoModal({
                         height={20}
                         style={getIconStyle()}
                       />
-                      <Title order={4} mb={0}>
-                        BESS PCS
-                      </Title>
+                      <Title order={4}>BESS PCS</Title>
                     </Group>
-                    <Stack gap="md">
+                    <Stack>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">
                           Temperature Derating Curve:
@@ -696,9 +696,9 @@ export default function ProjectInfoModal({
                       </Group>
                     </Stack>
 
-                    <Divider my="lg" />
+                    <Divider />
 
-                    <Group gap="xs" mb="md">
+                    <Group gap="xs">
                       <img
                         src="/icon_bess_module.svg"
                         alt="Battery Container"
@@ -706,9 +706,7 @@ export default function ProjectInfoModal({
                         height={20}
                         style={getIconStyle()}
                       />
-                      <Title order={4} mb={0}>
-                        Battery Container
-                      </Title>
+                      <Title order={4}>Battery Container</Title>
                     </Group>
                     <Stack gap="md">
                       <Group justify="space-between">

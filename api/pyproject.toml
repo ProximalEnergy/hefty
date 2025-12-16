@@ -8,7 +8,7 @@ dependencies = [
     "boto3 >=1.38,<2",
     "clerk-backend-api>=3.3.1,<4",
     "core",
-    "fastapi>=0.120,<0.121",
+    "fastapi>=0.121,<0.122",
     "fastapi-mcp==0.4.0",
     "geoalchemy2 >=0.18,<0.19",
     "google-api-python-client >=2.166.0,<3",
@@ -17,7 +17,7 @@ dependencies = [
     "natsort >=8.4.0,<9",
     "openai>=1.86.0",
     "pandas >=2.2.3,<3",
-    "polars ==1.34.0", # Added strict version constraint to avoid breaking change introduced here https://github.com/pola-rs/polars/pull/24027
+    "polars ==1.35.2", # Added strict version constraint to avoid breaking change introduced here https://github.com/pola-rs/polars/pull/24027
     "psycopg2-binary==2.9.11",
     "pvlib>=0.13,<0.14",
     "pyarrow>=20.0.0",

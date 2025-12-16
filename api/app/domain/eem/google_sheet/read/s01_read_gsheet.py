@@ -37,9 +37,11 @@ GSHEET_IMPORTANT_COLUMNS = [
 
 
 def _column_index_to_letter(*, index: int) -> str:
-    """
-    Convert a 0-based column index to Excel-style
-    column letter (A, B, C, ..., Z, AA, AB, etc.)
+    """Convert a 0-based column index to Excel-style
+        column letter (A, B, C, ..., Z, AA, AB, etc.)
+
+    Args:
+        index: TODO: describe.
     """
     result = ""
     while index >= 0:
@@ -52,6 +54,12 @@ def read_google_sheet(
     *, spreadsheet_id: str, end_column_name: str = GSHEET_IMPORTANT_COLUMNS[-1]
 ) -> pd.DataFrame:
     # Authenticate using the service account key
+    """todo
+
+    Args:
+        spreadsheet_id: TODO: describe.
+        end_column_name: TODO: describe.
+    """
     credentials = None
     # Try to get credentials from environment variable
     encoded_credentials = settings.COMMISSIONING_KEY_JSON

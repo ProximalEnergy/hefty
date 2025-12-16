@@ -13,6 +13,15 @@ def get_pv_expected(
     device_ids: list[int] | None = [],
     expected_metric_ids: list[int] | None = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_ids: TODO: describe.
+        expected_metric_ids: TODO: describe.
+    """
     query = db.query(models.DataExpected)
     if device_ids:
         query = query.filter(models.DataExpected.device_id.in_(device_ids))

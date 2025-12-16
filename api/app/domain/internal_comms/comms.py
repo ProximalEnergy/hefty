@@ -60,6 +60,14 @@ def send_feedback_notification(
     channel: CommunicationChannel,
     issue_id: str | None = None,
 ):
+    """todo
+
+    Args:
+        user_name_long: TODO: describe.
+        feedback: TODO: describe.
+        channel: TODO: describe.
+        issue_id: TODO: describe.
+    """
     match channel:
         case CommunicationChannel.GOOGLE_CHAT:
             webhook_url = "https://chat.googleapis.com/v1/spaces/AAQAkqNNa48/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=4cUB-LNkgLEDFyHHHxe0nYPIvrP9DqM5cl1eRXnpuT0"

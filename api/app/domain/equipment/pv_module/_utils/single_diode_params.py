@@ -6,29 +6,29 @@ def calc_reference_params(
     *,
     pv_module: dict,
 ):
-    """
-    Calculate Single Diode Parameters:
-        - Series resistance
-        - Shunt resistance
-        - Diode ideality factor
-        - Photocurrent
-        - Diode saturation current
+    """Calculate Single Diode Parameters:
+            - Series resistance
+            - Shunt resistance
+            - Diode ideality factor
+            - Photocurrent
+            - Diode saturation current
 
-    The calculation is done via an iterative process since only
-    PAN parameters are known.  We are solving for the
-    these parameters at STC.
+        The calculation is done via an iterative process since only
+        PAN parameters are known.  We are solving for the
+        these parameters at STC.
 
-    Possible Improvements:
-        - Check the residuals to see if they are improving on each iteration
-        - Add alternative initial guesses
-        - Add a guess for the diode ideality factor
-        - Add a guess for the diode saturation current
+        Possible Improvements:
+            - Check the residuals to see if they are improving on each iteration
+            - Add alternative initial guesses
+            - Add a guess for the diode ideality factor
+            - Add a guess for the diode saturation current
 
-    More information:
-        - https://github.com/pvlib/pvlib-python/issues/2425
-        - https://www.osti.gov/pages/biblio/2550692
+        More information:
+            - https://github.com/pvlib/pvlib-python/issues/2425
+            - https://www.osti.gov/pages/biblio/2550692
 
-
+    Args:
+        pv_module: TODO: describe.
     """
 
     # --- Constants ---

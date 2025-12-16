@@ -30,6 +30,17 @@ async def create_feedback(
     screenshot: Annotated[UploadFile | None, File()] = None,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
+    """todo
+
+    Args:
+        user_id: TODO: describe.
+        email: TODO: describe.
+        subject: TODO: describe.
+        url: TODO: describe.
+        comment: TODO: describe.
+        screenshot: TODO: describe.
+        db: TODO: describe.
+    """
     screenshot_content = None
     screenshot_data_uri = None
     if screenshot:

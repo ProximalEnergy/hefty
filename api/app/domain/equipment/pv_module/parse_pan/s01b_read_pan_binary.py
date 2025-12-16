@@ -26,7 +26,12 @@ value_format = "{:.2f}"
 def _extract_iam_profile(
     *, start_index: int, byte_array: bytes
 ) -> list[dict[str, float]]:
-    """Extracts the IAM (Incidence Angle Modifier) profile."""
+    """Extracts the IAM (Incidence Angle Modifier) profile.
+
+    Args:
+        start_index: TODO: describe.
+        byte_array: TODO: describe.
+    """
     iam_profile = []
 
     for i in range(0, 45, 5):  # 0 to 44 step 5 (matches VB.NET loop)
@@ -54,14 +59,10 @@ def _extract_iam_profile(
 
 
 def read_pan_binary(*, file_content: bytes) -> dict:
-    """
-    Parses a binary .PAN file and returns its contents as a dictionary.
+    """todo
 
     Args:
-        pan_file_path: The full path to the .PAN file.
-
-    Returns:
-        A dictionary containing the parsed data from the PAN file.
+        file_content: TODO: describe.
     """
     data: dict[str, Any] = {}
     byte_array = file_content

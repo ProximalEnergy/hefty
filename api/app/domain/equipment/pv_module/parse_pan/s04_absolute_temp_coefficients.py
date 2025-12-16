@@ -10,9 +10,11 @@ def calc_absolute_temp_coefficients(
     *,
     pv_module: dict,
 ) -> dict:
-    """
-    Calculate the absolute temperature coefficients for a PV module
-    by converting units to A and V
+    """Calculate the absolute temperature coefficients for a PV module
+        by converting units to A and V
+
+    Args:
+        pv_module: TODO: describe.
     """
 
     pv_module["alpha_isc"] = pv_module["alpha_isc"] * 1e-3

@@ -16,6 +16,12 @@ async def get_report_preferences(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     user = await crud_get_user(db=db, user_id=user_data.user_id)
 
     return user.subscribed_to_reports  # pyright: ignore
@@ -28,6 +34,12 @@ async def update_report_preferences(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     await crud_get_user(db=db, user_id=user_data.user_id)
 
     # crud.update_user_report_preferences(

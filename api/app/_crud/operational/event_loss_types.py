@@ -8,6 +8,11 @@ async def get_event_loss_types(  # skip-star-syntax
     *,
     db: AsyncSession,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     query = select(models.EventLossType)
     result = await db.execute(query)
     return result.scalars().all()

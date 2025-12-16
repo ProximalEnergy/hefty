@@ -11,6 +11,11 @@ from core.model_list import ModelItem, ModelList
 
 
 def _get_project_tag_options(*, deep: bool) -> Any:
+    """TODO: add description.
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = (
             selectinload(models.Tag.device),
@@ -30,6 +35,14 @@ def _get_project_tag_options(*, deep: bool) -> Any:
 def get_project_tag(
     db: Session, tag_id: int, *, deep: bool, return_query: bool = False
 ) -> ModelItem[models.Tag]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        tag_id: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+    """
     options = _get_project_tag_options(deep=deep)
     query = db.query(models.Tag).options(*options).filter(models.Tag.tag_id == tag_id)
     return ModelItem(query=query, return_query=return_query)
@@ -53,6 +66,25 @@ def get_project_tags(
     has_sensor_type_id: bool = False,
     return_query: bool = False,
 ) -> ModelList[models.Tag]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        tag_ids: TODO: describe.
+        in_tsdb: TODO: describe.
+        device_ids: TODO: describe.
+        device_type_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        sensor_type_name_shorts: TODO: describe.
+        data_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        name_scada: TODO: describe.
+        deep: TODO: describe.
+        include_ghost_tags: TODO: describe.
+        has_sensor_type_id: TODO: describe.
+        return_query: TODO: describe.
+    """
     options = _get_project_tag_options(deep=deep)
 
     query = db.query(models.Tag).options(*options)
@@ -126,8 +158,13 @@ def get_unique_sensor_type_ids_from_tags(*, db: Session) -> list[int]:
 async def get_tags_by_regex(
     *, db: AsyncSession, regex: str, limit: int = 200, deep: bool = False
 ) -> list[models.Tag]:
-    """
-    Get all tags whose name_scada matches a given regex (PostgreSQL '~*' operator).
+    """Get all tags whose name_scada matches a given regex (PostgreSQL '~*' operator).
+
+    Args:
+        db: TODO: describe.
+        regex: TODO: describe.
+        limit: TODO: describe.
+        deep: TODO: describe.
     """
     options = _get_project_tag_options(deep=deep)
     stmt = (

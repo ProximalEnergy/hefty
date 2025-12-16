@@ -1,4 +1,5 @@
-import { ReportTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, ReportTypeEnum } from '@/api/enumerations'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -7,6 +8,7 @@ import { ReportInstancesConfigModal } from '@/components/modals/ReportInstancesC
 import { useGetProjectReportInstances } from '@/hooks/api'
 import { ReportInstance } from '@/hooks/types'
 import {
+  Badge,
   Button,
   Divider,
   Group,
@@ -26,7 +28,7 @@ import {
   IconFileTypeXls,
   IconSettings,
 } from '@tabler/icons-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import styles from './ProjectReports.module.css'
@@ -95,6 +97,9 @@ const Page = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const [configModalOpened, setConfigModalOpened] = useState(false)
 
+  // Get project data to determine project type
+  const project = useSelectProject(projectId || '')
+
   // Get report instances for the project
   const reportInstances = useGetProjectReportInstances({
     pathParams: { projectId: projectId || '' },
@@ -103,8 +108,86 @@ const Page = () => {
     },
   })
 
+  // Create example report instances when there are no real instances
+  const exampleReports = useMemo(() => {
+    if (reportInstances.data && reportInstances.data.length > 0) {
+      return null
+    }
+
+    const projectTypeId = project.data?.project_type_id
+
+    // For PV projects, show Daily Performance Report
+    if (projectTypeId === ProjectTypeEnum.PV) {
+      return [
+        {
+          project_id: projectId || '',
+          report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
+          is_visible: true,
+          report_type: {
+            report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
+            name_short: 'Daily Performance',
+            name_long: 'PV Daily Performance Report',
+            doc_url: '',
+          },
+        } as ReportInstance,
+      ]
+    }
+
+    // For BESS projects, show PCS Mechanical Availability Report
+    if (projectTypeId === ProjectTypeEnum.BESS) {
+      return [
+        {
+          project_id: projectId || '',
+          report_type_id: ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY,
+          is_visible: true,
+          report_type: {
+            report_type_id: ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY,
+            name_short: 'PCS Availability',
+            name_long: 'BESS PCS Mechanical Availability Report',
+            doc_url: '',
+          },
+        } as ReportInstance,
+      ]
+    }
+
+    // For PVS (PV + BESS) projects, show both example reports
+    if (projectTypeId === ProjectTypeEnum.PVS) {
+      return [
+        {
+          project_id: projectId || '',
+          report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
+          is_visible: true,
+          report_type: {
+            report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
+            name_short: 'Daily Performance',
+            name_long: 'PV Daily Performance Report',
+            doc_url: '',
+          },
+        } as ReportInstance,
+        {
+          project_id: projectId || '',
+          report_type_id: ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY,
+          is_visible: true,
+          report_type: {
+            report_type_id: ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY,
+            name_short: 'PCS Availability',
+            name_long: 'BESS PCS Mechanical Availability Report',
+            doc_url: '',
+          },
+        } as ReportInstance,
+      ]
+    }
+
+    return null
+  }, [reportInstances.data, project.data?.project_type_id, projectId])
+
+  // Use example reports if no real instances exist
+  const displayReports = reportInstances.data?.length
+    ? reportInstances.data
+    : exampleReports
+
   // Early return for loading and error states
-  if (reportInstances.isLoading) return <PageLoader />
+  if (reportInstances.isLoading || project.isLoading) return <PageLoader />
   if (reportInstances.error) return <PageError error={reportInstances.error} />
 
   return (
@@ -123,14 +206,35 @@ const Page = () => {
         </RequiresUserType>
       </Group>
 
-      {reportInstances.data?.length === 0 ? (
+      {exampleReports !== null && (
+        <Paper
+          p="md"
+          withBorder
+          style={{
+            backgroundColor: 'var(--mantine-color-blue-0)',
+            borderColor: 'var(--mantine-color-blue-2)',
+          }}
+        >
+          <Text size="sm" c="dimmed">
+            No reports are configured for this project yet. The example report
+            below shows what reports will look like once configured. To request
+            reports for this project, please reach out via the{' '}
+            <Text component="span" fw={500} c="blue">
+              Feedback
+            </Text>{' '}
+            button in the navigation menu.
+          </Text>
+        </Paper>
+      )}
+
+      {!displayReports || displayReports.length === 0 ? (
         // If no reports are available, show a message
         <Text c="dimmed">No reports available for this project.</Text>
       ) : (
         // Otherwise, show the report instance cards
         <SimpleGrid cols={{ base: 1, sm: 2, md: 4, lg: 5, xl: 6 }}>
-          {reportInstances.data
-            ?.filter(
+          {displayReports
+            .filter(
               (reportInstance) =>
                 reportInstance.report_type_id in REPORT_CONFIG.link,
             )
@@ -138,6 +242,7 @@ const Page = () => {
               <ReportInstanceCard
                 key={reportInstance.report_type_id}
                 reportInstance={reportInstance}
+                isExample={exampleReports !== null}
               />
             ))}
         </SimpleGrid>
@@ -154,8 +259,10 @@ const Page = () => {
 
 const ReportInstanceCard = ({
   reportInstance,
+  isExample = false,
 }: {
   reportInstance: ReportInstance
+  isExample?: boolean
 }) => {
   const iconSize = 20
   const excelGreen = '#0F7C41'
@@ -164,65 +271,79 @@ const ReportInstanceCard = ({
   const link = REPORT_CONFIG.link[reportInstance.report_type_id]
   const description = REPORT_CONFIG.description[reportInstance.report_type_id]
 
+  const cardContent = (
+    <Paper
+      withBorder
+      p="md"
+      radius="md"
+      className={styles.element}
+      style={{
+        cursor: isExample ? 'default' : 'pointer',
+        opacity: isExample ? 0.8 : 1,
+      }}
+      shadow="md"
+      h={400}
+    >
+      <Stack h="100%">
+        {/* Visibility icon and report title */}
+        <Group>
+          {isExample && (
+            <Badge color="orange" variant="light" size="sm">
+              Example
+            </Badge>
+          )}
+          {!reportInstance.is_visible && (
+            <IconEyeOff size={iconSize} color="red" />
+          )}
+          <Text fw={700}>{reportInstance.report_type?.name_long}</Text>
+        </Group>
+
+        {/* Description and description */}
+        <Divider />
+        {description && <Text size="sm">{description}</Text>}
+        <Space flex={1} />
+
+        {/* Information icons */}
+        <Group justify="end">
+          {REPORT_CONFIG.selectable_date[reportInstance.report_type_id] && (
+            <Tooltip label="Selectable date">
+              <IconCalendarEvent size={iconSize} />
+            </Tooltip>
+          )}
+          {REPORT_CONFIG.selectable_date_range[
+            reportInstance.report_type_id
+          ] && (
+            <Tooltip label="Selectable date range">
+              <IconCalendarWeek size={iconSize} />
+            </Tooltip>
+          )}
+          {REPORT_CONFIG.downloadable_excel[reportInstance.report_type_id] && (
+            <Tooltip label="Excel download available">
+              <IconFileTypeXls size={iconSize} color={excelGreen} />
+            </Tooltip>
+          )}
+          {REPORT_CONFIG.downloadable_csv[reportInstance.report_type_id] && (
+            <Tooltip label="CSV download available">
+              <IconFileTypeCsv size={iconSize} color={excelGreen} />
+            </Tooltip>
+          )}
+          {REPORT_CONFIG.downloadable_pdf[reportInstance.report_type_id] && (
+            <Tooltip label="PDF download available">
+              <IconFileTypePdf size={iconSize} color={pdfRed} />
+            </Tooltip>
+          )}
+        </Group>
+      </Stack>
+    </Paper>
+  )
+
+  if (isExample) {
+    return cardContent
+  }
+
   return (
     <Link to={link} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <Paper
-        withBorder
-        p="md"
-        radius="md"
-        className={styles.element}
-        style={{ cursor: 'pointer' }}
-        shadow="md"
-        h={400}
-      >
-        <Stack h="100%">
-          {/* Visibility icon and report title */}
-          <Group>
-            {!reportInstance.is_visible && (
-              <IconEyeOff size={iconSize} color="red" />
-            )}
-            <Text fw={700}>{reportInstance.report_type?.name_long}</Text>
-          </Group>
-
-          {/* Description and description */}
-          <Divider />
-          {description && <Text size="sm">{description}</Text>}
-          <Space flex={1} />
-
-          {/* Information icons */}
-          <Group justify="end">
-            {REPORT_CONFIG.selectable_date[reportInstance.report_type_id] && (
-              <Tooltip label="Selectable date">
-                <IconCalendarEvent size={iconSize} />
-              </Tooltip>
-            )}
-            {REPORT_CONFIG.selectable_date_range[
-              reportInstance.report_type_id
-            ] && (
-              <Tooltip label="Selectable date range">
-                <IconCalendarWeek size={iconSize} />
-              </Tooltip>
-            )}
-            {REPORT_CONFIG.downloadable_excel[
-              reportInstance.report_type_id
-            ] && (
-              <Tooltip label="Excel download available">
-                <IconFileTypeXls size={iconSize} color={excelGreen} />
-              </Tooltip>
-            )}
-            {REPORT_CONFIG.downloadable_csv[reportInstance.report_type_id] && (
-              <Tooltip label="CSV download available">
-                <IconFileTypeCsv size={iconSize} color={excelGreen} />
-              </Tooltip>
-            )}
-            {REPORT_CONFIG.downloadable_pdf[reportInstance.report_type_id] && (
-              <Tooltip label="PDF download available">
-                <IconFileTypePdf size={iconSize} color={pdfRed} />
-              </Tooltip>
-            )}
-          </Group>
-        </Stack>
-      </Paper>
+      {cardContent}
     </Link>
   )
 }

@@ -16,6 +16,12 @@ async def get_failure_modes(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     failure_mode_ids: Annotated[list[int], Query()] = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        failure_mode_ids: TODO: describe.
+    """
     failure_modes = await crud_get_failure_modes(
         db=db, failure_mode_ids=failure_mode_ids
     )

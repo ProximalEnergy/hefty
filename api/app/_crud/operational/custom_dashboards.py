@@ -12,10 +12,45 @@ async def get_user_dashboards(
     user_id: str,
     project_id: uuid.UUID,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     query = (
         select(models.CustomDashboard)
         .filter(models.CustomDashboard.owner_user_id == user_id)
         .filter(models.CustomDashboard.project_id == project_id)
+    )
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+async def get_shared_user_dashboards(
+    db: AsyncSession,
+    *,
+    user_id: str,
+    project_id: uuid.UUID,
+):
+    """Get all shared user dashboards for a project.
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
+    query = (
+        select(models.CustomDashboard)
+        .join(
+            models.CustomDashboardShare,
+            models.CustomDashboard.dashboard_id
+            == models.CustomDashboardShare.dashboard_id,
+        )
+        .filter(models.CustomDashboardShare.user_id == user_id)
+        .filter(models.CustomDashboard.project_id == project_id)
+        .filter(models.CustomDashboard.owner_user_id != user_id)
     )
     result = await db.execute(query)
     return result.scalars().all()
@@ -31,15 +66,24 @@ async def create_user_dashboard(
     default_kpi_time_range: enumerations.DefaultKPITimeRange,
     components: list,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+        dashboard_name: TODO: describe.
+        default_time_range: TODO: describe.
+        default_kpi_time_range: TODO: describe.
+        components: TODO: describe.
+    """
     new_uuid = uuid.uuid4()
 
     # Create dashboard components and add them individually
     db_dashboard_components = []
     for component in components:
         db_component = models.CustomDashboardComponent(
-            component_type=enumerations.ComponentType[
-                component.component_type.upper()
-            ].value,
+            component_type=enumerations.ComponentType[component.component_type.upper()],
             config=component.config,
         )
         db.add(db_component)
@@ -75,6 +119,13 @@ async def create_user_dashboard(
     )
     db.add(db_dashboard)
 
+    # Create a share record for the dashboard creator
+    db_share = models.CustomDashboardShare(
+        dashboard_id=new_uuid,
+        user_id=owner_user_id,
+    )
+    db.add(db_share)
+
     # Commit remaining changes and refresh
     await db.commit()
     await db.refresh(db_dashboard)
@@ -93,6 +144,18 @@ async def update_user_dashboard(
     components: list,
 ):
     # First, get the existing dashboard to verify ownership
+    """todo
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+        dashboard_name: TODO: describe.
+        default_time_range: TODO: describe.
+        default_kpi_time_range: TODO: describe.
+        components: TODO: describe.
+    """
     query = (
         select(models.CustomDashboard)
         .filter(models.CustomDashboard.dashboard_id == dashboard_id)
@@ -105,48 +168,113 @@ async def update_user_dashboard(
     if not existing_dashboard:
         raise ValueError("Dashboard not found or access denied")
 
-    # Delete existing components for this dashboard
-    # First, get all component IDs from the dashboard's components list
-    existing_component_ids = [
+    # Get existing component IDs from the dashboard
+    existing_component_ids = {
         comp["component_id"] for comp in existing_dashboard.components
-    ]
+    }
 
-    if existing_component_ids:
+    # Convert incoming component IDs to integers for comparison
+    # (component_id can be str or int from frontend, but DB stores as int)
+    incoming_component_ids = set()
+    for component in components:
+        comp_id = component.component_id
+        if isinstance(comp_id, str):
+            try:
+                incoming_component_ids.add(int(comp_id))
+            except (ValueError, TypeError):
+                # If it's not a valid integer string, treat as new component
+                pass
+        elif isinstance(comp_id, int):
+            incoming_component_ids.add(comp_id)
+
+    # Find components to delete (exist in DB but not in incoming)
+    components_to_delete = existing_component_ids - incoming_component_ids
+    if components_to_delete:
         delete_query = delete(models.CustomDashboardComponent).where(
-            models.CustomDashboardComponent.component_id.in_(existing_component_ids)
+            models.CustomDashboardComponent.component_id.in_(components_to_delete)
         )
         await db.execute(delete_query)
 
-    # Create new dashboard components
-    db_dashboard_components = []
-    for component in components:
-        db_component = models.CustomDashboardComponent(
-            component_type=enumerations.ComponentType[
-                component.component_type.upper()
-            ].value,
-            config=component.config,
-        )
-        db.add(db_component)
-        db_dashboard_components.append(db_component)
+    # Process components: update existing or create new
+    # Track which input components map to which DB components and their IDs
+    component_mapping: list[
+        tuple[models.CustomDashboardComponent, int, int | None]
+    ] = []  # List of (db_component, input_component_index, component_id) tuples
+
+    for i, component in enumerate(components):
+        comp_id = component.component_id
+        # Try to convert to int for DB lookup
+        comp_id_int = None
+        if isinstance(comp_id, str):
+            try:
+                comp_id_int = int(comp_id)
+            except (ValueError, TypeError):
+                pass
+        elif isinstance(comp_id, int):
+            comp_id_int = comp_id
+
+        # Check if this component already exists
+        if comp_id_int and comp_id_int in existing_component_ids:
+            # Update existing component
+            component_query = select(models.CustomDashboardComponent).where(
+                models.CustomDashboardComponent.component_id == comp_id_int
+            )
+            component_result = await db.execute(component_query)
+            db_component = component_result.scalar_one_or_none()
+
+            if db_component:
+                # Update the existing component
+                db_component.component_type = enumerations.ComponentType[
+                    component.component_type.upper()
+                ]
+                db_component.config = component.config
+                # Store the component_id we already know (from the query)
+                component_mapping.append((db_component, i, comp_id_int))
+            else:
+                # Component ID was provided but doesn't exist, create new
+                new_component = models.CustomDashboardComponent(
+                    component_type=enumerations.ComponentType[
+                        component.component_type.upper()
+                    ],
+                    config=component.config,
+                )
+                db.add(new_component)
+                component_mapping.append((new_component, i, None))
+        else:
+            # Create new component
+            new_component = models.CustomDashboardComponent(
+                component_type=enumerations.ComponentType[
+                    component.component_type.upper()
+                ],
+                config=component.config,
+            )
+            db.add(new_component)
+            component_mapping.append((new_component, i, None))
 
     # Commit component changes
     await db.commit()
 
-    # Refresh individual objects to get the component_id
-    for component in db_dashboard_components:
-        await db.refresh(component)
+    # Build component sizing data in the correct order
+    component_sizing = []
+    for db_component, input_index, known_component_id in component_mapping:
+        # Use known_component_id if available, otherwise refresh to get new ID
+        if known_component_id is not None:
+            component_id = known_component_id
+        else:
+            # This is a new component, refresh to get the generated ID
+            await db.refresh(db_component)
+            component_id = db_component.component_id
 
-    # Create component sizing data
-    component_sizing = [
-        {
-            "component_id": db_dashboard_components[i].component_id,
-            "x": components[i].x,
-            "y": components[i].y,
-            "w": components[i].w,
-            "h": components[i].h,
-        }
-        for i in range(len(components))
-    ]
+        input_component = components[input_index]
+        component_sizing.append(
+            {
+                "component_id": component_id,
+                "x": input_component.x,
+                "y": input_component.y,
+                "w": input_component.w,
+                "h": input_component.h,
+            }
+        )
 
     # Update the dashboard
     existing_dashboard.dashboard_name = dashboard_name
@@ -168,18 +296,42 @@ async def get_dashboard_by_id(
     user_id: str,
     project_id: uuid.UUID,
 ):
-    """Get a single dashboard by ID with all its components."""
+    """Get a single dashboard by ID with all its components.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     # First get the dashboard
-    query = (
+    dashboard_query = (
         select(models.CustomDashboard)
         .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.owner_user_id == user_id)
         .filter(models.CustomDashboard.project_id == project_id)
     )
-    result = await db.execute(query)
-    dashboard = result.scalar_one_or_none()
+    dashboard_result = await db.execute(dashboard_query)
+    dashboard = dashboard_result.scalar_one_or_none()
 
     if not dashboard:
+        raise ValueError("Dashboard not found or access denied")
+
+    # Check if user is the owner
+    is_owner = dashboard.owner_user_id == user_id
+
+    # Check if user has access via share (if not owner)
+    has_share_access = False
+    if not is_owner:
+        share_query = select(models.CustomDashboardShare).where(
+            models.CustomDashboardShare.dashboard_id == dashboard_id,
+            models.CustomDashboardShare.user_id == user_id,
+        )
+        share_result = await db.execute(share_query)
+        share = share_result.scalar_one_or_none()
+        has_share_access = share is not None
+
+    # User must be either owner or have share access
+    if not is_owner and not has_share_access:
         raise ValueError("Dashboard not found or access denied")
 
     # Get the component details from the components table
@@ -193,6 +345,7 @@ async def get_dashboard_by_id(
             "default_time_range": dashboard.default_time_range,
             "default_kpi_time_range": dashboard.default_kpi_time_range,
             "components": [],
+            "is_owner": is_owner,
         }
 
     # Query the components table for detailed component information
@@ -231,6 +384,7 @@ async def get_dashboard_by_id(
         "default_time_range": dashboard.default_time_range,
         "default_kpi_time_range": dashboard.default_kpi_time_range,
         "components": complete_components,
+        "is_owner": is_owner,
     }
 
 
@@ -241,7 +395,14 @@ async def delete_user_dashboard(
     owner_user_id: str,
     project_id: uuid.UUID,
 ):
-    """Delete a dashboard and all its components."""
+    """Delete a dashboard and all its components.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     # First, get the existing dashboard to verify ownership
     query = (
         select(models.CustomDashboard)
@@ -277,3 +438,151 @@ async def delete_user_dashboard(
     await db.commit()
 
     return {"message": "Dashboard deleted successfully"}
+
+
+async def get_dashboard_shared_users(
+    db: AsyncSession,
+    *,
+    dashboard_id: uuid.UUID,
+    owner_user_id: str,
+    project_id: uuid.UUID,
+):
+    """Get all user IDs who have share access to a dashboard.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
+    # First, verify the dashboard exists and user is the owner
+    query = (
+        select(models.CustomDashboard)
+        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
+        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
+        .filter(models.CustomDashboard.project_id == project_id)
+    )
+    result = await db.execute(query)
+    existing_dashboard = result.scalar_one_or_none()
+
+    if not existing_dashboard:
+        raise ValueError("Dashboard not found or access denied")
+
+    # Get all shares for this dashboard
+    share_query = select(models.CustomDashboardShare).where(
+        models.CustomDashboardShare.dashboard_id == dashboard_id
+    )
+    share_result = await db.execute(share_query)
+    shares = share_result.scalars().all()
+
+    # Return list of user IDs (excluding the owner)
+    return [share.user_id for share in shares if share.user_id != owner_user_id]
+
+
+async def share_user_dashboard(
+    db: AsyncSession,
+    *,
+    dashboard_id: uuid.UUID,
+    owner_user_id: str,
+    shared_user_id: str,
+    project_id: uuid.UUID,
+):
+    """Share a dashboard with a user.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        shared_user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
+    # First, get the existing dashboard to verify ownership
+    query = (
+        select(models.CustomDashboard)
+        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
+        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
+        .filter(models.CustomDashboard.project_id == project_id)
+    )
+    result = await db.execute(query)
+    existing_dashboard = result.scalar_one_or_none()
+
+    if not existing_dashboard:
+        raise ValueError("Dashboard not found or access denied")
+
+    # Check if the shared user already has access to the dashboard
+    share_query = select(models.CustomDashboardShare).where(
+        models.CustomDashboardShare.dashboard_id == dashboard_id,
+        models.CustomDashboardShare.user_id == shared_user_id,
+    )
+    share_result = await db.execute(share_query)
+    existing_share = share_result.scalar_one_or_none()
+
+    if existing_share:
+        raise ValueError("Dashboard is already shared with this user")
+
+    # Create the share record
+    db_share = models.CustomDashboardShare(
+        dashboard_id=dashboard_id,
+        user_id=shared_user_id,
+    )
+    db.add(db_share)
+
+    # Commit changes
+    await db.commit()
+    await db.refresh(db_share)
+
+    return {"message": "Dashboard shared successfully", "share_id": db_share.share_id}
+
+
+async def unshare_user_dashboard(
+    db: AsyncSession,
+    *,
+    dashboard_id: uuid.UUID,
+    owner_user_id: str,
+    shared_user_id: str,
+    project_id: uuid.UUID,
+):
+    """Unshare a dashboard with a user.
+
+    Args:
+        db: TODO: describe.
+        dashboard_id: TODO: describe.
+        owner_user_id: TODO: describe.
+        shared_user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
+    # First, get the existing dashboard to verify ownership
+    query = (
+        select(models.CustomDashboard)
+        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
+        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
+        .filter(models.CustomDashboard.project_id == project_id)
+    )
+    result = await db.execute(query)
+    existing_dashboard = result.scalar_one_or_none()
+
+    if not existing_dashboard:
+        raise ValueError("Dashboard not found or access denied")
+
+    # Find the share record
+    share_query = select(models.CustomDashboardShare).where(
+        models.CustomDashboardShare.dashboard_id == dashboard_id,
+        models.CustomDashboardShare.user_id == shared_user_id,
+    )
+    share_result = await db.execute(share_query)
+    existing_share = share_result.scalar_one_or_none()
+
+    if not existing_share:
+        raise ValueError("Dashboard is not shared with this user")
+
+    # Delete the share record
+    delete_query = delete(models.CustomDashboardShare).where(
+        models.CustomDashboardShare.dashboard_id == dashboard_id,
+        models.CustomDashboardShare.user_id == shared_user_id,
+    )
+    await db.execute(delete_query)
+
+    # Commit changes
+    await db.commit()
+
+    return {"message": "Dashboard unshared successfully"}

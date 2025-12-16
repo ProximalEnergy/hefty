@@ -20,12 +20,14 @@ from app.domain.equipment.pv_module.parse_pan.s04_absolute_temp_coefficients imp
 
 
 def parse_pan(*, file_content: bytes) -> dict[str, Any]:
-    """
-    Parse PAN file content and extract PV module information.
+    """Parse PAN file content and extract PV module information.
 
-    Possible Improvements:
-        - PAN files come with Rseries, Rshunt parameters etc.
-          We should use them in our initial guess
+        Possible Improvements:
+            - PAN files come with Rseries, Rshunt parameters etc.
+              We should use them in our initial guess
+
+    Args:
+        file_content: TODO: describe.
     """
     try:
         pan_format = PANformat.TEXT

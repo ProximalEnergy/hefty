@@ -79,8 +79,12 @@ async def generate_daily_performance_summary(
 ):
     """Generate an AI-written summary of daily project performance.
 
-    Uses OpenAI to analyze key performance metrics and provide a written
-    summary of the project's performance for the selected day.
+        Uses OpenAI to analyze key performance metrics and provide a written
+        summary of the project's performance for the selected day.
+
+    Args:
+        request: TODO: describe.
+        user_data: TODO: describe.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

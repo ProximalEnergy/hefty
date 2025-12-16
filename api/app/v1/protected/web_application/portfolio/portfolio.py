@@ -24,6 +24,8 @@ router = APIRouter(
 
 
 class PortfolioHomeShortTerm(BaseModel):
+    """todo"""
+
     project_id: UUID
     power: float | None
     poa: float | None
@@ -38,6 +40,8 @@ class PortfolioHomeShortTerm(BaseModel):
 
 
 class PortfolioHomeLongTerm(BaseModel):
+    """todo"""
+
     project_id: UUID
     times: list[Any] | None
     cycle_count_string: list[Any] | None
@@ -47,10 +51,12 @@ class PortfolioHomeLongTerm(BaseModel):
 
 
 class PortfolioHome(PortfolioHomeShortTerm, PortfolioHomeLongTerm):
-    pass
+    """todo"""
 
 
 class TimeFrame(StrEnum):
+    """todo"""
+
     H24 = "24h"
     D30 = "30d"
 
@@ -60,6 +66,12 @@ async def get_portfolio_home_short_term(
     project_ids: list[UUID],
     db: AsyncSession,
 ) -> list[PortfolioHomeShortTerm]:
+    """todo
+
+    Args:
+        project_ids: TODO: describe.
+        db: TODO: describe.
+    """
     if len(project_ids) == 0:
         return []
 
@@ -323,6 +335,12 @@ async def get_portfolio_home_long_term(
     project_ids: list[UUID],
     db: AsyncSession,
 ) -> list[PortfolioHomeLongTerm]:
+    """todo
+
+    Args:
+        project_ids: TODO: describe.
+        db: TODO: describe.
+    """
     if len(project_ids) == 0:
         return []
 
@@ -437,6 +455,14 @@ async def get_home(
     time: TimeFrame = Query(default=TimeFrame.H24),  # new parameter
 ):
     # If project_ids is not provided, default to all projects the user has access to
+    """todo
+
+    Args:
+        project_ids: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+        time: TODO: describe.
+    """
     if project_ids is None:
         project_ids = user_data.operational_project_ids
     # If project_ids is provided, ensure they are within the user's access list
@@ -511,8 +537,12 @@ async def get_portfolio_calendar_events(
     user_data: UserData = Depends(dependencies.get_user_data_async),
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Get all calendar events for all projects in the user's portfolio.
+    """Get all calendar events for all projects in the user's portfolio.
+
+    Args:
+        project_ids: TODO: describe.
+        user_data: TODO: describe.
+        db: TODO: describe.
     """
     # If no project_ids provided, use all accessible projects
     if not project_ids:
@@ -566,7 +596,9 @@ async def get_portfolio_calendar_events(
 async def get_portfolio_calendar_categories(
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Get all calendar event categories for all projects in the user's portfolio.
+    """Get all calendar event categories for all projects in the user's portfolio.
+
+    Args:
+        db: TODO: describe.
     """
     return await crud_calendar.get_calendar_item_categories(db=db)

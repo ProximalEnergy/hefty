@@ -13,6 +13,11 @@ from core.model_list import ModelItem, ModelList
 
 
 def get_project_options(*, deep: bool) -> _AbstractLoad:
+    """TODO: add description.
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = selectinload(models.Project.project_type)
     else:
@@ -36,6 +41,20 @@ def get_projects(
     has_pv_pcs_modules: bool | None = None,
     return_query: bool = False,
 ) -> ModelList[models.Project]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        deep: TODO: describe.
+        project_ids: TODO: describe.
+        project_type_ids: TODO: describe.
+        project_status_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_shorts: TODO: describe.
+        name_long: TODO: describe.
+        has_pv_pcs_modules: TODO: describe.
+        return_query: TODO: describe.
+    """
     options = get_project_options(deep=deep)
 
     query = db.query(models.Project).options(options)
@@ -64,6 +83,14 @@ def get_projects(
 def get_project(
     *, db: Session, project_id: UUID, deep: bool = False, return_query: bool = False
 ) -> ModelItem[models.Project]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+    """
     options = get_project_options(deep=deep)
     query: Query = (
         db.query(models.Project)
@@ -160,6 +187,13 @@ async def get_projects_async(
 async def get_project_async(
     *, db: AsyncSession, project_id: UUID, deep: bool = False
 ) -> models.Project | None:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+        deep: TODO: describe.
+    """
     options = get_project_options(deep=deep)
     stmt = (
         select(models.Project)

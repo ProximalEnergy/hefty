@@ -39,6 +39,14 @@ def get_horizontal_bess(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     # Determine what is the "highest" level of battery storage data
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore
     if SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT in used_sensor_type_ids:
         bess_sensor_type_id = SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT
@@ -91,6 +99,11 @@ def get_horizontal_bess(
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
 
     def _get_data(*, category: str):
+        """todo
+
+        Args:
+            category: TODO: describe.
+        """
         data = [
             {
                 "values": df[c].tolist(),
@@ -120,12 +133,16 @@ def get_horizontal_bess(
 
 
 class DeviceDetailsHorizonalData(BaseModel):
+    """todo"""
+
     values: list[float]
     name: str | None
     device_id: int
 
 
 class DeviceDetailsHorizontalPV(BaseModel):
+    """todo"""
+
     times: list[datetime.datetime]
     meter_power: list[DeviceDetailsHorizonalData]
     met: list[DeviceDetailsHorizonalData]
@@ -143,6 +160,14 @@ def get_horizontal_pv(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     sensor_type_ids: list[int] = [
         SensorTypeEnum.METER_ACTIVE_POWER,
         SensorTypeEnum.MET_STATION_POA,
@@ -179,6 +204,11 @@ def get_horizontal_pv(
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
 
     def _get_data(*, category: str):
+        """todo
+
+        Args:
+            category: TODO: describe.
+        """
         data = [
             {
                 "values": df[c].tolist(),
@@ -216,6 +246,15 @@ def get_single_by_device_id(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
+    """todo
+
+    Args:
+        device_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
         device_ids=[device_id],
@@ -263,6 +302,14 @@ async def get_vertical_controller(
 ):
     # Manually define the device type IDs that are supported for each technology (e.g. PV or BESS).
     # If the user selects a device that is not of a supported type, they will get an error letting them know.
+    """todo
+
+    Args:
+        device_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     SUPPORTED_DEVICE_TYPE_IDS_BY_TECHNOLOGY: dict[Literal["pv", "bess"], list[int]] = {
         "pv": [
             2,  # "PV PCS",
@@ -361,6 +408,8 @@ async def get_vertical_controller(
 
     # Define the type of the data that we will return
     class DeviceTreeItem(TypedDict):
+        """todo"""
+
         id: int  # The device type ID
         label: str  # The device type name
         device_ids: list[int]  # The device IDs of the devices of this type
@@ -406,6 +455,15 @@ def get_vertical(
     end: datetime.datetime,
 ):
     # Manually define the sensor type IDs that we want to fetch
+    """todo
+
+    Args:
+        project: TODO: describe.
+        project_db: TODO: describe.
+        device_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     SENSOR_TYPE_IDS_TO_LABEL: dict[int, str] = {
         2: "Power (MW)",  # pv_pcs_ac_power
         3: "Power (MW)",  # pv_pcs_ac_power_module
@@ -474,6 +532,13 @@ async def get_data_availability(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
+    """todo
+
+    Args:
+        device_type_ids: TODO: describe.
+        project_db: TODO: describe.
+        include_ghost_tags: TODO: describe.
+    """
     data = core.crud.project.data_timeseries_last.get_data_timeseries_last(
         project_db=project_db,
         device_type_ids=device_type_ids,
@@ -515,11 +580,15 @@ async def get_data_availability_v2(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
-    """
-    Calculates data availability and staleness for a given set of device types.
-    This implementation uses a Common Table Expression (CTE) and the PostgreSQL
-    ANY() operator to efficiently handle a large number of device_type_ids,
-    avoiding the 32,767 parameter limit.
+    """Calculates data availability and staleness for a given set of device types.
+        This implementation uses a Common Table Expression (CTE) and the PostgreSQL
+        ANY() operator to efficiently handle a large number of device_type_ids,
+        avoiding the 32,767 parameter limit.
+
+    Args:
+        device_type_ids: TODO: describe.
+        project_db: TODO: describe.
+        include_ghost_tags: TODO: describe.
     """
 
     query: model_list.ModelList = (

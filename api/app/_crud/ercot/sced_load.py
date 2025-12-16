@@ -13,6 +13,14 @@ async def get_ercot_sced_load(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        resource_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     query = (
         select(models.SCEDLoad)
         .where(models.SCEDLoad.resource_id == resource_id)

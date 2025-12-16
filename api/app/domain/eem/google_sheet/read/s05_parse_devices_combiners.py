@@ -14,6 +14,12 @@ def parse_devices_combiners(
     system: pd.DataFrame,
 ):
     # --- Get devices from the database ---
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        system: TODO: describe.
+    """
     combiner_models = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_type_ids=[DeviceType.PV_DC_COMBINER],

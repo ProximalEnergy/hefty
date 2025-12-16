@@ -25,6 +25,15 @@ async def get_report_instances(
     report_type_ids: Annotated[list[int] | None, Query()] = [],
     deep: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        is_superadmin: TODO: describe.
+        project_ids: TODO: describe.
+        report_type_ids: TODO: describe.
+        deep: TODO: describe.
+    """
     if is_superadmin:
         is_visible = None
     else:
@@ -49,6 +58,15 @@ async def get_report_instances_helper(
     project_ids: list[uuid.UUID] | None = None,
     deep: bool = False,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        is_visible: TODO: describe.
+        report_type_ids: TODO: describe.
+        project_ids: TODO: describe.
+        deep: TODO: describe.
+    """
     project_ids = project_ids if project_ids and len(project_ids) > 0 else None
     report_type_ids = (
         report_type_ids if report_type_ids and len(report_type_ids) > 0 else None

@@ -13,6 +13,7 @@ router = APIRouter(prefix="/projects/{project_id}/system", tags=["system"])
 
 @router.get("/health")
 def health_check():
+    """todo"""
     system = {"response": 200}
     return system
 
@@ -27,6 +28,13 @@ async def import_google_sheet_route(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     return await import_google_sheet(
         db=db,
         project_db=project_db,

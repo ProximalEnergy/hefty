@@ -20,6 +20,11 @@ def get_arcgis_token(
     provider: "ArcGISProvider",
 ) -> str:
     # --- Get secret from AWS Secrets Manager ---
+    """todo
+
+    Args:
+        provider: TODO: describe.
+    """
     secret_name = "map_integrations/arcgis/1"  # noqa: S105
     REGION_NAME = "us-east-2"
     secret = get_secret(

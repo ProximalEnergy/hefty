@@ -14,31 +14,36 @@ async def get_cmms_permissions_by_project_id(
     project_id: UUID,
     can_view: bool | None = True,
 ) -> Sequence[CMMSPermission]:
-    """
-    Used for pulling ticket information for a specific project assuming the
-    user has view permissions.
-    This function is an inner join on the CMMSPermission, CMMSIntegration,
-    and CMMSProvider tables and will
-    only return value where rows from all 3 tables are present. Data is
-    filtered by the company_id and project_id,
-    and optionally filtered by can_view (set to True in ticket pull function).
+    """Used for pulling ticket information for a specific project assuming the
+        user has view permissions.
+        This function is an inner join on the CMMSPermission, CMMSIntegration,
+        and CMMSProvider tables and will
+        only return value where rows from all 3 tables are present. Data is
+        filtered by the company_id and project_id,
+        and optionally filtered by can_view (set to True in ticket pull function).
 
-    Parameters:
-    -----------
-    db: AsyncSession
-        The database session.
-    company_id: UUID
-        The company id.
-    project_id: UUID
-        The project id.
-    can_view: Optional[bool]
-        Whether the user has view permissions. If not provided, the value
-        can be True/False/NULl, but
-        there still must be a corresponding row in the CMMSPermission table.
+        Parameters:
+        -----------
+        db: AsyncSession
+            The database session.
+        company_id: UUID
+            The company id.
+        project_id: UUID
+            The project id.
+        can_view: Optional[bool]
+            Whether the user has view permissions. If not provided, the value
+            can be True/False/NULl, but
+            there still must be a corresponding row in the CMMSPermission table.
 
-    Returns:
-    --------
-    List of CMMSPermission objects.
+        Returns:
+        --------
+        List of CMMSPermission objects.
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+        project_id: TODO: describe.
+        can_view: TODO: describe.
     """
 
     query = (

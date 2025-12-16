@@ -12,20 +12,23 @@ async def get_qse_integration_by_project_id(
     db: AsyncSession,
     project_id: UUID,
 ) -> QSEIntegration | None:
-    """
-    Get QSE integration by project ID
+    """Get QSE integration by project ID
 
-    Parameters:
-    -----------
-    db: AsyncSession
-        The database session.
-    project_id: UUID
-        The project ID to filter by.
+        Parameters:
+        -----------
+        db: AsyncSession
+            The database session.
+        project_id: UUID
+            The project ID to filter by.
 
-    Returns:
-    --------
-    QSEIntegration | None
-        The QSE integration if it exists, None otherwise.
+        Returns:
+        --------
+        QSEIntegration | None
+            The QSE integration if it exists, None otherwise.
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
     """
     query = (
         select(QSEIntegration)
@@ -52,6 +55,12 @@ async def get_qse_permissions_by_company_id(
     db: AsyncSession,
     company_id: UUID,
 ) -> list[QSEPermission]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+    """
     query = select(QSEPermission).where(QSEPermission.company_id == company_id)
     result = await db.execute(query)
     return list(result.scalars().all())
@@ -62,6 +71,12 @@ async def get_qse_fields_by_provider_id(
     db: AsyncSession,
     provider_id: int,
 ) -> list[QSEField]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        provider_id: TODO: describe.
+    """
     query = select(QSEField).where(QSEField.qse_provider_id == provider_id)
     result = await db.execute(query)
     return list(result.scalars().all())

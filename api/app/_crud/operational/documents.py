@@ -13,6 +13,14 @@ async def get_project_documents(
     project_ids: list[UUID] | None = None,
     company_ids: list[UUID] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        document_ids: TODO: describe.
+        project_ids: TODO: describe.
+        company_ids: TODO: describe.
+    """
     query = select(models.Document)
 
     if document_ids:
@@ -34,6 +42,15 @@ async def create_project_document(
     s3_key: str,
     openai_file_id: str,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+        project_id: TODO: describe.
+        s3_key: TODO: describe.
+        openai_file_id: TODO: describe.
+    """
     document = models.Document(
         company_id=company_id,
         project_id=project_id,
@@ -51,6 +68,12 @@ async def delete_project_document(
     *,
     document_id: UUID,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        document_id: TODO: describe.
+    """
     delete_stmt = delete(models.Document).where(
         models.Document.document_id == document_id,
     )

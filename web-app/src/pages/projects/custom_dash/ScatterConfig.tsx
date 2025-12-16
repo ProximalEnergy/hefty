@@ -16,19 +16,23 @@ import { useState } from 'react'
 import { ScatterConfig as ScatterConfigType } from './CustomDash'
 
 const ScatterConfig = ({
+  mode,
   stack,
   sensorTypes,
   onAdd,
+  initialConfig,
 }: {
+  mode: 'create' | 'edit'
   stack: { close: (drawerId: 'scatter-config') => void }
   sensorTypes: UseQueryResult<SensorType[], AxiosError<unknown>>
   onAdd: (config: ScatterConfigType) => void
+  initialConfig?: ScatterConfigType
 }) => {
   const [xAxisSensorTypeId, setXAxisSensorTypeId] = useState<string | null>(
-    null,
+    initialConfig?.xAxisSensorTypeId ?? null,
   )
   const [yAxisSensorTypeId, setYAxisSensorTypeId] = useState<string | null>(
-    null,
+    initialConfig?.yAxisSensorTypeId ?? null,
   )
 
   const addScatterChart = () => {
@@ -53,7 +57,8 @@ const ScatterConfig = ({
   const allowCreate = !!xAxisSensorTypeId && !!yAxisSensorTypeId
   return (
     <Stack>
-      <Title>Add Scatter Plot</Title>
+      {mode === 'create' && <Title>Add Scatter Plot</Title>}
+      {mode === 'edit' && <Title>Edit Scatter Plot</Title>}
       <Text>Select two sensor types to add a scatter plot.</Text>
       <Text c="red">
         WARNING: Selecting sensor types with many devices may degrade
@@ -92,7 +97,9 @@ const ScatterConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addScatterChart} disabled={!allowCreate}>
-            Add Scatter Plot Component
+            {mode === 'edit'
+              ? 'Update Scatter Plot Component'
+              : 'Add Scatter Plot Component'}
           </Button>
         </Tooltip>
       </Group>

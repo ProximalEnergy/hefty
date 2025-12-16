@@ -19,10 +19,24 @@ def fit_desoto(
     init_guess={},
     root_kwargs={},
 ):
-    """
-    This is a Proximal modified version of the fit_desoto function in pvlib.
-    The main difference is that it exports the results of the scipy.optimize.root
-    function whether or not the solve is successful.
+    """This is a Proximal modified version of the fit_desoto function in pvlib.
+        The main difference is that it exports the results of the scipy.optimize.root
+        function whether or not the solve is successful.
+
+    Args:
+        v_mp: TODO: describe.
+        i_mp: TODO: describe.
+        v_oc: TODO: describe.
+        i_sc: TODO: describe.
+        alpha_sc: TODO: describe.
+        beta_voc: TODO: describe.
+        cells_in_series: TODO: describe.
+        EgRef: TODO: describe.
+        dEgdT: TODO: describe.
+        temp_ref: TODO: describe.
+        irrad_ref: TODO: describe.
+        init_guess: TODO: describe.
+        root_kwargs: TODO: describe.
     """
     # Constants
     k = constants.value("Boltzmann constant in eV/K")  # in eV/K

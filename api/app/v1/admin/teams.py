@@ -40,6 +40,12 @@ async def get_teams(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_id: uuid.UUID = Query(...),
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+    """
     return await crud_get_teams(db=db, company_id=company_id)
 
 
@@ -51,7 +57,12 @@ async def get_company_teams(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
 ):
-    """Get teams for the current user's company. No admin required."""
+    """Get teams for the current user's company. No admin required.
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     return await crud_get_teams(db=db, company_id=user_data.company_id)
 
 
@@ -63,7 +74,12 @@ async def get_company_teams_with_members(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
 ):
-    """Get teams with members for the current user's company. No admin required."""
+    """Get teams with members for the current user's company. No admin required.
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     return await crud_get_teams_with_members(db=db, company_id=user_data.company_id)
 
 
@@ -78,6 +94,13 @@ async def create_team(
     user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
     team: TeamCreate,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+        team: TODO: describe.
+    """
     try:
         return await crud_create_team(db=db, company_id=user_data.company_id, team=team)
     except IntegrityError:
@@ -96,6 +119,12 @@ async def get_teams_with_members(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_id: uuid.UUID = Query(...),
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+    """
     return await crud_get_teams_with_members(db=db, company_id=company_id)
 
 
@@ -109,6 +138,13 @@ async def add_member(
     payload: TeamMemberAdd,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        team_id: TODO: describe.
+        payload: TODO: describe.
+        db: TODO: describe.
+    """
     await crud_add_team_member(db=db, team_id=team_id, user_id=payload.user_id)
     return
 
@@ -123,6 +159,13 @@ async def remove_member(
     user_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        team_id: TODO: describe.
+        user_id: TODO: describe.
+        db: TODO: describe.
+    """
     await crud_remove_team_member(db=db, team_id=team_id, user_id=user_id)
     return
 
@@ -135,6 +178,12 @@ async def remove_member(
 async def delete_team(
     team_id: uuid.UUID, db: Annotated[AsyncSession, Depends(dependencies.get_async_db)]
 ):
+    """todo
+
+    Args:
+        team_id: TODO: describe.
+        db: TODO: describe.
+    """
     await crud_delete_team(db=db, team_id=team_id)
     return
 
@@ -149,6 +198,13 @@ async def update_team(
     payload: TeamUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        team_id: TODO: describe.
+        payload: TODO: describe.
+        db: TODO: describe.
+    """
     try:
         return await crud_rename_team(db=db, team_id=team_id, payload=payload)
     except IntegrityError:

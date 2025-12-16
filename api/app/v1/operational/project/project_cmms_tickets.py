@@ -16,6 +16,8 @@ router = APIRouter(prefix="/projects/{project_id}/cmms-tickets", tags=["cmms-tic
 
 
 class CMMSTicket(BaseModel):
+    """todo"""
+
     cmms_provider: str
     id: int  # machine readable identifier
     key: str  # human readable identifier
@@ -35,10 +37,14 @@ class CMMSTicket(BaseModel):
 
 
 class CMMSMetadata(BaseModel):
+    """todo"""
+
     integration_configured: bool
 
 
 class CMMSResponse(BaseModel):
+    """todo"""
+
     metadata: CMMSMetadata
     data: list[CMMSTicket]
 
@@ -56,25 +62,33 @@ async def get_cmms_tickets(
     end: str | None = None,
     device_ids: Annotated[list[int] | None, Query()] = None,
 ):
-    """
-    Pulls the first 50 tickets for each CMMS provider.
+    """Pulls the first 50 tickets for each CMMS provider.
 
-    Parameters:
-    -----------
-    project_id : UUID
-        The project identifier
-    db : AsyncSession
-        Database session
-    project_db : AsyncSession
-        Project database session
-    user : interfaces.UserData
-        To get the company id
-    start : Optional[str]
-        The start date of the tickets
-    end : Optional[str]
-        The end date of the tickets
-    device_ids : Optional[List[int]]
-        The list of device ids to filter the tickets by
+        Parameters:
+        -----------
+        project_id : UUID
+            The project identifier
+        db : AsyncSession
+            Database session
+        project_db : AsyncSession
+            Project database session
+        user : interfaces.UserData
+            To get the company id
+        start : Optional[str]
+            The start date of the tickets
+        end : Optional[str]
+            The end date of the tickets
+        device_ids : Optional[List[int]]
+            The list of device ids to filter the tickets by
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        user: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_ids: TODO: describe.
     """
     # First get integrations to see if there are any configured
 

@@ -109,7 +109,11 @@ THEME_COLORS: dict[str, str] = {
 
 
 def _get_company_theme_color(*, company_name_short: str | None) -> str:
-    """Get the primary theme color for a company."""
+    """Get the primary theme color for a company.
+
+    Args:
+        company_name_short: TODO: describe.
+    """
     if not company_name_short:
         return "#21B8F1"  # Default proximal-blue
 
@@ -136,6 +140,8 @@ MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
 
 # --- Pydantic Schemas ---
 class EventMessageCreate(BaseModel):
+    """todo"""
+
     event_id: int
     body: str
     parent_message_id: int | None = None
@@ -143,6 +149,8 @@ class EventMessageCreate(BaseModel):
 
 
 class EventMessage(BaseModel):
+    """todo"""
+
     event_message_id: int
     event_id: int
     user_id: str
@@ -157,6 +165,8 @@ class EventMessage(BaseModel):
 
 
 class EventMessageImage(BaseModel):
+    """todo"""
+
     event_message_image_id: UUID
     event_message_id: int
     event_id: int
@@ -168,6 +178,8 @@ class EventMessageImage(BaseModel):
 
 
 class EventChatMute(BaseModel):
+    """todo"""
+
     event_id: int
     user_id: str
     muted_at: datetime.datetime
@@ -175,7 +187,11 @@ class EventChatMute(BaseModel):
 
 # --- Helper Functions ---
 def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessage:
-    """Convert database model to Pydantic schema."""
+    """Convert database model to Pydantic schema.
+
+    Args:
+        model: TODO: describe.
+    """
     # Get image_s3_keys from related images
     image_s3_keys = None
     if model.images:
@@ -197,7 +213,11 @@ def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessage:
 
 
 def _model_to_pydantic_image(*, model: models.EventMessageImage) -> EventMessageImage:
-    """Convert database model to Pydantic schema."""
+    """Convert database model to Pydantic schema.
+
+    Args:
+        model: TODO: describe.
+    """
     return EventMessageImage(
         event_message_image_id=model.event_message_image_id,
         event_message_id=model.event_message_id,
@@ -212,7 +232,11 @@ def _model_to_pydantic_image(*, model: models.EventMessageImage) -> EventMessage
 
 # --- Mention Extraction ---
 def extract_mentions(*, body: str) -> list[str]:
-    """Extract @mentions from message body using regex."""
+    """Extract @mentions from message body using regex.
+
+    Args:
+        body: TODO: describe.
+    """
     pattern = r"@(\w+)"
     mentions = re.findall(pattern, body)
     return mentions
@@ -375,15 +399,24 @@ async def send_notifications_for_message(
     db: AsyncSession,
     api_prod: bool,
 ) -> None:
-    """
-    Send email notifications for event chat messages.
+    """Send email notifications for event chat messages.
 
-    Rules:
-    - First message: notify all company users (unless they've disabled notifications for this project)
-    - Subsequent messages: notify users who have posted (excluding muted users)
-    - Never notify the sender
-    - Never notify muted users
-    - Never notify users who have disabled event chat notifications for this project
+        Rules:
+        - First message: notify all company users (unless they've disabled notifications for this project)
+        - Subsequent messages: notify users who have posted (excluding muted users)
+        - Never notify the sender
+        - Never notify muted users
+        - Never notify users who have disabled event chat notifications for this project
+
+    Args:
+        event_id: TODO: describe.
+        sender_user_id: TODO: describe.
+        sender_company_id: TODO: describe.
+        message_body: TODO: describe.
+        is_first_message: TODO: describe.
+        project_id: TODO: describe.
+        db: TODO: describe.
+        api_prod: TODO: describe.
     """
     # Get project schema name
     project_name_short = None
@@ -544,16 +577,20 @@ async def get_event_messages(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> list[EventMessage]:
-    """
-    Get all non-deleted messages for a specific event.
+    """Get all non-deleted messages for a specific event.
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
-    Query Parameters:
-        event_id: The ID of the event to get messages for
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
+        Query Parameters:
+            event_id: The ID of the event to get messages for
 
-    Returns:
-        List of event messages, ordered by created_at (ascending)
+        Returns:
+            List of event messages, ordered by created_at (ascending)
+
+    Args:
+        project_id: TODO: describe.
+        event_id: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:
@@ -579,23 +616,30 @@ async def create_event_message(
     ],
     api_prod: Annotated[bool, Depends(dependencies.is_prod_origin)],
 ) -> EventMessage:
-    """
-    Create a new event message.
+    """Create a new event message.
 
-    - Extracts @mentions from the message body
-    - Stores mentions as comma-separated usernames
-    - Sends email notifications in the background to:
-        - First message: all company users
-        - Subsequent messages: users who have posted (excluding muted users)
+        - Extracts @mentions from the message body
+        - Stores mentions as comma-separated usernames
+        - Sends email notifications in the background to:
+            - First message: all company users
+            - Subsequent messages: users who have posted (excluding muted users)
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
-    Request Body:
-        event_id: The ID of the event
-        body: The message content (may contain @mentions)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
+        Request Body:
+            event_id: The ID of the event
+            body: The message content (may contain @mentions)
 
-    Returns:
-        The created event message
+        Returns:
+            The created event message
+
+    Args:
+        project_id: TODO: describe.
+        message: TODO: describe.
+        background_tasks: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+        api_prod: TODO: describe.
     """
     # Extract mentions from body
     mentioned_usernames = extract_mentions(body=message.body)
@@ -637,6 +681,7 @@ async def create_event_message(
 
     # Send notifications in background
     async def send_notifications_background():
+        """todo"""
         async with _with_async_db(schema=None) as bg_db:
             await send_notifications_for_message(
                 event_id=message.event_id,
@@ -655,6 +700,8 @@ async def create_event_message(
 
 
 class EventMessageUpdate(BaseModel):
+    """todo"""
+
     body: str
     image_ids: list[UUID] | None = (
         None  # List of image IDs to keep, in order matching placeholders
@@ -671,14 +718,18 @@ async def get_event_chat_notification_status(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> dict:
-    """
-    Get event chat notification status for a project.
+    """Get event chat notification status for a project.
 
-    Path Parameters:
-        project_id: The project ID
+        Path Parameters:
+            project_id: The project ID
 
-    Returns:
-        {"enabled": bool} - True if enabled, False if disabled
+        Returns:
+            {"enabled": bool} - True if enabled, False if disabled
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     enabled = await crud_is_event_chat_notification_enabled(
         db=db, user_id=user_data.user_id, operational_project_id=project_id
@@ -696,14 +747,19 @@ async def update_event_chat_notification_setting(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> dict:
-    """
-    Update event chat notification setting for a project.
+    """Update event chat notification setting for a project.
 
-    Query Parameters:
-        enabled: True to enable, False to disable
+        Query Parameters:
+            enabled: True to enable, False to disable
 
-    Returns:
-        {"enabled": bool} - The new enabled status
+        Returns:
+            {"enabled": bool} - The new enabled status
+
+    Args:
+        project_id: TODO: describe.
+        enabled: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     await crud_update_event_chat_notification(
         db=db,
@@ -716,10 +772,14 @@ async def update_event_chat_notification_setting(
 
 # --- Batch Endpoints ---
 class EventChatNotificationStatusesBatchRequest(BaseModel):
+    """todo"""
+
     project_ids: list[UUID]
 
 
 class EventChatNotificationStatusesBatchResponse(BaseModel):
+    """todo"""
+
     statuses: dict[str, bool]  # project_id (as string) -> enabled
 
 
@@ -732,20 +792,24 @@ async def get_event_chat_notification_statuses_batch(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> EventChatNotificationStatusesBatchResponse:
-    """
-    Get event chat notification statuses for multiple projects in a single request.
+    """Get event chat notification statuses for multiple projects in a single request.
 
-    Request Body:
-        project_ids: List of project IDs to get statuses for
+        Request Body:
+            project_ids: List of project IDs to get statuses for
 
-    Returns:
-        {
-            "statuses": {
-                "project_id_1": true,
-                "project_id_2": false,
-                ...
+        Returns:
+            {
+                "statuses": {
+                    "project_id_1": true,
+                    "project_id_2": false,
+                    ...
+                }
             }
-        }
+
+    Args:
+        request: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     status_map = await crud_get_event_chat_notification_statuses_batch(
         db=db,
@@ -762,10 +826,14 @@ async def get_event_chat_notification_statuses_batch(
 
 
 class EventChatNotificationStatusesBatchUpdateRequest(BaseModel):
+    """todo"""
+
     statuses: dict[str, bool]  # project_id (as string) -> enabled
 
 
 class EventChatNotificationStatusesBatchUpdateResponse(BaseModel):
+    """todo"""
+
     statuses: dict[str, bool]  # project_id (as string) -> enabled
 
 
@@ -778,20 +846,24 @@ async def update_event_chat_notification_statuses_batch(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> EventChatNotificationStatusesBatchUpdateResponse:
-    """
-    Update event chat notification statuses for multiple projects in a single request.
+    """Update event chat notification statuses for multiple projects in a single request.
 
-    Request Body:
-        statuses: Dictionary mapping project_id (string) -> enabled (bool)
+        Request Body:
+            statuses: Dictionary mapping project_id (string) -> enabled (bool)
 
-    Returns:
-        {
-            "statuses": {
-                "project_id_1": true,
-                "project_id_2": false,
-                ...
+        Returns:
+            {
+                "statuses": {
+                    "project_id_1": true,
+                    "project_id_2": false,
+                    ...
+                }
             }
-        }
+
+    Args:
+        request: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     # Convert string keys to UUIDs
     project_statuses: dict[UUID, bool] = {
@@ -824,20 +896,26 @@ async def update_event_message(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> EventMessage:
-    """
-    Update an existing event message.
+    """Update an existing event message.
 
-    Validates:
-    - User owns the message
-    - Message exists and is not deleted
+        Validates:
+        - User owns the message
+        - Message exists and is not deleted
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
-    Request Body:
-        body: The updated message content (may contain @mentions)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
+        Request Body:
+            body: The updated message content (may contain @mentions)
 
-    Returns:
-        The updated event message
+        Returns:
+            The updated event message
+
+    Args:
+        project_id: TODO: describe.
+        event_message_id: TODO: describe.
+        message: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     # Extract mentions from body
     mentioned_usernames = extract_mentions(body=message.body)
@@ -945,18 +1023,23 @@ async def delete_event_message(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> EventMessage:
-    """
-    Delete an existing event message (soft delete).
+    """Delete an existing event message (soft delete).
 
-    Validates:
-    - User owns the message
-    - Message exists
+        Validates:
+        - User owns the message
+        - Message exists
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
 
-    Returns:
-        The deleted event message (with deleted_at set)
+        Returns:
+            The deleted event message (with deleted_at set)
+
+    Args:
+        project_id: TODO: describe.
+        event_message_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:
@@ -1010,14 +1093,18 @@ async def toggle_event_chat_mute(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> dict:
-    """
-    Toggle mute status for an event chat.
+    """Toggle mute status for an event chat.
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
 
-    Returns:
-        {"muted": bool} - True if muted, False if unmuted
+        Returns:
+            {"muted": bool} - True if muted, False if unmuted
+
+    Args:
+        project_id: TODO: describe.
+        event_id: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:
@@ -1041,14 +1128,18 @@ async def get_event_chat_mute_status(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> dict:
-    """
-    Get mute status for an event chat.
+    """Get mute status for an event chat.
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
 
-    Returns:
-        {"muted": bool} - True if muted, False if not muted
+        Returns:
+            {"muted": bool} - True if muted, False if not muted
+
+    Args:
+        project_id: TODO: describe.
+        event_id: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:
@@ -1064,7 +1155,11 @@ async def get_event_chat_mute_status(
 
 # --- Image Upload Endpoints ---
 def _validate_image_file(*, file: UploadFile) -> None:
-    """Validate image file type and size."""
+    """Validate image file type and size.
+
+    Args:
+        file: TODO: describe.
+    """
     # Check content type
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
@@ -1081,7 +1176,13 @@ def _validate_image_file(*, file: UploadFile) -> None:
 def _generate_image_s3_key(
     *, event_id: int, event_message_id: int, filename: str
 ) -> str:
-    """Generate S3 key for an image."""
+    """Generate S3 key for an image.
+
+    Args:
+        event_id: TODO: describe.
+        event_message_id: TODO: describe.
+        filename: TODO: describe.
+    """
     # Sanitize filename (remove path components, keep only basename)
     safe_filename = PathLib(filename).name
     # Generate UUID to prevent collisions
@@ -1093,8 +1194,12 @@ def _generate_image_s3_key(
 def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -> str:
     """Generate a presigned URL for an image.
 
-    If filename is provided, includes response-content-disposition header
-    to force download instead of displaying in browser.
+        If filename is provided, includes response-content-disposition header
+        to force download instead of displaying in browser.
+
+    Args:
+        s3_key: TODO: describe.
+        filename: TODO: describe.
     """
     s3_client = boto3.client("s3", region_name=EVENT_CHAT_IMAGES_REGION_NAME)
     params = {
@@ -1129,26 +1234,32 @@ async def upload_event_message_image(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> dict:
-    """
-    Upload an image for an event message.
+    """Upload an image for an event message.
 
-    Validates:
-    - User has access to the event (via message ownership or event access)
-    - File is a valid image type (jpeg, png, gif, webp)
-    - File size is within limit (10MB)
+        Validates:
+        - User has access to the event (via message ownership or event access)
+        - File is a valid image type (jpeg, png, gif, webp)
+        - File size is within limit (10MB)
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
 
-    Returns:
-        {
-            "event_message_image_id": UUID,
-            "s3_key": str,
-            "filename": str,
-            "content_type": str,
-            "file_size": int,
-            "presigned_url": str
-        }
+        Returns:
+            {
+                "event_message_image_id": UUID,
+                "s3_key": str,
+                "filename": str,
+                "content_type": str,
+                "file_size": int,
+                "presigned_url": str
+            }
+
+    Args:
+        project_id: TODO: describe.
+        event_id: TODO: describe.
+        event_message_id: TODO: describe.
+        file: TODO: describe.
+        user_data: TODO: describe.
     """
     # Validate file type
     _validate_image_file(file=file)
@@ -1256,16 +1367,21 @@ async def get_event_message_image_url(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> dict:
-    """
-    Get a presigned URL for an event message image.
+    """Get a presigned URL for an event message image.
 
-    Validates user has access to the event before generating URL.
+        Validates user has access to the event before generating URL.
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
 
-    Returns:
-        {"presigned_url": str, "s3_key": str}
+        Returns:
+            {"presigned_url": str, "s3_key": str}
+
+    Args:
+        project_id: TODO: describe.
+        event_id: TODO: describe.
+        image_id: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:
@@ -1305,14 +1421,19 @@ async def get_event_message_images(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> list[dict]:
-    """
-    Get all images for an event message with presigned URLs.
+    """Get all images for an event message with presigned URLs.
 
-    Path Parameters:
-        project_id: The project ID (required to determine schema)
+        Path Parameters:
+            project_id: The project ID (required to determine schema)
 
-    Returns:
-        List of image objects with presigned URLs
+        Returns:
+            List of image objects with presigned URLs
+
+    Args:
+        project_id: TODO: describe.
+        event_id: TODO: describe.
+        event_message_id: TODO: describe.
+        user_data: TODO: describe.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
     if not project_name_short:

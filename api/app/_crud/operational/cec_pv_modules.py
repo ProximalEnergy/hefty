@@ -9,8 +9,10 @@ async def get_cec_pv_module_manufacturers(
     *,
     db: AsyncSession,
 ):
-    """
-    Returns a list of unique manufacturers of CEC PV modules.
+    """Returns a list of unique manufacturers of CEC PV modules.
+
+    Args:
+        db: TODO: describe.
     """
     query = select(models.CECPVModule.manufacturer).distinct()
     result = await db.execute(query)
@@ -22,8 +24,11 @@ async def get_cec_pv_module_models_given_manufacturer(
     db: AsyncSession,
     manufacturer: str | None,
 ):
-    """
-    Returns a list of CEC PV module models given manufacturer
+    """Returns a list of CEC PV module models given manufacturer
+
+    Args:
+        db: TODO: describe.
+        manufacturer: TODO: describe.
     """
     query = select(models.CECPVModule.model_number).distinct()
     if manufacturer is not None:
@@ -37,6 +42,12 @@ async def get_cec_pv_modules(
     *,
     cec_pv_module_ids: list[int] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        cec_pv_module_ids: TODO: describe.
+    """
     query = select(models.CECPVModule)
 
     if cec_pv_module_ids:
@@ -52,6 +63,13 @@ async def get_cec_pv_module_ids(
     pv_module_manufacturers: list[str] | None = None,
     pv_module_models: list[str] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        pv_module_manufacturers: TODO: describe.
+        pv_module_models: TODO: describe.
+    """
     query = select(models.CECPVModule.cec_pv_module_id)
 
     if pv_module_manufacturers:
@@ -159,6 +177,12 @@ async def upsert_cec_pv_modules_bulk(
     *,
     modules: list[interfaces.CECPVModuleCreate],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        modules: TODO: describe.
+    """
     for module_data in modules:
         module_dict = module_data.model_dump()
 

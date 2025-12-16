@@ -49,6 +49,11 @@ router = APIRouter(prefix="/projects/{project_id}/events", tags=["project_events
 
 
 def _none_if_nan(x: Any) -> float | None:  # skip-star-syntax
+    """todo
+
+    Args:
+        x: TODO: describe.
+    """
     if x is None:
         return None
     try:
@@ -68,6 +73,18 @@ def get_events(
     event_ids: Annotated[list[int] | None, Query()] = None,
     open_at: datetime.datetime | None = None,
 ) -> list[interfaces.Event] | None:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_db: TODO: describe.
+        device_id: TODO: describe.
+        time_end_gte: TODO: describe.
+        time_end_lt: TODO: describe.
+        open: TODO: describe.
+        event_ids: TODO: describe.
+        open_at: TODO: describe.
+    """
     if device_id == -1:
         return None
 
@@ -120,6 +137,21 @@ async def get_paginated_events(
     db: AsyncSession = Depends(get_async_db),
 ) -> list[interfaces.PaginatedEvent]:
     # Get paginated events with single query
+    """todo
+
+    Args:
+        page: TODO: describe.
+        page_size: TODO: describe.
+        sort_column: TODO: describe.
+        sort_direction: TODO: describe.
+        open: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_type_ids: TODO: describe.
+        device_ids: TODO: describe.
+        project_db: TODO: describe.
+        db: TODO: describe.
+    """
     data = crud_get_paginated_events(
         project_db,
         page=page,
@@ -302,8 +334,15 @@ def get_event_losses(
 ):
     """Get event losses with optimized query parameters.
 
-    This function uses a single database query with all filters applied at once
-    to minimize database round trips.
+        This function uses a single database query with all filters applied at once
+        to minimize database round trips.
+
+    Args:
+        project_db: TODO: describe.
+        time_equals: TODO: describe.
+        time_gte: TODO: describe.
+        time_lt: TODO: describe.
+        event_ids: TODO: describe.
     """
     return core.crud.project.event_losses.get_event_losses(
         project_db,
@@ -320,6 +359,13 @@ async def update_event_failure_mode(
     event_id: Annotated[int, Path(title="The ID of the event to update")],
     project_db: AsyncSession = Depends(get_project_db_async),
 ):
+    """todo
+
+    Args:
+        failure_mode: TODO: describe.
+        event_id: TODO: describe.
+        project_db: TODO: describe.
+    """
     return await crud_update_event_failure_mode(
         db=project_db,
         event_id=event_id,
@@ -333,6 +379,13 @@ async def update_event_root_cause(
     event_id: Annotated[int, Path(title="The ID of the event to update")],
     project_db: AsyncSession = Depends(get_project_db_async),
 ):
+    """todo
+
+    Args:
+        root_cause: TODO: describe.
+        event_id: TODO: describe.
+        project_db: TODO: describe.
+    """
     if root_cause.root_cause_id != -1:
         return await crud_update_event_root_cause(
             db=project_db,
@@ -360,8 +413,14 @@ def get_windowed_events(
 ):
     """Get events within a specific time window.
 
-    This optimized version uses a single database query with
-    appropriate joins when deep=True.
+        This optimized version uses a single database query with
+        appropriate joins when deep=True.
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        deep: TODO: describe.
     """
     return core.crud.project.events.get_windowed_events(
         db=project_db, start=start, end=end, deep=deep
@@ -374,6 +433,12 @@ def get_event_devices(
     db: Annotated[Session, Depends(get_db)],
 ):
     # First get all device IDs that have events in a single query
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+    """
     device_ids = crud_get_event_device_ids(project_db)
 
     if not device_ids:
@@ -428,8 +493,18 @@ async def get_events_summary(
     project_id: uuid.UUID | None = None,
     project: Annotated[models.Project, Depends(get_project_api)],
 ) -> list[interfaces.EventSummary]:
-    """
-    Generate a summary of events with associated device/failure/root-cause and loss info.
+    """Generate a summary of events with associated device/failure/root-cause and loss info.
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        open: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_type_ids: TODO: describe.
+        device_ids: TODO: describe.
+        project_id: TODO: describe.
+        project: TODO: describe.
     """
 
     # Time zone (same behavior: only use project's tz if project_id is provided)
@@ -486,6 +561,12 @@ async def get_events_summary(
     ) -> dict[int, dict[str, float | None]]:
         # Convert Row objects to dicts for proper DataFrame column names
         # SQLAlchemy Row objects use _mapping attribute (2.0+) or _asdict() (older)
+        """todo
+
+        Args:
+            losses_rows: TODO: describe.
+            events_list: TODO: describe.
+        """
         try:
             losses_dicts = [dict(row._mapping) for row in losses_rows]
         except AttributeError:
@@ -597,6 +678,15 @@ async def get_uptime(
     project: Annotated[models.Project, Depends(get_project_api)],
 ):
     # Query events from the database
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        db: TODO: describe.
+        project: TODO: describe.
+    """
     events = core.crud.project.events.get_windowed_events(
         db=project_db, start=start, end=end, include_underperformance=False
     ).models()
@@ -725,6 +815,12 @@ def get_event_trace_tags(
     project_db: Annotated[Session, Depends(get_project_db)],
     device_id: int,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        device_id: TODO: describe.
+    """
     device = core.crud.project.devices.get_project_devices(
         project_db, device_ids=[device_id]
     ).models()[0]
@@ -853,6 +949,14 @@ async def get_llm_event_losses(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     try:
         if isinstance(start, str):
             start = datetime.datetime.fromisoformat(start.replace("Z", "+00:00"))
@@ -929,6 +1033,11 @@ async def get_llm_event_losses(
 def get_count_open(
     project_db: Annotated[Session, Depends(get_project_db)],
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+    """
     x = crud_get_count_open(db=project_db)
     return x
 
@@ -942,10 +1051,16 @@ def bulk_create_events(
 ):
     """Create events in bulk for a set of device_ids and attach a single loss row each.
 
-    - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
-    - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-    - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
-      name_short 'proximal_pv_dc_capacity'.
+        - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
+        - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
+        - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
+          name_short 'proximal_pv_dc_capacity'.
+
+    Args:
+        project_db: TODO: describe.
+        db: TODO: describe.
+        project_id: TODO: describe.
+        payload: TODO: describe.
     """
     # Ensure event_loss_type id exists (id 3 requested by frontend)
     loss_type_id = EventLossType.PROXIMAL_PV_DC_CAPACITY
@@ -1155,9 +1270,12 @@ def get_event_anomalies(
     project_db: Annotated[Session, Depends(get_project_db)],
     event_id: int = Path(..., description="Event ID to get anomalies for"),
 ):
-    """
-    Get all drone anomalies associated with a specific event.
-    Anomalies are linked to events via the event_id column.
+    """Get all drone anomalies associated with a specific event.
+        Anomalies are linked to events via the event_id column.
+
+    Args:
+        project_db: TODO: describe.
+        event_id: TODO: describe.
     """
     try:
         anomalies = crud_get_anomalies_by_event_id(db=project_db, event_id=event_id)
@@ -1174,6 +1292,12 @@ def get_event_losses_summary(
     project_db: Annotated[Session, Depends(get_project_db)],
     event_id: int,
 ) -> dict[str, float | None]:
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        event_id: TODO: describe.
+    """
     event = core.crud.project.events.get_events_by_id(project_db, event_ids=[event_id])[
         0
     ]

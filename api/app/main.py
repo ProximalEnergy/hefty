@@ -110,16 +110,19 @@ mcp.mount_http()
 
 @app.get("/")
 def get_root():
+    """Get root."""
     return "Proximal Energy API"
 
 
 @app.get("/version")
 def get_version():
+    """Get version."""
     return {"version": version}
 
 
 @app.get("/version/core")
 def get_core_version():
+    """Get core version."""
     version = importlib.metadata.version(distribution_name="core")
     return {"version": version}
 

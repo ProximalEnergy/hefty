@@ -1,4 +1,7 @@
-import { useGetUserDashboards } from '@/api/v1/operational/project/custom_dash'
+import {
+  useGetSharedUserDashboards,
+  useGetUserDashboards,
+} from '@/api/v1/operational/project/custom_dash'
 import { Box, Group, Menu, Text, ThemeIcon, Tooltip, rem } from '@mantine/core'
 import { IconChevronRight, IconHome, IconSettings } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -20,6 +23,18 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
       enabled: !!projectId, // Fetch dashboards when projectId is available
     },
   })
+  const sharedUserDashboards = useGetSharedUserDashboards({
+    pathParams: {
+      projectId: projectId || '',
+    },
+    queryOptions: {
+      enabled: !!projectId,
+    },
+  })
+  const allDashboards = [
+    ...(userDashboards.data || []),
+    ...(sharedUserDashboards.data || []),
+  ]
 
   const isActive = (path: string) => {
     if (location.pathname.startsWith(path)) {
@@ -79,50 +94,53 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
 
   const shouldHighlightDefault = isMenuOpen && !isMouseOnDropdown
 
-  const menuItems = userDashboards.isLoading
-    ? [
-        <Menu.Item key="loading" disabled>
-          <Text c="dimmed" size="sm">
-            Loading...
-          </Text>
-        </Menu.Item>,
-      ]
-    : [
-        <Menu.Item
-          key="home-default"
-          component={Link}
-          to={homePath}
-          data-active={activeState}
-          data-highlight-default={shouldHighlightDefault}
-        >
-          Home (default)
-        </Menu.Item>,
-        ...(userDashboards.data && userDashboards.data.length > 0
-          ? userDashboards.data
-              .sort((a, b) => a.dashboard_name.localeCompare(b.dashboard_name))
-              .map((dashboard) => (
-                <Menu.Item
-                  key={dashboard.dashboard_id}
-                  component={Link}
-                  to={`/projects/${projectId}/custom-dash/${dashboard.dashboard_id}`}
-                  data-active={isActive(
-                    `/projects/${projectId}/custom-dash/${dashboard.dashboard_id}`,
-                  )}
-                >
-                  {dashboard.dashboard_name}
-                </Menu.Item>
-              ))
-          : []),
-        <Menu.Item
-          key="custom-dashboards"
-          component={Link}
-          to={customDashboardsPath}
-          leftSection={<IconSettings size={14} />}
-          data-active={isActive(customDashboardsPath)}
-        >
-          Manage Dashboards
-        </Menu.Item>,
-      ]
+  const menuItems =
+    userDashboards.isLoading || sharedUserDashboards.isLoading
+      ? [
+          <Menu.Item key="loading" disabled>
+            <Text c="dimmed" size="sm">
+              Loading...
+            </Text>
+          </Menu.Item>,
+        ]
+      : [
+          <Menu.Item
+            key="home-default"
+            component={Link}
+            to={homePath}
+            data-active={activeState}
+            data-highlight-default={shouldHighlightDefault}
+          >
+            Home (default)
+          </Menu.Item>,
+          ...(allDashboards && allDashboards.length > 0
+            ? allDashboards
+                .sort((a, b) =>
+                  a.dashboard_name.localeCompare(b.dashboard_name),
+                )
+                .map((dashboard) => (
+                  <Menu.Item
+                    key={dashboard.dashboard_id}
+                    component={Link}
+                    to={`/projects/${projectId}/custom-dash/${dashboard.dashboard_id}`}
+                    data-active={isActive(
+                      `/projects/${projectId}/custom-dash/${dashboard.dashboard_id}`,
+                    )}
+                  >
+                    {dashboard.dashboard_name}
+                  </Menu.Item>
+                ))
+            : []),
+          <Menu.Item
+            key="custom-dashboards"
+            component={Link}
+            to={customDashboardsPath}
+            leftSection={<IconSettings size={14} />}
+            data-active={isActive(customDashboardsPath)}
+          >
+            Manage Dashboards
+          </Menu.Item>,
+        ]
 
   const buttonContent = (
     <Box className={classes.control}>

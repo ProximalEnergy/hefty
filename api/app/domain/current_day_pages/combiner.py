@@ -19,6 +19,14 @@ def get_equipment_analysis_combiner_data(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     mean = False
     if start is None and end is None:
         # Define start and end times

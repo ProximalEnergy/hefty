@@ -21,6 +21,16 @@ def get_expected_power(
     project_db: Session,
     project: models.Project,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     project_name_short = project.name_short
 
     module = vars.MODULE_DATA[vars.PROJECT_DEVICE_MAP[project_name_short]["module"]]
@@ -169,6 +179,15 @@ def get_project_expected_power(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        project: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     project_name_short = project.name_short
 
     module = vars.MODULE_DATA[vars.PROJECT_DEVICE_MAP[project_name_short]["module"]]

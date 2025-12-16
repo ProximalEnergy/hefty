@@ -28,6 +28,12 @@ router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 
 async def get_email_from_clerk(*, user_id: str, api_prod: bool):
+    """todo
+
+    Args:
+        user_id: TODO: describe.
+        api_prod: TODO: describe.
+    """
     if api_prod:
         clerk_secret = os.environ.get("CLERK_SECRET_KEY")
     else:
@@ -62,6 +68,12 @@ async def get_requesting_user_subscriptions(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     project_ids = user_data.operational_project_ids
 
     subscriptions = await crud_get_user_subscriptions(db=db, user_id=user_data.user_id)
@@ -97,6 +109,13 @@ async def get_notification_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     is_prod_api: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        is_prod_api: TODO: describe.
+    """
     try:
         subscriptions = await crud_get_user_notification_subscriptions(
             db=db,
@@ -128,6 +147,14 @@ async def update_notification_subscription(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        data: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     try:
         updated_subscription = await crud_update_user_notification_subscription(
             db=db,
@@ -154,6 +181,13 @@ async def get_report_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     is_prod_api: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        is_prod_api: TODO: describe.
+    """
     try:
         subscriptions = await crud_get_user_report_subscriptions(
             db=db,
@@ -185,6 +219,14 @@ async def update_report_subscription(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        data: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     try:
         updated_subscription = await crud_update_user_report_subscription(
             db=db,

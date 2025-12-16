@@ -74,7 +74,12 @@ async def delete_clerk_user(*, user_id: str):
 
 
 async def get_user_email_from_clerk(*, user_id: str, api_prod: bool) -> str | None:
-    """Get user email from Clerk."""
+    """Get user email from Clerk.
+
+    Args:
+        user_id: TODO: describe.
+        api_prod: TODO: describe.
+    """
     # Use the correct Clerk secret key based on environment
     clerk_secret_key = (
         settings.CLERK_SECRET_KEY if api_prod else settings.CLERK_SECRET_KEY_DEVELOPMENT
@@ -199,13 +204,11 @@ async def send_drone_inspection_order_email(
 
 
 async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dict:
-    """Get a user's public metadata from Clerk.
+    """todo
 
     Args:
-        user_id (str): The ID of the user to get metadata for.
-
-    Returns:
-        dict: The user's public metadata.
+        user_id: TODO: describe.
+        clerk_secret_key: TODO: describe.
     """
     try:
         with Clerk(

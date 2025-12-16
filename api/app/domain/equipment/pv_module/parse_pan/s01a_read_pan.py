@@ -6,15 +6,10 @@ def read_pan_txt(
     *,
     file_content: bytes,
 ) -> dict:
-    """
-    Read and parse a PAN file that is valid utf-8.
-    PVsyst creates these types of files >= v6.4
+    """todo
 
     Args:
-        file_path: The full path to the PAN file
-
-    Returns:
-        A dictionary containing the parsed PAN data
+        file_content: TODO: describe.
     """
     with io.StringIO(file_content.decode("utf-8-sig")) as file:
         lines = [

@@ -17,6 +17,13 @@ from core import models
 async def get_calendar_item_categories(
     *, db: AsyncSession, skip: int = 0, limit: int = 100
 ) -> list[models.CalendarItemCategory]:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        skip: TODO: describe.
+        limit: TODO: describe.
+    """
     query = select(models.CalendarItemCategory).offset(skip).limit(limit)
     result = await db.execute(query)
     return list(result.scalars().all())
@@ -25,6 +32,14 @@ async def get_calendar_item_categories(
 async def create_calendar_item(
     *, db: AsyncSession, item: CalendarItemCreate, project_id: UUID, company_id: UUID
 ) -> models.CalendarItem:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        item: TODO: describe.
+        project_id: TODO: describe.
+        company_id: TODO: describe.
+    """
     db_item = models.CalendarItem(
         title=item.title,
         description=item.description,
@@ -46,6 +61,11 @@ async def create_calendar_item(
     assignment_model = getattr(models, "CalendarItemAssignment", None)
 
     async def insert_assignment(*, values: dict) -> None:
+        """todo
+
+        Args:
+            values: TODO: describe.
+        """
         if assignment_model is not None:
             db.add(assignment_model(**values))
             return
@@ -83,6 +103,13 @@ async def create_calendar_item(
 async def update_calendar_item(
     *, db: AsyncSession, calendar_item_id: UUID, item_in: CalendarItemCreate
 ) -> models.CalendarItem | None:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        calendar_item_id: TODO: describe.
+        item_in: TODO: describe.
+    """
     query = select(models.CalendarItem).filter(
         models.CalendarItem.calendar_item_id == calendar_item_id
     )
@@ -129,6 +156,11 @@ async def update_calendar_item(
 
         # Insert new
         async def insert_assignment(*, values: dict) -> None:
+            """todo
+
+            Args:
+                values: TODO: describe.
+            """
             if assignment_model is not None:
                 db.add(assignment_model(**values))
             else:
@@ -159,6 +191,12 @@ async def update_calendar_item(
 async def delete_calendar_item(
     *, db: AsyncSession, calendar_item_id: UUID
 ) -> models.CalendarItem | None:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        calendar_item_id: TODO: describe.
+    """
     query = select(models.CalendarItem).filter(
         models.CalendarItem.calendar_item_id == calendar_item_id
     )
@@ -179,11 +217,16 @@ async def create_or_update_calendar_item_exception(
     exception_date: datetime.date,
     exception_data: CalendarItemExceptionUpdate,
 ) -> models.CalendarItemException:
-    """
-    Creates a new calendar item exception or updates an existing one for a given
-    date.
-    This is effectively an "upsert" operation based on calendar_item_id
-    and exception_date.
+    """Creates a new calendar item exception or updates an existing one for a given
+        date.
+        This is effectively an "upsert" operation based on calendar_item_id
+        and exception_date.
+
+    Args:
+        db: TODO: describe.
+        calendar_item_id: TODO: describe.
+        exception_date: TODO: describe.
+        exception_data: TODO: describe.
     """
 
     # Prepare the statement for insert or update

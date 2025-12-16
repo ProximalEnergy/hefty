@@ -47,6 +47,24 @@ async def get_projects(
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     # Get project IDs permitted for the user
+    """todo
+
+    Args:
+        project_ids: TODO: describe.
+        project_ids_excluded: TODO: describe.
+        project_type_ids: TODO: describe.
+        project_status_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_shorts: TODO: describe.
+        name_long: TODO: describe.
+        has_pv_pcs_modules: TODO: describe.
+        kpi_instance_kpi_type_ids: TODO: describe.
+        report_instance_report_type_ids: TODO: describe.
+        deep: TODO: describe.
+        db: TODO: describe.
+        db_async: TODO: describe.
+        user_data: TODO: describe.
+    """
     project_ids_permitted = user_data.operational_project_ids
 
     # Filter requested project IDs by permitted project IDs
@@ -155,6 +173,14 @@ def get_project(
     db: Session = Depends(get_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        deep: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     project = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=deep
     ).model()
@@ -172,8 +198,12 @@ async def create_project(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """
-    Create a new project.
+    """Create a new project.
+
+    Args:
+        project_in: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     db_project = await crud_create_project(
         db=db,
@@ -200,9 +230,13 @@ async def update_project(
     project_update: interfaces.ProjectUpdate,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
-    """
-    Update an existing project.
-    Only company admins and super admins can update projects.
+    """Update an existing project.
+        Only company admins and super admins can update projects.
+
+    Args:
+        project_id: TODO: describe.
+        project_update: TODO: describe.
+        db: TODO: describe.
     """
     # Fetch the existing project using AsyncSession
     result = await db.execute(

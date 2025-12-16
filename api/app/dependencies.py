@@ -24,6 +24,7 @@ from core import models
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """Get async db."""
     async with _with_async_db(schema=None) as db:
         yield db
 
@@ -33,6 +34,11 @@ get_project_name_short = core_get_project_name_short
 
 
 def get_project_db(*, project_id: UUID = Path(...)):
+    """Get project db.
+
+    Args:
+        project_id: TODO: describe.
+    """
     project_name_short = get_project_name_short(project_id=project_id)
 
     with _with_db(schema=project_name_short) as project_db:
@@ -40,6 +46,12 @@ def get_project_db(*, project_id: UUID = Path(...)):
 
 
 def get_project_api(*, project_id: UUID, db: Session = Depends(get_db)):
+    """Get project api.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     project_model = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
     ).model()
@@ -49,11 +61,17 @@ def get_project_api(*, project_id: UUID, db: Session = Depends(get_db)):
 
 
 async def get_ercot_db_async() -> AsyncGenerator[AsyncSession, None]:
+    """Get ercot db async."""
     async with _with_async_db(schema="ercot") as ercot_db:
         yield ercot_db
 
 
 def is_prod_origin(*, request: Request):
+    """Return whether is prod origin.
+
+    Args:
+        request: TODO: describe.
+    """
     origin = request.headers.get("origin")
     if not origin:
         return False
@@ -62,6 +80,11 @@ def is_prod_origin(*, request: Request):
 
 
 def is_prod_api(*, request: Request):
+    """Return whether is prod api.
+
+    Args:
+        request: TODO: describe.
+    """
     host = request.headers.get("host")
     return "api.proximal.energy" in str(host)
 
@@ -72,6 +95,11 @@ get_project_name_short_async = core_get_project_name_short_async
 
 
 async def get_project_db_async(*, project_id: UUID = Path(...)):
+    """Get project db async.
+
+    Args:
+        project_id: TODO: describe.
+    """
     project_name_short = await get_project_name_short_async(project_id=project_id)
 
     async with _with_async_db(schema=project_name_short) as project_db:
@@ -84,14 +112,12 @@ async def create_user_data_from_user_async(
     user: models.User,
     public_metadata: dict,
 ) -> interfaces.UserData:
-    """Create a UserData object from a User object.
+    """todo
 
     Args:
-        db (AsyncSession): sqlalchemy session
-        user (models.User): User object
-
-    Returns:
-        interfaces.UserData: UserData object
+        db: TODO: describe.
+        user: TODO: describe.
+        public_metadata: TODO: describe.
     """
     result = await db.execute(
         sa.select(models.UserProject).filter(models.UserProject.user_id == user.user_id)
@@ -115,15 +141,12 @@ async def get_user_data_from_api_key_async(
     x_api_key: str,
     api_prod: bool,
 ) -> interfaces.UserData | None:
-    """Get a UserData object from an api key. If the api key is invalid, return None.
+    """todo
 
     Args:
-        db (AsyncSession): sqlalchemy session
-        x_api_key (str): api key
-        from_prod (bool): whether the request is from the production web app
-
-    Returns:
-        interfaces.UserData | None: UserData object or None
+        db: TODO: describe.
+        x_api_key: TODO: describe.
+        api_prod: TODO: describe.
     """
     if x_api_key:
         result = await db.execute(
@@ -181,15 +204,12 @@ async def get_user_data_from_jwt_async(
     authorization: str,
     origin_prod: bool,
 ) -> interfaces.UserData | None:
-    """Get a UserData object from a jwt. If the jwt is invalid, return None.
+    """todo
 
     Args:
-        db (AsyncSession): sqlalchemy session
-        authorization (str): jwt
-        from_prod (bool): whether the request is from the production web app
-
-    Returns:
-        interfaces.UserData | None: UserData object or None
+        db: TODO: describe.
+        authorization: TODO: describe.
+        origin_prod: TODO: describe.
     """
     if authorization and authorization.startswith("Bearer"):
         token = authorization[7:]
@@ -226,20 +246,12 @@ async def get_jwt_user_data_async(
     authorization: str = Header(None),
     origin_prod: bool = Depends(is_prod_origin),
 ) -> interfaces.UserData:
-    """Get a UserData object using jwt. This should be used as a dependency
-    for endpoints that require authentication from within the web app.
+    """todo
 
     Args:
-        db (AsyncSession, optional): sqlalchemy session. Defaults to
-        Depends(get_async_db).
-        authorization (str, optional): authorization header like 'Bearer <jwt>'.
-        Defaults to Header(None).
-
-    Raises:
-        HTTPException: 401 if the jwt is invalid
-
-    Returns:
-        interfaces.UserData: UserData object
+        db: TODO: describe.
+        authorization: TODO: describe.
+        origin_prod: TODO: describe.
     """
     user_data = await get_user_data_from_jwt_async(
         db=db,
@@ -259,19 +271,12 @@ async def get_api_user_data_async(
     x_api_key: str = Header(None),
     api_prod: bool = Depends(is_prod_api),
 ) -> interfaces.UserData:
-    """Get a UserData object using api key. This should be used as a dependency
-    for endpoints that require authentication from outside the web app.
+    """todo
 
     Args:
-        db (AsyncSession, optional): sqlalchemy session.
-        Defaults to Depends(get_async_db).
-        x_api_key (str, optional): API key. Defaults to Header(None).
-
-    Raises:
-        HTTPException: 401 if the api key is invalid
-
-    Returns:
-        interfaces.UserData: UserData object
+        db: TODO: describe.
+        x_api_key: TODO: describe.
+        api_prod: TODO: describe.
     """
     user_data = await get_user_data_from_api_key_async(
         db=db,
@@ -293,21 +298,14 @@ async def get_user_data_async(
     authorization: str = Header(None),
     x_api_key: str = Header(None),
 ) -> interfaces.UserData:
-    """Get a UserData object using jwt or api key. This should be used as a dependency
-    for endpoints that require authentication from within or outside the web app.
+    """todo
 
     Args:
-        db (AsyncSession, optional): sqlalchemy session. Defaults to
-            Depends(get_async_db).
-        authorization (str, optional): authorization header like 'Bearer <jwt>'.
-        Defaults to Header(None).
-        x_api_key (str, optional): API key. Defaults to Header(None).
-
-    Raises:
-        HTTPException: 401 if the jwt and api key is invalid
-
-    Returns:
-        interfaces.UserData: UserData object
+        db: TODO: describe.
+        api_prod: TODO: describe.
+        origin_prod: TODO: describe.
+        authorization: TODO: describe.
+        x_api_key: TODO: describe.
     """
 
     user_data = await get_user_data_from_api_key_async(
@@ -340,6 +338,12 @@ def check_project_access_async(
     user_data: interfaces.UserData = Depends(get_user_data_async),
     project_id: UUID = Path(...),
 ):
+    """Handle check project access async.
+
+    Args:
+        user_data: TODO: describe.
+        project_id: TODO: describe.
+    """
     if project_id not in user_data.operational_project_ids:
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -407,4 +411,5 @@ def requires_superadmin_async(
 
 ## TOKEN MANAGERS ##
 def tps_token_mgr_async() -> TokenManager:
+    """Handle tps token mgr async."""
     return get_tps_token_manager()

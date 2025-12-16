@@ -19,6 +19,11 @@ def adapt_cec_pv_module_to_proximal(
     *,
     cec_pv_module: interfaces.CECPVModule,
 ) -> interfaces.PVModule | dict:
+    """todo
+
+    Args:
+        cec_pv_module: TODO: describe.
+    """
     adapted_cec_pv_module = map_columns_to_proximal_format(cec_pv_module=cec_pv_module)
     adapted_cec_pv_module = assign_bandgap_parameters(
         cec_pv_module=adapted_cec_pv_module,

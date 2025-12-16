@@ -27,6 +27,20 @@ def get_project_tags(
     include_ghost_tags: Annotated[bool, Query()] = False,
     project_db: Session = Depends(get_project_db),
 ):
+    """todo
+
+    Args:
+        tag_ids: TODO: describe.
+        in_tsdb: TODO: describe.
+        device_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
+        device_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        deep: TODO: describe.
+        include_ghost_tags: TODO: describe.
+        project_db: TODO: describe.
+    """
     return core.crud.project.tags.get_project_tags(
         db=project_db,
         tag_ids=tag_ids,
@@ -49,6 +63,14 @@ async def get_tags_by_regex(
     project_db: AsyncSession = Depends(get_project_db_async),
 ):
     # Validate regex pattern before passing to database
+    """todo
+
+    Args:
+        regex: TODO: describe.
+        limit: TODO: describe.
+        deep: TODO: describe.
+        project_db: TODO: describe.
+    """
     try:
         re.compile(regex)
     except re.error as e:
@@ -71,6 +93,13 @@ def get_project_device(
     deep: custom_types.AnnotatedDeep = False,
     project_db: Session = Depends(get_project_db),
 ):
+    """todo
+
+    Args:
+        tag_id: TODO: describe.
+        deep: TODO: describe.
+        project_db: TODO: describe.
+    """
     tag = core.crud.project.tags.get_project_tag(
         db=project_db, tag_id=tag_id, deep=deep
     ).model()

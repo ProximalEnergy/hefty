@@ -19,7 +19,7 @@ router = APIRouter(prefix="/projects/{project_id}/reports", tags=["project_repor
 
 @router.get("", response_model=interfaces.Report)
 def get_project_reports():
-    pass
+    """todo"""
 
 
 @router.get("/pcs-apparent-vs-voltage")
@@ -31,6 +31,15 @@ async def get_pcs_apparent_vs_voltage(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     tags = core.crud.project.tags.get_project_tags(
         project_db,
         sensor_type_ids=[

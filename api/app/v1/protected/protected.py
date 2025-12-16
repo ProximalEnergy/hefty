@@ -32,6 +32,8 @@ lambda_arn = os.getenv("LAMBDA_ARN_KPI_PIPELINE")
 
 
 class KPIBackfillEvent(BaseModel):
+    """todo"""
+
     start: date = Field(default_factory=date.today)
     end: date = Field(default_factory=date.today)
     backfill_days: int = 1
@@ -48,6 +50,11 @@ def trigger_kpi_backfill_lambda(
     *,
     event: KPIBackfillEvent,
 ):
+    """todo
+
+    Args:
+        event: TODO: describe.
+    """
     lambda_client = boto3.client("lambda", region_name="us-east-2")
     payload = json.dumps(event.model_dump(mode="json")).encode("utf-8")
 

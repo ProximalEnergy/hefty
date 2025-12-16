@@ -13,6 +13,7 @@ _PARAMETER_STORE_SENTINEL = "_PARAMETER_STORE_LOADED"
 
 
 def _populate_env_from_parameter_store() -> None:
+    """Handle  populate env from parameter store."""
     if os.environ.get(_PARAMETER_STORE_SENTINEL) == "1":
         return
 

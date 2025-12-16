@@ -4,14 +4,22 @@ import { useState } from 'react'
 import { GaugeConfig as GaugeConfigType } from './CustomDash'
 
 const GaugeConfig = ({
+  mode,
   stack,
   onAdd,
+  initialConfig,
 }: {
+  mode: 'create' | 'edit'
   stack: { close: (drawerId: 'gauge-config') => void }
   onAdd: (config: GaugeConfigType) => void
+  initialConfig?: GaugeConfigType
 }) => {
-  const [measuredVariable, setMeasuredVariable] = useState<string | null>(null)
-  const [maximumValue, setMaximumValue] = useState<string | null>(null)
+  const [measuredVariable, setMeasuredVariable] = useState<string | null>(
+    initialConfig?.measuredVariable ?? null,
+  )
+  const [maximumValue, setMaximumValue] = useState<string | null>(
+    initialConfig?.maximumValue ?? null,
+  )
 
   const addGauge = () => {
     if (!measuredVariable || !maximumValue) {
@@ -29,7 +37,8 @@ const GaugeConfig = ({
   const allowCreate = !!measuredVariable && !!maximumValue
   return (
     <Stack>
-      <Title>Add Gauge</Title>
+      {mode === 'create' && <Title>Add Gauge</Title>}
+      {mode === 'edit' && <Title>Edit Gauge</Title>}
       <Select
         data={[{ value: 'meter_actual_power', label: 'Meter Energy' }]}
         label="Measured Variable"
@@ -57,7 +66,7 @@ const GaugeConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addGauge} disabled={!allowCreate}>
-            Add Gauge Component
+            {mode === 'edit' ? 'Update Gauge Component' : 'Add Gauge Component'}
           </Button>
         </Tooltip>
       </Group>

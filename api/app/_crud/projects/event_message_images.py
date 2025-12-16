@@ -13,7 +13,13 @@ async def get_event_message_images(
     event_message_id: int | None = None,
     event_id: int | None = None,
 ) -> list[models.EventMessageImage]:
-    """Get event message images, optionally filtered."""
+    """Get event message images, optionally filtered.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
+        event_id: TODO: describe.
+    """
     stmt = select(models.EventMessageImage)
 
     if event_message_id is not None:
@@ -32,7 +38,12 @@ async def get_event_message_image_by_id(
     db: AsyncSession,
     event_message_image_id: UUID,
 ) -> models.EventMessageImage | None:
-    """Get a single event message image by ID."""
+    """Get a single event message image by ID.
+
+    Args:
+        db: TODO: describe.
+        event_message_image_id: TODO: describe.
+    """
     stmt = select(models.EventMessageImage).where(
         models.EventMessageImage.event_message_image_id == event_message_image_id
     )
@@ -50,7 +61,17 @@ async def create_event_message_image(
     content_type: str,
     file_size: int,
 ) -> models.EventMessageImage:
-    """Create a new event message image."""
+    """Create a new event message image.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
+        event_id: TODO: describe.
+        s3_key: TODO: describe.
+        filename: TODO: describe.
+        content_type: TODO: describe.
+        file_size: TODO: describe.
+    """
     now = datetime.datetime.now(datetime.UTC)
     image = models.EventMessageImage(
         event_message_id=event_message_id,
@@ -72,7 +93,12 @@ async def get_image_s3_keys_for_message(
     db: AsyncSession,
     event_message_id: int,
 ) -> list[str]:
-    """Get all S3 keys for images attached to a message."""
+    """Get all S3 keys for images attached to a message.
+
+    Args:
+        db: TODO: describe.
+        event_message_id: TODO: describe.
+    """
     images = await get_event_message_images(db=db, event_message_id=event_message_id)
     return [image.s3_key for image in images]
 
@@ -82,7 +108,12 @@ async def delete_event_message_image(
     db: AsyncSession,
     event_message_image_id: UUID,
 ) -> bool:
-    """Delete an event message image from the database and S3."""
+    """Delete an event message image from the database and S3.
+
+    Args:
+        db: TODO: describe.
+        event_message_image_id: TODO: describe.
+    """
     image = await get_event_message_image_by_id(
         db=db, event_message_image_id=event_message_image_id
     )

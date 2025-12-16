@@ -16,6 +16,16 @@ def get_project_report_instances(
     deep: bool = False,
     return_query: bool = False,
 ) -> ModelList[models.ReportInstance]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+        is_visible: TODO: describe.
+        report_type_ids: TODO: describe.
+        deep: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.ReportInstance).filter(
         models.ReportInstance.project_id == project_id,
     )
@@ -32,6 +42,11 @@ def get_project_report_instances(
 
 
 def _get_project_report_instances_options(*, deep: bool) -> Any:
+    """TODO: add description.
+
+    Args:
+        deep: TODO: describe.
+    """
     if deep:
         options = selectinload(models.ReportInstance.report_type_id)
     else:

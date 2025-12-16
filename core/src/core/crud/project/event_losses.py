@@ -24,6 +24,16 @@ def get_event_losses(
     event_ids: list | None = None,
     return_query: bool = False,
 ) -> ModelList[models.EventLoss]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        time_equals: TODO: describe.
+        time_gte: TODO: describe.
+        time_lt: TODO: describe.
+        event_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.EventLoss)
     if time_equals is not None:
         query = query.filter(models.EventLoss.time == time_equals)
@@ -97,6 +107,13 @@ def get_event_losses_summary_in_sql(
     event_ids: list[int],
 ) -> Sequence[Row[Any]]:
     # Early return for empty list to avoid IN ()
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_name: TODO: describe.
+        event_ids: TODO: describe.
+    """
     if not event_ids:
         return []
 
@@ -187,10 +204,13 @@ def get_total_daily_type2_loss_open_events(
     *,
     project_name: str,
 ) -> float:
-    """
-    Return the total daily loss (type 2 only) across all OPEN events (time_end IS NULL).
+    """Return the total daily loss (type 2 only) across all OPEN events (time_end IS NULL).
 
-    Now uses the loss_daily_financial column directly from the events table.
+        Now uses the loss_daily_financial column directly from the events table.
+
+    Args:
+        db: TODO: describe.
+        project_name: TODO: describe.
     """
     return float(
         db.query(func.sum(models.Event.loss_daily_financial))

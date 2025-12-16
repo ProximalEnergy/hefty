@@ -49,13 +49,16 @@ MISSING_QUERY_ERROR = MissingQueryError(
 def _normalize_df_dtypes(
     df: pd.DataFrame, *, strings_as_object: bool = True
 ) -> pd.DataFrame:
-    """
-    Convert Arrow-backed dtypes (e.g., double[pyarrow], string[pyarrow]) to
-    pandas/numpy dtypes for compatibility with legacy code.
+    """Convert Arrow-backed dtypes (e.g., double[pyarrow], string[pyarrow]) to
+        pandas/numpy dtypes for compatibility with legacy code.
 
-    - First: Arrow -> pandas nullable (Int64, Float64, boolean, string)
-    - Then: if no NA present, nullable ints -> int64, nullable bools -> bool
-    - Optionally: strings -> object (many libs still expect object dtype)
+        - First: Arrow -> pandas nullable (Int64, Float64, boolean, string)
+        - Then: if no NA present, nullable ints -> int64, nullable bools -> bool
+        - Optionally: strings -> object (many libs still expect object dtype)
+
+    Args:
+        df: TODO: describe.
+        strings_as_object: TODO: describe.
     """
     # Fast path: only do work if any Arrow dtype present
     if any(getattr(dt, "pyarrow_dtype", None) is not None for dt in df.dtypes):
@@ -81,6 +84,11 @@ def _normalize_df_dtypes(
 
 
 def _sql_string[T](*, query: Query[T]) -> str:
+    """TODO: add description.
+
+    Args:
+        query: TODO: describe.
+    """
     if not hasattr(query, "statement"):
         raise ValueError("The query does not support SQL compilation.")
 
@@ -159,6 +167,15 @@ class ModelList[T]:
         model_cls: type[T] | None = None,
         return_query: bool = False,
     ):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            query: TODO: describe.
+            result: TODO: describe.
+            model_cls: TODO: describe.
+            return_query: TODO: describe.
+        """
         if query is not None:
             self.query: Query[T] | TextClause | Select | None = query
             self.items: list[T] | None = (
@@ -182,25 +199,45 @@ class ModelList[T]:
             )
 
     def __iter__(self) -> Iterator[T]:
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
         return iter(self.items)
 
     def __getitem__(self, index: int) -> T:  # skip-star-syntax
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            index: TODO: describe.
+        """
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
         return self.items[index]
 
     def __len__(self) -> int:
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
         return len(self.items)
 
     def query_items(self) -> None:
-        """Execute query and store the results in `.items`."""
+        """Execute query and store the results in `.items`.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.query is None:
             raise MISSING_QUERY_ERROR
         elif isinstance(self.query, Query):
@@ -219,7 +256,11 @@ class ModelList[T]:
             raise TypeError("query must be an instance of Query | TextClause | Select")
 
     def sql_string(self) -> str:
-        """Return the raw SQL string of the underlying SQLAlchemy query."""
+        """Return the raw SQL string of the underlying SQLAlchemy query.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.query is None:
             raise MISSING_QUERY_ERROR
         elif isinstance(self.query, Query):
@@ -236,7 +277,11 @@ class ModelList[T]:
             raise TypeError("query must be an instance of Query | TextClause | Select")
 
     def models(self) -> list[T]:
-        """Return a list of SQLAlchemy model instances."""
+        """Return a list of SQLAlchemy model instances.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
@@ -251,10 +296,16 @@ class ModelList[T]:
     ) -> pd.DataFrame:
         """Convert the ModelList into a Pandas DataFrame quickly.
 
-        Fast paths:
-        - If a SQLAlchemy Query/TextClause is present, always read directly from SQL.
-        (Skips Python object materialization; much faster for large results.)
-        - If only in-memory items exist, use a cached attrgetter + tuples + from_records.
+                Fast paths:
+                - If a SQLAlchemy Query/TextClause is present, always read directly from SQL.
+                (Skips Python object materialization; much faster for large results.)
+                - If only in-memory items exist, use a cached attrgetter + tuples + from_records.
+
+        Args:
+            self: TODO: describe.
+            index: TODO: describe.
+            as_datetime: TODO: describe.
+            tz: TODO: describe.
         """
         # ---- 1) Prefer DB -> pandas whenever we still have a query ----
         if isinstance(self.query, TextClause):
@@ -334,7 +385,11 @@ class ModelList[T]:
         return _normalize_df_dtypes(df)
 
     async def polars_dataframe_async(self) -> pl.DataFrame:
-        """Run the query using Polars instead of SQLAlchemy and return a Polars DataFrame."""
+        """Run the query using Polars instead of SQLAlchemy and return a Polars DataFrame.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.items is not None:
             warnings.warn(
                 """
@@ -381,9 +436,12 @@ class ModelList[T]:
 
     @classmethod
     def from_items(cls, items: list[T]) -> "ModelList[T]":  # skip-star-syntax
-        """
-        Construct a ModelList directly from an in-memory list of model instances.
-        Avoids needing query/result/model_cls.
+        """Construct a ModelList directly from an in-memory list of model instances.
+                Avoids needing query/result/model_cls.
+
+        Args:
+            cls: TODO: describe.
+            items: TODO: describe.
         """
         inst = cls.__new__(cls)  # bypass __init__
         inst.query = None
@@ -391,26 +449,29 @@ class ModelList[T]:
         return inst
 
     def find(self, /, **criteria: Any) -> "ModelList[T]":
-        """
-        Return a new ModelList filtered by the given criteria.
+        """Return a new ModelList filtered by the given criteria.
 
-        Supported operators:
-        - field=val        -> equality
-        - field__ne=val    -> !=
-        - field__gt=val    -> >
-        - field__lt=val    -> <
-        - field__ge=val    -> >=
-        - field__le=val    -> <=
-        - field__in=[...]  -> IN
+                Supported operators:
+                - field=val        -> equality
+                - field__ne=val    -> !=
+                - field__gt=val    -> >
+                - field__lt=val    -> <
+                - field__ge=val    -> >=
+                - field__le=val    -> <=
+                - field__in=[...]  -> IN
 
-        Also supported (optional sugar):
-        - field=[...]      -> IN (if value is a non-string iterable)
+                Also supported (optional sugar):
+                - field=[...]      -> IN (if value is a non-string iterable)
 
-        Examples:
-            tags.find(tag_id=123)
-            tags.find(tag_id__in=[123, 456])
-            devices.find(device_type_id__ne=2)
-            devices.find(created_at__gt="2025-01-01")
+                Examples:
+                    tags.find(tag_id=123)
+                    tags.find(tag_id__in=[123, 456])
+                    devices.find(device_type_id__ne=2)
+                    devices.find(created_at__gt="2025-01-01")
+
+        Args:
+            self: TODO: describe.
+            **criteria: TODO: describe.
         """
         # --- QA ---
         if isinstance(self.query, TextClause):
@@ -424,6 +485,11 @@ class ModelList[T]:
 
         # --- Internal Functions ---
         def _is_iterable_but_not_string(x: object) -> bool:  # skip-star-syntax
+            """TODO: add description.
+
+            Args:
+                x: TODO: describe.
+            """
             return isinstance(x, Iterable) and not isinstance(
                 x, (str, bytes, bytearray)
             )
@@ -431,7 +497,11 @@ class ModelList[T]:
         def _normalize_criteria(  # skip-star-syntax
             raw: dict[str, Any],
         ) -> list[tuple[str, str, Any]]:
-            """Normalize criteria into (field, op, value)."""
+            """Normalize criteria into (field, op, value).
+
+            Args:
+                raw: TODO: describe.
+            """
             norm: list[tuple[str, str, Any]] = []
             for key, val in raw.items():
                 if "__" in key:
@@ -517,6 +587,11 @@ class ModelList[T]:
                     in_sets[i] = set(value)
 
             def _match(obj: Any) -> bool:  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    obj: TODO: describe.
+                """
                 for i, (field, op, value) in enumerate(normalized):
                     attr = getattr(obj, field)
                     if op == "eq":
@@ -587,19 +662,38 @@ class ModelItem[T]:
     """
 
     def __init__(self, *, query: Query[T], return_query: bool = False):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            query: TODO: describe.
+            return_query: TODO: describe.
+        """
         self.query: Query[T] = query
         self.item: T | None = None if return_query else query.first()
 
     def query_item(self) -> None:
-        """Execute query and store the result in `.item`."""
+        """Execute query and store the result in `.item`.
+
+        Args:
+            self: TODO: describe.
+        """
         self.item = self.query.first()
 
     def sql_string(self) -> str:
-        """Return the raw SQL string of the underlying SQLAlchemy query."""
+        """Return the raw SQL string of the underlying SQLAlchemy query.
+
+        Args:
+            self: TODO: describe.
+        """
         return _sql_string(query=self.query)
 
     def dictionary(self) -> dict[str, Any]:
-        """Return the model as a dictionary."""
+        """Return the model as a dictionary.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
@@ -611,14 +705,22 @@ class ModelItem[T]:
         return {col.key: getattr(self.item, col.key) for col in mapper.column_attrs}
 
     def model(self) -> T:
-        """Return a SQLAlchemy model instance."""
+        """Return a SQLAlchemy model instance.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
         return self.item
 
     def pandas_series(self) -> pd.Series:
-        """Return a Pandas Series of the model."""
+        """Return a Pandas Series of the model.
+
+        Args:
+            self: TODO: describe.
+        """
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
@@ -638,7 +740,14 @@ class ModelItem[T]:
         as_datetime: bool = False,
         tz: str | None = None,
     ) -> pd.DataFrame:
-        """Convert the model to a Pandas DataFrame."""
+        """Convert the model to a Pandas DataFrame.
+
+        Args:
+            self: TODO: describe.
+            index: TODO: describe.
+            as_datetime: TODO: describe.
+            tz: TODO: describe.
+        """
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
@@ -667,14 +776,16 @@ class ModelItem[T]:
         return df
 
     async def polars_dataframe(self) -> pl.DataFrame:
-        """
-        Execute the stored query using Polars instead of SQLAlchemy.
+        """Execute the stored query using Polars instead of SQLAlchemy.
 
-        Returns:
-            A Polars DataFrame representing the result of the query.
+                Returns:
+                    A Polars DataFrame representing the result of the query.
 
-        Warns:
-            RuntimeWarning if the item is already loaded.
+                Warns:
+                    RuntimeWarning if the item is already loaded.
+
+        Args:
+            self: TODO: describe.
         """
         if self.item is not None:
             warnings.warn(

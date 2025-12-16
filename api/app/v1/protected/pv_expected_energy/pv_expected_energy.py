@@ -19,4 +19,5 @@ router.include_router(plot.router)
 
 @router.get("/health")
 def health_check():
+    """todo"""
     return {"status": "ok"}

@@ -113,6 +113,7 @@ depends = [
   "core:vulture",
   "core:deptry",
   "core:enum",
+  "core:docstring_args",
 ]
 
 [tasks."core:types"]
@@ -154,6 +155,11 @@ run = "pytest"
 description = "Validate enums in core"
 dir = "core"
 run = "uv run _scripts/validate_enums.py"
+
+[tasks."core:docstring_args"]
+description = "Check docstring Args sections in core"
+dir = "."
+run = "uv run _scripts/check_docstring_args.py core"
 
 [tasks."core:release"]
 description = "Full release workflow for core (check, freeze, bump, commit, push)"
@@ -219,6 +225,14 @@ python3 _scripts/update_releases.py "${usage_description}"
 cd .. && uv run --dev ruff check core/_alembic_migrations/versions && uv run --dev ruff format core/_alembic_migrations/versions
 '''
 
+[tasks."core:update"]
+description = "Update core release notes without generating a migration"
+usage = '''
+arg "<message>" help="Release note message"
+'''
+dir = "core"
+run = '''uv run _scripts/update_releases.py "${usage_message}"'''
+
 # =============================================================================
 # API TASKS (runs in ./api directory)
 # =============================================================================
@@ -244,6 +258,7 @@ depends = [
   "api:hurl",
   "api:deptry",
   "api:vulture",
+  "api:docstring_args",
 ]
 
 [tasks."api:ruff"]
@@ -288,6 +303,11 @@ run = """
 hurl --location --variable baseURL=http://127.0.0.1:8000 \
   --variables-file .env --test ./_smoke_testing/hurl/get/*
 """
+
+[tasks."api:docstring_args"]
+description = "Check docstring Args sections in api"
+dir = "."
+run = "uv run _scripts/check_docstring_args.py api"
 
 [tasks."api:freeze"]
 description = "Export requirements.txt for AWS deployment"

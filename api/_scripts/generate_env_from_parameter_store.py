@@ -23,6 +23,7 @@ PERSONAL_ENV_VARS = [
 
 
 def generate_env_file():
+    """Handle generate env file."""
     try:
         parameters = get_parameters_by_path(
             path=PARAMETER_STORE_PATH,

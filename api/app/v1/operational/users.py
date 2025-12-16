@@ -32,6 +32,15 @@ async def get_users(
 ):
     # If user_ids is provided, fetch those specific users
     # Otherwise, fetch all users from the same company
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user_data: TODO: describe.
+        user_ids: TODO: describe.
+        include_image_urls: TODO: describe.
+        api_prod: TODO: describe.
+    """
     if user_ids:
         # Fetch requested users - security is handled at the message/project level:
         # user_ids come from event messages in projects the user has access to,

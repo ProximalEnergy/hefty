@@ -24,6 +24,8 @@ tbl = str.maketrans("", "", delete_chars)
 
 
 class StatusTimeSeries(BaseModel):
+    """todo"""
+
     x: list[datetime.datetime]
     y: list[str | None]
     name: str
@@ -32,6 +34,11 @@ class StatusTimeSeries(BaseModel):
 
 
 def strtobool(val: str) -> int:  # skip-star-syntax
+    """todo
+
+    Args:
+        val: TODO: describe.
+    """
     val = val.lower()
     if val in ("y", "yes", "t", "true", "on", "1"):
         return 1
@@ -49,6 +56,13 @@ def interpret(
     status_tags: Annotated[list[int], Query()] = [],
     status_values: Annotated[list[Any], Query()] = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        status_tags: TODO: describe.
+        status_values: TODO: describe.
+    """
     try:
         return core.crud.project.statuses.get_status_interpret(
             db=db,
@@ -72,11 +86,20 @@ def get_status_time_series(
     tag_ids: list[int] | None = Query(None),
     sensor_types: list[SensorType] | None = None,
 ):
-    """
-    sensor_types: list[SensorType] | None = None
-    Only queries statuses for the provided sensor types.
-    However, the provided list must be a subset of the supported sensor types.
-    If not provided, all supported sensor types will be used.
+    """sensor_types: list[SensorType] | None = None
+        Only queries statuses for the provided sensor types.
+        However, the provided list must be a subset of the supported sensor types.
+        If not provided, all supported sensor types will be used.
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_ids: TODO: describe.
+        tag_ids: TODO: describe.
+        sensor_types: TODO: describe.
     """
     supported_sensor_types = [
         SensorType.PV_PCS_STATUS,
@@ -190,6 +213,11 @@ def get_status_time_series(
     }
 
     def map_status(col):  # skip-star-syntax
+        """todo
+
+        Args:
+            col: TODO: describe.
+        """
         tag = col.name
         return col.map(
             lambda x: lookup.get((tag, x), np.nan) if pd.notnull(x) else np.nan
@@ -250,6 +278,18 @@ async def get_status_time_series_python(
     tag_ids: list[int] | None = Query(None),
     sensor_types: list[SensorType] | None = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_ids: TODO: describe.
+        tag_ids: TODO: describe.
+        sensor_types: TODO: describe.
+    """
     try:
         data = await core.crud.project.statuses.get_status_timeseries_python(
             db=db,

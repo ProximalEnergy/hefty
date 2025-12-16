@@ -26,6 +26,12 @@ class LTree(UserDefinedType):
 
     def get_col_spec(self, **kw) -> str:  # noqa
         # The exact column type specification used in CREATE TABLE
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            **kw: TODO: describe.
+        """
         return "LTREE"
 
 
@@ -504,6 +510,11 @@ class DeviceType(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         return self.name_long
 
 
@@ -530,6 +541,11 @@ class DeviceModel(Base):
     )
 
     def __str__(self):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         return f"{self.brand} {self.model}"
 
 
@@ -852,6 +868,11 @@ class KPIType(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         return self.name_long
 
 
@@ -1053,6 +1074,11 @@ class Project(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         return self.name_long
 
 
@@ -1420,6 +1446,11 @@ class SensorType(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+        """
         return self.name_long
 
 

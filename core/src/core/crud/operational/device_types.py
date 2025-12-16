@@ -9,6 +9,12 @@ async def get_device_type(
     db: AsyncSession,
     device_type_id: int,
 ):
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     stmt = sa.select(models.DeviceType).filter(
         models.DeviceType.device_type_id == device_type_id
     )

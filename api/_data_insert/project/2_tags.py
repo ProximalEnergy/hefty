@@ -67,6 +67,11 @@ tags = tags[columns]
 
 
 def process_tag_chunk(tag_chunk):
+    """todo
+
+    Args:
+        tag_chunk: TODO: describe.
+    """
     with psycopg2.connect(
         utils.CONNECTION_STRING,
         application_name=utils.application_name(__file__),

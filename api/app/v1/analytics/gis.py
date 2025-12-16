@@ -29,6 +29,16 @@ def get_pcs(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     devices_block = core.crud.project.devices.get_project_devices(
         project_db,
         device_type_ids=[DeviceType.BLOCK],
@@ -236,6 +246,14 @@ def get_tracker(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Get PV Block devices
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_type_ids=[DeviceType.BLOCK],
@@ -304,6 +322,15 @@ def get_tracker_by_block(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Get tracker rows which are descendents of the block
+    """todo
+
+    Args:
+        block_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_type_ids=[DeviceType.TRACKER_ROW],
@@ -376,6 +403,11 @@ def get_bess_enclosure(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     # BESS Enclosure devices
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+    """
     devices = core.crud.project.devices.get_project_devices(
         project_db, device_type_ids=[DeviceType.BESS_ENCLOSURE]
     ).models()
@@ -410,11 +442,20 @@ def get_devices_in_viewport(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-    Optionally filters by device_type_ids.
-    If power_device_type_id is provided, fetches and includes latest actual/expected power
-    for devices matching that type within the viewport.
+    """Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
+        Optionally filters by device_type_ids.
+        If power_device_type_id is provided, fetches and includes latest actual/expected power
+        for devices matching that type within the viewport.
+
+    Args:
+        north: TODO: describe.
+        east: TODO: describe.
+        south: TODO: describe.
+        west: TODO: describe.
+        device_type_ids: TODO: describe.
+        power_device_type_id: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     # Base query for devices using ORM
     query = project_db.query(models.Device)
@@ -599,12 +640,18 @@ def utility_expected(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    This function facilitates backend data required for GIS viewport.
-    If device type is Tracker Row (29), fetches latest tracker angle.
-    Otherwise, fetches actual/expected power for supported power device types.
-    Accepts one or more device IDs (must be of the same supported type).
-    If start/end are None for power types, fetches data for the latest hour.
+    """This function facilitates backend data required for GIS viewport.
+        If device type is Tracker Row (29), fetches latest tracker angle.
+        Otherwise, fetches actual/expected power for supported power device types.
+        Accepts one or more device IDs (must be of the same supported type).
+        If start/end are None for power types, fetches data for the latest hour.
+
+    Args:
+        device_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     # Handle optional start/end dates (only relevant for power types now)
     if start is None or end is None:
@@ -1067,9 +1114,13 @@ def get_met_station_latest_values(
     project_db: Session,
     project: models.Project,
 ) -> dict:
-    """
-    Fetches the latest sensor values (POA, GHI, Ambient Temp, Wind Speed)
-    for the given Met Station device IDs.
+    """Fetches the latest sensor values (POA, GHI, Ambient Temp, Wind Speed)
+        for the given Met Station device IDs.
+
+    Args:
+        device_ids: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     if not device_ids:
         return {}

@@ -19,6 +19,15 @@ def backfill_in_background(
     # --- MAIN ---
 
     # Create Lambda client
+    """todo
+
+    Args:
+        energy_model_version: TODO: describe.
+        project_name_short: TODO: describe.
+        simulation_start: TODO: describe.
+        simulation_end: TODO: describe.
+        **kwargs: TODO: describe.
+    """
     lambda_client = boto3.client("lambda", region_name="us-east-2")
 
     if energy_model_version == "live":

@@ -17,12 +17,22 @@ from pathlib import Path
 
 class ReleaseUpdater:
     def __init__(self, project_root: str = "."):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            project_root: TODO: describe.
+        """
         self.project_root = Path(project_root)
         self.releases_dir = self.project_root / "_docs" / "releases"
         self.pyproject_path = self.project_root / "pyproject.toml"
 
     def get_current_version(self) -> str:
-        """Get the current version from pyproject.toml."""
+        """Get the current version from pyproject.toml.
+
+        Args:
+            self: TODO: describe.
+        """
         if not self.pyproject_path.exists():
             raise FileNotFoundError(
                 f"pyproject.toml not found at {self.pyproject_path}"
@@ -34,13 +44,24 @@ class ReleaseUpdater:
         return pyproject_data["project"]["version"]
 
     def get_release_file_path(self, version: str) -> Path:
-        """Determine the appropriate release file for a given version."""
+        """Determine the appropriate release file for a given version.
+
+        Args:
+            self: TODO: describe.
+            version: TODO: describe.
+        """
         # Extract major and minor version (e.g., "0.2.23" -> "0.2")
         major_minor = ".".join(version.split(".")[:2])
         return self.releases_dir / f"v{major_minor}.x.md"
 
     def version_exists_in_file(self, file_path: Path, version: str) -> bool:
-        """Check if a version already exists in the release file."""
+        """Check if a version already exists in the release file.
+
+        Args:
+            self: TODO: describe.
+            file_path: TODO: describe.
+            version: TODO: describe.
+        """
         if not file_path.exists():
             return False
 
@@ -51,7 +72,13 @@ class ReleaseUpdater:
         return bool(re.search(version_pattern, content, re.MULTILINE))
 
     def add_release_entry(self, version: str, message: str) -> None:
-        """Add a new release entry to the appropriate file."""
+        """Add a new release entry to the appropriate file.
+
+        Args:
+            self: TODO: describe.
+            version: TODO: describe.
+            message: TODO: describe.
+        """
         release_file = self.get_release_file_path(version)
 
         # Check if version already exists
@@ -73,31 +100,27 @@ class ReleaseUpdater:
             # Find the right place to insert the new version
             # We want to insert in descending version order
             lines = existing_content.split("\n")
-            insert_index = 0
+            insert_index = None
 
             # Find where to insert based on version comparison
             for i, line in enumerate(lines):
                 if line.startswith("# v"):
                     existing_version = line[3:]  # Remove "# v"
                     if self._compare_versions(version, existing_version) > 0:
+                        # New version is greater, insert before this line
                         insert_index = i
                         break
-                    insert_index = i + 1
 
             # Insert the new entry
-            if insert_index == 0:
-                # Insert at the beginning
+            if insert_index is None or insert_index == 0:
+                # Insert at the beginning (new version is greater than all)
                 new_content = new_entry + existing_content
             else:
-                # Find the end of the previous entry
-                while insert_index < len(lines) and lines[insert_index].strip() != "":
-                    insert_index += 1
-
-                # Insert after the previous entry
-                lines.insert(insert_index, "")
-                lines.insert(insert_index + 1, f"# v{version}")
-                lines.insert(insert_index + 2, "")
-                lines.insert(insert_index + 3, f"- {message}")
+                # Insert at the found position
+                lines.insert(insert_index, f"# v{version}")
+                lines.insert(insert_index + 1, "")
+                lines.insert(insert_index + 2, f"- {message}")
+                lines.insert(insert_index + 3, "")
 
                 new_content = "\n".join(lines)
         else:
@@ -111,12 +134,21 @@ class ReleaseUpdater:
         print(f"✓ Added v{version} to {release_file.name}: {message}")  # noqa: T201
 
     def _compare_versions(self, v1: str, v2: str) -> int:
-        """
-        Compare two version strings.
-        Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+        """Compare two version strings.
+                Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+
+        Args:
+            self: TODO: describe.
+            v1: TODO: describe.
+            v2: TODO: describe.
         """
 
         def version_tuple(v):
+            """TODO: add description.
+
+            Args:
+                v: TODO: describe.
+            """
             return tuple(map(int, v.split(".")))
 
         tuple1 = version_tuple(v1)
@@ -130,7 +162,12 @@ class ReleaseUpdater:
             return 0
 
     def run(self, message: str) -> None:
-        """Main method to update releases with the given message."""
+        """Main method to update releases with the given message.
+
+        Args:
+            self: TODO: describe.
+            message: TODO: describe.
+        """
         try:
             current_version = self.get_current_version()
             self.add_release_entry(current_version, message)

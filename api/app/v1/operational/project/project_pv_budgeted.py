@@ -18,6 +18,12 @@ def list_pv_budgeted_series(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project_id: uuid.UUID,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_id: TODO: describe.
+    """
     series = crud.list_series(project_db=project_db, project_id=project_id)
 
     result = [
@@ -45,6 +51,14 @@ def create_pv_budgeted_series(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        payload: TODO: describe.
+        project_db: TODO: describe.
+        project_id: TODO: describe.
+        user_data: TODO: describe.
+    """
     series = crud.create_series(
         project_db=project_db,
         series_in=payload,
@@ -70,6 +84,14 @@ def get_pv_budgeted_data(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        pv_budgeted_series_id: TODO: describe.
+        project_db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     if (
         crud.get_series(
             project_db=project_db, pv_budgeted_series_id=pv_budgeted_series_id
@@ -105,6 +127,13 @@ def delete_pv_budgeted_series(
     ],
 ):
     # Check if series exists
+    """todo
+
+    Args:
+        pv_budgeted_series_id: TODO: describe.
+        project_db: TODO: describe.
+        user_data: TODO: describe.
+    """
     if (
         crud.get_series(
             project_db=project_db, pv_budgeted_series_id=pv_budgeted_series_id
@@ -134,6 +163,14 @@ def bulk_upsert_pv_budgeted_data(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
+    """todo
+
+    Args:
+        payload: TODO: describe.
+        project_db: TODO: describe.
+        project_id: TODO: describe.
+        user_data: TODO: describe.
+    """
     series_id = payload.pv_budgeted_series_id
     if series_id is None:
         if payload.series is None:

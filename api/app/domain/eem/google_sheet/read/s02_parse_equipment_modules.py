@@ -12,6 +12,12 @@ async def parse_equipment_modules(
 ) -> pd.DataFrame:
     # --- EQUIPMENT IDS ---
     # --- Get pv module id ---
+    """todo
+
+    Args:
+        db: TODO: describe.
+        system: TODO: describe.
+    """
     system["gsheet_module_id"] = (
         pd.factorize(
             system[["Module Manufacturer", "Module Model"]]

@@ -21,6 +21,8 @@ router = APIRouter(prefix="/plot")
 
 
 class UtilityExpectedResponse(BaseModel):
+    """todo"""
+
     parent_devices: list[interfaces.Device]
     times: list[datetime.datetime]
     actual: dict[str, list[float]]
@@ -44,11 +46,19 @@ async def utility_expected(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.
-    Data returned includes parent device tree up to root, expected power data, and actual power data.
-    This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
-    fit the use case of the page.
+    """This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.
+        Data returned includes parent device tree up to root, expected power data, and actual power data.
+        This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
+        fit the use case of the page.
+
+    Args:
+        device_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        warranted_degradation: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     # Get parentage up to root using recursive parents crud function
     parent_devices = get_recursive_parents(db=project_db, device_id=device_id)
@@ -214,6 +224,11 @@ async def utility_expected(
     )
 
     def parse_df(*, expected_metric_id: int):
+        """todo
+
+        Args:
+            expected_metric_id: TODO: describe.
+        """
         df = df_expected[df_expected["expected_metric_id"] == expected_metric_id]
         df = df.set_index("time")
         df = df.reindex(s_actual.index)

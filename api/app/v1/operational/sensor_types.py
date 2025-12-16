@@ -26,9 +26,6 @@ from app.dependencies import get_user_data_async
 DESCRIPTION_404 = "Sensor type not found"
 
 router = APIRouter(prefix="/sensor-types", tags=["sensor_types"])
-deprecated_router = APIRouter(
-    prefix="/sensor_types", tags=["sensor_types"], deprecated=True
-)
 
 
 @router.get(
@@ -42,6 +39,16 @@ def get_sensor_types(
     unit: str = "",
     db: Session = Depends(get_db),
 ):
+    """todo
+
+    Args:
+        sensor_type_ids: TODO: describe.
+        name_short: TODO: describe.
+        name_long: TODO: describe.
+        name_metric: TODO: describe.
+        unit: TODO: describe.
+        db: TODO: describe.
+    """
     return core_get_sensor_types(
         db,
         sensor_type_ids=sensor_type_ids,
@@ -52,30 +59,6 @@ def get_sensor_types(
     ).models()
 
 
-@deprecated_router.get(
-    "",
-    response_model=list[interfaces.SensorType],
-    operation_id="get_sensor_types_legacy",
-)
-def get_sensor_types_legacy(
-    *,
-    sensor_type_ids: Annotated[list[int], Query()] = [],
-    name_short: str = "",
-    name_long: str = "",
-    name_metric: str = "",
-    unit: str = "",
-    db: Session = Depends(get_db),
-):
-    return get_sensor_types(
-        sensor_type_ids=sensor_type_ids,
-        name_short=name_short,
-        name_long=name_long,
-        name_metric=name_metric,
-        unit=unit,
-        db=db,
-    )
-
-
 @router.get(
     "/{sensor_type_id}",
     response_model=interfaces.SensorType,
@@ -83,24 +66,18 @@ def get_sensor_types_legacy(
     operation_id="get_sensor_type",
 )
 def get_sensor_type(sensor_type_id: int, db: Annotated[Session, Depends(get_db)]):
+    """todo
+
+    Args:
+        sensor_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     sensor_type = core_get_sensor_type(
         db=db,
         sensor_type_id=sensor_type_id,
     ).item
     utils.check_404(value=sensor_type, detail=DESCRIPTION_404)
     return sensor_type
-
-
-@deprecated_router.get(
-    "/{sensor_type_id}",
-    response_model=interfaces.SensorType,
-    responses={404: {"description": DESCRIPTION_404}},
-    operation_id="get_sensor_type_legacy",
-)
-def get_sensor_type_legacy(
-    *, sensor_type_id: int, db: Annotated[Session, Depends(get_db)]
-):
-    return get_sensor_type(sensor_type_id, db)
 
 
 @router.post(
@@ -113,7 +90,13 @@ def create_sensor_type(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Create a new sensor type. Only superadmins can create sensor types."""
+    """Create a new sensor type. Only superadmins can create sensor types.
+
+    Args:
+        sensor_type: TODO: describe.
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
             status_code=403, detail="Only superadmins can create sensor types"
@@ -131,20 +114,6 @@ def create_sensor_type(
         )
 
 
-@deprecated_router.post(
-    "",
-    response_model=interfaces.SensorType,
-    operation_id="create_sensor_type_legacy",
-)
-def create_sensor_type_legacy(
-    *,
-    sensor_type: interfaces.SensorType,
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    return create_sensor_type(sensor_type, user_data, db)
-
-
 @router.put(
     "/{sensor_type_id}",
     response_model=interfaces.SensorType,
@@ -157,7 +126,14 @@ def update_sensor_type(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Update an existing sensor type. Only superadmins can update sensor types."""
+    """Update an existing sensor type. Only superadmins can update sensor types.
+
+    Args:
+        sensor_type_id: TODO: describe.
+        sensor_type: TODO: describe.
+        user_data: TODO: describe.
+        db: TODO: describe.
+    """
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
             status_code=403, detail="Only superadmins can update sensor types"
@@ -179,19 +155,3 @@ def update_sensor_type(
         raise HTTPException(
             status_code=400, detail=f"Could not update sensor type: {str(e)}"
         )
-
-
-@deprecated_router.put(
-    "/{sensor_type_id}",
-    response_model=interfaces.SensorType,
-    responses={404: {"description": DESCRIPTION_404}},
-    operation_id="update_sensor_type_legacy",
-)
-def update_sensor_type_legacy(
-    *,
-    sensor_type_id: int,
-    sensor_type: interfaces.SensorType,
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    return update_sensor_type(sensor_type_id, sensor_type, user_data, db)

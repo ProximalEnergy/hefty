@@ -11,6 +11,12 @@ from core import models
 
 async def create_contract(*, db: AsyncSession, contract: interfaces.ContractCreate):
     # Only include columns that exist on models.Contract
+    """todo
+
+    Args:
+        db: TODO: describe.
+        contract: TODO: describe.
+    """
     payload = contract.model_dump(exclude_none=True)
     # Remove helper field if present
     payload.pop("contract_category_name_short", None)
@@ -39,6 +45,11 @@ async def create_contract(*, db: AsyncSession, contract: interfaces.ContractCrea
 
 
 async def get_contracts(db: AsyncSession):  # skip-star-syntax
+    """todo
+
+    Args:
+        db: TODO: describe.
+    """
     result = await db.execute(select(models.Contract))
     return result.scalars().all()
 
@@ -48,6 +59,12 @@ async def get_project_contracts(
     *,
     project_id: UUID,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+    """
     query = (
         select(
             models.Contract.contract_id,
@@ -95,6 +112,12 @@ async def get_contracts_by_document_id(
     *,
     document_id: UUID,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        document_id: TODO: describe.
+    """
     result = await db.execute(
         select(models.Contract).where(models.Contract.document_id == document_id)
     )
@@ -107,6 +130,12 @@ async def get_kpi_type_by_name_with_contracts(
     name_short: str,
 ) -> dict | None:
     # Get the KPI type with device_type relationship loaded
+    """todo
+
+    Args:
+        db: TODO: describe.
+        name_short: TODO: describe.
+    """
     kpi_type_result = await db.execute(
         select(models.KPIType)
         .options(selectinload(models.KPIType.device_type))

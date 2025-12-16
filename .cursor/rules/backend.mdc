@@ -65,7 +65,7 @@ The backend root directory is `api/` within the mono repo, and the main applicat
     - `settlement_points.py`: CRUD for ERCOT settlement point data.
   - `operational/`: CRUD operations related to the `operational` database schema, covering core operational data.
     - `__init__.py`: Initializes the `operational` subdirectory within `_crud`.
-    - `cec_pv_inverters.py`: CRUD for CEC PV inverter data.
+    - `cec-pv-inverters.py`: CRUD for CEC PV inverter data.
     - `cec_pv_modules.py`: CRUD for CEC PV module data.
     - `cmms_permissions.py`: CRUD for CMMS permission data.
     - `contracts.py`: CRUD for contract data.
@@ -172,7 +172,7 @@ This directory houses all version 1 API endpoints, structured by domain.
 
   - `__init__.py`: Initializes the `operational` subdirectory.
   - `aws.py`: Endpoints related to AWS services utilized in operations.
-  - `cec_pv_inverters.py`: Endpoints for accessing data related to CEC (California Energy Commission) listed PV inverters.
+  - `cec-pv-inverters.py`: Endpoints for accessing data related to CEC (California Energy Commission) listed PV inverters.
   - `cec_pv_modules.py`: Endpoints for CEC listed PV modules.
   - `data_types.py`: Endpoints for managing or retrieving definitions of various data types used in the system.
   - `device_types.py`: Endpoints for device type definitions.

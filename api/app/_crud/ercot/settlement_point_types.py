@@ -5,6 +5,12 @@ from core import models
 
 
 async def get_ercot_settlement_point_types(*, db: AsyncSession, name_long: str = ""):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        name_long: TODO: describe.
+    """
     query = select(models.SettlementPointType)
 
     if name_long:

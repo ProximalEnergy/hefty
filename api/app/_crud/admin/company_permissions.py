@@ -12,6 +12,13 @@ async def get_company_permissions(
     company_id: UUID,
     project_id: UUID,
 ) -> list[models.CompanyPermission]:
+    """todo
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     query = select(models.CompanyPermission)
     query = query.where(models.CompanyPermission.company_id == company_id)
     query = query.where(models.CompanyPermission.project_id == project_id)

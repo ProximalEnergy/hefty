@@ -17,7 +17,13 @@ async def get_users_with_project_access(
     company_id: UUID,
     project_id: UUID,
 ) -> list[models.User]:
-    """Get users from a company with access to a project"""
+    """Get users from a company with access to a project
+
+    Args:
+        db: TODO: describe.
+        company_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     query = (
         select(models.User)
         .join(models.UserProject, models.User.user_id == models.UserProject.user_id)
@@ -34,7 +40,13 @@ async def assign_project_to_user(
     user_id: str,
     project_id: UUID,
 ) -> models.UserProject:
-    """Assign a project to a user"""
+    """Assign a project to a user
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+    """
     try:
         # Check if the assignment already exists
         query = select(models.UserProject).where(
@@ -75,15 +87,14 @@ async def assign_project_to_relevant_users(
     project_id: UUID,
     do_commit: bool = True,
 ) -> None:
-    """
-    Assign a project to:
-    1. The user who created it
-    2. All admins (user_type_id = ADMIN) in the creator's company
-    3. All superadmins (user_type_id = SUPERADMIN) regardless of company
+    """todo
 
     Args:
-        do_commit: Whether to commit the transaction. Defaults to True.
-                  Set to False for atomic operations where commit is handled externally.
+        db: TODO: describe.
+        creator_user_id: TODO: describe.
+        creator_company_id: TODO: describe.
+        project_id: TODO: describe.
+        do_commit: TODO: describe.
     """
     try:
         # Get all users who should have access to this project
@@ -151,7 +162,14 @@ async def update_user_project_favorite(
     project_id: UUID,
     is_favorited: bool,
 ) -> models.UserProject:
-    """Update the is_favorited field for a user's project"""
+    """Update the is_favorited field for a user's project
+
+    Args:
+        db: TODO: describe.
+        user_id: TODO: describe.
+        project_id: TODO: describe.
+        is_favorited: TODO: describe.
+    """
     try:
         # Find the existing user project relationship
         query = select(models.UserProject).where(
@@ -193,7 +211,13 @@ async def update_user_projects(
     user_ids: list[str],
     operational_project_ids: list[list[uuid.UUID]],
 ):
-    """Update user project assignments for multiple users"""
+    """Update user project assignments for multiple users
+
+    Args:
+        db: TODO: describe.
+        user_ids: TODO: describe.
+        operational_project_ids: TODO: describe.
+    """
     # Delete existing entries for these users
     delete_stmt = delete(models.UserProject).where(
         models.UserProject.user_id.in_(user_ids)

@@ -44,6 +44,11 @@ router = APIRouter(
 
 def generate_presigned_url(*, file_key: str) -> str:
     # Generate a pre-signed URL for a file
+    """todo
+
+    Args:
+        file_key: TODO: describe.
+    """
     s3_client = boto3.client("s3", region_name=REGION_NAME)
     presigned_url = s3_client.generate_presigned_url(
         "get_object",
@@ -62,6 +67,13 @@ async def get_project_documents(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user: TODO: describe.
+    """
     project_documents = await crud_get_project_documents(
         db=db,
         project_ids=[project_id],
@@ -98,6 +110,14 @@ async def upload_project_document(
     file: UploadFile,
 ):
     # Get company from user.company_id
+    """todo
+
+    Args:
+        db: TODO: describe.
+        user: TODO: describe.
+        project: TODO: describe.
+        file: TODO: describe.
+    """
     try:
         companies = await get_companies(
             db=db,
@@ -245,10 +265,17 @@ async def search_contract_content(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
 ):
-    """
-    Search for relevant contract content using OpenAI's Responses API with file search.
-    Uses vector stores for efficient retrieval of relevant contract information.
-    Returns the most relevant chunks of text based on the query.
+    """Search for relevant contract content using OpenAI's Responses API with file search.
+        Uses vector stores for efficient retrieval of relevant contract information.
+        Returns the most relevant chunks of text based on the query.
+
+    Args:
+        document_id: TODO: describe.
+        project_id: TODO: describe.
+        query: TODO: describe.
+        vector_store_id: TODO: describe.
+        db: TODO: describe.
+        user: TODO: describe.
     """
     logging.info(
         f"Starting contract search for document_id: {document_id}, query: '{query}', vector_store_id: {vector_store_id}"
@@ -372,6 +399,12 @@ async def delete_project_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
     # Check if document is associated with a contract
+    """todo
+
+    Args:
+        document_id: TODO: describe.
+        db: TODO: describe.
+    """
     associated_contracts = await crud_get_contracts_by_document_id(
         db=db, document_id=document_id
     )

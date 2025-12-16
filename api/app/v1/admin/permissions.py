@@ -39,8 +39,10 @@ router = APIRouter(prefix="/permissions", tags=["permissions"])
 async def get_all_permissions(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """
-    Get all available permissions in the system. Requires admin access.
+    """Get all available permissions in the system. Requires admin access.
+
+    Args:
+        db: TODO: describe.
     """
     permissions = await crud_get_permissions(db=db, permission_ids=None)
     return permissions
@@ -59,8 +61,12 @@ async def get_user_permissions(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """
-    Get all permissions for the requesting user at a given project.
+    """Get all permissions for the requesting user at a given project.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
 
     # Get user_permission objects
@@ -80,6 +86,8 @@ async def get_user_permissions(
 
 
 class UserPermissionRequest(BaseModel):
+    """todo"""
+
     permission_id: int
 
 
@@ -94,8 +102,13 @@ async def add_user_permission(
     user_permission: UserPermissionRequest,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """
-    Add a user permission for a user at a project. Requires admin access.
+    """Add a user permission for a user at a project. Requires admin access.
+
+    Args:
+        project_id: TODO: describe.
+        user_id: TODO: describe.
+        user_permission: TODO: describe.
+        db: TODO: describe.
     """
 
     # NOTE: We are omitting any project access checks here
@@ -126,8 +139,13 @@ async def delete_user_permission(
     user_permission: UserPermissionRequest,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """
-    Delete a user permission for a user at a project. Requires admin access.
+    """Delete a user permission for a user at a project. Requires admin access.
+
+    Args:
+        project_id: TODO: describe.
+        user_id: TODO: describe.
+        user_permission: TODO: describe.
+        db: TODO: describe.
     """
 
     # Create a user_permission object
@@ -157,8 +175,12 @@ async def get_company_permissions(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """
-    Get all permissions for the requesting user's company at a given project.
+    """Get all permissions for the requesting user's company at a given project.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
 
     # Get company_permission objects
@@ -193,9 +215,13 @@ async def get_users_permissions(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """
-    Get all users, and their permissions, with access to a given project
-    for the requesting user's company. Requires admin access.
+    """Get all users, and their permissions, with access to a given project
+        for the requesting user's company. Requires admin access.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
 
     # Get users with access to the project

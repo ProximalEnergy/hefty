@@ -15,10 +15,14 @@ _VECTOR_STORE_CACHE: dict[str, str] = {}
 
 
 class VoiceChatSessionRequest(BaseModel):
+    """todo"""
+
     model: str = "gpt-realtime"
 
 
 class VoiceChatSessionResponse(BaseModel):
+    """todo"""
+
     client_secret: str
     expires_at: str
 
@@ -27,9 +31,12 @@ class VoiceChatSessionResponse(BaseModel):
 async def create_voice_chat_session(
     request: VoiceChatSessionRequest, user_data: UserData = Depends(get_user_data_async)
 ):
-    """
-    Create a new voice chat session by generating a client ephemeral token.
-    This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+    """Create a new voice chat session by generating a client ephemeral token.
+        This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+
+    Args:
+        request: TODO: describe.
+        user_data: TODO: describe.
     """
     try:
         # Get OpenAI API key from environment
@@ -101,11 +108,15 @@ async def create_voice_chat_session(
 
 
 class EnsureVectorStoreRequest(BaseModel):
+    """todo"""
+
     openai_file_id: str
     name: str | None = None
 
 
 class EnsureVectorStoreResponse(BaseModel):
+    """todo"""
+
     vector_store_id: str
 
 
@@ -114,9 +125,12 @@ async def ensure_vector_store(
     request: EnsureVectorStoreRequest,
     user_data: UserData = Depends(get_user_data_async),
 ):
-    """
-    Ensure an OpenAI vector store exists for the provided file id. If needed, create it.
-    Returns the vector_store_id.
+    """Ensure an OpenAI vector store exists for the provided file id. If needed, create it.
+        Returns the vector_store_id.
+
+    Args:
+        request: TODO: describe.
+        user_data: TODO: describe.
     """
     try:
         openai_api_key = os.getenv("OPENAI_API_KEY")

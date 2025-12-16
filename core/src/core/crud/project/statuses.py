@@ -20,6 +20,11 @@ tbl = str.maketrans("", "", delete_chars)
 
 
 def strtobool(val: str) -> int:  # skip-star-syntax
+    """TODO: add description.
+
+    Args:
+        val: TODO: describe.
+    """
     val = val.lower()
     if val in ("y", "yes", "t", "true", "on", "1"):
         return 1
@@ -35,6 +40,12 @@ def validate_status_tags_and_values(
     status_tags: list[int],
     status_values: list[Any],
 ):  # skip-star-syntax
+    """TODO: add description.
+
+    Args:
+        status_tags: TODO: describe.
+        status_values: TODO: describe.
+    """
     if len(status_tags) != len(status_values) or len(status_tags) == 0:
         raise ValueError(
             "Status tags and values must be the same length and greater than 0",
@@ -49,6 +60,14 @@ async def get_status_interpret_async(
     status_tags: list[int] = [],
     status_values: list[Any] = [],
 ):
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        project_db: TODO: describe.
+        status_tags: TODO: describe.
+        status_values: TODO: describe.
+    """
     validate_status_tags_and_values(
         status_tags=status_tags,
         status_values=status_values,
@@ -118,6 +137,12 @@ async def get_status_interpret_async(
             grouped = status_binary_df.groupby("status_binary_id")
 
             def decode_binary(row, grouped):  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    row: TODO: describe.
+                    grouped: TODO: describe.
+                """
                 try:
                     sub_df = grouped.get_group(row["status_binary_id"]).set_index(
                         "bit_position"
@@ -170,6 +195,11 @@ async def get_status_interpret_async(
             status_boolean_df = status_boolean_df.set_index(status_type)
 
             def resolve_bool(row):  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    row: TODO: describe.
+                """
                 entry = status_boolean_df.loc[row[status_type]]
                 if entry is None:
                     return pd.Series(["Unknown", None])
@@ -201,6 +231,11 @@ async def get_status_interpret_async(
             status_string_df = status_string_df.set_index("string_trigger")
 
             def resolve_string(row):  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    row: TODO: describe.
+                """
                 try:
                     entry = status_string_df.loc[row.value]
                     return pd.Series([entry["description"], entry["failure_mode_id"]])
@@ -223,6 +258,13 @@ def get_status_interpret(
     status_tags: list[int] = [],
     status_values: list[Any] = [],
 ):
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_tags: TODO: describe.
+        status_values: TODO: describe.
+    """
     validate_status_tags_and_values(
         status_tags=status_tags,
         status_values=status_values,
@@ -270,6 +312,12 @@ def get_status_interpret(
             grouped = status_binary_df.groupby("status_binary_id")
 
             def decode_binary(row, grouped):  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    row: TODO: describe.
+                    grouped: TODO: describe.
+                """
                 try:
                     sub_df = grouped.get_group(row["status_binary_id"]).set_index(
                         "bit_position"
@@ -318,6 +366,11 @@ def get_status_interpret(
             status_boolean_df = status_boolean_df.set_index(status_type)
 
             def resolve_bool(row):  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    row: TODO: describe.
+                """
                 entry = status_boolean_df.loc[row[status_type]]
                 if entry is None:
                     return pd.Series(["Unknown", None])
@@ -345,6 +398,11 @@ def get_status_interpret(
             status_string_df = status_string_df.set_index("string_trigger")
 
             def resolve_string(row):  # skip-star-syntax
+                """TODO: add description.
+
+                Args:
+                    row: TODO: describe.
+                """
                 try:
                     entry = status_string_df.loc[row.value]
                     return pd.Series([entry["description"], entry["failure_mode_id"]])
@@ -366,6 +424,13 @@ def get_status_lookup(
     status_lookup_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.StatusLookup]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_lookup_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.StatusLookup)
     if status_lookup_ids:
         query = query.filter(
@@ -380,6 +445,13 @@ def get_status_binary(
     status_binary_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.StatusBinary]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_binary_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.StatusBinary)
     if status_binary_ids:
         query = query.filter(
@@ -394,6 +466,13 @@ def get_status_boolean(
     status_boolean_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.StatusBoolean]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_boolean_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.StatusBoolean)
     if status_boolean_ids:
         query = query.filter(
@@ -408,6 +487,13 @@ def get_status_string(
     status_string_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.StatusString]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_string_ids: TODO: describe.
+        return_query: TODO: describe.
+    """
     query = db.query(models.StatusString)
     if status_string_ids:
         query = query.filter(
@@ -422,6 +508,12 @@ async def get_status_lookup_async(
     *,
     status_lookup_ids: list[int] = [],
 ) -> list[models.StatusLookup]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_lookup_ids: TODO: describe.
+    """
     stmt = select(models.StatusLookup)
     if status_lookup_ids:
         stmt = stmt.where(
@@ -436,6 +528,12 @@ async def get_status_binary_async(
     *,
     status_binary_ids: list[int] = [],
 ) -> list[models.StatusBinary]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_binary_ids: TODO: describe.
+    """
     stmt = select(models.StatusBinary)
     if status_binary_ids:
         stmt = stmt.where(
@@ -450,6 +548,12 @@ async def get_status_boolean_async(
     *,
     status_boolean_ids: list[int] = [],
 ) -> list[models.StatusBoolean]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_boolean_ids: TODO: describe.
+    """
     stmt = select(models.StatusBoolean)
     if status_boolean_ids:
         stmt = stmt.where(
@@ -464,6 +568,12 @@ async def get_status_string_async(
     *,
     status_string_ids: list[int] = [],
 ) -> list[models.StatusString]:
+    """TODO: add description.
+
+    Args:
+        db: TODO: describe.
+        status_string_ids: TODO: describe.
+    """
     stmt = select(models.StatusString)
     if status_string_ids:
         stmt = stmt.where(
@@ -484,11 +594,20 @@ async def get_status_timeseries_python(
     tag_ids: list[int] | None = None,
     sensor_types: list[SensorType] | None = None,
 ):
-    """
-    sensor_types: list[SensorType] | None = None
-    Only queries statuses for the provided sensor types.
-    However, the provided list must be a subset of the supported sensor types.
-    If not provided, all supported sensor types will be used.
+    """sensor_types: list[SensorType] | None = None
+        Only queries statuses for the provided sensor types.
+        However, the provided list must be a subset of the supported sensor types.
+        If not provided, all supported sensor types will be used.
+
+    Args:
+        db: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_ids: TODO: describe.
+        tag_ids: TODO: describe.
+        sensor_types: TODO: describe.
     """
     supported_sensor_types = [
         SensorType.PV_PCS_STATUS,
@@ -583,6 +702,11 @@ async def get_status_timeseries_python(
     data_to_df = data_to_df.ffill()
 
     def _maybe_hex(value):  # skip-star-syntax
+        """TODO: add description.
+
+        Args:
+            value: TODO: describe.
+        """
         if isinstance(value, str):
             trimmed = value.strip().lower()
             if trimmed.startswith("0x"):
@@ -652,6 +776,11 @@ async def get_status_timeseries_python(
     }
 
     def map_status(col):  # skip-star-syntax
+        """TODO: add description.
+
+        Args:
+            col: TODO: describe.
+        """
         tag = col.name
         return col.map(
             lambda x: lookup.get((tag, x), np.nan) if pd.notnull(x) else np.nan

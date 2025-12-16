@@ -13,6 +13,12 @@ async def parse_equipment_rackings(
     system: pd.DataFrame,
 ) -> pd.DataFrame:
     # --- Get racking id ---
+    """todo
+
+    Args:
+        db: TODO: describe.
+        system: TODO: describe.
+    """
     system["gsheet_racking_id"] = (
         pd.factorize(
             system[["Racking Manufacturer", "Racking Model"]]

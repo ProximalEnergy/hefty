@@ -22,7 +22,11 @@ from .. import utils
 
 
 def get_projects(conn: Any) -> list[dict[str, Any]]:
-    """Get all projects from operational.projects."""
+    """Get all projects from operational.projects.
+
+    Args:
+        conn: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
             """
@@ -37,7 +41,12 @@ def get_projects(conn: Any) -> list[dict[str, Any]]:
 def get_device_types_in_project(
     conn: Any, project_name_short: str
 ) -> list[dict[str, Any]]:
-    """Get unique device types used in a project."""
+    """Get unique device types used in a project.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
             f"""
@@ -52,7 +61,12 @@ def get_device_types_in_project(
 
 
 def get_device_type_info(conn: Any, device_type_id: int) -> dict[str, Any] | None:
-    """Get device type information by ID."""
+    """Get device type information by ID.
+
+    Args:
+        conn: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
             """
@@ -69,7 +83,12 @@ def get_device_type_info(conn: Any, device_type_id: int) -> dict[str, Any] | Non
 def get_device_model_info(
     conn: Any, device_model_id: int | None
 ) -> dict[str, Any] | None:
-    """Get device model information by ID."""
+    """Get device model information by ID.
+
+    Args:
+        conn: TODO: describe.
+        device_model_id: TODO: describe.
+    """
     if device_model_id is None:
         return None
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -86,7 +105,12 @@ def get_device_model_info(
 
 
 def get_device_models_for_type(conn: Any, device_type_id: int) -> list[dict[str, Any]]:
-    """Get all device models for a specific device type."""
+    """Get all device models for a specific device type.
+
+    Args:
+        conn: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
             """
@@ -103,7 +127,13 @@ def get_device_models_for_type(conn: Any, device_type_id: int) -> list[dict[str,
 def get_device_count_by_type(
     conn: Any, project_name_short: str, device_type_id: int
 ) -> int:
-    """Get count of devices with a specific device_type_id."""
+    """Get count of devices with a specific device_type_id.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     with conn.cursor() as cursor:
         cursor.execute(
             f"""
@@ -119,7 +149,13 @@ def get_device_count_by_type(
 def get_current_device_model_id(
     conn: Any, project_name_short: str, device_type_id: int
 ) -> dict[int | None, int]:
-    """Get count of devices by current device_model_id."""
+    """Get count of devices by current device_model_id.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+        device_type_id: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
             f"""
@@ -140,7 +176,14 @@ def update_device_models(
     device_type_id: int,
     device_model_id: int | None,
 ) -> int:
-    """Update device_model_id for all devices with matching device_type_id."""
+    """Update device_model_id for all devices with matching device_type_id.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+        device_type_id: TODO: describe.
+        device_model_id: TODO: describe.
+    """
     with conn.cursor() as cursor:
         cursor.execute(
             f"""
@@ -158,7 +201,12 @@ def update_device_models(
 def get_device_model_distribution(
     conn: Any, project_name_short: str
 ) -> dict[int, dict[int | None, int]]:
-    """Get device model distribution by device type for a project."""
+    """Get device model distribution by device type for a project.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         # First check if device_model_id column exists
         cursor.execute(
@@ -205,7 +253,12 @@ def get_device_model_distribution(
 
 
 def update_project_spec_device_models(conn: Any, project_name_short: str) -> bool:
-    """Update project spec with device_model_ids_by_device_type_id."""
+    """Update project spec with device_model_ids_by_device_type_id.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+    """
     with conn.cursor() as cursor:
         # Get current spec - preserve all existing data
         cursor.execute(
@@ -276,7 +329,11 @@ def update_project_spec_device_models(conn: Any, project_name_short: str) -> boo
 
 
 def display_projects(projects: list[dict[str, Any]]) -> None:
-    """Display list of projects."""
+    """Display list of projects.
+
+    Args:
+        projects: TODO: describe.
+    """
     print("\n" + "=" * 60)
     print("Available Projects:")
     print("=" * 60)
@@ -288,7 +345,11 @@ def display_projects(projects: list[dict[str, Any]]) -> None:
 
 
 def display_device_types(device_types: list[dict[str, Any]]) -> None:
-    """Display list of device types."""
+    """Display list of device types.
+
+    Args:
+        device_types: TODO: describe.
+    """
     print("\n" + "=" * 60)
     print("Device Types in Project:")
     print("=" * 60)
@@ -297,7 +358,11 @@ def display_device_types(device_types: list[dict[str, Any]]) -> None:
 
 
 def display_device_models(device_models: list[dict[str, Any]]) -> None:
-    """Display list of device models."""
+    """Display list of device models.
+
+    Args:
+        device_models: TODO: describe.
+    """
     print("\n" + "=" * 60)
     print("Available Device Models:")
     print("=" * 60)
@@ -310,11 +375,23 @@ class ProjectCompleter:
     """Tab completer for project names."""
 
     def __init__(self, projects: list[dict[str, Any]]):
+        """todo
+
+        Args:
+            self: TODO: describe.
+            projects: TODO: describe.
+        """
         self.projects = projects
         self.matches: list[str] = []
 
     def complete(self, text: str, state: int) -> str | None:
-        """Complete project name based on text input."""
+        """Complete project name based on text input.
+
+        Args:
+            self: TODO: describe.
+            text: TODO: describe.
+            state: TODO: describe.
+        """
         if state == 0:
             # First call: build list of matches
             text_lower = text.lower()
@@ -347,10 +424,14 @@ def select_project(
 ) -> dict[str, Any] | str | None:
     """Interactive project selection with tab completion.
 
-    Returns:
-        dict: Selected project
-        "__DEACTIVATE__": User wants to deactivate current project
-        None: User cancelled/back
+        Returns:
+            dict: Selected project
+            "__DEACTIVATE__": User wants to deactivate current project
+            None: User cancelled/back
+
+    Args:
+        projects: TODO: describe.
+        current_project: TODO: describe.
     """
     display_projects(projects)
     if current_project:
@@ -404,7 +485,11 @@ def select_project(
 def select_device_type(
     device_types: list[dict[str, Any]],
 ) -> dict[str, Any] | None:
-    """Interactive device type selection."""
+    """Interactive device type selection.
+
+    Args:
+        device_types: TODO: describe.
+    """
     display_device_types(device_types)
     print("\n0. Back")
     try:
@@ -424,7 +509,11 @@ def select_device_type(
 def select_device_model(
     device_models: list[dict[str, Any]],
 ) -> int | None:
-    """Interactive device model selection."""
+    """Interactive device model selection.
+
+    Args:
+        device_models: TODO: describe.
+    """
     display_device_models(device_models)
     print("\nb. Back")
     try:
@@ -448,7 +537,12 @@ def select_device_model(
 
 
 def get_existing_mappings(conn: Any, project_name_short: str) -> list[dict[str, Any]]:
-    """Get existing device_type_id -> device_model_id mappings in a project."""
+    """Get existing device_type_id -> device_model_id mappings in a project.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+    """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         # First check if device_model_id column exists
         cursor.execute(
@@ -495,7 +589,11 @@ def get_existing_mappings(conn: Any, project_name_short: str) -> list[dict[str, 
 
 
 def display_existing_mappings(mappings: list[dict[str, Any]]) -> None:
-    """Display existing device_type_id -> device_model_id mappings."""
+    """Display existing device_type_id -> device_model_id mappings.
+
+    Args:
+        mappings: TODO: describe.
+    """
     print("\n" + "=" * 60)
     print("Existing Device Model Mappings:")
     print("=" * 60)
@@ -528,7 +626,14 @@ def preview_update(
     device_type_id: int,
     device_model_id: int | None,
 ) -> None:
-    """Show preview of what will be updated."""
+    """Show preview of what will be updated.
+
+    Args:
+        conn: TODO: describe.
+        project_name_short: TODO: describe.
+        device_type_id: TODO: describe.
+        device_model_id: TODO: describe.
+    """
     total_count = get_device_count_by_type(conn, project_name_short, device_type_id)
     current_distribution = get_current_device_model_id(
         conn, project_name_short, device_type_id

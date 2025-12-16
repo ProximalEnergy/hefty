@@ -4,3 +4,7 @@ chat:
 reviews:
   poem: false
   review_status: false
+  tools:
+    ruff:
+      enabled: true
+      config_file: "pyproject.toml"

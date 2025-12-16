@@ -22,6 +22,12 @@ async def get_project_om_contractor_scopes(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     rows = await get_om_contractor_scopes_by_project(db=db, project_id=project_id)
     data = []
     for row in rows:
@@ -48,6 +54,13 @@ async def create_project_om_contractor_scope(
     payload: dict,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        payload: TODO: describe.
+        db: TODO: describe.
+    """
     company_id = payload.get("company_id")
     scope_json = payload.get("scope_json") or {}
     contractor_addressee = payload.get("contractor_addressee")
@@ -96,6 +109,14 @@ async def update_project_om_contractor_scope(
     payload: dict,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        om_contractor_scope_id: TODO: describe.
+        payload: TODO: describe.
+        db: TODO: describe.
+    """
     scope_json = payload.get("scope_json") or {}
     contractor_addressee = payload.get("contractor_addressee")
     contractor_email = payload.get("contractor_email")
@@ -144,6 +165,13 @@ async def delete_project_om_contractor_scope(
     om_contractor_scope_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        om_contractor_scope_id: TODO: describe.
+        db: TODO: describe.
+    """
     stmt = delete(models.OMContractorScope).where(
         models.OMContractorScope.om_contractor_scope_id == om_contractor_scope_id,
         models.OMContractorScope.project_id == project_id,

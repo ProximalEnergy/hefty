@@ -20,10 +20,20 @@ SCHEMAS_TO_CLEAN = {"operational", "admin"}
 
 class MigrationCleaner:
     def __init__(self, migrations_dir: str):
+        """TODO: add description.
+
+        Args:
+            self: TODO: describe.
+            migrations_dir: TODO: describe.
+        """
         self.migrations_dir = Path(migrations_dir)
 
     def find_migration_files(self) -> list[Path]:
-        """Find all Python migration files in the versions directory."""
+        """Find all Python migration files in the versions directory.
+
+        Args:
+            self: TODO: describe.
+        """
         versions_dir = self.migrations_dir / "versions"
         if not versions_dir.exists():
             raise FileNotFoundError(f"Versions directory not found: {versions_dir}")
@@ -31,13 +41,16 @@ class MigrationCleaner:
         return list(versions_dir.glob("*.py"))
 
     def analyze_file(self, file_path: Path) -> tuple[bool, bool, str]:
-        """
-        Analyze a migration file to determine:
-        1. If it uses @for_each_project_schema decorator
-        2. If it should be cleaned (incorrectly uses decorator)
-        3. Reason for the decision
+        """Analyze a migration file to determine:
+                1. If it uses @for_each_project_schema decorator
+                2. If it should be cleaned (incorrectly uses decorator)
+                3. Reason for the decision
 
-        Returns: (uses_decorator, should_clean, reason)
+                Returns: (uses_decorator, should_clean, reason)
+
+        Args:
+            self: TODO: describe.
+            file_path: TODO: describe.
         """
         with open(file_path) as f:
             content = f.read()
@@ -52,15 +65,18 @@ class MigrationCleaner:
         return uses_decorator, should_clean, reason
 
     def _should_clean_migration(self, content: str) -> tuple[bool, str]:
-        """
-        Determine if a migration should be cleaned based on its content.
+        """Determine if a migration should be cleaned based on its content.
 
-        A migration should be cleaned if:
-        1. It uses @for_each_project_schema decorator
-        2. BUT the only schema referenced is "operational" (hardcoded)
-        3. AND it never uses the schema parameter (schema=schema)
+                A migration should be cleaned if:
+                1. It uses @for_each_project_schema decorator
+                2. BUT the only schema referenced is "operational" (hardcoded)
+                3. AND it never uses the schema parameter (schema=schema)
 
-        Returns: (should_clean, reason)
+                Returns: (should_clean, reason)
+
+        Args:
+            self: TODO: describe.
+            content: TODO: describe.
         """
         # Count schema references (both single and double quotes)
         schema_param_count = len(re.findall(r"schema=schema", content))
@@ -105,9 +121,12 @@ class MigrationCleaner:
         return False, "no clear indication it should be cleaned"
 
     def clean_file(self, file_path: Path) -> bool:
-        """
-        Clean a migration file by removing decorator and schema parameter.
-        Returns True if file was modified.
+        """Clean a migration file by removing decorator and schema parameter.
+                Returns True if file was modified.
+
+        Args:
+            self: TODO: describe.
+            file_path: TODO: describe.
         """
         with open(file_path) as f:
             content = f.read()

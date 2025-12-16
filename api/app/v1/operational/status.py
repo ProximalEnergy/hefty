@@ -14,6 +14,12 @@ def get_statuses(
     db: Annotated[Session, Depends(get_db)],
     status_lookup_ids: Annotated[list[int], Query()] = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        status_lookup_ids: TODO: describe.
+    """
     status_lookup = core.crud.project.statuses.get_status_lookup(
         db,
         status_lookup_ids=status_lookup_ids,
@@ -26,6 +32,12 @@ def get_status_binary(
     db: Annotated[Session, Depends(get_db)],
     status_binary_ids: Annotated[list[int], Query()] = [],
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        status_binary_ids: TODO: describe.
+    """
     status_binary = core.crud.project.statuses.get_status_binary(
         db=db,
         status_binary_ids=status_binary_ids,

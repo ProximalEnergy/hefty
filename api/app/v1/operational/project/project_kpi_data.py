@@ -41,6 +41,12 @@ router = APIRouter(prefix="/projects/{project_id}/kpi-data", tags=["project_kpi_
 
 # Update the function to fetch contractual KPI type IDs along with contract IDs
 def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+    """
     contractual_kpis = (
         db.query(models.ContractKPI.kpi_type_id, models.ContractKPI.contract_id)
         .join(
@@ -65,6 +71,18 @@ def get_project_kpi_summary(
     start: datetime.date | None = None,
 ):
     # Fetch contractual KPI type IDs and their contract IDs
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        is_superadmin: TODO: describe.
+        kpi_type_ids: TODO: describe.
+        device_type_id: TODO: describe.
+        start: TODO: describe.
+    """
     contractual_kpi_type_ids = get_contractual_kpi_type_ids(
         db=db, project_id=project_id
     )
@@ -258,6 +276,14 @@ async def get_user_kpi_alerts(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     kpi_type_id: int | None = None,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+        kpi_type_id: TODO: describe.
+    """
     user_id = user_data.user_id
     data = await crud_get_user_kpi_alerts(
         db,
@@ -276,6 +302,14 @@ async def get_project_kpi_alerts(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        data: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     kpi_type_id = int(data.kpi_type_id)
     config = data.__dict__
     return await crud_add_kpi_alert(
@@ -294,6 +328,14 @@ async def update_kpi_alert(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        data: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
+    """
     kpi_type_id = int(data.kpi_type_id)
     config = data.__dict__
     return await crud_update_kpi_alert(
@@ -310,6 +352,12 @@ async def delete_kpi_alert(
     data: interfaces.KPIDelete,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        data: TODO: describe.
+        db: TODO: describe.
+    """
     return await crud_delete_kpi_alert(
         db=db,
         alert_id=data.alert_id,
@@ -325,7 +373,12 @@ def get_contract_kpis(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Get all contract KPIs for a project with counterparty information"""
+    """Get all contract KPIs for a project with counterparty information
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     # Query contract KPIs with company information
 
     # Create aliases for the companies
@@ -394,8 +447,14 @@ def get_llm_kpis(
     kpi_type_id: int | None = None,
     db: Session = Depends(get_db),
 ):
-    """
-    This endpoint is for the chat application to fetch KPI data.
+    """This endpoint is for the chat application to fetch KPI data.
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        kpi_type_id: TODO: describe.
+        db: TODO: describe.
     """
     kpi_type_ids = [kpi_type_id] if kpi_type_id is not None else []
 
@@ -424,6 +483,8 @@ def get_llm_kpis(
 
 
 class RTEResponse(BaseModel):
+    """todo"""
+
     rte: float | None
 
 
@@ -435,6 +496,15 @@ async def get_rte(
     end: datetime.date,
     level: str = "string",
 ) -> RTEResponse:
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        level: TODO: describe.
+    """
     STRING_ENERGY_CHARGED_KPI_ID = 37
     STRING_ENERGY_DISCHARGED_KPI_ID = 41
     PROJECT_SOC_INCREASE_KPI_ID = 94

@@ -16,17 +16,23 @@ import { useState } from 'react'
 import { BarConfig as BarConfigType } from './CustomDash'
 
 const BarConfig = ({
+  mode,
   stack,
   sensorTypes,
   onAdd,
+  initialConfig,
 }: {
+  mode: 'create' | 'edit'
   stack: { close: (drawerId: 'bar-config') => void }
   sensorTypes: UseQueryResult<SensorType[], AxiosError<unknown>>
   onAdd: (config: BarConfigType) => void
+  initialConfig?: BarConfigType
 }) => {
-  const [sensorTypeId, setSensorTypeId] = useState<string | null>(null)
+  const [sensorTypeId, setSensorTypeId] = useState<string | null>(
+    initialConfig?.sensorTypeId ?? null,
+  )
   const [aggregationMethod, setAggregationMethod] = useState<string | null>(
-    null,
+    initialConfig?.aggregationMethod ?? null,
   )
 
   const addBarChart = () => {
@@ -51,7 +57,8 @@ const BarConfig = ({
   const allowCreate = !!sensorTypeId && !!aggregationMethod
   return (
     <Stack>
-      <Title>Add Bar Chart</Title>
+      {mode === 'create' && <Title>Add Bar Chart</Title>}
+      {mode === 'edit' && <Title>Edit Bar Chart</Title>}
       <Text>
         Select a sensor type and aggregation method to add a bar chart.
       </Text>
@@ -91,7 +98,9 @@ const BarConfig = ({
           disabled={allowCreate}
         >
           <Button onClick={addBarChart} disabled={!allowCreate}>
-            Add Bar Chart Component
+            {mode === 'edit'
+              ? 'Update Bar Chart Component'
+              : 'Add Bar Chart Component'}
           </Button>
         </Tooltip>
       </Group>

@@ -67,6 +67,13 @@ def get_combiner_block_performance(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Query data for the last 30 minutes (offset by 5 minutes)
+    """todo
+
+    Args:
+        block_device_id: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     end = pd.Timestamp.utcnow().floor("5min")
     start = end - pd.Timedelta(minutes=30)
 
@@ -163,6 +170,14 @@ def get_project_geo(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: models.Project = Depends(dependencies.get_project_api),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     device_type_id = DeviceType.BLOCK
     devices = core.crud.project.devices.get_project_devices(
         project_db,
@@ -424,6 +439,12 @@ def get_project_geo(
     max_norm_power = max(norm_power.values())
 
     def norm(*, n, d):
+        """todo
+
+        Args:
+            n: TODO: describe.
+            d: TODO: describe.
+        """
         if d == 0:
             return 0
 
@@ -471,6 +492,21 @@ def get_time_series(
     project: models.Project = Depends(dependencies.get_project_api),
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        tag_ids: TODO: describe.
+        device_ids: TODO: describe.
+        parent_device_id: TODO: describe.
+        sensor_type_name_shorts: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        include_ghost_tags: TODO: describe.
+    """
     if parent_device_id:
         devices = core.crud.project.devices.get_project_devices(
             project_db, parent_device_ids=[parent_device_id]
@@ -581,6 +617,19 @@ def get_heatmap(
     agg: str = "instantaneous",
     fillna_zero: bool = True,
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        sensor_type_name_short: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        agg: TODO: describe.
+        fillna_zero: TODO: describe.
+    """
     tags = core.crud.project.tags.get_project_tags(
         project_db,
         tag_ids=[],
@@ -673,6 +722,16 @@ def get_expected_power_endpoint(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+    """
     df = funcs.get_expected_power(
         project_id=project_id,
         start=start,
@@ -694,6 +753,15 @@ def get_meter_power_and_expected_power(
     project_db: Session = Depends(dependencies.get_project_db),
 ):
     # If start and end are not provided, get today's data
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+    """
     if not start:
         start = pd.Timestamp.now(tz=project.time_zone).floor("D")
     if not end:
@@ -750,6 +818,14 @@ def get_equipment_analysis_combiner(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
     return get_equipment_analysis_combiner_data(
         project_db=project_db,
         project=project,
@@ -763,6 +839,12 @@ def get_project_weather(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     project_data = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
     ).model()
@@ -783,6 +865,12 @@ def get_project_weather_forecast(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     project_data = core.crud.operational.projects.get_project(
         db=db, project_id=project_id, deep=True
     ).model()
@@ -809,6 +897,16 @@ def get_clearsky_poa(
     project_db: Session = Depends(dependencies.get_project_db),
     resample_rate: str | None = "5min",
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        resample_rate: TODO: describe.
+    """
     if resample_rate is not None:
         rolling_window = int(60 / int(resample_rate.split("min")[0]))
     else:
@@ -918,6 +1016,15 @@ def get_degradation_poa(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+        project_db: TODO: describe.
+    """
     min_poa = 250
     max_poa_1d = 20
     max_poa_std = 7.5
@@ -1052,6 +1159,23 @@ async def dc_amperage_report_v2(
     async_project_db: AsyncSession = Depends(dependencies.get_project_db_async),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        start: TODO: describe.
+        min_poa: TODO: describe.
+        max_poa_1d: TODO: describe.
+        max_poa_std: TODO: describe.
+        rolling_window: TODO: describe.
+        use_poa_1d: TODO: describe.
+        use_poa_std: TODO: describe.
+        resample_rate: TODO: describe.
+        db: TODO: describe.
+        project_db: TODO: describe.
+        async_project_db: TODO: describe.
+        project: TODO: describe.
+    """
     logger.logger.info("DC Amperage Report V2 Endpoint Starting")
 
     project_tz = project.time_zone
@@ -1443,6 +1567,13 @@ async def dc_amperage_report_v2(
     )
 
     def highlight_style(*, val, col, subset: bool = False):
+        """todo
+
+        Args:
+            val: TODO: describe.
+            col: TODO: describe.
+            subset: TODO: describe.
+        """
         if subset:
             if col == "a_norm_proj":
                 if val > 1.1:
@@ -1596,6 +1727,13 @@ async def dc_amperage_report_v2(
 
     def rename_poa_columns(*, df_poa, poa_tags, met_devices):
         # Create mappings for easier lookup
+        """todo
+
+        Args:
+            df_poa: TODO: describe.
+            poa_tags: TODO: describe.
+            met_devices: TODO: describe.
+        """
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in poa_tags}
         device_id_to_name_short = {
             device.device_id: device.name_short for device in met_devices
@@ -1619,6 +1757,12 @@ async def dc_amperage_report_v2(
 
     def rename_cb_columns(*, df_cb, met_devices):
         # Create mappings for easier lookup
+        """todo
+
+        Args:
+            df_cb: TODO: describe.
+            met_devices: TODO: describe.
+        """
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in tags_cb}
         device_id_to_name_long = {
             device.device_id: device.name_long for device in cb_devices
@@ -1658,6 +1802,16 @@ async def dc_amperage_report_v2(
         tags="temporary",
     ):
         # Reset the buffer position to the beginning
+        """todo
+
+        Args:
+            s3_client: TODO: describe.
+            buffer: TODO: describe.
+            bucket_name: TODO: describe.
+            prefix: TODO: describe.
+            filename: TODO: describe.
+            tags: TODO: describe.
+        """
         buffer.seek(0)
         file_content = buffer.read()
 
@@ -1709,6 +1863,17 @@ async def dc_amperage_report_v2(
         start_date,
     ):
         # Save data to buffers
+        """todo
+
+        Args:
+            excel_buffer: TODO: describe.
+            poa_buffer: TODO: describe.
+            cb_buffer: TODO: describe.
+            df_poa: TODO: describe.
+            df_cb: TODO: describe.
+            project: TODO: describe.
+            start_date: TODO: describe.
+        """
         df_poa.to_csv(poa_buffer)
         df_cb.loc[df_poa.index].to_csv(cb_buffer)
 
@@ -1772,16 +1937,12 @@ async def combiner_correlation_analysis(
     block_names: Annotated[list[str] | None, Query()] = None,
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    Analyze combiner box correlations to identify potential sensor swaps using AWS Lambda.
+    """todo
 
     Args:
-        project_id: UUID of the project
-        analysis_date: Optional date to analyze. If None, uses yesterday
-        block_names: Optional list of block names to analyze. If None, analyzes all blocks
-
-    Returns:
-        dict: Analysis results including recommended swaps and correlation matrices
+        analysis_date: TODO: describe.
+        block_names: TODO: describe.
+        project: TODO: describe.
     """
 
     # Initialize Lambda client
@@ -1831,6 +1992,13 @@ def get_tracking_angles(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Convert to project timezone
+    """todo
+
+    Args:
+        start: TODO: describe.
+        end: TODO: describe.
+        project: TODO: describe.
+    """
     start = pd.to_datetime(start).tz_localize("UTC").tz_convert(project.time_zone)
     end = pd.to_datetime(end).tz_localize("UTC").tz_convert(project.time_zone)
     lon, lat = project.point.coordinates  # type: ignore

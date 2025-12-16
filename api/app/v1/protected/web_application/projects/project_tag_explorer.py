@@ -18,8 +18,10 @@ from core import models
 
 
 def create_tag_pattern(*, name_scada: str) -> str:
-    """
-    Crate a tag pattern from a name_scada string.
+    """Crate a tag pattern from a name_scada string.
+
+    Args:
+        name_scada: TODO: describe.
     """
     result = []
     i = 0
@@ -37,9 +39,11 @@ def create_tag_pattern(*, name_scada: str) -> str:
 
 
 def _process_numeric_values(*, values: list) -> tuple[bool, str, int]:
-    """
-    Process a list of values to determine if they're numeric and get statistics.
-    Returns (is_numeric, value_range, total_unique_values)
+    """Process a list of values to determine if they're numeric and get statistics.
+        Returns (is_numeric, value_range, total_unique_values)
+
+    Args:
+        values: TODO: describe.
     """
     total_unique_values = len(set(v for v in values if v is not None and pd.notna(v)))
 
@@ -77,9 +81,12 @@ async def get_unique_tag_types(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
-    """
-    Get unique tag types for the current project.
-    This endpoint is only accessible to superadmins.
+    """Get unique tag types for the current project.
+        This endpoint is only accessible to superadmins.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
 
     try:
@@ -164,9 +171,12 @@ async def get_sensor_type_assignments(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
-    """
-    Get sensor types and their current assignments for the current project.
-    This endpoint is only accessible to superadmins.
+    """Get sensor types and their current assignments for the current project.
+        This endpoint is only accessible to superadmins.
+
+    Args:
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
 
     try:
@@ -202,9 +212,14 @@ async def assign_sensor_type_to_tag(
     sensor_type_id: int,
     db: Annotated[Session, Depends(get_db)],
 ):
-    """
-    Assign a sensor type to a specific tag in a project.
-    This endpoint is only accessible to superadmins.
+    """Assign a sensor type to a specific tag in a project.
+        This endpoint is only accessible to superadmins.
+
+    Args:
+        project_id: TODO: describe.
+        tag_name_short: TODO: describe.
+        sensor_type_id: TODO: describe.
+        db: TODO: describe.
     """
 
     # Get the project
@@ -248,6 +263,8 @@ async def assign_sensor_type_to_tag(
 
 
 class AssignPatternSensorTypeRequest(BaseModel):
+    """todo"""
+
     project_id: str
     tag_pattern: str
     sensor_type_id: int
@@ -267,6 +284,14 @@ async def assign_sensor_type_to_pattern(
     db: Annotated[Session, Depends(get_db)],
 ):
     # Get sensor type
+    """todo
+
+    Args:
+        request: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        db: TODO: describe.
+    """
     sensor_type = get_sensor_type(db=db, sensor_type_id=request.sensor_type_id).item
 
     try:
@@ -335,9 +360,13 @@ async def get_tag_samples(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    Get sample values for a specific tag by tag_id.
-    Returns sample values from the last 3 days of data.
+    """Get sample values for a specific tag by tag_id.
+        Returns sample values from the last 3 days of data.
+
+    Args:
+        tag_id: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     try:
         # Get the tag by ID using CRUD function
@@ -396,6 +425,12 @@ async def put_unique_tag_patterns(
     project_id: str,
     project_db: Session = Depends(dependencies.get_project_db),
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        project_db: TODO: describe.
+    """
     try:
         # Query all tags, including ghost tags
         tags = get_project_tags(
@@ -464,9 +499,15 @@ async def get_tag_pattern_samples(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """
-    Get sample values for all tags in a specific pattern.
-    Returns up to 10 random tags from the pattern with their sample values.
+    """Get sample values for all tags in a specific pattern.
+        Returns up to 10 random tags from the pattern with their sample values.
+
+    Args:
+        tag_pattern: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
     """
     try:
         # URL decode the tag pattern
@@ -557,9 +598,12 @@ async def get_tag_pattern_tags(
     tag_pattern: str,
     project_db: Session = Depends(dependencies.get_project_db),
 ):
-    """
-    Fetch all tags that match a given tag pattern (with [INT] wildcards).
-    Returns lightweight tag info for client-side processing.
+    """Fetch all tags that match a given tag pattern (with [INT] wildcards).
+        Returns lightweight tag info for client-side processing.
+
+    Args:
+        tag_pattern: TODO: describe.
+        project_db: TODO: describe.
     """
     try:
         decoded_pattern = urllib.parse.unquote(tag_pattern)

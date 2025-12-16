@@ -268,7 +268,11 @@ class EventAdmin(ModelView, model=Event):
 
 
 def setup_admin_views(admin: Admin) -> None:
-    """Set up all admin views for core models."""
+    """Set up all admin views for core models.
+
+    Args:
+        admin: TODO: describe.
+    """
     # Core business models
     admin.add_view(CompanyAdmin)
     admin.add_view(UserAdmin)

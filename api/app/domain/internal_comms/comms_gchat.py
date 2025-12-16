@@ -6,14 +6,11 @@ def send_google_chat_message(
     message: str,
     webhook_url: str,
 ) -> None:
-    """
-    Send notification via Google Chat webhook
+    """todo
 
     Args:
-        notification: The notification data to send
-
-    Returns:
-        bool: True if sent successfully, False otherwise
+        message: TODO: describe.
+        webhook_url: TODO: describe.
     """
 
     payload = {"text": message}

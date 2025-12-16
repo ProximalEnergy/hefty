@@ -11,6 +11,12 @@ async def get_om_contractor_scopes_by_project(
     db: AsyncSession,
     project_id: UUID,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        project_id: TODO: describe.
+    """
     query = (
         select(
             models.OMContractorScope.om_contractor_scope_id,

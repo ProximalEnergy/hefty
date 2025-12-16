@@ -101,7 +101,11 @@ COMPANIES = [
 
 
 def create_company_name_short(company_name_long):
-    """Create a short name from the long company name"""
+    """Create a short name from the long company name
+
+    Args:
+        company_name_long: TODO: describe.
+    """
     # Remove parentheses and their contents
     name = re.sub(r"\([^)]*\)", "", company_name_long)
     # Replace spaces and special characters with underscores, convert to lowercase
@@ -114,6 +118,7 @@ def create_company_name_short(company_name_long):
 
 
 def main():
+    """todo"""
     logging.info(f"Preparing to insert {len(COMPANIES)} companies into the database")
 
     # Display all companies that will be inserted

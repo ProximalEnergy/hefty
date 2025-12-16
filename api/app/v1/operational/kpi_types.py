@@ -25,6 +25,12 @@ async def get_kpi_type_by_name(
     name_short: str,
     db: Annotated[AsyncSession, Depends(get_async_db)],
 ):
+    """todo
+
+    Args:
+        name_short: TODO: describe.
+        db: TODO: describe.
+    """
     try:
         # Convert hyphens to underscores for database lookup
         name_short = name_short.replace("-", "_")
@@ -86,6 +92,12 @@ def get_kpi_types(
     db: Annotated[Session, Depends(get_db)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
+    """todo
+
+    Args:
+        db: TODO: describe.
+        kpi_type_ids: TODO: describe.
+    """
     return crud_get_kpi_types(db, kpi_type_ids=kpi_type_ids)
 
 
@@ -98,6 +110,12 @@ def get_kpi_type(
     kpi_type_id: int,
     db: Annotated[Session, Depends(get_db)],
 ):
+    """todo
+
+    Args:
+        kpi_type_id: TODO: describe.
+        db: TODO: describe.
+    """
     return crud_get_kpi_types(db, kpi_type_ids=[kpi_type_id])[0]
 
 
@@ -110,6 +128,12 @@ def get_kpi_types_by_project(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
 ):
+    """todo
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+    """
     try:
         # Create alias for the counter company
         Company2 = aliased(Company)

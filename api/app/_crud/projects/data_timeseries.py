@@ -15,6 +15,17 @@ def get_project_data_timeseries(
     *,
     cagg_interval: str | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        interval: TODO: describe.
+        cagg_interval: TODO: describe.
+    """
     if cagg_interval:
         table_name = f"{project_name_short}.data_timeseries_{cagg_interval}"
     else:
@@ -61,6 +72,16 @@ def get_project_data_timeseries_last(
     *,
     cagg_interval: str | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        cagg_interval: TODO: describe.
+    """
     if cagg_interval:
         table_name = f"{project_name_short}.data_timeseries_{cagg_interval}"
     else:
@@ -105,6 +126,15 @@ def get_project_data_timeseries_latest(
     *,
     cagg_interval: str | None = None,
 ):
+    """todo
+
+    Args:
+        project_db: TODO: describe.
+        project_name_short: TODO: describe.
+        tag_ids: TODO: describe.
+        start: TODO: describe.
+        cagg_interval: TODO: describe.
+    """
     if cagg_interval:
         table_name = f"{project_name_short}.data_timeseries_{cagg_interval}"
     else:

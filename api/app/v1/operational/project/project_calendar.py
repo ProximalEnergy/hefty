@@ -40,9 +40,14 @@ async def read_calendar_item_categories(
     limit: int = 100,
     # current_user: models.User = Depends(dependencies.get_current_active_user) # Add if auth is needed
 ):
-    """
-    Retrieve all calendar item categories.
-    Even though project_id is in the path, categories are currently global.
+    """Retrieve all calendar item categories.
+        Even though project_id is in the path, categories are currently global.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        skip: TODO: describe.
+        limit: TODO: describe.
     """
     categories = await get_calendar_item_categories(db=db, skip=skip, limit=limit)
     return categories
@@ -55,8 +60,13 @@ async def create_calendar_item_endpoint(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """
-    Create a new calendar item for a project.
+    """Create a new calendar item for a project.
+
+    Args:
+        project_id: TODO: describe.
+        item: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     db_item = await create_calendar_item(
         db=db, item=item, project_id=project_id, company_id=user_data.company_id
@@ -70,8 +80,12 @@ async def get_calendar_items(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """
-    Retrieve all calendar items for the specified project, including category color.
+    """Retrieve all calendar items for the specified project, including category color.
+
+    Args:
+        project_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     # Query items and eagerly load the related category and exceptions
     query = (
@@ -156,8 +170,14 @@ async def update_calendar_item_endpoint(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """
-    Update a calendar item.
+    """Update a calendar item.
+
+    Args:
+        project_id: TODO: describe.
+        calendar_item_id: TODO: describe.
+        item: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     # Verify the item exists and belongs to the user's company
     existing_query = select(models.CalendarItem).filter(
@@ -189,8 +209,13 @@ async def delete_calendar_item_endpoint(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """
-    Delete a calendar item by its ID.
+    """Delete a calendar item by its ID.
+
+    Args:
+        project_id: TODO: describe.
+        calendar_item_id: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     # Optional: Add ownership/permission check here using project_id and
     # user_data if necessary before allowing deletion. For now, we assume
@@ -222,10 +247,17 @@ async def post_calendar_item_exception(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """
-    Create or update an exception for a specific occurrence of a recurring calendar item.
-    To "delete" an occurrence, pass `is_cancelled: true` in the payload.
-    The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
+    """Create or update an exception for a specific occurrence of a recurring calendar item.
+        To "delete" an occurrence, pass `is_cancelled: true` in the payload.
+        The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
+
+    Args:
+        project_id: TODO: describe.
+        calendar_item_id: TODO: describe.
+        exception_date_str: TODO: describe.
+        exception_payload: TODO: describe.
+        db: TODO: describe.
+        user_data: TODO: describe.
     """
     try:
         exception_date_obj = datetime.date.fromisoformat(exception_date_str)
