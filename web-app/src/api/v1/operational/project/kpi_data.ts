@@ -27,6 +27,7 @@ export const useGetKPISummaryCards = ({
 }: {
   pathParams: { projectId: string }
   queryParams?: {
+    contract_id?: number
     kpi_type_ids?: number[]
     date?: string
   }

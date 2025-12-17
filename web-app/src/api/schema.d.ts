@@ -3605,6 +3605,7 @@ export interface paths {
          *         is_superadmin: TODO: describe.
          *         kpi_type_ids: TODO: describe.
          *         device_type_id: TODO: describe.
+         *         contract_id: TODO: describe.
          *         start: TODO: describe.
          */
         get: operations["get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get"];
@@ -10419,6 +10420,42 @@ export interface components {
             /** Is Visible */
             is_visible: boolean;
             kpi_type: components["schemas"]["KPIType"] | null;
+        };
+        /**
+         * KPISummary
+         * @description Kpisummary model.
+         */
+        KPISummary: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Title */
+            title: string;
+            /** Value */
+            value?: number | null;
+            /** Info */
+            info?: string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Prefix */
+            prefix?: string | null;
+            /** Change */
+            change?: number | null;
+            /** Valcolor */
+            valColor?: string | null;
+            /** Link */
+            link: string;
+            /** Is Visible */
+            is_visible?: boolean | null;
+            /** Contract Id */
+            contract_id?: number | null;
+            /** Threshold */
+            threshold?: {
+                [key: string]: unknown;
+            } | null;
+            /** Ytd Value */
+            ytd_value?: number | null;
+            /** Aggregation Method */
+            aggregation_method?: string | null;
         };
         /**
          * KPIType
@@ -17324,6 +17361,7 @@ export interface operations {
             query?: {
                 kpi_type_ids?: number[] | null;
                 device_type_id?: number | null;
+                contract_id?: number | null;
                 start?: string | null;
                 schema?: string | null;
             };
@@ -17344,7 +17382,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["KPISummary"][];
                 };
             };
             /** @description Validation Error */
