@@ -64,7 +64,7 @@ const DataBrowsing = () => {
     '5min': '5 minutes',
     '15min': '15 minutes',
     '30min': '30 minutes',
-    '1hr': '1 hour',
+    '1hour': '1 hour',
   }
   const { start, end } = useValidateDateRange({})
   const project = useSelectProject(projectId!)
