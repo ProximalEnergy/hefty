@@ -9,11 +9,12 @@ async def get_failure_modes(
     db: AsyncSession,
     failure_mode_ids: list[int] = [],
 ):
-    """todo
+    """Retrieve failure modes, optionally filtering by identifier list.
 
     Args:
-        db: TODO: describe.
-        failure_mode_ids: TODO: describe.
+        db: Operational database session used for querying failure modes.
+        failure_mode_ids: Specific failure mode IDs to include; returns all when
+            empty.
     """
     query = select(models.FailureMode)
     if failure_mode_ids:
@@ -28,12 +29,13 @@ async def update_event_failure_mode(
     event_id: int,
     failure_mode_id: int,
 ):
-    """todo
+    """Assign a failure mode to an event and persist the change.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
-        failure_mode_id: TODO: describe.
+        db: Operational database session used for fetching and updating the
+            event record.
+        event_id: Identifier of the event being updated.
+        failure_mode_id: Failure mode to associate with the event.
     """
     query = select(models.Event).filter(models.Event.event_id == event_id)
     result = await db.execute(query)
@@ -51,12 +53,13 @@ async def get_root_causes(
     root_cause_ids: list[int] = [],
     device_type_ids: list[int] = [],
 ):
-    """todo
+    """Fetch root causes filtered by IDs or device types.
 
     Args:
-        db: TODO: describe.
-        root_cause_ids: TODO: describe.
-        device_type_ids: TODO: describe.
+        db: Operational database session for retrieving root causes.
+        root_cause_ids: Root cause identifiers to match; returns all when
+            omitted.
+        device_type_ids: Device type IDs to filter associated root causes.
     """
     query = select(models.RootCause)
     if root_cause_ids:
@@ -73,12 +76,13 @@ async def update_event_root_cause(
     event_id: int,
     root_cause_id: int | None,
 ):
-    """todo
+    """Update an event with a new root cause reference.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
-        root_cause_id: TODO: describe.
+        db: Operational database session used to read and modify the event.
+        event_id: Identifier of the event whose root cause is being changed.
+        root_cause_id: Root cause identifier to set on the event, or ``None`` to
+            clear it.
     """
     query = select(models.Event).filter(models.Event.event_id == event_id)
     result = await db.execute(query)

@@ -17,12 +17,12 @@ from core import models
 async def get_calendar_item_categories(
     *, db: AsyncSession, skip: int = 0, limit: int = 100
 ) -> list[models.CalendarItemCategory]:
-    """todo
+    """Retrieve paginated calendar item categories.
 
     Args:
-        db: TODO: describe.
-        skip: TODO: describe.
-        limit: TODO: describe.
+        db: Async database session bound to the operational schema.
+        skip: Number of rows to offset for pagination.
+        limit: Maximum number of categories to return.
     """
     query = select(models.CalendarItemCategory).offset(skip).limit(limit)
     result = await db.execute(query)
@@ -32,13 +32,13 @@ async def get_calendar_item_categories(
 async def create_calendar_item(
     *, db: AsyncSession, item: CalendarItemCreate, project_id: UUID, company_id: UUID
 ) -> models.CalendarItem:
-    """todo
+    """Create a calendar item and any provided assignments.
 
     Args:
-        db: TODO: describe.
-        item: TODO: describe.
-        project_id: TODO: describe.
-        company_id: TODO: describe.
+        db: Async database session bound to the operational schema.
+        item: Calendar payload containing timing, recurrence, and notification info.
+        project_id: Project that owns the calendar entry.
+        company_id: Company context used when persisting the calendar item.
     """
     db_item = models.CalendarItem(
         title=item.title,
@@ -61,10 +61,10 @@ async def create_calendar_item(
     assignment_model = getattr(models, "CalendarItemAssignment", None)
 
     async def insert_assignment(*, values: dict) -> None:
-        """todo
+        """Insert a calendar assignment via model or reflected table.
 
         Args:
-            values: TODO: describe.
+            values: Column payload identifying the calendar item and assignee.
         """
         if assignment_model is not None:
             db.add(assignment_model(**values))
@@ -103,12 +103,12 @@ async def create_calendar_item(
 async def update_calendar_item(
     *, db: AsyncSession, calendar_item_id: UUID, item_in: CalendarItemCreate
 ) -> models.CalendarItem | None:
-    """todo
+    """Update an existing calendar item and optionally replace assignments.
 
     Args:
-        db: TODO: describe.
-        calendar_item_id: TODO: describe.
-        item_in: TODO: describe.
+        db: Async database session bound to the operational schema.
+        calendar_item_id: Identifier for the calendar item to mutate.
+        item_in: Updated calendar payload including optional assignee lists.
     """
     query = select(models.CalendarItem).filter(
         models.CalendarItem.calendar_item_id == calendar_item_id
@@ -156,10 +156,10 @@ async def update_calendar_item(
 
         # Insert new
         async def insert_assignment(*, values: dict) -> None:
-            """todo
+            """Insert a replacement assignment for the calendar item.
 
             Args:
-                values: TODO: describe.
+                values: Column payload linking the calendar item to a user or team.
             """
             if assignment_model is not None:
                 db.add(assignment_model(**values))
@@ -191,11 +191,11 @@ async def update_calendar_item(
 async def delete_calendar_item(
     *, db: AsyncSession, calendar_item_id: UUID
 ) -> models.CalendarItem | None:
-    """todo
+    """Delete a calendar item if it exists.
 
     Args:
-        db: TODO: describe.
-        calendar_item_id: TODO: describe.
+        db: Async database session bound to the operational schema.
+        calendar_item_id: Identifier for the calendar entry to remove.
     """
     query = select(models.CalendarItem).filter(
         models.CalendarItem.calendar_item_id == calendar_item_id
@@ -223,10 +223,10 @@ async def create_or_update_calendar_item_exception(
         and exception_date.
 
     Args:
-        db: TODO: describe.
-        calendar_item_id: TODO: describe.
-        exception_date: TODO: describe.
-        exception_data: TODO: describe.
+        db: Async database session bound to the operational schema.
+        calendar_item_id: Calendar item that owns the exception record.
+        exception_date: Date of the occurrence being overridden or cancelled.
+        exception_data: Override payload containing cancellation and timing data.
     """
 
     # Prepare the statement for insert or update

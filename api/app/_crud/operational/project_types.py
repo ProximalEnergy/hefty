@@ -4,11 +4,11 @@ from core import models
 
 
 def get_project_type(*, db: Session, project_type_id: int):
-    """todo
+    """Return a project type by its primary key.
 
     Args:
-        db: TODO: describe.
-        project_type_id: TODO: describe.
+        db: Database session used to run the lookup.
+        project_type_id: Identifier of the project type to retrieve.
     """
     return (
         db.query(models.ProjectType)
@@ -24,13 +24,13 @@ def get_project_types(
     name_short: str = "",
     name_long: str = "",
 ):
-    """todo
+    """List project types filtered by identifiers or names.
 
     Args:
-        db: TODO: describe.
-        project_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
+        db: Database session used to run the query.
+        project_type_ids: Optional identifiers to match.
+        name_short: Short name that must match exactly when provided.
+        name_long: Long name that must match exactly when provided.
     """
     query = db.query(models.ProjectType)
 

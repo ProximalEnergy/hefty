@@ -12,7 +12,7 @@ async def get_drone_providers(*, db: AsyncSession) -> Sequence[DroneProvider]:
     """Get all drone providers.
 
     Args:
-        db: TODO: describe.
+        db: Operational database session used to read drone providers.
     """
     stmt = sa.select(DroneProvider)
     result = await db.execute(stmt)
@@ -25,8 +25,8 @@ async def create_drone_provider(
     """Create a new drone provider.
 
     Args:
-        db: TODO: describe.
-        drone_provider: TODO: describe.
+        db: Operational database session used to persist the provider.
+        drone_provider: Drone provider fields to create.
     """
     db_drone_provider = DroneProvider(**drone_provider.model_dump())
     db.add(db_drone_provider)
@@ -41,9 +41,9 @@ async def update_drone_provider(
     """Update a drone provider.
 
     Args:
-        db: TODO: describe.
-        drone_provider_id: TODO: describe.
-        drone_provider: TODO: describe.
+        db: Operational database session for the update operation.
+        drone_provider_id: Identifier of the drone provider to update.
+        drone_provider: New values to apply to the provider.
     """
     db_drone_provider = await db.get(DroneProvider, drone_provider_id)
     if db_drone_provider:
@@ -58,8 +58,8 @@ async def delete_drone_provider(*, db: AsyncSession, drone_provider_id: int) -> 
     """Delete a drone provider.
 
     Args:
-        db: TODO: describe.
-        drone_provider_id: TODO: describe.
+        db: Operational database session used to delete the provider.
+        drone_provider_id: Identifier of the provider to remove.
     """
     delete_stmt = delete(DroneProvider).where(
         DroneProvider.drone_provider_id == drone_provider_id

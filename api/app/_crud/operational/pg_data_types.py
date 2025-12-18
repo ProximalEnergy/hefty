@@ -4,11 +4,11 @@ from core import models
 
 
 def get_pg_data_type(*, db: Session, pg_data_type_id: int):
-    """todo
+    """Fetch a single PG data type by its identifier.
 
     Args:
-        db: TODO: describe.
-        pg_data_type_id: TODO: describe.
+        db: Synchronous database session bound to the operational schema.
+        pg_data_type_id: Primary key of the PG data type to retrieve.
     """
     return (
         db.query(models.PGDataType)
@@ -23,12 +23,12 @@ def get_pg_data_types(
     pg_data_type_ids: list[int] = [],
     name_short: str = "",
 ):
-    """todo
+    """List PG data types optionally filtered by ID or short name.
 
     Args:
-        db: TODO: describe.
-        pg_data_type_ids: TODO: describe.
-        name_short: TODO: describe.
+        db: Synchronous database session bound to the operational schema.
+        pg_data_type_ids: Filter to this set of PG data type IDs when provided.
+        name_short: Filter by the PG data type short name when provided.
     """
     query = db.query(models.PGDataType)
     if pg_data_type_ids:

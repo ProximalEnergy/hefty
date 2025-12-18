@@ -10,11 +10,11 @@ async def get_cec_pv_inverters(
     *,
     cec_pv_inverter_ids: list[int] = [],
 ):
-    """todo
+    """Retrieve CEC PV inverters, optionally filtered by inverter IDs.
 
     Args:
-        db: TODO: describe.
-        cec_pv_inverter_ids: TODO: describe.
+        db: Database session used to run the query.
+        cec_pv_inverter_ids: Optional inverter identifiers to narrow the result.
     """
     query = select(models.CECPVInverter)
 
@@ -32,11 +32,11 @@ async def upsert_cec_pv_inverters_bulk(
     *,
     inverters: list[interfaces.CECPVInverterCreate],
 ):
-    """todo
+    """Create or update CEC PV inverter records in bulk.
 
     Args:
-        db: TODO: describe.
-        inverters: TODO: describe.
+        db: Database session used for persistence.
+        inverters: Inverter payloads keyed by manufacturer and model number.
     """
     for inverter_data in inverters:
         inverter_dict = inverter_data.model_dump()

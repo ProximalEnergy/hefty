@@ -4,10 +4,10 @@ from core import models
 
 
 def _get_kpi_types_options(*, deep: bool):
-    """todo
+    """Build loader options for KPI type queries.
 
     Args:
-        deep: TODO: describe.
+        deep: Whether to eagerly load related device types.
     """
     if deep:
         options = (selectinload(models.KPIType.device_type),)
@@ -23,12 +23,12 @@ def get_kpi_types(
     kpi_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
-    """todo
+    """Fetch KPI types with optional filtering and relationship loading.
 
     Args:
-        db: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        deep: TODO: describe.
+        db: Synchronous database session bound to the operational schema.
+        kpi_type_ids: Optional list of KPI type IDs to filter the query.
+        deep: When True, include device type relationships in the result.
     """
     options = _get_kpi_types_options(deep=deep)
 
