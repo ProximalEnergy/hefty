@@ -9792,8 +9792,6 @@ export interface components {
          * @description Droneintegrationcreate model.
          */
         DroneIntegrationCreate: {
-            /** Drone Integration Id */
-            drone_integration_id: number;
             /**
              * Project Id
              * Format: uuid

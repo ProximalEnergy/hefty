@@ -1634,8 +1634,12 @@ class DronePermissionUpdate(BaseModel):
     can_view: bool
 
 
-class DroneIntegrationCreate(DroneIntegrationBase):
+class DroneIntegrationCreate(BaseModel):
     """Droneintegrationcreate model."""
+
+    project_id: uuid.UUID
+    drone_provider_id: int
+    provider_project_id: str
 
 
 class DroneProviderUpdate(BaseModel):
