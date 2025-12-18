@@ -439,6 +439,30 @@ function AdaptiveGisBESS() {
     }
   }, [mapReady])
 
+  /**
+   * Normalize PCS AC power to per-unit based on device AC capacity.
+   * - `acPowerMw` is in MW (from sensor 31).
+   * - `capacityAcKw` is in kW.
+   * Returns a value in [-1, 1] where:
+   *   -1 = full charging, 0 = idle, 1 = full discharging.
+   * Returns null if acPowerMw or capacityAcKw is missing or invalid.
+   */
+  const normalizePcsAcPower = (
+    acPowerMw: number | null | undefined,
+    capacityAcKw: number | null | undefined,
+  ): number | null => {
+    if (acPowerMw === null || acPowerMw === undefined) return null
+    if (!capacityAcKw || capacityAcKw <= 0) return null
+
+    const capacityMw = capacityAcKw / 1000
+    if (capacityMw <= 0) return null
+
+    const perUnit = acPowerMw / capacityMw
+    if (!Number.isFinite(perUnit)) return null
+
+    return Math.max(-1, Math.min(perUnit, 1))
+  }
+
   // Build GeoJSON features
   const geojsonData: FeatureCollection | null = useMemo(() => {
     if (!viewportDevices.data) return null
@@ -458,15 +482,9 @@ function AdaptiveGisBESS() {
 
       // Estimate current per-unit ratio for glow intensity
       const pcsVals = pcsRealtimeByDevice[device.device_id] || {}
-      let ratio = 0
       const v31 = pcsVals[31]
-      if (v31 !== null && v31 !== undefined) {
-        // If 31 looks per-unit (|v|<=2), use abs(v). Else divide by capacity_ac.
-        const absv = Math.abs(v31)
-        if (absv <= 2) ratio = absv
-        else if (device.capacity_ac && device.capacity_ac > 0)
-          ratio = Math.min(absv / device.capacity_ac, 1)
-      }
+      const perUnit = normalizePcsAcPower(v31, device.capacity_ac)
+      const ratio = perUnit !== null ? Math.abs(perUnit) : 0
 
       const adjustedIntensity = Math.max(
         MIN_GLOW_INTENSITY,
@@ -498,18 +516,10 @@ function AdaptiveGisBESS() {
           const stringSoc = stringSocByDevice[device.device_id] ?? null
 
           // Calculate normalized AC power for PCS (per-unit: -1 = full charge, 0 = idle, 1 = full discharge)
-          let pcsAcPowerNormalized: number | null = null
-          if (device.device_type_id === DT_BESS_PCS) {
-            const acPower = pcsVals[31] ?? null
-            if (acPower !== null) {
-              const absv = Math.abs(acPower)
-              if (absv <= 2) {
-                pcsAcPowerNormalized = acPower
-              } else if (device.capacity_ac && device.capacity_ac > 0) {
-                pcsAcPowerNormalized = acPower / device.capacity_ac
-              }
-            }
-          }
+          const pcsAcPowerNormalized =
+            device.device_type_id === DT_BESS_PCS
+              ? normalizePcsAcPower(pcsVals[31], device.capacity_ac)
+              : null
 
           features.push({
             type: 'Feature',
@@ -537,16 +547,10 @@ function AdaptiveGisBESS() {
           device.polygon.coordinates.length > 0
         ) {
           // Calculate normalized AC power for PCS (per-unit: -1 = full charge, 0 = idle, 1 = full discharge)
-          let pcsAcPowerNormalized: number | null = null
-          const acPower = pcsVals[31] ?? null
-          if (acPower !== null) {
-            const absv = Math.abs(acPower)
-            if (absv <= 2) {
-              pcsAcPowerNormalized = acPower
-            } else if (device.capacity_ac && device.capacity_ac > 0) {
-              pcsAcPowerNormalized = acPower / device.capacity_ac
-            }
-          }
+          const pcsAcPowerNormalized = normalizePcsAcPower(
+            pcsVals[31],
+            device.capacity_ac,
+          )
 
           features.push({
             type: 'Feature',
