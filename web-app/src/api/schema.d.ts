@@ -1076,34 +1076,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/expecter-power": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Expected Power Endpoint
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_expected_power_endpoint_v1_analytics__project_id__expecter_power_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/analytics/{project_id}/meter-power-and-expected-power": {
         parameters: {
             query?: never;
@@ -13853,44 +13825,6 @@ export interface operations {
             path: {
                 project_id: string;
                 sensor_type_name_short: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_expected_power_endpoint_v1_analytics__project_id__expecter_power_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
             };
             cookie?: never;
         };

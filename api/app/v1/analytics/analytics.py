@@ -270,37 +270,6 @@ def get_heatmap(
     }
 
 
-@router.get("/expecter-power")
-def get_expected_power_endpoint(
-    project_id: UUID,
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
-    db: Session = Depends(get_db),
-    project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project_api),
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-    """
-    df = funcs.get_expected_power(
-        project_id=project_id,
-        start=start,
-        end=end,
-        db=db,
-        project_db=project_db,
-        project=project,
-    )
-
-    return df.to_dict("tight")
-
-
 @router.get("/meter-power-and-expected-power")
 def get_meter_power_and_expected_power(
     start: datetime.datetime | None = None,
