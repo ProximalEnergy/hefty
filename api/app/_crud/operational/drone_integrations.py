@@ -42,7 +42,16 @@ async def create_drone_integration(
         db: TODO: describe.
         drone_integration: TODO: describe.
     """
-    db_drone_integration = DroneIntegration(**drone_integration.model_dump())
+    # Calculate next drone_integration_id
+    stmt = sa.select(sa.func.max(DroneIntegration.drone_integration_id))
+    result = await db.execute(stmt)
+    max_id = result.scalar_one_or_none()
+    next_id = 1 if max_id is None else max_id + 1
+
+    db_drone_integration = DroneIntegration(
+        drone_integration_id=next_id,
+        **drone_integration.model_dump(),
+    )
     db.add(db_drone_integration)
     await db.commit()
     await db.refresh(db_drone_integration)

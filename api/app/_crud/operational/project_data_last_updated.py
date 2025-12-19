@@ -7,11 +7,11 @@ from core import models
 
 
 async def get_project_data_last_updated(*, db: AsyncSession, project_id: UUID):
-    """todo
+    """Fetch the last-updated metadata for a single project.
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
+        db: Async database session bound to the operational schema.
+        project_id: Project identifier to retrieve update timestamps for.
     """
     result = await db.execute(
         select(models.ProjectDataLastUpdated).filter(
@@ -22,11 +22,11 @@ async def get_project_data_last_updated(*, db: AsyncSession, project_id: UUID):
 
 
 async def get_project_data_last_updateds(*, db: AsyncSession, project_ids: list[UUID]):
-    """todo
+    """Fetch last-updated metadata for multiple projects.
 
     Args:
-        db: TODO: describe.
-        project_ids: TODO: describe.
+        db: Async database session bound to the operational schema.
+        project_ids: Collection of project IDs to include in the lookup.
     """
     result = await db.execute(
         select(models.ProjectDataLastUpdated).filter(

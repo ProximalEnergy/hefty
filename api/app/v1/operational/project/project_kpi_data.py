@@ -59,7 +59,7 @@ def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
     return {kpi.kpi_type_id: kpi.contract_id for kpi in contractual_kpis}
 
 
-@router.get("/kpi-summary-cards")
+@router.get("/kpi-summary-cards", response_model=list[interfaces.KPISummary])
 def get_project_kpi_summary(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
@@ -68,6 +68,7 @@ def get_project_kpi_summary(
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
     device_type_id: int | None = None,
+    contract_id: int | None = None,
     start: datetime.date | None = None,
 ):
     # Fetch contractual KPI type IDs and their contract IDs
@@ -81,6 +82,7 @@ def get_project_kpi_summary(
         is_superadmin: TODO: describe.
         kpi_type_ids: TODO: describe.
         device_type_id: TODO: describe.
+        contract_id: TODO: describe.
         start: TODO: describe.
     """
     contractual_kpi_type_ids = get_contractual_kpi_type_ids(
@@ -101,6 +103,17 @@ def get_project_kpi_summary(
     )
 
     kpi_type_ids = [x.kpi_type_id for x in kpi_instances]
+
+    if contract_id is not None:
+        kpi_instances = [
+            x
+            for x in kpi_instances
+            if contractual_kpi_type_ids.get(x.kpi_type_id) == contract_id
+        ]
+        kpi_type_ids = [x.kpi_type_id for x in kpi_instances]
+
+    if not kpi_type_ids:
+        return []
 
     if start:
         start = pd.Timestamp(start)

@@ -38,19 +38,26 @@ import BySensor from './BySensor'
 import PlotWithUnits from './PlotWithUnits'
 import UniquePatterns from './UniquePatterns'
 
+export interface EnrichedTag extends Tag {
+  name_full: string
+}
+
 const DataBrowsing = () => {
   const { projectId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedDeviceType, setSelectedDeviceType] = useState<string | null>(
     null,
   )
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+  const [selectedTags, setSelectedTags] = useState<EnrichedTag[]>([])
   const [expandedDevices, setExpandedDevices] = useState<Set<number>>(new Set())
   const [expandedSensorTypes, setExpandedSensorTypes] = useState<
     Set<number | null>
   >(new Set())
   const [displayMode, setDisplayMode] = useState<'by_device' | 'by_sensor'>(
     'by_device',
+  )
+  const [tagNameMode, setTagNameMode] = useState<'name_full' | 'name_scada'>(
+    'name_full',
   )
   const [interval, setInterval] = useState<string>('5min')
   const [showTags, setShowTags] = useState<
@@ -64,7 +71,7 @@ const DataBrowsing = () => {
     '5min': '5 minutes',
     '15min': '15 minutes',
     '30min': '30 minutes',
-    '1hr': '1 hour',
+    '1hour': '1 hour',
   }
   const { start, end } = useValidateDateRange({})
   const project = useSelectProject(projectId!)
@@ -154,11 +161,34 @@ const DataBrowsing = () => {
     },
   })
 
-  // Construct expected power tags from devices
+  const sensorTypes = useGetSensorTypes({
+    queryParams: {
+      sensor_type_ids: project.data?.spec.used_sensor_type_ids ?? [],
+    },
+    queryOptions: { enabled: !!project.data },
+  })
+  const usedDeviceTypeIds = Array.from(
+    new Set(
+      sensorTypes.data?.map((sensorType) => sensorType.device_type_id) ?? [],
+    ),
+  )
+
+  const deviceTypes = useGetDeviceTypes({
+    queryParams: {
+      device_type_ids: usedDeviceTypeIds,
+    },
+    queryOptions: { enabled: !!project.data && usedDeviceTypeIds.length > 0 },
+  })
+  const deviceTypeData = deviceTypes.data
+    ?.filter((deviceType) => deviceType.device_type_id !== DeviceTypeEnum.GHOST)
+    .sort((a, b) => (a.name_long ?? '').localeCompare(b.name_long ?? ''))
+
+  // Construct expected power tags from devices (moved after deviceTypeData)
   const urlExpectedPowerTags = useMemo(() => {
     if (
       !urlDevicesQuery.data ||
-      !project.data?.has_expected_energy_integration
+      !project.data?.has_expected_energy_integration ||
+      !deviceTypeData
     ) {
       return []
     }
@@ -169,19 +199,27 @@ const DataBrowsing = () => {
       2: {
         sensor_type_id: -2,
         name_long: 'PV PCS Expected Power',
+        name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
       5: {
         sensor_type_id: -5,
         name_long: 'Meter Expected Power',
+        name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
       9: {
         sensor_type_id: -9,
         name_long: 'PV DC Combiner Expected Power',
+        name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
     }
+
+    // Create a map of device_type_id to device_type for quick lookup
+    const deviceTypeMap = new Map(
+      deviceTypeData.map((dt) => [dt.device_type_id, dt]),
+    )
 
     // Filter devices to only those with supported device types
     const supportedDevices = urlDevicesQuery.data.filter(
@@ -191,36 +229,53 @@ const DataBrowsing = () => {
     )
 
     // Create Tag objects with tag_id = -device_id
-    const expectedTags: Tag[] = supportedDevices.map((device) => ({
-      tag_id: -device.device_id,
-      device: device,
-      device_id: device.device_id,
-      sensor_type:
+    const expectedTags: Tag[] = supportedDevices.map((device) => {
+      const sensorType =
         expectedPowerSensorTypes[
           device.device_type_id as keyof typeof expectedPowerSensorTypes
-        ],
-      data_type: null,
-      name_short: null,
-      name_long: null,
-      name_scada: '',
-      scada_id: null,
-      scada_type: null,
-      unit_scada: null,
-      unit_offset: null,
-      unit_scale: null,
-      point: null,
-      polygon: null,
-      sensor_type_id: null,
-    }))
+        ]
+      // Device type ID is the positive of sensor type ID
+      const deviceTypeId = Math.abs(sensorType.sensor_type_id)
+      return {
+        tag_id: -device.device_id,
+        device: {
+          ...device,
+          device_type: deviceTypeMap.get(deviceTypeId),
+        },
+        device_id: device.device_id,
+        sensor_type: sensorType,
+        data_type: null,
+        name_short: null,
+        name_long: null,
+        name_scada: '',
+        scada_id: null,
+        scada_type: null,
+        unit_scada: null,
+        unit_offset: null,
+        unit_scale: null,
+        point: null,
+        polygon: null,
+        sensor_type_id: null,
+      }
+    })
 
     return expectedTags
-  }, [urlDevicesQuery.data, project.data])
+  }, [urlDevicesQuery.data, project.data, deviceTypeData])
 
   // Combine positive tags and expected power tags from URL
   const urlLoadedTags = useMemo(() => {
     const positiveTags = urlTagsQuery.data ?? []
     const expectedTags = urlExpectedPowerTags
-    return [...positiveTags, ...expectedTags]
+    const allTags = [...positiveTags, ...expectedTags]
+    return allTags.map((tag) => ({
+      ...tag,
+      name_full:
+        (tag.device?.device_type?.name_long ?? '') +
+        ' ' +
+        (tag.device?.name_long ?? '') +
+        ' ' +
+        (tag.sensor_type?.name_metric ?? ''),
+    })) as EnrichedTag[]
   }, [urlTagsQuery.data, urlExpectedPowerTags])
 
   // Load tags from URL into selectedTags (only once on initial load)
@@ -258,28 +313,6 @@ const DataBrowsing = () => {
     project.data,
   ])
 
-  const sensorTypes = useGetSensorTypes({
-    queryParams: {
-      sensor_type_ids: project.data?.spec.used_sensor_type_ids ?? [],
-    },
-    queryOptions: { enabled: !!project.data },
-  })
-  const usedDeviceTypeIds = Array.from(
-    new Set(
-      sensorTypes.data?.map((sensorType) => sensorType.device_type_id) ?? [],
-    ),
-  )
-
-  const deviceTypes = useGetDeviceTypes({
-    queryParams: {
-      device_type_ids: usedDeviceTypeIds,
-    },
-    queryOptions: { enabled: !!project.data && usedDeviceTypeIds.length > 0 },
-  })
-  const deviceTypeData = deviceTypes.data
-    ?.filter((deviceType) => deviceType.device_type_id !== DeviceTypeEnum.GHOST)
-    .sort((a, b) => (a.name_long ?? '').localeCompare(b.name_long ?? ''))
-
   const tags = useGetTags({
     pathParams: { projectId: projectId! },
     queryParams: {
@@ -288,6 +321,7 @@ const DataBrowsing = () => {
     },
     queryOptions: { enabled: !!selectedDeviceType },
   })
+
   const uniqueDeviceIds = useMemo(() => {
     return Array.from(
       new Set(
@@ -300,9 +334,14 @@ const DataBrowsing = () => {
 
   // Build expected power tags - one per device with supported device type
   const expectedPowerTags = useMemo(() => {
-    if (!tags.data) return []
+    if (!tags.data || !deviceTypeData) return []
 
     const supportedEEMDeviceTypes = [5, 2, 9]
+
+    // Create a map of device_type_id to device_type for quick lookup
+    const deviceTypeMap = new Map(
+      deviceTypeData.map((dt) => [dt.device_type_id, dt]),
+    )
 
     // Get unique devices that have device_type_id in supportedEEMDeviceTypes
     const deviceMap = new Map<number, Tag['device']>()
@@ -313,7 +352,14 @@ const DataBrowsing = () => {
         supportedEEMDeviceTypes.includes(tag.device.device_type_id) &&
         !deviceMap.has(tag.device_id)
       ) {
-        deviceMap.set(tag.device_id, tag.device)
+        // Ensure device_type is populated
+        const device = {
+          ...tag.device,
+          device_type:
+            tag.device.device_type ||
+            deviceTypeMap.get(tag.device.device_type_id),
+        }
+        deviceMap.set(tag.device_id, device)
       }
     })
 
@@ -321,52 +367,73 @@ const DataBrowsing = () => {
       2: {
         sensor_type_id: -2,
         name_long: 'PV PCS Expected Power',
+        name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
       5: {
         sensor_type_id: -5,
         name_long: 'Meter Expected Power',
+        name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
       9: {
         sensor_type_id: -9,
         name_long: 'PV DC Combiner Expected Power',
+        name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
     }
 
     // Create Tag objects with tag_id = -device_id
     const expectedTags: Tag[] = Array.from(deviceMap.entries()).map(
-      ([deviceId, device]) => ({
-        tag_id: -deviceId,
-        device: device,
-        device_id: deviceId,
-        sensor_type:
+      ([deviceId, device]) => {
+        const sensorType =
           expectedPowerSensorTypes[
             device.device_type_id as keyof typeof expectedPowerSensorTypes
-          ],
-        data_type: null, // TODO: Fill in later
-        name_short: null, // TODO: Fill in later
-        name_long: null, // TODO: Fill in later
-        name_scada: '', // TODO: Fill in later
-        scada_id: null, // TODO: Fill in later
-        scada_type: null, // TODO: Fill in later
-        unit_scada: null, // TODO: Fill in later
-        unit_offset: null, // TODO: Fill in later
-        unit_scale: null, // TODO: Fill in later
-        point: null, // TODO: Fill in later
-        polygon: null, // TODO: Fill in later
-        sensor_type_id: null, // TODO: Fill in later
-      }),
+          ]
+        // Device type ID is the positive of sensor type ID
+        const deviceTypeId = Math.abs(sensorType.sensor_type_id)
+        return {
+          tag_id: -deviceId,
+          device: {
+            ...device,
+            device_type: deviceTypeMap.get(deviceTypeId),
+          },
+          device_id: deviceId,
+          sensor_type: sensorType,
+          data_type: null, // TODO: Fill in later
+          name_short: null, // TODO: Fill in later
+          name_long: null, // TODO: Fill in later
+          name_scada: '', // TODO: Fill in later
+          scada_id: null, // TODO: Fill in later
+          scada_type: null, // TODO: Fill in later
+          unit_scada: null, // TODO: Fill in later
+          unit_offset: null, // TODO: Fill in later
+          unit_scale: null, // TODO: Fill in later
+          point: null, // TODO: Fill in later
+          polygon: null, // TODO: Fill in later
+          sensor_type_id: null, // TODO: Fill in later
+        }
+      },
     )
 
     return expectedTags
-  }, [tags.data])
+  }, [tags.data, deviceTypeData])
 
-  const enrichedTags = useMemo(() => {
-    if (!project.data || !tags.data) return []
-    if (!project.data.has_expected_energy_integration) return tags.data
-    return [...(tags.data ?? []), ...(expectedPowerTags ?? [])]
+  const enrichedTags: EnrichedTag[] = useMemo(() => {
+    if (!project.data || !tags.data) return [] as EnrichedTag[]
+    const tagsToEnrich = project.data.has_expected_energy_integration
+      ? [...(tags.data ?? []), ...(expectedPowerTags ?? [])]
+      : tags.data
+    return tagsToEnrich.map((tag) => ({
+      ...tag,
+      name_full:
+        (tag.device?.device_type?.name_long ?? '') +
+        ' ' +
+        (tag.device?.name_long ?? '') +
+        ' ' +
+        (tag.sensor_type?.name_metric ?? ''),
+    }))
   }, [tags.data, project.data, expectedPowerTags])
 
   const enrichedUniqueSensorTypeIds = useMemo(() => {
@@ -464,31 +531,30 @@ const DataBrowsing = () => {
 
   const displayedTags = useMemo(() => {
     if (showTags === 'all_tags') {
-      return allTags.data ?? []
+      const tags = allTags.data ?? []
+      return tags.map((tag) => ({
+        ...tag,
+        name_full:
+          (tag.device?.device_type?.name_long ?? '') +
+          ' ' +
+          (tag.device?.name_long ?? '') +
+          ' ' +
+          (tag.sensor_type?.name_metric ?? ''),
+      })) as EnrichedTag[]
     }
     if (showTags === 'curated_tags' && enrichedTags) {
-      const matchesSearch = (tag: Tag): boolean => {
+      const matchesSearch = (tag: EnrichedTag): boolean => {
         if (!debouncedSearchTerm.trim()) return true
         try {
           const regex = new RegExp(debouncedSearchTerm, 'i')
-          const displayedNameByDevice =
-            tag.sensor_type?.name_long + ' ' + (tag.device?.name_long ?? '')
-          const displayedNameBySensor =
-            tag.device?.device_type?.name_long +
-            ' ' +
-            (tag.device?.name_long ?? '')
-          return (
-            regex.test(displayedNameByDevice) ||
-            regex.test(displayedNameBySensor) ||
-            regex.test(tag.name_scada)
-          )
+          return regex.test(tag.name_full) || regex.test(tag.name_scada)
         } catch {
           return false
         }
       }
       return enrichedTags.filter(matchesSearch)
     }
-    return []
+    return [] as EnrichedTag[]
   }, [showTags, enrichedTags, allTags.data, debouncedSearchTerm])
 
   const handleSelectAll = () => {
@@ -783,7 +849,7 @@ const DataBrowsing = () => {
                 searchable
               />
 
-              <Group align="center">
+              <Group align="center" justify="space-between" grow>
                 <Text>Display Mode</Text>
                 <Tooltip
                   openDelay={250}
@@ -827,6 +893,49 @@ const DataBrowsing = () => {
                   </div>
                 </Tooltip>
               </Group>
+              <Group align="center" justify="space-between">
+                <Text>Tag Name</Text>
+                <Tooltip
+                  openDelay={250}
+                  label={
+                    <div>
+                      <Text size="xs" fw={500} mb={4}>
+                        Human Readable:
+                      </Text>
+                      <Text size="xs" mb={8}>
+                        Display tags with their full descriptive names (e.g.,
+                        &quot;PV PCS Device Name Power&quot;). This format
+                        includes device type, device name, and sensor type for
+                        easy identification.
+                      </Text>
+                      <Text size="xs" fw={500} mb={4}>
+                        SCADA Name:
+                      </Text>
+                      <Text size="xs">
+                        Display tags using their original SCADA system names.
+                        Useful for matching tags to external systems or
+                        documentation that references SCADA names. Note:
+                        Expected power tags will always show human-readable
+                        names as they don&apos;t have SCADA names.
+                      </Text>
+                    </div>
+                  }
+                  multiline
+                  w={300}
+                  withArrow
+                >
+                  <SegmentedControl
+                    data={[
+                      { label: 'Human Readable', value: 'name_full' },
+                      { label: 'SCADA Name', value: 'name_scada' },
+                    ]}
+                    value={tagNameMode}
+                    onChange={(value) =>
+                      setTagNameMode(value as 'name_full' | 'name_scada')
+                    }
+                  />
+                </Tooltip>
+              </Group>
             </>
           )}
           <TextInput
@@ -846,6 +955,7 @@ const DataBrowsing = () => {
                   setExpandedDevices={setExpandedDevices}
                   isFetching={tags.isFetching}
                   searchTerm={debouncedSearchTerm}
+                  tagNameMode={tagNameMode}
                 />
               ) : (
                 <BySensor
@@ -857,6 +967,7 @@ const DataBrowsing = () => {
                   setExpandedSensorTypes={setExpandedSensorTypes}
                   isFetching={tags.isFetching}
                   searchTerm={debouncedSearchTerm}
+                  tagNameMode={tagNameMode}
                 />
               )
             ) : showTags === 'unique_patterns' ? (
@@ -912,17 +1023,23 @@ const DataBrowsing = () => {
             <ScrollArea h="100%" style={{ height: '100%', overflowY: 'auto' }}>
               <Stack p="md" h="100%" gap={3}>
                 {selectedTags.map((tag) => {
-                  // Use name_scada fallback for un-mapped tags (sensor_type_id=GHOST_UNKNOWN or device_id=0)
-                  const isUnmappedTag =
-                    tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
-                    tag.device_id === 0
-                  const tagName = isUnmappedTag
-                    ? tag.name_scada
-                    : tag.sensor_type?.name_long
-                      ? tag.sensor_type.name_long +
-                        ' ' +
-                        (tag.device?.name_long ?? '')
-                      : tag.name_scada
+                  // Expected power tags (tag_id < 0) don't have name_scada, always use name_full
+                  const isExpectedPowerTag = tag.tag_id < 0
+                  let tagName: string
+                  if (isExpectedPowerTag) {
+                    tagName = tag.name_full || ''
+                  } else if (tagNameMode === 'name_scada') {
+                    tagName = tag.name_scada || ''
+                  } else {
+                    // name_full mode: Use name_scada fallback for un-mapped tags
+                    const isUnmappedTag =
+                      tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
+                      tag.sensor_type_id === null ||
+                      tag.device_id === 0
+                    tagName = isUnmappedTag
+                      ? tag.name_scada
+                      : tag.name_full || tag.name_scada
+                  }
                   return (
                     <Checkbox
                       key={tag.tag_id}
@@ -984,6 +1101,7 @@ const DataBrowsing = () => {
               }
               error={timeseriesData.error || expectedPowerTimeseriesData.error}
               allowPinning={true}
+              tagNameMode={tagNameMode}
             />
           </Box>
           <Button

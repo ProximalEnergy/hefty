@@ -24,14 +24,14 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 class ThemeUpdateRequest(BaseModel):
-    """todo"""
+    """Request body for updating the user's theme preferences in Clerk."""
 
     theme: str
     vite_environment: str
 
 
 class DemoModeUpdateRequest(BaseModel):
-    """todo"""
+    """Request body for toggling demo mode flags for a Clerk user."""
 
     demo_mode: bool
     vite_environment: str
@@ -50,14 +50,14 @@ async def get_users(
     ),
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)] = False,
 ):
-    """todo
+    """List users along with their operational project assignments.
 
     Args:
-        db: TODO: describe.
-        company_ids: TODO: describe.
-        user_ids: TODO: describe.
-        include_image_urls: TODO: describe.
-        api_prod: TODO: describe.
+        db: Async session for the admin database.
+        company_ids: Optional list of companies to scope returned users.
+        user_ids: Optional list of Clerk user IDs to filter by.
+        include_image_urls: Whether to request profile images from Clerk.
+        api_prod: Flag indicating if requests should target the prod Clerk API.
     """
     users = await crud_get_users(db=db, company_ids=company_ids, user_ids=user_ids)
 
@@ -87,10 +87,10 @@ async def get_users(
 async def get_self(
     user_data: Annotated[dict, Depends(dependencies.get_user_data_async)],
 ):
-    """todo
+    """Return the authenticated user's session data.
 
     Args:
-        user_data: TODO: describe.
+        user_data: Context data injected from the authentication middleware.
     """
     return user_data
 
@@ -103,13 +103,13 @@ async def create_user(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: UserCreate,
 ):
-    # Create user in Clerk
-    """todo
+    """Create a user in Clerk and persist metadata in the admin database.
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
+        db: Async session for admin persistence actions.
+        user: UserCreate payload containing Clerk and company details.
     """
+    # Create user in Clerk
     new_user_data = await create_clerk_user(
         user=user,
         company_name_short=user.company_name_short,

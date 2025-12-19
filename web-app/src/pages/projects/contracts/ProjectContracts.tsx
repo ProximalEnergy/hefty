@@ -185,20 +185,17 @@ const ContractCard = ({
     },
   })
 
-  // Get all KPI summary cards for this project to get the actual KPI values
-  const { data: allKpis, isLoading: kpisLoading } = useGetKPISummaryCards({
-    pathParams: { projectId: contract.project_id },
-    queryOptions: {
-      enabled:
-        !isExample && contract.project_id !== 'demo' && !!contract.project_id,
-    },
-  })
+  const { data: contractualKpiData, isLoading: kpisLoading } =
+    useGetKPISummaryCards({
+      pathParams: { projectId: contract.project_id },
+      queryParams: { contract_id: contract.contract_id },
+      queryOptions: {
+        enabled:
+          !isExample && contract.project_id !== 'demo' && !!contract.project_id,
+      },
+    })
 
-  // Filter for only contractual KPIs (those with contract_id) for this specific contract
-  const contractualKPIs =
-    allKpis?.filter(
-      (kpi: KPISummaryCard) => kpi.contract_id === contract.contract_id,
-    ) || []
+  const contractualKPIs = contractualKpiData ?? []
 
   // Function to get threshold value for current date (simplified version)
   const getCurrentThreshold = (kpiTypeId: number) => {

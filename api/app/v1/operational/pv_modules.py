@@ -231,7 +231,7 @@ async def parse_pan_file(
             - pv_module_data: The complete pv_module configuration with all parameters
 
     Args:
-        file: TODO: describe.
+        file: Uploaded PAN file to parse.
     """
     try:
         file_content = await file.read()

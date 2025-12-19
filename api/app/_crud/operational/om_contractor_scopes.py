@@ -11,11 +11,11 @@ async def get_om_contractor_scopes_by_project(
     db: AsyncSession,
     project_id: UUID,
 ):
-    """todo
+    """Fetch contractor scopes for the given project.
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
+        db: Async database session used to execute the query.
+        project_id: Project identifier to filter contractor scopes.
     """
     query = (
         select(

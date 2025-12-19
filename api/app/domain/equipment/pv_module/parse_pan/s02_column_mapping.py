@@ -8,14 +8,31 @@ def format_pan_to_pvmodule(
     pan_data: dict[str, Any],
     pan_format: PANformat,
 ) -> dict[str, Any]:
-    """Formats the parsed PAN file data into the structure of the PVModule model.
+    """
+    Format parsed PAN file data into a dictionary structure matching the PVModule model.
 
-        WARNINGS:
-            - Binary PAN files sets length and width to -999.9
+    Converts field names and types from a parsed PAN file (either text or binary
+    format) into a standard dictionary suitable for PVModule ingestion.
+    Handles differences between text and binary PAN formats, including missing
+    or placeholder values.
 
     Args:
-        pan_data: TODO: describe.
-        pan_format: TODO: describe.
+        pan_data (dict[str, Any]): The raw, already-parsed data from a PAN file.
+            Should come from a prior parsing step and may contain nested structures.
+        pan_format (PANformat): Enum value indicating the source PAN file format.
+            Determines which mapping and structure to use for extraction.
+            - PANformat.TEXT expects 'PVObject_' as the top-level key and
+              flattens 'PVObject_Commercial' sub-fields.
+            - PANformat.BINARY assumes a flat structure and sets 'length' and
+              'width' fields to -999.9 as placeholders.
+
+    Returns:
+        dict[str, Any]: Dictionary containing all expected PVModule fields with
+        type-consistent values, ready for model insertion or serialization.
+
+    Note:
+        - For missing fields 'bifaciality_factor' and 'beta_voc', sets default 0.0.
+        - For binary files, 'length' and 'width' will be -999.9 (invalid).
     """
     match pan_format:
         case PANformat.TEXT:
@@ -75,7 +92,19 @@ def format_pan_to_pvmodule(
             formatted_data[output_key] = target_type(pan_data[pan_key])
         elif output_key == "bifaciality_factor":
             formatted_data[output_key] = 0.0
+        elif output_key == "beta_voc":
+            # Estimate beta_voc from technology when muVocSpec is missing
+            technology = formatted_data.get("technology", "").lower()
+            voc = formatted_data.get("voc", 0.0)
+            if "cdte" in technology:
+                # CdTe modules: beta_voc = -0.0028 × Voc
+                formatted_data[output_key] = -0.0028 * voc
+            else:
+                # Crystalline silicon (default): beta_voc = -0.0029 × Voc
+                formatted_data[output_key] = -0.0029 * voc
         else:
-            formatted_data[output_key] = target_type(pan_data[pan_key])
+            raise ValueError(
+                f"Something unexpected happened while mapping {output_key}"
+            )
 
     return formatted_data

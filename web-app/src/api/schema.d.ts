@@ -178,40 +178,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/report-preferences": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Report Preferences
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_report_preferences_v1_admin_report_preferences_get"];
-        /**
-         * Update Report Preferences
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
-         */
-        put: operations["update_report_preferences_v1_admin_report_preferences_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/admin/subscriptions": {
         parameters: {
             query?: never;
@@ -601,14 +567,14 @@ export interface paths {
         };
         /**
          * Get Users
-         * @description todo
+         * @description List users along with their operational project assignments.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         company_ids: TODO: describe.
-         *         user_ids: TODO: describe.
-         *         include_image_urls: TODO: describe.
-         *         api_prod: TODO: describe.
+         *         db: Async session for the admin database.
+         *         company_ids: Optional list of companies to scope returned users.
+         *         user_ids: Optional list of Clerk user IDs to filter by.
+         *         include_image_urls: Whether to request profile images from Clerk.
+         *         api_prod: Flag indicating if requests should target the prod Clerk API.
          */
         get: operations["get_users_v1_admin_users_get"];
         put?: never;
@@ -628,10 +594,10 @@ export interface paths {
         };
         /**
          * Get Self
-         * @description todo
+         * @description Return the authenticated user's session data.
          *
          *     Args:
-         *         user_data: TODO: describe.
+         *         user_data: Context data injected from the authentication middleware.
          */
         get: operations["get_self_v1_admin_users_self_get"];
         put?: never;
@@ -653,11 +619,11 @@ export interface paths {
         put?: never;
         /**
          * Create User
-         * @description todo
+         * @description Create a user in Clerk and persist metadata in the admin database.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
+         *         db: Async session for admin persistence actions.
+         *         user: UserCreate payload containing Clerk and company details.
          */
         post: operations["create_user_v1_admin_users_create_with_clerk_post"];
         delete?: never;
@@ -861,58 +827,6 @@ export interface paths {
          *         user_data: TODO: describe.
          */
         get: operations["get_user_type_v1_admin_user_type_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/subscribed-alert-emails": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Subscribed Alert Emails
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         api_prod: TODO: describe.
-         */
-        get: operations["get_subscribed_alert_emails_v1_admin_subscribed_alert_emails_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/subscribed-report-emails": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Subscribed Report Emails
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         api_prod: TODO: describe.
-         */
-        get: operations["get_subscribed_report_emails_v1_admin_subscribed_report_emails_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2353,8 +2267,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Types Legacy
-         * @deprecated
+         * Get Project Types
          * @description todo
          *
          *     Args:
@@ -2363,7 +2276,7 @@ export interface paths {
          *         name_long: TODO: describe.
          *         db: TODO: describe.
          */
-        get: operations["get_project_types_legacy"];
+        get: operations["get_project_types"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2380,15 +2293,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Type Legacy
-         * @deprecated
+         * Get Project Type
          * @description todo
          *
          *     Args:
          *         project_type_id: TODO: describe.
          *         db: TODO: describe.
          */
-        get: operations["get_project_type_by_id_legacy"];
+        get: operations["get_project_type_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3219,12 +3131,12 @@ export interface paths {
         };
         /**
          * Get Project Device
-         * @description todo
+         * @description Return a single project device with optional relationship data.
          *
          *     Args:
-         *         device_id: TODO: describe.
-         *         deep: TODO: describe.
-         *         project_db: TODO: describe.
+         *         device_id: Identifier of the device to fetch.
+         *         deep: Whether to include related entities such as children and tags.
+         *         project_db: Database session for the current project.
          */
         get: operations["get_project_device_by_id"];
         put?: never;
@@ -3693,6 +3605,7 @@ export interface paths {
          *         is_superadmin: TODO: describe.
          *         kpi_type_ids: TODO: describe.
          *         device_type_id: TODO: describe.
+         *         contract_id: TODO: describe.
          *         start: TODO: describe.
          */
         get: operations["get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get"];
@@ -4455,13 +4368,13 @@ export interface paths {
          *             The list of device ids to filter the tickets by
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         user: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_ids: TODO: describe.
+         *         project_id: Operational project identifier for scoping CMMS data.
+         *         db: Primary application database session used for permissions lookup.
+         *         project_db: Project-level async session for ticket and device queries.
+         *         user: Authenticated user context containing company membership.
+         *         start: Optional ISO date string to filter tickets created after this time.
+         *         end: Optional ISO date string limiting tickets created before this time.
+         *         device_ids: Optional list of project device IDs to filter matching tickets.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
         put?: never;
@@ -5215,14 +5128,13 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Types Legacy
-         * @deprecated
+         * Get Report Types
          * @description todo
          *
          *     Args:
          *         db: TODO: describe.
          */
-        get: operations["get_report_types_legacy"];
+        get: operations["get_report_types"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5239,15 +5151,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Type Legacy
-         * @deprecated
+         * Get Report Type
          * @description todo
          *
          *     Args:
          *         report_type_id: TODO: describe.
          *         db: TODO: describe.
          */
-        get: operations["get_report_type_by_id_legacy"];
+        get: operations["get_report_type_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5608,7 +5519,7 @@ export interface paths {
          *             - pv_module_data: The complete pv_module configuration with all parameters
          *
          *     Args:
-         *         file: TODO: describe.
+         *         file: Uploaded PAN file to parse.
          */
         post: operations["parse_pan_file_v1_operational_pv_modules_parse_pan_post"];
         delete?: never;
@@ -7562,19 +7473,19 @@ export interface paths {
         };
         /**
          * Get Meter Power And Expected Power V2
-         * @description todo
+         * @description Return meter and expected power traces for a project.
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         include_storage: TODO: describe.
-         *         include_setpoint: TODO: describe.
-         *         include_soiling: TODO: describe.
-         *         include_degradation: TODO: describe.
-         *         interval: TODO: describe.
+         *         start: Optional start datetime for the time window (project timezone).
+         *         end: Optional end datetime for the time window (project timezone).
+         *         project: Project model provided by dependency injection.
+         *         db: Shared application database session for fetching tag metadata.
+         *         project_db: Project database session used for time-series queries.
+         *         include_storage: Whether to include PV/BESS circuit power in results.
+         *         include_setpoint: Whether to include PPC active power setpoint values.
+         *         include_soiling: Whether to request expected power adjusted for soiling.
+         *         include_degradation: Whether to include degradation-adjusted expectation.
+         *         interval: Resampling interval used for tag retrieval (e.g., "5min").
          */
         get: operations["get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get"];
         put?: never;
@@ -8883,7 +8794,7 @@ export interface components {
         };
         /**
          * CMMSMetadata
-         * @description todo
+         * @description Metadata about CMMS integration availability for the project.
          */
         CMMSMetadata: {
             /** Integration Configured */
@@ -8891,7 +8802,7 @@ export interface components {
         };
         /**
          * CMMSResponse
-         * @description todo
+         * @description Response wrapper containing integration state and ticket results.
          */
         CMMSResponse: {
             metadata: components["schemas"]["CMMSMetadata"];
@@ -8900,7 +8811,7 @@ export interface components {
         };
         /**
          * CMMSTicket
-         * @description todo
+         * @description A CMMS ticket with provider metadata and scheduling details.
          */
         CMMSTicket: {
             /** Cmms Provider */
@@ -9549,7 +9460,7 @@ export interface components {
         DefaultTimeRange: 1 | 2 | 3 | 4;
         /**
          * DemoModeUpdateRequest
-         * @description todo
+         * @description Request body for toggling demo mode flags for a Clerk user.
          */
         DemoModeUpdateRequest: {
             /** Demo Mode */
@@ -9881,8 +9792,6 @@ export interface components {
          * @description Droneintegrationcreate model.
          */
         DroneIntegrationCreate: {
-            /** Drone Integration Id */
-            drone_integration_id: number;
             /**
              * Project Id
              * Format: uuid
@@ -10509,6 +10418,42 @@ export interface components {
             /** Is Visible */
             is_visible: boolean;
             kpi_type: components["schemas"]["KPIType"] | null;
+        };
+        /**
+         * KPISummary
+         * @description Kpisummary model.
+         */
+        KPISummary: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Title */
+            title: string;
+            /** Value */
+            value?: number | null;
+            /** Info */
+            info?: string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Prefix */
+            prefix?: string | null;
+            /** Change */
+            change?: number | null;
+            /** Valcolor */
+            valColor?: string | null;
+            /** Link */
+            link: string;
+            /** Is Visible */
+            is_visible?: boolean | null;
+            /** Contract Id */
+            contract_id?: number | null;
+            /** Threshold */
+            threshold?: {
+                [key: string]: unknown;
+            } | null;
+            /** Ytd Value */
+            ytd_value?: number | null;
+            /** Aggregation Method */
+            aggregation_method?: string | null;
         };
         /**
          * KPIType
@@ -11888,7 +11833,7 @@ export interface components {
         };
         /**
          * ThemeUpdateRequest
-         * @description todo
+         * @description Request body for updating the user's theme preferences in Clerk.
          */
         ThemeUpdateRequest: {
             /** Theme */
@@ -12485,70 +12430,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserWithPermissions"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_report_preferences_v1_admin_report_preferences_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_report_preferences_v1_admin_report_preferences_put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -13626,74 +13507,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserType"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_subscribed_alert_emails_v1_admin_subscribed_alert_emails_get: {
-        parameters: {
-            query: {
-                project_id: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_subscribed_report_emails_v1_admin_subscribed_report_emails_get: {
-        parameters: {
-            query: {
-                project_id: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -15770,7 +15583,7 @@ export interface operations {
             };
         };
     };
-    get_project_types_legacy: {
+    get_project_types: {
         parameters: {
             query?: {
                 project_type_ids?: number[];
@@ -15807,7 +15620,7 @@ export interface operations {
             };
         };
     };
-    get_project_type_by_id_legacy: {
+    get_project_type_by_id: {
         parameters: {
             query?: {
                 schema?: string | null;
@@ -17546,6 +17359,7 @@ export interface operations {
             query?: {
                 kpi_type_ids?: number[] | null;
                 device_type_id?: number | null;
+                contract_id?: number | null;
                 start?: string | null;
                 schema?: string | null;
             };
@@ -17566,7 +17380,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["KPISummary"][];
                 };
             };
             /** @description Validation Error */
@@ -20000,11 +19814,9 @@ export interface operations {
             };
         };
     };
-    get_report_types_legacy: {
+    get_report_types: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20034,11 +19846,9 @@ export interface operations {
             };
         };
     };
-    get_report_type_by_id_legacy: {
+    get_report_type_by_id: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;

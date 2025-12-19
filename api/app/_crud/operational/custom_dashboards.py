@@ -12,12 +12,12 @@ async def get_user_dashboards(
     user_id: str,
     project_id: uuid.UUID,
 ):
-    """todo
+    """Return dashboards owned by a user for a specific project.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session for executing the dashboard lookup.
+        user_id: Identifier of the user who owns the dashboards.
+        project_id: Project identifier used to scope dashboards.
     """
     query = (
         select(models.CustomDashboard)
@@ -37,9 +37,9 @@ async def get_shared_user_dashboards(
     """Get all shared user dashboards for a project.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session for executing the shared dashboard query.
+        user_id: Identifier of the user receiving shared dashboards.
+        project_id: Project identifier used to filter shared dashboards.
     """
     query = (
         select(models.CustomDashboard)
@@ -66,16 +66,16 @@ async def create_user_dashboard(
     default_kpi_time_range: enumerations.DefaultKPITimeRange,
     components: list,
 ):
-    """todo
+    """Create a dashboard and its components for a project user.
 
     Args:
-        db: TODO: describe.
-        owner_user_id: TODO: describe.
-        project_id: TODO: describe.
-        dashboard_name: TODO: describe.
-        default_time_range: TODO: describe.
-        default_kpi_time_range: TODO: describe.
-        components: TODO: describe.
+        db: Database session used to persist the dashboard and components.
+        owner_user_id: Identifier of the user creating the dashboard.
+        project_id: Project identifier that owns the dashboard.
+        dashboard_name: Display name for the dashboard.
+        default_time_range: Default time window for dashboard visualizations.
+        default_kpi_time_range: Default time window for KPI components.
+        components: Component payloads including layout and configuration.
     """
     new_uuid = uuid.uuid4()
 
@@ -144,17 +144,17 @@ async def update_user_dashboard(
     components: list,
 ):
     # First, get the existing dashboard to verify ownership
-    """todo
+    """Update a dashboard and its components owned by the requesting user.
 
     Args:
-        db: TODO: describe.
-        dashboard_id: TODO: describe.
-        owner_user_id: TODO: describe.
-        project_id: TODO: describe.
-        dashboard_name: TODO: describe.
-        default_time_range: TODO: describe.
-        default_kpi_time_range: TODO: describe.
-        components: TODO: describe.
+        db: Database session used to fetch and persist dashboard changes.
+        dashboard_id: Identifier of the dashboard to update.
+        owner_user_id: Identifier of the dashboard owner performing the update.
+        project_id: Project identifier used to scope the dashboard.
+        dashboard_name: New display name for the dashboard.
+        default_time_range: Updated default range for dashboard visualizations.
+        default_kpi_time_range: Updated default range for KPI components.
+        components: Component payloads containing layout and config changes.
     """
     query = (
         select(models.CustomDashboard)
@@ -296,13 +296,13 @@ async def get_dashboard_by_id(
     user_id: str,
     project_id: uuid.UUID,
 ):
-    """Get a single dashboard by ID with all its components.
+    """Get a dashboard with its components if the user owns or has share access.
 
     Args:
-        db: TODO: describe.
-        dashboard_id: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session for fetching dashboards and components.
+        dashboard_id: Dashboard identifier to retrieve.
+        user_id: Requesting user who must own or be shared on the dashboard.
+        project_id: Project identifier scoping the dashboard.
     """
     # First get the dashboard
     dashboard_query = (
@@ -398,10 +398,10 @@ async def delete_user_dashboard(
     """Delete a dashboard and all its components.
 
     Args:
-        db: TODO: describe.
-        dashboard_id: TODO: describe.
-        owner_user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session used for dashboard and component deletion.
+        dashboard_id: Dashboard identifier targeted for removal.
+        owner_user_id: Owner identifier used to verify delete permissions.
+        project_id: Project identifier scoping the dashboard.
     """
     # First, get the existing dashboard to verify ownership
     query = (
@@ -450,10 +450,10 @@ async def get_dashboard_shared_users(
     """Get all user IDs who have share access to a dashboard.
 
     Args:
-        db: TODO: describe.
-        dashboard_id: TODO: describe.
-        owner_user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session for retrieving dashboard share records.
+        dashboard_id: Dashboard identifier used to find shares.
+        owner_user_id: Owner identifier used to validate access.
+        project_id: Project identifier scoping the dashboard.
     """
     # First, verify the dashboard exists and user is the owner
     query = (
@@ -490,11 +490,11 @@ async def share_user_dashboard(
     """Share a dashboard with a user.
 
     Args:
-        db: TODO: describe.
-        dashboard_id: TODO: describe.
-        owner_user_id: TODO: describe.
-        shared_user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session for creating dashboard share records.
+        dashboard_id: Dashboard identifier being shared.
+        owner_user_id: Owner identifier used to authorize the share.
+        shared_user_id: User identifier receiving dashboard access.
+        project_id: Project identifier scoping the dashboard.
     """
     # First, get the existing dashboard to verify ownership
     query = (
@@ -545,11 +545,11 @@ async def unshare_user_dashboard(
     """Unshare a dashboard with a user.
 
     Args:
-        db: TODO: describe.
-        dashboard_id: TODO: describe.
-        owner_user_id: TODO: describe.
-        shared_user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session for deleting dashboard share records.
+        dashboard_id: Dashboard identifier being unshared.
+        owner_user_id: Owner identifier used to authorize the removal.
+        shared_user_id: User identifier losing dashboard access.
+        project_id: Project identifier scoping the dashboard.
     """
     # First, get the existing dashboard to verify ownership
     query = (

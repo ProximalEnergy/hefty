@@ -1,14 +1,14 @@
 # Device Types Tests
 
 # Get all device types
-GET {{baseURL}}/v1/operational/device_types
+GET {{baseURL}}/v1/operational/device-types
 x-api-key: {{apiKey}}
 HTTP 200
 [Asserts]
 status == 200
 
 # Get device type by ID
-GET {{baseURL}}/v1/operational/device_types/1
+GET {{baseURL}}/v1/operational/device-types/1
 x-api-key: {{apiKey}}
 HTTP 200
 [Asserts]
