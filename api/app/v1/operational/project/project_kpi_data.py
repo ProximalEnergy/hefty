@@ -1,14 +1,21 @@
 import datetime
 import uuid
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import numpy as np
 import pandas as pd
+from core.crud.operational.kpi_data import (
+    get_project_kpi_data_agg,
+    get_project_kpi_data_agg_freq,
+)
 from core.crud.operational.projects import get_project_async
 from core.dependencies import get_db
+from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import ORJSONResponse
 from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
@@ -37,6 +44,145 @@ from app.v1.operational.project.project_documents import generate_presigned_url
 from core import models
 
 router = APIRouter(prefix="/projects/{project_id}/kpi-data", tags=["project_kpi_data"])
+
+
+async def get_aggregation_method_for_kpi_type(
+    *, db: AsyncSession, kpi_type_id: KPIType
+) -> Literal["avg", "sum"]:
+    """
+    Retrieve the aggregation method for a given KPI type from the database.
+
+    Args:
+        db: Async database session.
+        kpi_type_id: The KPI type ID to look up.
+
+    Returns:
+        The aggregation method as "avg" or "sum".
+    """
+    query = select(models.KPIType.aggregation_method)
+    query = query.filter(models.KPIType.kpi_type_id == kpi_type_id)
+    result = await db.execute(query)
+    aggregation_method = result.scalar_one()
+
+    conversion: dict[str, Literal["avg", "sum"]] = {
+        "average": "avg",
+        "sum": "sum",
+    }
+    return conversion[aggregation_method]
+
+
+class ProjectKPIData(BaseModel):
+    """Response model for project KPI data with dates and values."""
+
+    date: list[datetime.date]
+    project_data: list[float]
+
+
+@router.get(
+    "/agg-freq",
+    response_model=ProjectKPIData,
+    response_class=ORJSONResponse,
+)
+async def get_project_aggregated_kpi_data_freq(
+    *,
+    project_id: uuid.UUID,
+    kpi_type_id: KPIType,
+    start: datetime.date | None = None,
+    end: datetime.date | None = None,
+    frequency: Literal["month", "year"] | None = None,
+    aggregation: Literal["avg", "sum"] | None = None,
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user_data: interfaces.UserData = Depends(get_user_data_async),
+):
+    """
+    Get aggregated KPI data for a project with optional frequency binning.
+
+    Args:
+        project_id: Project UUID from path parameter.
+        start: Start date for the data range. If None, there is no limit on the start date.
+        end: End date for the data range. If None, there is no limit on the end date.
+        kpi_type_id: The KPI type to query.
+        frequency: Optional frequency for aggregation ("month" or "year").
+        aggregation: Optional aggregation method ("avg" or "sum").
+        db: Database session.
+        user_data: Authenticated user data.
+
+    Returns:
+        ProjectKPIData with dates and aggregated values.
+    """
+    if project_id not in user_data.operational_project_ids:
+        raise HTTPException(
+            status_code=403, detail="You are not authorized to access this project"
+        )
+
+    if aggregation is None:
+        aggregation = await get_aggregation_method_for_kpi_type(
+            db=db, kpi_type_id=kpi_type_id
+        )
+
+    query = get_project_kpi_data_agg_freq(
+        project_id=project_id,
+        kpi_type_id=kpi_type_id,
+        start=start,
+        end=end,
+        frequency=frequency,
+        aggregation_method=aggregation,
+    )
+    result = await db.execute(query)
+    rows = result.mappings().all()
+    dates = [row["date"] for row in rows]
+    project_data = [row["project_data"] for row in rows]
+    return ProjectKPIData(date=dates, project_data=project_data)
+
+
+@router.get(
+    "/agg",
+    response_model=float,
+)
+async def get_project_aggregated_kpi_data(
+    *,
+    project_id: uuid.UUID,
+    kpi_type_id: KPIType,
+    start: datetime.date | None = None,
+    end: datetime.date | None = None,
+    aggregation: Literal["avg", "sum"] | None = None,
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user_data: interfaces.UserData = Depends(get_user_data_async),
+):
+    """
+    Get single aggregated KPI value for a project across entire date range.
+
+    Args:
+        project_id: Project UUID from path parameter.
+        start: Start date for the data range.
+        end: End date for the data range.
+        kpi_type_id: The KPI type to query.
+        aggregation: Optional aggregation method ("avg" or "sum").
+        db: Database session.
+        user_data: Authenticated user data.
+
+    Returns:
+        Single aggregated float value.
+    """
+    if project_id not in user_data.operational_project_ids:
+        raise HTTPException(
+            status_code=403, detail="You are not authorized to access this project"
+        )
+
+    if aggregation is None:
+        aggregation = await get_aggregation_method_for_kpi_type(
+            db=db, kpi_type_id=kpi_type_id
+        )
+
+    query = get_project_kpi_data_agg(
+        project_id=project_id,
+        kpi_type_id=kpi_type_id,
+        start=start,
+        end=end,
+        aggregation_method=aggregation,
+    )
+    result = await db.execute(query)
+    return result.scalar_one()
 
 
 # Update the function to fetch contractual KPI type IDs along with contract IDs

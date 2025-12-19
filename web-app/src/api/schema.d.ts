@@ -3527,6 +3527,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Aggregated Kpi Data Freq
+         * @description Get aggregated KPI data for a project with optional frequency binning.
+         *
+         *     Args:
+         *         project_id: Project UUID from path parameter.
+         *         start: Start date for the data range. If None, there is no limit on the start date.
+         *         end: End date for the data range. If None, there is no limit on the end date.
+         *         kpi_type_id: The KPI type to query.
+         *         frequency: Optional frequency for aggregation ("month" or "year").
+         *         aggregation: Optional aggregation method ("avg" or "sum").
+         *         db: Database session.
+         *         user_data: Authenticated user data.
+         *
+         *     Returns:
+         *         ProjectKPIData with dates and aggregated values.
+         */
+        get: operations["get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/kpi-data/agg": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Aggregated Kpi Data
+         * @description Get single aggregated KPI value for a project across entire date range.
+         *
+         *     Args:
+         *         project_id: Project UUID from path parameter.
+         *         start: Start date for the data range.
+         *         end: End date for the data range.
+         *         kpi_type_id: The KPI type to query.
+         *         aggregation: Optional aggregation method ("avg" or "sum").
+         *         db: Database session.
+         *         user_data: Authenticated user data.
+         *
+         *     Returns:
+         *         Single aggregated float value.
+         */
+        get: operations["get_project_aggregated_kpi_data_v1_operational_projects__project_id__kpi_data_agg_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/kpi-data/kpi-summary-cards": {
         parameters: {
             query?: never;
@@ -10358,7 +10423,7 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type: components["schemas"]["KPIType"] | null;
+            kpi_type: components["schemas"]["app__interfaces__KPIType"] | null;
         };
         /**
          * KPISummary
@@ -10395,31 +10460,6 @@ export interface components {
             ytd_value?: number | null;
             /** Aggregation Method */
             aggregation_method?: string | null;
-        };
-        /**
-         * KPIType
-         * @description Kpitype model.
-         */
-        KPIType: {
-            /** Kpi Type Id */
-            kpi_type_id: number;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-            /** Name Metric */
-            name_metric: string;
-            /** Description */
-            description: string | null;
-            /** Unit */
-            unit: string | null;
-            /** Aggregation Method */
-            aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
-            /** Doc Url */
-            doc_url: string | null;
         };
         /**
          * KPITypeWithContractInfo
@@ -11233,6 +11273,16 @@ export interface components {
             time_last: string | null;
         };
         /**
+         * ProjectKPIData
+         * @description Response model for project KPI data with dates and values.
+         */
+        ProjectKPIData: {
+            /** Date */
+            date: string[];
+            /** Project Data */
+            project_data: number[];
+        };
+        /**
          * ProjectSpec
          * @description Projectspec model.
          */
@@ -12043,6 +12093,31 @@ export interface components {
             description: string;
         };
         /**
+         * KPIType
+         * @description Kpitype model.
+         */
+        app__interfaces__KPIType: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Description */
+            description: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Aggregation Method */
+            aggregation_method: string;
+            device_type: components["schemas"]["DeviceType"] | null;
+            /** Doc Url */
+            doc_url: string | null;
+        };
+        /**
          * SensorType
          * @description Sensortype model.
          */
@@ -12062,6 +12137,11 @@ export interface components {
             /** Description */
             description: string | null;
         };
+        /**
+         * KPIType
+         * @enum {integer}
+         */
+        core__enumerations__KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105;
         /**
          * SensorType
          * @enum {integer}
@@ -17216,6 +17296,85 @@ export interface operations {
             };
         };
     };
+    get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
+        parameters: {
+            query: {
+                kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+                start?: string | null;
+                end?: string | null;
+                frequency?: ("month" | "year") | null;
+                aggregation?: ("avg" | "sum") | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectKPIData"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_aggregated_kpi_data_v1_operational_projects__project_id__kpi_data_agg_get: {
+        parameters: {
+            query: {
+                kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+                start?: string | null;
+                end?: string | null;
+                aggregation?: ("avg" | "sum") | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get: {
         parameters: {
             query?: {
@@ -19590,7 +19749,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType"][];
+                    "application/json": components["schemas"]["app__interfaces__KPIType"][];
                 };
             };
             /** @description Validation Error */
@@ -19626,7 +19785,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType"];
+                    "application/json": components["schemas"]["app__interfaces__KPIType"];
                 };
             };
             /** @description Validation Error */
