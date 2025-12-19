@@ -1,8 +1,6 @@
 import datetime
-import functools
 import hashlib
 import random
-import warnings
 from collections import defaultdict
 from typing import Any
 
@@ -802,38 +800,6 @@ def get_truetracking_irradiance(
         axis=1,
     )
     return pd.DataFrame(result)
-
-
-def deprecated(reason):
-    """This decorator can be used to mark functions as deprecated.
-        It will result in a warning being emitted when the function is used.
-
-        :param reason: A message indicating why the function is deprecated.
-
-    Args:
-        reason: TODO: describe.
-    """
-
-    def decorator(func):
-        """todo
-
-        Args:
-            func: TODO: describe.
-        """
-
-        @functools.wraps(func)
-        def new_func(*args: str, **kwargs):
-            """Handle new func."""
-            warnings.warn(
-                f"Call to deprecated function {func.__name__}. {reason}",
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            return func(*args, **kwargs)
-
-        return new_func
-
-    return decorator
 
 
 def map_ancestors_to_descendents(
