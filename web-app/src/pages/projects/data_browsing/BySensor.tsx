@@ -1,21 +1,23 @@
 import { SensorTypeEnum } from '@/api/enumerations'
-import { Tag } from '@/hooks/types'
 import { Checkbox, Group, LoadingOverlay, useMantineTheme } from '@mantine/core'
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useMemo, useRef } from 'react'
 
+import { EnrichedTag } from './DataBrowsing'
+
 interface BySensorProps {
-  tags: Tag[] | undefined
+  tags: EnrichedTag[] | undefined
   uniqueSensorTypeIds: (number | null)[]
-  selectedTags: Tag[]
-  setSelectedTags: React.Dispatch<React.SetStateAction<Tag[]>>
+  selectedTags: EnrichedTag[]
+  setSelectedTags: React.Dispatch<React.SetStateAction<EnrichedTag[]>>
   expandedSensorTypes: Set<number | null>
   setExpandedSensorTypes: React.Dispatch<
     React.SetStateAction<Set<number | null>>
   >
   isFetching: boolean
   searchTerm: string
+  tagNameMode: 'name_full' | 'name_scada'
 }
 
 const BySensor = ({
@@ -27,21 +29,18 @@ const BySensor = ({
   setExpandedSensorTypes,
   isFetching,
   searchTerm,
+  tagNameMode,
 }: BySensorProps) => {
   const theme = useMantineTheme()
   const parentRef = useRef<HTMLDivElement>(null)
 
   // Helper function to check if a tag matches the search term
   const matchesSearch = useCallback(
-    (tag: Tag): boolean => {
+    (tag: EnrichedTag): boolean => {
       if (!searchTerm.trim()) return true
       try {
         const regex = new RegExp(searchTerm, 'i')
-        const displayedName =
-          tag.device?.device_type?.name_long +
-          ' ' +
-          (tag.device?.name_long ?? '')
-        return regex.test(displayedName) || regex.test(tag.name_scada)
+        return regex.test(tag.name_full) || regex.test(tag.name_scada)
       } catch {
         return false
       }
@@ -56,7 +55,7 @@ const BySensor = ({
     const items: Array<{
       type: 'sensorType' | 'tag'
       sensorTypeId?: number | null
-      tag?: Tag
+      tag?: EnrichedTag
       index: number
     }> = []
     let index = 0
@@ -81,15 +80,9 @@ const BySensor = ({
       // Add tags if sensor type is expanded
       if (expandedSensorTypes.has(sensorTypeId)) {
         const sortedTags = matchingSensorTypeTags.slice().sort((a, b) => {
-          const nameA =
-            a.device?.device_type?.name_long +
-            ' ' +
-            (a.device?.name_long ?? 'Unknown Device')
-          const nameB =
-            b.device?.device_type?.name_long +
-            ' ' +
-            (b.device?.name_long ?? 'Unknown Device')
-          return nameA.localeCompare(nameB)
+          return (a.name_full || a.name_scada).localeCompare(
+            b.name_full || b.name_scada,
+          )
         })
 
         sortedTags.forEach((tag) => {
@@ -108,7 +101,7 @@ const BySensor = ({
 
   const getSensorTypeCheckboxState = (
     sensorTypeId: number | null,
-    sensorTypeTags: Tag[] | undefined,
+    sensorTypeTags: EnrichedTag[] | undefined,
   ) => {
     if (!sensorTypeTags || sensorTypeTags.length === 0) {
       return { checked: false, indeterminate: false }
@@ -144,7 +137,7 @@ const BySensor = ({
 
   const handleSensorTypeCheckboxChange = (
     sensorTypeId: number | null,
-    sensorTypeTags: Tag[] | undefined,
+    sensorTypeTags: EnrichedTag[] | undefined,
   ) => {
     if (!sensorTypeTags) return
     // Filter tags by sensor type ID and search term
@@ -263,17 +256,22 @@ const BySensor = ({
             } else {
               // It's a tag
               const tag = item.tag!
-              // Use name_scada fallback for un-mapped tags (sensor_type_id=GHOST_UNKNOWN or device_id=0)
-              const isUnmappedTag =
-                tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
-                tag.device_id === 0
-              const tagName = isUnmappedTag
-                ? tag.name_scada
-                : tag.device?.device_type?.name_long
-                  ? tag.device.device_type.name_long +
-                    ' ' +
-                    (tag.device?.name_long ?? '')
-                  : tag.name_scada
+              // Expected power tags (tag_id < 0) don't have name_scada, always use name_full
+              const isExpectedPowerTag = tag.tag_id < 0
+              let tagName: string
+              if (isExpectedPowerTag) {
+                tagName = tag.name_full || ''
+              } else if (tagNameMode === 'name_scada') {
+                tagName = tag.name_scada || ''
+              } else {
+                // name_full mode: Use name_scada fallback for un-mapped tags
+                const isUnmappedTag =
+                  tag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
+                  tag.device_id === 0
+                tagName = isUnmappedTag
+                  ? tag.name_scada
+                  : tag.name_full || tag.name_scada
+              }
               const isTagChecked = selectedTags.some(
                 (selectedTag) => selectedTag.tag_id === tag.tag_id,
               )

@@ -1,5 +1,4 @@
 import { useGetTagsByRegex } from '@/api/v1/operational/project/project_tags'
-import { Tag } from '@/hooks/types'
 import {
   Checkbox,
   LoadingOverlay,
@@ -11,10 +10,12 @@ import { IconAlertTriangle } from '@tabler/icons-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useRef } from 'react'
 
+import { EnrichedTag } from './DataBrowsing'
+
 interface AllTagsProps {
   projectId: string
-  selectedTags: Tag[]
-  setSelectedTags: React.Dispatch<React.SetStateAction<Tag[]>>
+  selectedTags: EnrichedTag[]
+  setSelectedTags: React.Dispatch<React.SetStateAction<EnrichedTag[]>>
   searchTerm: string
 }
 
@@ -145,7 +146,7 @@ const AllTags = ({
                 }}
               >
                 <Checkbox
-                  label={tag.name_scada}
+                  label={(tag as EnrichedTag).name_full || tag.name_scada}
                   checked={isTagChecked}
                   onChange={() => {
                     setSelectedTags((prev) => {
@@ -157,7 +158,17 @@ const AllTags = ({
                           (selectedTag) => selectedTag.tag_id !== tag.tag_id,
                         )
                       } else {
-                        return [...prev, tag]
+                        // Create enriched tag if it doesn't have name_full
+                        const enrichedTag: EnrichedTag = {
+                          ...tag,
+                          name_full:
+                            (tag.device?.device_type?.name_long ?? '') +
+                            ' ' +
+                            (tag.device?.name_long ?? '') +
+                            ' ' +
+                            (tag.sensor_type?.name_metric ?? ''),
+                        }
+                        return [...prev, enrichedTag]
                       }
                     })
                   }}

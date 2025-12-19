@@ -1,12 +1,14 @@
+import { SensorTypeEnum } from '@/api/enumerations'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
-import { Tag } from '@/hooks/types'
 import { AxiosError } from 'axios'
 import { Data, Layout } from 'plotly.js'
 import { useMemo } from 'react'
 
+import { EnrichedTag } from './DataBrowsing'
+
 interface PlotWithUnitsProps {
   data?: Data[]
-  tags?: Tag[]
+  tags?: EnrichedTag[]
   layout?: Partial<Layout>
   config?: Partial<Plotly.Config>
   colorscale?: string
@@ -16,6 +18,7 @@ interface PlotWithUnitsProps {
   onHover?: (event: Readonly<Plotly.PlotHoverEvent>) => void
   onRelayout?: (event: Readonly<Plotly.PlotRelayoutEvent>) => void
   allowPinning?: boolean
+  tagNameMode?: 'name_full' | 'name_scada'
 }
 
 const PlotWithUnits = ({
@@ -30,10 +33,11 @@ const PlotWithUnits = ({
   onHover,
   onRelayout,
   allowPinning,
+  tagNameMode = 'name_full',
 }: PlotWithUnitsProps) => {
   // Create a map from tag_id to tag for quick lookup
   const tagMap = useMemo(() => {
-    const map = new Map<number, Tag>()
+    const map = new Map<number, EnrichedTag>()
     tags.forEach((tag) => {
       map.set(tag.tag_id, tag)
     })
@@ -42,7 +46,7 @@ const PlotWithUnits = ({
 
   // Create a map from tag_name_scada to tag for lookup by name
   const tagByNameScadaMap = useMemo(() => {
-    const map = new Map<string, Tag>()
+    const map = new Map<string, EnrichedTag>()
     tags.forEach((tag) => {
       map.set(tag.name_scada, tag)
     })
@@ -53,7 +57,7 @@ const PlotWithUnits = ({
   const unitGroups = useMemo(() => {
     if (!tags || tags.length === 0) return []
 
-    const groups = new Map<string, Tag[]>()
+    const groups = new Map<string, EnrichedTag[]>()
     const colors = [
       '#1f77b4',
       '#ff7f0e',
@@ -90,7 +94,7 @@ const PlotWithUnits = ({
 
     return data.map((trace) => {
       // Try to find the matching tag
-      let matchingTag: Tag | undefined
+      let matchingTag: EnrichedTag | undefined
       const traceData = trace as unknown as Record<string, unknown>
 
       // First try to match by tag_id if present in trace metadata
@@ -126,8 +130,28 @@ const PlotWithUnits = ({
       const group = unitGroups[safeUnitIndex]
       const unitColor = group?.color
 
-      // Use tag.name_scada as the trace name (always use from tag if available, otherwise from trace)
-      const traceName = matchingTag?.name_scada || trace.name || ''
+      // Determine trace name based on tagNameMode
+      // Expected power tags (tag_id < 0) don't have name_scada, always use name_full
+      let traceName: string
+      if (matchingTag) {
+        const isExpectedPowerTag = matchingTag.tag_id < 0
+        if (isExpectedPowerTag) {
+          traceName = matchingTag.name_full || ''
+        } else if (tagNameMode === 'name_scada') {
+          traceName = matchingTag.name_scada || ''
+        } else {
+          // name_full mode: Use name_scada fallback for un-mapped tags
+          const isUnmappedTag =
+            matchingTag.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN ||
+            matchingTag.sensor_type_id === null ||
+            matchingTag.device_id === 0
+          traceName = isUnmappedTag
+            ? matchingTag.name_scada
+            : matchingTag.name_full || matchingTag.name_scada
+        }
+      } else {
+        traceName = trace.name || ''
+      }
 
       // Build the processed trace
       const processedTrace: Data = {
@@ -165,7 +189,7 @@ const PlotWithUnits = ({
 
       return processedTrace
     })
-  }, [data, tagMap, tagByNameScadaMap, unitGroups])
+  }, [data, tagMap, tagByNameScadaMap, unitGroups, tagNameMode])
 
   // Create layout with dynamic y-axes
   const dynamicLayout = useMemo(() => {
@@ -184,7 +208,7 @@ const PlotWithUnits = ({
     if (unitGroups.length === 0) {
       return {
         xaxis: { domain: [xDomainStart, xDomainEnd] },
-        yaxis: { title: { text: 'Add Data!' }, showgrid: false },
+        yaxis: { title: { text: '' }, showgrid: false },
         ...layout,
       }
     }
@@ -193,7 +217,7 @@ const PlotWithUnits = ({
       xaxis: { domain: [xDomainStart, xDomainEnd] },
       yaxis: {
         title: {
-          text: unitGroups[0]?.unit || 'Add Data!',
+          text: unitGroups[0]?.unit || '',
           ...(unitGroups[0]?.color
             ? { font: { color: unitGroups[0].color } }
             : {}),
