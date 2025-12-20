@@ -402,6 +402,7 @@ class SensorType(BaseIntEnum):
     PV_PCS_MODULE_VOLTAGE_PHASE_A = 197
     PV_PCS_MODULE_VOLTAGE_PHASE_B = 198
     PV_PCS_MODULE_VOLTAGE_PHASE_C = 199
+    PV_PCS_DC_POWER = 200
 
 
 class KPIType(BaseIntEnum):
