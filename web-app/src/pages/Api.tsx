@@ -1,4 +1,9 @@
-import * as api from '@/hooks/api'
+import {
+  useCreateApiKeyMutation,
+  useDeleteApiKeyMutation,
+  useGetApiKey,
+} from '@/api/v1/admin/api_key'
+import '@/api/v1/admin/api_key'
 import {
   ActionIcon,
   Button,
@@ -14,9 +19,9 @@ import { useClipboard } from '@mantine/hooks'
 import { IconClipboard, IconClipboardCheck } from '@tabler/icons-react'
 
 const APIKey = () => {
-  const { data, isLoading, error } = api.useGetApiKey({})
-  const createMutation = api.useCreateApiKeyMutation()
-  const deleteMutation = api.useDeleteApiKeyMutation()
+  const { data, isLoading, error } = useGetApiKey({})
+  const createMutation = useCreateApiKeyMutation()
+  const deleteMutation = useDeleteApiKeyMutation()
 
   const theme = useMantineTheme()
   const computedColorScheme = useComputedColorScheme('dark')

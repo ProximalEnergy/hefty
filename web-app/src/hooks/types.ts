@@ -34,10 +34,6 @@ export interface Statistic {
   icon: StatisticIcon
 }
 
-export interface ApiKey {
-  api_key: string
-}
-
 export interface UserSubscription {
   user_id: string
   operational_project_id: string

@@ -139,66 +139,6 @@ export const useCustomQueryArrow = ({
   })
 }
 
-export const useGetApiKey = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: '/v1/admin/api-key',
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.ApiKey>({
-    axiosConfig,
-    queryName: 'getApiKey',
-    pathParams: {},
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useCreateApiKeyMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'post',
-        url: `${baseURL}/v1/admin/api-key`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getApiKey'] })
-    },
-  })
-}
-
-export const useDeleteApiKeyMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'delete',
-        url: `${baseURL}/v1/admin/api-key`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getApiKey'] })
-    },
-  })
-}
-
 export const useCreateFeedbackMutation = () => {
   const { getToken } = useAuth()
   return useMutation({
