@@ -51,7 +51,7 @@ interface TeamWithMembers extends Team {
 
 interface UserType {
   user_type_id: number
-  name_short: 'admin' | 'superadmin' | 'user'
+  name_short: 'admin' | 'superadmin' | 'user' // noqa: hardcoded-name-short
 }
 
 export const useGetUserType = ({

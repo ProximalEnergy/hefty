@@ -11,7 +11,7 @@ from core.crud.project.event_losses import (
     get_event_losses_aggregated,
 )
 from core.database import Base
-from core.enumerations import EventLossType
+from core.enumerations import EventLossType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -87,7 +87,7 @@ async def get_project_waterfall(
         case 1:
             meter_tags = core.crud.project.tags.get_project_tags(
                 db=project_db,
-                sensor_type_name_shorts=["meter_active_power"],
+                sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
                 deep=True,
             ).models()
             df_meter = utils.data_df(
@@ -107,7 +107,7 @@ async def get_project_waterfall(
         case 3:
             meter_tags = core.crud.project.tags.get_project_tags(
                 db=project_db,
-                sensor_type_name_shorts=["pv_mv_circuit_meter_active_power"],
+                sensor_type_ids=[SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER],
                 deep=True,
             ).models()
             df_meter = utils.data_df(

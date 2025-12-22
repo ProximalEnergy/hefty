@@ -131,7 +131,7 @@ const ProjectTagExplorer = () => {
   const createSensorTypeForm = useForm({
     initialValues: {
       device_type_id: '',
-      name_short: '',
+      name_short: '', // noqa: hardcoded-name-short
       name_long: '',
       name_metric: '',
       unit: '',

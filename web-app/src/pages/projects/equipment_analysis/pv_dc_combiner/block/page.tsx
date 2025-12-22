@@ -143,7 +143,7 @@ const Page = () => {
     },
     queryParams: {
       device_ids: combinerDeviceIds,
-      sensor_type_name_shorts: ['pv_dc_combiner_current'],
+      sensor_type_ids: [SensorTypeEnum.PV_DC_COMBINER_CURRENT],
       start: startRequest ?? undefined,
       end: endRequest ?? undefined,
     },

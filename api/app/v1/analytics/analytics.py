@@ -24,7 +24,7 @@ import pandas as pd
 import requests
 from botocore.config import Config
 from core.dependencies import get_db
-from core.enumerations import DeviceType
+from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
@@ -97,7 +97,7 @@ def get_combiner_block_performance(
     # Get tags for combiner current
     tags = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_dc_combiner_current"],
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         device_ids=[d.device_id for d in devices_combiner],
     ).models()
 
@@ -189,29 +189,14 @@ def get_heatmap(
     """
     tags = core.crud.project.tags.get_project_tags(
         project_db,
-        tag_ids=[],
-        device_ids=[],
-        sensor_type_ids=[],
         sensor_type_name_shorts=[sensor_type_name_short],
-        data_type_ids=[],
-        name_short="",
-        name_long="",
-        name_scada="",
         deep=False,
     ).models()
 
     if len(tags) == 0:
         tags = core.crud.project.tags.get_project_tags(
             project_db,
-            tag_ids=[],
-            device_ids=[],
-            sensor_type_ids=[],
-            sensor_type_name_shorts=["pv_pcs_module_ac_power"],
-            data_type_ids=[],
-            name_short="",
-            name_long="",
-            name_scada="",
-            deep=False,
+            sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
         ).models()
 
     if len(tags) == 0:
@@ -236,11 +221,6 @@ def get_heatmap(
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
 
     device_id_to_name_long = {device.device_id: device.name_long for device in devices}
@@ -305,9 +285,8 @@ def get_meter_power_and_expected_power(
     # Get meter power
     df_meter = get_project_dataframe(
         tag_ids=[],
-        sensor_type_name_shorts=[
-            "meter_active_power",
-        ],
+        sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
+        sensor_type_name_shorts=[],
         start=start,
         end=end,
         db=db,
@@ -439,7 +418,7 @@ def get_clearsky_poa(
         rolling_window = 12
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
-        sensor_type_name_shorts=["met_station_poa"],
+        sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
     ).models()
     df = utils.data_df(
@@ -457,11 +436,6 @@ def get_clearsky_poa(
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
     device_id_to_name_long = {device.device_id: device.name_long for device in devices}
     tag_id_to_device_name_long = {
@@ -576,7 +550,7 @@ def get_degradation_poa(
 
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
-        sensor_type_name_shorts=["met_station_poa"],
+        sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
     ).models()
     df_raw = utils.data_df(
@@ -623,11 +597,6 @@ def get_degradation_poa(
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
     device_id_to_name_long = {device.device_id: device.name_long for device in devices}
     tag_id_to_device_name_long = {
@@ -712,8 +681,7 @@ async def dc_amperage_report_v2(
     logger.logger.info("POA tags")
     poa_tags = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["met_station_poa"],
-        deep=False,
+        sensor_type_ids=[SensorType.MET_STATION_POA],
     ).models()
 
     logger.logger.info("POA data")
@@ -759,8 +727,7 @@ async def dc_amperage_report_v2(
     logger.logger.info("CB tags")
     tags_cb = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_dc_combiner_current"],
-        deep=False,
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
     ).models()
     if len(tags_cb) == 0:
         raise HTTPException(

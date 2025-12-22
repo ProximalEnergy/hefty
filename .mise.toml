@@ -98,6 +98,11 @@ description = "Run hardcoded type ID check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_type_id_check.sh"
 
+[tasks."hardcoded_name_shorts_check"]
+description = "Run hardcoded name shorts check on entire monorepo"
+dir = "."
+run = "./_scripts/hardcoded_name_shorts_check.sh"
+
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
 # =============================================================================

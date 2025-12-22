@@ -4,6 +4,7 @@ from typing import Any
 
 import pandas as pd
 from core.dependencies import get_db
+from core.enumerations import SensorType
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
@@ -115,17 +116,21 @@ def get_meter_power_and_expected_power_v2(
         df_expected_power = df_expected_power.reindex(full_index)
 
     # Dynamically build sensor_type_name_shorts
-    sensor_type_name_shorts = ["meter_active_power"]
+    sensor_type_ids = [SensorType.METER_ACTIVE_POWER]
     if include_storage:
-        sensor_type_name_shorts.extend(
-            ["pv_mv_circuit_meter_active_power", "bess_mv_circuit_meter_active_power"],
+        sensor_type_ids.extend(
+            [
+                SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER,
+                SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER,
+            ],
         )
     if include_setpoint:
-        sensor_type_name_shorts.append("ppc_active_power_setpoint")
+        sensor_type_ids.append(SensorType.PPC_ACTIVE_POWER_SETPOINT)
 
     df_tags = get_project_dataframe(
         tag_ids=[],
-        sensor_type_name_shorts=sensor_type_name_shorts,
+        sensor_type_ids=sensor_type_ids,
+        sensor_type_name_shorts=[],
         start=start,
         end=end,
         db=db,

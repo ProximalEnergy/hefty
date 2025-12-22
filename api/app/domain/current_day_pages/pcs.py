@@ -3,7 +3,7 @@ from typing import Any
 
 import pandas as pd
 from core.dependencies import get_db_session_async
-from core.enumerations import DeviceType, TimeInterval, TimeOffset
+from core.enumerations import DeviceType, SensorType, TimeInterval, TimeOffset
 from fastapi import HTTPException
 from natsort import natsorted
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -215,7 +215,7 @@ async def get_equipment_analysis_pcs_data(
     # Get block tags
     tags_block = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["block_ac_power"],
+        sensor_type_ids=[SensorType.BLOCK_AC_POWER],
     ).models()
     tags_block_tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags_block}
 
@@ -239,7 +239,7 @@ async def get_equipment_analysis_pcs_data(
     # Get PCS tags
     tags_pcs = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_pcs_ac_power"],
+        sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
     ).models()
     tags_pcs_tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags_pcs}
 
@@ -259,7 +259,7 @@ async def get_equipment_analysis_pcs_data(
     # Get PCS module tags
     tags_pcs_module = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_pcs_module_ac_power"],
+        sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
     ).models()
     tags_pcs_module_tag_id_to_device_id = {
         tag.tag_id: tag.device_id for tag in tags_pcs_module

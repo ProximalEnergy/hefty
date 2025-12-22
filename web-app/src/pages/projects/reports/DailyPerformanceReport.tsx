@@ -1180,8 +1180,8 @@ const Page: React.FC = () => {
   // Create KPI type for DC combiner health
   const combinerKpiType: KPIType = {
     kpi_type_id: KPITypeEnum.PV_DC_COMBINER_FIELD_HEALTH,
-    name_long: 'DC Combiner Field Health',
-    name_short: 'DC Combiner Field Health',
+    name_long: 'DC Combiner Field Health', // noqa: hardcoded-name-long
+    name_short: 'DC Combiner Field Health', // noqa: hardcoded-name-short
     name_metric: 'DC Combiner Field Health',
     description: 'DC Combiner Field Health',
     unit: '%',

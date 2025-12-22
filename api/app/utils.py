@@ -675,11 +675,6 @@ def get_tag_id_to_device_name_long(
     devices = core.crud.project.devices.get_project_devices(
         db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
 
     # Create mapping from device id to device name long

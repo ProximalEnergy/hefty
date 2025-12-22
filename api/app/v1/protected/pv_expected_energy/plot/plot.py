@@ -98,7 +98,7 @@ async def utility_expected(
 
     # Meter
     if device.device_type_id == DeviceType.METER:
-        sensor_type_name_shorts = ["meter_active_power"]
+        sensor_type_ids = [SensorType.METER_ACTIVE_POWER]
         expected_metric_id_clean = 11 if not warranted_degradation else 5
         expected_metric_id_soiled = 12 if not warranted_degradation else 6
         multiplier = 1_000.0
@@ -106,7 +106,7 @@ async def utility_expected(
         pv_dc_combiner = False
     # PV PCS
     elif device.device_type_id == DeviceType.PV_PCS:
-        sensor_type_name_shorts = ["pv_pcs_ac_power"]
+        sensor_type_ids = [SensorType.PV_PCS_AC_POWER]
         expected_metric_id_clean = 9 if not warranted_degradation else 3
         expected_metric_id_soiled = 10 if not warranted_degradation else 4
         multiplier = 1_000.0
@@ -114,7 +114,7 @@ async def utility_expected(
         pv_dc_combiner = False
     # PV DC Combiner
     elif device.device_type_id == DeviceType.PV_DC_COMBINER:
-        sensor_type_name_shorts = ["pv_dc_combiner_current"]
+        sensor_type_ids = [SensorType.PV_DC_COMBINER_CURRENT]
         expected_metric_id_clean = 7 if not warranted_degradation else 1
         expected_metric_id_soiled = 8 if not warranted_degradation else 2
         multiplier = 1 / 1_000
@@ -192,7 +192,7 @@ async def utility_expected(
         tags = core.crud.project.tags.get_project_tags(
             project_db,
             device_ids=[device_id],
-            sensor_type_name_shorts=sensor_type_name_shorts,
+            sensor_type_ids=sensor_type_ids,
         ).models()
 
         s_actual = data_df(

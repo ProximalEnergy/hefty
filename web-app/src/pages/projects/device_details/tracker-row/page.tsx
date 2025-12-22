@@ -1,4 +1,4 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -108,7 +108,10 @@ const TrackerRowDetail = React.memo(() => {
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       device_ids: deviceId ? [parseInt(deviceId)] : undefined,
-      sensor_type_name_shorts: ['tracker_position', 'tracker_setpoint'],
+      sensor_type_ids: [
+        SensorTypeEnum.TRACKER_POSITION,
+        SensorTypeEnum.TRACKER_SETPOINT,
+      ],
       start: startQuery,
       end: endQuery,
     },

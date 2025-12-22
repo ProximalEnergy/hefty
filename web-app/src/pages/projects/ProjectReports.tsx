@@ -125,7 +125,7 @@ const Page = () => {
           is_visible: true,
           report_type: {
             report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
-            name_short: 'Daily Performance',
+            name_short: 'Daily Performance', // noqa: hardcoded-name-short
             name_long: 'PV Daily Performance Report',
             doc_url: '',
           },
@@ -142,7 +142,7 @@ const Page = () => {
           is_visible: true,
           report_type: {
             report_type_id: ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY,
-            name_short: 'PCS Availability',
+            name_short: 'PCS Availability', // noqa: hardcoded-name-short
             name_long: 'BESS PCS Mechanical Availability Report',
             doc_url: '',
           },
@@ -159,7 +159,7 @@ const Page = () => {
           is_visible: true,
           report_type: {
             report_type_id: ReportTypeEnum.PV_PERFORMANCE_DAILY,
-            name_short: 'Daily Performance',
+            name_short: 'Daily Performance', // noqa: hardcoded-name-short
             name_long: 'PV Daily Performance Report',
             doc_url: '',
           },
@@ -170,7 +170,7 @@ const Page = () => {
           is_visible: true,
           report_type: {
             report_type_id: ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY,
-            name_short: 'PCS Availability',
+            name_short: 'PCS Availability', // noqa: hardcoded-name-short
             name_long: 'BESS PCS Mechanical Availability Report',
             doc_url: '',
           },
