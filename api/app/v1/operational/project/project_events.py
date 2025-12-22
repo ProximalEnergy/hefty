@@ -1072,7 +1072,7 @@ def bulk_create_events(
         if not exists:
             new_type = models.EventLossType(
                 event_loss_type_id=loss_type_id,
-                name_short="proximal_pv_dc_capacity",  # noqa: hardcoded-name-short
+                name_short="proximal_pv_dc_capacity",  # allow: hardcoded-name-short
             )
             db.add(new_type)
             db.commit()

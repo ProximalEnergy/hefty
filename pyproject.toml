@@ -15,7 +15,7 @@ dependencies = []
 dev = [
     "mypy>=1.18.2",
     "pyarrow-stubs>=20.0.0.20250928",
-    "ruff==0.14.5",
+    "ruff==0.14.10",
     "vulture>=2.14",
 ]
 
@@ -69,6 +69,7 @@ ignore = [
     "FURB162",
     "E501",    # E501 line too long
 ]
+external =[]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "**/tests/**/*.py" = [
@@ -84,6 +85,10 @@ ignore = [
 "api/_data_insert/**/*.py" = [
     "S608", # hardcoded-sql-expression allowed in data insert scripts
     "T20",  # print statements allowed in data insert scripts
+]
+"api/_scripts/**/*.py" = [
+    "PLC0415", # allow local imports in scripts
+    "T20",     # allow print in scripts
 ]
 "api/app/_crud/projects/data.py" = [
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries
