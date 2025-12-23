@@ -3,12 +3,13 @@ import { useSuggestRootCauses } from '@/api/v1/ai/root-cause'
 import { DroneAnomaly } from '@/api/v1/operational/drone_integrations'
 import { useBulkCreateEvents } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetRootCauses } from '@/api/v1/operational/root_causes'
 import { PageError } from '@/components/Error'
 import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import Attribution from '@/components/gis/Attribution'
 import { GISContext } from '@/contexts/GISContext'
-import { useGetDevicesV2, useGetRootCauses } from '@/hooks/api'
+import { useGetDevicesV2 } from '@/hooks/api'
 import type { Device } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import {
@@ -769,7 +770,6 @@ const DroneInspectionsMap = ({
 
   // --- Root Causes for DC Combiner (9), Tracker (29), and DC Field (30) ---
   const rootCausesQuery = useGetRootCauses({
-    pathParams: { projectId: projectId || '-1' },
     queryParams: {
       device_type_ids: [
         DeviceTypeEnum.PV_DC_COMBINER,
@@ -812,7 +812,7 @@ const DroneInspectionsMap = ({
     () =>
       allowedRootCauses.map((rc) => ({
         value: String(rc.root_cause_id),
-        label: rc.name_full || rc.name_long || rc.name_short,
+        label: rc.name_long || rc.name_short,
       })),
     [allowedRootCauses],
   )

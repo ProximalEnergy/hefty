@@ -626,34 +626,6 @@ export const useGetUptimeTable = ({
   })
 }
 
-export const useGetRootCauses = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    root_cause_ids?: number[]
-    device_type_ids?: number[]
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/root-causes`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.RootCause[]>({
-    axiosConfig,
-    queryName: 'getRootCauses',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useUpdateRootCause = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
