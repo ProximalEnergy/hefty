@@ -1,3 +1,4 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -9,47 +10,38 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-/**
- * Interface for PV Module data
- */
-export interface PVModule {
-  company_id: string | undefined
-  pv_module_id: number | number[] | null
-  manufacturer: string
-  model: string
-  technology: string
-  bifaciality_factor: number
-  pmax: number
-  isc: number
-  voc: number
-  imp: number
-  vmp: number
-  gamma_pmax: number
-  alpha_isc_relative: number | null | string
-  beta_voc_relative: number | null | string
-  alpha_isc: number | null | string
-  beta_voc: number | null | string
-  warranted_degradation_rate: number
-  warranted_degradation_initial: number
-  length: number
-  width: number
-  frame_overhang: number
-  has_ar_coating: boolean
-  cells_in_series: number
-  cells_in_parallel: number
-  photocurrent: number
-  diode_saturation_current: number
-  r_series: number
-  r_shunt: number
-  modified_ideality_factor: number
-  eg: number
-  degdt: number
-  data_source: string
-  family: string
-  half_cut: boolean
+const _COMPONENT_NAME = 'PVModule'
+const URL = '/v1/operational/pv-modules'
+
+export type PVModule = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
+
+export const useGetPvModules = ({
+  queryParams = {},
+  queryOptions = {},
+}: {
+  queryParams?: getQueryParams
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: URL,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  return useCustomQuery<PVModule[]>({
+    axiosConfig,
+    queryName: 'getPvModules',
+    pathParams: {},
+    queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
 }
 
-// --- Manufacturers ---
 export const useGetProximalPVModuleManufacturers = ({
   queryParams = {},
   queryOptions = {},
@@ -76,7 +68,6 @@ export const useGetProximalPVModuleManufacturers = ({
   })
 }
 
-// --- Models ---
 export const useGetProximalPVModuleModels = ({
   queryParams = {},
   queryOptions = {},
@@ -103,7 +94,6 @@ export const useGetProximalPVModuleModels = ({
   })
 }
 
-// --- Get Module IDs by Manufacturer and Model ---
 export const useGetPVModuleIdsByManufacturerAndModel = ({
   queryParams = {},
   queryOptions = {},
@@ -136,7 +126,6 @@ export const useGetPVModuleIdsByManufacturerAndModel = ({
   })
 }
 
-// --- Module Details by ID ---
 export const useGetPVModuleDetails = ({
   queryParams = { pv_module_ids: [] },
   queryOptions = {},
@@ -176,24 +165,13 @@ export const useCreateOrUpdatePVModuleMutation = () => {
     mutationFn: async (module: PVModule) => {
       const token = await getToken({ template: 'default' })
 
-      // Clean up data - convert empty strings to null
-      const cleanModule = { ...module }
-
-      // Convert empty strings to null for temperature coefficients
-      if (cleanModule.alpha_isc_relative === '')
-        cleanModule.alpha_isc_relative = null
-      if (cleanModule.beta_voc_relative === '')
-        cleanModule.beta_voc_relative = null
-      if (cleanModule.alpha_isc === '') cleanModule.alpha_isc = null
-      if (cleanModule.beta_voc === '') cleanModule.beta_voc = null
-
       const response = await axios({
         method: 'post',
         url: `${baseURL}/v1/operational/pv-modules`,
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: cleanModule,
+        data: module,
       })
 
       return response.data as PVModule

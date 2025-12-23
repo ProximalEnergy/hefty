@@ -886,32 +886,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/gis/tracker": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tracker
-         * @description todo
-         *
-         *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_tracker_v1_analytics__project_id__gis_tracker_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/analytics/{project_id}/gis/tracker-by-block/{block_id}": {
         parameters: {
             query?: never;
@@ -1043,108 +1017,6 @@ export interface paths {
          *         fillna_zero: TODO: describe.
          */
         get: operations["get_heatmap_v1_analytics__project_id__heatmap__sensor_type_name_short__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/meter-power-and-expected-power": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Meter Power And Expected Power
-         * @description todo
-         *
-         *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_meter_power_and_expected_power_v1_analytics__project_id__meter_power_and_expected_power_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/equipment-analysis/combiner": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Equipment Analysis Combiner
-         * @deprecated
-         * @description todo
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         */
-        get: operations["get_equipment_analysis_combiner_v1_analytics__project_id__equipment_analysis_combiner_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/project-weather": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Weather
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_project_weather_v1_analytics__project_id__project_weather_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/project-weather-forecast": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Weather Forecast
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_project_weather_forecast_v1_analytics__project_id__project_weather_forecast_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1421,51 +1293,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/commissioning/projects/{project_id}/system/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Health Check
-         * @description todo
-         */
-        get: operations["health_check_v1_commissioning_projects__project_id__system_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/commissioning/projects/{project_id}/system/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * read google sheets data into the s3 parquet
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        put: operations["import_google_sheet_route_v1_commissioning_projects__project_id__system_import_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/development/ercot/settlement-points": {
         parameters: {
             query?: never;
@@ -1638,6 +1465,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/gis/{project_id}/project-weather": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Weather
+         * @description Fetch current weather data for the project's coordinates.
+         *
+         *     Args:
+         *         project_id: Project UUID used to look up coordinates.
+         *         db: Database session dependency.
+         */
+        get: operations["get_project_weather_v1_gis__project_id__project_weather_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/project-weather-forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Weather Forecast
+         * @description Fetch forecast weather data for the project's coordinates.
+         *
+         *     Args:
+         *         project_id: Project UUID used to look up coordinates.
+         *         db: Database session dependency.
+         */
+        get: operations["get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/aws/retrieve-presigned-url": {
         parameters: {
             query?: never;
@@ -1684,54 +1559,6 @@ export interface paths {
          *         List[Contents]: A list of the contents of the directory as dictionaries. Dictionary keys are ["Key", "LastModified", "ETag", "Size", "StorageClass"].
          */
         get: operations["listdir_v1_operational_aws_listdir_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/calendar/items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Calendar Items
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         *         notifications_only: TODO: describe.
-         */
-        get: operations["get_calendar_items"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/calendar/item-exceptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Calendar Item Exceptions
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         *         calendar_item_ids: TODO: describe.
-         */
-        get: operations["get_calendar_item_exceptions_v1_operational_calendar_item_exceptions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1820,31 +1647,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         get: operations["get_cec_pv_modules_in_proximal_format_v1_operational_cec_pv_modules_proximal_format_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/cec-pv-modules/ids": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Cec Pv Module Ids
-         * @description todo
-         *
-         *     Args:
-         *         pv_module_manufacturer: TODO: describe.
-         *         pv_module_model: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_cec_pv_module_ids_v1_operational_cec_pv_modules_ids_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13250,44 +13052,6 @@ export interface operations {
             };
         };
     };
-    get_tracker_v1_analytics__project_id__gis_tracker_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_tracker_by_block_v1_analytics__project_id__gis_tracker_by_block__block_id__get: {
         parameters: {
             query: {
@@ -13456,154 +13220,6 @@ export interface operations {
             path: {
                 project_id: string;
                 sensor_type_name_short: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_meter_power_and_expected_power_v1_analytics__project_id__meter_power_and_expected_power_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_equipment_analysis_combiner_v1_analytics__project_id__equipment_analysis_combiner_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_weather_v1_analytics__project_id__project_weather_get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_weather_forecast_v1_analytics__project_id__project_weather_forecast_get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
             };
             cookie?: never;
         };
@@ -14006,74 +13622,6 @@ export interface operations {
             };
         };
     };
-    health_check_v1_commissioning_projects__project_id__system_health_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    import_google_sheet_route_v1_commissioning_projects__project_id__system_import_put: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_settlement_points_v1_development_ercot_settlement_points_get: {
         parameters: {
             query?: {
@@ -14322,6 +13870,78 @@ export interface operations {
             };
         };
     };
+    get_project_weather_v1_gis__project_id__project_weather_get: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     retrieve_presigned_url_v1_operational_aws_retrieve_presigned_url_get: {
         parameters: {
             query: {
@@ -14362,74 +13982,6 @@ export interface operations {
             query: {
                 bucket_name: string;
                 path?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_calendar_items: {
-        parameters: {
-            query?: {
-                notifications_only?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_calendar_item_exceptions_v1_operational_calendar_item_exceptions_get: {
-        parameters: {
-            query?: {
-                calendar_item_ids?: string[];
             };
             header?: {
                 authorization?: string;
@@ -14623,41 +14175,6 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_cec_pv_module_ids_v1_operational_cec_pv_modules_ids_get: {
-        parameters: {
-            query?: {
-                pv_module_manufacturer?: string[];
-                pv_module_model?: string[];
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": number[];
                 };
             };
             /** @description Validation Error */

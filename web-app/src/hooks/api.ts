@@ -414,34 +414,6 @@ export const useGetDevicesV2 = ({
   })
 }
 
-export const useGetPvModules = ({
-  pathParams,
-  queryParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: object
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/pv-modules`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<types.PvModule[]>({
-    axiosConfig,
-    queryName: 'getPvModules',
-    pathParams,
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetTags = ({
   pathParams,
   queryParams = {},
@@ -723,7 +695,7 @@ export const useGetWeather = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/project-weather`,
+    url: `/v1/gis/${pathParams.projectId}/project-weather`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -748,7 +720,7 @@ export const useGetForecast = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/project-weather-forecast`,
+    url: `/v1/gis/${pathParams.projectId}/project-weather-forecast`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

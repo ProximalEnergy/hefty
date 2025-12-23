@@ -21,7 +21,6 @@ from uuid import UUID
 import boto3
 import numpy as np
 import pandas as pd
-import requests
 from botocore.config import Config
 from core.dependencies import get_db
 from core.enumerations import DeviceType, SensorType
@@ -29,19 +28,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
 from pvlib import location
-from shapely.wkb import loads
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app import dependencies, interfaces, logger, settings, utils
+from app import dependencies, interfaces, logger, utils
 from app._crud.operational.cec_pv_modules import get_cec_pv_modules
 from app._crud.operational.pv_modules import get_pv_modules
-from app.domain.current_day_pages.combiner import get_equipment_analysis_combiner_data
 from app.utils import get_include_in_schema
-from app.v1.analytics import analytics_funcs as funcs
 from app.v1.analytics.gis import router as gis_router
-from app.v1.operational.project.project_data import get_project_dataframe
 from core import models
 
 router = APIRouter(
@@ -248,149 +243,6 @@ def get_heatmap(
         "y": columns,
         "z": values,
     }
-
-
-@router.get("/meter-power-and-expected-power")
-def get_meter_power_and_expected_power(
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
-    project: models.Project = Depends(dependencies.get_project_api),
-    db: Session = Depends(get_db),
-    project_db: Session = Depends(dependencies.get_project_db),
-):
-    # If start and end are not provided, get today's data
-    """todo
-
-    Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-    """
-    if not start:
-        start = pd.Timestamp.now(tz=project.time_zone).floor("D")
-    if not end:
-        end = pd.Timestamp.now(tz=project.time_zone).floor("5min")
-
-    # Get expected power
-    df_expected_power = funcs.get_project_expected_power(
-        project=project,
-        db=db,
-        project_db=project_db,
-        start=start,
-        end=end,
-    )
-
-    # Get meter power
-    df_meter = get_project_dataframe(
-        tag_ids=[],
-        sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
-        sensor_type_name_shorts=[],
-        start=start,
-        end=end,
-        db=db,
-        project_db=project_db,
-        project=project,
-    )
-
-    df_meter = df_meter.xs("meter_active_power", axis=1, level=1)
-    df_meter.columns = ["Meter Active Power"]
-
-    df = pd.concat([df_meter, df_expected_power], axis=1)
-    df = df.where(pd.notna(df), None)
-
-    data = [
-        {
-            "x": df.index.tz_convert(project.time_zone).tolist(),
-            "y": df[col].tolist(),
-            "name": col,
-        }
-        for col in df.columns
-    ]
-
-    return data
-
-
-@router.get(
-    "/equipment-analysis/combiner",
-    response_class=ORJSONResponse,
-    deprecated=True,
-)
-def get_equipment_analysis_combiner(
-    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
-):
-    """todo
-
-    Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-    """
-    return get_equipment_analysis_combiner_data(
-        project_db=project_db,
-        project=project,
-        start=start,
-        end=end,
-    )
-
-
-@router.get("/project-weather")
-def get_project_weather(
-    project_id: UUID,
-    db: Annotated[Session, Depends(get_db)],
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-    """
-    project_data = core.crud.operational.projects.get_project(
-        db=db, project_id=project_id, deep=True
-    ).model()
-    wkb_bytes = bytes.fromhex(str(project_data.point))
-    point = loads(wkb_bytes)
-    lat, lon = point.y, point.x
-    weather_api_key = settings.WEATHER_API_KEY
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={weather_api_key}&units=imperial"
-    res = requests.get(url)
-    if not res.ok:
-        raise HTTPException(res.json()["cod"], res.json()["message"])
-    data = res.json()
-    return data
-
-
-@router.get("/project-weather-forecast")
-def get_project_weather_forecast(
-    project_id: UUID,
-    db: Annotated[Session, Depends(get_db)],
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-    """
-    project_data = core.crud.operational.projects.get_project(
-        db=db, project_id=project_id, deep=True
-    ).model()
-    wkb_bytes = bytes.fromhex(str(project_data.point))
-    point = loads(wkb_bytes)
-    lat, lon = point.y, point.x
-    weather_api_key = settings.WEATHER_API_KEY
-    # Request 40 entries (default) to get 5 days of forecasts (3-hour intervals)
-    # This ensures we have data for tomorrow and day after tomorrow
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={weather_api_key}&units=imperial"
-    res = requests.get(url)
-    if not res.ok:
-        raise HTTPException(res.json()["cod"], res.json()["message"])
-    data = res.json()
-    return data
 
 
 @router.get("/clearsky-poa", response_class=ORJSONResponse)
