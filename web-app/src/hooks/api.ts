@@ -695,7 +695,7 @@ export const useGetWeather = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/project-weather`,
+    url: `/v1/gis/${pathParams.projectId}/project-weather`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -720,7 +720,7 @@ export const useGetForecast = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/project-weather-forecast`,
+    url: `/v1/gis/${pathParams.projectId}/project-weather-forecast`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

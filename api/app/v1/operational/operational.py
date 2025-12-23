@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends
 from app import dependencies
 from app.v1.operational import (
     aws,
-    calendar,
     cec_pv_inverters,
     cec_pv_modules,
     contract_categories,
@@ -46,7 +45,6 @@ router = APIRouter(
     dependencies=get_user_data_async,
 )
 router.include_router(aws.router)
-router.include_router(calendar.router)
 router.include_router(cec_pv_inverters.router)
 router.include_router(cec_pv_modules.router)
 router.include_router(data_types.router)

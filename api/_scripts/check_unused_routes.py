@@ -66,6 +66,8 @@ def get_api_paths_with_definitions(*, app: Any) -> dict[str, str]:
                     route.endpoint
                 )
                 file_path = Path(source_file).resolve()
+                if ".venv" in file_path.parts:
+                    continue
                 rel_path = str(file_path.relative_to(repo_root))
                 paths_to_files[norm_path] = rel_path
             except (TypeError, ValueError, AttributeError):
@@ -100,6 +102,7 @@ def iter_source_files(*, roots: list[Path]) -> Iterable[Path]:
         roots: A list of Path objects to search in.
     """
     extensions = {".ts", ".tsx", ".py", ".hurl", ".bru"}
+    ignored_parts = {".venv"}
     for root in roots:
         if not root.exists():
             continue
@@ -108,6 +111,8 @@ def iter_source_files(*, roots: list[Path]) -> Iterable[Path]:
                 yield root
             continue
         for path in root.rglob("*"):
+            if ignored_parts.intersection(path.parts):
+                continue
             if path.suffix in extensions:
                 if path.name in {"schema.d.ts", "check_unused_routes.py"}:
                     continue

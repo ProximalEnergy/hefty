@@ -5,9 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
 from app._crud.operational.cec_pv_modules import (
-    get_cec_pv_module_ids as crud_get_cec_pv_module_ids,
-)
-from app._crud.operational.cec_pv_modules import (
     get_cec_pv_module_ids_by_manufacturer_model,
     get_cec_pv_module_manufacturers,
     get_cec_pv_module_models_given_manufacturer,
@@ -64,27 +61,6 @@ async def get_cec_pv_modules_in_proximal_format(
         cec_pv_module=cec_pv_module_validated,
     )
     return cec_pv_module_adapted
-
-
-@router.get("/ids", response_model=list[int])
-async def get_cec_pv_module_ids(
-    *,
-    pv_module_manufacturer: Annotated[list[str], Query()] = [],
-    pv_module_model: Annotated[list[str], Query()] = [],
-    db: AsyncSession = Depends(get_async_db),
-):
-    """todo
-
-    Args:
-        pv_module_manufacturer: TODO: describe.
-        pv_module_model: TODO: describe.
-        db: TODO: describe.
-    """
-    return await crud_get_cec_pv_module_ids(
-        db=db,
-        pv_module_manufacturers=pv_module_manufacturer,
-        pv_module_models=pv_module_model,
-    )
 
 
 @router.get(
