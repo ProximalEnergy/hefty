@@ -117,20 +117,6 @@ def generate_random_location() -> tuple[float, float]:
     return latitude, longitude
 
 
-def generate_random_project(*, name: str) -> tuple[str, float, float]:
-    """Handle generate random project.
-
-    Args:
-        name: TODO: describe.
-    """
-    seed_from_project_name(name=name)
-
-    name = generate_random_name()
-    latitude, longitude = generate_random_location()
-
-    return name, latitude, longitude
-
-
 def timedelta_to_postgres_interval(*, timedelta: pd.Timedelta) -> str:
     # Extract the components of the timedelta
     """Handle timedelta to postgres interval.
