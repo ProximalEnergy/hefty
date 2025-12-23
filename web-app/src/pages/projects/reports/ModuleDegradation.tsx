@@ -1,5 +1,8 @@
-import { DeviceTypeEnum, KPITypeEnum } from '@/api/enumerations'
-import { ProjectTypeEnum } from '@/api/enumerations'
+import {
+  DeviceTypeEnum,
+  KPITypeEnum,
+  ProjectTypeEnum,
+} from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'

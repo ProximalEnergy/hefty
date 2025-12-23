@@ -2,8 +2,12 @@ import {
   EventMessageImage,
   useGetEventMessageImages,
 } from '@/api/v1/operational/event_messages'
-import { Group, Image } from '@mantine/core'
-import { useComputedColorScheme, useMantineTheme } from '@mantine/core'
+import {
+  Group,
+  Image,
+  useComputedColorScheme,
+  useMantineTheme,
+} from '@mantine/core'
 import { useMemo, useState } from 'react'
 
 import { MessageImagesModal } from './MessageImagesModal'

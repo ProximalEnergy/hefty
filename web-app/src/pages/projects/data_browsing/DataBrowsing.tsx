@@ -12,8 +12,7 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
-import { useGetTags } from '@/hooks/api'
-import { useGetDevicesV2 } from '@/hooks/api'
+import { useGetDevicesV2, useGetTags } from '@/hooks/api'
 import { Tag } from '@/hooks/types'
 import {
   Box,

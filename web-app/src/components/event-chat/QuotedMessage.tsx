@@ -1,5 +1,4 @@
-import { Group, Paper, Stack, Text } from '@mantine/core'
-import { MantineTheme } from '@mantine/core'
+import { Group, MantineTheme, Paper, Stack, Text } from '@mantine/core'
 
 import { formatMessageBody } from './utils'
 

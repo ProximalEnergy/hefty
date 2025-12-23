@@ -1,5 +1,4 @@
-import { ActionIcon } from '@mantine/core'
-import { HoverCard, Text } from '@mantine/core'
+import { ActionIcon, HoverCard, Text } from '@mantine/core'
 import { IconBook } from '@tabler/icons-react'
 
 const DocsButton = ({

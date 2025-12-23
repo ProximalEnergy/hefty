@@ -3,7 +3,6 @@ import {
   useDeleteApiKeyMutation,
   useGetApiKey,
 } from '@/api/v1/admin/api_key'
-import '@/api/v1/admin/api_key'
 import {
   ActionIcon,
   Button,

@@ -1,5 +1,12 @@
-import { ActionIcon, Group, Menu, Paper, Popover, Tooltip } from '@mantine/core'
-import { MantineTheme } from '@mantine/core'
+import {
+  ActionIcon,
+  Group,
+  MantineTheme,
+  Menu,
+  Paper,
+  Popover,
+  Tooltip,
+} from '@mantine/core'
 import {
   IconDots,
   IconEdit,

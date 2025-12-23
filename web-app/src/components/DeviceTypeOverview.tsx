@@ -1,5 +1,4 @@
-import { SensorTypeEnum } from '@/api/enumerations'
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'

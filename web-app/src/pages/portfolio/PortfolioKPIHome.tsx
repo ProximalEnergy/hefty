@@ -2,8 +2,10 @@ import {
   DeviceType,
   useGetDeviceTypes,
 } from '@/api/v1/operational/device_types'
-import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
-import { OperationalKPIData } from '@/api/v1/operational/kpi_data'
+import {
+  OperationalKPIData,
+  useGetOperationalKPIData,
+} from '@/api/v1/operational/kpi_data'
 import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { Project, useGetProjects } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'

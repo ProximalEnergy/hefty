@@ -1,10 +1,10 @@
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import {
+  SensorType,
   useCreateSensorTypeMutation,
   useGetSensorTypes,
   useUpdateSensorTypeMutation,
 } from '@/api/v1/operational/sensor_types'
-import { SensorType } from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
 import {
   ActionIcon,
