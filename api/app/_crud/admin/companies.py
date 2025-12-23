@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -72,26 +72,3 @@ async def create_company(
 
     await db.refresh(db_company)
     return db_company
-
-
-async def search_companies(*, db: AsyncSession, q: str, limit: int = 20):
-    """todo
-
-    Args:
-        db: TODO: describe.
-        q: TODO: describe.
-        limit: TODO: describe.
-    """
-    pattern = f"%{q}%"
-    stmt = (
-        select(models.Company)
-        .where(
-            or_(
-                models.Company.name_short.ilike(pattern),
-                models.Company.name_long.ilike(pattern),
-            )
-        )
-        .limit(limit)
-    )
-    result = await db.execute(stmt)
-    return result.scalars().all()
