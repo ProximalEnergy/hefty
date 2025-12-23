@@ -345,31 +345,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/companies/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Search Companies
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         *         q: TODO: describe.
-         *         limit: TODO: describe.
-         */
-        get: operations["search_companies_v1_admin_companies_search_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/admin/teams": {
         parameters: {
             query?: never;
@@ -1045,65 +1020,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/geo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Geo
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_project_geo_v1_analytics__project_id__geo_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/time-series": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Time Series
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         parent_device_id: TODO: describe.
-         *         sensor_type_name_shorts: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
-         */
-        get: operations["get_time_series_v1_analytics__project_id__time_series_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/analytics/{project_id}/heatmap/{sensor_type_name_short}": {
         parameters: {
             query?: never;
@@ -1127,34 +1043,6 @@ export interface paths {
          *         fillna_zero: TODO: describe.
          */
         get: operations["get_heatmap_v1_analytics__project_id__heatmap__sensor_type_name_short__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/expecter-power": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Expected Power Endpoint
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_expected_power_endpoint_v1_analytics__project_id__expecter_power_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1578,53 +1466,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/development/ercot/settlement-point-markets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Settlement Point Markets
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         */
-        get: operations["get_settlement_point_markets_v1_development_ercot_settlement_point_markets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/development/ercot/settlement-point-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Settlement Point Types
-         * @description todo
-         *
-         *     Args:
-         *         name_long: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_settlement_point_types_v1_development_ercot_settlement_point_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/development/ercot/settlement-points": {
         parameters: {
             query?: never;
@@ -1641,52 +1482,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         get: operations["get_settlement_points_v1_development_ercot_settlement_points_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/development/ercot/qses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Qses
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         */
-        get: operations["get_qses_v1_development_ercot_qses_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/development/ercot/dmes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Dmes
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         */
-        get: operations["get_dmes_v1_development_ercot_dmes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3586,6 +3381,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Aggregated Kpi Data Freq
+         * @description Get aggregated KPI data for a project with optional frequency binning.
+         *
+         *     Args:
+         *         project_id: Project UUID from path parameter.
+         *         start: Start date for the data range. If None, there is no limit on the start date.
+         *         end: End date for the data range. If None, there is no limit on the end date.
+         *         kpi_type_id: The KPI type to query.
+         *         frequency: Optional frequency for aggregation ("month" or "year").
+         *         aggregation: Optional aggregation method ("avg" or "sum").
+         *         db: Database session.
+         *         user_data: Authenticated user data.
+         *
+         *     Returns:
+         *         ProjectKPIData with dates and aggregated values.
+         */
+        get: operations["get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/kpi-data/agg": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Aggregated Kpi Data
+         * @description Get single aggregated KPI value for a project across entire date range.
+         *
+         *     Args:
+         *         project_id: Project UUID from path parameter.
+         *         start: Start date for the data range.
+         *         end: End date for the data range.
+         *         kpi_type_id: The KPI type to query.
+         *         aggregation: Optional aggregation method ("avg" or "sum").
+         *         db: Database session.
+         *         user_data: Authenticated user data.
+         *
+         *     Returns:
+         *         Single aggregated float value.
+         */
+        get: operations["get_project_aggregated_kpi_data_v1_operational_projects__project_id__kpi_data_agg_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/kpi-data/kpi-summary-cards": {
         parameters: {
             query?: never;
@@ -4153,46 +4013,6 @@ export interface paths {
          *         cutoff_now: TODO: describe.
          */
         get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/quality/inspections": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Inspections
-         * @description todo
-         */
-        get: operations["get_inspections_v1_operational_projects__project_id__quality_inspections_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/quality/observations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Observations
-         * @description todo
-         */
-        get: operations["get_observations_v1_operational_projects__project_id__quality_observations_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7744,122 +7564,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Auth
-         * @description todo
-         *
-         *     Args:
-         *         user: TODO: describe.
-         */
-        get: operations["get_auth_v1_auth_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/require-admin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Auth Require Admin
-         * @description todo
-         *
-         *     Args:
-         *         user: TODO: describe.
-         */
-        get: operations["get_auth_require_admin_v1_auth_require_admin_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/require-superadmin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Auth Require Superadmin
-         * @description todo
-         *
-         *     Args:
-         *         user: TODO: describe.
-         */
-        get: operations["get_auth_require_superadmin_v1_auth_require_superadmin_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/require-jwt-or-api-superadmin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Auth Require Jwt Or Api Superadmin
-         * @description todo
-         *
-         *     Args:
-         *         user: TODO: describe.
-         */
-        get: operations["get_auth_require_jwt_or_api_superadmin_v1_auth_require_jwt_or_api_superadmin_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/require-user-permission/{project_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Auth Require User Permission
-         * @description todo
-         *
-         *     Args:
-         *         user: TODO: describe.
-         *         project_id: TODO: describe.
-         */
-        get: operations["get_auth_require_user_permission_v1_auth_require_user_permission__project_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/": {
         parameters: {
             query?: never;
@@ -10225,24 +9929,6 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
-         * Inspection
-         * @description Inspection model.
-         */
-        Inspection: {
-            /** Date */
-            date: string | null;
-            /** Inspection */
-            inspection: string | null;
-            /** Status */
-            status: string | null;
-            /** Trade */
-            trade: string | null;
-            /** Id */
-            id: number;
-            /** Device Id */
-            device_id: number;
-        };
-        /**
          * Inverter
          * @description Inverter model.
          */
@@ -10417,7 +10103,7 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type: components["schemas"]["KPIType"] | null;
+            kpi_type: components["schemas"]["app__interfaces__KPIType"] | null;
         };
         /**
          * KPISummary
@@ -10454,31 +10140,6 @@ export interface components {
             ytd_value?: number | null;
             /** Aggregation Method */
             aggregation_method?: string | null;
-        };
-        /**
-         * KPIType
-         * @description Kpitype model.
-         */
-        KPIType: {
-            /** Kpi Type Id */
-            kpi_type_id: number;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-            /** Name Metric */
-            name_metric: string;
-            /** Description */
-            description: string | null;
-            /** Unit */
-            unit: string | null;
-            /** Aggregation Method */
-            aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
-            /** Doc Url */
-            doc_url: string | null;
         };
         /**
          * KPITypeWithContractInfo
@@ -10566,36 +10227,6 @@ export interface components {
             type: string;
             /** Coordinates */
             coordinates: unknown[];
-        };
-        /**
-         * Observation
-         * @description Observation model.
-         */
-        Observation: {
-            /** Type */
-            type: string | null;
-            /** National Type */
-            national_type: string | null;
-            /** Inspection Origin */
-            inspection_origin: string | null;
-            /** Status */
-            status: string | null;
-            /** Created */
-            created: string | null;
-            /** Description */
-            description: string | null;
-            /** Spec Section */
-            spec_section: string | null;
-            /** Trade Name */
-            trade_name: string | null;
-            /** Priority */
-            priority: string | null;
-            /** Impact Level */
-            impact_level: string | null;
-            /** Id */
-            id: number;
-            /** Device Id */
-            device_id: number;
         };
         /**
          * OperationalKPIData
@@ -11292,6 +10923,16 @@ export interface components {
             time_last: string | null;
         };
         /**
+         * ProjectKPIData
+         * @description Response model for project KPI data with dates and values.
+         */
+        ProjectKPIData: {
+            /** Date */
+            date: string[];
+            /** Project Data */
+            project_data: number[];
+        };
+        /**
          * ProjectSpec
          * @description Projectspec model.
          */
@@ -11595,18 +11236,6 @@ export interface components {
             load_zone_id: number | null;
             /** Trading Hub Id */
             trading_hub_id: number | null;
-        };
-        /**
-         * SettlementPointMarket
-         * @description Settlementpointmarket model.
-         */
-        SettlementPointMarket: {
-            /** Settlement Point Market Id */
-            settlement_point_market_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
         };
         /**
          * SettlementPointType
@@ -12102,6 +11731,31 @@ export interface components {
             description: string;
         };
         /**
+         * KPIType
+         * @description Kpitype model.
+         */
+        app__interfaces__KPIType: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Description */
+            description: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Aggregation Method */
+            aggregation_method: string;
+            device_type: components["schemas"]["DeviceType"] | null;
+            /** Doc Url */
+            doc_url: string | null;
+        };
+        /**
          * SensorType
          * @description Sensortype model.
          */
@@ -12122,10 +11776,15 @@ export interface components {
             description: string | null;
         };
         /**
+         * KPIType
+         * @enum {integer}
+         */
+        core__enumerations__KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105;
+        /**
          * SensorType
          * @enum {integer}
          */
-        core__enumerations__SensorType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125 | 126 | 127 | 128 | 129 | 130 | 131 | 132 | 133 | 134 | 135 | 136 | 137 | 138 | 139 | 140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 | 151 | 152 | 153 | 154 | 155 | 156 | 157 | 158 | 159 | 160 | 161 | 162 | 163 | 164 | 165 | 166 | 167 | 168 | 169 | 170 | 171 | 172 | 173 | 174 | 175 | 176 | 177 | 178 | 179 | 180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 188 | 189 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 | 198 | 199;
+        core__enumerations__SensorType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110 | 111 | 112 | 113 | 114 | 115 | 116 | 117 | 118 | 119 | 120 | 121 | 122 | 123 | 124 | 125 | 126 | 127 | 128 | 129 | 130 | 131 | 132 | 133 | 134 | 135 | 136 | 137 | 138 | 139 | 140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 | 151 | 152 | 153 | 154 | 155 | 156 | 157 | 158 | 159 | 160 | 161 | 162 | 163 | 164 | 165 | 166 | 167 | 168 | 169 | 170 | 171 | 172 | 173 | 174 | 175 | 176 | 177 | 178 | 179 | 180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 188 | 189 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 | 198 | 199 | 200;
     };
     responses: never;
     parameters: never;
@@ -12745,41 +12404,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Company"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    search_companies_v1_admin_companies_search_get: {
-        parameters: {
-            query: {
-                q: string;
-                limit?: number;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -13816,85 +13440,6 @@ export interface operations {
             };
         };
     };
-    get_project_geo_v1_analytics__project_id__geo_get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_time_series_v1_analytics__project_id__time_series_get: {
-        parameters: {
-            query?: {
-                tag_ids?: number[];
-                device_ids?: number[];
-                parent_device_id?: number | null;
-                sensor_type_name_shorts?: string[];
-                start?: string | null;
-                end?: string | null;
-                include_ghost_tags?: boolean;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_heatmap_v1_analytics__project_id__heatmap__sensor_type_name_short__get: {
         parameters: {
             query?: {
@@ -13911,44 +13456,6 @@ export interface operations {
             path: {
                 project_id: string;
                 sensor_type_name_short: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_expected_power_endpoint_v1_analytics__project_id__expecter_power_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
             };
             cookie?: never;
         };
@@ -14567,72 +14074,6 @@ export interface operations {
             };
         };
     };
-    get_settlement_point_markets_v1_development_ercot_settlement_point_markets_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettlementPointMarket"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_settlement_point_types_v1_development_ercot_settlement_point_types_get: {
-        parameters: {
-            query?: {
-                name_long?: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettlementPointType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_settlement_points_v1_development_ercot_settlement_points_get: {
         parameters: {
             query?: {
@@ -14655,70 +14096,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettlementPoint"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_qses_v1_development_ercot_qses_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QSE"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_dmes_v1_development_ercot_dmes_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DME"][];
                 };
             };
             /** @description Validation Error */
@@ -17354,6 +16731,85 @@ export interface operations {
             };
         };
     };
+    get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
+        parameters: {
+            query: {
+                kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+                start?: string | null;
+                end?: string | null;
+                frequency?: ("month" | "year") | null;
+                aggregation?: ("avg" | "sum") | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectKPIData"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_aggregated_kpi_data_v1_operational_projects__project_id__kpi_data_agg_get: {
+        parameters: {
+            query: {
+                kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+                start?: string | null;
+                end?: string | null;
+                aggregation?: ("avg" | "sum") | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get: {
         parameters: {
             query?: {
@@ -18274,74 +17730,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_inspections_v1_operational_projects__project_id__quality_inspections_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Inspection"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_observations_v1_operational_projects__project_id__quality_observations_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Observation"][];
                 };
             };
             /** @description Validation Error */
@@ -19728,7 +19116,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType"][];
+                    "application/json": components["schemas"]["app__interfaces__KPIType"][];
                 };
             };
             /** @description Validation Error */
@@ -19764,7 +19152,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType"];
+                    "application/json": components["schemas"]["app__interfaces__KPIType"];
                 };
             };
             /** @description Validation Error */
@@ -23760,168 +23148,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Device"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_auth_v1_auth_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_auth_require_admin_v1_auth_require_admin_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_auth_require_superadmin_v1_auth_require_superadmin_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_auth_require_jwt_or_api_superadmin_v1_auth_require_jwt_or_api_superadmin_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_auth_require_user_permission_v1_auth_require_user_permission__project_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

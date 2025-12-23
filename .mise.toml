@@ -86,17 +86,22 @@ echo "Sync complete! Your branch is now up to date with dev."
 [tasks."ruff:check"]
 description = "Run ruff linter on entire monorepo"
 dir = "."
-run = "uv run --dev ruff check core/src/ api/app/"
+run = "uv run --dev ruff check core/ api/ sql-admin/ _scripts/"
 
 [tasks."ruff:format"]
 description = "Run ruff formatter on entire monorepo"
 dir = "."
-run = "uv run --dev ruff format core/src/ api/app/"
+run = "uv run --dev ruff format core/ api/ sql-admin/ _scripts/"
 
 [tasks."hardcoded_type_id_check"]
 description = "Run hardcoded type ID check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_type_id_check.sh"
+
+[tasks."hardcoded_name_shorts_check"]
+description = "Run hardcoded name shorts check on entire monorepo"
+dir = "."
+run = "./_scripts/hardcoded_name_shorts_check.sh"
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
@@ -134,12 +139,12 @@ run = "uv run vulture core/src/core --min-confidence 100"
 [tasks."core:ruff_check"]
 description = "Run ruff linter for core"
 dir = "."
-run = "uv run --dev ruff check core/src/"
+run = "uv run --dev ruff check core/"
 
 [tasks."core:ruff_format"]
 description = "Run ruff formatter for core"
 dir = "."
-run = "uv run --dev ruff format core/src/"
+run = "uv run --dev ruff format core/"
 
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
@@ -264,12 +269,12 @@ depends = [
 [tasks."api:ruff"]
 description = "Run ruff linter for api"
 dir = "."
-run = "uv run --dev ruff check api/app/"
+run = "uv run --dev ruff check api/"
 
 [tasks."api:format"]
 description = "Run ruff formatter for api"
 dir = "."
-run = "uv run --dev ruff format api/app/"
+run = "uv run --dev ruff format api/"
 
 [tasks."api:vulture"]
 description = "Run vulture for api"
@@ -308,6 +313,12 @@ hurl --location --variable baseURL=http://127.0.0.1:8000 \
 description = "Check docstring Args sections in api"
 dir = "."
 run = "uv run _scripts/check_docstring_args.py api"
+
+[tasks."api:unused_routes"]
+description = "Check for API routes unused by the web-app"
+dir = "api"
+depends = ["codegen"]
+run = "uv run python _scripts/check_unused_routes.py"
 
 [tasks."api:freeze"]
 description = "Export requirements.txt for AWS deployment"

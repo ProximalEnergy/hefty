@@ -1,4 +1,5 @@
 import datetime
+from collections.abc import Sequence
 from typing import Annotated
 from uuid import UUID
 
@@ -64,6 +65,7 @@ def get_project_data(
 def get_project_dataframe(
     *,
     tag_ids: list[int],
+    sensor_type_ids: Sequence[int],
     sensor_type_name_shorts: list[str],
     start: datetime.datetime | None,
     end: datetime.datetime | None,
@@ -84,6 +86,7 @@ def get_project_dataframe(
 
     Args:
         tag_ids: TODO: describe.
+        sensor_type_ids: TODO: describe.
         sensor_type_name_shorts: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
@@ -99,15 +102,21 @@ def get_project_dataframe(
         interval: TODO: describe.
         include_ghost_tags: TODO: describe.
     """
-    if tag_ids == [] and sensor_type_name_shorts == [] and device_ids == []:
+    if (
+        tag_ids == []
+        and sensor_type_name_shorts == []
+        and sensor_type_ids == []
+        and device_ids == []
+    ):
         raise HTTPException(
             status_code=400,
-            detail="No tag_ids, sensor_type_name_shorts, or device_ids provided",
+            detail="No tag_ids, sensor_type_name_shorts, sensor_type_ids, or device_ids provided",
         )
 
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
         tag_ids=tag_ids,
+        sensor_type_ids=sensor_type_ids,
         sensor_type_name_shorts=sensor_type_name_shorts,
         device_ids=device_ids,
         deep=False,
@@ -203,14 +212,8 @@ def get_llm_time_series(
     tags = core.crud.project.tags.get_project_tags(
         project_db,
         tag_ids=tag_ids or [],
-        device_ids=[],
         sensor_type_ids=sensor_type_ids or [],
-        sensor_type_name_shorts=[],
-        data_type_ids=[],
-        name_short="",
-        name_long="",
         name_scada="",
-        deep=False,
     ).models()
 
     if not tags:
@@ -299,6 +302,7 @@ def get_project_dataframe_endpoint(
     """
     df = get_project_dataframe(
         tag_ids=tag_ids,
+        sensor_type_ids=[],
         sensor_type_name_shorts=sensor_type_name_shorts,
         device_ids=device_ids,
         start=start,
@@ -368,11 +372,7 @@ def get_time_series(
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
         sensor_type_name_shorts=sensor_type_name_shorts,
-        data_type_ids=[],
-        name_short="",
-        name_long="",
         name_scada="",
-        deep=False,
         include_ghost_tags=include_ghost_tags,
     ).models()
 

@@ -9,56 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import custom_types, dependencies, interfaces
 from app._crud.ercot.dam_spp import get_ercot_dam_spp as crud_get_ercot_dam_spp
-from app._crud.ercot.dmes import get_ercot_dmes as crud_get_ercot_dmes
-from app._crud.ercot.qses import get_ercot_qses as crud_get_ercot_qses
 from app._crud.ercot.resources import get_ercot_resource as crud_get_ercot_resource
 from app._crud.ercot.resources import get_ercot_resources as crud_get_ercot_resources
 from app._crud.ercot.rtm_spp import get_ercot_rtm_spp as crud_get_ercot_rtm_spp
 from app._crud.ercot.sced_gen import get_ercot_sced_gen as crud_get_ercot_sced_gen
 from app._crud.ercot.sced_load import get_ercot_sced_load as crud_get_ercot_sced_load
-from app._crud.ercot.settlement_point_markets import (
-    get_ercot_settlement_point_markets as crud_get_ercot_settlement_point_markets,
-)
-from app._crud.ercot.settlement_point_types import (
-    get_ercot_settlement_point_types as crud_get_ercot_settlement_point_types,
-)
 from app._crud.ercot.settlement_points import (
     get_ercot_settlement_points as crud_get_ercot_settlement_points,
 )
 
 router = APIRouter(prefix="/ercot", tags=["ercot"])
-
-
-@router.get(
-    "/settlement-point-markets",
-    response_model=list[interfaces.SettlementPointMarket],
-)
-async def get_settlement_point_markets(
-    db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-    """
-    return await crud_get_ercot_settlement_point_markets(db=db)
-
-
-@router.get(
-    "/settlement-point-types",
-    response_model=list[interfaces.SettlementPointType],
-)
-async def get_settlement_point_types(
-    name_long: str = "",
-    db: AsyncSession = Depends(dependencies.get_ercot_db_async),
-):
-    """todo
-
-    Args:
-        name_long: TODO: describe.
-        db: TODO: describe.
-    """
-    return await crud_get_ercot_settlement_point_types(db=db, name_long=name_long)
 
 
 @router.get(
@@ -76,36 +36,6 @@ async def get_settlement_points(
         db: TODO: describe.
     """
     return await crud_get_ercot_settlement_points(db=db, deep=deep)
-
-
-@router.get(
-    "/qses",
-    response_model=list[interfaces.QSE],
-)
-async def get_qses(
-    db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-    """
-    return await crud_get_ercot_qses(db=db)
-
-
-@router.get(
-    "/dmes",
-    response_model=list[interfaces.DME],
-)
-async def get_dmes(
-    db: Annotated[AsyncSession, Depends(dependencies.get_ercot_db_async)],
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-    """
-    return await crud_get_ercot_dmes(db=db)
 
 
 @router.get(

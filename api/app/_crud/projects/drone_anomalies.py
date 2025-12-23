@@ -9,29 +9,6 @@ from sqlalchemy.orm import Session
 from app.interfaces import DroneAnomalyCreate
 
 
-def bulk_create_drone_anomalies(
-    *,
-    db: Session,
-    anomalies_data: list[DroneAnomalyCreate],
-    inspection_uuid: uuid.UUID,
-):
-    """Delete all existing anomalies for an inspection and bulk insert new ones.
-
-    Args:
-        db: TODO: describe.
-        anomalies_data: TODO: describe.
-        inspection_uuid: TODO: describe.
-    """
-    # Delete existing anomalies for this inspection to ensure a clean sync
-    db.query(DroneAnomaly).filter(
-        DroneAnomaly.inspection_uuid == inspection_uuid
-    ).delete(synchronize_session=False)
-
-    db_anomalies = [DroneAnomaly(**data.model_dump()) for data in anomalies_data]
-    db.add_all(db_anomalies)
-    db.commit()
-
-
 def get_anomalies_by_inspection_uuid(
     *, db: Session, inspection_uuid: uuid.UUID
 ) -> Sequence[DroneAnomaly]:

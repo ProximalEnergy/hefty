@@ -139,66 +139,6 @@ export const useCustomQueryArrow = ({
   })
 }
 
-export const useGetApiKey = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: '/v1/admin/api-key',
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.ApiKey>({
-    axiosConfig,
-    queryName: 'getApiKey',
-    pathParams: {},
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useCreateApiKeyMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'post',
-        url: `${baseURL}/v1/admin/api-key`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getApiKey'] })
-    },
-  })
-}
-
-export const useDeleteApiKeyMutation = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'delete',
-        url: `${baseURL}/v1/admin/api-key`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getApiKey'] })
-    },
-  })
-}
-
 export const useCreateFeedbackMutation = () => {
   const { getToken } = useAuth()
   return useMutation({
@@ -686,61 +626,6 @@ export const useGetUptimeTable = ({
   })
 }
 
-export const useGetFailureModes = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    failure_mode_ids?: number[]
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/failure-modes`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.FailureMode[]>({
-    axiosConfig,
-    queryName: 'getFailureModes',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useGetRootCauses = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    root_cause_ids?: number[]
-    device_type_ids?: number[]
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/root-causes`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.RootCause[]>({
-    axiosConfig,
-    queryName: 'getRootCauses',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useUpdateRootCause = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
@@ -1114,56 +999,6 @@ export const useGetResourceNetPower = ({
   })
 }
 
-export const useGetInspections = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/quality/inspections`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<types.Inspection[]>({
-    axiosConfig,
-    queryName: 'getInspections',
-    pathParams,
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useGetObservations = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/quality/observations`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<types.Observation[]>({
-    axiosConfig,
-    queryName: 'getObservations',
-    pathParams,
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useAddKPIAlert = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
@@ -1509,37 +1344,5 @@ export const useValidateCombinerData = ({
     pathParams,
     queryParams: transformedParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useCreateCompany = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({
-      name_short,
-      name_long,
-    }: {
-      name_short: string
-      name_long: string
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'post',
-        url: `${baseURL}/v1/admin/companies`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          name_short,
-          name_long,
-        },
-      })
-    },
-    onSuccess: () => {
-      // Invalidate any queries that fetch companies
-      queryClient.invalidateQueries({ queryKey: ['getCompanies'] })
-    },
   })
 }

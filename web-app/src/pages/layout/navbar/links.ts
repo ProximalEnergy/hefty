@@ -15,7 +15,6 @@ export type Link = {
   requiresRealTimeData?: boolean
   requiresEventIntegration?: boolean
   requiresReportIntegration?: boolean
-  requiresQualityIntegration?: boolean
   requiresDroneIntegration?: boolean
   requiresQSEIntegration?: boolean
   underDevelopment?: boolean
@@ -29,7 +28,6 @@ export type DropdownLink = {
   to?: string | ((arg: string) => string)
   requiresEventIntegration?: boolean
   requiresReportIntegration?: boolean
-  requiresQualityIntegration?: boolean
   requiresRealTimeData?: boolean
   requiresDroneIntegration?: boolean
   requiresPV?: boolean

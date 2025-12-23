@@ -110,36 +110,6 @@ def get_tags_by_pattern_digits_only(project_db: Session, *, pattern: str):
     )
 
 
-def update_tags_sensor_type(
-    project_db: Session,
-    *,
-    tags: list[models.Tag],
-    sensor_type_id: int,
-    unit_scale: float | None = None,
-    unit_offset: float | None = None,
-):
-    """Update sensor_type_id and optionally unit_scale/unit_offset for multiple tags.
-
-    Args:
-        project_db: TODO: describe.
-        tags: TODO: describe.
-        sensor_type_id: TODO: describe.
-        unit_scale: TODO: describe.
-        unit_offset: TODO: describe.
-    """
-    updated_count = 0
-    for tag in tags:
-        tag.sensor_type_id = sensor_type_id
-        if unit_scale is not None:
-            tag.unit_scale = unit_scale
-        if unit_offset is not None:
-            tag.unit_offset = unit_offset
-        updated_count += 1
-
-    project_db.commit()
-    return updated_count
-
-
 def update_tags_sensor_type_by_pattern_bulk(
     project_db: Session,
     *,

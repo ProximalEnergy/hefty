@@ -7,12 +7,12 @@ import {
   Group,
   Image,
   Loader,
+  MantineTheme,
   Modal,
   Stack,
   Text,
   Tooltip,
 } from '@mantine/core'
-import { MantineTheme } from '@mantine/core'
 import {
   IconChevronLeft,
   IconChevronRight,

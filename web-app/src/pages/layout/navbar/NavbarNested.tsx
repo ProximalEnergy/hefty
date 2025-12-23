@@ -408,10 +408,6 @@ export function NavbarNested({
   projectLinks = projectLinks.filter(
     (link) =>
       !(
-        link.requiresQualityIntegration &&
-        !project.data?.has_quality_integration
-      ) &&
-      !(
         link.requiresEventIntegration && !project.data?.has_event_integration
       ) &&
       !(

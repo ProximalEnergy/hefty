@@ -1,8 +1,6 @@
 import datetime
-import functools
 import hashlib
 import random
-import warnings
 from collections import defaultdict
 from typing import Any
 
@@ -117,20 +115,6 @@ def generate_random_location() -> tuple[float, float]:
     latitude = random.uniform(24.396308, 49.384358)
     longitude = random.uniform(-125.000000, -66.934570)
     return latitude, longitude
-
-
-def generate_random_project(*, name: str) -> tuple[str, float, float]:
-    """Handle generate random project.
-
-    Args:
-        name: TODO: describe.
-    """
-    seed_from_project_name(name=name)
-
-    name = generate_random_name()
-    latitude, longitude = generate_random_location()
-
-    return name, latitude, longitude
 
 
 def timedelta_to_postgres_interval(*, timedelta: pd.Timedelta) -> str:
@@ -677,11 +661,6 @@ def get_tag_id_to_device_name_long(
     devices = core.crud.project.devices.get_project_devices(
         db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
 
     # Create mapping from device id to device name long
@@ -802,38 +781,6 @@ def get_truetracking_irradiance(
         axis=1,
     )
     return pd.DataFrame(result)
-
-
-def deprecated(reason):
-    """This decorator can be used to mark functions as deprecated.
-        It will result in a warning being emitted when the function is used.
-
-        :param reason: A message indicating why the function is deprecated.
-
-    Args:
-        reason: TODO: describe.
-    """
-
-    def decorator(func):
-        """todo
-
-        Args:
-            func: TODO: describe.
-        """
-
-        @functools.wraps(func)
-        def new_func(*args: str, **kwargs):
-            """Handle new func."""
-            warnings.warn(
-                f"Call to deprecated function {func.__name__}. {reason}",
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            return func(*args, **kwargs)
-
-        return new_func
-
-    return decorator
 
 
 def map_ancestors_to_descendents(

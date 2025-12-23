@@ -23,8 +23,11 @@ import {
   Tooltip,
   useMantineTheme,
 } from '@mantine/core'
-import { IconAlertTriangle } from '@tabler/icons-react'
-import { IconBatteryCharging, IconBolt } from '@tabler/icons-react'
+import {
+  IconAlertTriangle,
+  IconBatteryCharging,
+  IconBolt,
+} from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { Data } from 'plotly.js'
 import { ReactNode } from 'react'

@@ -288,6 +288,7 @@ async def get_kpi_excel(
 
     has_device_data = kpi_data[0]["data"]["device_data_obj"] is not None
 
+    device_df = None
     if has_device_data:
         device_df = pd.DataFrame(
             kpi_data[0]["data"]["device_data_obj"]["device_values"],
@@ -331,7 +332,7 @@ async def get_kpi_excel(
     excel_buffer = BytesIO()
     with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
         metadata_df.to_excel(writer, sheet_name="Overview", index=False, header=True)
-        if has_device_data:
+        if has_device_data and device_df is not None:
             if device_df.shape[1] > 16383:  ## Excel limitation
                 device_df.T.to_excel(writer, sheet_name="Device Data", index=True)
             else:

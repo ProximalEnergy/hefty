@@ -4,6 +4,7 @@ from typing import Annotated
 import pandas as pd
 from app import dependencies, logger, utils
 from app.utils import get_include_in_schema
+from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -60,9 +61,8 @@ def validate_combiner_data(
         # Get combiner current tags
         tags = core.crud.project.tags.get_project_tags(
             project_db,
-            sensor_type_name_shorts=["pv_dc_combiner_current"],
+            sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
             device_ids=combiner_device_ids,
-            deep=False,
         ).models()
 
         if not tags:

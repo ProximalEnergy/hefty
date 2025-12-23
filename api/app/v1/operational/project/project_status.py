@@ -33,21 +33,6 @@ class StatusTimeSeries(BaseModel):
     tag_id: int
 
 
-def strtobool(val: str) -> int:  # skip-star-syntax
-    """todo
-
-    Args:
-        val: TODO: describe.
-    """
-    val = val.lower()
-    if val in ("y", "yes", "t", "true", "on", "1"):
-        return 1
-    elif val in ("n", "no", "f", "false", "off", "0"):
-        return 0
-    else:
-        raise ValueError(f"invalid truth value {val!r}")
-
-
 # -- unchanged interpret wrapper --
 @router.get("/interpret")
 def interpret(

@@ -212,24 +212,6 @@ def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessage:
     )
 
 
-def _model_to_pydantic_image(*, model: models.EventMessageImage) -> EventMessageImage:
-    """Convert database model to Pydantic schema.
-
-    Args:
-        model: TODO: describe.
-    """
-    return EventMessageImage(
-        event_message_image_id=model.event_message_image_id,
-        event_message_id=model.event_message_id,
-        event_id=model.event_id,
-        s3_key=model.s3_key,
-        filename=model.filename,
-        content_type=model.content_type,
-        file_size=model.file_size,
-        created_at=model.created_at,
-    )
-
-
 # --- Mention Extraction ---
 def extract_mentions(*, body: str) -> list[str]:
     """Extract @mentions from message body using regex.

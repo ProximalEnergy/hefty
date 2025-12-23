@@ -4,6 +4,7 @@ from uuid import UUID
 import numpy as np
 import pandas as pd
 import pvlib
+from core.enumerations import SensorType
 from sqlalchemy.orm import Session
 
 import core
@@ -42,11 +43,12 @@ def get_expected_power(
 
     df_met = get_project_dataframe(
         tag_ids=[],
-        sensor_type_name_shorts=[
-            "met_station_poa",
-            "met_station_ambient_temperature",
-            "met_station_wind_speed",
+        sensor_type_ids=[
+            SensorType.MET_STATION_POA,
+            SensorType.MET_STATION_AMBIENT_TEMPERATURE,
+            SensorType.MET_STATION_WIND_SPEED,
         ],
+        sensor_type_name_shorts=[],
         start=start,
         end=end,
         db=db,
@@ -199,11 +201,12 @@ def get_project_expected_power(
 
     df_met = get_project_dataframe(
         tag_ids=[],
-        sensor_type_name_shorts=[
-            "met_station_poa",
-            "met_station_ambient_temperature",
-            "met_station_wind_speed",
+        sensor_type_ids=[
+            SensorType.MET_STATION_POA,
+            SensorType.MET_STATION_AMBIENT_TEMPERATURE,
+            SensorType.MET_STATION_WIND_SPEED,
         ],
+        sensor_type_name_shorts=[],
         start=start,
         end=end,
         db=db,

@@ -10,7 +10,7 @@ import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.dependencies import get_db
-from core.enumerations import DeviceType, EventLossType, ProjectType
+from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import insert, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -701,8 +701,7 @@ async def get_uptime(
             project,
             tags=core.crud.project.tags.get_project_tags(
                 db=project_db,
-                sensor_type_name_shorts=["met_station_poa"],
-                deep=False,
+                sensor_type_ids=[SensorType.MET_STATION_POA],
             ).models(),
             start=start,
             end=end,
@@ -1072,7 +1071,8 @@ def bulk_create_events(
         )
         if not exists:
             new_type = models.EventLossType(
-                event_loss_type_id=loss_type_id, name_short="proximal_pv_dc_capacity"
+                event_loss_type_id=loss_type_id,
+                name_short="proximal_pv_dc_capacity",  # allow: hardcoded-name-short
             )
             db.add(new_type)
             db.commit()

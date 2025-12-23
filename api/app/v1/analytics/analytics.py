@@ -14,7 +14,6 @@ import json
 import logging
 import mimetypes
 import time
-from collections import defaultdict
 from io import BytesIO
 from typing import Annotated
 from uuid import UUID
@@ -25,7 +24,7 @@ import pandas as pd
 import requests
 from botocore.config import Config
 from core.dependencies import get_db
-from core.enumerations import DeviceType
+from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsort_keygen, natsorted
@@ -98,7 +97,7 @@ def get_combiner_block_performance(
     # Get tags for combiner current
     tags = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_dc_combiner_current"],
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         device_ids=[d.device_id for d in devices_combiner],
     ).models()
 
@@ -163,448 +162,6 @@ def get_combiner_block_performance(
     return return_data
 
 
-@router.get("/geo", response_model=interfaces.GeoJSON)
-def get_project_geo(
-    project_id: UUID,
-    db: Annotated[Session, Depends(get_db)],
-    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    project: models.Project = Depends(dependencies.get_project_api),
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-    """
-    device_type_id = DeviceType.BLOCK
-    devices = core.crud.project.devices.get_project_devices(
-        project_db,
-        device_ids=[],
-        device_type_ids=[device_type_id],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
-    ).models()
-
-    end = pd.Timestamp.utcnow().floor("5min")
-    start = end - pd.Timedelta(minutes=20)
-
-    # Some projects report data at the block level, others at the PCS level
-    # If the project reports at the PCS level, we need to aggregate the data
-    # for each block. need_children is True if the project reports at the PCS
-    # level.
-    need_children = all([device.logical for device in devices])
-
-    # If the project reports at the PCS level...
-    if need_children:
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
-            tag_ids=[],
-            device_ids=[],
-            sensor_type_ids=[],
-            sensor_type_name_shorts=["pv_pcs_ac_power"],
-            data_type_ids=[],
-            name_short="",
-            name_long="",
-            name_scada="",
-            deep=False,
-        ).models()
-
-        df_pcs = utils.data_df(project_db, project, tags, start=start, end=end)
-
-        pcs_devices = core.crud.project.devices.get_project_devices(
-            project_db,
-            device_ids=[],
-            device_type_ids=[DeviceType.PV_PCS],
-            parent_device_ids=[],
-            name_short="",
-            name_long="",
-            deep=False,
-        ).models()
-
-        # For each pcs tag, map device id to tag id
-        device_id_to_tag_id = {tag.device_id: tag.tag_id for tag in tags}
-
-        # For each block, map block id to list of pcs tag ids
-        block_id_to_tag_ids = defaultdict(list)
-        for device in pcs_devices:
-            block_id_to_tag_ids[device.parent_device_id].append(
-                device_id_to_tag_id[device.device_id],
-            )
-
-        # Aggregate data for each block
-        df = pd.DataFrame(index=df_pcs.index)
-        for block_id, tag_ids in block_id_to_tag_ids.items():
-            df[block_id] = df_pcs[tag_ids].sum(axis=1)
-
-    # Else the project reports at the block level...
-    else:
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
-            tag_ids=[],
-            device_ids=[],
-            sensor_type_ids=[],
-            sensor_type_name_shorts=["block_ac_power"],
-            data_type_ids=[],
-            name_short="",
-            name_long="",
-            name_scada="",
-            deep=False,
-        ).models()
-
-        df = utils.data_df(project_db, project, tags, start=start, end=end)
-
-        tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
-        df.columns = pd.Index(
-            [tag_id_to_device_id[tag_id] for tag_id in df.columns.astype(int)]
-        )
-
-    # At this point df is a DataFrame with a column for each block ac power
-    # where the column names are the block device ids.
-
-    status_data = {}
-    for col in df:
-        status_data[col] = "Normal" if df[col].iloc[-1] > 0 else "Alert"
-
-    power_data = {col: df[col].iloc[-1] for col in df}
-
-    kW_DC_mapping = {
-        UUID("b102379c-eadb-4cc4-808b-a3d4b3f3ea5a"): {
-            3: 5000,
-            9: 5000,
-            15: 5000,
-            21: 5000,
-            27: 5000,
-            33: 5000,
-            39: 5000,
-            45: 5000,
-            51: 5000,
-            57: 5000,
-            63: 5000,
-            69: 5000,
-            75: 5000,
-            81: 5000,
-        },
-        UUID("32fac373-1dd6-465a-bb06-d3cc6b268c7b"): {
-            3: 5060.9,
-            4: 5060.9,
-            5: 5060.9,
-            6: 5049.9,
-            7: 4989.6,
-            8: 5060.9,
-            9: 5001.5,
-            10: 5025.2,
-            11: 5060.9,
-            12: 5167.8,
-            13: 5096.5,
-            14: 5072.8,
-            15: 5060.9,
-            16: 5049,
-            17: 5060.9,
-            18: 4965.8,
-            19: 5060.9,
-            20: 5013.4,
-            21: 5025.2,
-            22: 5096.5,
-            23: 5096.5,
-            24: 4989.6,
-            25: 4989.6,
-            26: 5025.2,
-            27: 5037.1,
-            28: 5132.2,
-            29: 5025.2,
-            30: 5060.9,
-            31: 5060.9,
-            32: 5037.1,
-            33: 5155.9,
-            34: 5120.3,
-        },
-        UUID("23bd9f17-07b0-4a15-be56-bc676f9b7463"): {
-            3: 5429.2,
-            4: 5441,
-            5: 5728.3,
-            6: 5803.2,
-            7: 5381.6,
-            8: 5452.9,
-            9: 5726.2,
-            10: 5899.4,
-            11: 5983.5,
-            12: 6163.7,
-            13: 6151.7,
-            14: 6055.6,
-            15: 5911.4,
-            16: 5702.4,
-            17: 5072.8,
-            18: 5488.6,
-            19: 5369.8,
-            20: 5678.6,
-            21: 5738,
-            22: 5429.2,
-        },
-        UUID("3028d2ee-c924-4c6e-a133-9938926bc4b6"): {
-            414: 3500,
-            415: 3500,
-            416: 3500,
-            417: 3500,
-            418: 3500,
-            419: 3500,
-            420: 3500,
-            421: 3500,
-            422: 3500,
-            423: 3500,
-            424: 3500,
-            425: 3500,
-            426: 3500,
-            427: 3500,
-            428: 3500,
-            429: 3500,
-            430: 3500,
-            431: 3500,
-            432: 3500,
-            433: 3500,
-            434: 3500,
-            435: 3500,
-            436: 3500,
-            437: 3500,
-            438: 3500,
-            439: 3500,
-            440: 3500,
-            441: 3500,
-            442: 3500,
-            443: 3500,
-            444: 3500,
-            445: 3500,
-            446: 3500,
-            447: 3500,
-            448: 3500,
-            449: 3500,
-        },
-        UUID("679f8f19-af11-43e0-9a60-64fc706f92a4"): {
-            536: 3500,
-            537: 3500,
-            538: 3500,
-            539: 3500,
-            540: 3500,
-            541: 3500,
-            542: 3500,
-            543: 3500,
-            544: 3500,
-            545: 3500,
-            546: 3500,
-            547: 3500,
-            548: 3500,
-            549: 3500,
-            550: 3500,
-            551: 3500,
-            552: 3500,
-            553: 3500,
-            554: 3500,
-            555: 3500,
-            556: 3500,
-            557: 3500,
-            558: 3500,
-            559: 3500,
-            560: 3500,
-            561: 3500,
-            562: 3500,
-            563: 3500,
-            564: 3500,
-            565: 3500,
-            566: 3500,
-            567: 3500,
-            568: 3500,
-            569: 3500,
-            570: 3500,
-            571: 3500,
-            572: 3500,
-            573: 3500,
-            574: 3500,
-            575: 3500,
-            576: 3500,
-            577: 3500,
-            578: 3500,
-            579: 3500,
-        },
-    }
-
-    norm_power = {
-        k: v / kW_DC_mapping[project_id][k]  # type: ignore
-        for k, v in power_data.items()
-        if k in kW_DC_mapping[project_id]  # type: ignore
-    }
-
-    max_norm_power = max(norm_power.values())
-
-    def norm(*, n, d):
-        """todo
-
-        Args:
-            n: TODO: describe.
-            d: TODO: describe.
-        """
-        if d == 0:
-            return 0
-
-        v = n / d
-
-        if np.isnan(v):
-            return 0
-        else:
-            return v
-
-    norm_power = {k: norm(n=v, d=max_norm_power) for k, v in norm_power.items()}
-
-    return_data = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {
-                    "status": status_data.get(device.device_id, "Unknown"),
-                    "power": power_data.get(device.device_id, -1),
-                    "normalized_power": norm_power.get(device.device_id, -1),
-                    "name": device.name_long,
-                    "device_id": device.device_id,
-                },
-                "geometry": device.polygon,
-            }
-            for device in devices
-        ],
-    }
-
-    return return_data
-
-
-@router.get("/time-series", response_class=ORJSONResponse)
-def get_time_series(
-    project_id: UUID,
-    tag_ids: Annotated[list[int], Query()] = [],
-    device_ids: Annotated[list[int], Query()] = [],
-    parent_device_id: int | None = None,
-    sensor_type_name_shorts: Annotated[list[str], Query()] = [],
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
-    db: Session = Depends(get_db),
-    project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project_api),
-    include_ghost_tags: Annotated[bool, Query()] = False,
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        tag_ids: TODO: describe.
-        device_ids: TODO: describe.
-        parent_device_id: TODO: describe.
-        sensor_type_name_shorts: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        include_ghost_tags: TODO: describe.
-    """
-    if parent_device_id:
-        devices = core.crud.project.devices.get_project_devices(
-            project_db, parent_device_ids=[parent_device_id]
-        ).models()
-        device_ids_from_parent = [device.device_id for device in devices]
-
-    else:
-        device_ids_from_parent = []
-
-    device_ids = list(set(device_ids + device_ids_from_parent))
-
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
-        tag_ids=tag_ids,
-        device_ids=device_ids,
-        sensor_type_ids=[],
-        sensor_type_name_shorts=sensor_type_name_shorts,
-        data_type_ids=[],
-        name_short="",
-        name_long="",
-        name_scada="",
-        deep=False,
-        include_ghost_tags=include_ghost_tags,
-    ).models()
-
-    if len(tags) == 0:
-        raise HTTPException(
-            status_code=404,
-            detail="No tags configured for this request",
-        )
-
-    df = utils.data_df(
-        project_db,
-        project,
-        tags,
-        start=start,
-        end=end,
-        fillna_zero=False,
-    )
-
-    tag_id_to_tag_name = utils.get_tag_id_to_tag_name(project_db, tags=tags)
-    tag_id_to_sensor_type_name = utils.get_tag_id_to_sensor_type_name(
-        project_db,
-        tags=tags,
-    )
-    tag_id_to_device_name_long = utils.get_tag_id_to_device_name_long(
-        project_db,
-        tags=tags,
-    )
-    tag_id_to_tag_name_scada = {tag.tag_id: tag.name_scada for tag in tags}
-    tag_id_to_tag_name_long = {
-        tag.tag_id: tag.name_long if tag.name_long else "" for tag in tags
-    }
-
-    multi_index_tuples = [
-        (
-            column,
-            tag_id_to_tag_name[column],  # type: ignore
-            tag_id_to_sensor_type_name[column],  # type: ignore
-            tag_id_to_device_name_long[column],  # type: ignore
-            tag_id_to_tag_name_scada[column],
-            tag_id_to_tag_name_long[column],
-        )
-        for column in df.columns.astype(int)
-    ]
-    multi_index = pd.MultiIndex.from_tuples(
-        multi_index_tuples,
-        names=[
-            "tag_id",
-            "tag_name",
-            "sensor_type_name",
-            "device_name_long",
-            "tag_name_scada",
-            "tag_name_long",
-        ],
-    )
-
-    df.columns = multi_index
-
-    data = [
-        {
-            "x": df.index.tz_convert(project.time_zone).tolist(),  # type: ignore
-            "y": df[col].tolist(),
-            "name": col[1],
-            "sensor_type_name": col[2],
-            "device_name_long": col[3],
-            "tag_name_scada": col[4],
-            "tag_name_long": col[5],
-        }
-        for col in df.columns
-    ]
-
-    # Sort data by tag_name_long using natsorted
-    data = natsorted(data, key=lambda x: x["tag_name_long"])
-
-    return data
-
-
 @router.get("/heatmap/{sensor_type_name_short}", response_class=ORJSONResponse)
 def get_heatmap(
     project_id: UUID,
@@ -632,29 +189,14 @@ def get_heatmap(
     """
     tags = core.crud.project.tags.get_project_tags(
         project_db,
-        tag_ids=[],
-        device_ids=[],
-        sensor_type_ids=[],
         sensor_type_name_shorts=[sensor_type_name_short],
-        data_type_ids=[],
-        name_short="",
-        name_long="",
-        name_scada="",
         deep=False,
     ).models()
 
     if len(tags) == 0:
         tags = core.crud.project.tags.get_project_tags(
             project_db,
-            tag_ids=[],
-            device_ids=[],
-            sensor_type_ids=[],
-            sensor_type_name_shorts=["pv_pcs_module_ac_power"],
-            data_type_ids=[],
-            name_short="",
-            name_long="",
-            name_scada="",
-            deep=False,
+            sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
         ).models()
 
     if len(tags) == 0:
@@ -679,11 +221,6 @@ def get_heatmap(
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
 
     device_id_to_name_long = {device.device_id: device.name_long for device in devices}
@@ -711,37 +248,6 @@ def get_heatmap(
         "y": columns,
         "z": values,
     }
-
-
-@router.get("/expecter-power")
-def get_expected_power_endpoint(
-    project_id: UUID,
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
-    db: Session = Depends(get_db),
-    project_db: Session = Depends(dependencies.get_project_db),
-    project: models.Project = Depends(dependencies.get_project_api),
-):
-    """todo
-
-    Args:
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-    """
-    df = funcs.get_expected_power(
-        project_id=project_id,
-        start=start,
-        end=end,
-        db=db,
-        project_db=project_db,
-        project=project,
-    )
-
-    return df.to_dict("tight")
 
 
 @router.get("/meter-power-and-expected-power")
@@ -779,9 +285,8 @@ def get_meter_power_and_expected_power(
     # Get meter power
     df_meter = get_project_dataframe(
         tag_ids=[],
-        sensor_type_name_shorts=[
-            "meter_active_power",
-        ],
+        sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
+        sensor_type_name_shorts=[],
         start=start,
         end=end,
         db=db,
@@ -913,7 +418,7 @@ def get_clearsky_poa(
         rolling_window = 12
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
-        sensor_type_name_shorts=["met_station_poa"],
+        sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
     ).models()
     df = utils.data_df(
@@ -931,11 +436,6 @@ def get_clearsky_poa(
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
     device_id_to_name_long = {device.device_id: device.name_long for device in devices}
     tag_id_to_device_name_long = {
@@ -1050,7 +550,7 @@ def get_degradation_poa(
 
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
-        sensor_type_name_shorts=["met_station_poa"],
+        sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
     ).models()
     df_raw = utils.data_df(
@@ -1097,11 +597,6 @@ def get_degradation_poa(
     devices = core.crud.project.devices.get_project_devices(
         project_db,
         device_ids=device_ids,
-        device_type_ids=[],
-        parent_device_ids=[],
-        name_short="",
-        name_long="",
-        deep=False,
     ).models()
     device_id_to_name_long = {device.device_id: device.name_long for device in devices}
     tag_id_to_device_name_long = {
@@ -1186,8 +681,7 @@ async def dc_amperage_report_v2(
     logger.logger.info("POA tags")
     poa_tags = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["met_station_poa"],
-        deep=False,
+        sensor_type_ids=[SensorType.MET_STATION_POA],
     ).models()
 
     logger.logger.info("POA data")
@@ -1233,8 +727,7 @@ async def dc_amperage_report_v2(
     logger.logger.info("CB tags")
     tags_cb = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_dc_combiner_current"],
-        deep=False,
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
     ).models()
     if len(tags_cb) == 0:
         raise HTTPException(

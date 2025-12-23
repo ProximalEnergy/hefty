@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 
 from app.dependencies import get_user_data_async
-from app.v1 import auth_test
 from app.v1.admin import admin
 from app.v1.ai.battery_settlement_analysis import (
     router as battery_settlement_analysis_router,
@@ -34,4 +33,3 @@ router.include_router(gis.router)
 router.include_router(operational.router)
 router.include_router(protected.router)
 router.include_router(ui.router)
-router.include_router(auth_test.router)

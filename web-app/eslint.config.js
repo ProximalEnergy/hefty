@@ -2,6 +2,7 @@ import pluginJs from '@eslint/js'
 import pluginTanstack from '@tanstack/eslint-plugin-query'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsparser from '@typescript-eslint/parser'
+import pluginImport from 'eslint-plugin-import'
 import react from 'eslint-plugin-react'
 import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginReactRefresh from 'eslint-plugin-react-refresh'
@@ -29,6 +30,7 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
+      import: pluginImport,
       react,
       'react-hooks': pluginReactHooks,
       '@tanstack/eslint-plugin-query': pluginTanstack,
@@ -82,6 +84,9 @@ export default [
       // Disable no-undef for TypeScript as it's handled by the TypeScript
       // compiler
       'no-undef': 'off',
+
+      // Import: Combine imports from the same module
+      'import/no-duplicates': ['error', { 'prefer-inline': false }],
     },
   },
 ]

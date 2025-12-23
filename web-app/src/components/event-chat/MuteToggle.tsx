@@ -1,6 +1,8 @@
-import { useGetEventChatMuteStatus } from '@/api/v1/operational/event_messages'
-import { useGetEventChatNotificationStatus } from '@/api/v1/operational/event_messages'
-import { useToggleEventChatMute } from '@/api/v1/operational/event_messages'
+import {
+  useGetEventChatMuteStatus,
+  useGetEventChatNotificationStatus,
+  useToggleEventChatMute,
+} from '@/api/v1/operational/event_messages'
 import { ActionIcon, Tooltip } from '@mantine/core'
 import { IconBell, IconBellOff } from '@tabler/icons-react'
 

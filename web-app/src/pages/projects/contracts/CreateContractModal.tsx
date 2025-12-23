@@ -1,4 +1,5 @@
 import { useGetUserSelf } from '@/api/admin'
+import { useCreateCompany } from '@/api/v1/admin/companies'
 import {
   useCreateCalendarEvent,
   useGetCalendarEventCategories,
@@ -10,7 +11,6 @@ import {
   useGetContractCategories,
 } from '@/api/v1/operational/project/contracts'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { useCreateCompany } from '@/hooks/api'
 import {
   ActionIcon,
   Badge,

@@ -1,5 +1,7 @@
-import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
-import { OperationalKPIData } from '@/api/v1/operational/kpi_data'
+import {
+  OperationalKPIData,
+  useGetOperationalKPIData,
+} from '@/api/v1/operational/kpi_data'
 import { useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'

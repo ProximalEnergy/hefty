@@ -34,10 +34,6 @@ export interface Statistic {
   icon: StatisticIcon
 }
 
-export interface ApiKey {
-  api_key: string
-}
-
 export interface UserSubscription {
   user_id: string
   operational_project_id: string
@@ -417,30 +413,6 @@ export interface GISPCS {
       red_outline: boolean
     }
   }
-}
-
-export interface Inspection {
-  date: string | null
-  inspection: string | null
-  status: string | null
-  trade: string | null
-  id: number
-  device_id: number
-}
-
-export interface Observation {
-  type: string | null
-  national_type: string | null
-  inspection_origin: string | null
-  status: string | null
-  created: string | null
-  description: string | null
-  spec_section: string | null
-  trade_name: string | null
-  priority: string | null
-  impact_level: string | null
-  id: number
-  device_id: number
 }
 
 export interface KPIInstanceProps {

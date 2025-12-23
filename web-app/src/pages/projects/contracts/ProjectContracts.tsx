@@ -84,7 +84,7 @@ const PV_EXAMPLE_CONTRACT = {
   company_id_provider: 'provider_002',
   company_id_counter: 'counter_002',
   execution_date: '2024-03-20',
-  name_short: 'O&M Services Agreement',
+  name_short: 'O&M Services Agreement', // noqa: hardcoded-name-short
   name_long: 'Upsolar, Inc.',
   document_url: null,
   s3_key: null,
@@ -106,7 +106,7 @@ const BESS_EXAMPLE_CONTRACT = {
   company_id_provider: 'provider_083',
   company_id_counter: 'c86dadfa-1eb6-4ea9-b9c0-bf285a490ccb',
   execution_date: '2025-10-02',
-  name_short: 'Capacity Payment/Tolling Agreement',
+  name_short: 'Capacity Payment/Tolling Agreement', // noqa: hardcoded-name-short
   name_long: 'San Diego Gas & Electric',
   document_url: '/SDGE - KNERT contract.pdf',
   s3_key: null,

@@ -1,19 +1,15 @@
 import { DeviceTypeEnum } from '@/api/enumerations'
+import { useGetFailureModes } from '@/api/v1/operational/failure_modes'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import { useGetEventLossesSummary } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetRootCauses } from '@/api/v1/operational/root_causes'
 import { useGetUtilityExpected } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
 import { EventChat } from '@/components/EventChat'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
-import {
-  useGetDevicesV2,
-  useGetEvents,
-  useGetFailureModes,
-  useGetRootCauses,
-  useUpdateRootCause,
-} from '@/hooks/api'
+import { useGetDevicesV2, useGetEvents, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
 import {
@@ -115,13 +111,9 @@ const useDcFieldEventData = (
     queryOptions: { enabled: !!event?.device_id },
   })
 
-  const rootCauses = useGetRootCauses({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const rootCauses = useGetRootCauses({})
 
-  const failureModes = useGetFailureModes({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const failureModes = useGetFailureModes({})
 
   // Get devices to find the DC combiner (same pattern as ExpectedPlotting)
   const devices = useGetDevicesV2({

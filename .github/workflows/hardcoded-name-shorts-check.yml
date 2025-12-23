@@ -1,0 +1,34 @@
+name: Hardcoded Name Shorts Check
+
+# This workflow checks for hardcoded name_shorts and name_short patterns in the codebase.
+# It enforces the use of enums/constants instead of hardcoded string values for
+# sensor types, device types, and other name_short identifiers.
+#
+# The check runs on pull requests to ensure code quality and consistency.
+# If hardcoded patterns are found, the workflow will fail and block merging.
+# Developers can add ignore comments for legitimate cases:
+#   Python:   # noqa: hardcoded-name-short
+#   TS/TSX:  // noqa: hardcoded-name-short
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+
+jobs:
+  hardcoded-name-shorts-check:
+    name: Hardcoded Name Shorts Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: Run hardcoded name shorts check
+        run: |
+          chmod +x _scripts/hardcoded_name_shorts_check.sh
+          _scripts/hardcoded_name_shorts_check.sh

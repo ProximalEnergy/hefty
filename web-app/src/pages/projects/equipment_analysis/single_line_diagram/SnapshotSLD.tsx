@@ -5,8 +5,10 @@ import {
 } from '@/api/enumerations'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
-import { SensorType } from '@/api/v1/operational/sensor_types'
+import {
+  SensorType,
+  useGetSensorTypes,
+} from '@/api/v1/operational/sensor_types'
 import { PageLoader } from '@/components/Loading'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
@@ -38,7 +40,6 @@ import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import 'react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 

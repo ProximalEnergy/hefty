@@ -1,6 +1,5 @@
 import { HexLoader } from '@/HexLoader'
-import { useGetCompanies } from '@/api/v1/admin/companies'
-import { useCreateCompany } from '@/hooks/api'
+import { useCreateCompany, useGetCompanies } from '@/api/v1/admin/companies'
 import {
   Button,
   Radio,

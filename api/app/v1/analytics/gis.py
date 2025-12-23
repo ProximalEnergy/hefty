@@ -60,7 +60,7 @@ def get_pcs(
 
     tags = core.crud.project.tags.get_project_tags(
         project_db,
-        sensor_type_name_shorts=["pv_pcs_ac_power"],
+        sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
     ).models()
 
     tag_id_to_tag = {tag.tag_id: tag for tag in tags}

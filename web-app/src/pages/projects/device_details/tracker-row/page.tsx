@@ -1,5 +1,6 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
+import { useGetFailureModes } from '@/api/v1/operational/failure_modes'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
@@ -10,7 +11,6 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
   useGetDevicesV2,
   useGetEvents,
-  useGetFailureModes,
   useGetGISTrackerByBlock,
 } from '@/hooks/api'
 import DeviceEventsTimeline from '@/pages/projects/events/DeviceEventsTimeline'
@@ -56,7 +56,6 @@ const TrackerRowDetail = React.memo(() => {
     },
   })
   const failureModes = useGetFailureModes({
-    pathParams: { projectId: projectId || '-1' },
     queryOptions: { enabled: !!projectId },
   })
 
@@ -108,7 +107,10 @@ const TrackerRowDetail = React.memo(() => {
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
       device_ids: deviceId ? [parseInt(deviceId)] : undefined,
-      sensor_type_name_shorts: ['tracker_position', 'tracker_setpoint'],
+      sensor_type_ids: [
+        SensorTypeEnum.TRACKER_POSITION,
+        SensorTypeEnum.TRACKER_SETPOINT,
+      ],
       start: startQuery,
       end: endQuery,
     },

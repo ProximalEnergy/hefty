@@ -31,8 +31,6 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import type * as Plotly from 'plotly.js'
-// Import Plotly namespace for type assertion
-import type { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 
@@ -232,7 +230,7 @@ const PowerPlotPVZoom = () => {
     return meterMWh / expectedMWh
   })()
 
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
+  const handleRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
     const newStartTime = event['xaxis.range[0]']
     const newEndTime = event['xaxis.range[1]']
 

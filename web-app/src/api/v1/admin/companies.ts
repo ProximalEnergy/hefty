@@ -1,6 +1,13 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
-import { UseQueryOptions } from '@tanstack/react-query'
+import { baseURL } from '@/urlConfig'
+import { useAuth } from '@clerk/clerk-react'
+import {
+  UseQueryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
+import axios from 'axios'
 
 const _COMPONENT_NAME = 'Company'
 const URL = '/v1/admin/companies'
@@ -32,5 +39,37 @@ export const useGetCompanies = ({
     pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useCreateCompany = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      name_short,
+      name_long,
+    }: {
+      name_short: string
+      name_long: string
+    }) => {
+      const token = await getToken({ template: 'default' })
+      return axios({
+        method: 'post',
+        url: `${baseURL}/v1/admin/companies`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          name_short,
+          name_long,
+        },
+      })
+    },
+    onSuccess: () => {
+      // Invalidate any queries that fetch companies
+      queryClient.invalidateQueries({ queryKey: ['getCompanies'] })
+    },
   })
 }

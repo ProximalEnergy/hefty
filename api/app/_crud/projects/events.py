@@ -69,33 +69,6 @@ def get_event_device_ids(db: Session) -> list[int]:  # skip-star-syntax
     return device_ids
 
 
-def get_project_events_by_id(
-    db: Session,
-    *,
-    event_id: int | list | None = None,
-    open: bool = True,
-    deep: bool = True,
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
-        open: TODO: describe.
-        deep: TODO: describe.
-    """
-    query = db.query(models.Event)
-    if isinstance(event_id, list):
-        query = query.filter(models.Event.event_id.in_(event_id))
-    elif event_id is not None:
-        query = query.filter(models.Event.event_id == event_id)
-    if open:
-        query = query.filter(models.Event.time_end.is_(None))
-    if deep:
-        query = query.options(selectinload(models.Event.device))
-    return query.all()
-
-
 def get_paginated_events(
     db: Session,
     *,
@@ -296,18 +269,3 @@ def get_count_open(
     query = db.query(models.Event)
     query = query.filter(models.Event.time_end.is_(None))
     return query.count()
-
-
-def get_maximum_event_id(
-    *,
-    db: Session,
-) -> int:
-    """Get the maximum event_id from the events table.
-
-        Returns 0 if no events exist in the table.
-
-    Args:
-        db: TODO: describe.
-    """
-    result = db.query(func.max(models.Event.event_id)).scalar()
-    return result if result is not None else 0

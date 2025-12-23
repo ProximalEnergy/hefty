@@ -4,6 +4,7 @@ import {
   SensorTypeEnum,
 } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
+import { useGetFailureModes } from '@/api/v1/operational/failure_modes'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import {
   useGetEventLossesSummary,
@@ -12,6 +13,7 @@ import {
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useGetStatusTimeSeries } from '@/api/v1/operational/project/project_status'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetRootCauses } from '@/api/v1/operational/root_causes'
 import AriaRecommendation from '@/components/AriaRecommendation'
 import CustomCard from '@/components/CustomCard'
 import { EventChat } from '@/components/EventChat'
@@ -19,12 +21,7 @@ import EventGISCard from '@/components/EventGISCard'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { traceColors } from '@/components/plots/PlotlyPlotUtils'
-import {
-  useGetEvents,
-  useGetFailureModes,
-  useGetRootCauses,
-  useUpdateRootCause,
-} from '@/hooks/api'
+import { useGetEvents, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
@@ -130,13 +127,9 @@ const useEventData = (projectId: string | undefined, eventId: number) => {
     queryOptions: { enabled: !!event?.device_id },
   })
 
-  const rootCauses = useGetRootCauses({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const rootCauses = useGetRootCauses({})
 
-  const failureModes = useGetFailureModes({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const failureModes = useGetFailureModes({})
 
   return {
     project,

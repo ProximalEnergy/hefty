@@ -38,16 +38,16 @@ const DroneProviders: React.FC = () => {
   const form = useForm({
     initialValues: {
       drone_provider_id: 0,
-      name_short: '',
-      name_long: '',
+      name_short: '', // noqa: hardcoded-name-short
+      name_long: '', // noqa: hardcoded-name-long
     },
   })
 
   const editForm = useForm({
     initialValues: {
       drone_provider_id: 0,
-      name_short: '',
-      name_long: '',
+      name_short: '', // noqa: hardcoded-name-short
+      name_long: '', // noqa: hardcoded-name-long
     },
   })
 
@@ -58,7 +58,7 @@ const DroneProviders: React.FC = () => {
         : 1
     form.setValues({
       drone_provider_id: nextId,
-      name_short: '',
+      name_short: '', // noqa: hardcoded-name-short
       name_long: '',
     })
     open()
