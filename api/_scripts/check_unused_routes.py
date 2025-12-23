@@ -86,6 +86,9 @@ def allowed_unused_routes() -> set[str]:
         "/openapi.json",
         "/docs",
         "/redoc",
+        "/v1/admin/user-email",
+        "/v1/admin/user-emails",
+        "/v1/admin/company-projects/projects/{param}",
     }
 
 
