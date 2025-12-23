@@ -1054,56 +1054,6 @@ export const useGetResourceNetPower = ({
   })
 }
 
-export const useGetInspections = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/quality/inspections`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<types.Inspection[]>({
-    axiosConfig,
-    queryName: 'getInspections',
-    pathParams,
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useGetObservations = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/quality/observations`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<types.Observation[]>({
-    axiosConfig,
-    queryName: 'getObservations',
-    pathParams,
-    queryParams: {},
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useAddKPIAlert = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()

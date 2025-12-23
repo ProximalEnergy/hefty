@@ -415,30 +415,6 @@ export interface GISPCS {
   }
 }
 
-export interface Inspection {
-  date: string | null
-  inspection: string | null
-  status: string | null
-  trade: string | null
-  id: number
-  device_id: number
-}
-
-export interface Observation {
-  type: string | null
-  national_type: string | null
-  inspection_origin: string | null
-  status: string | null
-  created: string | null
-  description: string | null
-  spec_section: string | null
-  trade_name: string | null
-  priority: string | null
-  impact_level: string | null
-  id: number
-  device_id: number
-}
-
 export interface KPIInstanceProps {
   name_short: string
   name_long: string

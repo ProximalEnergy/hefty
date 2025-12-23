@@ -4021,46 +4021,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/quality/inspections": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Inspections
-         * @description todo
-         */
-        get: operations["get_inspections_v1_operational_projects__project_id__quality_inspections_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/quality/observations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Observations
-         * @description todo
-         */
-        get: operations["get_observations_v1_operational_projects__project_id__quality_observations_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/documents": {
         parameters: {
             query?: never;
@@ -9969,24 +9929,6 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
-         * Inspection
-         * @description Inspection model.
-         */
-        Inspection: {
-            /** Date */
-            date: string | null;
-            /** Inspection */
-            inspection: string | null;
-            /** Status */
-            status: string | null;
-            /** Trade */
-            trade: string | null;
-            /** Id */
-            id: number;
-            /** Device Id */
-            device_id: number;
-        };
-        /**
          * Inverter
          * @description Inverter model.
          */
@@ -10285,36 +10227,6 @@ export interface components {
             type: string;
             /** Coordinates */
             coordinates: unknown[];
-        };
-        /**
-         * Observation
-         * @description Observation model.
-         */
-        Observation: {
-            /** Type */
-            type: string | null;
-            /** National Type */
-            national_type: string | null;
-            /** Inspection Origin */
-            inspection_origin: string | null;
-            /** Status */
-            status: string | null;
-            /** Created */
-            created: string | null;
-            /** Description */
-            description: string | null;
-            /** Spec Section */
-            spec_section: string | null;
-            /** Trade Name */
-            trade_name: string | null;
-            /** Priority */
-            priority: string | null;
-            /** Impact Level */
-            impact_level: string | null;
-            /** Id */
-            id: number;
-            /** Device Id */
-            device_id: number;
         };
         /**
          * OperationalKPIData
@@ -17818,74 +17730,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_inspections_v1_operational_projects__project_id__quality_inspections_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Inspection"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_observations_v1_operational_projects__project_id__quality_observations_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Observation"][];
                 };
             };
             /** @description Validation Error */

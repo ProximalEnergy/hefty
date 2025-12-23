@@ -136,12 +136,6 @@ import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPIHome from './pages/projects/kpis/ProjectKPIHome'
 import ProjectKPITemplate from './pages/projects/kpis/ProjectKPITemplate'
 import SparePartsPage from './pages/projects/maintenance/SpareParts'
-// McCarthy Quality
-import Inspections from './pages/projects/mccarthy_quality/Inspections'
-import InspectionsGIS from './pages/projects/mccarthy_quality/InspectionsGIS'
-import Observations from './pages/projects/mccarthy_quality/Observations'
-import ObservationsGIS from './pages/projects/mccarthy_quality/ObservationsGIS'
-import QualityHome from './pages/projects/mccarthy_quality/QualityHome'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
 import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
 import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
@@ -470,15 +464,6 @@ const ClerkProviderWithRoutes = () => {
 
               {/* Data Browsing */}
               <Route path="data-browsing" element={<DataBrowsing />} />
-
-              {/* McCarthy Quality */}
-              <Route path="quality">
-                <Route index element={<QualityHome />} />
-                <Route path="inspections" element={<Inspections />} />
-                <Route path="inspections/gis" element={<InspectionsGIS />} />
-                <Route path="observations" element={<Observations />} />
-                <Route path="observations/gis" element={<ObservationsGIS />} />
-              </Route>
 
               {/* Project Settings */}
               <Route path="settings" element={<ProjectSettings />} />
