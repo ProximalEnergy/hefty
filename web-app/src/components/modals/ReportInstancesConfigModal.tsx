@@ -1,8 +1,8 @@
+import { useGetProjectReportInstances } from '@/api/v1/operational/project/report_instances'
 import {
   useBulkUpdateReportInstances,
   useGetReportTypes,
 } from '@/api/v1/operational/report_instances'
-import { useGetProjectReportInstances } from '@/hooks/api'
 import {
   Button,
   Group,
@@ -29,7 +29,7 @@ export const ReportInstancesConfigModal = ({
 }: ReportInstancesConfigModalProps) => {
   const reportTypes = useGetReportTypes({})
   const reportInstances = useGetProjectReportInstances({
-    pathParams: { projectId },
+    pathParams: { project_id: projectId },
     queryParams: { deep: true },
   })
   const updateMutation = useBulkUpdateReportInstances()

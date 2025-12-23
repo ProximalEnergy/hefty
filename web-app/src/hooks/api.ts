@@ -156,38 +156,6 @@ export const useCreateFeedbackMutation = () => {
   })
 }
 
-export const useGetProjectReportInstances = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    report_type_ids?: number[]
-    is_visible?: boolean
-    deep?: boolean
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/report-instances/`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<types.ReportInstance[]>({
-    axiosConfig,
-    queryName: 'getReportInstances',
-    pathParams,
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetSubscriptions = ({
   queryOptions = {},
 }: {

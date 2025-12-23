@@ -179,19 +179,6 @@ export interface RootCause {
   name_full?: string
 }
 
-export interface ReportInstance {
-  project_id: string
-  report_type_id: number
-  report_instance_id?: number
-  is_visible: boolean
-  report_type?: {
-    report_type_id: number
-    name_short: string
-    name_long: string
-    doc_url: string
-  }
-}
-
 export interface DataHeatmap {
   x: string[]
   y: string[]

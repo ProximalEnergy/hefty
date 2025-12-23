@@ -1,12 +1,14 @@
 import { ProjectTypeEnum, ReportTypeEnum } from '@/api/enumerations'
+import {
+  type ReportInstance,
+  useGetProjectReportInstances,
+} from '@/api/v1/operational/project/report_instances'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import { ReportInstancesConfigModal } from '@/components/modals/ReportInstancesConfigModal'
-import { useGetProjectReportInstances } from '@/hooks/api'
-import { ReportInstance } from '@/hooks/types'
 import {
   Badge,
   Button,
@@ -102,7 +104,7 @@ const Page = () => {
 
   // Get report instances for the project
   const reportInstances = useGetProjectReportInstances({
-    pathParams: { projectId: projectId || '' },
+    pathParams: { project_id: projectId || '' },
     queryParams: {
       deep: true,
     },
