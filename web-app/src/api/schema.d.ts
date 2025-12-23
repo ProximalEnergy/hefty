@@ -1491,53 +1491,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/development/ercot/settlement-point-markets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Settlement Point Markets
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         */
-        get: operations["get_settlement_point_markets_v1_development_ercot_settlement_point_markets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/development/ercot/settlement-point-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Settlement Point Types
-         * @description todo
-         *
-         *     Args:
-         *         name_long: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_settlement_point_types_v1_development_ercot_settlement_point_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/development/ercot/settlement-points": {
         parameters: {
             query?: never;
@@ -1554,52 +1507,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         get: operations["get_settlement_points_v1_development_ercot_settlement_points_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/development/ercot/qses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Qses
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         */
-        get: operations["get_qses_v1_development_ercot_qses_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/development/ercot/dmes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Dmes
-         * @description todo
-         *
-         *     Args:
-         *         db: TODO: describe.
-         */
-        get: operations["get_dmes_v1_development_ercot_dmes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -11560,18 +11467,6 @@ export interface components {
             trading_hub_id: number | null;
         };
         /**
-         * SettlementPointMarket
-         * @description Settlementpointmarket model.
-         */
-        SettlementPointMarket: {
-            /** Settlement Point Market Id */
-            settlement_point_market_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-        };
-        /**
          * SettlementPointType
          * @description Settlementpointtype model.
          */
@@ -14443,72 +14338,6 @@ export interface operations {
             };
         };
     };
-    get_settlement_point_markets_v1_development_ercot_settlement_point_markets_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettlementPointMarket"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_settlement_point_types_v1_development_ercot_settlement_point_types_get: {
-        parameters: {
-            query?: {
-                name_long?: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettlementPointType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_settlement_points_v1_development_ercot_settlement_points_get: {
         parameters: {
             query?: {
@@ -14531,70 +14360,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettlementPoint"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_qses_v1_development_ercot_qses_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QSE"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_dmes_v1_development_ercot_dmes_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DME"][];
                 };
             };
             /** @description Validation Error */
