@@ -1,5 +1,6 @@
 import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
+import { useGetFailureModes } from '@/api/v1/operational/failure_modes'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
@@ -10,7 +11,6 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
   useGetDevicesV2,
   useGetEvents,
-  useGetFailureModes,
   useGetGISTrackerByBlock,
 } from '@/hooks/api'
 import DeviceEventsTimeline from '@/pages/projects/events/DeviceEventsTimeline'
@@ -56,7 +56,6 @@ const TrackerRowDetail = React.memo(() => {
     },
   })
   const failureModes = useGetFailureModes({
-    pathParams: { projectId: projectId || '-1' },
     queryOptions: { enabled: !!projectId },
   })
 

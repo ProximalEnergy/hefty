@@ -1,4 +1,5 @@
 import { DeviceTypeEnum } from '@/api/enumerations'
+import { useGetFailureModes } from '@/api/v1/operational/failure_modes'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import { useGetEventLossesSummary } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -10,7 +11,6 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
   useGetDevicesV2,
   useGetEvents,
-  useGetFailureModes,
   useGetRootCauses,
   useUpdateRootCause,
 } from '@/hooks/api'
@@ -119,9 +119,7 @@ const useDcFieldEventData = (
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const failureModes = useGetFailureModes({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const failureModes = useGetFailureModes({})
 
   // Get devices to find the DC combiner (same pattern as ExpectedPlotting)
   const devices = useGetDevicesV2({

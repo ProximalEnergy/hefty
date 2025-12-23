@@ -4,6 +4,7 @@ import {
   SensorTypeEnum,
 } from '@/api/enumerations'
 import { useGetTrackingAngles } from '@/api/v1/analytics/tracking-angles'
+import { useGetFailureModes } from '@/api/v1/operational/failure_modes'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import {
   useGetEventLossesSummary,
@@ -19,12 +20,7 @@ import EventGISCard from '@/components/EventGISCard'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { traceColors } from '@/components/plots/PlotlyPlotUtils'
-import {
-  useGetEvents,
-  useGetFailureModes,
-  useGetRootCauses,
-  useUpdateRootCause,
-} from '@/hooks/api'
+import { useGetEvents, useGetRootCauses, useUpdateRootCause } from '@/hooks/api'
 import { useProjectDropdownToggle } from '@/hooks/custom'
 import { Event } from '@/hooks/types'
 import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
@@ -134,9 +130,7 @@ const useEventData = (projectId: string | undefined, eventId: number) => {
     pathParams: { projectId: projectId || '-1' },
   })
 
-  const failureModes = useGetFailureModes({
-    pathParams: { projectId: projectId || '-1' },
-  })
+  const failureModes = useGetFailureModes({})
 
   return {
     project,

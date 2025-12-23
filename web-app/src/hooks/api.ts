@@ -626,33 +626,6 @@ export const useGetUptimeTable = ({
   })
 }
 
-export const useGetFailureModes = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    failure_mode_ids?: number[]
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/failure-modes`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.FailureMode[]>({
-    axiosConfig,
-    queryName: 'getFailureModes',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetRootCauses = ({
   pathParams,
   queryParams = {},
