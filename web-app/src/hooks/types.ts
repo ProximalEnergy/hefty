@@ -99,37 +99,6 @@ export interface Tag {
   sensor_type_id: number | null
 }
 
-export interface PvModule {
-  pv_module_id: number
-  manufacturer: string
-  model: string
-  family: string
-  technology: string
-  pmax: number
-  isc: number
-  voc: number
-  imp: number
-  vmp: number
-  gamma_pmax: number
-  alpha_isc: number
-  beta_voc: number
-  warranted_degradation_rate: number
-  warranted_degradation_initial: number
-  length: number
-  width: number
-  frame_overhang: number
-  has_ar_coating: boolean
-  cells_in_series: number
-  photocurrent: number | null
-  diode_saturation_current: number | null
-  r_series: number | null
-  r_shunt: number | null
-  modified_ideality_factor: number | null
-  eg: number | null
-  degdt: number | null
-  data_source: string | null
-}
-
 export interface Event {
   event_id: number
   event_type_id: number | null

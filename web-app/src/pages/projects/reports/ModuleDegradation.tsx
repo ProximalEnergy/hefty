@@ -5,6 +5,7 @@ import {
 } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { PVModule, useGetPvModules } from '@/api/v1/operational/pv_modules'
 import CustomCard from '@/components/CustomCard'
 import DocsButton from '@/components/DocsButton'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -14,13 +15,9 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import Attribution from '@/components/gis/Attribution'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
-import {
-  useGetDegradationPOA,
-  useGetDevicesV2,
-  useGetPvModules,
-} from '@/hooks/api'
+import { useGetDegradationPOA, useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import { DegradationPOA, Device, PvModule } from '@/hooks/types'
+import { DegradationPOA, Device } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import { findBoundingBox } from '@/utils/GIS'
 import {
@@ -102,7 +99,7 @@ function getFamilyAverageTimeseries(
 function exportToCsv(
   filteredData: filteredData,
   devices: Device[],
-  pvModules: PvModule[],
+  pvModules: PVModule[],
 ): void {
   if (!filteredData || !filteredData.x?.length) return
 
@@ -319,7 +316,7 @@ const GraphsTab: React.FC<{
   filteredData: filteredData
   devices?: Device[]
   averagePerCombiner: { [deviceId: string]: number | null }
-  pvModules: PvModule[]
+  pvModules: PVModule[]
 }> = ({ filteredData, devices, averagePerCombiner, pvModules }) => {
   const [selectedHistogramType, setSelectedHistogramType] = useState<
     string | null
@@ -1482,7 +1479,6 @@ const ModuleDegradation: React.FC = () => {
   })
 
   const { data: pvModules, isLoading: isPvModulesLoading } = useGetPvModules({
-    pathParams: { projectId: projectId || '' },
     queryOptions: {
       enabled: !!projectId,
     },

@@ -579,10 +579,19 @@ const Page = () => {
     try {
       setFormSubmitting(true)
 
+      if (!userCompanyId) {
+        throw new Error('Company ID is required')
+      }
+
+      // Normalize selectedModuleId to number | null
+      const normalizedModuleId: number | null = Array.isArray(selectedModuleId)
+        ? (selectedModuleId[0] ?? null)
+        : selectedModuleId
+
       // Create the module data object
       const moduleData: PVModule = {
         company_id: userCompanyId,
-        pv_module_id: selectedModuleId,
+        pv_module_id: normalizedModuleId,
         manufacturer: selectedManufacturer,
         model: selectedModel,
         technology: values.technology,
@@ -594,13 +603,22 @@ const Page = () => {
         vmp: values.vmp,
         gamma_pmax: values.gammaPmax,
         alpha_isc_relative:
-          values.alphaIscRelative === undefined
+          values.alphaIscRelative === undefined ||
+          values.alphaIscRelative === ''
             ? null
             : values.alphaIscRelative,
         beta_voc_relative:
-          values.betaVocRelative === undefined ? null : values.betaVocRelative,
-        alpha_isc: values.alphaIsc === undefined ? null : values.alphaIsc,
-        beta_voc: values.betaVoc === undefined ? null : values.betaVoc,
+          values.betaVocRelative === undefined || values.betaVocRelative === ''
+            ? null
+            : values.betaVocRelative,
+        alpha_isc:
+          values.alphaIsc === undefined || values.alphaIsc === ''
+            ? null
+            : values.alphaIsc,
+        beta_voc:
+          values.betaVoc === undefined || values.betaVoc === ''
+            ? null
+            : values.betaVoc,
         warranted_degradation_rate: values.warrantedDegradationRate,
         warranted_degradation_initial: values.warrantedDegradationInitial,
         length: values.length,
