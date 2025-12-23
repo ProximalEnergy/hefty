@@ -425,9 +425,8 @@ const VoiceChatModal = ({
   const initializeVoiceChat = useCallback(async () => {
     try {
       // Dynamically import the OpenAI Agents SDK
-      const { RealtimeAgent, RealtimeSession } = await import(
-        '@openai/agents-realtime'
-      )
+      const { RealtimeAgent, RealtimeSession } =
+        await import('@openai/agents-realtime')
 
       const contractType = contractData?.category_name_long || 'Unknown'
       const counterpartyName = contractData?.name_long || 'Unknown'

@@ -86,7 +86,7 @@ function usePortfolioPlotDataLongTermBess({
 
     const hasData = Boolean(
       portfolioHomeProject?.state_of_health ||
-        portfolioHomeProject?.cycle_count_string,
+      portfolioHomeProject?.cycle_count_string,
     )
 
     const layout: Partial<Plotly.Layout> = {
