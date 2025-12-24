@@ -6421,58 +6421,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/sensor-type-assignments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Sensor Type Assignments
-         * @description Get sensor types and their current assignments for the current project.
-         *         This endpoint is only accessible to superadmins.
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_sensor_type_assignments_v1_protected_web_application_projects__project_id__project_tag_explorer_sensor_type_assignments_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/assign-sensor-type": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Assign Sensor Type To Tag
-         * @description Assign a sensor type to a specific tag in a project.
-         *         This endpoint is only accessible to superadmins.
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         tag_name_short: TODO: describe.
-         *         sensor_type_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        post: operations["assign_sensor_type_to_tag_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_sensor_type_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/assign-pattern-sensor-type": {
         parameters: {
             query?: never;
@@ -6493,32 +6441,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         post: operations["assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/tag-samples/{tag_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tag Samples
-         * @description Get sample values for a specific tag by tag_id.
-         *         Returns sample values from the last 3 days of data.
-         *
-         *     Args:
-         *         tag_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_tag_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_samples__tag_id__get"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -21301,82 +21223,6 @@ export interface operations {
             };
         };
     };
-    get_sensor_type_assignments_v1_protected_web_application_projects__project_id__project_tag_explorer_sensor_type_assignments_get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    assign_sensor_type_to_tag_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_sensor_type_post: {
-        parameters: {
-            query: {
-                tag_name_short: string;
-                sensor_type_id: number;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post: {
         parameters: {
             query?: {
@@ -21396,43 +21242,6 @@ export interface operations {
                 "application/json": components["schemas"]["AssignPatternSensorTypeRequest"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tag_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_samples__tag_id__get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                tag_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
