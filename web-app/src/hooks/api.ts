@@ -156,24 +156,6 @@ export const useCreateFeedbackMutation = () => {
   })
 }
 
-export const useGetSubscriptions = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: '/v1/admin/subscriptions',
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.UserSubscription[]>({
-    axiosConfig,
-    queryName: 'getSubscriptions',
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useUpdateNotificationSubscription = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
@@ -429,40 +411,6 @@ export const useGetKPIAlerts = ({
   return useCustomQuery<types.KPIAlertProps[]>({
     axiosConfig,
     queryName: 'getKPIAlerts',
-    pathParams,
-    queryParams: queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useGetDCAmperageReportV2 = ({
-  pathParams,
-  queryParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams: {
-    start: string
-    min_poa: number
-    max_poa_1d: number
-    max_poa_std: number
-    rolling_window: number
-    use_poa_1d: boolean
-    use_poa_std: boolean
-    resample_rate: string
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig: AxiosRequestConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/dc-amperage-report-v2`,
-    params: queryParams,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
-
-  return useCustomQuery<types.DCAmperageDataV2>({
-    axiosConfig,
-    queryName: 'getDCAmperageReportV2',
     pathParams,
     queryParams: queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },

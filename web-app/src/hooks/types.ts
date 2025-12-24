@@ -408,22 +408,6 @@ export interface SunburstProps {
   hierarchy: Record<number, number[]>
 }
 
-export interface CombinerHealth {
-  columns: string[]
-  index: string[]
-  data: Array<Array<number | null>>
-}
-
-export interface DCAmperageDataV2 {
-  inv: CombinerHealth
-  proj: CombinerHealth
-  reports: {
-    excel: string
-    poa: string
-    cb: string
-  }
-}
-
 export interface BlockDropdownItem {
   device_id: number
   name_full: string

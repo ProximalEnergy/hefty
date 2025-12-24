@@ -1,12 +1,15 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
+import {
+  CombinerHealth,
+  DCAmperageDataV2,
+  useGetDCAmperageReportV2,
+} from '@/api/v1/analytics/dc_amperage_report'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import ClearskyFilter from '@/components/ClearskyFilter'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
-import { useGetDCAmperageReportV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import { CombinerHealth, DCAmperageDataV2 } from '@/hooks/types'
 import {
   ActionIcon,
   Button,
