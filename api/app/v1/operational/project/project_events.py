@@ -20,16 +20,12 @@ import core
 from app import interfaces, utils
 from app._crud.operational.failure_modes import get_failure_modes, get_root_causes
 from app._crud.operational.failure_modes import (
-    update_event_failure_mode as crud_update_event_failure_mode,
-)
-from app._crud.operational.failure_modes import (
     update_event_root_cause as crud_update_event_root_cause,
 )
 from app._crud.projects.drone_anomalies import bulk_update_anomalies_with_event_ids
 from app._crud.projects.drone_anomalies import (
     get_anomalies_by_event_id as crud_get_anomalies_by_event_id,
 )
-from app._crud.projects.events import get_count_open as crud_get_count_open
 from app._crud.projects.events import get_event_device_ids as crud_get_event_device_ids
 from app._crud.projects.events import get_events_summary as crud_get_events_summary
 from app._crud.projects.events import (
@@ -324,55 +320,6 @@ async def get_paginated_events(
     return out
 
 
-@router.get("/event-losses")
-def get_event_losses(
-    project_db: Annotated[Session, Depends(get_project_db)],
-    time_equals: datetime.datetime | None = None,
-    time_gte: datetime.datetime | None = None,
-    time_lt: datetime.datetime | None = None,
-    event_ids: Annotated[list | None, Query()] = None,
-):
-    """Get event losses with optimized query parameters.
-
-        This function uses a single database query with all filters applied at once
-        to minimize database round trips.
-
-    Args:
-        project_db: TODO: describe.
-        time_equals: TODO: describe.
-        time_gte: TODO: describe.
-        time_lt: TODO: describe.
-        event_ids: TODO: describe.
-    """
-    return core.crud.project.event_losses.get_event_losses(
-        project_db,
-        time_equals=time_equals,
-        time_gte=time_gte,
-        time_lt=time_lt,
-        event_ids=event_ids,
-    ).models()
-
-
-@router.put("/{event_id}/failure-mode")
-async def update_event_failure_mode(
-    failure_mode: Annotated[interfaces.FailureModeUpdate, Body()],
-    event_id: Annotated[int, Path(title="The ID of the event to update")],
-    project_db: AsyncSession = Depends(get_project_db_async),
-):
-    """todo
-
-    Args:
-        failure_mode: TODO: describe.
-        event_id: TODO: describe.
-        project_db: TODO: describe.
-    """
-    return await crud_update_event_failure_mode(
-        db=project_db,
-        event_id=event_id,
-        failure_mode_id=failure_mode.failure_mode_id,
-    )
-
-
 @router.put("/{event_id}/root-cause")
 async def update_event_root_cause(
     root_cause: Annotated[interfaces.RootCauseUpdate, Body()],
@@ -398,33 +345,6 @@ async def update_event_root_cause(
             event_id=event_id,
             root_cause_id=None,
         )
-
-
-@router.get(
-    "/windowed-events",
-    response_model=list[interfaces.Event],
-    response_model_exclude={"device_name_full"},
-)
-def get_windowed_events(
-    start: datetime.datetime,
-    end: datetime.datetime,
-    project_db: Annotated[Session, Depends(get_project_db)],
-    deep: bool = False,
-):
-    """Get events within a specific time window.
-
-        This optimized version uses a single database query with
-        appropriate joins when deep=True.
-
-    Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        deep: TODO: describe.
-    """
-    return core.crud.project.events.get_windowed_events(
-        db=project_db, start=start, end=end, deep=deep
-    ).models()
 
 
 @router.get("/event-devices")
@@ -1026,19 +946,6 @@ async def get_llm_event_losses(
         error_trace = traceback.format_exc()
         logging.error(f"Error in get_llm_event_losses: {str(e)}\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-
-@router.get("/count-open")
-def get_count_open(
-    project_db: Annotated[Session, Depends(get_project_db)],
-):
-    """todo
-
-    Args:
-        project_db: TODO: describe.
-    """
-    x = crud_get_count_open(db=project_db)
-    return x
 
 
 @router.post("/bulk-create", response_model=interfaces.BulkCreateEventsResponse)

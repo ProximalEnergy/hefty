@@ -255,17 +255,3 @@ def get_events_summary(
         query = query.filter(models.Event.time_end.is_(None))
 
     return query.all()
-
-
-def get_count_open(
-    *,
-    db: Session,
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-    """
-    query = db.query(models.Event)
-    query = query.filter(models.Event.time_end.is_(None))
-    return query.count()

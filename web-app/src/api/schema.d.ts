@@ -2839,61 +2839,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/events/event-losses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Losses
-         * @description Get event losses with optimized query parameters.
-         *
-         *         This function uses a single database query with all filters applied at once
-         *         to minimize database round trips.
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         time_equals: TODO: describe.
-         *         time_gte: TODO: describe.
-         *         time_lt: TODO: describe.
-         *         event_ids: TODO: describe.
-         */
-        get: operations["get_event_losses_v1_operational_projects__project_id__events_event_losses_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/events/{event_id}/failure-mode": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Event Failure Mode
-         * @description todo
-         *
-         *     Args:
-         *         failure_mode: TODO: describe.
-         *         event_id: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        put: operations["update_event_failure_mode_v1_operational_projects__project_id__events__event_id__failure_mode_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/events/{event_id}/root-cause": {
         parameters: {
             query?: never;
@@ -2912,35 +2857,6 @@ export interface paths {
          *         project_db: TODO: describe.
          */
         put: operations["update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/events/windowed-events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Windowed Events
-         * @description Get events within a specific time window.
-         *
-         *         This optimized version uses a single database query with
-         *         appropriate joins when deep=True.
-         *
-         *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         deep: TODO: describe.
-         */
-        get: operations["get_windowed_events_v1_operational_projects__project_id__events_windowed_events_get"];
-        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -3072,29 +2988,6 @@ export interface paths {
          *         end: TODO: describe.
          */
         get: operations["get_llm_event_losses_v1_operational_projects__project_id__events_llm_event_losses_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/events/count-open": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Count Open
-         * @description todo
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_count_open_v1_operational_projects__project_id__events_count_open_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9600,14 +9493,6 @@ export interface components {
             name_long: string;
         };
         /**
-         * FailureModeUpdate
-         * @description Failuremodeupdate model.
-         */
-        FailureModeUpdate: {
-            /** Failure Mode Id */
-            failure_mode_id: number;
-        };
-        /**
          * Features
          * @description Features model.
          */
@@ -15679,84 +15564,6 @@ export interface operations {
             };
         };
     };
-    get_event_losses_v1_operational_projects__project_id__events_event_losses_get: {
-        parameters: {
-            query?: {
-                time_equals?: string | null;
-                time_gte?: string | null;
-                time_lt?: string | null;
-                event_ids?: unknown[] | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_event_failure_mode_v1_operational_projects__project_id__events__event_id__failure_mode_put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FailureModeUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put: {
         parameters: {
             query?: never;
@@ -15783,44 +15590,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_windowed_events_v1_operational_projects__project_id__events_windowed_events_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                deep?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Event"][];
                 };
             };
             /** @description Validation Error */
@@ -15991,40 +15760,6 @@ export interface operations {
                 start?: string | null;
                 end?: string | null;
             };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_count_open_v1_operational_projects__project_id__events_count_open_get: {
-        parameters: {
-            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
