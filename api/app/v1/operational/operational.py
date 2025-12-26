@@ -26,7 +26,6 @@ from app.v1.operational import (
     report_types,
     root_causes,
     sensor_types,
-    status,
     users,
 )
 from app.v1.operational.project import (
@@ -65,7 +64,6 @@ router.include_router(report_types.router)
 router.include_router(report_instances.router)
 router.include_router(root_causes.router)
 router.include_router(sensor_types.router)
-router.include_router(status.router)
 router.include_router(pv_modules.router)
 router.include_router(pv_rackings.router)
 router.include_router(pv_inverters.router)

@@ -1,4 +1,5 @@
 import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
+import { useGetSubscriptions } from '@/api/v1/admin/subscriptions'
 import {
   useGetEventChatNotificationStatusesBatch,
   useUpdateEventChatNotification,
@@ -10,7 +11,6 @@ import RequiresUserType from '@/components/admin/RequiresUserType'
 import { Teams as AdminTeams } from '@/components/admin/Teams'
 import { GISContext } from '@/contexts/GISContext'
 import {
-  useGetSubscriptions,
   useUpdateNotificationSubscription,
   useUpdateReportSubscription,
 } from '@/hooks/api'
