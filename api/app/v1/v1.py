@@ -10,7 +10,6 @@ from app.v1.ai.daily_performance_summary import (
 )
 from app.v1.ai.root_cause import router as root_cause_router
 from app.v1.ai.voice_chat import router as voice_chat_router
-from app.v1.analytics import analytics
 from app.v1.commissioning import commissioning
 from app.v1.development import development
 from app.v1.feedback import feedback
@@ -22,7 +21,6 @@ from app.v1.ui import ui
 
 router = APIRouter(prefix="/v1", dependencies=[Depends(get_user_data_async)])
 router.include_router(admin.router)
-router.include_router(analytics.router)
 router.include_router(battery_settlement_analysis_router)
 router.include_router(daily_performance_summary_router)
 router.include_router(voice_chat_router)

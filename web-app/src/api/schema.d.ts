@@ -858,117 +858,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/gis/pcs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pcs
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_pcs_v1_analytics__project_id__gis_pcs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/tracker-by-block/{block_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tracker By Block
-         * @description todo
-         *
-         *     Args:
-         *         block_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_tracker_by_block_v1_analytics__project_id__gis_tracker_by_block__block_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/bess-enclosure": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Bess Enclosure
-         * @description todo
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_bess_enclosure_v1_analytics__project_id__gis_bess_enclosure_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/devices-in-viewport": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Devices In Viewport
-         * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *         Optionally filters by device_type_ids.
-         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
-         *         for devices matching that type within the viewport.
-         *
-         *     Args:
-         *         north: TODO: describe.
-         *         east: TODO: describe.
-         *         south: TODO: describe.
-         *         west: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         power_device_type_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_devices_in_viewport_v1_analytics__project_id__gis_devices_in_viewport_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/ai/battery-settlement-analysis": {
         parameters: {
             query?: never;
@@ -1335,6 +1224,117 @@ export interface paths {
          *         project: TODO: describe.
          */
         get: operations["get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/pcs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pcs
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_pcs_v1_gis__project_id__pcs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/tracker-by-block/{block_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tracker By Block
+         * @description todo
+         *
+         *     Args:
+         *         block_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/bess-enclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bess Enclosure
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         */
+        get: operations["get_bess_enclosure_v1_gis__project_id__bess_enclosure_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/devices-in-viewport": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Devices In Viewport
+         * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
+         *         Optionally filters by device_type_ids.
+         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
+         *         for devices matching that type within the viewport.
+         *
+         *     Args:
+         *         north: TODO: describe.
+         *         east: TODO: describe.
+         *         south: TODO: describe.
+         *         west: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         power_device_type_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_devices_in_viewport_v1_gis__project_id__devices_in_viewport_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12483,159 +12483,6 @@ export interface operations {
             };
         };
     };
-    get_pcs_v1_analytics__project_id__gis_pcs_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tracker_by_block_v1_analytics__project_id__gis_tracker_by_block__block_id__get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                block_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_bess_enclosure_v1_analytics__project_id__gis_bess_enclosure_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_devices_in_viewport_v1_analytics__project_id__gis_devices_in_viewport_get: {
-        parameters: {
-            query: {
-                north: number;
-                east: number;
-                south: number;
-                west: number;
-                device_type_ids?: number[] | null;
-                power_device_type_id?: number | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     analyze_battery_settlement_v1_ai_battery_settlement_analysis_post: {
         parameters: {
             query?: never;
@@ -13160,6 +13007,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pcs_v1_gis__project_id__pcs_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                block_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bess_enclosure_v1_gis__project_id__bess_enclosure_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_devices_in_viewport_v1_gis__project_id__devices_in_viewport_get: {
+        parameters: {
+            query: {
+                north: number;
+                east: number;
+                south: number;
+                west: number;
+                device_type_ids?: number[] | null;
+                power_device_type_id?: number | null;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

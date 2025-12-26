@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app import dependencies
-from app.v1.gis import combiner, hail, weather
+from app.v1.gis import combiner, equipment, hail, weather
 
 get_user_data_async = [Depends(dependencies.get_user_data_async)]
 
@@ -13,3 +13,4 @@ router = APIRouter(
 router.include_router(hail.router)
 router.include_router(weather.router)
 router.include_router(combiner.router)
+router.include_router(equipment.router)

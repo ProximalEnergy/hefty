@@ -46,15 +46,17 @@ export const useGetDevicesInViewport = ({
   queryParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: string } // Project ID is needed for context, even if not in URL path itself
+  // Project ID is needed for context, even if not in URL path itself.
+  pathParams: { projectId: string }
   queryParams: DevicesInViewportQueryParams
-  queryOptions?: Partial<UseQueryOptions<DeviceWithPower[]>> // Expecting an array
+  // Expecting an array.
+  queryOptions?: Partial<UseQueryOptions<DeviceWithPower[]>>
 }) => {
   const axiosConfig = {
     // We pass projectId contextually but it's not part of this specific URL path
-    // The project context is likely handled by backend dependencies based on headers/auth
+    // The project context is likely handled by backend dependencies via headers/auth.
     // Update URL to include projectId based on Swagger example
-    url: `/v1/analytics/${pathParams.projectId}/gis/devices-in-viewport`,
+    url: `/v1/gis/${pathParams.projectId}/devices-in-viewport`,
     params: queryParams, // Pass all viewport and filter params
   }
 

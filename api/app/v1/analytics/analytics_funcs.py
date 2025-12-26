@@ -4,12 +4,12 @@ from uuid import UUID
 import numpy as np
 import pandas as pd
 import pvlib
+from app.v1.analytics import analytics_vars as vars
+from app.v1.operational.project.project_data import get_project_dataframe
 from core.enumerations import SensorType
 from sqlalchemy.orm import Session
 
 import core
-from app.v1.analytics import analytics_vars as vars
-from app.v1.operational.project.project_data import get_project_dataframe
 from core import models
 
 

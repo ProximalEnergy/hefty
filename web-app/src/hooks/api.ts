@@ -296,7 +296,9 @@ export const useGetDevice = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/devices/${pathParams.deviceId}`,
+    url:
+      `/v1/operational/projects/${pathParams.projectId}` +
+      `/devices/${pathParams.deviceId}`,
     params: queryParams,
   }
 
@@ -530,7 +532,9 @@ export const useUpdateRootCause = () => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'put',
-        url: `${baseURL}/v1/operational/projects/${project_id}/events/${event_id}/root-cause`,
+        url:
+          `${baseURL}/v1/operational/projects/` +
+          `${project_id}/events/${event_id}/root-cause`,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -663,13 +667,9 @@ export const useGetHeatmap = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: [
-      '/v1/protected/web-application/projects',
-      pathParams.projectId,
-      'equipment-analysis',
-      'heatmap',
-      pathParams.sensorTypeName,
-    ].join('/'),
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      `/equipment-analysis/heatmap/${pathParams.sensorTypeName}`,
     params: queryParams,
   }
 
@@ -697,7 +697,7 @@ export const useGetGISPCS = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/pcs`,
+    url: `/v1/gis/${pathParams.projectId}/pcs`,
     params: queryParams,
   }
 
@@ -749,7 +749,7 @@ export const useGetGISTrackerByBlock = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/tracker-by-block/${pathParams.blockId}`,
+    url: `/v1/gis/${pathParams.projectId}/tracker-by-block/${pathParams.blockId}`,
     params: queryParams,
   }
 
@@ -775,7 +775,7 @@ export const useGetGISBessEnclosure = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/bess-enclosure`,
+    url: `/v1/gis/${pathParams.projectId}/bess-enclosure`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -802,7 +802,9 @@ export const useGetEquipmentAnalysisCombiner = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/combiner`,
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      '/equipment-analysis/combiner',
     params: queryParams,
   }
 
@@ -976,7 +978,9 @@ export const useUpdateKPIAlert = () => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'put',
-        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/update-kpi-alert`,
+        url:
+          `${baseURL}/v1/operational/projects/` +
+          `${project_id}/kpi-data/update-kpi-alert`,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1083,7 +1087,9 @@ export const useGetSunburstData = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/sunburst-data`,
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      '/equipment-analysis/sunburst-data',
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1221,7 +1227,13 @@ export const useValidateCombinerData = ({
   }
 
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/qc/combiner-swaps/validate-combiner-data`,
+    url: [
+      '/v1/operational/projects',
+      pathParams.projectId,
+      'qc',
+      'combiner-swaps',
+      'validate-combiner-data',
+    ].join('/'),
     params: transformedParams,
   }
 
