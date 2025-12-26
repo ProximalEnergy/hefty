@@ -17,6 +17,7 @@ from app.v1.feedback import feedback
 from app.v1.gis import gis
 from app.v1.operational import operational
 from app.v1.protected import protected
+from app.v1.trackers import trackers
 from app.v1.ui import ui
 
 router = APIRouter(prefix="/v1", dependencies=[Depends(get_user_data_async)])
@@ -32,4 +33,5 @@ router.include_router(feedback.router)
 router.include_router(gis.router)
 router.include_router(operational.router)
 router.include_router(protected.router)
+router.include_router(trackers.router)
 router.include_router(ui.router)

@@ -663,7 +663,13 @@ export const useGetHeatmap = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/heatmap/${pathParams.sensorTypeName}`,
+    url: [
+      '/v1/protected/web-application/projects',
+      pathParams.projectId,
+      'equipment-analysis',
+      'heatmap',
+      pathParams.sensorTypeName,
+    ].join('/'),
     params: queryParams,
   }
 
@@ -714,7 +720,7 @@ export const useGetGISCombinerBlock = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/combiner/${pathParams.blockId}`,
+    url: `/v1/gis/combiner/${pathParams.projectId}/${pathParams.blockId}`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1107,7 +1113,9 @@ export const useGetClearskyPOA = ({
   }
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/clearsky-poa`,
+    url:
+      `/v1/protected/web-application/projects/` +
+      `${pathParams.projectId}/reports/clearsky-poa`,
     params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1136,7 +1144,9 @@ export const useGetDegradationPOA = ({
   }
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/degradation-poa`,
+    url:
+      `/v1/protected/web-application/projects/` +
+      `${pathParams.projectId}/reports/degradation-poa`,
     params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1169,7 +1179,6 @@ export const useAnalyzeCombinerSwaps = () => {
 
       // Convert parameters to query string
       const params = new URLSearchParams({
-        project_id: projectId,
         ...(analysisDate && { analysis_date: analysisDate }),
         ...(blockNames?.length && { block_names: blockNames.join(',') }),
       })
@@ -1177,7 +1186,9 @@ export const useAnalyzeCombinerSwaps = () => {
       const response = await axios({
         method: 'GET',
         baseURL: baseURL,
-        url: `/v1/analytics/${projectId}/combiner-correlation-analysis?${params.toString()}`,
+        url:
+          `/v1/protected/web-application/projects/${projectId}` +
+          `/combiner-correlation-analysis?${params.toString()}`,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

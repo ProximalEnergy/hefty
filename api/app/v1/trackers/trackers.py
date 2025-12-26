@@ -1,5 +1,6 @@
 import datetime
 from typing import Annotated
+from uuid import UUID
 
 import pandas as pd
 from fastapi import APIRouter, Depends
@@ -13,17 +14,21 @@ router = APIRouter(prefix="/trackers", tags=["trackers"])
 
 @router.get("/tracking-angles", response_class=ORJSONResponse)
 def get_tracking_angles(
+    project_id: UUID,
     start: datetime.datetime,
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
+    _auth: None = Depends(dependencies.check_project_access_from_query_async),
 ):
     # Convert to project timezone
     """todo
 
     Args:
+        project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         project: TODO: describe.
+        _auth: TODO: describe.
     """
     start = pd.to_datetime(start).tz_localize("UTC").tz_convert(project.time_zone)
     end = pd.to_datetime(end).tz_localize("UTC").tz_convert(project.time_zone)
