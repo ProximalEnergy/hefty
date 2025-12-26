@@ -18,12 +18,6 @@ router = APIRouter(
 )
 
 
-@router.get("/health")
-async def health():
-    """todo"""
-    return {"status": "ok"}
-
-
 @router.get("/validate-combiner-data")
 def validate_combiner_data(
     start: datetime.datetime,

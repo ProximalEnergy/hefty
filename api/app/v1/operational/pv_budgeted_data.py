@@ -14,9 +14,6 @@ from app._crud.operational.pv_budgeted_data import (
 from app._crud.operational.pv_budgeted_data import (
     get_pv_budgeted_series_daily_data as crud_get_pv_budgeted_series_daily_data,
 )
-from app._crud.operational.pv_budgeted_data import (
-    get_pv_budgeted_series_full_data as crud_get_pv_budgeted_series_full_data,
-)
 from app._dependencies.authorization import require_user_company
 
 router = APIRouter(prefix="/pv-budgeted-data", tags=["pv_budgeted_data"])
@@ -102,33 +99,6 @@ async def get_pv_budgeted_data_by_series(
         project_id=project_id,
         start=start,
         end=end,
-        pv_budgeted_series_id=pv_budgeted_series_id,
-    )
-
-
-@router.get(
-    "/series/{pv_budgeted_series_id}/full-data",
-    operation_id="get_pv_budgeted_series_full_data",
-    dependencies=[Depends(require_user_company)],
-)
-async def get_pv_budgeted_series_full_data(
-    *,
-    project_id: uuid.UUID,
-    pv_budgeted_series_id: int,
-    db: AsyncSession = Depends(dependencies.get_async_db),
-):
-    """
-    Get all budgeted data for a specific series (entire dataset).
-    This preloads the full series to the frontend for degradation calculations.
-
-    Args:
-        project_id: UUID of the project
-        pv_budgeted_series_id: Specific series ID to get full data for
-        db: Database session
-    """
-    return await crud_get_pv_budgeted_series_full_data(
-        db=db,
-        project_id=project_id,
         pv_budgeted_series_id=pv_budgeted_series_id,
     )
 

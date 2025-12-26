@@ -264,6 +264,7 @@ depends = [
   "api:deptry",
   "api:vulture",
   "api:docstring_args",
+  "api:unused_routes",
 ]
 
 [tasks."api:ruff"]
@@ -315,10 +316,14 @@ dir = "."
 run = "uv run _scripts/check_docstring_args.py api"
 
 [tasks."api:unused_routes"]
-description = "Check for API routes unused by the web-app"
+description = "Check for API routes unused by the web-app (fast, OpenAPI-based)"
 dir = "api"
-depends = ["codegen"]
-run = "uv run python _scripts/check_unused_routes.py"
+run = "uv run python _scripts/check_unused_routes.py --mode openapi"
+
+[tasks."api:unused_routes_detailed"]
+description = "Check for API routes unused by the web-app (detailed, with file grouping)"
+dir = "api"
+run = "uv run python _scripts/check_unused_routes.py --mode app"
 
 [tasks."api:freeze"]
 description = "Export requirements.txt for AWS deployment"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import inspect
 import os
 import re
@@ -11,6 +12,27 @@ from pathlib import Path
 from typing import Any
 
 from fastapi.routing import APIRoute
+
+ALLOWED_UNUSED_ROUTES = {
+    "/",  # Root path
+    "/openapi.json",
+    "/docs",
+    "/redoc",
+    "/v1/admin/user-email",
+    "/v1/admin/user-emails",
+    "/v1/admin/company-projects/projects/{param}",
+    "/v1/operational/projects/{param}/kpi-data/agg",
+    "/v1/operational/projects/{param}/kpi-data/agg-freq",
+    "/v1/operational/projects/{param}/kpi-data/llm-kpis",
+    "/v1/operational/projects/{param}/dataframe",
+    "/v1/operational/kpi-data/trigger-user-alert",
+    "/v1/operational/kpi-data/{param}/kpi-email-alerts",
+    "/v1/operational/projects/{param}/events/llm-event-losses",
+    "/v1/operational/report-instances",
+    "/v1/operational/projects/{param}/status/interpret",
+    "/v1/operational/projects/{param}/status/time-series-python",
+    "/v1/operational/projects/{param}/llm-time-series",
+}
 
 
 def normalize_path(*, path: str) -> str:
@@ -35,7 +57,11 @@ def normalize_path(*, path: str) -> str:
 
     # Replace UUIDs with {param}
     normalized = re.sub(
-        r"/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?=/|$)",
+        (
+            r"/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-"
+            r"[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+            r"[0-9a-fA-F]{12}(?=/|$)"
+        ),
         "/{param}",
         normalized,
     )
@@ -76,22 +102,20 @@ def get_api_paths_with_definitions(*, app: Any) -> dict[str, str]:
     return paths_to_files
 
 
-def allowed_unused_routes() -> set[str]:
+def get_api_paths_from_schema_dts(*, schema_path: Path) -> set[str]:
     """
-    Get the set of routes that are allowed to be unused.
+    Get API paths from web-app schema.d.ts file.
 
-    Returns:
-        A set of normalized path strings.
+    Args:
+        schema_path: Path to the schema.d.ts file.
     """
-    return {
-        "/",  # Root path
-        "/openapi.json",
-        "/docs",
-        "/redoc",
-        "/v1/admin/user-email",
-        "/v1/admin/user-emails",
-        "/v1/admin/company-projects/projects/{param}",
-    }
+    content = schema_path.read_text(encoding="utf-8")
+    pattern = re.compile(r'^\s*"(\/[^"]+)"\s*:', re.MULTILINE)
+    paths = set()
+    for raw_path in pattern.findall(content):
+        normalized = normalize_path(path=raw_path)
+        paths.add(normalized)
+    return paths
 
 
 def iter_source_files(*, roots: list[Path]) -> Iterable[Path]:
@@ -128,6 +152,11 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
     """
     # Broad pattern to find potential paths
     pattern = re.compile(r"""/[^"'`\s]+|v1/[^"'`\s]+|version[^"'`\s]*""")
+    string_literal = r'(?:`[^`]*`|\'[^\']*\'|"[^"]*")'
+    concat_pattern = re.compile(
+        rf"({string_literal})(?:\s*\+\s*{string_literal})+",
+        re.DOTALL,
+    )
     found_paths: set[str] = set()
 
     for path in iter_source_files(roots=roots):
@@ -135,6 +164,15 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
             content = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
+
+        for match in concat_pattern.finditer(content):
+            literal_chain = match.group(0)
+            parts = re.findall(string_literal, literal_chain, re.DOTALL)
+            combined = "".join(part[1:-1] for part in parts)
+            for piece in pattern.findall(combined):
+                normalized = normalize_path(path=piece)
+                if normalized:
+                    found_paths.add(normalized)
 
         for match in pattern.findall(content):
             normalized = normalize_path(path=match)
@@ -147,14 +185,36 @@ def main() -> int:
     """
     Main entry point for the script.
     """
-    os.environ.setdefault("ENVIRONMENT", "development")
-
-    from app.main import app
-
-    api_paths_map = get_api_paths_with_definitions(app=app)
-    api_paths = set(api_paths_map.keys())
+    parser = argparse.ArgumentParser(description="Check for unused API routes")
+    parser.add_argument(
+        "--mode",
+        choices=["openapi", "app"],
+        default="app",
+        help=(
+            "Mode: 'openapi' for fast CI checks (no file grouping), "
+            "'app' for detailed local checks (with file grouping)"
+        ),
+    )
+    args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
+
+    if args.mode == "openapi":
+        # Fast mode: use generated web-app schema.d.ts
+        schema_path = repo_root / "web-app" / "src" / "api" / "schema.d.ts"
+        if not schema_path.exists():
+            print("schema.d.ts not found. Run 'mise run codegen' to generate it.")
+            return 1
+
+        api_paths = get_api_paths_from_schema_dts(schema_path=schema_path)
+        api_paths_map = {}
+    else:
+        # Detailed mode: inspect the app
+        os.environ.setdefault("ENVIRONMENT", "development")
+        from app.main import app
+
+        api_paths_map = get_api_paths_with_definitions(app=app)
+        api_paths = set(api_paths_map.keys())
 
     search_roots = [
         repo_root / "web-app" / "src",
@@ -167,21 +227,28 @@ def main() -> int:
 
     found_paths = extract_paths_from_sources(roots=search_roots)
 
-    allowed = allowed_unused_routes()
+    allowed = ALLOWED_UNUSED_ROUTES
     unused_paths = sorted(api_paths - found_paths - allowed)
 
     if unused_paths:
         print("Unused API routes (not referenced in web-app or internal tests):")
-        # Group by file for cleaner output
-        by_file = defaultdict(list)
-        for path in unused_paths:
-            file_path = api_paths_map.get(path, "unknown")
-            by_file[file_path].append(path)
 
-        for file_path in sorted(by_file.keys()):
-            print(f"\nIn {file_path}:")
-            for path in sorted(by_file[file_path]):
+        if args.mode == "app" and api_paths_map:
+            # Group by file for cleaner output
+            by_file = defaultdict(list)
+            for path in unused_paths:
+                file_path = api_paths_map.get(path, "unknown")
+                by_file[file_path].append(path)
+
+            for file_path in sorted(by_file.keys()):
+                print(f"\nIn {file_path}:")
+                for path in sorted(by_file[file_path]):
+                    print(f"  - {path}")
+        else:
+            # Simple list for OpenAPI mode
+            for path in unused_paths:
                 print(f"  - {path}")
+
         return 1
 
     print("All API routes are referenced in web-app or internal tests.")

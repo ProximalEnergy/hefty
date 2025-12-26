@@ -19,9 +19,7 @@ fi
 popd
 echo "TypeScript types generated"
 
-echo "Removing OpenAPI schema..."
-rm -f "$(dirname "$0")/../api/openapi.json"
-echo "OpenAPI schema removed"
+echo "Keeping OpenAPI schema for CI checks..."
 
 echo "Generating TypeScript enums..."
 pushd "$(dirname "$0")/../api"

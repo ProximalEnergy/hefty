@@ -8,18 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app import interfaces
 from app._crud.operational.cec_pv_inverters import get_cec_pv_inverters
 from app.dependencies import get_async_db, get_project_api, get_project_db
 from app.utils import data_df
 from core import models
 
 router = APIRouter(prefix="/projects/{project_id}/reports", tags=["project_reports"])
-
-
-@router.get("", response_model=interfaces.Report)
-def get_project_reports():
-    """todo"""
 
 
 @router.get("/pcs-apparent-vs-voltage")

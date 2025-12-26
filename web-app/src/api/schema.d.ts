@@ -1882,30 +1882,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/project-types/{project_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Type
-         * @description todo
-         *
-         *     Args:
-         *         project_type_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_project_type_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/event-message-reactions": {
         parameters: {
             query?: never;
@@ -2501,32 +2477,6 @@ export interface paths {
          *         project: TODO: describe.
          */
         delete: operations["delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Data
-         * @description todo
-         *
-         *     Args:
-         *         tag_ids: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_project_data_v1_operational_projects__project_id__data_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3320,26 +3270,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/reports": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Reports
-         * @description todo
-         */
-        get: operations["get_project_reports_v1_operational_projects__project_id__reports_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/reports/pcs-apparent-vs-voltage": {
         parameters: {
             query?: never;
@@ -3454,31 +3384,6 @@ export interface paths {
          *         project_db: TODO: describe.
          */
         get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/tags/{tag_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Device
-         * @description todo
-         *
-         *     Args:
-         *         tag_id: TODO: describe.
-         *         deep: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_project_device_v1_operational_projects__project_id__tags__tag_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3762,9 +3667,10 @@ export interface paths {
         put?: never;
         /**
          * Search Contract Content
-         * @description Search for relevant contract content using OpenAI's Responses API with file search.
-         *         Uses vector stores for efficient retrieval of relevant contract information.
-         *         Returns the most relevant chunks of text based on the query.
+         * @description Search for relevant contract content using OpenAI's Responses API.
+         *
+         *     Uses vector stores for efficient retrieval of relevant contract information.
+         *     Returns the most relevant chunks of text based on the query.
          *
          *     Args:
          *         document_id: TODO: describe.
@@ -3800,55 +3706,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pg-data-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pg Data Types
-         * @description todo
-         *
-         *     Args:
-         *         pg_data_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_pg_data_types_v1_operational_pg_data_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pg-data-types/{pg_data_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pg Data Type
-         * @description todo
-         *
-         *     Args:
-         *         pg_data_type_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_pg_data_type_v1_operational_pg_data_types__pg_data_type_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3892,26 +3749,6 @@ export interface paths {
          *         device_ids: Optional list of project device IDs to filter matching tickets.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/qc/combiner-swaps/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Health
-         * @description todo
-         */
-        get: operations["health_v1_operational_projects__project_id__qc_combiner_swaps_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4995,32 +4832,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-modules/recalculate-single-diode": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Recalculate single diode parameters for a PV module
-         * @description Get a PV module from the database, recalculate its single diode parameters,
-         *         and update the database with the new parameters.
-         *
-         *     Args:
-         *         pv_module_id: TODO: describe.
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        put: operations["recalculate_single_diode_parameters_v1_operational_pv_modules_recalculate_single_diode_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/pv-rackings": {
         parameters: {
             query?: never;
@@ -5413,32 +5224,6 @@ export interface paths {
          *         db: Database session
          */
         get: operations["get_pv_budgeted_data_by_series"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}/full-data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Series Full Data
-         * @description Get all budgeted data for a specific series (entire dataset).
-         *     This preloads the full series to the frontend for degradation calculations.
-         *
-         *     Args:
-         *         project_id: UUID of the project
-         *         pv_budgeted_series_id: Specific series ID to get full data for
-         *         db: Database session
-         */
-        get: operations["get_pv_budgeted_series_full_data"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6885,26 +6670,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/{project_id}/pv-expected-energy/backfill/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * health check
-         * @description Simple health check endpoint that returns 200 OK
-         */
-        get: operations["health_check_v1_protected__project_id__pv_expected_energy_backfill_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/protected/{project_id}/pv-expected-energy/backfill": {
         parameters: {
             query?: never;
@@ -7105,26 +6870,6 @@ export interface paths {
          * @description Get a list of blocks sorted by name
          */
         get: operations["get_block_dropdown_v1_ui__project_id__block_dropdown_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/ui/{project_id}/recursive-parents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Recursive Parents
-         * @description Get an ordered list of parent devices up to root for a given anchor device.
-         */
-        get: operations["get_recursive_parents_v1_ui__project_id__recursive_parents_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8667,21 +8412,6 @@ export interface components {
             };
         };
         /**
-         * Data
-         * @description Data model.
-         */
-        Data: {
-            /**
-             * Time
-             * Format: date-time
-             */
-            time: string;
-            /** Tag Id */
-            tag_id: number;
-            /** Value */
-            value: unknown;
-        };
-        /**
          * DataTimeSeries
          * @description Datatimeseries model.
          */
@@ -9818,16 +9548,6 @@ export interface components {
             device_aggregation_obj: components["schemas"]["DeviceAggregationObj"] | null;
         };
         /**
-         * PGDataType
-         * @description Pgdatatype model.
-         */
-        PGDataType: {
-            /** Pg Data Type Id */
-            pg_data_type_id: number;
-            /** Name Short */
-            name_short: string;
-        };
-        /**
          * PVBudgetedBulkUpsertRequest
          * @description Pvbudgetedbulkupsertrequest model.
          */
@@ -10625,16 +10345,6 @@ export interface components {
         RTEResponse: {
             /** Rte */
             rte: number | null;
-        };
-        /**
-         * Report
-         * @description Report model.
-         */
-        Report: {
-            /** Filename */
-            filename: string;
-            /** Data Pdf */
-            data_pdf: string;
         };
         /**
          * ReportInstance
@@ -14273,49 +13983,6 @@ export interface operations {
             };
         };
     };
-    get_project_type_by_id: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectType"];
-                };
-            };
-            /** @description Project type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
         parameters: {
             query?: {
@@ -15045,44 +14712,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_data_v1_operational_projects__project_id__data_get: {
-        parameters: {
-            query: {
-                tag_ids: number[];
-                start?: string | null;
-                end?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Data"][];
                 };
             };
             /** @description Validation Error */
@@ -16239,40 +15868,6 @@ export interface operations {
             };
         };
     };
-    get_project_reports_v1_operational_projects__project_id__reports_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Report"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get: {
         parameters: {
             query: {
@@ -16462,51 +16057,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Tag"][];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_device_v1_operational_projects__project_id__tags__tag_id__get: {
-        parameters: {
-            query?: {
-                /** @description Load all related objects. */
-                deep?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                tag_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Tag"];
-                };
-            };
-            /** @description Tag not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -17016,88 +16566,6 @@ export interface operations {
             };
         };
     };
-    get_pg_data_types_v1_operational_pg_data_types_get: {
-        parameters: {
-            query?: {
-                pg_data_type_ids?: number[];
-                name_short?: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PGDataType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pg_data_type_v1_operational_pg_data_types__pg_data_type_id__get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pg_data_type_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PGDataType"];
-                };
-            };
-            /** @description PG data type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get: {
         parameters: {
             query?: {
@@ -17123,40 +16591,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CMMSResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    health_v1_operational_projects__project_id__qc_combiner_swaps_health_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -18884,41 +18318,6 @@ export interface operations {
             };
         };
     };
-    recalculate_single_diode_parameters_v1_operational_pv_modules_recalculate_single_diode_put: {
-        parameters: {
-            query: {
-                pv_module_id: number;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PVModule"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_rackings: {
         parameters: {
             query?: {
@@ -19460,43 +18859,6 @@ export interface operations {
                 project_id: string;
                 start: string;
                 end: string;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pv_budgeted_series_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pv_budgeted_series_full_data: {
-        parameters: {
-            query: {
-                project_id: string;
                 company_id?: string | null;
             };
             header?: {
@@ -21766,40 +21128,6 @@ export interface operations {
             };
         };
     };
-    health_check_v1_protected__project_id__pv_expected_energy_backfill_health_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill_post: {
         parameters: {
             query: {
@@ -22055,42 +21383,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BlockDropdownItem"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_recursive_parents_v1_ui__project_id__recursive_parents_get: {
-        parameters: {
-            query: {
-                device_id: number;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Device"][];
                 };
             };
             /** @description Validation Error */

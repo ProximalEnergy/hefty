@@ -6,10 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import core
-from app import dependencies, interfaces, utils
-from app._utils.recursive_parents import (
-    get_recursive_parents as utils_get_recursive_parents,
-)
+from app import dependencies, utils
 
 router = APIRouter(
     prefix="/ui/{project_id}",
@@ -64,21 +61,3 @@ def get_block_dropdown(
         blocks_out.append(block)
 
     return blocks_out
-
-
-@router.get(
-    "/recursive-parents",
-    response_model=list[interfaces.Device],
-    description="Get an ordered list of parent devices up to root for a given anchor device.",
-)
-def get_recursive_parents(
-    device_id: int,
-    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-):
-    """todo
-
-    Args:
-        device_id: TODO: describe.
-        project_db: TODO: describe.
-    """
-    return utils_get_recursive_parents(db=project_db, device_id=device_id)
