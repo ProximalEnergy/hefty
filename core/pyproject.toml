@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.2.88"
+version = "0.2.89"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -38,8 +38,8 @@ dev = [
     "alembic>=1.16.1",
     "basedpyright>=1.31.4",
     "deptry>=0.23.1",
-    "fastapi>=0.121.2,<0.122.0",
-    "mypy==1.18.2",
+    "fastapi>=0.127.0,<0.128.0",
+    "mypy==1.19.0",
     "packaging>=25.0",
     "pandas-stubs>=2.3.0.250703",
     "plotly>=6.3.1",
