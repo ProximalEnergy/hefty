@@ -9235,6 +9235,8 @@ export interface components {
              * Format: uuid
              */
             company_id: string;
+            /** Device Model Id */
+            device_model_id?: number | null;
             /** Voltage Mpp Min */
             voltage_mpp_min: number;
             /** Voltage Mpp Max */
@@ -9637,6 +9639,11 @@ export interface components {
              */
             company_id: string;
             /**
+             * Device Model Id
+             * @description Foreign key to device_models table
+             */
+            device_model_id?: number | null;
+            /**
              * Manufacturer
              * @description Name of the PV module manufacturer
              */
@@ -9812,6 +9819,11 @@ export interface components {
              * Format: uuid
              */
             company_id: string;
+            /**
+             * Device Model Id
+             * @description Foreign key to device_models table
+             */
+            device_model_id?: number | null;
             /**
              * Racking Type Id
              * @description Foreign Key to racking_types
