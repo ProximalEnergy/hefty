@@ -1,4 +1,5 @@
-"""Model list and item wrappers for SQLAlchemy queries with Polars and Pandas support."""
+"""Model list and item wrappers for SQLAlchemy queries with Polars and Pandas
+support."""
 
 import asyncio
 import operator
@@ -163,6 +164,7 @@ class ModelList[T]:
         self,
         *,
         query: Query[T] | TextClause | Select | None = None,
+        items: list[T] | None = None,
         result: Result | None = None,
         model_cls: type[T] | None = None,
         return_query: bool = False,
@@ -172,16 +174,22 @@ class ModelList[T]:
         Args:
             self: TODO: describe.
             query: TODO: describe.
+            items: TODO: describe.
             result: TODO: describe.
             model_cls: TODO: describe.
             return_query: TODO: describe.
         """
-        if query is not None:
-            self.query: Query[T] | TextClause | Select | None = query
-            self.items: list[T] | None = (
+        self.query: Query[T] | TextClause | Select | None = None
+        self.items: list[T] | None = None
+        if items is not None:
+            self.query = query
+            self.items = items
+        elif query is not None:
+            self.query = query
+            self.items = (
                 None
                 if return_query or isinstance(query, (TextClause, Select))
-                else query.all()
+                else list(query.all())
             )
         elif result is not None and model_cls is not None:
             self.query = None  # No ORM query
@@ -296,10 +304,12 @@ class ModelList[T]:
     ) -> pd.DataFrame:
         """Convert the ModelList into a Pandas DataFrame quickly.
 
-                Fast paths:
-                - If a SQLAlchemy Query/TextClause is present, always read directly from SQL.
-                (Skips Python object materialization; much faster for large results.)
-                - If only in-memory items exist, use a cached attrgetter + tuples + from_records.
+        Fast paths:
+        - If a SQLAlchemy Query/TextClause is present, always read directly from
+          SQL (skips Python object materialization; much faster for large
+          results).
+        - If only in-memory items exist, use a cached attrgetter + tuples +
+          from_records.
 
         Args:
             self: TODO: describe.
@@ -321,6 +331,14 @@ class ModelList[T]:
             sql = self.sql_string()
             with engine.connect() as connection:
                 # Try Arrow backend (pandas >= 2) for additional speed/memory wins
+                try:
+                    df = pd.read_sql(sql, con=connection)  # type: ignore[call-arg]
+                except TypeError:
+                    df = pd.read_sql(sql, con=connection)
+        elif isinstance(self.query, Select):
+            engine = create_engine(database_url())
+            sql = self.sql_string()
+            with engine.connect() as connection:
                 try:
                     df = pd.read_sql(sql, con=connection)  # type: ignore[call-arg]
                 except TypeError:
@@ -347,10 +365,14 @@ class ModelList[T]:
                 cols = [col.key for col in mapper.column_attrs]
                 cls._SCHEMA_CACHE[first.__class__] = cols  # type: ignore[attr-defined]
 
-            getter = cls._GETTER_CACHE.get(first.__class__)  # type: ignore[attr-defined]
+            getter = cls._GETTER_CACHE.get(  # type: ignore[attr-defined]
+                first.__class__
+            )
             if getter is None:
                 getter = operator.attrgetter(*cols)
-                cls._GETTER_CACHE[first.__class__] = getter  # type: ignore[attr-defined]
+                cls._GETTER_CACHE[first.__class__] = (  # type: ignore[attr-defined]
+                    getter
+                )
 
             # Build rows as tuples (cheaper than dicts), then from_records
             rows = [getter(obj) for obj in self.items]
@@ -385,7 +407,8 @@ class ModelList[T]:
         return _normalize_df_dtypes(df)
 
     async def polars_dataframe_async(self) -> pl.DataFrame:
-        """Run the query using Polars instead of SQLAlchemy and return a Polars DataFrame.
+        """Run the query using Polars instead of SQLAlchemy and return a Polars
+        DataFrame.
 
         Args:
             self: TODO: describe.
@@ -546,7 +569,8 @@ class ModelList[T]:
             invalid = [field for field, _, _ in normalized if field not in col_keys]
             if invalid:
                 raise ValueError(
-                    f"Unknown column(s) for {mapper.class_.__name__} in find(): {invalid}"
+                    f"Unknown column(s) for {mapper.class_.__name__} in find(): "
+                    f"{invalid}"
                 )
 
             exprs: list[Any] = []
@@ -579,7 +603,8 @@ class ModelList[T]:
                 invalid = [field for field, _, _ in normalized if field not in col_keys]
                 if invalid:
                     raise ValueError(
-                        f"Unknown attribute(s) for {mapper.class_.__name__} in find(): {invalid}"
+                        f"Unknown attribute(s) for {mapper.class_.__name__} in "
+                        f"find(): {invalid}"
                     )
             in_sets: dict[int, set] = {}
             for i, (field, op, value) in enumerate(normalized):
@@ -657,7 +682,8 @@ class ModelItem[T]:
 
     Warnings
     --------
-    - Raises `UninitializedError` if attempting to access the item before query execution.
+    - Raises `UninitializedError` if attempting to access the item before query
+      execution.
     - Emits `RuntimeWarning` if Polars is used after SQLAlchemy execution.
     """
 

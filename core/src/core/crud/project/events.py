@@ -32,30 +32,35 @@ def get_windowed_events(
         return_query: TODO: describe.
         include_underperformance: TODO: describe.
     """
-    query = db.query(models.Event)
-    query = query.filter(models.Event.time_start <= end)
-    query = query.filter(
+    stmt = sa.select(models.Event).where(models.Event.time_start <= end)
+    stmt = stmt.where(
         or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
     )
+    options = []
     if deep:
-        query = query.options(selectinload(models.Event.device))
+        options.append(selectinload(models.Event.device))
     if not include_underperformance:
-        query = query.options(selectinload(models.Event.failure_mode))
-        query = query.filter(
+        options.append(selectinload(models.Event.failure_mode))
+        stmt = stmt.where(
             ~models.Event.failure_mode.has(
                 models.FailureMode.name_long.contains("Underperforming")
             )
         )
-    return ModelList(query=query, return_query=return_query)
+    if options:
+        stmt = stmt.options(*options)
+    if return_query:
+        return ModelList(query=stmt, return_query=True)
+    items = list(db.scalars(stmt).all())
+    return ModelList(query=stmt, items=items, return_query=False)
 
 
-def get_maximum_event_id(db: Session) -> int:  # skip-star-syntax
+def get_maximum_event_id(*, db: Session) -> int:
     """TODO: add description.
 
     Args:
         db: TODO: describe.
     """
-    return db.query(func.max(models.Event.event_id)).scalar() or 0
+    return db.scalar(sa.select(func.max(models.Event.event_id))) or 0
 
 
 # ---- dynamic per-project tables (tsdb.<project>.*) ----
@@ -103,8 +108,11 @@ def bulk_insert_events_returning_ids(
 
     # Build VALUES with explicit types + a client_idx to preserve input order
     typed_cols = [sa.column(c, events_table.c[c].type) for c in insert_cols]
+    values_rows = [
+        tuple([row.get(c) for c in insert_cols] + [i]) for i, row in enumerate(rows)
+    ]
     v = sa.values(*typed_cols, sa.column("client_idx", sa.Integer()), name="v").data(
-        [[row.get(c) for c in insert_cols] + [i] for i, row in enumerate(rows)]  # type: ignore
+        values_rows
     )
     v_alias = v.alias("v")
 
@@ -126,12 +134,14 @@ def bulk_insert_events_returning_ids(
     res = db.execute(insert_stmt)
 
     # Because we ORDER BY v.client_idx in the SELECT,
-    # PostgreSQL will insert in that order and RETURNING will emit IDs in that same order.
+    # PostgreSQL will insert in that order and RETURNING will emit IDs in that
+    # same order.
     event_ids_in_order = [r[0] for r in res]
 
     db.commit()
 
-    # event_ids_in_order now aligns 1:1 with your original 'rows' order / DataFrame order
+    # event_ids_in_order now aligns 1:1 with your original 'rows' order /
+    # DataFrame order
     return event_ids_in_order
 
 
@@ -170,7 +180,9 @@ def bulk_update_events(
 
     # --- 1) Typed VALUES block (prevents text inference for all-NULL cols) ---
     typed_cols = [sa.column(c, events_table.c[c].type) for c in cols]
-    v = sa.values(*typed_cols, name="u").data([[r.get(c) for c in cols] for r in rows])  # type: ignore
+    v = sa.values(*typed_cols, name="u").data(
+        [[r.get(c) for c in cols] for r in rows]  # type: ignore
+    )
     u = v.alias("u")
 
     # --- 2) Explicit casts for datetime/timestamptz in SET (belt & suspenders) ---
@@ -254,10 +266,9 @@ def get_events_by_id(db: Session, *, event_ids: list[int]) -> ModelList[models.E
         db: TODO: describe.
         event_ids: TODO: describe.
     """
-    return ModelList(
-        query=db.query(models.Event).filter(models.Event.event_id.in_(event_ids)),
-        return_query=False,
-    )
+    stmt = sa.select(models.Event).where(models.Event.event_id.in_(event_ids))
+    items = list(db.scalars(stmt).all())
+    return ModelList(query=stmt, items=items, return_query=False)
 
 
 def get_homepage_summary(
@@ -270,27 +281,29 @@ def get_homepage_summary(
         project_name: TODO: describe.
         sort_by: TODO: describe.
     """
-    query = (
-        db.query(models.Event)
-        .filter(models.Event.time_end.is_(None))
-        .options(
-            selectinload(models.Event.device).selectinload(models.Device.device_type)
-        )
+    base_stmt = (
+        sa.select(func.count())
+        .select_from(models.Event)
+        .where(models.Event.time_end.is_(None))
     )
-    total_number_of_open_events = query.count()
+    total_number_of_open_events = db.scalar(base_stmt) or 0
     if total_number_of_open_events == 0:
         return {
             "top_events": [],
             "total_daily_loss": 0,
             "total_number_of_open_events": 0,
         }
+    query = sa.select(models.Event).where(models.Event.time_end.is_(None))
+    query = query.options(
+        selectinload(models.Event.device).selectinload(models.Device.device_type)
+    )
     if sort_by == "daily":
         query = query.order_by(models.Event.loss_daily_financial.desc().nullslast())
     elif sort_by == "total":
         query = query.order_by(models.Event.loss_total_financial.desc().nullslast())
     else:
         raise ValueError(f"Invalid sort_by: {sort_by}")
-    top_events = query.limit(5).all()
+    top_events = db.scalars(query.limit(5)).all()
 
     # Build enriched top_events with device_name_full and loss_daily_financial
     enriched_top_events = []
