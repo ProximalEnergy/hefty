@@ -1,35 +1,24 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-type SettlementPointType = {
-  settlement_point_type_id: number
-  name_short: string
-  name_long: string
-}
+const SETTLEMENT_POINTS_URL = '/v1/development/ercot/settlement-points'
+const PRICES_URL = '/v1/development/ercot/prices'
 
-type SettlementPointCore = {
-  settlement_point_id: number
-  name: string
-  settlement_point_type_id: number
-  load_zone_id: number | null
-  trading_hub_id: number | null
-}
-
-type SettlementPoint = SettlementPointCore & {
-  settlement_point_type: SettlementPointType
-  load_zone: SettlementPointCore | null
-  trading_hub: SettlementPointCore | null
-}
+type SettlementPointsGet = types.paths[typeof SETTLEMENT_POINTS_URL]['get']
+type SettlementPointQueryParams = SettlementPointsGet['parameters']['query']
+type SettlementPointResponse =
+  SettlementPointsGet['responses'][200]['content']['application/json']
 
 export const useGetERCOTSettlementPoints = ({
   queryParams,
   queryOptions = {},
 }: {
-  queryParams?: { deep: boolean }
+  queryParams?: SettlementPointQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/development/ercot/settlement-points`,
+    url: SETTLEMENT_POINTS_URL,
     params: queryParams,
   }
 
@@ -38,7 +27,7 @@ export const useGetERCOTSettlementPoints = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<SettlementPoint[]>({
+  return useCustomQuery<SettlementPointResponse>({
     axiosConfig,
     queryName: 'getERCOTSettlementPoints',
     pathParams: {},
@@ -47,21 +36,23 @@ export const useGetERCOTSettlementPoints = ({
   })
 }
 
-type ERCOTPrices = {
-  x: string[]
-  y: number[]
-  name: string
-}
+type PricesGet = types.paths[typeof PRICES_URL]['get']
+type PricesQueryParams = PricesGet['parameters']['query']
+type ERCOTPrices = Pick<
+  types.components['schemas']['DataTimeSeries'],
+  'x' | 'y' | 'name'
+>
+type ERCOTPricesResponse = ERCOTPrices[]
 
 export const useGetERCOTPrices = ({
   queryParams,
   queryOptions = {},
 }: {
-  queryParams: { settlement_point_id: number; start: string; end: string }
+  queryParams: PricesQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/development/ercot/prices`,
+    url: PRICES_URL,
     params: queryParams,
   }
 
@@ -70,7 +61,7 @@ export const useGetERCOTPrices = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<ERCOTPrices[]>({
+  return useCustomQuery<ERCOTPricesResponse>({
     axiosConfig,
     queryName: 'getERCOTPrices',
     pathParams: {},
