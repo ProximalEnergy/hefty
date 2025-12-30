@@ -4,15 +4,10 @@ from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app import interfaces, utils
-from app._crud.operational.project_types import (
-    get_project_type as crud_get_project_type,
-)
+from app import interfaces
 from app._crud.operational.project_types import (
     get_project_types as crud_get_project_types,
 )
-
-DESCRIPTION_404 = "Project type not found"
 
 router = APIRouter(prefix="/project-types", tags=["project_types"])
 
@@ -40,21 +35,3 @@ def get_project_types(
         name_short=name_short,
         name_long=name_long,
     )
-
-
-@router.get(
-    "/{project_type_id}",
-    response_model=interfaces.ProjectType,
-    responses={404: {"description": DESCRIPTION_404}},
-    operation_id="get_project_type_by_id",
-)
-def get_project_type(project_type_id: int, db: Annotated[Session, Depends(get_db)]):
-    """todo
-
-    Args:
-        project_type_id: TODO: describe.
-        db: TODO: describe.
-    """
-    project_type = crud_get_project_type(db=db, project_type_id=project_type_id)
-    utils.check_404(value=project_type, detail=DESCRIPTION_404)
-    return project_type

@@ -17,7 +17,12 @@ from app.v1.analytics import analytics_funcs as funcs
 from app.v1.operational.kpi_data import get_kpi_data_helper
 from core import models
 
-router = APIRouter(prefix="/gis", include_in_schema=utils.get_include_in_schema())
+router = APIRouter(
+    prefix="/{project_id}",
+    tags=["gis"],
+    dependencies=[Depends(dependencies.check_project_access_async)],
+    include_in_schema=utils.get_include_in_schema(),
+)
 
 
 @router.get("/pcs", response_class=ORJSONResponse)
@@ -240,6 +245,7 @@ def get_pcs(
 
 @router.get("/tracker-by-block/{block_id}", response_model=interfaces.GeoJSON)
 def get_tracker_by_block(
+    *,
     block_id: int,
     start: datetime.date,
     end: datetime.date,
@@ -325,6 +331,7 @@ def get_tracker_by_block(
 
 @router.get("/bess-enclosure", response_model=interfaces.GeoJSON)
 def get_bess_enclosure(
+    *,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
     # BESS Enclosure devices
@@ -358,6 +365,7 @@ def get_bess_enclosure(
 
 @router.get("/devices-in-viewport", response_class=ORJSONResponse)
 def get_devices_in_viewport(
+    *,
     north: float,
     east: float,
     south: float,

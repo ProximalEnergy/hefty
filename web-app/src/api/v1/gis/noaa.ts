@@ -1,11 +1,16 @@
 import { UseQueryOptions, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
-import { FeatureCollection, GeoJsonProperties, MultiPolygon } from 'geojson'
 
-const spcWxOutlooksEndpointUrl =
-  'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks/SPC_wx_outlks/MapServer'
-const spcFireWxEndpointUrl =
-  'https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather/SPC_firewx/MapServer'
+import type { components } from '../../schema'
+
+const spcWxOutlooksEndpointUrl = [
+  'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks',
+  'SPC_wx_outlks/MapServer',
+].join('/')
+const spcFireWxEndpointUrl = [
+  'https://mapservices.weather.noaa.gov/vector/rest/services/fire_weather',
+  'SPC_firewx/MapServer',
+].join('/')
 
 interface ArcGisFeature {
   attributes: {
@@ -20,10 +25,34 @@ interface ArcGisResponse {
   features: ArcGisFeature[]
 }
 
+type GeoJsonMultiPolygon = components['schemas']['MultiPolygon'] & {
+  type: 'MultiPolygon'
+  coordinates: number[][][][]
+}
+
+type GeoJsonFeature = Omit<
+  components['schemas']['Features'],
+  'geometry' | 'properties' | 'type'
+> & {
+  type: 'Feature'
+  geometry: GeoJsonMultiPolygon
+  properties: {
+    dn: number
+  }
+}
+
+type GeoJsonFeatureCollection = Omit<
+  components['schemas']['GeoJSON'],
+  'features' | 'type'
+> & {
+  type: 'FeatureCollection'
+  features: GeoJsonFeature[]
+}
+
 const getSPCForecastPolygons = async (
   endpointUrl: string,
   arcgis_layer_id: number,
-): Promise<FeatureCollection<MultiPolygon, GeoJsonProperties>> => {
+): Promise<GeoJsonFeatureCollection> => {
   const query_url = `${endpointUrl}/${arcgis_layer_id}/query`
 
   const params = {
@@ -48,8 +77,9 @@ const getSPCForecastPolygons = async (
       return ring.map((point) => [point[0], point[1]])
     })
 
-    // For ArcGIS, we need to group rings into polygons based on winding order
-    // Exterior rings (clockwise) start new polygons, interior rings (counter-clockwise) are holes
+    // For ArcGIS, we need to group rings into polygons based on winding order.
+    // Exterior rings (clockwise) start new polygons; interior rings
+    // (counter-clockwise) are holes.
     const polygons: number[][][][] = []
 
     rings.forEach((ring) => {
@@ -98,18 +128,16 @@ const useGetSPCForecastPolygons = ({
   endpointUrl: string
   arcgis_layer_id: number
   queryKey: string
-  queryOptions?: Partial<
-    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
-  >
+  queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   const defaultQueryOptions: Partial<
-    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
+    UseQueryOptions<GeoJsonFeatureCollection>
   > = {
     staleTime: 1000 * 60 * 5,
     refetchInterval: 1000 * 60 * 5,
   }
 
-  return useQuery<FeatureCollection<MultiPolygon, GeoJsonProperties>>({
+  return useQuery<GeoJsonFeatureCollection>({
     queryKey: [queryKey, arcgis_layer_id],
     queryFn: () => getSPCForecastPolygons(endpointUrl, arcgis_layer_id),
     ...defaultQueryOptions,
@@ -122,9 +150,7 @@ export const useGetHailForecastPolygons = ({
   queryOptions = {},
 }: {
   arcgis_layer_id: number
-  queryOptions?: Partial<
-    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
-  >
+  queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcWxOutlooksEndpointUrl,
@@ -137,9 +163,7 @@ export const useGetHailForecastPolygons = ({
 export const useGetTornadoOutlook = ({
   queryOptions = {},
 }: {
-  queryOptions?: Partial<
-    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
-  >
+  queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcWxOutlooksEndpointUrl,
@@ -152,9 +176,7 @@ export const useGetTornadoOutlook = ({
 export const useGetWindOutlook = ({
   queryOptions = {},
 }: {
-  queryOptions?: Partial<
-    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
-  >
+  queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcWxOutlooksEndpointUrl,
@@ -167,9 +189,7 @@ export const useGetWindOutlook = ({
 export const useGetFireOutlook = ({
   queryOptions = {},
 }: {
-  queryOptions?: Partial<
-    UseQueryOptions<FeatureCollection<MultiPolygon, GeoJsonProperties>>
-  >
+  queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcFireWxEndpointUrl,

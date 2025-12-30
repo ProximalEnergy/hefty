@@ -6,10 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app import custom_types, interfaces, utils
+from app import custom_types, interfaces
 from app.dependencies import get_project_db, get_project_db_async
-
-DESCRIPTION_404 = "Tag not found"
 
 router = APIRouter(prefix="/projects/{project_id}/tags", tags=["project_tags"])
 
@@ -81,27 +79,3 @@ async def get_tags_by_regex(
     return await core.crud.project.tags.get_tags_by_regex(
         db=project_db, regex=regex, limit=limit, deep=deep
     )
-
-
-@router.get(
-    "/{tag_id}",
-    response_model=interfaces.Tag,
-    responses={404: {"description": DESCRIPTION_404}},
-)
-def get_project_device(
-    tag_id: int,
-    deep: custom_types.AnnotatedDeep = False,
-    project_db: Session = Depends(get_project_db),
-):
-    """todo
-
-    Args:
-        tag_id: TODO: describe.
-        deep: TODO: describe.
-        project_db: TODO: describe.
-    """
-    tag = core.crud.project.tags.get_project_tag(
-        db=project_db, tag_id=tag_id, deep=deep
-    ).model()
-    utils.check_404(value=tag, detail=DESCRIPTION_404)
-    return tag

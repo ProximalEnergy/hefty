@@ -858,313 +858,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/analytics/{project_id}/gis/pcs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pcs
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_pcs_v1_analytics__project_id__gis_pcs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/tracker-by-block/{block_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tracker By Block
-         * @description todo
-         *
-         *     Args:
-         *         block_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_tracker_by_block_v1_analytics__project_id__gis_tracker_by_block__block_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/bess-enclosure": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Bess Enclosure
-         * @description todo
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_bess_enclosure_v1_analytics__project_id__gis_bess_enclosure_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/devices-in-viewport": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Devices In Viewport
-         * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *         Optionally filters by device_type_ids.
-         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
-         *         for devices matching that type within the viewport.
-         *
-         *     Args:
-         *         north: TODO: describe.
-         *         east: TODO: describe.
-         *         south: TODO: describe.
-         *         west: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         power_device_type_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_devices_in_viewport_v1_analytics__project_id__gis_devices_in_viewport_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/gis/combiner/{block_device_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Combiner Block Performance
-         * @description todo
-         *
-         *     Args:
-         *         block_device_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_combiner_block_performance_v1_analytics__project_id__gis_combiner__block_device_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/heatmap/{sensor_type_name_short}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Heatmap
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         sensor_type_name_short: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         agg: TODO: describe.
-         *         fillna_zero: TODO: describe.
-         */
-        get: operations["get_heatmap_v1_analytics__project_id__heatmap__sensor_type_name_short__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/clearsky-poa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Clearsky Poa
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         resample_rate: TODO: describe.
-         */
-        get: operations["get_clearsky_poa_v1_analytics__project_id__clearsky_poa_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/degradation-poa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Degradation Poa
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_degradation_poa_v1_analytics__project_id__degradation_poa_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/dc-amperage-report-v2": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Dc Amperage Report V2
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         min_poa: TODO: describe.
-         *         max_poa_1d: TODO: describe.
-         *         max_poa_std: TODO: describe.
-         *         rolling_window: TODO: describe.
-         *         use_poa_1d: TODO: describe.
-         *         use_poa_std: TODO: describe.
-         *         resample_rate: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         async_project_db: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["dc_amperage_report_v2_v1_analytics__project_id__dc_amperage_report_v2_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/combiner-correlation-analysis": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Combiner Correlation Analysis
-         * @description todo
-         *
-         *     Args:
-         *         analysis_date: TODO: describe.
-         *         block_names: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["combiner_correlation_analysis_v1_analytics__project_id__combiner_correlation_analysis_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/analytics/{project_id}/tracking-angles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tracking Angles
-         * @description todo
-         *
-         *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         */
-        get: operations["get_tracking_angles_v1_analytics__project_id__tracking_angles_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/ai/battery-settlement-analysis": {
         parameters: {
             query?: never;
@@ -1505,6 +1198,143 @@ export interface paths {
          *         db: Database session dependency.
          */
         get: operations["get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/combiner/{project_id}/{block_device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Combiner Block Performance
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         block_device_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/pcs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pcs
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_pcs_v1_gis__project_id__pcs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/tracker-by-block/{block_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tracker By Block
+         * @description todo
+         *
+         *     Args:
+         *         block_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/bess-enclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bess Enclosure
+         * @description todo
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         */
+        get: operations["get_bess_enclosure_v1_gis__project_id__bess_enclosure_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gis/{project_id}/devices-in-viewport": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Devices In Viewport
+         * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
+         *         Optionally filters by device_type_ids.
+         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
+         *         for devices matching that type within the viewport.
+         *
+         *     Args:
+         *         north: TODO: describe.
+         *         east: TODO: describe.
+         *         south: TODO: describe.
+         *         west: TODO: describe.
+         *         device_type_ids: TODO: describe.
+         *         power_device_type_id: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["get_devices_in_viewport_v1_gis__project_id__devices_in_viewport_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1874,30 +1704,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         get: operations["get_project_types"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/project-types/{project_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Type
-         * @description todo
-         *
-         *     Args:
-         *         project_type_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_project_type_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2501,32 +2307,6 @@ export interface paths {
          *         project: TODO: describe.
          */
         delete: operations["delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Data
-         * @description todo
-         *
-         *     Args:
-         *         tag_ids: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_project_data_v1_operational_projects__project_id__data_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3320,26 +3100,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/reports": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Reports
-         * @description todo
-         */
-        get: operations["get_project_reports_v1_operational_projects__project_id__reports_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/reports/pcs-apparent-vs-voltage": {
         parameters: {
             query?: never;
@@ -3359,6 +3119,40 @@ export interface paths {
          *         end: TODO: describe.
          */
         get: operations["get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/reports/dc-amperage-report-v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dc Amperage Report V2
+         * @description todo
+         *
+         *     Args:
+         *         start: TODO: describe.
+         *         min_poa: TODO: describe.
+         *         max_poa_1d: TODO: describe.
+         *         max_poa_std: TODO: describe.
+         *         rolling_window: TODO: describe.
+         *         use_poa_1d: TODO: describe.
+         *         use_poa_std: TODO: describe.
+         *         resample_rate: TODO: describe.
+         *         db: TODO: describe.
+         *         project_db: TODO: describe.
+         *         async_project_db: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["dc_amperage_report_v2_v1_operational_projects__project_id__reports_dc_amperage_report_v2_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3454,31 +3248,6 @@ export interface paths {
          *         project_db: TODO: describe.
          */
         get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/tags/{tag_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Device
-         * @description todo
-         *
-         *     Args:
-         *         tag_id: TODO: describe.
-         *         deep: TODO: describe.
-         *         project_db: TODO: describe.
-         */
-        get: operations["get_project_device_v1_operational_projects__project_id__tags__tag_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3762,9 +3531,10 @@ export interface paths {
         put?: never;
         /**
          * Search Contract Content
-         * @description Search for relevant contract content using OpenAI's Responses API with file search.
-         *         Uses vector stores for efficient retrieval of relevant contract information.
-         *         Returns the most relevant chunks of text based on the query.
+         * @description Search for relevant contract content using OpenAI's Responses API.
+         *
+         *     Uses vector stores for efficient retrieval of relevant contract information.
+         *     Returns the most relevant chunks of text based on the query.
          *
          *     Args:
          *         document_id: TODO: describe.
@@ -3800,55 +3570,6 @@ export interface paths {
          *         db: TODO: describe.
          */
         delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pg-data-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pg Data Types
-         * @description todo
-         *
-         *     Args:
-         *         pg_data_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_pg_data_types_v1_operational_pg_data_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pg-data-types/{pg_data_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pg Data Type
-         * @description todo
-         *
-         *     Args:
-         *         pg_data_type_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_pg_data_type_v1_operational_pg_data_types__pg_data_type_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3892,26 +3613,6 @@ export interface paths {
          *         device_ids: Optional list of project device IDs to filter matching tickets.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/qc/combiner-swaps/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Health
-         * @description todo
-         */
-        get: operations["health_v1_operational_projects__project_id__qc_combiner_swaps_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4995,32 +4696,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-modules/recalculate-single-diode": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Recalculate single diode parameters for a PV module
-         * @description Get a PV module from the database, recalculate its single diode parameters,
-         *         and update the database with the new parameters.
-         *
-         *     Args:
-         *         pv_module_id: TODO: describe.
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        put: operations["recalculate_single_diode_parameters_v1_operational_pv_modules_recalculate_single_diode_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/pv-rackings": {
         parameters: {
             query?: never;
@@ -5413,32 +5088,6 @@ export interface paths {
          *         db: Database session
          */
         get: operations["get_pv_budgeted_data_by_series"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}/full-data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Series Full Data
-         * @description Get all budgeted data for a specific series (entire dataset).
-         *     This preloads the full series to the frontend for degradation calculations.
-         *
-         *     Args:
-         *         project_id: UUID of the project
-         *         pv_budgeted_series_id: Specific series ID to get full data for
-         *         db: Database session
-         */
-        get: operations["get_pv_budgeted_series_full_data"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6022,6 +5671,35 @@ export interface paths {
          *         project: TODO: describe.
          */
         get: operations["get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/heatmap/{sensor_type_name_short}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Heatmap
+         * @description todo
+         *
+         *     Args:
+         *         sensor_type_name_short: TODO: describe.
+         *         project_db: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         agg: TODO: describe.
+         *         fillna_zero: TODO: describe.
+         */
+        get: operations["get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6853,6 +6531,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/combiner-correlation-analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Combiner Correlation Analysis
+         * @description todo
+         *
+         *     Args:
+         *         analysis_date: TODO: describe.
+         *         block_names: TODO: describe.
+         *         project: TODO: describe.
+         */
+        get: operations["combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/reports/clearsky-poa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Clearsky Poa
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         project: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project_db: TODO: describe.
+         *         resample_rate: TODO: describe.
+         */
+        get: operations["get_clearsky_poa_v1_protected_web_application_projects__project_id__reports_clearsky_poa_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/reports/degradation-poa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Degradation Poa
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         project_db: TODO: describe.
+         */
+        get: operations["get_degradation_poa_v1_protected_web_application_projects__project_id__reports_degradation_poa_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/system/{project_id}/meter-power-and-expected-power-v2": {
         parameters: {
             query?: never;
@@ -6877,26 +6635,6 @@ export interface paths {
          *         interval: Resampling interval used for tag retrieval (e.g., "5min").
          */
         get: operations["get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/{project_id}/pv-expected-energy/backfill/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * health check
-         * @description Simple health check endpoint that returns 200 OK
-         */
-        get: operations["health_check_v1_protected__project_id__pv_expected_energy_backfill_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7093,6 +6831,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/trackers/tracking-angles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tracking Angles
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         start: TODO: describe.
+         *         end: TODO: describe.
+         *         project: TODO: describe.
+         *         _auth: TODO: describe.
+         */
+        get: operations["get_tracking_angles_v1_trackers_tracking_angles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/ui/{project_id}/block-dropdown": {
         parameters: {
             query?: never;
@@ -7105,26 +6870,6 @@ export interface paths {
          * @description Get a list of blocks sorted by name
          */
         get: operations["get_block_dropdown_v1_ui__project_id__block_dropdown_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/ui/{project_id}/recursive-parents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Recursive Parents
-         * @description Get an ordered list of parent devices up to root for a given anchor device.
-         */
-        get: operations["get_recursive_parents_v1_ui__project_id__recursive_parents_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8667,21 +8412,6 @@ export interface components {
             };
         };
         /**
-         * Data
-         * @description Data model.
-         */
-        Data: {
-            /**
-             * Time
-             * Format: date-time
-             */
-            time: string;
-            /** Tag Id */
-            tag_id: number;
-            /** Value */
-            value: unknown;
-        };
-        /**
          * DataTimeSeries
          * @description Datatimeseries model.
          */
@@ -9505,6 +9235,8 @@ export interface components {
              * Format: uuid
              */
             company_id: string;
+            /** Device Model Id */
+            device_model_id?: number | null;
             /** Voltage Mpp Min */
             voltage_mpp_min: number;
             /** Voltage Mpp Max */
@@ -9818,16 +9550,6 @@ export interface components {
             device_aggregation_obj: components["schemas"]["DeviceAggregationObj"] | null;
         };
         /**
-         * PGDataType
-         * @description Pgdatatype model.
-         */
-        PGDataType: {
-            /** Pg Data Type Id */
-            pg_data_type_id: number;
-            /** Name Short */
-            name_short: string;
-        };
-        /**
          * PVBudgetedBulkUpsertRequest
          * @description Pvbudgetedbulkupsertrequest model.
          */
@@ -9916,6 +9638,11 @@ export interface components {
              * Format: uuid
              */
             company_id: string;
+            /**
+             * Device Model Id
+             * @description Foreign key to device_models table
+             */
+            device_model_id?: number | null;
             /**
              * Manufacturer
              * @description Name of the PV module manufacturer
@@ -10092,6 +9819,11 @@ export interface components {
              * Format: uuid
              */
             company_id: string;
+            /**
+             * Device Model Id
+             * @description Foreign key to device_models table
+             */
+            device_model_id?: number | null;
             /**
              * Racking Type Id
              * @description Foreign Key to racking_types
@@ -10625,16 +10357,6 @@ export interface components {
         RTEResponse: {
             /** Rte */
             rte: number | null;
-        };
-        /**
-         * Report
-         * @description Report model.
-         */
-        Report: {
-            /** Filename */
-            filename: string;
-            /** Data Pdf */
-            data_pdf: string;
         };
         /**
          * ReportInstance
@@ -12773,434 +12495,6 @@ export interface operations {
             };
         };
     };
-    get_pcs_v1_analytics__project_id__gis_pcs_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tracker_by_block_v1_analytics__project_id__gis_tracker_by_block__block_id__get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                block_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_bess_enclosure_v1_analytics__project_id__gis_bess_enclosure_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_devices_in_viewport_v1_analytics__project_id__gis_devices_in_viewport_get: {
-        parameters: {
-            query: {
-                north: number;
-                east: number;
-                south: number;
-                west: number;
-                device_type_ids?: number[] | null;
-                power_device_type_id?: number | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_combiner_block_performance_v1_analytics__project_id__gis_combiner__block_device_id__get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                block_device_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GeoJSON"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_heatmap_v1_analytics__project_id__heatmap__sensor_type_name_short__get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                agg?: string;
-                fillna_zero?: boolean;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-                sensor_type_name_short: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_clearsky_poa_v1_analytics__project_id__clearsky_poa_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                resample_rate?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_degradation_poa_v1_analytics__project_id__degradation_poa_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    dc_amperage_report_v2_v1_analytics__project_id__dc_amperage_report_v2_get: {
-        parameters: {
-            query: {
-                start: string;
-                min_poa: number;
-                max_poa_1d: number;
-                max_poa_std: number;
-                rolling_window: number;
-                use_poa_1d: boolean;
-                use_poa_std: boolean;
-                resample_rate?: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    combiner_correlation_analysis_v1_analytics__project_id__combiner_correlation_analysis_get: {
-        parameters: {
-            query?: {
-                analysis_date?: string | null;
-                block_names?: string[] | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tracking_angles_v1_analytics__project_id__tracking_angles_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     analyze_battery_settlement_v1_ai_battery_settlement_analysis_post: {
         parameters: {
             query?: never;
@@ -13668,6 +12962,196 @@ export interface operations {
     get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get: {
         parameters: {
             query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+                block_device_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pcs_v1_gis__project_id__pcs_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                block_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bess_enclosure_v1_gis__project_id__bess_enclosure_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoJSON"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_devices_in_viewport_v1_gis__project_id__devices_in_viewport_get: {
+        parameters: {
+            query: {
+                north: number;
+                east: number;
+                south: number;
+                west: number;
+                device_type_ids?: number[] | null;
+                power_device_type_id?: number | null;
                 schema?: string | null;
             };
             header?: {
@@ -14261,49 +13745,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProjectType"][];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_type_by_id: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectType"];
-                };
-            };
-            /** @description Project type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -15045,44 +14486,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_data_v1_operational_projects__project_id__data_get: {
-        parameters: {
-            query: {
-                tag_ids: number[];
-                start?: string | null;
-                end?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Data"][];
                 };
             };
             /** @description Validation Error */
@@ -16239,9 +15642,13 @@ export interface operations {
             };
         };
     };
-    get_project_reports_v1_operational_projects__project_id__reports_get: {
+    get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get: {
         parameters: {
-            query?: never;
+            query: {
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -16259,7 +15666,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Report"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -16273,11 +15680,17 @@ export interface operations {
             };
         };
     };
-    get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get: {
+    dc_amperage_report_v2_v1_operational_projects__project_id__reports_dc_amperage_report_v2_get: {
         parameters: {
             query: {
                 start: string;
-                end: string;
+                min_poa: number;
+                max_poa_1d: number;
+                max_poa_std: number;
+                rolling_window: number;
+                use_poa_1d: boolean;
+                use_poa_std: boolean;
+                resample_rate?: string;
                 schema?: string | null;
             };
             header?: {
@@ -16462,51 +15875,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Tag"][];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_device_v1_operational_projects__project_id__tags__tag_id__get: {
-        parameters: {
-            query?: {
-                /** @description Load all related objects. */
-                deep?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                tag_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Tag"];
-                };
-            };
-            /** @description Tag not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -17016,88 +16384,6 @@ export interface operations {
             };
         };
     };
-    get_pg_data_types_v1_operational_pg_data_types_get: {
-        parameters: {
-            query?: {
-                pg_data_type_ids?: number[];
-                name_short?: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PGDataType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pg_data_type_v1_operational_pg_data_types__pg_data_type_id__get: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pg_data_type_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PGDataType"];
-                };
-            };
-            /** @description PG data type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get: {
         parameters: {
             query?: {
@@ -17123,40 +16409,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CMMSResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    health_v1_operational_projects__project_id__qc_combiner_swaps_health_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -18884,41 +18136,6 @@ export interface operations {
             };
         };
     };
-    recalculate_single_diode_parameters_v1_operational_pv_modules_recalculate_single_diode_put: {
-        parameters: {
-            query: {
-                pv_module_id: number;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PVModule"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_rackings: {
         parameters: {
             query?: {
@@ -19460,43 +18677,6 @@ export interface operations {
                 project_id: string;
                 start: string;
                 end: string;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pv_budgeted_series_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pv_budgeted_series_full_data: {
-        parameters: {
-            query: {
-                project_id: string;
                 company_id?: string | null;
             };
             header?: {
@@ -20471,6 +19651,47 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                agg?: string;
+                fillna_zero?: boolean;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                sensor_type_name_short: string;
                 project_id: string;
             };
             cookie?: never;
@@ -21723,16 +20944,11 @@ export interface operations {
             };
         };
     };
-    get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get: {
+    combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get: {
         parameters: {
             query?: {
-                start?: string | null;
-                end?: string | null;
-                include_storage?: boolean;
-                include_setpoint?: boolean;
-                include_soiling?: boolean;
-                include_degradation?: boolean;
-                interval?: string;
+                analysis_date?: string | null;
+                block_names?: string[] | null;
                 schema?: string | null;
             };
             header?: {
@@ -21766,9 +20982,95 @@ export interface operations {
             };
         };
     };
-    health_check_v1_protected__project_id__pv_expected_energy_backfill_health_get: {
+    get_clearsky_poa_v1_protected_web_application_projects__project_id__reports_clearsky_poa_get: {
         parameters: {
-            query?: never;
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                resample_rate?: string | null;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_degradation_poa_v1_protected_web_application_projects__project_id__reports_degradation_poa_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                include_storage?: boolean;
+                include_setpoint?: boolean;
+                include_soiling?: boolean;
+                include_degradation?: boolean;
+                interval?: string;
+                schema?: string | null;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -22034,6 +21336,43 @@ export interface operations {
             };
         };
     };
+    get_tracking_angles_v1_trackers_tracking_angles_get: {
+        parameters: {
+            query: {
+                project_id: string;
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_block_dropdown_v1_ui__project_id__block_dropdown_get: {
         parameters: {
             query?: never;
@@ -22055,42 +21394,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BlockDropdownItem"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_recursive_parents_v1_ui__project_id__recursive_parents_get: {
-        parameters: {
-            query: {
-                device_id: number;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Device"][];
                 };
             };
             /** @description Validation Error */

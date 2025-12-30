@@ -296,7 +296,9 @@ export const useGetDevice = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/devices/${pathParams.deviceId}`,
+    url:
+      `/v1/operational/projects/${pathParams.projectId}` +
+      `/devices/${pathParams.deviceId}`,
     params: queryParams,
   }
 
@@ -530,7 +532,9 @@ export const useUpdateRootCause = () => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'put',
-        url: `${baseURL}/v1/operational/projects/${project_id}/events/${event_id}/root-cause`,
+        url:
+          `${baseURL}/v1/operational/projects/` +
+          `${project_id}/events/${event_id}/root-cause`,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -663,7 +667,9 @@ export const useGetHeatmap = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/heatmap/${pathParams.sensorTypeName}`,
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      `/equipment-analysis/heatmap/${pathParams.sensorTypeName}`,
     params: queryParams,
   }
 
@@ -691,7 +697,7 @@ export const useGetGISPCS = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/pcs`,
+    url: `/v1/gis/${pathParams.projectId}/pcs`,
     params: queryParams,
   }
 
@@ -714,7 +720,7 @@ export const useGetGISCombinerBlock = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/combiner/${pathParams.blockId}`,
+    url: `/v1/gis/combiner/${pathParams.projectId}/${pathParams.blockId}`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -743,7 +749,7 @@ export const useGetGISTrackerByBlock = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/tracker-by-block/${pathParams.blockId}`,
+    url: `/v1/gis/${pathParams.projectId}/tracker-by-block/${pathParams.blockId}`,
     params: queryParams,
   }
 
@@ -769,7 +775,7 @@ export const useGetGISBessEnclosure = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/gis/bess-enclosure`,
+    url: `/v1/gis/${pathParams.projectId}/bess-enclosure`,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -796,7 +802,9 @@ export const useGetEquipmentAnalysisCombiner = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/combiner`,
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      '/equipment-analysis/combiner',
     params: queryParams,
   }
 
@@ -970,7 +978,9 @@ export const useUpdateKPIAlert = () => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'put',
-        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/update-kpi-alert`,
+        url:
+          `${baseURL}/v1/operational/projects/` +
+          `${project_id}/kpi-data/update-kpi-alert`,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1077,7 +1087,9 @@ export const useGetSunburstData = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/sunburst-data`,
+    url:
+      `/v1/protected/web-application/projects/${pathParams.projectId}` +
+      '/equipment-analysis/sunburst-data',
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1107,7 +1119,9 @@ export const useGetClearskyPOA = ({
   }
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/clearsky-poa`,
+    url:
+      `/v1/protected/web-application/projects/` +
+      `${pathParams.projectId}/reports/clearsky-poa`,
     params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1136,7 +1150,9 @@ export const useGetDegradationPOA = ({
   }
 }) => {
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/degradation-poa`,
+    url:
+      `/v1/protected/web-application/projects/` +
+      `${pathParams.projectId}/reports/degradation-poa`,
     params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -1169,7 +1185,6 @@ export const useAnalyzeCombinerSwaps = () => {
 
       // Convert parameters to query string
       const params = new URLSearchParams({
-        project_id: projectId,
         ...(analysisDate && { analysis_date: analysisDate }),
         ...(blockNames?.length && { block_names: blockNames.join(',') }),
       })
@@ -1177,7 +1192,9 @@ export const useAnalyzeCombinerSwaps = () => {
       const response = await axios({
         method: 'GET',
         baseURL: baseURL,
-        url: `/v1/analytics/${projectId}/combiner-correlation-analysis?${params.toString()}`,
+        url:
+          `/v1/protected/web-application/projects/${projectId}` +
+          `/combiner-correlation-analysis?${params.toString()}`,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -1210,7 +1227,13 @@ export const useValidateCombinerData = ({
   }
 
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/qc/combiner-swaps/validate-combiner-data`,
+    url: [
+      '/v1/operational/projects',
+      pathParams.projectId,
+      'qc',
+      'combiner-swaps',
+      'validate-combiner-data',
+    ].join('/'),
     params: transformedParams,
   }
 

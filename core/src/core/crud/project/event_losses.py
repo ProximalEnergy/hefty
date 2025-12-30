@@ -34,16 +34,19 @@ def get_event_losses(
         event_ids: TODO: describe.
         return_query: TODO: describe.
     """
-    query = db.query(models.EventLoss)
+    stmt = sa.select(models.EventLoss)
     if time_equals is not None:
-        query = query.filter(models.EventLoss.time == time_equals)
+        stmt = stmt.where(models.EventLoss.time == time_equals)
     if time_gte is not None:
-        query = query.filter(models.EventLoss.time >= time_gte)
+        stmt = stmt.where(models.EventLoss.time >= time_gte)
     if time_lt is not None:
-        query = query.filter(models.EventLoss.time < time_lt)
+        stmt = stmt.where(models.EventLoss.time < time_lt)
     if event_ids is not None:
-        query = query.filter(models.EventLoss.event_id.in_(event_ids))
-    return ModelList(query=query, return_query=return_query)
+        stmt = stmt.where(models.EventLoss.event_id.in_(event_ids))
+    if return_query:
+        return ModelList(query=stmt, return_query=True)
+    items = list(db.scalars(stmt).all())
+    return ModelList(query=stmt, items=items, return_query=False)
 
 
 def get_event_losses_aggregated(
@@ -57,7 +60,8 @@ def get_event_losses_aggregated(
     """
     Get aggregated event losses by event_id.
 
-    Returns a dictionary mapping event_id to total loss (sum of all losses for that event).
+    Returns a dictionary mapping event_id to total loss (sum of all losses for
+    that event).
     This is much more efficient than fetching all individual loss records when you only
     need the aggregated sum per event.
 
@@ -74,23 +78,21 @@ def get_event_losses_aggregated(
     if not event_ids:
         return {}
 
-    query = db.query(
+    stmt = sa.select(
         models.EventLoss.event_id,
         func.sum(models.EventLoss.loss).label("total_loss"),
-    )
-
-    query = query.filter(models.EventLoss.event_id.in_(event_ids))
+    ).where(models.EventLoss.event_id.in_(event_ids))
 
     if time_gte is not None:
-        query = query.filter(models.EventLoss.time >= time_gte)
+        stmt = stmt.where(models.EventLoss.time >= time_gte)
     if time_lt is not None:
-        query = query.filter(models.EventLoss.time < time_lt)
+        stmt = stmt.where(models.EventLoss.time < time_lt)
     if event_loss_type_id is not None:
-        query = query.filter(models.EventLoss.event_loss_type_id == event_loss_type_id)
+        stmt = stmt.where(models.EventLoss.event_loss_type_id == event_loss_type_id)
 
-    query = query.group_by(models.EventLoss.event_id)
+    stmt = stmt.group_by(models.EventLoss.event_id)
 
-    results = query.all()
+    results = db.execute(stmt).all()
 
     # Convert to dictionary: event_id -> total_loss
     # func.sum() returns None if no rows match, so we default to 0.0
@@ -204,7 +206,8 @@ def get_total_daily_type2_loss_open_events(
     *,
     project_name: str,
 ) -> float:
-    """Return the total daily loss (type 2 only) across all OPEN events (time_end IS NULL).
+    """Return the total daily loss (type 2 only) across all OPEN events
+    (time_end IS NULL).
 
         Now uses the loss_daily_financial column directly from the events table.
 
@@ -213,8 +216,10 @@ def get_total_daily_type2_loss_open_events(
         project_name: TODO: describe.
     """
     return float(
-        db.query(func.sum(models.Event.loss_daily_financial))
-        .filter(models.Event.time_end.is_(None))
-        .scalar()
+        db.scalar(
+            sa.select(func.sum(models.Event.loss_daily_financial)).where(
+                models.Event.time_end.is_(None)
+            )
+        )
         or 0.0
     )

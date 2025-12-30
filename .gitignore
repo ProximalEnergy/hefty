@@ -1,5 +1,6 @@
 # --- Manual ---
 *commissioning-key.json*
+api/openapi.json
 .env_backup
 .env.*
 sandbox/*

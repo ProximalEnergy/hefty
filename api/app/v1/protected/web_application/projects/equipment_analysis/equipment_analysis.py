@@ -1,7 +1,8 @@
 import datetime
 from typing import Annotated
 
-from core.enumerations import DeviceType
+import pandas as pd
+from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from natsort import natsorted
@@ -191,6 +192,85 @@ async def get_equipment_analysis_pcs(
         project_db=project_db,
         project=project,
     )
+
+
+@router.get("/heatmap/{sensor_type_name_short}", response_class=ORJSONResponse)
+def get_heatmap(
+    *,
+    sensor_type_name_short: str,
+    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
+    start: datetime.datetime | None = None,
+    end: datetime.datetime | None = None,
+    agg: str = "instantaneous",
+    fillna_zero: bool = True,
+):
+    """todo
+
+    Args:
+        sensor_type_name_short: TODO: describe.
+        project_db: TODO: describe.
+        project: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        agg: TODO: describe.
+        fillna_zero: TODO: describe.
+    """
+    tags = core.crud.project.tags.get_project_tags(
+        project_db,
+        sensor_type_name_shorts=[sensor_type_name_short],
+        deep=False,
+    ).models()
+
+    if len(tags) == 0:
+        tags = core.crud.project.tags.get_project_tags(
+            project_db,
+            sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
+        ).models()
+
+    if len(tags) == 0:
+        raise HTTPException(status_code=404, detail="No tags found")
+
+    if start is None:
+        start = pd.Timestamp.utcnow().floor("5min") - pd.DateOffset(days=1)
+    if end is None:
+        end = pd.Timestamp.utcnow().floor("5min")
+
+    df = utils.data_df(
+        project_db,
+        project,
+        tags,
+        start=start,
+        end=end,
+        agg=agg,
+        fillna_zero=fillna_zero,
+    )
+
+    device_ids = [tag.device_id for tag in tags]
+    devices = core.crud.project.devices.get_project_devices(
+        project_db,
+        device_ids=device_ids,
+    ).models()
+
+    device_id_to_name_long = {device.device_id: device.name_long for device in devices}
+    tag_id_to_device_name_long = {
+        tag.tag_id: device_id_to_name_long[tag.device_id] for tag in tags
+    }
+
+    columns = df.columns.astype(int).tolist()
+    columns = [tag_id_to_device_name_long.get(tag_id, tag_id) for tag_id in columns]
+    df.columns = pd.Index(columns)
+    df = df[natsorted(df.columns)]
+
+    timestamps = df.index.tz_convert(project.time_zone).tolist()  # type: ignore
+    columns = df.columns.tolist()
+    values = df.T.values.tolist()
+
+    return {
+        "x": timestamps,
+        "y": columns,
+        "z": values,
+    }
 
 
 @router.get("/sunburst-data")

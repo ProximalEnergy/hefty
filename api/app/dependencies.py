@@ -348,6 +348,21 @@ def check_project_access_async(
         raise HTTPException(status_code=403, detail="Forbidden")
 
 
+def check_project_access_from_query_async(
+    *,
+    user_data: interfaces.UserData = Depends(get_user_data_async),
+    project_id: UUID,
+):
+    """Handle check project access async from query param.
+
+    Args:
+        user_data: TODO: describe.
+        project_id: TODO: describe.
+    """
+    if project_id not in user_data.operational_project_ids:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
 def get_is_admin_async(
     *, user_data: interfaces.UserData = Depends(get_user_data_async)
 ) -> bool:

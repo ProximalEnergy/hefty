@@ -426,6 +426,7 @@ export function NavbarNested({
           'fe1f0db0-c492-49a0-8502-ffc6eee22e55',
           'cba2690a-03cf-4878-bf0b-dd3801da6fb2',
           '5662003f-4d3a-4ed1-ba7c-781981a0f0b1',
+          '3b63ea38-cf28-4880-810e-41a81209d640',
         ].includes(project.data?.project_id ?? '')
       ),
   )

@@ -115,6 +115,26 @@ jobs:
       - name: Run docstring args check
         run: uv run _scripts/check_docstring_args.py api
 
+  unused-routes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+        working-directory: api
+
+      - name: install project
+        run: uv sync
+        working-directory: api
+
+      - name: Run unused routes check
+        run: uv run python _scripts/check_unused_routes.py --mode openapi
+        working-directory: api
+
   # smoke_test:
   #   runs-on: ubuntu-latest
   #   steps:

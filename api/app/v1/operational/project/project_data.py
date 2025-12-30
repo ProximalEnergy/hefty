@@ -16,50 +16,11 @@ from sqlalchemy.orm import Session
 import app.utils as utils
 import core
 from app import interfaces
-from app._crud.projects.data import get_project_data as crud_get_project_data
 from app.dependencies import get_project_api, get_project_db
 from app.utils import data_df
 from core import models
 
 router = APIRouter(prefix="/projects/{project_id}", tags=["project_data"])
-
-
-@router.get("/data", response_model=list[interfaces.Data])
-def get_project_data(
-    tag_ids: Annotated[list[int], Query()],
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
-    project_db: Session = Depends(get_project_db),
-):
-    """todo
-
-    Args:
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-    """
-    if start is None or end is None:
-        end = datetime.datetime.utcnow()
-        start = end - datetime.timedelta(days=1)
-
-    data = crud_get_project_data(
-        project_db,
-        tag_ids=tag_ids,
-        start=start,
-        end=end,
-    )
-
-    if len(data) == 0:
-        return []
-
-    df = pd.DataFrame.from_records([d.__dict__ for d in data])
-    df["value"] = df.filter(regex="value_").stack().reset_index(level=1, drop=True)
-    df = df[["time", "tag_id", "value"]]
-    df = df.sort_values(by=["time", "tag_id"])
-
-    records = df.to_dict("records")
-    return records
 
 
 def get_project_dataframe(

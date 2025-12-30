@@ -1012,6 +1012,10 @@ class PVModule(BaseModel):
         description="Unique identifier for the PV module",
     )
     company_id: uuid.UUID
+    device_model_id: int | None = Field(
+        default=None,
+        description="Foreign key to device_models table",
+    )
     manufacturer: str = Field(..., description="Name of the PV module manufacturer")
     model: str = Field(..., description="Model name of the PV module")
     technology: str = Field(..., description="CdTe / c_Si")
@@ -1150,6 +1154,7 @@ class Inverter(BaseModel):
     manufacturer: str
     model: str
     company_id: uuid.UUID
+    device_model_id: int | None = None
 
     # Operating window parameters
     voltage_mpp_min: float
@@ -1443,6 +1448,10 @@ class PVRackings(BaseModel):
 
     racking_id: int | None = Field(description="Primary Key")
     company_id: uuid.UUID
+    device_model_id: int | None = Field(
+        default=None,
+        description="Foreign key to device_models table",
+    )
     racking_type_id: int = Field(description="Foreign Key to racking_types")
     manufacturer: str = Field(description="Manufacturer of the racking")
     model: str = Field(description="Model of the racking")

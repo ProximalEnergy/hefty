@@ -25,17 +25,6 @@ class BackfillRequest(BaseModel):
 router = APIRouter(prefix="/backfill", tags=["backfill"])
 
 
-@router.get(
-    "/health",
-    summary="health check",
-)
-def health_check():
-    """
-    Simple health check endpoint that returns 200 OK
-    """
-    return 200
-
-
 @router.post(
     "",
     summary="backfill expected energy model",

@@ -16,6 +16,7 @@ import { PageTitle } from '@/components/PageTitle'
 import { VoiceChatModal } from '@/components/VoiceChat'
 import {
   ActionIcon,
+  Alert,
   Badge,
   Box,
   Button,
@@ -717,6 +718,7 @@ const Page = () => {
   )
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [contractToDelete, setContractToDelete] = useState<number | null>(null)
+  const theme = useMantineTheme()
 
   // Get project data to determine project type for example contract filtering
   const project = useSelectProject(projectId!)
@@ -864,33 +866,24 @@ const Page = () => {
 
       {contractList.length === 0 ? (
         <>
-          <Paper
-            p="md"
-            withBorder
-            style={{
-              textAlign: 'center',
-              backgroundColor: 'var(--mantine-color-blue-0)',
-              borderColor: 'var(--mantine-color-blue-2)',
-            }}
-          >
+          <Alert p="md">
             <Stack align="center" gap="sm">
-              <IconFileText size={48} color="var(--mantine-color-blue-6)" />
-              <Title order={4} c="blue">
+              <IconFileText
+                size={48}
+                color={theme.colors[theme.primaryColor][6]}
+              />
+              <Title order={4} c={theme.primaryColor}>
                 No Contracts Found
               </Title>
               <Text c="dimmed" size="sm">
                 No contracts have been added to this project yet. Here are some
                 examples of what contracts will look like:
               </Text>
-              <Button
-                variant="light"
-                color="blue"
-                onClick={() => setModalOpen(true)}
-              >
+              <Button variant="light" onClick={() => setModalOpen(true)}>
                 Add Your First Contract
               </Button>
             </Stack>
-          </Paper>
+          </Alert>
 
           {exampleContracts.map((contract) => (
             <ContractCard

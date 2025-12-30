@@ -1342,6 +1342,9 @@ class Racking(Base):
         primary_key=True,
         server_default="01959294-3e51-4d3e-9f57-e9c2c3635c84",
     )
+    device_model_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.device_models.device_model_id"),
+    )
 
     # Specifications
     max_rotation_angle: Mapped[float] = mapped_column(comment="Degrees")
@@ -2185,6 +2188,9 @@ class PVModule(Base):
         sa.ForeignKey("admin.companies.company_id"),
         server_default="01959294-3e51-4d3e-9f57-e9c2c3635c84",
     )
+    device_model_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.device_models.device_model_id"),
+    )
     manufacturer: Mapped[str]
     model: Mapped[str]
     family: Mapped[str | None]
@@ -2285,6 +2291,9 @@ class Inverter(Base):
         sa.ForeignKey("admin.companies.company_id"),
         primary_key=True,
         server_default="01959294-3e51-4d3e-9f57-e9c2c3635c84",
+    )
+    device_model_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.device_models.device_model_id"),
     )
 
     # Operating window parameters

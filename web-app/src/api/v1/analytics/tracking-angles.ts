@@ -18,9 +18,14 @@ export const useGetTrackingAngles = ({
   }
   queryOptions?: Partial<UseQueryOptions>
 }) => {
+  const resolvedQueryParams = {
+    ...queryParams,
+    project_id: pathParams.projectId,
+  }
+
   const axiosConfig = {
-    url: `/v1/analytics/${pathParams.projectId}/tracking-angles`,
-    params: queryParams,
+    url: '/v1/trackers/tracking-angles',
+    params: resolvedQueryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -32,7 +37,7 @@ export const useGetTrackingAngles = ({
     axiosConfig,
     queryName: 'getTrackingAngles',
     pathParams,
-    queryParams: queryParams,
+    queryParams: resolvedQueryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
