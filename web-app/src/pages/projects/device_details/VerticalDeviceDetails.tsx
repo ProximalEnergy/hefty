@@ -86,7 +86,6 @@ const VerticalDeviceDetails = () => {
       projectId: projectId || '',
       device_id: device_id || '',
     },
-    queryParams: {},
   })
   // --- End data fetching ---
 

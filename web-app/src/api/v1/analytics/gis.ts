@@ -57,7 +57,6 @@ export const useGetDevicesInViewport = ({
     // The project context is likely handled by backend dependencies via headers/auth.
     // Update URL to include projectId based on Swagger example
     url: `/v1/gis/${pathParams.projectId}/devices-in-viewport`,
-    params: queryParams, // Pass all viewport and filter params
   }
 
   // Default options - adjust staleTime/refetch as needed for viewport data
@@ -71,8 +70,6 @@ export const useGetDevicesInViewport = ({
   return useCustomQuery<DeviceWithPower[]>({
     axiosConfig,
     queryName: 'getDevicesInViewport',
-    // pathParams and queryParams are mainly for query key generation here,
-    // as they are already in axiosConfig.params
     pathParams,
     queryParams,
     queryOptions: combinedQueryOptions,

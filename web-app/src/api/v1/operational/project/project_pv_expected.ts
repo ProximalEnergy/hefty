@@ -20,7 +20,6 @@ export const useGetPvExpected = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/pv-expected`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -37,7 +36,7 @@ export const useGetPvExpected = ({
     axiosConfig,
     queryName: 'getTimeSeries',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: mergedQueryOptions,
   })
 }

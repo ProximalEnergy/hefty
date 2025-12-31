@@ -18,7 +18,6 @@ export const useGetEquipmentAnalysisTrackerBlock = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/tracker/${pathParams.deviceId}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -30,7 +29,7 @@ export const useGetEquipmentAnalysisTrackerBlock = ({
     axiosConfig,
     queryName: 'getEquipmentAnalysisTrackerBlock',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

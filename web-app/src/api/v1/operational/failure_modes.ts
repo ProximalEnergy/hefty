@@ -25,7 +25,6 @@ export const useGetFailureModes = ({
   return useCustomQuery<FailureMode[]>({
     axiosConfig,
     queryName: 'getFailureModes',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

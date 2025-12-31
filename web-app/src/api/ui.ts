@@ -22,7 +22,6 @@ export const useGetBlockDropdown = ({
     axiosConfig,
     queryName: 'getBlockDropdown',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

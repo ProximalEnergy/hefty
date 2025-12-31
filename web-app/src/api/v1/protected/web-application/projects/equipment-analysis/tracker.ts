@@ -26,7 +26,6 @@ export const useGetTrackerEquipmentAnalysis = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/tracker`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -38,7 +37,7 @@ export const useGetTrackerEquipmentAnalysis = ({
     axiosConfig,
     queryName: 'getTrackerEquipmentAnalysis',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

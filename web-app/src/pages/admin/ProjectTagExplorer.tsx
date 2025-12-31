@@ -167,7 +167,6 @@ const ProjectTagExplorer = () => {
 
   const uniqueTagTypes = useGetUniqueTagTypes({
     pathParams: { projectId: projectId || '-1' },
-    queryParams: {},
     queryOptions: {
       enabled: false, // Disable automatic fetching
     },

@@ -21,7 +21,6 @@ export const useGetDeviceDetailsSingle = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/single/${pathParams.deviceId}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -33,7 +32,7 @@ export const useGetDeviceDetailsSingle = ({
     axiosConfig,
     queryName: 'getDeviceDetailsSingle',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -46,7 +46,6 @@ export const useGetPVBudgetedSeries = ({
 }) => {
   const axiosConfig = {
     url: '/v1/operational/pv-budgeted-data/series',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -57,7 +56,6 @@ export const useGetPVBudgetedSeries = ({
   return useCustomQuery<PVBudgetedSeries[]>({
     axiosConfig,
     queryName: 'getPVBudgetedSeries',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
@@ -76,7 +74,6 @@ export const useGetPVBudgetedData = ({
 }) => {
   const axiosConfig = {
     url: '/v1/operational/pv-budgeted-data',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -88,7 +85,6 @@ export const useGetPVBudgetedData = ({
   return useCustomQuery<PVBudgetedData[]>({
     axiosConfig,
     queryName: 'getPVBudgetedData',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
@@ -111,7 +107,6 @@ export const useGetPVBudgetedDataBySeries = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-budgeted-data/series/${pathParams.pv_budgeted_series_id}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -147,7 +142,6 @@ export const useGetPVBudgetedSeriesDailyData = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-budgeted-data/series/${pathParams.pv_budgeted_series_id}/daily-data`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

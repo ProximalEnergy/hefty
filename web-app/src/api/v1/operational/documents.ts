@@ -35,7 +35,6 @@ export const useGetProjectDocuments = ({
     axiosConfig,
     queryName: 'getProjectDocuments',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

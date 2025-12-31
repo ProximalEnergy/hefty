@@ -30,7 +30,6 @@ export default function CompanyLookup({
 }: CompanyLookupProps) {
   const [companyQuery, setCompanyQuery] = useState('')
   const companies = useGetCompanies({
-    queryParams: {},
     queryOptions: { enabled: companyQuery.length >= minQueryLength },
   })
   const createCompany = useCreateCompany()

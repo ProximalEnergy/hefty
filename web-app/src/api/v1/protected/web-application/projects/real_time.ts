@@ -55,7 +55,6 @@ export const useGetRealTimeByDeviceTypeID = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/real-time/${pathParams.deviceTypeId}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -67,7 +66,7 @@ export const useGetRealTimeByDeviceTypeID = ({
     axiosConfig,
     queryName: 'getRealTimeByDeviceTypeID',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -99,7 +98,7 @@ export const useGetDataAvailabilityV2 = ({
     axiosConfig,
     queryName: 'getDataAvailabilityV2',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -122,7 +121,6 @@ export const useGetDataTimeseriesLast = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-last`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -134,7 +132,7 @@ export const useGetDataTimeseriesLast = ({
     axiosConfig,
     queryName: 'getDataTimeseriesLast',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

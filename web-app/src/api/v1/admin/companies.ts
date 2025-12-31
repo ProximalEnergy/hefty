@@ -25,7 +25,6 @@ export const useGetCompanies = ({
 } = {}) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -36,7 +35,6 @@ export const useGetCompanies = ({
   return useCustomQuery<Company[]>({
     axiosConfig,
     queryName: 'getCompanies',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

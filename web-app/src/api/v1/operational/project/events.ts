@@ -40,7 +40,6 @@ export const useGetEventsSummary = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/get-events-summary`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -49,7 +48,7 @@ export const useGetEventsSummary = ({
     axiosConfig,
     queryName: 'getEventsTwo',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -71,7 +70,6 @@ export const useGetEventDevices = ({
     axiosConfig,
     queryName: 'getEventDevices',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -89,7 +87,6 @@ export const useGetEventTraceTags = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-trace-tags`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -98,7 +95,7 @@ export const useGetEventTraceTags = ({
     axiosConfig,
     queryName: 'getEventTraceTags',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -120,7 +117,6 @@ export const useGetEventAnomalies = ({
     axiosConfig,
     queryName: 'getEventAnomalies',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -172,7 +168,6 @@ export const useGetEventLossesSummary = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-losses-summary`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -181,7 +176,7 @@ export const useGetEventLossesSummary = ({
     axiosConfig,
     queryName: 'getEventLossesSummary',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

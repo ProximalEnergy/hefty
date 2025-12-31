@@ -35,7 +35,6 @@ export const useGetKPISummaryCards = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/kpi-summary-cards`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -46,7 +45,7 @@ export const useGetKPISummaryCards = ({
     axiosConfig,
     queryName: 'getKPISummaryCards',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -69,7 +68,6 @@ export const useGetRoundTripEfficiency = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/rte`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

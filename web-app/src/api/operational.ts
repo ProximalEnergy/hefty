@@ -15,7 +15,6 @@ export const useGetCompanyUsers = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/users`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -26,8 +25,7 @@ export const useGetCompanyUsers = ({
   return useCustomQuery<User[]>({
     axiosConfig,
     queryName: 'getCompanyUsers',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

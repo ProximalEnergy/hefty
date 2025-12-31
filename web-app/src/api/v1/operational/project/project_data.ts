@@ -29,7 +29,6 @@ export const useGetTimeSeries = ({
 
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/time-series`,
-    params: limitedQueryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -70,7 +69,6 @@ export const useGetDataTimeSeriesV3 = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-v3`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -87,7 +85,7 @@ export const useGetDataTimeSeriesV3 = ({
     axiosConfig,
     queryName: 'getTimeSeries',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: mergedQueryOptions,
   })
 }

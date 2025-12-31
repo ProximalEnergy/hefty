@@ -25,7 +25,6 @@ export const useGetSensorTypes = ({
 }) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -36,8 +35,7 @@ export const useGetSensorTypes = ({
   return useCustomQuery<SensorType[]>({
     axiosConfig,
     queryName: 'getSensorTypes',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

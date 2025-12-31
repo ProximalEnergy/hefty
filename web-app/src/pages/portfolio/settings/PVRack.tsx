@@ -144,7 +144,6 @@ const Page = () => {
   // --- API Calls with Company Filtering ---
   const { data: manufacturers, isLoading: isLoadingManufacturers } =
     useWrappedGetManufacturers({
-      queryParams: {},
       queryOptions: {
         enabled: dataSource === 'proximal' && !!userCompanyId,
       },

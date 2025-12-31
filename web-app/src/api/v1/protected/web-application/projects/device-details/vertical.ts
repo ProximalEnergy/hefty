@@ -30,7 +30,6 @@ export const useGetDeviceDetailsVertical = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/vertical`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -42,7 +41,7 @@ export const useGetDeviceDetailsVertical = ({
     axiosConfig,
     queryName: 'getDeviceDetailsVertical',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -61,16 +60,13 @@ interface ControllerResponse {
 
 export const useGetDeviceDetailsVerticalController = ({
   pathParams,
-  queryParams,
   queryOptions = {},
 }: {
   pathParams: { projectId: string; device_id: string }
-  queryParams: object
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/vertical/controller/${pathParams.device_id}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -82,7 +78,6 @@ export const useGetDeviceDetailsVerticalController = ({
     axiosConfig,
     queryName: 'getDeviceDetailsVerticalController',
     pathParams,
-    queryParams: queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

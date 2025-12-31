@@ -21,7 +21,6 @@ export const useGetTagsByRegex = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/tags/regex`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -33,7 +32,7 @@ export const useGetTagsByRegex = ({
     axiosConfig,
     queryName: 'getTagsByRegex',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

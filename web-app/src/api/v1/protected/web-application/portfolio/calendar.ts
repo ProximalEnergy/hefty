@@ -11,7 +11,6 @@ export const useGetPortfolioCalendarEvents = ({
 }) => {
   const axiosConfig = {
     url: '/v1/protected/web-application/portfolio/calendar',
-    params: projectIds.length > 0 ? { project_ids: projectIds } : {},
   }
 
   return useCustomQuery<CalendarEvent[]>({
@@ -20,6 +19,7 @@ export const useGetPortfolioCalendarEvents = ({
     queryOptions: {
       enabled: true, // Always enabled since backend handles empty project_ids
     },
+    queryParams: projectIds.length > 0 ? { project_ids: projectIds } : {},
   })
 }
 

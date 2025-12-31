@@ -25,7 +25,6 @@ export const useGetRootCauses = ({
   return useCustomQuery<RootCause[]>({
     axiosConfig,
     queryName: 'getRootCauses',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

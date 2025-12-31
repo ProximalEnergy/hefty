@@ -22,7 +22,6 @@ export const useGetPCSApparentVsVoltage = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/reports/pcs-apparent-vs-voltage`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

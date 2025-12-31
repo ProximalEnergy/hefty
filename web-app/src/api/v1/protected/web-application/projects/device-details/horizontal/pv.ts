@@ -23,7 +23,6 @@ export const useGetDeviceDetailsHorizontalPV = ({
 }) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -35,7 +34,7 @@ export const useGetDeviceDetailsHorizontalPV = ({
     axiosConfig,
     queryName: 'getDeviceDetailsHorizontalPV',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

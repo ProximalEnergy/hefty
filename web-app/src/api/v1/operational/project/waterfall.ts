@@ -22,7 +22,6 @@ export const useGetWaterfall = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/waterfall`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -33,7 +32,7 @@ export const useGetWaterfall = ({
     axiosConfig,
     queryName: 'getWaterfall',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

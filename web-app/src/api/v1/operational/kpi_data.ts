@@ -47,7 +47,6 @@ export const useGetOperationalKPIData = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/kpi-data`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -57,7 +56,7 @@ export const useGetOperationalKPIData = ({
   return useCustomQuery<OperationalKPIData[]>({
     axiosConfig,
     queryName: 'getOperationalKPIData',
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -84,7 +83,6 @@ export const useGetContractKPIs = ({
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    method: 'get',
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/contract-kpis`,
   }
 
@@ -97,7 +95,6 @@ export const useGetContractKPIs = ({
     axiosConfig,
     queryName: 'getContractKPIs',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -118,7 +115,6 @@ export const useGetKPIExcel = ({
   const axiosConfig = {
     method: 'get',
     url: `/v1/operational/kpi-data/${pathParams.projectId}/excel`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -130,7 +126,7 @@ export const useGetKPIExcel = ({
     axiosConfig,
     queryName: 'getKPIExcel',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

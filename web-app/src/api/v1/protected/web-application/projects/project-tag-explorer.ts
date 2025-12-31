@@ -125,7 +125,7 @@ export const useGetUniqueTagTypes = ({
     axiosConfig,
     queryName: 'getUniqueTagTypes',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -153,7 +153,7 @@ export const useGetTagPatternSamples = ({
     axiosConfig,
     queryName: 'getTagPatternSamples',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

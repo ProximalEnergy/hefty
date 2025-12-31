@@ -30,6 +30,8 @@ function interpolatePath(url: string, pathParams: object): string {
   })
 }
 
+type AxiosRequestConfigWithoutParams = AxiosRequestConfig & { params?: never }
+
 export const useCustomQuery = <T>({
   axiosConfig,
   queryName,
@@ -37,7 +39,7 @@ export const useCustomQuery = <T>({
   queryParams = {},
   queryOptions = {},
 }: {
-  axiosConfig: AxiosRequestConfig
+  axiosConfig: AxiosRequestConfigWithoutParams
   queryName: string
   pathParams?: object
   queryParams?: object
@@ -299,7 +301,6 @@ export const useGetDevice = ({
     url:
       `/v1/operational/projects/${pathParams.projectId}` +
       `/devices/${pathParams.deviceId}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -311,7 +312,7 @@ export const useGetDevice = ({
     axiosConfig,
     queryName: 'getDevice',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -377,7 +378,6 @@ export const useGetTags = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/tags/`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -389,7 +389,7 @@ export const useGetTags = ({
     axiosConfig,
     queryName: 'getTags',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -405,7 +405,6 @@ export const useGetKPIAlerts = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/kpi-alerts/`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -414,7 +413,7 @@ export const useGetKPIAlerts = ({
     axiosConfig,
     queryName: 'getKPIAlerts',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -434,7 +433,6 @@ export const useGetEvents = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -443,7 +441,7 @@ export const useGetEvents = ({
     axiosConfig,
     queryName: 'getEvents',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -469,7 +467,6 @@ export const useGetPaginatedEvents = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/paginated-events`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -478,7 +475,7 @@ export const useGetPaginatedEvents = ({
     axiosConfig,
     queryName: 'getPaginatedEvents',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -502,7 +499,6 @@ export const useGetUptimeTable = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/uptime`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -511,7 +507,7 @@ export const useGetUptimeTable = ({
     axiosConfig,
     queryName: 'getUptimeTable',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -627,7 +623,6 @@ export const useGetWeather = ({
     axiosConfig,
     queryName: 'getWeather',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -652,7 +647,6 @@ export const useGetForecast = ({
     axiosConfig,
     queryName: 'getForecast',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -670,7 +664,6 @@ export const useGetHeatmap = ({
     url:
       `/v1/protected/web-application/projects/${pathParams.projectId}` +
       `/equipment-analysis/heatmap/${pathParams.sensorTypeName}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -679,7 +672,7 @@ export const useGetHeatmap = ({
     axiosConfig,
     queryName: 'getHeatmap',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -698,7 +691,6 @@ export const useGetGISPCS = ({
 }) => {
   const axiosConfig = {
     url: `/v1/gis/${pathParams.projectId}/pcs`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -707,7 +699,7 @@ export const useGetGISPCS = ({
     axiosConfig,
     queryName: 'getPCSPerformance',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -731,7 +723,6 @@ export const useGetGISCombinerBlock = ({
     axiosConfig,
     queryName: 'getGISCombinerBlock',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -750,7 +741,6 @@ export const useGetGISTrackerByBlock = ({
 }) => {
   const axiosConfig = {
     url: `/v1/gis/${pathParams.projectId}/tracker-by-block/${pathParams.blockId}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -762,7 +752,7 @@ export const useGetGISTrackerByBlock = ({
     axiosConfig,
     queryName: 'getGISTrackerByBlock',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -784,7 +774,6 @@ export const useGetGISBessEnclosure = ({
     axiosConfig,
     queryName: 'getGISBessEnclosure',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -805,7 +794,6 @@ export const useGetEquipmentAnalysisCombiner = ({
     url:
       `/v1/protected/web-application/projects/${pathParams.projectId}` +
       '/equipment-analysis/combiner',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -814,7 +802,7 @@ export const useGetEquipmentAnalysisCombiner = ({
     axiosConfig,
     queryName: 'getEquipmentAnalysisCombiner',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -828,7 +816,6 @@ export const useGetResources = ({
 }) => {
   const axiosConfig = {
     url: '/v1/development/ercot/resources',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -839,8 +826,7 @@ export const useGetResources = ({
   return useCustomQuery<types.Resource[]>({
     axiosConfig,
     queryName: 'getResources',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -856,7 +842,6 @@ export const useGetResource = ({
 }) => {
   const axiosConfig = {
     url: `/v1/development/ercot/resources/${pathParams.resourceId}`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -868,7 +853,7 @@ export const useGetResource = ({
     axiosConfig,
     queryName: 'getResource',
     pathParams,
-    queryParams: {},
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -890,7 +875,6 @@ export const useGetResourceNetPower = ({
     axiosConfig,
     queryName: 'getResourceNetPower',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -1049,7 +1033,6 @@ export const useGetTriggeredKPIAlerts = ({
   return useCustomQuery<types.KPIAlertProps[]>({
     axiosConfig,
     queryName: 'getUserTriggeredAlerts',
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -1074,7 +1057,6 @@ export const useGetKPIType = ({
     axiosConfig,
     queryName: 'getKPIType',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -1100,7 +1082,6 @@ export const useGetSunburstData = ({
     axiosConfig,
     queryName: 'getSunburstData',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -1122,7 +1103,6 @@ export const useGetClearskyPOA = ({
     url:
       `/v1/protected/web-application/projects/` +
       `${pathParams.projectId}/reports/clearsky-poa`,
-    params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     staleTime: 5 * 60 * 1000,
@@ -1132,7 +1112,7 @@ export const useGetClearskyPOA = ({
     axiosConfig,
     queryName: 'getClearskyPOA',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -1153,7 +1133,6 @@ export const useGetDegradationPOA = ({
     url:
       `/v1/protected/web-application/projects/` +
       `${pathParams.projectId}/reports/degradation-poa`,
-    params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     staleTime: 5 * 60 * 1000,
@@ -1163,7 +1142,7 @@ export const useGetDegradationPOA = ({
     axiosConfig,
     queryName: 'getDegradationPOA',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -1234,7 +1213,6 @@ export const useValidateCombinerData = ({
       'combiner-swaps',
       'validate-combiner-data',
     ].join('/'),
-    params: transformedParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

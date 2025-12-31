@@ -28,8 +28,6 @@ export const useGetApiKey = ({
   return useCustomQuery<APIKey>({
     axiosConfig,
     queryName: 'getApiKey',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

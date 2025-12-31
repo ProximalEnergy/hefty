@@ -77,7 +77,6 @@ export const useGetInverters = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-inverters`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -89,7 +88,7 @@ export const useGetInverters = ({
   return useCustomQuery<Inverter[]>({
     axiosConfig,
     queryName: `${INVERTERS_QUERY_NAME}For${inverter_ids.join('-')}`,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -102,7 +101,6 @@ export const useGetInverterIdsByManufacturerAndModel = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-inverters/lookup-ids`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -114,7 +112,7 @@ export const useGetInverterIdsByManufacturerAndModel = ({
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: INVERTER_IDS_QUERY_NAME,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -130,7 +128,6 @@ export const useGetProximalInverterManufacturers = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-inverters/manufacturers`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -148,7 +145,7 @@ export const useGetProximalInverterManufacturers = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `${INVERTER_MANUFACTURERS_QUERY_NAME}For${company_id || 'none'}`,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: mergedQueryOptions,
   })
 }
@@ -164,7 +161,6 @@ export const useGetProximalInverterModels = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-inverters/models`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -176,7 +172,7 @@ export const useGetProximalInverterModels = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `${INVERTER_MODELS_QUERY_NAME}For${manufacturer || 'all'}Company${company_id || 'all'}`,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
