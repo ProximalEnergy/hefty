@@ -149,7 +149,7 @@ async def get_paginated_events(
         db: TODO: describe.
     """
     data = crud_get_paginated_events(
-        project_db,
+        db=project_db,
         page=page,
         page_size=page_size,
         sort_column=sort_column,
@@ -359,7 +359,7 @@ def get_event_devices(
         project_db: TODO: describe.
         db: TODO: describe.
     """
-    device_ids = crud_get_event_device_ids(project_db)
+    device_ids = crud_get_event_device_ids(db=project_db)
 
     if not device_ids:
         return {"unique_types": [], "unique_devices": []}

@@ -350,7 +350,7 @@ async def get_sunburst_data(
 
     if mode == "events":
         online_status_dict = {x.device_id: 0 for x in devices}
-        events = get_project_events(project_db, open=True)
+        events = get_project_events(db=project_db, open=True)
         for event in events:
             online_status_dict[event.device_id] = 2
 

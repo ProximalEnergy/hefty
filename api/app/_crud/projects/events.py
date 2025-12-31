@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Date, case, cast, func, or_, text
+from sqlalchemy import Date, case, cast, func, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from core import models
@@ -29,31 +29,30 @@ def get_project_events(
         event_ids: TODO: describe.
         open_at: TODO: describe.
     """
-    query = db.query(models.Event)
-
-    query = query.options(
+    stmt = select(models.Event).options(
         selectinload(models.Event.device),
     )
 
     if device_id is not None:
-        query = query.filter(models.Event.device_id == device_id)
+        stmt = stmt.where(models.Event.device_id == device_id)
     if device_ids is not None:
-        query = query.filter(models.Event.device_id.in_(device_ids))
+        stmt = stmt.where(models.Event.device_id.in_(device_ids))
     if time_end_gte is not None:
-        query = query.filter(models.Event.time_end >= time_end_gte)
+        stmt = stmt.where(models.Event.time_end >= time_end_gte)
     if time_end_lt is not None:
-        query = query.filter(models.Event.time_end < time_end_lt)
+        stmt = stmt.where(models.Event.time_end < time_end_lt)
     if open_at is not None:
-        query = query.filter(models.Event.time_start <= open_at)
-        query = query.filter(
+        stmt = stmt.where(models.Event.time_start <= open_at)
+        stmt = stmt.where(
             or_(models.Event.time_end.is_(None), models.Event.time_end > open_at),
         )
     elif open:
-        query = query.filter(models.Event.time_end.is_(None))
+        stmt = stmt.where(models.Event.time_end.is_(None))
     if event_ids is not None:
-        query = query.filter(models.Event.event_id.in_(event_ids))
+        stmt = stmt.where(models.Event.event_id.in_(event_ids))
 
-    return query.all()
+    result = db.execute(stmt)
+    return result.scalars().all()
 
 
 def get_event_device_ids(db: Session) -> list[int]:  # skip-star-syntax
@@ -62,11 +61,9 @@ def get_event_device_ids(db: Session) -> list[int]:  # skip-star-syntax
     Args:
         db: TODO: describe.
     """
-    query = db.query(models.Event)
-    query = query.distinct(models.Event.device_id)
-    query_return = query.all()
-    device_ids = [x.device_id for x in query_return]
-    return device_ids
+    stmt = select(models.Event.device_id).distinct()
+    result = db.execute(stmt)
+    return list(result.scalars().all())
 
 
 def get_paginated_events(
@@ -96,20 +93,20 @@ def get_paginated_events(
         start: TODO: describe.
         end: TODO: describe.
     """
-    query = db.query(models.Event)
+    stmt = select(models.Event)
     if open:
-        query = query.filter(models.Event.time_end.is_(None))
+        stmt = stmt.where(models.Event.time_end.is_(None))
     if device_type_id:
-        query = query.filter(
+        stmt = stmt.where(
             models.Event.device.has(models.Device.device_type_id.in_(device_type_id)),
         )
     if device_ids:
-        query = query.filter(
+        stmt = stmt.where(
             models.Event.device.has(models.Device.device_id.in_(device_ids)),
         )
     if start and end:
-        query = query.filter(models.Event.time_start <= end)
-        query = query.filter(
+        stmt = stmt.where(models.Event.time_start <= end)
+        stmt = stmt.where(
             or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
         )
     # Handle special case for sorting by daily loss
@@ -133,15 +130,18 @@ def get_paginated_events(
 
         # removed this line for making sure daily loss doesn't show No active Events!:
         # query = query.filter(models.Event.loss_total_financial.isnot(None))
-        query = query.add_columns(daily_loss).order_by(
+        stmt = stmt.add_columns(daily_loss).order_by(
             text(f"daily_loss {sort_direction} NULLS LAST"),
         )
     else:
-        query = query.order_by(text(f"{sort_column} {sort_direction} NULLS LAST"))
+        stmt = stmt.order_by(text(f"{sort_column} {sort_direction} NULLS LAST"))
 
-    query = query.limit(page_size).offset(page * page_size)
+    stmt = stmt.limit(page_size).offset(page * page_size)
 
-    return query.all()
+    result = db.execute(stmt)
+    if sort_column == "loss_daily":
+        return result.all()
+    return result.scalars().all()
 
 
 def get_events_with_device_info(
@@ -176,42 +176,43 @@ def get_events_with_device_info(
         start: TODO: describe.
         end: TODO: describe.
     """
-    query = db.query(models.Event).options(
+    stmt = select(models.Event).options(
         selectinload(models.Event.device).selectinload(models.Device.device_type)
     )
-    query = query.options(selectinload(models.Event.failure_mode))
-    query = query.options(selectinload(models.Event.root_cause))
+    stmt = stmt.options(selectinload(models.Event.failure_mode))
+    stmt = stmt.options(selectinload(models.Event.root_cause))
 
     # Apply filters
     if device_id is not None:
-        query = query.filter(models.Event.device_id == device_id)
+        stmt = stmt.where(models.Event.device_id == device_id)
     if device_ids is not None:
-        query = query.filter(models.Event.device_id.in_(device_ids))
+        stmt = stmt.where(models.Event.device_id.in_(device_ids))
     if time_end_gte is not None:
-        query = query.filter(models.Event.time_end >= time_end_gte)
+        stmt = stmt.where(models.Event.time_end >= time_end_gte)
     if time_end_lt is not None:
-        query = query.filter(models.Event.time_end < time_end_lt)
+        stmt = stmt.where(models.Event.time_end < time_end_lt)
     if open_at is not None:
-        query = query.filter(models.Event.time_start <= open_at)
-        query = query.filter(
+        stmt = stmt.where(models.Event.time_start <= open_at)
+        stmt = stmt.where(
             or_(models.Event.time_end.is_(None), models.Event.time_end > open_at),
         )
     elif open:
-        query = query.filter(models.Event.time_end.is_(None))
+        stmt = stmt.where(models.Event.time_end.is_(None))
     if event_ids is not None:
-        query = query.filter(models.Event.event_id.in_(event_ids))
+        stmt = stmt.where(models.Event.event_id.in_(event_ids))
     if device_type_ids is not None:
-        query = query.filter(
+        stmt = stmt.where(
             models.Event.device.has(models.Device.device_type_id.in_(device_type_ids)),
         )
     if start is not None:
-        query = query.filter(
+        stmt = stmt.where(
             or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
         )
     if end is not None:
-        query = query.filter(models.Event.time_start <= end)
+        stmt = stmt.where(models.Event.time_start <= end)
 
-    return query.all()
+    result = db.execute(stmt)
+    return result.scalars().all()
 
 
 def get_events_summary(
@@ -234,24 +235,25 @@ def get_events_summary(
         device_type_ids: TODO: describe.
         device_ids: TODO: describe.
     """
-    query = db.query(models.Event).options(
+    stmt = select(models.Event).options(
         selectinload(models.Event.device).selectinload(models.Device.device_type),
     )
 
     # Apply filters
     if device_ids is not None:
-        query = query.filter(models.Event.device_id.in_(device_ids))
+        stmt = stmt.where(models.Event.device_id.in_(device_ids))
     if device_type_ids is not None:
-        query = query.filter(
+        stmt = stmt.where(
             models.Event.device.has(models.Device.device_type_id.in_(device_type_ids)),
         )
     if start is not None:
-        query = query.filter(
+        stmt = stmt.where(
             or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
         )
     if end is not None:
-        query = query.filter(models.Event.time_start <= end)
+        stmt = stmt.where(models.Event.time_start <= end)
     if open:
-        query = query.filter(models.Event.time_end.is_(None))
+        stmt = stmt.where(models.Event.time_end.is_(None))
 
-    return query.all()
+    result = db.execute(stmt)
+    return result.scalars().all()

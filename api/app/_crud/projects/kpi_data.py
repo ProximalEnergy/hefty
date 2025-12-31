@@ -1,6 +1,7 @@
 import datetime
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core import models
@@ -23,15 +24,14 @@ def get_project_kpi_summary(
         start: Start datetime (inclusive)
         end: End datetime (exclusive)
     """
-    return (
-        db.query(
-            models.OperationalKPIData.kpi_type_id,
-            models.OperationalKPIData.date,
-            models.OperationalKPIData.project_data,
-        )
-        .filter(models.OperationalKPIData.project_id == project_id)
-        .filter(models.OperationalKPIData.kpi_type_id.in_(kpi_type_ids))
-        .filter(models.OperationalKPIData.date >= start.date())
-        .filter(models.OperationalKPIData.date < end.date())
-        .all()
+    stmt = select(
+        models.OperationalKPIData.kpi_type_id,
+        models.OperationalKPIData.date,
+        models.OperationalKPIData.project_data,
     )
+    stmt = stmt.where(models.OperationalKPIData.project_id == project_id)
+    stmt = stmt.where(models.OperationalKPIData.kpi_type_id.in_(kpi_type_ids))
+    stmt = stmt.where(models.OperationalKPIData.date >= start.date())
+    stmt = stmt.where(models.OperationalKPIData.date < end.date())
+    result = db.execute(stmt)
+    return result.all()

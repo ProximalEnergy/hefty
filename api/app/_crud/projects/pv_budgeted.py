@@ -72,11 +72,11 @@ def get_series(
         project_db: TODO: describe.
         pv_budgeted_series_id: TODO: describe.
     """
-    return (
-        project_db.query(models.PVBudgetedSeries)
-        .filter(models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id)
-        .first()
+    stmt = sa.select(models.PVBudgetedSeries).where(
+        models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id
     )
+    result = project_db.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 def update_series(
@@ -92,11 +92,11 @@ def update_series(
         pv_budgeted_series_id: TODO: describe.
         series_in: TODO: describe.
     """
-    series = (
-        project_db.query(models.PVBudgetedSeries)
-        .filter(models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id)
-        .first()
+    stmt = sa.select(models.PVBudgetedSeries).where(
+        models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id
     )
+    result = project_db.execute(stmt)
+    series = result.scalar_one_or_none()
     if series is None:
         return None
 

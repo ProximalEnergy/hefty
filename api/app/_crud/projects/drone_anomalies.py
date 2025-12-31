@@ -3,7 +3,7 @@ import uuid
 from collections.abc import Sequence
 
 from core.models import DroneAnomaly
-from sqlalchemy import case, update
+from sqlalchemy import case, func, select, update
 from sqlalchemy.orm import Session
 
 from app.interfaces import DroneAnomalyCreate
@@ -18,11 +18,9 @@ def get_anomalies_by_inspection_uuid(
         db: TODO: describe.
         inspection_uuid: TODO: describe.
     """
-    return (
-        db.query(DroneAnomaly)
-        .filter(DroneAnomaly.inspection_uuid == inspection_uuid)
-        .all()
-    )
+    stmt = select(DroneAnomaly).where(DroneAnomaly.inspection_uuid == inspection_uuid)
+    result = db.execute(stmt)
+    return result.scalars().all()
 
 
 def get_anomaly_count_by_inspection_uuid(
@@ -34,11 +32,13 @@ def get_anomaly_count_by_inspection_uuid(
         db: TODO: describe.
         inspection_uuid: TODO: describe.
     """
-    return (
-        db.query(DroneAnomaly)
-        .filter(DroneAnomaly.inspection_uuid == inspection_uuid)
-        .count()
+    stmt = (
+        select(func.count())
+        .select_from(DroneAnomaly)
+        .where(DroneAnomaly.inspection_uuid == inspection_uuid)
     )
+    result = db.execute(stmt)
+    return result.scalar_one()
 
 
 def bulk_create_drone_anomalies_incremental(
@@ -78,24 +78,26 @@ def update_anomalies_with_event_id(
     )
 
     # First, check how many anomalies exist with these UUIDs
-    existing_count = (
-        db.query(DroneAnomaly)
-        .filter(DroneAnomaly.anomaly_uuid.in_(anomaly_uuids))
-        .count()
+    stmt = (
+        select(func.count())
+        .select_from(DroneAnomaly)
+        .where(DroneAnomaly.anomaly_uuid.in_(anomaly_uuids))
     )
+    result = db.execute(stmt)
+    existing_count = result.scalar_one()
 
     logging.info(
         f"📊 Found {existing_count} existing anomalies out of {len(anomaly_uuids)} requested UUIDs"
     )
 
     # Update the anomalies using a more efficient bulk update
-    stmt = (
+    update_stmt = (
         update(DroneAnomaly)
         .where(DroneAnomaly.anomaly_uuid.in_(anomaly_uuids))
         .values(event_id=event_id)
     )
 
-    result = db.execute(stmt)
+    result = db.execute(update_stmt)
 
     logging.info(
         f"🔄 Updated {result.rowcount} anomalies with event_id {event_id}"  # type: ignore[attr-defined]
@@ -152,4 +154,6 @@ def get_anomalies_by_event_id(*, db: Session, event_id: int) -> Sequence[DroneAn
         db: TODO: describe.
         event_id: TODO: describe.
     """
-    return db.query(DroneAnomaly).filter(DroneAnomaly.event_id == event_id).all()
+    stmt = select(DroneAnomaly).where(DroneAnomaly.event_id == event_id)
+    result = db.execute(stmt)
+    return result.scalars().all()
