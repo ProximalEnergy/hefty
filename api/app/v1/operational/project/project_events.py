@@ -12,7 +12,7 @@ from core.crud.operational.device_types import get_device_types
 from core.dependencies import get_db
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
-from sqlalchemy import insert, text
+from sqlalchemy import insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -971,11 +971,10 @@ def bulk_create_events(
     # Ensure event_loss_type id exists (id 3 requested by frontend)
     loss_type_id = EventLossType.PROXIMAL_PV_DC_CAPACITY
     try:
-        exists = (
-            db.query(models.EventLossType)
-            .filter(models.EventLossType.event_loss_type_id == loss_type_id)
-            .first()
+        exists_query = select(models.EventLossType).where(
+            models.EventLossType.event_loss_type_id == loss_type_id
         )
+        exists = db.execute(exists_query).scalars().first()
         if not exists:
             new_type = models.EventLossType(
                 event_loss_type_id=loss_type_id,
@@ -1048,16 +1047,15 @@ def bulk_create_events(
 
         # Check for existing events to avoid conflicts
         target_device_ids = list(device_items.keys())
-        existing_events = (
-            project_db.query(models.Event)
-            .filter(
-                models.Event.device_id.in_(target_device_ids),
-                models.Event.time_start >= payload.time_start,
-                models.Event.time_start
-                < payload.time_start + datetime.timedelta(seconds=len(payload.items)),
-            )
-            .all()
+        existing_events_end = payload.time_start + datetime.timedelta(
+            seconds=len(payload.items)
         )
+        existing_events_query = select(models.Event).where(
+            models.Event.device_id.in_(target_device_ids),
+            models.Event.time_start >= payload.time_start,
+            models.Event.time_start < existing_events_end,
+        )
+        existing_events = project_db.execute(existing_events_query).scalars().all()
 
         # Create a set of existing (device_id, time_start) combinations
         existing_combinations = {

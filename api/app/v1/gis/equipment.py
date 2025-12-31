@@ -8,7 +8,7 @@ from core.dependencies import get_db
 from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 import core
@@ -390,12 +390,11 @@ def get_devices_in_viewport(
         project_db: TODO: describe.
         project: TODO: describe.
     """
-    # Base query for devices using ORM
-    query = project_db.query(models.Device)
+    query = select(models.Device)
 
     # Optional filter by general device type IDs
     if device_type_ids:
-        query = query.filter(models.Device.device_type_id.in_(device_type_ids))
+        query = query.where(models.Device.device_type_id.in_(device_type_ids))
 
     # Use the buffer calculation from the provided example
     width = east - west
@@ -420,10 +419,10 @@ def get_devices_in_viewport(
     )
 
     # Apply the spatial filter
-    query = query.filter(spatial_filter_sql)
+    query = query.where(spatial_filter_sql)
 
     # Execute the query
-    devices = query.all()
+    devices = project_db.execute(query).scalars().all()
 
     # --- Optional Additional Data Fetching (Power or Tracker Angle) ---
     # This will hold data like: {device_id: {"actual": ..., "expected_soiled": ...}} or
@@ -1084,11 +1083,10 @@ def get_met_station_latest_values(
         )
 
         if sensor_type_ids:
-            sensor_types = (
-                project_db.query(models.SensorType)
-                .filter(models.SensorType.sensor_type_id.in_(sensor_type_ids))
-                .all()
+            sensor_type_query = select(models.SensorType).where(
+                models.SensorType.sensor_type_id.in_(sensor_type_ids)
             )
+            sensor_types = project_db.execute(sensor_type_query).scalars().all()
             logger.logger.info(f"Loaded {len(sensor_types)} sensor types")
             sensor_type_map = {st.sensor_type_id: st for st in sensor_types}
             # Associate the loaded SensorType objects back to the Tag objects

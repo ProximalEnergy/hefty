@@ -7,6 +7,8 @@ on:
       - "core/**"
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/core-pr-checks.yml"
+    paths-ignore:
+      - "core/specs/**"
 
 permissions:
   id-token: write # This is crucial for OIDC authentication

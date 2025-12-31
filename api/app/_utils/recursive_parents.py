@@ -29,13 +29,10 @@ def get_recursive_parents(*, db: Session, device_id: int):
         ).where(parent_alias.device_id == recursive_cte.c.parent_device_id),
     )
 
-    parent_devices = (
-        db.query(models.Device)
-        .join(  # Join the device table rows with rows in our CTE
-            recursive_cte,
-            models.Device.device_id == recursive_cte.c.device_id,
-        )
-        .all()
+    query = select(models.Device).join(
+        recursive_cte,
+        models.Device.device_id == recursive_cte.c.device_id,
     )
+    parent_devices = db.execute(query).scalars().all()
 
     return parent_devices
