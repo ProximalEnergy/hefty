@@ -105,7 +105,7 @@ def get_status_time_series(
     else:
         sensor_types = supported_sensor_types
 
-    status_sensor_type_ids = SensorType.extract_values(sensor_types)
+    status_sensor_type_ids = SensorType.extract_values(enum_list=sensor_types)
 
     if device_ids is not None:
         device_ids = list(set(device_ids))
@@ -197,7 +197,7 @@ def get_status_time_series(
         for d in status_interpret
     }
 
-    def map_status(col):  # skip-star-syntax
+    def map_status(col):  # nosemgrep: python-enforce-keyword-only-args
         """todo
 
         Args:

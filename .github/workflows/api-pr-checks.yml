@@ -37,19 +37,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-
-      - name: set up python
-        run: uv python install
-        working-directory: api
-
-      - name: install project
-        run: uv sync
-        working-directory: api
-
-      - name: Run star_syntax_check script
-        run: |
-          python ../_scripts/star_syntax_check.py --directory app
-        working-directory: api
+      - name: Run Semgrep star-syntax check
+        run: uvx semgrep --config _scripts/rules/star-syntax.yaml api/app
 
   mypy:
     runs-on: ubuntu-latest

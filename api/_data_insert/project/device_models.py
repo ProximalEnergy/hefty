@@ -378,7 +378,6 @@ class ProjectCompleter:
         """todo
 
         Args:
-            self: TODO: describe.
             projects: TODO: describe.
         """
         self.projects = projects
@@ -388,7 +387,6 @@ class ProjectCompleter:
         """Complete project name based on text input.
 
         Args:
-            self: TODO: describe.
             text: TODO: describe.
             state: TODO: describe.
         """

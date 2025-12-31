@@ -44,7 +44,7 @@ from core import models
 router = APIRouter(prefix="/projects/{project_id}/events", tags=["project_events"])
 
 
-def _none_if_nan(x: Any) -> float | None:  # skip-star-syntax
+def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-only-args
     """todo
 
     Args:

@@ -55,7 +55,9 @@ def get_project_events(
     return result.scalars().all()
 
 
-def get_event_device_ids(db: Session) -> list[int]:  # skip-star-syntax
+def get_event_device_ids(
+    db: Session,
+) -> list[int]:  # nosemgrep: python-enforce-keyword-only-args
     """todo
 
     Args:

@@ -1,0 +1,72 @@
+name: Microservices Pull Request Checks
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+    paths:
+      - "microservices/**"
+      - "_scripts/check_docstring_args.py"
+      - ".github/workflows/microservices-pr-checks.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run Ruff linter
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: ./microservices
+
+      - name: Run Ruff formatter
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check --diff
+          src: ./microservices
+
+  star_syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run Semgrep star-syntax check
+        run: uvx semgrep --config _scripts/rules/star-syntax.yaml microservices
+
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+
+      - name: install project
+        run: uv sync
+
+      - name: run mypy
+        run: uv run mypy --config-file pyproject.toml microservices/
+
+  docstring-args:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: set up python
+        run: uv python install
+
+      - name: Run docstring args check
+        run: uv run _scripts/check_docstring_args.py microservices

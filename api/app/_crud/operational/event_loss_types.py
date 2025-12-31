@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core import models
 
 
-async def get_event_loss_types(  # skip-star-syntax
+async def get_event_loss_types(  # nosemgrep: python-enforce-keyword-only-args
     *,
     db: AsyncSession,
 ):

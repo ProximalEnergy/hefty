@@ -182,7 +182,7 @@ async def get_battery_settlement_details(
         return pd.Series(0.0, index=df.index, dtype="float64")
 
     # Safely fetch a numeric Series by column name, or a zero series if missing
-    def s(col_name: str) -> pd.Series:  # skip-star-syntax
+    def s(col_name: str) -> pd.Series:  # nosemgrep: python-enforce-keyword-only-args
         """todo
 
         Args:

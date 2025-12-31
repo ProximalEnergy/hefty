@@ -1,4 +1,7 @@
 
+[tools]
+semgrep = "latest"
+
 # =============================================================================
 # MONOREPO-LEVEL TASKS
 # =============================================================================
@@ -30,7 +33,7 @@ run = ["mise run install", "mise run web:build", "./_scripts/run_preview.sh"]
 description = "Run all quality checks across the entire monorepo"
 depends = ["api:switch-core"]
 usage = '''
-  flag "--static" help="Skip non-static tests (like hurl)"
+  flag "--static" help="Skip non-static tests"
 '''
 run = """
 if [ "${usage_static:-false}" = "true" ]; then
@@ -148,8 +151,8 @@ run = "uv run --dev ruff format core/"
 
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
-dir = "core"
-run = "uv run ../_scripts/star_syntax_check.py --directory src"
+dir = "."
+run = "semgrep --config _scripts/rules/star-syntax.yaml core/src"
 
 [tasks."core:pytest"]
 description = "Run pytest for core"
@@ -206,16 +209,6 @@ description = "Git push changes for core"
 dir = "core"
 run = "git push"
 
-[tasks."core:_tag"]
-description = "Create and push git tag based on core version"
-dir = "core"
-run = """
-VERSION=$(python -c "import tomllib; \
-  print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
-git tag "v$VERSION"
-git push origin "v$VERSION"
-"""
-
 [tasks."core:db"]
 description = "Generate alembic migration"
 usage = '''
@@ -226,17 +219,58 @@ run = '''
 echo "Generating alembic migration with description ${usage_description}"
 alembic revision --autogenerate -m "${usage_description}"
 python3 _scripts/clean_alembic.py --latest
-python3 _scripts/update_releases.py "${usage_description}"
 cd .. && uv run --dev ruff check core/_alembic_migrations/versions && uv run --dev ruff format core/_alembic_migrations/versions
 '''
 
-[tasks."core:update"]
-description = "Update core release notes without generating a migration"
-usage = '''
-arg "<message>" help="Release note message"
-'''
+[tasks."core:tag"]
+description = "Create and push git tag based on core version"
 dir = "core"
-run = '''uv run _scripts/update_releases.py "${usage_message}"'''
+run = """
+VERSION=$(python -c "import tomllib; \
+  print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+git tag "v$VERSION"
+git push origin "v$VERSION"
+"""
+
+# =============================================================================
+# MICROSERVICES TASKS (runs in ./microservices directory)
+# =============================================================================
+
+[tasks."micro:check"]
+description = "Run all quality checks for microservices"
+dir = "."
+depends = [
+  "micro:types",
+  "micro:ruff_check",
+  "micro:ruff_format",
+  "micro:star_syntax",
+  "micro:docstring_args",
+]
+
+[tasks."micro:types"]
+description = "Run mypy type checking for microservices"
+dir = "."
+run = "uv run mypy --config-file pyproject.toml microservices/"
+
+[tasks."micro:ruff_check"]
+description = "Run ruff linter for microservices"
+dir = "."
+run = "uv run --dev ruff check microservices/"
+
+[tasks."micro:ruff_format"]
+description = "Run ruff formatter for microservices"
+dir = "."
+run = "uv run --dev ruff format microservices/"
+
+[tasks."micro:star_syntax"]
+description = "Check for star syntax violations in microservices"
+dir = "."
+run = "semgrep --config _scripts/rules/star-syntax.yaml microservices"
+
+[tasks."micro:docstring_args"]
+description = "Check docstring Args sections in microservices"
+dir = "."
+run = "uv run _scripts/check_docstring_args.py microservices"
 
 # =============================================================================
 # API TASKS (runs in ./api directory)
@@ -260,7 +294,6 @@ depends = [
   "api:ruff",
   "api:format",
   "api:pytest",
-  "api:hurl",
   "api:deptry",
   "api:vulture",
   "api:docstring_args",
@@ -299,8 +332,8 @@ run = "uv run pytest"
 
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
-dir = "api"
-run = "uv run ../_scripts/star_syntax_check.py --directory app"
+dir = "."
+run = "semgrep --config _scripts/rules/star-syntax.yaml api/app"
 
 [tasks."api:hurl"]
 description = "Run hurl smoke tests for api"

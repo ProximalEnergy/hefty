@@ -125,7 +125,7 @@ async def get_project_devices_v2(
     devices_df = await query_obj.polars_dataframe_async()
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
-    def wkb_to_geojson(wkb_bytes):  # skip-star-syntax
+    def wkb_to_geojson(wkb_bytes):  # nosemgrep: python-enforce-keyword-only-args
         """Convert WKB bytes into a GeoJSON string representation.
 
         Args:

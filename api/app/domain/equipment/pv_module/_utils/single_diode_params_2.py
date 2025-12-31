@@ -74,7 +74,7 @@ def calc_reference_params(*, pv_module: dict):
         K_BOLTZMANN_EVK,
     )
 
-    def objective_func(params, specs):  # skip-star-syntax
+    def objective_func(params, specs):  # nosemgrep: python-enforce-keyword-only-args
         """todo
 
         Args:

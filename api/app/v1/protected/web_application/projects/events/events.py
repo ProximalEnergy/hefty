@@ -51,7 +51,9 @@ class EventMetaData(BaseModel):
     device_totals: list[DeviceTotals]
 
 
-def _ensure_tz_aware(ts: pd.Series, tz: str) -> pd.Series:  # skip-star-syntax
+def _ensure_tz_aware(
+    ts: pd.Series, tz: str
+) -> pd.Series:  # nosemgrep: python-enforce-keyword-only-args
     """Convert a datetime series to timezone-aware (project tz).
         - If any values are tz-aware already, use tz_convert.
         - If entirely naive or entirely None, localize.
@@ -69,7 +71,7 @@ def _ensure_tz_aware(ts: pd.Series, tz: str) -> pd.Series:  # skip-star-syntax
     return s.dt.tz_convert(tz)
 
 
-def _clip_to_window(  # skip-star-syntax
+def _clip_to_window(  # nosemgrep: python-enforce-keyword-only-args
     s: pd.Series,
     start: pd.Timestamp,
     end: pd.Timestamp,

@@ -65,7 +65,7 @@ def get_projects(
         query = query.filter(models.Project.project_type_id.in_(project_type_ids))
     if project_status_type_ids is not None:
         status_ids = enumerations.ProjectStatusType.extract_values(
-            project_status_type_ids
+            enum_list=project_status_type_ids
         )
         query = query.filter(models.Project.project_status_type_id.in_(status_ids))
     if name_short is not None:
@@ -158,7 +158,7 @@ async def get_projects_async(
         stmt = stmt.where(models.Project.project_type_id.in_(project_type_ids))
     if project_status_type_ids is not None:
         status_ids = enumerations.ProjectStatusType.extract_values(
-            project_status_type_ids
+            enum_list=project_status_type_ids
         )
         stmt = stmt.where(models.Project.project_status_type_id.in_(status_ids))
     if name_short is not None:

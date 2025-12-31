@@ -29,7 +29,6 @@ class LTree(UserDefinedType):
         """TODO: add description.
 
         Args:
-            self: TODO: describe.
             **kw: TODO: describe.
         """
         return "LTREE"
@@ -510,11 +509,7 @@ class DeviceType(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         return self.name_long
 
 
@@ -541,11 +536,7 @@ class DeviceModel(Base):
     )
 
     def __str__(self):
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         return f"{self.brand} {self.model}"
 
 
@@ -868,11 +859,7 @@ class KPIType(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         return self.name_long
 
 
@@ -1074,11 +1061,7 @@ class Project(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         return self.name_long
 
 
@@ -1449,11 +1432,7 @@ class SensorType(Base):
     __table_args__ = {"schema": "operational"}
 
     def __str__(self):
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         return self.name_long
 
 

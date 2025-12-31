@@ -19,11 +19,13 @@ TEST_PROJECT_ID = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
 class MockPoint:
     """todo"""
 
-    def __init__(self, type, coordinates):  # skip-star-syntax
+    def __init__(
+        self, type, coordinates
+    ):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         self.type, self.coordinates = type, coordinates
 
-    def __eq__(self, other):  # skip-star-syntax
+    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         return (
             isinstance(other, MockPoint)
@@ -35,11 +37,13 @@ class MockPoint:
 class MockPolygon:
     """todo"""
 
-    def __init__(self, type, coordinates):  # skip-star-syntax
+    def __init__(
+        self, type, coordinates
+    ):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         self.type, self.coordinates = type, coordinates
 
-    def __eq__(self, other):  # skip-star-syntax
+    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         return (
             isinstance(other, MockPolygon)
@@ -51,11 +55,11 @@ class MockPolygon:
 class MockProjectSpec:
     """todo"""
 
-    def __init__(self, **kwargs):  # skip-star-syntax
+    def __init__(self, **kwargs):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         self.__dict__.update(kwargs)
 
-    def __eq__(self, other):  # skip-star-syntax
+    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         return isinstance(other, MockProjectSpec) and self.__dict__ == other.__dict__
 
@@ -63,11 +67,11 @@ class MockProjectSpec:
 class MockProjectType:
     """todo"""
 
-    def __init__(self, **kwargs):  # skip-star-syntax
+    def __init__(self, **kwargs):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         self.__dict__.update(kwargs)
 
-    def __eq__(self, other):  # skip-star-syntax
+    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         return isinstance(other, MockProjectType) and self.__dict__ == other.__dict__
 
@@ -75,12 +79,12 @@ class MockProjectType:
 class MockProject:
     """todo"""
 
-    def __init__(self, **kwargs):  # skip-star-syntax
+    def __init__(self, **kwargs):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __eq__(self, other):  # skip-star-syntax
+    def __eq__(self, other):  # nosemgrep: python-enforce-keyword-only-args
         """todo"""
         return isinstance(other, MockProject) and self.__dict__ == other.__dict__
 
@@ -206,7 +210,7 @@ def mock_project_instance():
 
 # Adjust the path 'core.crud.operational.projects.get_project_options' if needed
 @patch("core.crud.operational.projects.get_project_options")
-def test_get_project_found_deep(  # skip-star-syntax
+def test_get_project_found_deep(  # nosemgrep: python-enforce-keyword-only-args
     mock_get_options,
     mock_db_session,
     mock_project_instance,
@@ -240,7 +244,7 @@ def test_get_project_found_deep(  # skip-star-syntax
 
 
 @patch("core.crud.operational.projects.get_project_options")
-def test_get_project_found_shallow(  # skip-star-syntax
+def test_get_project_found_shallow(  # nosemgrep: python-enforce-keyword-only-args
     mock_get_options,
     mock_db_session,
     mock_project_instance,
@@ -278,11 +282,11 @@ def test_get_project_found_shallow(  # skip-star-syntax
 
 
 @patch("core.crud.operational.projects.get_project_options")
-def test_get_project_not_found(  # skip-star-syntax
+def test_get_project_not_found(  # nosemgrep: python-enforce-keyword-only-args
     mock_get_options,
     mock_db_session,
     mocker,
-):  # skip-star-syntax
+):  # nosemgrep: python-enforce-keyword-only-args
     """
     Test get_project when the project is not found.
     """

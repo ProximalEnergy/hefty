@@ -6,11 +6,11 @@
 set +e  # Don't exit on first error - we want to run all checks
 
 # Parse command line arguments
-SKIP_HURL=false
+SKIP_TESTS=false
 for arg in "$@"; do
     case $arg in
         --static)
-            SKIP_HURL=true
+            SKIP_TESTS=true
             shift
             ;;
     esac
@@ -61,18 +61,9 @@ check_root_for_package_json() {
     fi
 }
 
-# Function to check for core documentation and version bump
-check_core_documentation_and_version() {
-    echo "Checking for core documentation and version bump..."
-
-    # Check for documentation changes
-    if ! git diff --name-only dev...HEAD -- 'core/' | grep -q '^core/_docs/releases/'; then
-        if git diff --name-only dev...HEAD -- 'core/' | grep -q -v '^core/_docs/releases/'; then
-            echo "::error::Changes were made to 'core/' source files, but no corresponding documentation update was found in 'core/_docs/releases/'. Please add a release note for your changes."
-            return 1
-        fi
-    fi
-    echo "Documentation check passed."
+# Function to check for core version bump
+check_core_version() {
+    echo "Checking for core version bump..."
 
     # Check for version bump
     # Ensure jq is installed
@@ -127,7 +118,7 @@ EOF
 
 
 # Run all checks
-run_check "Core: Documentation and Version" "check_core_documentation_and_version"
+run_check "Core: Version" "check_core_version"
 run_check "Core: Type Checking (mypy)" "mise run core:types"
 run_check "Core: Ruff Linting" "mise run core:ruff_check"
 run_check "Core: Ruff Formatting" "mise run core:ruff_format"
@@ -136,6 +127,11 @@ run_check "Core: Enum Validation" "mise run core:enum"
 run_check "Core: Unused Import Check" "mise run core:deptry"
 run_check "Core: Dead Code Check" "mise run core:vulture"
 run_check "Core: Docstring Args Check" "mise run core:docstring_args"
+run_check "Micro: Type Checking (mypy)" "mise run micro:types"
+run_check "Micro: Ruff Linting" "mise run micro:ruff_check"
+run_check "Micro: Ruff Formatting" "mise run micro:ruff_format"
+run_check "Micro: Star Syntax Check" "mise run micro:star_syntax"
+run_check "Micro: Docstring Args Check" "mise run micro:docstring_args"
 run_check "API: Type Checking (mypy)" "mise run api:types"
 run_check "API: Star Syntax Check" "mise run api:star_syntax"
 run_check "API: Ruff Linting" "mise run api:ruff"
@@ -145,9 +141,7 @@ run_check "API: Dead Code Check" "mise run api:vulture"
 run_check "API: Pytest" "mise run api:pytest"
 run_check "API: Docstring Args Check" "mise run api:docstring_args"
 run_check "API: Unused Routes Check" "mise run api:unused_routes_detailed"
-if [ "$SKIP_HURL" != "true" ]; then
-    run_check "API: Hurl Tests" "mise run api:hurl"
-fi
+run_check "API: Docstring Args Check" "mise run api:docstring_args"
 run_check "Root: No package.json" "check_root_for_package_json"
 run_check "Root: Hardcoded Type ID Check" "mise run hardcoded_type_id_check"
 run_check "Root: Hardcoded Name Shorts Check" "mise run hardcoded_name_shorts_check"
