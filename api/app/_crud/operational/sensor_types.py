@@ -37,10 +37,10 @@ def update_sensor_type(
         sensor_type_id: TODO: describe.
         sensor_type: TODO: describe.
     """
-    query = select(models.SensorType).where(
+    statement = select(models.SensorType).where(
         models.SensorType.sensor_type_id == sensor_type_id,
     )
-    db_sensor_type = db.execute(query).scalars().first()
+    db_sensor_type = db.execute(statement).scalar_one_or_none()
 
     if not db_sensor_type:
         return None
@@ -63,8 +63,10 @@ def get_next_sensor_type_id(*, db: Session) -> int:
     Args:
         db: TODO: describe.
     """
-    query = select(models.SensorType.sensor_type_id).order_by(
-        models.SensorType.sensor_type_id.desc(),
+    statement = (
+        select(models.SensorType.sensor_type_id)
+        .order_by(models.SensorType.sensor_type_id.desc())
+        .limit(1)
     )
-    max_id = db.execute(query).scalar_one_or_none()
-    return (max_id if max_id is not None else 0) + 1
+    max_id = db.execute(statement).scalar_one_or_none()
+    return (max_id if max_id else 0) + 1

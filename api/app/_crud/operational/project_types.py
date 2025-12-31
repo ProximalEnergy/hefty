@@ -11,10 +11,10 @@ def get_project_type(*, db: Session, project_type_id: int):
         db: Database session used to run the lookup.
         project_type_id: Identifier of the project type to retrieve.
     """
-    query = select(models.ProjectType).where(
+    statement = select(models.ProjectType).where(
         models.ProjectType.project_type_id == project_type_id,
     )
-    return db.execute(query).scalars().first()
+    return db.execute(statement).scalar_one_or_none()
 
 
 def get_project_types(
@@ -32,13 +32,15 @@ def get_project_types(
         name_short: Short name that must match exactly when provided.
         name_long: Long name that must match exactly when provided.
     """
-    query = select(models.ProjectType)
+    statement = select(models.ProjectType)
 
     if project_type_ids:
-        query = query.where(models.ProjectType.project_type_id.in_(project_type_ids))
+        statement = statement.where(
+            models.ProjectType.project_type_id.in_(project_type_ids),
+        )
     if name_short:
-        query = query.where(models.ProjectType.name_short == name_short)
+        statement = statement.where(models.ProjectType.name_short == name_short)
     if name_long:
-        query = query.where(models.ProjectType.name_long == name_long)
+        statement = statement.where(models.ProjectType.name_long == name_long)
 
-    return db.execute(query).scalars().all()
+    return db.execute(statement).scalars().all()

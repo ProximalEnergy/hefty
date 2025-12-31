@@ -23,19 +23,21 @@ def get_kpi_instances(
         kpi_type_ids: TODO: describe.
         deep: TODO: describe.
     """
-    query = select(models.KPIInstance).options(
+    statement = select(models.KPIInstance).options(
         _get_kpi_instances_options(deep=deep),
     )
     if project_ids is not None:
-        query = query.where(models.KPIInstance.project_id.in_(project_ids))
+        statement = statement.where(
+            models.KPIInstance.project_id.in_(project_ids),
+        )
 
     if is_visible is not None:
-        query = query.where(models.KPIInstance.is_visible == is_visible)
+        statement = statement.where(models.KPIInstance.is_visible == is_visible)
 
     if kpi_type_ids is not None:
-        query = query.where(models.KPIInstance.kpi_type_id.in_(kpi_type_ids))
+        statement = statement.where(models.KPIInstance.kpi_type_id.in_(kpi_type_ids))
 
-    return db.execute(query).scalars().all()
+    return db.execute(statement).scalars().all()
 
 
 def _get_kpi_instances_options(*, deep: bool):

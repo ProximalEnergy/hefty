@@ -33,9 +33,9 @@ def get_kpi_types(
     """
     options = _get_kpi_types_options(deep=deep)
 
-    query = select(models.KPIType).options(*options)
+    statement = select(models.KPIType).options(*options)
 
     if kpi_type_ids is not None:
-        query = query.where(models.KPIType.kpi_type_id.in_(kpi_type_ids))
+        statement = statement.where(models.KPIType.kpi_type_id.in_(kpi_type_ids))
 
-    return db.execute(query).scalars().all()
+    return db.execute(statement).scalars().all()
