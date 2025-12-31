@@ -14,7 +14,7 @@ async def get_project_data_last_updated(*, db: AsyncSession, project_id: UUID):
         project_id: Project identifier to retrieve update timestamps for.
     """
     result = await db.execute(
-        select(models.ProjectDataLastUpdated).filter(
+        select(models.ProjectDataLastUpdated).where(
             models.ProjectDataLastUpdated.project_id == project_id
         )
     )
@@ -29,7 +29,7 @@ async def get_project_data_last_updateds(*, db: AsyncSession, project_ids: list[
         project_ids: Collection of project IDs to include in the lookup.
     """
     result = await db.execute(
-        select(models.ProjectDataLastUpdated).filter(
+        select(models.ProjectDataLastUpdated).where(
             models.ProjectDataLastUpdated.project_id.in_(project_ids)
         )
     )

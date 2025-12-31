@@ -15,7 +15,7 @@ async def get_device_type(
         db: TODO: describe.
         device_type_id: TODO: describe.
     """
-    stmt = sa.select(models.DeviceType).filter(
+    stmt = sa.select(models.DeviceType).where(
         models.DeviceType.device_type_id == device_type_id
     )
     result = await db.execute(stmt)
@@ -50,13 +50,13 @@ async def get_device_types(
     stmt = sa.select(models.DeviceType)
 
     if device_type_ids:
-        stmt = stmt.filter(models.DeviceType.device_type_id.in_(device_type_ids))
+        stmt = stmt.where(models.DeviceType.device_type_id.in_(device_type_ids))
     if name_short:
-        stmt = stmt.filter(models.DeviceType.name_short == name_short)
+        stmt = stmt.where(models.DeviceType.name_short == name_short)
     if name_long:
-        stmt = stmt.filter(models.DeviceType.name_long == name_long)
+        stmt = stmt.where(models.DeviceType.name_long == name_long)
     if only_included_by_default:
-        stmt = stmt.filter(models.DeviceType.include_by_default.is_(True))
+        stmt = stmt.where(models.DeviceType.include_by_default.is_(True))
 
     result = await db.execute(stmt)
     return result.scalars().all()

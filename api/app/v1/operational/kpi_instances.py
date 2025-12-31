@@ -67,7 +67,7 @@ def get_kpi_instances_helper(
     project_ids = project_ids if project_ids and len(project_ids) > 0 else None
     kpi_type_ids = kpi_type_ids if kpi_type_ids and len(kpi_type_ids) > 0 else None
     kpi_instances = crud_get_kpi_instances(
-        db,
+        db=db,
         project_ids=project_ids,
         is_visible=is_visible,
         kpi_type_ids=kpi_type_ids,

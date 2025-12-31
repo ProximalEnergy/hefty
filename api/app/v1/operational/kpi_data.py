@@ -104,7 +104,7 @@ def get_kpi_data_helper(
 
     # Query KPI data
     kpi_data = crud_get_kpi_data(
-        db,
+        db=db,
         start=start,
         end=end,
         kpi_type_ids=kpi_type_ids,
@@ -284,7 +284,7 @@ async def get_kpi_excel(
         kpi_type_ids=[kpi_type_id],
         include_device_data=True,
     )
-    kpi_type = crud_get_kpi_types(sync_db, kpi_type_ids=[kpi_type_id])[0]
+    kpi_type = crud_get_kpi_types(db=sync_db, kpi_type_ids=[kpi_type_id])[0]
 
     has_device_data = kpi_data[0]["data"]["device_data_obj"] is not None
 

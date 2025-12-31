@@ -60,7 +60,7 @@ async def get_aggregation_method_for_kpi_type(
         The aggregation method as "avg" or "sum".
     """
     query = select(models.KPIType.aggregation_method)
-    query = query.filter(models.KPIType.kpi_type_id == kpi_type_id)
+    query = query.where(models.KPIType.kpi_type_id == kpi_type_id)
     result = await db.execute(query)
     aggregation_method = result.scalar_one()
 
@@ -99,7 +99,8 @@ async def get_project_aggregated_kpi_data_freq(
 
     Args:
         project_id: Project UUID from path parameter.
-        start: Start date for the data range. If None, there is no limit on the start date.
+        start: Start date for the data range. If None, there is no limit on
+            the start date.
         end: End date for the data range. If None, there is no limit on the end date.
         kpi_type_id: The KPI type to query.
         frequency: Optional frequency for aggregation ("month" or "year").
@@ -273,7 +274,7 @@ def get_project_kpi_summary(
     ytd_start = pd.Timestamp(year=end.year, month=1, day=1, tz=project.time_zone)
     ytd_end = end
 
-    kpi_types = crud_get_kpi_types(db, kpi_type_ids=kpi_type_ids)
+    kpi_types = crud_get_kpi_types(db=db, kpi_type_ids=kpi_type_ids)
     if device_type_id:
         kpi_types = [x for x in kpi_types if x.device_type_id == device_type_id]
         kpi_type_ids = [x.kpi_type_id for x in kpi_types]

@@ -113,7 +113,7 @@ async def get_projects(
     # requested kpi_instance_ids
     if kpi_instance_kpi_type_ids:
         kpi_instances = crud_get_kpi_instances(
-            db,
+            db=db,
             project_ids=project_ids_requested,
             kpi_type_ids=kpi_instance_kpi_type_ids,
             is_visible=None,

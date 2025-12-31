@@ -21,7 +21,7 @@ async def get_rackings(
     query = select(models.Racking)
 
     if racking_ids:
-        query = query.filter(models.Racking.racking_id.in_(racking_ids))
+        query = query.where(models.Racking.racking_id.in_(racking_ids))
 
     result = await db.execute(query)
     return result.scalars().all()
@@ -41,9 +41,9 @@ async def get_racking_manufacturers(
     query = select(models.Racking.manufacturer).distinct()
 
     if company_id is not None:
-        query = query.filter(models.Racking.company_id == company_id)
+        query = query.where(models.Racking.company_id == company_id)
 
-    query = query.filter(models.Racking.manufacturer.isnot(None))
+    query = query.where(models.Racking.manufacturer.isnot(None))
 
     result = await db.execute(query)
     return result.scalars().all()
@@ -65,9 +65,9 @@ async def get_racking_models_given_manufacturer(
 
     query = select(models.Racking.model).distinct()
     if manufacturer is not None:
-        query = query.filter(models.Racking.manufacturer == manufacturer)
+        query = query.where(models.Racking.manufacturer == manufacturer)
     if company_id is not None:
-        query = query.filter(models.Racking.company_id == company_id)
+        query = query.where(models.Racking.company_id == company_id)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -90,13 +90,13 @@ async def get_racking_ids(
     query = select(models.Racking)
 
     if racking_manufacturer:
-        query = query.filter(models.Racking.manufacturer.in_(racking_manufacturer))
+        query = query.where(models.Racking.manufacturer.in_(racking_manufacturer))
 
     if racking_model:
-        query = query.filter(models.Racking.model.in_(racking_model))
+        query = query.where(models.Racking.model.in_(racking_model))
 
     if company_id is not None:
-        query = query.filter(models.Racking.company_id == company_id)
+        query = query.where(models.Racking.company_id == company_id)
 
     result = await db.execute(query)
     return [r.racking_id for r in result.scalars().all()]
@@ -170,7 +170,7 @@ async def get_racking_ids_by_manufacturer_model(
         models.Racking.racking_id,
         models.Racking.manufacturer,
         models.Racking.model,
-    ).filter(combined_filter)
+    ).where(combined_filter)
 
     result = await db.execute(query)
     results = result.all()  # Fetches [(id, manuf, model), ...] for all found rackings
@@ -210,7 +210,7 @@ async def create_racking(
     """
     if racking.racking_id is not None:
         # Update existing racking
-        query = select(models.Racking).filter(
+        query = select(models.Racking).where(
             and_(
                 models.Racking.racking_id == racking.racking_id,
                 models.Racking.company_id == racking.company_id,
@@ -224,7 +224,7 @@ async def create_racking(
         # Create new racking with next available ID
         query = (
             select(models.Racking)
-            .filter(models.Racking.company_id == racking.company_id)
+            .where(models.Racking.company_id == racking.company_id)
             .order_by(models.Racking.racking_id.desc())
         )
         result = await db.execute(query)

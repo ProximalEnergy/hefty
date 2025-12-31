@@ -58,7 +58,7 @@ async def get_ercot_resource(*, db: AsyncSession, resource_id: int, deep: bool =
     query = (
         select(models.Resource)
         .options(*options)
-        .filter(models.Resource.resource_id == resource_id)
+        .where(models.Resource.resource_id == resource_id)
     )
     result = await db.execute(query)
     return result.scalars().first()

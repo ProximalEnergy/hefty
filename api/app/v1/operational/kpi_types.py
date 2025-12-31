@@ -98,7 +98,7 @@ def get_kpi_types(
         db: TODO: describe.
         kpi_type_ids: TODO: describe.
     """
-    return crud_get_kpi_types(db, kpi_type_ids=kpi_type_ids)
+    return crud_get_kpi_types(db=db, kpi_type_ids=kpi_type_ids)
 
 
 @router.get(
@@ -116,7 +116,7 @@ def get_kpi_type(
         kpi_type_id: TODO: describe.
         db: TODO: describe.
     """
-    return crud_get_kpi_types(db, kpi_type_ids=[kpi_type_id])[0]
+    return crud_get_kpi_types(db=db, kpi_type_ids=[kpi_type_id])[0]
 
 
 @router.get(

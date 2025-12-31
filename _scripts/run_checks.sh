@@ -144,6 +144,7 @@ run_check "API: Unused Import Check" "mise run api:deptry"
 run_check "API: Dead Code Check" "mise run api:vulture"
 run_check "API: Pytest" "mise run api:pytest"
 run_check "API: Docstring Args Check" "mise run api:docstring_args"
+run_check "API: Unused Routes Check" "mise run api:unused_routes_detailed"
 if [ "$SKIP_HURL" != "true" ]; then
     run_check "API: Hurl Tests" "mise run api:hurl"
 fi

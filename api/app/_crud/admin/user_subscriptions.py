@@ -18,7 +18,7 @@ async def get_user_subscriptions(
         db: TODO: describe.
         user_id: TODO: describe.
     """
-    query = select(models.UserSubscription).filter(
+    query = select(models.UserSubscription).where(
         models.UserSubscription.user_id == user_id
     )
     result = await db.execute(query)
@@ -36,7 +36,7 @@ async def get_user_notification_subscriptions(
         db: TODO: describe.
         operational_project_id: TODO: describe.
     """
-    query = select(models.UserSubscription).filter(
+    query = select(models.UserSubscription).where(
         models.UserSubscription.operational_project_id == operational_project_id,
         models.UserSubscription.notifications,
     )
@@ -61,7 +61,7 @@ async def update_user_notification_subscription(
     """
     try:
         # Try to get the existing subscription
-        query = select(models.UserSubscription).filter(
+        query = select(models.UserSubscription).where(
             models.UserSubscription.user_id == user_id,
             models.UserSubscription.operational_project_id == operational_project_id,
         )
@@ -97,7 +97,7 @@ async def get_user_report_subscriptions(
         db: TODO: describe.
         operational_project_id: TODO: describe.
     """
-    query = select(models.UserSubscription).filter(
+    query = select(models.UserSubscription).where(
         models.UserSubscription.operational_project_id == operational_project_id,
         models.UserSubscription.reports,
     )
@@ -122,7 +122,7 @@ async def update_user_report_subscription(
     """
     try:
         # Try to get the existing subscription
-        query = select(models.UserSubscription).filter(
+        query = select(models.UserSubscription).where(
             models.UserSubscription.user_id == user_id,
             models.UserSubscription.operational_project_id == operational_project_id,
         )
@@ -161,7 +161,7 @@ async def get_user_event_chat_notification_subscription(
         user_id: TODO: describe.
         operational_project_id: TODO: describe.
     """
-    query = select(models.UserSubscription).filter(
+    query = select(models.UserSubscription).where(
         models.UserSubscription.user_id == user_id,
         models.UserSubscription.operational_project_id == operational_project_id,
     )
@@ -208,7 +208,7 @@ async def update_user_event_chat_notification_subscription(
     """
     try:
         # Try to get the existing subscription
-        query = select(models.UserSubscription).filter(
+        query = select(models.UserSubscription).where(
             models.UserSubscription.user_id == user_id,
             models.UserSubscription.operational_project_id == operational_project_id,
         )
@@ -252,7 +252,7 @@ async def get_event_chat_notification_statuses_batch(
     if not operational_project_ids:
         return {}
 
-    query = select(models.UserSubscription).filter(
+    query = select(models.UserSubscription).where(
         models.UserSubscription.user_id == user_id,
         models.UserSubscription.operational_project_id.in_(operational_project_ids),
     )
@@ -281,7 +281,8 @@ async def update_event_chat_notification_statuses_batch(
     user_id: str,
     project_statuses: dict[UUID, bool],
 ) -> dict[UUID, bool]:
-    """Update event chat notification statuses for multiple projects in a single transaction.
+    """Update event chat notification statuses for multiple projects in a
+    single transaction.
 
     Args:
         db: Database session
@@ -295,7 +296,7 @@ async def update_event_chat_notification_statuses_batch(
         return {}
 
     # Get existing subscriptions for these projects
-    query = select(models.UserSubscription).filter(
+    query = select(models.UserSubscription).where(
         models.UserSubscription.user_id == user_id,
         models.UserSubscription.operational_project_id.in_(
             list(project_statuses.keys())

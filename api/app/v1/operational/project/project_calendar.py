@@ -38,7 +38,8 @@ async def read_calendar_item_categories(
     db: AsyncSession = Depends(dependencies.get_async_db),
     skip: int = 0,
     limit: int = 100,
-    # current_user: models.User = Depends(dependencies.get_current_active_user) # Add if auth is needed
+    # current_user: models.User = Depends(dependencies.get_current_active_user)
+    # Add if auth is needed
 ):
     """Retrieve all calendar item categories.
         Even though project_id is in the path, categories are currently global.
@@ -94,7 +95,7 @@ async def get_calendar_items(
             selectinload(models.CalendarItem.category),
             selectinload(models.CalendarItem.exceptions),  # Eager load exceptions
         )
-        .filter(
+        .where(
             models.CalendarItem.project_id == project_id,
             models.CalendarItem.company_id == user_data.company_id,  # Add this filter
         )
@@ -118,10 +119,10 @@ async def get_calendar_items(
         else:
             item_data["exdates"] = []  # Ensure exdates is always present, even if empty
 
-        # Populate assignee ids - query assignments separately to avoid relationship issues
+        # Populate assignee ids and query assignments to avoid relationship issues
         assignment_model = getattr(models, "CalendarItemAssignment", None)
         if assignment_model is not None:
-            assignment_query = select(assignment_model).filter(
+            assignment_query = select(assignment_model).where(
                 assignment_model.calendar_item_id == item.calendar_item_id
             )
             assignment_result = await db.execute(assignment_query)
@@ -180,7 +181,7 @@ async def update_calendar_item_endpoint(
         user_data: TODO: describe.
     """
     # Verify the item exists and belongs to the user's company
-    existing_query = select(models.CalendarItem).filter(
+    existing_query = select(models.CalendarItem).where(
         models.CalendarItem.calendar_item_id == calendar_item_id,
         models.CalendarItem.company_id == user_data.company_id,
     )
@@ -204,7 +205,8 @@ async def update_calendar_item_endpoint(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_calendar_item_endpoint(
-    project_id: uuid.UUID,  # Included for path consistency, not directly used by CRUD func for delete by item_id
+    # Included for path consistency, not used for delete by item_id.
+    project_id: uuid.UUID,
     calendar_item_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
@@ -235,7 +237,8 @@ async def delete_calendar_item_endpoint(
 
 
 @router.post(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}/exceptions/{exception_date_str}",
+    "/projects/{project_id}/calendar-events/{calendar_item_id}/exceptions/"
+    "{exception_date_str}",
     response_model=interfaces.CalendarItemException,
     status_code=status.HTTP_200_OK,
 )
@@ -247,7 +250,8 @@ async def post_calendar_item_exception(
     db: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
-    """Create or update an exception for a specific occurrence of a recurring calendar item.
+    """Create or update an exception for a specific occurrence of a recurring
+    calendar item.
         To "delete" an occurrence, pass `is_cancelled: true` in the payload.
         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
 
@@ -268,7 +272,7 @@ async def post_calendar_item_exception(
         )
 
     # Verify that the main calendar_item_id exists and belongs to the project_id
-    calendar_query = select(models.CalendarItem).filter(
+    calendar_query = select(models.CalendarItem).where(
         models.CalendarItem.calendar_item_id == calendar_item_id,
         models.CalendarItem.project_id == project_id,
     )

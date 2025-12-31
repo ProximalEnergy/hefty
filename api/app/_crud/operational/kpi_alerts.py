@@ -22,10 +22,10 @@ async def get_user_kpi_alerts(
         kpi_type_id: TODO: describe.
     """
     query = select(models.KPIAlert)
-    query = query.filter(models.KPIAlert.user_id == user_id)
-    query = query.filter(models.KPIAlert.project_id == project_id)
+    query = query.where(models.KPIAlert.user_id == user_id)
+    query = query.where(models.KPIAlert.project_id == project_id)
     if kpi_type_id is not None:
-        query = query.filter(models.KPIAlert.kpi_type_id == kpi_type_id)
+        query = query.where(models.KPIAlert.kpi_type_id == kpi_type_id)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -42,7 +42,7 @@ async def get_user_triggered_alerts(
         user_id: TODO: describe.
     """
     query = select(models.KPIAlert)
-    query = query.filter(models.KPIAlert.user_id == user_id)
+    query = query.where(models.KPIAlert.user_id == user_id)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -61,7 +61,7 @@ async def trigger_user_alert(
         triggered: TODO: describe.
     """
     query = select(models.KPIAlert)
-    query = query.filter(models.KPIAlert.kpi_alert_id == kpi_alert_id)
+    query = query.where(models.KPIAlert.kpi_alert_id == kpi_alert_id)
     result = await db.execute(query)
     kpi_alert = result.scalars().one_or_none()
 
@@ -121,7 +121,7 @@ async def update_kpi_alert(
         kpi_type_id: TODO: describe.
         config: TODO: describe.
     """
-    query = select(models.KPIAlert).filter(
+    query = select(models.KPIAlert).where(
         models.KPIAlert.kpi_alert_id == config["kpi_alert_id"]
     )
     result = await db.execute(query)
@@ -154,7 +154,7 @@ async def delete_kpi_alert(
         db: TODO: describe.
         alert_id: TODO: describe.
     """
-    query = select(models.KPIAlert).filter(models.KPIAlert.kpi_alert_id == alert_id)
+    query = select(models.KPIAlert).where(models.KPIAlert.kpi_alert_id == alert_id)
     result = await db.execute(query)
     db_alert = result.scalars().first()
 

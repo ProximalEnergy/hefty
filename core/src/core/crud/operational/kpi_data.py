@@ -81,12 +81,12 @@ def get_project_kpi_data_agg_freq(
             ).label(models.OperationalKPIData.project_data.name),
         )
 
-    query = query.filter(models.OperationalKPIData.project_id == project_id)
-    query = query.filter(models.OperationalKPIData.kpi_type_id == kpi_type_id)
+    query = query.where(models.OperationalKPIData.project_id == project_id)
+    query = query.where(models.OperationalKPIData.kpi_type_id == kpi_type_id)
     if start:
-        query = query.filter(models.OperationalKPIData.date >= start)
+        query = query.where(models.OperationalKPIData.date >= start)
     if end:
-        query = query.filter(models.OperationalKPIData.date < end)
+        query = query.where(models.OperationalKPIData.date < end)
 
     # ⚠️ CRITICAL: Special handling for NaN values in PostgreSQL
     # NaN values pollute aggregations (e.g., AVG with any NaN = NaN result).
@@ -103,8 +103,8 @@ def get_project_kpi_data_agg_freq(
     # - Normal numbers: included (e.g., -100 to 100)
     # - NaN: excluded (NaN is NOT between -Inf and Inf in PostgreSQL)
     # - ±Infinity: also excluded as a bonus
-    query = query.filter(models.OperationalKPIData.project_data.isnot(None))
-    query = query.filter(
+    query = query.where(models.OperationalKPIData.project_data.isnot(None))
+    query = query.where(
         models.OperationalKPIData.project_data.between(
             float("-inf"), float("inf"), symmetric=False
         )
@@ -163,12 +163,12 @@ def get_project_kpi_data_agg(
         ),
     )
 
-    query = query.filter(models.OperationalKPIData.project_id == project_id)
-    query = query.filter(models.OperationalKPIData.kpi_type_id == kpi_type_id)
+    query = query.where(models.OperationalKPIData.project_id == project_id)
+    query = query.where(models.OperationalKPIData.kpi_type_id == kpi_type_id)
     if start:
-        query = query.filter(models.OperationalKPIData.date >= start)
+        query = query.where(models.OperationalKPIData.date >= start)
     if end:
-        query = query.filter(models.OperationalKPIData.date < end)
+        query = query.where(models.OperationalKPIData.date < end)
 
     # ⚠️ CRITICAL: Special handling for NaN values in PostgreSQL
     # NaN values pollute aggregations (e.g., AVG with any NaN = NaN result).
@@ -185,8 +185,8 @@ def get_project_kpi_data_agg(
     # - Normal numbers: included (e.g., -100 to 100)
     # - NaN: excluded (NaN is NOT between -Inf and Inf in PostgreSQL)
     # - ±Infinity: also excluded as a bonus
-    query = query.filter(models.OperationalKPIData.project_data.isnot(None))
-    query = query.filter(
+    query = query.where(models.OperationalKPIData.project_data.isnot(None))
+    query = query.where(
         models.OperationalKPIData.project_data.between(
             float("-inf"), float("inf"), symmetric=False
         )

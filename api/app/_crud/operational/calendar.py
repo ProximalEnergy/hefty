@@ -110,7 +110,7 @@ async def update_calendar_item(
         calendar_item_id: Identifier for the calendar item to mutate.
         item_in: Updated calendar payload including optional assignee lists.
     """
-    query = select(models.CalendarItem).filter(
+    query = select(models.CalendarItem).where(
         models.CalendarItem.calendar_item_id == calendar_item_id
     )
     result = await db.execute(query)
@@ -134,7 +134,7 @@ async def update_calendar_item(
     if assignment_user_ids is not None or assignment_team_ids is not None:
         # Delete existing
         if assignment_model is not None:
-            delete_query = select(assignment_model).filter(
+            delete_query = select(assignment_model).where(
                 assignment_model.calendar_item_id == calendar_item_id
             )
             delete_result = await db.execute(delete_query)
@@ -197,7 +197,7 @@ async def delete_calendar_item(
         db: Async database session bound to the operational schema.
         calendar_item_id: Identifier for the calendar entry to remove.
     """
-    query = select(models.CalendarItem).filter(
+    query = select(models.CalendarItem).where(
         models.CalendarItem.calendar_item_id == calendar_item_id
     )
     result = await db.execute(query)
@@ -318,9 +318,9 @@ async def create_or_update_calendar_item_exception(
         # (returned_exception is None)
         # or if the refresh somehow failed.
         # Re-fetch the existing/created record to ensure we return the correct state.
-        fetch_query = select(models.CalendarItemException).filter_by(
-            calendar_item_id=calendar_item_id,
-            exception_date=exception_date,
+        fetch_query = select(models.CalendarItemException).where(
+            models.CalendarItemException.calendar_item_id == calendar_item_id,
+            models.CalendarItemException.exception_date == exception_date,
         )
         fetch_result = await db.execute(fetch_query)
         fetched_after_commit = fetch_result.scalar_one_or_none()
@@ -393,7 +393,7 @@ async def get_calendar_item_exceptions(
     """
     query = select(models.CalendarItemException)
     if len(calendar_item_ids) > 0:
-        query = query.filter(
+        query = query.where(
             models.CalendarItemException.calendar_item_id.in_(calendar_item_ids)
         )
     result = await db.execute(query)

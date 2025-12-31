@@ -23,10 +23,10 @@ async def get_pv_modules(
     query = select(models.PVModule)
 
     if pv_module_ids:
-        query = query.filter(models.PVModule.pv_module_id.in_(pv_module_ids))
+        query = query.where(models.PVModule.pv_module_id.in_(pv_module_ids))
 
     if company_id is not None:
-        query = query.filter(models.PVModule.company_id == company_id)
+        query = query.where(models.PVModule.company_id == company_id)
 
     result = await db.execute(query)
     return result.scalars().all()
@@ -49,10 +49,10 @@ async def get_pv_module_by_id(
     Returns:
         The PV module object or None if not found
     """
-    query = select(models.PVModule).filter(models.PVModule.pv_module_id == pv_module_id)
+    query = select(models.PVModule).where(models.PVModule.pv_module_id == pv_module_id)
 
     if company_id is not None:
-        query = query.filter(models.PVModule.company_id == company_id)
+        query = query.where(models.PVModule.company_id == company_id)
 
     result = await db.execute(query)
     return result.scalar_one_or_none()
@@ -72,9 +72,9 @@ async def get_pv_module_manufacturers(
     query = select(models.PVModule.manufacturer).distinct()
 
     if company_id is not None:
-        query = query.filter(models.PVModule.company_id == company_id)
+        query = query.where(models.PVModule.company_id == company_id)
 
-    query = query.filter(models.PVModule.manufacturer.isnot(None))
+    query = query.where(models.PVModule.manufacturer.isnot(None))
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -95,9 +95,9 @@ async def get_pv_module_models_given_manufacturer(
 
     query = select(models.PVModule.model).distinct()
     if manufacturer is not None:
-        query = query.filter(models.PVModule.manufacturer == manufacturer)
+        query = query.where(models.PVModule.manufacturer == manufacturer)
     if company_id is not None:
-        query = query.filter(models.PVModule.company_id == company_id)
+        query = query.where(models.PVModule.company_id == company_id)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -120,13 +120,13 @@ async def get_pv_module_ids(
     query = select(models.PVModule)
 
     if pv_module_manufacturers:
-        query = query.filter(models.PVModule.manufacturer.in_(pv_module_manufacturers))
+        query = query.where(models.PVModule.manufacturer.in_(pv_module_manufacturers))
 
     if pv_module_models:
-        query = query.filter(models.PVModule.model.in_(pv_module_models))
+        query = query.where(models.PVModule.model.in_(pv_module_models))
 
     if company_id is not None:
-        query = query.filter(models.PVModule.company_id == company_id)
+        query = query.where(models.PVModule.company_id == company_id)
 
     result = await db.execute(query)
     return [m.pv_module_id for m in result.scalars().all()]
@@ -202,7 +202,7 @@ async def get_pv_module_ids_by_manufacturer_model(
         models.PVModule.pv_module_id,
         models.PVModule.manufacturer,
         models.PVModule.model,
-    ).filter(combined_filter)
+    ).where(combined_filter)
 
     result = await db.execute(query)
     results = result.all()  # Fetches [(id, manuf, model), ...] for all found modules
@@ -248,8 +248,9 @@ async def create_pv_module(
     # 2. Get or Create the database object
     if pv_module.pv_module_id is not None:
         # --- UPDATE PATH: Find the existing module ---
-        query = select(models.PVModule).filter_by(
-            pv_module_id=pv_module.pv_module_id, company_id=pv_module.company_id
+        query = select(models.PVModule).where(
+            models.PVModule.pv_module_id == pv_module.pv_module_id,
+            models.PVModule.company_id == pv_module.company_id,
         )
         result = await db.execute(query)
         db_pv_module = result.scalar_one_or_none()
@@ -262,7 +263,7 @@ async def create_pv_module(
         # --- CREATE PATH: Determine new ID and create instance ---
         query = (
             select(models.PVModule)
-            .filter_by(company_id=pv_module.company_id)
+            .where(models.PVModule.company_id == pv_module.company_id)
             .order_by(models.PVModule.pv_module_id.desc())
         )
         result = await db.execute(query)
