@@ -118,6 +118,7 @@ depends = [
   "core:ruff_check",
   "core:ruff_format",
   "core:star_syntax",
+  "core:sqlalchemy",
   "core:vulture",
   "core:deptry",
   "core:enum",
@@ -153,6 +154,11 @@ run = "uv run --dev ruff format core/"
 description = "Check for star syntax violations in core"
 dir = "."
 run = "semgrep --config _scripts/rules/star-syntax.yaml core/src"
+
+[tasks."core:sqlalchemy"]
+description = "Check for disallowed SQLAlchemy query/filter usage in core"
+dir = "."
+run = "semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml core/src"
 
 [tasks."core:pytest"]
 description = "Run pytest for core"
@@ -244,6 +250,7 @@ depends = [
   "micro:ruff_check",
   "micro:ruff_format",
   "micro:star_syntax",
+  "micro:sqlalchemy",
   "micro:docstring_args",
 ]
 
@@ -266,6 +273,11 @@ run = "uv run --dev ruff format microservices/"
 description = "Check for star syntax violations in microservices"
 dir = "."
 run = "semgrep --config _scripts/rules/star-syntax.yaml microservices"
+
+[tasks."micro:sqlalchemy"]
+description = "Check for disallowed SQLAlchemy query/filter usage in micro"
+dir = "."
+run = "semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml microservices"
 
 [tasks."micro:docstring_args"]
 description = "Check docstring Args sections in microservices"
@@ -291,6 +303,7 @@ dir = "api"
 depends = [
   "api:types",
   "api:star_syntax",
+  "api:sqlalchemy",
   "api:ruff",
   "api:format",
   "api:pytest",
@@ -334,6 +347,11 @@ run = "uv run pytest"
 description = "Check for star syntax violations in api"
 dir = "."
 run = "semgrep --config _scripts/rules/star-syntax.yaml api/app"
+
+[tasks."api:sqlalchemy"]
+description = "Check for disallowed SQLAlchemy query/filter usage in api"
+dir = "."
+run = "semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml api/app"
 
 [tasks."api:hurl"]
 description = "Run hurl smoke tests for api"

@@ -1,0 +1,16 @@
+rules:
+  - id: python-disallow-sqlalchemy-query
+    message: >-
+      SQLAlchemy query() is disallowed. Use execute() with select() instead.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern: $OBJ.query(...)
+
+  - id: python-disallow-sqlalchemy-filter
+    message: >-
+      SQLAlchemy filter() is disallowed. Use where() on a select() instead.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern: $OBJ.filter(...)
