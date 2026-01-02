@@ -29,17 +29,21 @@ depends = ["sync", "api:switch-core"]
 run = ["mise run install", "mise run web:build", "./_scripts/run_preview.sh"]
 
 [tasks.check]
-description = "Run all quality checks across the entire monorepo"
+description = "Run quality checks based on the diff vs dev"
 depends = ["api:switch-core"]
 usage = '''
   flag "--static" help="Skip non-static tests"
+  flag "--all" help="Run all checks without diff filtering"
 '''
 run = """
-if [ "${usage_static:-false}" = "true" ]; then
-  ./_scripts/run_checks.sh --static
-else
-  ./_scripts/run_checks.sh
+ALL_ARGS=""
+if [ "${usage_all:-false}" = "true" ]; then
+  ALL_ARGS="--all"
 fi
+if [ "${usage_static:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --static"
+fi
+./_scripts/run_checks.sh ${ALL_ARGS}
 """
 
 [tasks.install]
