@@ -1,3 +1,4 @@
+import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -11,19 +12,7 @@ import axios from 'axios'
 /**
  * Interface for PV Rackings data
  */
-export interface PVRackings {
-  racking_id: number | null
-  racking_type_id: number
-  manufacturer: string
-  model: string
-  company_id?: string
-  max_rotation_angle: number
-  min_rotation_angle: number
-  wind_stow_angle: number
-  wind_stow_threshold: number
-  hail_stow_angle: number
-  snow_stow_angle: number
-}
+export type PVRackings = components['schemas']['PVRackings']
 
 // --- Manufacturers ---
 export const useGetProximalPVRackManufacturers = ({

@@ -188,11 +188,22 @@ const Page = () => {
   // Form submission handler
   const handleSubmit = async () => {
     try {
+      if (!userCompanyId) {
+        notifications.show({
+          title: 'Missing Company',
+          message: 'Your user account is missing a company assignment.',
+          color: 'red',
+        })
+        return
+      }
+
       setFormSubmitting(true)
 
       // Create the racking data object
       const rackingData: PVRackings = {
-        racking_id: selectedRackingId || null, // Use null for new racks to let database generate ID
+        // Use null for new racks to let database generate ID.
+        racking_id: selectedRackingId || null,
+        company_id: userCompanyId,
         racking_type_id: rackingTypeId,
         manufacturer: selectedManufacturer,
         model: selectedModel,
