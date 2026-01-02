@@ -1,3 +1,4 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -8,58 +9,38 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface DroneIntegration {
-  drone_integration_id: number
-  project_id: string
-  drone_provider_id: number
-  provider_project_id: string
-}
+export type DroneIntegration = types.components['schemas']['DroneIntegration']
+type DroneIntegrationCreate =
+  types.components['schemas']['DroneIntegrationCreate']
+type DroneIntegrationUpdate =
+  types.components['schemas']['DroneIntegrationUpdate']
+export type DroneProvider = types.components['schemas']['DroneProvider']
+type DroneProviderCreate = types.components['schemas']['DroneProviderCreate']
+type DroneProviderUpdate = types.components['schemas']['DroneProviderUpdate']
+export type DronePermission = types.components['schemas']['DronePermission']
+type DronePermissionCreate =
+  types.components['schemas']['DronePermissionCreate']
+type DronePermissionUpdate =
+  types.components['schemas']['DronePermissionUpdate']
+export type DroneInspection = types.components['schemas']['DroneInspection']
+export type DroneAnomaly = types.components['schemas']['DroneAnomaly']
+export type ProviderSite = types.components['schemas']['ProviderSite']
+type QueryProviderSitesRequest =
+  types.components['schemas']['QueryProviderSitesRequest']
+export type DroneInspectionOrderRequest =
+  types.components['schemas']['DroneInspectionOrderRequest']
 
-export interface DroneProvider {
-  drone_provider_id: number
-  name_short: string
-  name_long: string
-}
-
-export interface DronePermission {
+type DronePermissionUpdateRequest = DronePermissionUpdate & {
   drone_integration_id: number
   company_id: string
-  can_view: boolean
 }
 
-export interface DroneInspection {
-  inspection_uuid: string
-  inspection_time: string
-  upload_time: string
-  service_tier?: string
-  total_power_loss_kw?: number
-  total_power_loss_percent?: number
-  total_affected_modules?: number
-  report_summary?: string
+type DroneIntegrationUpdateRequest = DroneIntegrationUpdate & {
+  drone_integration_id: number
 }
 
-export interface ProviderSite {
-  site_name: string | null
-  site_uuid: string
-  site_id: number | null
-}
-
-export interface DroneAnomaly {
-  anomaly_uuid: string
-  inspection_uuid: string
-  event_id?: number
-  stack_id?: string
-  ir_signal?: string
-  rgb_signal?: string
-  ir_image_url?: string
-  rgb_image_url?: string
-  subsystem?: string
-  remediation_category?: string
-  energy_loss_weighting?: number
-  power_loss_kw?: number
-  location_lat?: number
-  location_lon?: number
-  client_status_id?: number
+type DroneProviderUpdateRequest = DroneProviderUpdate & {
+  drone_provider_id: number
 }
 
 export const useGetDroneIntegrations = ({
@@ -107,7 +88,7 @@ export const useCreateDronePermission = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (newPermission: DronePermission) => {
+    mutationFn: async (newPermission: DronePermissionCreate) => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
         method: 'post',
@@ -130,7 +111,7 @@ export const useUpdateDronePermission = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (updatedPermission: DronePermission) => {
+    mutationFn: async (updatedPermission: DronePermissionUpdateRequest) => {
       const token = await getToken({ template: 'default' })
       const { drone_integration_id, company_id, ...rest } = updatedPermission
       const response = await axios({
@@ -197,9 +178,7 @@ export const useCreateDroneIntegration = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (
-      newIntegration: Omit<DroneIntegration, 'drone_integration_id'>,
-    ) => {
+    mutationFn: async (newIntegration: DroneIntegrationCreate) => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
         method: 'post',
@@ -222,7 +201,7 @@ export const useUpdateDroneIntegration = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (updatedIntegration: DroneIntegration) => {
+    mutationFn: async (updatedIntegration: DroneIntegrationUpdateRequest) => {
       const token = await getToken({ template: 'default' })
       const { drone_integration_id, ...rest } = updatedIntegration
       const response = await axios({
@@ -245,13 +224,7 @@ export const useQueryProviderSites = () => {
   const { getToken } = useAuth()
 
   return useMutation({
-    mutationFn: async ({
-      api_key,
-      provider_id,
-    }: {
-      api_key: string
-      provider_id: number
-    }) => {
+    mutationFn: async ({ api_key, provider_id }: QueryProviderSitesRequest) => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
         method: 'post',
@@ -294,7 +267,7 @@ export const useCreateDroneProvider = () => {
 
   return useMutation({
     mutationFn: async (
-      newProvider: Omit<DroneProvider, 'drone_provider_id'>,
+      newProvider: Omit<DroneProviderCreate, 'drone_provider_id'>,
     ) => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
@@ -318,7 +291,7 @@ export const useUpdateDroneProvider = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (updatedProvider: DroneProvider) => {
+    mutationFn: async (updatedProvider: DroneProviderUpdateRequest) => {
       const token = await getToken({ template: 'default' })
       const { drone_provider_id, ...rest } = updatedProvider
       const response = await axios({
@@ -465,12 +438,6 @@ export const useSyncZeitviewAnomalies = (
     refetch: mutation.mutateAsync,
     isFetching: mutation.isPending,
   }
-}
-
-export interface DroneInspectionOrderRequest {
-  project_id: string
-  provider_email: string
-  timing: string
 }
 
 export const useOrderDroneInspection = () => {

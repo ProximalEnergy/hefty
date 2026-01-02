@@ -117,6 +117,11 @@ type TableWithSelection = MRT_TableInstance<CombinerRow> & {
   toggleAllRowsSelected?: (value?: boolean) => void
 }
 
+type SubsystemAggregation = {
+  count: number
+  totalPowerLoss: number
+}
+
 // --- Zoom Level Definitions ---
 const VERY_HIGH_ZOOM = 16
 const HIGH_ZOOM = 14.6
@@ -1705,15 +1710,16 @@ const DroneInspectionsMap = ({
                           anomaly.power_loss_kw || 0
                         return acc
                       },
-                      {} as Record<
-                        string,
-                        { count: number; totalPowerLoss: number }
-                      >,
+                      {} as Record<string, SubsystemAggregation>,
                     )
 
-                    const totalPowerLoss = Object.values(
+                    const subsystemAggregationValues = Object.values(
                       subsystemAggregation,
-                    ).reduce((sum, item) => sum + item.totalPowerLoss, 0)
+                    ) as SubsystemAggregation[]
+                    const totalPowerLoss = subsystemAggregationValues.reduce(
+                      (sum, item) => sum + item.totalPowerLoss,
+                      0,
+                    )
 
                     return (
                       <>
@@ -1729,23 +1735,24 @@ const DroneInspectionsMap = ({
                               DC Power Losses ({totalPowerLoss.toFixed(2)} kW
                               total)
                             </Text>
-                            {Object.entries(subsystemAggregation).map(
-                              ([subsystem, data]) => (
-                                <Text
-                                  key={subsystem}
-                                  size="xs"
-                                  style={{
-                                    marginLeft: '8px',
-                                    marginBottom: '2px',
-                                  }}
-                                >
-                                  • {subsystem}:{' '}
-                                  {data.totalPowerLoss.toFixed(2)} kW (
-                                  {data.count} anomal
-                                  {data.count === 1 ? 'y' : 'ies'})
-                                </Text>
-                              ),
-                            )}
+                            {(
+                              Object.entries(subsystemAggregation) as Array<
+                                [string, SubsystemAggregation]
+                              >
+                            ).map(([subsystem, data]) => (
+                              <Text
+                                key={subsystem}
+                                size="xs"
+                                style={{
+                                  marginLeft: '8px',
+                                  marginBottom: '2px',
+                                }}
+                              >
+                                • {subsystem}: {data.totalPowerLoss.toFixed(2)}{' '}
+                                kW ({data.count} anomal
+                                {data.count === 1 ? 'y' : 'ies'})
+                              </Text>
+                            ))}
                           </>
                         ) : (
                           <Text size="xs" c="dimmed">
