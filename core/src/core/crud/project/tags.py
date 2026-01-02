@@ -136,17 +136,21 @@ def get_unique_sensor_type_ids_from_tags(*, db: Session) -> list[int]:
     """
     # Get all unique sensor_type_ids from tags where sensor_type_id is not null
     # Sort at database level for better performance
-    unique_sensor_type_ids = (
-        db.query(models.Tag.sensor_type_id)
-        .filter(models.Tag.sensor_type_id.isnot(None))
+    stmt = (
+        select(models.Tag.sensor_type_id)
+        .where(models.Tag.sensor_type_id.isnot(None))
         .distinct()
         .order_by(models.Tag.sensor_type_id.asc())
-        .all()
     )
+    result = db.execute(stmt)
 
-    # Extract the sensor_type_id values from the result tuples
-    # They should already be sorted from the database query
-    sensor_type_ids = [row[0] for row in unique_sensor_type_ids]
+    # Extract the sensor_type_id values from the result tuples.
+    # They should already be sorted from the database query.
+    sensor_type_ids = [
+        sensor_type_id
+        for sensor_type_id in result.scalars().all()
+        if sensor_type_id is not None
+    ]
 
     # Ensure sensor_type_id 0 is included and maintain ascending order
     if 0 not in sensor_type_ids:

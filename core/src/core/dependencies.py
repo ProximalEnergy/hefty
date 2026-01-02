@@ -113,12 +113,11 @@ def get_project_name_short(*, project_id: UUID) -> str | None:
         project_id: TODO: describe.
     """
     with with_db(schema=None) as db:
-        project = (
-            db.query(models.Project)
-            .filter(models.Project.project_id == project_id)
-            .first()
+        stmt = select(models.Project.name_short).where(
+            models.Project.project_id == project_id
         )
-    return project.name_short if project else None
+        result = db.execute(stmt)
+        return result.scalar_one_or_none()
 
 
 @alru_cache(maxsize=128)
