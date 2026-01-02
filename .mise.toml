@@ -487,6 +487,11 @@ description = "Install dependencies for sql-admin"
 dir = "sql-admin"
 run = "uv sync"
 
+[tasks."sql-admin:ruff_check"]
+description = "Run ruff linter for sql-admin"
+dir = "."
+run = "uv run --dev ruff check sql-admin/"
+
 [tasks."sql-admin:run"]
 description = "Run the sql-admin server"
 dir = "sql-admin"
