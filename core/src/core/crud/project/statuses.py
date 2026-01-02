@@ -19,7 +19,7 @@ delete_chars = string.punctuation + string.whitespace
 tbl = str.maketrans("", "", delete_chars)
 
 
-def strtobool(val: str) -> int:  # skip-star-syntax
+def strtobool(val: str) -> int:  # nosemgrep: python-enforce-keyword-only-args
     """TODO: add description.
 
     Args:
@@ -39,7 +39,7 @@ def validate_status_tags_and_values(
     *,
     status_tags: list[int],
     status_values: list[Any],
-):  # skip-star-syntax
+):  # nosemgrep: python-enforce-keyword-only-args
     """TODO: add description.
 
     Args:
@@ -136,7 +136,11 @@ async def get_status_interpret_async(
             )
             grouped = status_binary_df.groupby("status_binary_id")
 
-            def decode_binary(row, grouped):  # skip-star-syntax
+            def decode_binary(
+                *,
+                row,
+                grouped,
+            ):  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -170,7 +174,8 @@ async def get_status_interpret_async(
                 return pd.Series([json.dumps(status_out), failure_mode, alert])
 
             status_df[["status", "failure_mode_id", "alert"]] = status_df.apply(
-                lambda row: decode_binary(row, grouped), axis=1
+                lambda row: decode_binary(row=row, grouped=grouped),
+                axis=1,
             )
             result_list.append(
                 status_df[["tag", "value", "status", "failure_mode_id", "alert"]]
@@ -194,7 +199,10 @@ async def get_status_interpret_async(
             )
             status_boolean_df = status_boolean_df.set_index(status_type)
 
-            def resolve_bool(row):  # skip-star-syntax
+            def resolve_bool(
+                *,
+                row,
+            ):  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -208,7 +216,8 @@ async def get_status_interpret_async(
                 return pd.Series([status, failure_mode])
 
             status_df[["status", "failure_mode_id"]] = status_df.apply(
-                resolve_bool, axis=1
+                lambda row: resolve_bool(row=row),
+                axis=1,
             )
             result_list.append(status_df[["tag", "value", "status", "failure_mode_id"]])
 
@@ -230,7 +239,10 @@ async def get_status_interpret_async(
             )
             status_string_df = status_string_df.set_index("string_trigger")
 
-            def resolve_string(row):  # skip-star-syntax
+            def resolve_string(
+                *,
+                row,
+            ):  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -243,7 +255,8 @@ async def get_status_interpret_async(
                     return pd.Series(["Unknown", None])
 
             status_df[["status", "failure_mode_id"]] = status_df.apply(
-                resolve_string, axis=1
+                lambda row: resolve_string(row=row),
+                axis=1,
             )
             result_list.append(status_df[["tag", "value", "status", "failure_mode_id"]])
 
@@ -311,7 +324,11 @@ def get_status_interpret(
             ).pandas_dataframe()
             grouped = status_binary_df.groupby("status_binary_id")
 
-            def decode_binary(row, grouped):  # skip-star-syntax
+            def decode_binary(
+                *,
+                row,
+                grouped,
+            ):  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -345,7 +362,8 @@ def get_status_interpret(
                 return pd.Series([json.dumps(status_out), failure_mode, alert])
 
             status_df[["status", "failure_mode_id", "alert"]] = status_df.apply(
-                lambda row: decode_binary(row, grouped), axis=1
+                lambda row: decode_binary(row=row, grouped=grouped),
+                axis=1,
             )
             result_list.append(
                 status_df[["tag", "value", "status", "failure_mode_id", "alert"]]
@@ -365,7 +383,7 @@ def get_status_interpret(
             )
             status_boolean_df = status_boolean_df.set_index(status_type)
 
-            def resolve_bool(row):  # skip-star-syntax
+            def resolve_bool(row):  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -397,7 +415,7 @@ def get_status_interpret(
             )
             status_string_df = status_string_df.set_index("string_trigger")
 
-            def resolve_string(row):  # skip-star-syntax
+            def resolve_string(row):  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -628,7 +646,7 @@ async def get_status_timeseries_python(
     else:
         sensor_types = supported_sensor_types
 
-    status_sensor_type_ids = SensorType.extract_values(sensor_types)
+    status_sensor_type_ids = SensorType.extract_values(enum_list=sensor_types)
 
     if device_ids is not None:
         device_ids = list(set(device_ids))
@@ -701,7 +719,7 @@ async def get_status_timeseries_python(
     # Forward fill, normalize hex string values, then convert to nullable Int32
     data_to_df = data_to_df.ffill()
 
-    def _maybe_hex(value):  # skip-star-syntax
+    def _maybe_hex(value):  # nosemgrep: python-enforce-keyword-only-args
         """TODO: add description.
 
         Args:
@@ -775,7 +793,7 @@ async def get_status_timeseries_python(
         for d in status_interpret
     }
 
-    def map_status(col):  # skip-star-syntax
+    def map_status(col):  # nosemgrep: python-enforce-keyword-only-args
         """TODO: add description.
 
         Args:

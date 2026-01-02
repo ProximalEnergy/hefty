@@ -18,7 +18,6 @@ export const useGetProjectTypes = ({
 } = {}) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -29,7 +28,6 @@ export const useGetProjectTypes = ({
   return useCustomQuery<ProjectType[]>({
     axiosConfig,
     queryName: 'getProjectTypes',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

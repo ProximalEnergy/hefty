@@ -19,7 +19,6 @@ import { useMemo, useState } from 'react'
 
 const KPIBackfill = () => {
   const { data: projects, isLoading: isLoadingProjects } = useGetProjects({
-    queryParams: {},
     personalPortfolio: false,
   })
   const { data: kpiTypes, isLoading: isLoadingKpis } = useGetKPITypes({})

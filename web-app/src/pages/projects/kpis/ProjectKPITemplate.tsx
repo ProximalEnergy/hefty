@@ -23,12 +23,10 @@ import { Device } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
-  Badge,
   Box,
   Button,
   Checkbox,
   Group,
-  HoverCard,
   MantineTheme,
   Menu,
   Paper,
@@ -335,21 +333,7 @@ const Page = () => {
         <ProjectPlotCard
           data={data}
           kpiType={kpiType || ({} as KPIType)}
-          cardTitle={
-            <Group gap="xs">
-              Project Data
-              {kpiType?.device_type_id != DeviceTypeEnum.PROJECT && (
-                <HoverCard>
-                  <HoverCard.Target>
-                    <Badge variant="light">{kpiType?.aggregation_method}</Badge>
-                  </HoverCard.Target>
-                  <HoverCard.Dropdown>
-                    Method used to aggregate device data to project data.
-                  </HoverCard.Dropdown>
-                </HoverCard>
-              )}
-            </Group>
-          }
+          cardTitle="Project Data"
           isLoading={kpiData.isLoading || portfolioKpiData.isLoading}
           isError={isError}
           height={!showDeviceData && !showMapData ? '100%' : '35vh'}
@@ -831,7 +815,7 @@ const ProjectPlotCard = ({
   }
 
   const aggregationOptions = [
-    { value: 'project_data', label: 'Project Data' },
+    { value: 'default', label: 'Default' },
     ...availableAggregationTypes.map((type) => ({
       value: type,
       label: formatAggregationLabel(type),
@@ -844,18 +828,41 @@ const ProjectPlotCard = ({
       headerChildren={
         <Group gap="md">
           {availableAggregationTypes.length > 0 && (
-            <Select
-              size="xs"
-              placeholder="Select data source"
-              value={selectedAggregationType || 'project_data'}
-              onChange={(value) =>
-                setSelectedAggregationType(
-                  value === 'project_data' ? null : value,
-                )
-              }
-              data={aggregationOptions}
-              style={{ minWidth: '200px' }}
-            />
+            <Group gap="xs">
+              <Select
+                size="xs"
+                placeholder="Select data source"
+                value={selectedAggregationType || 'default'}
+                onChange={(value) =>
+                  setSelectedAggregationType(
+                    value === 'project_data' ? null : value,
+                  )
+                }
+                data={aggregationOptions}
+              />
+              <Tooltip
+                label={
+                  <>
+                    <Text fw={600} size="sm">
+                      Default
+                    </Text>
+                    <Text size="sm">Canonical aggregation across devices.</Text>
+                    <Text fw={600} size="sm">
+                      Other Aggregations
+                    </Text>
+                    <Text size="sm">
+                      Standard statistical aggregations calculated across
+                      devices (e.g., mean, minimum, maximum, median, standard
+                      deviation).
+                    </Text>
+                  </>
+                }
+                multiline
+                w={300}
+              >
+                <IconInfoCircle size={16} style={{ cursor: 'help' }} />
+              </Tooltip>
+            </Group>
           )}
           <Checkbox
             checked={showComparison}

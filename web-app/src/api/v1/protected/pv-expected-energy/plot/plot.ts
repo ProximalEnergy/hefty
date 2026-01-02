@@ -44,7 +44,6 @@ export const useGetUtilityExpected = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/${pathParams.projectId}/pv-expected-energy/plot`,
-    params: queryParams,
   }
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     staleTime: 5 * 60 * 1000,
@@ -54,7 +53,7 @@ export const useGetUtilityExpected = ({
     axiosConfig,
     queryName: 'getUtilityExpected',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -78,8 +77,6 @@ export const useGetMeterPowerAndExpectedPower = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/system/${pathParams.projectId}/meter-power-and-expected-power-v2`,
-    // queryParams object will now correctly include start/end if provided
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -93,7 +90,7 @@ export const useGetMeterPowerAndExpectedPower = ({
     axiosConfig,
     queryName: 'getMeterPowerAndExpectedPower',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

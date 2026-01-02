@@ -133,7 +133,7 @@ class UserPermission(BaseModel):
 # WKBElements to GeoJSON. The pydantic models then validate the GeoJSON.
 
 
-def convert(WKBElement):  # skip-star-syntax
+def convert(WKBElement):  # nosemgrep: python-enforce-keyword-only-args
     """Handle convert.
 
     Args:
@@ -154,9 +154,9 @@ class Point(BaseModel):
     type: str
     coordinates: conlist(float, min_length=2, max_length=2)  # type: ignore # pyright: ignore
 
-    @model_validator(mode="before")  # skip-star-syntax
+    @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_point(point):  # skip-star-syntax
+    def convert_point(point):  # nosemgrep: python-enforce-keyword-only-args
         """Handle convert point.
 
         Args:
@@ -172,9 +172,9 @@ class Polygon(BaseModel):
     # TODO: Generate more specific validation for POLYGON or MULTIPOLYGON
     coordinates: list[Any]
 
-    @model_validator(mode="before")  # skip-star-syntax
+    @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_polygon(polygon):  # skip-star-syntax
+    def convert_polygon(polygon):  # nosemgrep: python-enforce-keyword-only-args
         """Handle convert polygon.
 
         Args:
@@ -189,9 +189,11 @@ class MultiPolygon(BaseModel):
     type: str
     coordinates: list[Any]
 
-    @model_validator(mode="before")  # skip-star-syntax
+    @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_multipolygon(multipolygon):  # skip-star-syntax
+    def convert_multipolygon(
+        multipolygon,
+    ):  # nosemgrep: python-enforce-keyword-only-args
         """Handle convert multipolygon.
 
         Args:

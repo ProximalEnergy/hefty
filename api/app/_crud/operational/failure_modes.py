@@ -18,7 +18,7 @@ async def get_failure_modes(
     """
     query = select(models.FailureMode)
     if failure_mode_ids:
-        query = query.filter(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
+        query = query.where(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -37,7 +37,7 @@ async def update_event_failure_mode(
         event_id: Identifier of the event being updated.
         failure_mode_id: Failure mode to associate with the event.
     """
-    query = select(models.Event).filter(models.Event.event_id == event_id)
+    query = select(models.Event).where(models.Event.event_id == event_id)
     result = await db.execute(query)
     event = result.scalar_one_or_none()
     if event:
@@ -63,9 +63,9 @@ async def get_root_causes(
     """
     query = select(models.RootCause)
     if root_cause_ids:
-        query = query.filter(models.RootCause.root_cause_id.in_(root_cause_ids))
+        query = query.where(models.RootCause.root_cause_id.in_(root_cause_ids))
     if device_type_ids:
-        query = query.filter(models.RootCause.device_type_id.in_(device_type_ids))
+        query = query.where(models.RootCause.device_type_id.in_(device_type_ids))
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -84,7 +84,7 @@ async def update_event_root_cause(
         root_cause_id: Root cause identifier to set on the event, or ``None`` to
             clear it.
     """
-    query = select(models.Event).filter(models.Event.event_id == event_id)
+    query = select(models.Event).where(models.Event.event_id == event_id)
     result = await db.execute(query)
     event = result.scalar_one_or_none()
     if event:

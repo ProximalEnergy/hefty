@@ -39,7 +39,6 @@ export const useGetDCAmperageReportV2 = ({
     url:
       `/v1/operational/projects/${pathParams.projectId}` +
       '/reports/dc-amperage-report-v2',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -48,7 +47,7 @@ export const useGetDCAmperageReportV2 = ({
     axiosConfig,
     queryName: 'getDCAmperageReportV2',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

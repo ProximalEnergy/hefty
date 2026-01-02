@@ -1,5 +1,6 @@
 import datetime
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core import models
@@ -22,12 +23,13 @@ def get_pv_expected(
         device_ids: TODO: describe.
         expected_metric_ids: TODO: describe.
     """
-    query = db.query(models.DataExpected)
+    stmt = select(models.DataExpected)
     if device_ids:
-        query = query.filter(models.DataExpected.device_id.in_(device_ids))
+        stmt = stmt.where(models.DataExpected.device_id.in_(device_ids))
     if expected_metric_ids:
-        query = query.filter(
+        stmt = stmt.where(
             models.DataExpected.expected_metric_id.in_(expected_metric_ids)
         )
-    query = query.filter(models.DataExpected.time.between(start, end))
-    return query.all()
+    stmt = stmt.where(models.DataExpected.time.between(start, end))
+    result = db.execute(stmt)
+    return result.scalars().all()

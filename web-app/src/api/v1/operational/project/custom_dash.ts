@@ -131,7 +131,6 @@ export const useGetUserDashboards = ({
     axiosConfig,
     queryName: 'getUserDashboards',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -156,7 +155,6 @@ export const useGetSharedUserDashboards = ({
     axiosConfig,
     queryName: 'getSharedUserDashboards',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -294,7 +292,6 @@ export const useGetDashboard = ({
     axiosConfig,
     queryName: 'getDashboard',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -315,7 +312,6 @@ export const useGetBarData = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/bar`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -348,7 +344,6 @@ export const useGetGaugeData = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/gauge`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -384,7 +379,6 @@ export const useGetLineData = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/line`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -417,7 +411,6 @@ export const useGetScatterData = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/scatter`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -454,7 +447,6 @@ export const useGetDashboardSharedUsers = ({
     axiosConfig,
     queryName: 'getDashboardSharedUsers',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -1,3 +1,4 @@
+import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import * as types from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
@@ -17,6 +18,11 @@ interface EventLossesSummary {
   loss_capacity: number | null
 }
 
+type BulkCreateEventsPayload = components['schemas']['BulkCreateEventsRequest']
+export type DroneAnomaly = components['schemas']['DroneAnomaly']
+type EventSummary = components['schemas']['EventSummary']
+type Tag = components['schemas']['Tag']
+
 export const useGetEventsSummary = ({
   pathParams,
   queryParams = {},
@@ -34,16 +40,15 @@ export const useGetEventsSummary = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/get-events-summary`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  return useCustomQuery<types.EventSummary[]>({
+  return useCustomQuery<EventSummary[]>({
     axiosConfig,
     queryName: 'getEventsTwo',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -65,7 +70,6 @@ export const useGetEventDevices = ({
     axiosConfig,
     queryName: 'getEventDevices',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -83,36 +87,17 @@ export const useGetEventTraceTags = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-trace-tags`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
 
-  return useCustomQuery<types.Tag[]>({
+  return useCustomQuery<Tag[]>({
     axiosConfig,
     queryName: 'getEventTraceTags',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
-}
-
-export interface DroneAnomaly {
-  anomaly_uuid: string
-  inspection_uuid: string
-  event_id?: number
-  stack_id?: string
-  ir_signal?: string
-  rgb_signal?: string
-  ir_image_url?: string
-  rgb_image_url?: string
-  subsystem?: string
-  remediation_category?: string
-  energy_loss_weighting?: number
-  power_loss_kw?: number
-  location_lat?: number
-  location_lon?: number
-  client_status_id?: number
 }
 
 export const useGetEventAnomalies = ({
@@ -132,7 +117,6 @@ export const useGetEventAnomalies = ({
     axiosConfig,
     queryName: 'getEventAnomalies',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -147,18 +131,7 @@ export const useBulkCreateEvents = () => {
       time_end,
       items,
       root_cause_id,
-    }: {
-      project_id: string
-      time_start: string
-      time_end?: string | null
-      items: {
-        device_id: number
-        loss: number
-        event_loss_type_id?: number
-        anomaly_uuids?: string[]
-      }[]
-      root_cause_id?: number | null
-    }) => {
+    }: { project_id: string } & BulkCreateEventsPayload) => {
       const token = await getToken({ template: 'default' })
       return axios({
         method: 'post',
@@ -195,7 +168,6 @@ export const useGetEventLossesSummary = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-losses-summary`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -204,7 +176,7 @@ export const useGetEventLossesSummary = ({
     axiosConfig,
     queryName: 'getEventLossesSummary',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

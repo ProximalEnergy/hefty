@@ -19,7 +19,7 @@ async def get_teams(*, db: AsyncSession, company_id: uuid.UUID):
     """
     query = (
         select(models.Team)
-        .filter(models.Team.company_id == company_id)
+        .where(models.Team.company_id == company_id)
         .order_by(models.Team.name_long.asc())
     )
     result = await db.execute(query)
@@ -60,7 +60,7 @@ async def get_teams_with_members(
         user_query: Select[tuple[models.User]] = (
             select(models.User)
             .join(models.TeamMember, models.TeamMember.user_id == models.User.user_id)
-            .filter(models.TeamMember.team_id == t.team_id)
+            .where(models.TeamMember.team_id == t.team_id)
             .order_by(models.User.name_long.asc())
         )
         result = await db.execute(user_query)
@@ -90,13 +90,13 @@ async def add_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: str)
         team_id: TODO: describe.
         user_id: TODO: describe.
     """
-    query = select(models.Team).filter(models.Team.team_id == team_id)
+    query = select(models.Team).where(models.Team.team_id == team_id)
     result = await db.execute(query)
     team = result.scalars().first()
     if not team:
         raise ValueError("Team not found")
     # ensure user exists
-    user_query = select(models.User).filter(models.User.user_id == user_id)
+    user_query = select(models.User).where(models.User.user_id == user_id)
     result = await db.execute(user_query)
     user = result.scalars().first()
     if not user:
@@ -176,7 +176,7 @@ async def rename_team(*, db: AsyncSession, team_id: uuid.UUID, payload: TeamUpda
         team_id: TODO: describe.
         payload: TODO: describe.
     """
-    query = select(models.Team).filter(models.Team.team_id == team_id)
+    query = select(models.Team).where(models.Team.team_id == team_id)
     result = await db.execute(query)
     team = result.scalars().first()
     if not team:

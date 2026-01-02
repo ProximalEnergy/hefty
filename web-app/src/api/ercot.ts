@@ -19,7 +19,6 @@ export const useGetERCOTSettlementPoints = ({
 }) => {
   const axiosConfig = {
     url: SETTLEMENT_POINTS_URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -30,8 +29,7 @@ export const useGetERCOTSettlementPoints = ({
   return useCustomQuery<SettlementPointResponse>({
     axiosConfig,
     queryName: 'getERCOTSettlementPoints',
-    pathParams: {},
-    queryParams: {},
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -53,7 +51,6 @@ export const useGetERCOTPrices = ({
 }) => {
   const axiosConfig = {
     url: PRICES_URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -64,7 +61,6 @@ export const useGetERCOTPrices = ({
   return useCustomQuery<ERCOTPricesResponse>({
     axiosConfig,
     queryName: 'getERCOTPrices',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

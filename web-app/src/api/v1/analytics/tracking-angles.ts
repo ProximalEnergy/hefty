@@ -25,7 +25,6 @@ export const useGetTrackingAngles = ({
 
   const axiosConfig = {
     url: '/v1/trackers/tracking-angles',
-    params: resolvedQueryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

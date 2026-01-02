@@ -23,17 +23,12 @@ class MigrationCleaner:
         """TODO: add description.
 
         Args:
-            self: TODO: describe.
             migrations_dir: TODO: describe.
         """
         self.migrations_dir = Path(migrations_dir)
 
     def find_migration_files(self) -> list[Path]:
-        """Find all Python migration files in the versions directory.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Find all Python migration files in the versions directory."""
         versions_dir = self.migrations_dir / "versions"
         if not versions_dir.exists():
             raise FileNotFoundError(f"Versions directory not found: {versions_dir}")
@@ -46,10 +41,7 @@ class MigrationCleaner:
                 2. If it should be cleaned (incorrectly uses decorator)
                 3. Reason for the decision
 
-                Returns: (uses_decorator, should_clean, reason)
-
         Args:
-            self: TODO: describe.
             file_path: TODO: describe.
         """
         with open(file_path) as f:
@@ -75,7 +67,6 @@ class MigrationCleaner:
                 Returns: (should_clean, reason)
 
         Args:
-            self: TODO: describe.
             content: TODO: describe.
         """
         # Count schema references (both single and double quotes)
@@ -125,7 +116,6 @@ class MigrationCleaner:
                 Returns True if file was modified.
 
         Args:
-            self: TODO: describe.
             file_path: TODO: describe.
         """
         with open(file_path) as f:

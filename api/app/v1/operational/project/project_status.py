@@ -105,7 +105,7 @@ def get_status_time_series(
     else:
         sensor_types = supported_sensor_types
 
-    status_sensor_type_ids = SensorType.extract_values(sensor_types)
+    status_sensor_type_ids = SensorType.extract_values(enum_list=sensor_types)
 
     if device_ids is not None:
         device_ids = list(set(device_ids))
@@ -190,31 +190,96 @@ def get_status_time_series(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    lookup = {
-        (d["tag"], int(d["value"]) if isinstance(d["value"], float) else d["value"]): d[
-            "status"
-        ]
-        for d in status_interpret
+    # Create lookup dictionary, ensuring status values are scalar strings
+    lookup = {}
+    for d in status_interpret:
+        key = (
+            d["tag"],
+            int(d["value"]) if isinstance(d["value"], float) else d["value"],
+        )
+        status = d["status"]
+        # If status is a Series (can happen with duplicate indices), extract scalar
+        if isinstance(status, pd.Series):
+            status = status.iloc[0] if len(status) > 0 else None
+        lookup[key] = status
+
+    # Get status_lookup before processing to determine types
+    status_lookup = core.crud.project.statuses.get_status_lookup(
+        db=db,
+        status_lookup_ids=tags["status_lookup_id"].values.tolist(),
+    )
+
+    # Create mapping from tag_id to status_lookup_id
+    tag_to_status_lookup_id = tags["status_lookup_id"].to_dict()
+
+    # Create mapping from status_lookup_id to is_string_lookup
+    status_lookup_id_to_is_string = {
+        sl.status_lookup_id: sl.status_string_id is not None
+        for sl in status_lookup.models()
     }
 
-    def map_status(col):  # skip-star-syntax
+    # Convert string lookup columns: float -> Int64Dtype -> string
+    # Note: string values must be normalized (translate + lower) to match lookup keys
+    df_timeseries_typed = df_timeseries.copy()
+    for col in df_timeseries_typed.columns:
+        tag_id = int(col)
+        status_lookup_id = tag_to_status_lookup_id.get(tag_id)
+        if status_lookup_id and status_lookup_id_to_is_string.get(status_lookup_id):
+            # This is a string lookup, ensure data is string and normalized
+            col_series = df_timeseries_typed[col]
+            # If float, convert to Int64Dtype first, then string
+            if pd.api.types.is_float_dtype(col_series):
+                # Convert to nullable integer first, then string
+                # Preserve NaN values - convert non-NaN values only
+                mask = pd.notna(col_series)
+                if mask.any():
+                    col_series.loc[mask] = (
+                        col_series.loc[mask]
+                        .astype("Int64")
+                        .astype(str)
+                        .str.translate(tbl)
+                        .str.lower()
+                    )
+            elif pd.api.types.is_integer_dtype(col_series):
+                # Preserve NaN values - convert non-NaN values only
+                mask = pd.notna(col_series)
+                if mask.any():
+                    col_series.loc[mask] = (
+                        col_series.loc[mask].astype(str).str.translate(tbl).str.lower()
+                    )
+            elif (
+                pd.api.types.is_string_dtype(col_series) or col_series.dtype == "object"
+            ):
+                # Already string, but normalize to match lookup keys
+                mask = pd.notna(col_series)
+                if mask.any():
+                    col_series.loc[mask] = (
+                        col_series.loc[mask].astype(str).str.translate(tbl).str.lower()
+                    )
+            df_timeseries_typed[col] = col_series
+
+    def map_status(col):  # nosemgrep: python-enforce-keyword-only-args
         """todo
 
         Args:
             col: TODO: describe.
         """
         tag = col.name
-        return col.map(
-            lambda x: lookup.get((tag, x), np.nan) if pd.notnull(x) else np.nan
-        )
 
-    # Create status_strings_df from reindexed df_timeseries
-    status_strings_df = df_timeseries.apply(map_status)
+        def get_status_value(x):  # skip-star-syntax
+            """Get status value, ensuring it's a scalar string."""
+            if pd.isnull(x):
+                return np.nan
+            status = lookup.get((tag, x), np.nan)
+            # If status is a Series, extract the first value
+            if isinstance(status, pd.Series):
+                return status.iloc[0] if len(status) > 0 else np.nan
+            return status
 
-    status_lookup = core.crud.project.statuses.get_status_lookup(
-        db=db,
-        status_lookup_ids=tags["status_lookup_id"].values.tolist(),
-    )
+        return col.map(get_status_value)
+
+    # Create status_strings_df from typed df_timeseries
+    status_strings_df = df_timeseries_typed.apply(map_status)
 
     # Create alert_df from same reindexed df_timeseries for alignment
     alert_df = pd.DataFrame()
@@ -225,6 +290,10 @@ def get_status_time_series(
             if s["tag"] == col
         }
         alert_series = df_timeseries[col].replace(alert_replace).fillna(False)
+        # Convert any remaining non-boolean values (floats/ints) to False
+        # Values not in alert_replace remain as numeric, so convert them
+        mask = alert_series.apply(lambda x: isinstance(x, bool))
+        alert_series[~mask] = False
         alert_df[col] = alert_series
 
     data_out = [

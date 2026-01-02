@@ -51,7 +51,6 @@ export const useGetEventMessageReactions = ({
   return useCustomQuery<EventMessageReaction[]>({
     axiosConfig,
     queryName: 'getEventMessageReactions',
-    pathParams: {},
     queryParams: actualQueryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

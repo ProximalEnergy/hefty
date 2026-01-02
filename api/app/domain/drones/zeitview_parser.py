@@ -17,7 +17,6 @@ class ZeitviewAPI:
         """todo
 
         Args:
-            self: TODO: describe.
             drone_integration_id: TODO: describe.
             api_key: TODO: describe.
         """
@@ -53,7 +52,6 @@ class ZeitviewAPI:
         """Create a ZeitviewAPI instance using a direct API key.
 
         Args:
-            cls: TODO: describe.
             api_key: TODO: describe.
         """
         return cls(api_key=api_key)
@@ -69,7 +67,6 @@ class ZeitviewAPI:
         """Make a request to the Zeitview API with retry logic and rate limiting
 
         Args:
-            self: TODO: describe.
             endpoint: TODO: describe.
             method: TODO: describe.
             json_data: TODO: describe.
@@ -139,7 +136,6 @@ class ZeitviewAPI:
         """Query all sites or filter by site name
 
         Args:
-            self: TODO: describe.
             site_name: TODO: describe.
         """
         # According to API spec, only certain fields are allowed in query endpoint
@@ -178,7 +174,6 @@ class ZeitviewAPI:
         """Query a site by its UUID
 
         Args:
-            self: TODO: describe.
             site_uuid: TODO: describe.
         """
         payload = {"fields": ["site_id", "site_capacity_mw", "site_name", "site_uuid"]}
@@ -192,7 +187,6 @@ class ZeitviewAPI:
         """Query all inspections for a specific site, handling pagination.
 
         Args:
-            self: TODO: describe.
             site_uuid: TODO: describe.
             only_latest: TODO: describe.
         """

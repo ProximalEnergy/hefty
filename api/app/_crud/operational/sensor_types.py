@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import interfaces
@@ -36,11 +37,10 @@ def update_sensor_type(
         sensor_type_id: TODO: describe.
         sensor_type: TODO: describe.
     """
-    db_sensor_type = (
-        db.query(models.SensorType)
-        .filter(models.SensorType.sensor_type_id == sensor_type_id)
-        .first()
+    statement = select(models.SensorType).where(
+        models.SensorType.sensor_type_id == sensor_type_id,
     )
+    db_sensor_type = db.execute(statement).scalar_one_or_none()
 
     if not db_sensor_type:
         return None
@@ -63,9 +63,10 @@ def get_next_sensor_type_id(*, db: Session) -> int:
     Args:
         db: TODO: describe.
     """
-    max_id = (
-        db.query(models.SensorType.sensor_type_id)
+    statement = (
+        select(models.SensorType.sensor_type_id)
         .order_by(models.SensorType.sensor_type_id.desc())
-        .first()
+        .limit(1)
     )
-    return (max_id[0] if max_id else 0) + 1
+    max_id = db.execute(statement).scalar_one_or_none()
+    return (max_id if max_id else 0) + 1

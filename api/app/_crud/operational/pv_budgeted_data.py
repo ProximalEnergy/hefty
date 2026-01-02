@@ -31,12 +31,12 @@ async def get_pv_budgeted_data(
         List of PVBudgetedData records
     """
     # First, get the series for this project
-    series_query = select(models.PVBudgetedSeries).filter(
+    series_query = select(models.PVBudgetedSeries).where(
         models.PVBudgetedSeries.project_id == project_id,
     )
 
     if pv_budgeted_series_id is not None:
-        series_query = series_query.filter(
+        series_query = series_query.where(
             models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id,
         )
 
@@ -90,7 +90,7 @@ async def get_pv_budgeted_data(
 
     data_query = (
         select(models.PVBudgetedData)
-        .filter(
+        .where(
             and_(
                 models.PVBudgetedData.pv_budgeted_series_id.in_(series_ids),
                 month_day_condition,
@@ -118,7 +118,7 @@ async def get_pv_budgeted_series(
     Returns:
         List of PVBudgetedSeries records
     """
-    query = select(models.PVBudgetedSeries).filter(
+    query = select(models.PVBudgetedSeries).where(
         models.PVBudgetedSeries.project_id == project_id,
     )
 
@@ -145,7 +145,7 @@ async def get_pv_budgeted_series_full_data(
         List of PVBudgetedData records for the entire series
     """
     # First verify the series belongs to this project
-    series_query = select(models.PVBudgetedSeries).filter(
+    series_query = select(models.PVBudgetedSeries).where(
         and_(
             models.PVBudgetedSeries.project_id == project_id,
             models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id,
@@ -161,7 +161,7 @@ async def get_pv_budgeted_series_full_data(
     # Get all data for this series
     data_query = (
         select(models.PVBudgetedData)
-        .filter(models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id)
+        .where(models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id)
         .order_by(models.PVBudgetedData.time)
     )
 
@@ -206,7 +206,7 @@ async def get_pv_budgeted_series_daily_data(
                 models.Project,
                 models.PVBudgetedSeries.project_id == models.Project.project_id,
             )
-            .filter(
+            .where(
                 and_(
                     models.PVBudgetedSeries.project_id == project_id,
                     models.PVBudgetedSeries.pv_budgeted_series_id
@@ -227,9 +227,7 @@ async def get_pv_budgeted_series_daily_data(
         # We'll filter and map it in Python to handle year-over-year ranges properly
         data_query = (
             select(models.PVBudgetedData)
-            .filter(
-                models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id
-            )
+            .where(models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id)
             .order_by(models.PVBudgetedData.time)
         )
 

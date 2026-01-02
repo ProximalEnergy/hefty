@@ -92,7 +92,6 @@ class DataTimeseries:
         """TODO: add description.
 
         Args:
-            cls: TODO: describe.
             project_name_short: TODO: describe.
             tag_ids: TODO: describe.
             sensor_type_ids: TODO: describe.

@@ -27,7 +27,6 @@ export const useGetAllCompanyProjectsForProject = ({
     axiosConfig,
     queryName: 'getAllCompanyProjectsForProject',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

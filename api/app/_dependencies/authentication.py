@@ -81,7 +81,7 @@ async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
         db: TODO: describe.
         api_key: TODO: describe.
     """
-    query = select(User).filter(User.api_key == api_key)
+    query = select(User).where(User.api_key == api_key)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
 
@@ -126,7 +126,7 @@ async def _get_jwt_user(*, db: AsyncSession, jwt_token: str) -> UserAuthed:
     user_id = payload.get("sub")
 
     # Query the database for a user with the given Clerk user ID
-    query = select(User).filter(User.user_id == user_id)
+    query = select(User).where(User.user_id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
     if not user:
@@ -159,7 +159,7 @@ async def _generate_user_data(
         public_metadata: TODO: describe.
         authentication_method: TODO: describe.
     """
-    query = select(UserProject).filter(UserProject.user_id == user.user_id)
+    query = select(UserProject).where(UserProject.user_id == user.user_id)
     result = await db.execute(query)
     user_projects = result.scalars().all()
     operational_project_ids = [p.operational_project_id for p in user_projects]

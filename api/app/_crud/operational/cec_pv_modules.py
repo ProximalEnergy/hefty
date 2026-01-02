@@ -32,7 +32,7 @@ async def get_cec_pv_module_models_given_manufacturer(
     """
     query = select(models.CECPVModule.model_number).distinct()
     if manufacturer is not None:
-        query = query.filter(models.CECPVModule.manufacturer == manufacturer)
+        query = query.where(models.CECPVModule.manufacturer == manufacturer)
     result = await db.execute(query)
     return [item[0] for item in result.all()]
 
@@ -51,7 +51,7 @@ async def get_cec_pv_modules(
     query = select(models.CECPVModule)
 
     if cec_pv_module_ids:
-        query = query.filter(models.CECPVModule.cec_pv_module_id.in_(cec_pv_module_ids))
+        query = query.where(models.CECPVModule.cec_pv_module_id.in_(cec_pv_module_ids))
 
     result = await db.execute(query)
     return list(result.scalars().all())
@@ -73,12 +73,12 @@ async def get_cec_pv_module_ids(
     query = select(models.CECPVModule.cec_pv_module_id)
 
     if pv_module_manufacturers:
-        query = query.filter(
+        query = query.where(
             models.CECPVModule.manufacturer.in_(pv_module_manufacturers),
         )
 
     if pv_module_models:
-        query = query.filter(models.CECPVModule.model_number.in_(pv_module_models))
+        query = query.where(models.CECPVModule.model_number.in_(pv_module_models))
 
     result = await db.execute(query)
     results = result.all()
@@ -150,7 +150,7 @@ async def get_cec_pv_module_ids_by_manufacturer_model(
         models.CECPVModule.cec_pv_module_id,
         models.CECPVModule.manufacturer,
         models.CECPVModule.model_number,
-    ).filter(combined_filter)
+    ).where(combined_filter)
 
     result = await db.execute(query)
     results = result.all()  # Fetches [(id, manuf, model), ...] for all found modules
@@ -187,9 +187,9 @@ async def upsert_cec_pv_modules_bulk(
         module_dict = module_data.model_dump()
 
         # Check for existing module
-        existing_query = select(models.CECPVModule).filter_by(
-            manufacturer=module_dict["manufacturer"],
-            model_number=module_dict["model_number"],
+        existing_query = select(models.CECPVModule).where(
+            models.CECPVModule.manufacturer == module_dict["manufacturer"],
+            models.CECPVModule.model_number == module_dict["model_number"],
         )
         result = await db.execute(existing_query)
         existing_module = result.scalar_one_or_none()

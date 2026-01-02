@@ -36,7 +36,6 @@ export const useGetPvModules = ({
   return useCustomQuery<PVModule[]>({
     axiosConfig,
     queryName: 'getPvModules',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
@@ -51,7 +50,6 @@ export const useGetProximalPVModuleManufacturers = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-modules/manufacturers`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -62,8 +60,7 @@ export const useGetProximalPVModuleManufacturers = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: 'pvModuleManufacturers',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -77,7 +74,6 @@ export const useGetProximalPVModuleModels = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-modules/models`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -89,7 +85,7 @@ export const useGetProximalPVModuleModels = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `modelsFor${queryParams.manufacturer}`,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -108,7 +104,6 @@ export const useGetPVModuleIdsByManufacturerAndModel = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-modules/lookup-ids`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -120,8 +115,7 @@ export const useGetPVModuleIdsByManufacturerAndModel = ({
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: 'pvModuleIdsLookup',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -137,8 +131,6 @@ export const useGetPVModuleDetails = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-modules`,
-    method: 'GET',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -150,8 +142,7 @@ export const useGetPVModuleDetails = ({
   return useCustomQuery<PVModule[]>({
     axiosConfig,
     queryName: `moduleDetailsFor${queryParams.pv_module_ids.join('-')}`,
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

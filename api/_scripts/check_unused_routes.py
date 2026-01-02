@@ -11,8 +11,6 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from fastapi.routing import APIRoute
-
 ALLOWED_UNUSED_ROUTES = {
     "/",  # Root path
     "/openapi.json",
@@ -83,6 +81,8 @@ def get_api_paths_with_definitions(*, app: Any) -> dict[str, str]:
     """
     repo_root = Path(__file__).resolve().parents[2]
     paths_to_files = {}
+    from fastapi.routing import APIRoute
+
     for route in app.routes:
         if isinstance(route, APIRoute):
             norm_path = normalize_path(path=route.path)
@@ -157,6 +157,11 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
         rf"({string_literal})(?:\s*\+\s*{string_literal})+",
         re.DOTALL,
     )
+    array_join_pattern = re.compile(
+        r"""\[\s*(?P<items>[^\]]*)\s*\]\.join\(\s*['"](?P<sep>[^'"]*)['"]\s*\)""",
+        re.DOTALL,
+    )
+    array_item_pattern = re.compile(r"""`[^`]*`|'[^']*'|"[^"]*"|[a-zA-Z0-9_$.]+""")
     found_paths: set[str] = set()
 
     for path in iter_source_files(roots=roots):
@@ -173,6 +178,25 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
                 normalized = normalize_path(path=piece)
                 if normalized:
                     found_paths.add(normalized)
+
+        for match in array_join_pattern.finditer(content):
+            separator = match.group("sep")
+            if separator not in {"/", ""}:
+                continue
+            items = match.group("items")
+            raw_items = array_item_pattern.findall(items)
+            if not raw_items:
+                continue
+            built_items = []
+            for item in raw_items:
+                if item.startswith(("'", '"', "`")):
+                    built_items.append(item[1:-1])
+                else:
+                    built_items.append("{param}")
+            combined = separator.join(built_items)
+            normalized = normalize_path(path=combined)
+            if normalized:
+                found_paths.add(normalized)
 
         for match in pattern.findall(content):
             normalized = normalize_path(path=match)

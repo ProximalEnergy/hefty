@@ -35,7 +35,6 @@ export const useGetProximalPVRackManufacturers = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-rackings/manufacturers`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -46,8 +45,7 @@ export const useGetProximalPVRackManufacturers = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: 'pvRackingManufacturers',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -62,7 +60,6 @@ export const useGetProximalPVRackModels = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/pv-rackings/models`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -74,7 +71,7 @@ export const useGetProximalPVRackModels = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `modelsFor${queryParams.manufacturer}`,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -95,7 +92,6 @@ export const useGetPVRackingIdsByManufacturerAndModel = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-rackings/lookup-ids`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -107,8 +103,7 @@ export const useGetPVRackingIdsByManufacturerAndModel = ({
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: 'pvRackingIdsLookup',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -128,8 +123,6 @@ export const useGetProximalPVRackDetails = ({
 
   const axiosConfig = {
     url: `/v1/operational/pv-rackings`,
-    method: 'GET',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -141,8 +134,7 @@ export const useGetProximalPVRackDetails = ({
   return useCustomQuery<PVRackings[]>({
     axiosConfig,
     queryName: `rackDetailsFor${racking_ids.join('-')}`,
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

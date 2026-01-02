@@ -1,15 +1,15 @@
 import datetime
 
 import pandas as pd
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from core import models
 
 
 def get_project_data(
-    db: Session,
     *,
+    db: Session,
     tag_ids: list[int],
     start: datetime.datetime,
     end: datetime.datetime,
@@ -29,17 +29,17 @@ def get_project_data(
     else:
         model = models.Data  # type: ignore
 
-    query = db.query(model)
-    query = query.filter(model.tag_id.in_(tag_ids))
-    query = query.filter(model.time >= start)
-    query = query.filter(model.time < end)
+    statement = select(model)
+    statement = statement.where(model.tag_id.in_(tag_ids))
+    statement = statement.where(model.time >= start)
+    statement = statement.where(model.time < end)
 
-    return query.all()
+    return db.execute(statement).scalars().all()
 
 
 def get_project_data_latest(
-    project_db: Session,
     *,
+    project_db: Session,
     project_name_short: str,
     tag_ids: list[int],
     start: pd.Timestamp | datetime.datetime,

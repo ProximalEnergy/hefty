@@ -21,8 +21,8 @@ async def get_user_dashboards(
     """
     query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.owner_user_id == user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.owner_user_id == user_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     result = await db.execute(query)
     return result.scalars().all()
@@ -48,9 +48,9 @@ async def get_shared_user_dashboards(
             models.CustomDashboard.dashboard_id
             == models.CustomDashboardShare.dashboard_id,
         )
-        .filter(models.CustomDashboardShare.user_id == user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
-        .filter(models.CustomDashboard.owner_user_id != user_id)
+        .where(models.CustomDashboardShare.user_id == user_id)
+        .where(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.owner_user_id != user_id)
     )
     result = await db.execute(query)
     return result.scalars().all()
@@ -158,9 +158,9 @@ async def update_user_dashboard(
     """
     query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.dashboard_id == dashboard_id)
+        .where(models.CustomDashboard.owner_user_id == owner_user_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     result = await db.execute(query)
     existing_dashboard = result.scalar_one_or_none()
@@ -307,8 +307,8 @@ async def get_dashboard_by_id(
     # First get the dashboard
     dashboard_query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.dashboard_id == dashboard_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     dashboard_result = await db.execute(dashboard_query)
     dashboard = dashboard_result.scalar_one_or_none()
@@ -406,9 +406,9 @@ async def delete_user_dashboard(
     # First, get the existing dashboard to verify ownership
     query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.dashboard_id == dashboard_id)
+        .where(models.CustomDashboard.owner_user_id == owner_user_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     result = await db.execute(query)
     existing_dashboard = result.scalar_one_or_none()
@@ -458,9 +458,9 @@ async def get_dashboard_shared_users(
     # First, verify the dashboard exists and user is the owner
     query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.dashboard_id == dashboard_id)
+        .where(models.CustomDashboard.owner_user_id == owner_user_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     result = await db.execute(query)
     existing_dashboard = result.scalar_one_or_none()
@@ -499,9 +499,9 @@ async def share_user_dashboard(
     # First, get the existing dashboard to verify ownership
     query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.dashboard_id == dashboard_id)
+        .where(models.CustomDashboard.owner_user_id == owner_user_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     result = await db.execute(query)
     existing_dashboard = result.scalar_one_or_none()
@@ -554,9 +554,9 @@ async def unshare_user_dashboard(
     # First, get the existing dashboard to verify ownership
     query = (
         select(models.CustomDashboard)
-        .filter(models.CustomDashboard.dashboard_id == dashboard_id)
-        .filter(models.CustomDashboard.owner_user_id == owner_user_id)
-        .filter(models.CustomDashboard.project_id == project_id)
+        .where(models.CustomDashboard.dashboard_id == dashboard_id)
+        .where(models.CustomDashboard.owner_user_id == owner_user_id)
+        .where(models.CustomDashboard.project_id == project_id)
     )
     result = await db.execute(query)
     existing_dashboard = result.scalar_one_or_none()

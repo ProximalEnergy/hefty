@@ -54,7 +54,6 @@ export const useGetKPITypes = ({
 }) => {
   const axiosConfig = {
     url: '/v1/operational/kpi-types',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -65,7 +64,7 @@ export const useGetKPITypes = ({
   return useCustomQuery<KPIType[]>({
     axiosConfig,
     queryName: 'getKPITypes',
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -90,7 +89,6 @@ export const useGetProjectKPITypes = ({
     axiosConfig,
     queryName: `getProjectKPITypes-${pathParams.projectId}`,
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

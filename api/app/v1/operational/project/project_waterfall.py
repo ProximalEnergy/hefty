@@ -31,7 +31,7 @@ router = APIRouter(
 )
 
 
-def df_from_objects(  # skip-star-syntax
+def df_from_objects(  # nosemgrep: python-enforce-keyword-only-args
     objects: list[Base], index_col: str, time_zone: str | None = None
 ) -> pd.DataFrame:
     """todo

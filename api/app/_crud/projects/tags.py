@@ -1,6 +1,8 @@
 import re
-from typing import Any
+from typing import Any, cast
 
+from sqlalchemy import func, select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session
 
 from core import models
@@ -32,18 +34,18 @@ def get_sensor_type_assignments(*, project_db: Session):
     Args:
         project_db: TODO: describe.
     """
-    sensor_types = project_db.query(models.SensorType).all()
+    sensor_types = project_db.execute(select(models.SensorType)).scalars().all()
     assignments = []
 
     for sensor_type in sensor_types:
-        tag_count = (
-            project_db.query(models.Tag)
-            .filter(
+        tag_count = project_db.execute(
+            select(func.count())
+            .select_from(models.Tag)
+            .where(
                 models.Tag.sensor_type_id == sensor_type.sensor_type_id,
                 models.Tag.device_id != 0,
-            )
-            .count()
-        )
+            ),
+        ).scalar_one()
 
         if tag_count > 0:
             assignments.append(
@@ -60,26 +62,23 @@ def get_sensor_type_assignments(*, project_db: Session):
     return assignments
 
 
-def get_tag_by_name_short(project_db: Session, *, name_short: str):
+def get_tag_by_name_short(*, project_db: Session, name_short: str):
     """Get a tag by its name_short.
 
     Args:
         project_db: TODO: describe.
         name_short: TODO: describe.
     """
-    return (
-        project_db.query(models.Tag)
-        .filter(
-            models.Tag.name_short == name_short,
-            models.Tag.device_id != 0,
-        )
-        .first()
+    query = select(models.Tag).where(
+        models.Tag.name_short == name_short,
+        models.Tag.device_id != 0,
     )
+    return project_db.execute(query).scalars().first()
 
 
 def update_tag_sensor_type(
-    project_db: Session,
     *,
+    project_db: Session,
     tag: models.Tag,
     sensor_type_id: int,
 ):
@@ -95,7 +94,7 @@ def update_tag_sensor_type(
     return tag
 
 
-def get_tags_by_pattern_digits_only(project_db: Session, *, pattern: str):
+def get_tags_by_pattern_digits_only(*, project_db: Session, pattern: str):
     """Get all tags that match a given pattern where [INT] matches digits only.
         Uses Postgres regex (~) and escapes literal pieces.
 
@@ -105,14 +104,13 @@ def get_tags_by_pattern_digits_only(project_db: Session, *, pattern: str):
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
-    return (
-        project_db.query(models.Tag).filter(models.Tag.name_scada.op("~")(regex)).all()
-    )
+    query = select(models.Tag).where(models.Tag.name_scada.op("~")(regex))
+    return project_db.execute(query).scalars().all()
 
 
 def update_tags_sensor_type_by_pattern_bulk(
-    project_db: Session,
     *,
+    project_db: Session,
     pattern: str,
     sensor_type_id: int,
     unit_scale: float | None = None,
@@ -136,9 +134,6 @@ def update_tags_sensor_type_by_pattern_bulk(
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
-    # Execute bulk update using SQLAlchemy ORM bulk operations
-    query = project_db.query(models.Tag).filter(models.Tag.name_scada.op("~")(regex))
-
     # Build update dict - include unit_scada if explicitly provided (even if None)
     update_dict: dict[str, Any] = {"sensor_type_id": sensor_type_id}
 
@@ -150,24 +145,31 @@ def update_tags_sensor_type_by_pattern_bulk(
         # Explicitly set unit_scada (even if None to clear it)
         update_dict["unit_scada"] = unit_scada
 
-    result = query.update(update_dict, synchronize_session=False)  # type: ignore[arg-type]
+    update_query = (
+        update(models.Tag)
+        .where(models.Tag.name_scada.op("~")(regex))
+        .values(**update_dict)
+    )
+    result = cast(CursorResult[Any], project_db.execute(update_query))
+    rowcount = result.rowcount or 0
     project_db.commit()
-    return result
+    return rowcount
 
 
-def get_tag_by_id(project_db: Session, *, tag_id: int):
+def get_tag_by_id(*, project_db: Session, tag_id: int):
     """Get a tag by its ID.
 
     Args:
         project_db: TODO: describe.
         tag_id: TODO: describe.
     """
-    return project_db.query(models.Tag).filter(models.Tag.tag_id == tag_id).first()
+    query = select(models.Tag).where(models.Tag.tag_id == tag_id)
+    return project_db.execute(query).scalars().first()
 
 
 def get_sample_tags_by_pattern_digits_only(
-    project_db: Session,
     *,
+    project_db: Session,
     pattern: str,
     limit: int = 5,
 ):
@@ -181,10 +183,10 @@ def get_sample_tags_by_pattern_digits_only(
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
-    return (
-        project_db.query(models.Tag)
-        .filter(models.Tag.name_scada.op("~")(regex))
+    query = (
+        select(models.Tag)
+        .where(models.Tag.name_scada.op("~")(regex))
         .order_by(models.Tag.tag_id)
         .limit(limit)
-        .all()
     )
+    return project_db.execute(query).scalars().all()

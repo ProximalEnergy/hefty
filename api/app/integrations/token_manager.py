@@ -25,7 +25,7 @@ class TokenManager:
     The provider-specific logic is injected via `fetch_token`.
     """
 
-    def __init__(  # skip-star-syntax
+    def __init__(  # nosemgrep: python-enforce-keyword-only-args
         self,
         fetch_token: Callable[[], Awaitable[TokenResponse]],
         refresh_margin_s: int = 120,
@@ -34,7 +34,6 @@ class TokenManager:
         """todo
 
         Args:
-            self: TODO: describe.
             fetch_token: TODO: describe.
             refresh_margin_s: TODO: describe.
             jitter_s: TODO: describe.
@@ -48,18 +47,15 @@ class TokenManager:
         self._lock = asyncio.Lock()
 
     def _now(self) -> int:
-        """todo
-
-        Args:
-            self: TODO: describe.
-        """
+        """todo"""
         return int(time.time())
 
-    def _needs_refresh(self, force: bool = False) -> bool:  # skip-star-syntax
+    def _needs_refresh(
+        self, force: bool = False
+    ) -> bool:  # nosemgrep: python-enforce-keyword-only-args
         """todo
 
         Args:
-            self: TODO: describe.
             force: TODO: describe.
         """
         if self._token is None or force:
@@ -68,11 +64,7 @@ class TokenManager:
         return self._now() + self._refresh_margin_s + jitter >= self._expiry
 
     async def _refresh_under_lock(self) -> str:
-        """todo
-
-        Args:
-            self: TODO: describe.
-        """
+        """todo"""
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
@@ -82,11 +74,7 @@ class TokenManager:
         return self._token
 
     async def get_token(self) -> str:
-        """todo
-
-        Args:
-            self: TODO: describe.
-        """
+        """todo"""
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
@@ -97,11 +85,7 @@ class TokenManager:
             return await self._refresh_under_lock()
 
     async def force_refresh_and_get(self) -> str:
-        """todo
-
-        Args:
-            self: TODO: describe.
-        """
+        """todo"""
         async with self._lock:
             return await self._refresh_under_lock()
 

@@ -22,7 +22,7 @@ async def get_inverters(
     query = select(models.Inverter)
 
     if inverter_ids:
-        query = query.filter(models.Inverter.inverter_id.in_(inverter_ids))
+        query = query.where(models.Inverter.inverter_id.in_(inverter_ids))
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -44,10 +44,10 @@ async def get_inverter_by_id(
     Returns:
         The inverter object if found, None otherwise
     """
-    query = select(models.Inverter).filter(models.Inverter.inverter_id == inverter_id)
+    query = select(models.Inverter).where(models.Inverter.inverter_id == inverter_id)
 
     if company_id is not None:
-        query = query.filter(models.Inverter.company_id == company_id)
+        query = query.where(models.Inverter.company_id == company_id)
 
     result = await db.execute(query)
     return result.scalar_one_or_none()
@@ -70,13 +70,13 @@ async def get_inverter_manufacturers(
 
     query = (
         select(models.Inverter.manufacturer)
-        .filter(models.Inverter.manufacturer.isnot(None))
+        .where(models.Inverter.manufacturer.isnot(None))
         .distinct()
     )
 
     if company_id is not None:
         logger.info(f"CRUD: Filtering by company_id: {company_id}")
-        query = query.filter(models.Inverter.company_id == company_id)
+        query = query.where(models.Inverter.company_id == company_id)
     else:
         logger.info("CRUD: No company_id filter applied - returning all manufacturers")
 
@@ -105,9 +105,9 @@ async def get_inverter_models_given_manufacturer(
 
     query = select(models.Inverter.model).distinct()
     if manufacturer is not None:
-        query = query.filter(models.Inverter.manufacturer == manufacturer)
+        query = query.where(models.Inverter.manufacturer == manufacturer)
     if company_id is not None:
-        query = query.filter(models.Inverter.company_id == company_id)
+        query = query.where(models.Inverter.company_id == company_id)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -130,13 +130,13 @@ async def get_inverter_ids(
     query = select(models.Inverter.inverter_id)
 
     if inverter_manufacturer:
-        query = query.filter(models.Inverter.manufacturer.in_(inverter_manufacturer))
+        query = query.where(models.Inverter.manufacturer.in_(inverter_manufacturer))
 
     if inverter_model:
-        query = query.filter(models.Inverter.model.in_(inverter_model))
+        query = query.where(models.Inverter.model.in_(inverter_model))
 
     if company_id is not None:
-        query = query.filter(models.Inverter.company_id == company_id)
+        query = query.where(models.Inverter.company_id == company_id)
 
     result = await db.execute(query)
     return result.scalars().all()
@@ -212,7 +212,7 @@ async def get_inverter_ids_by_manufacturer_model(
         models.Inverter.inverter_id,
         models.Inverter.manufacturer,
         models.Inverter.model,
-    ).filter(combined_filter)
+    ).where(combined_filter)
 
     result = await db.execute(query)
     results = result.all()  # Fetches [(id, manuf, model), ...] for all found inverters
@@ -253,7 +253,7 @@ async def create_inverter(
 
     if inverter.inverter_id is not None:
         # Update existing inverter
-        query = select(models.Inverter).filter(
+        query = select(models.Inverter).where(
             and_(
                 models.Inverter.inverter_id == inverter.inverter_id,
                 models.Inverter.company_id == inverter.company_id,
@@ -267,7 +267,7 @@ async def create_inverter(
         # Create new inverter with next available ID
         query = (
             select(models.Inverter)
-            .filter(models.Inverter.company_id == inverter.company_id)
+            .where(models.Inverter.company_id == inverter.company_id)
             .order_by(models.Inverter.inverter_id.desc())
         )
         result = await db.execute(query)

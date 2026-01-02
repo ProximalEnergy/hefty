@@ -18,7 +18,6 @@ export const useGetPresignedUrl = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/aws/retrieve-presigned-url`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -29,8 +28,7 @@ export const useGetPresignedUrl = ({
   return useCustomQuery<string>({
     axiosConfig,
     queryName: 'getPresignedUrl',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -44,7 +42,6 @@ export const useGetBucketListdir = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/aws/listdir`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -55,8 +52,7 @@ export const useGetBucketListdir = ({
   return useCustomQuery<BucketItem[]>({
     axiosConfig,
     queryName: 'getPresignedUrl',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -2869,7 +2869,8 @@ export interface paths {
          *
          *     Args:
          *         project_id: Project UUID from path parameter.
-         *         start: Start date for the data range. If None, there is no limit on the start date.
+         *         start: Start date for the data range. If None, there is no limit on
+         *             the start date.
          *         end: End date for the data range. If None, there is no limit on the end date.
          *         kpi_type_id: The KPI type to query.
          *         frequency: Optional frequency for aggregation ("month" or "year").
@@ -3909,7 +3910,8 @@ export interface paths {
         put?: never;
         /**
          * Post Calendar Item Exception
-         * @description Create or update an exception for a specific occurrence of a recurring calendar item.
+         * @description Create or update an exception for a specific occurrence of a recurring
+         *     calendar item.
          *         To "delete" an occurrence, pass `is_cancelled: true` in the payload.
          *         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
          *

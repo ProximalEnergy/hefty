@@ -28,7 +28,7 @@ export const useGetPortfolioHome = ({
   return useCustomQuery<PortfolioHome[]>({
     axiosConfig,
     queryName: 'getPortfolioHome',
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

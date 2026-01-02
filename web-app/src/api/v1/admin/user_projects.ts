@@ -113,7 +113,6 @@ export const useGetUserProjects = ({
     axiosConfig,
     queryName: 'getUserProjects',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

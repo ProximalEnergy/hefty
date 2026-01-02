@@ -18,7 +18,6 @@ export const useGetKPIInstances = ({
 }) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -29,7 +28,7 @@ export const useGetKPIInstances = ({
   return useCustomQuery<KPIInstance[]>({
     axiosConfig,
     queryName: 'getKPIInstances',
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -19,7 +19,7 @@ async def get_cec_pv_inverters(
     query = select(models.CECPVInverter)
 
     if cec_pv_inverter_ids:
-        query = query.filter(
+        query = query.where(
             models.CECPVInverter.cec_pv_inverter_id.in_(cec_pv_inverter_ids),
         )
 
@@ -42,9 +42,9 @@ async def upsert_cec_pv_inverters_bulk(
         inverter_dict = inverter_data.model_dump()
 
         # Check for existing inverter
-        existing_query = select(models.CECPVInverter).filter_by(
-            manufacturer=inverter_dict["manufacturer"],
-            model_number=inverter_dict["model_number"],
+        existing_query = select(models.CECPVInverter).where(
+            models.CECPVInverter.manufacturer == inverter_dict["manufacturer"],
+            models.CECPVInverter.model_number == inverter_dict["model_number"],
         )
         result = await db.execute(existing_query)
         existing_inverter = result.scalar_one_or_none()

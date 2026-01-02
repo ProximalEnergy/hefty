@@ -37,7 +37,6 @@ class MapDataProvider(ABC):
         """Get map data for the given data type
 
         Args:
-            self: TODO: describe.
             data_type: TODO: describe.
             time_span: TODO: describe.
         """
@@ -55,7 +54,6 @@ class MapDataProvider(ABC):
         """Get map data for the given data type
 
         Args:
-            self: TODO: describe.
             data_type: TODO: describe.
             time_span: TODO: describe.
         """
@@ -69,19 +67,11 @@ class ArcGISProvider(ABC):
     _arcgis_token: str | None = None
 
     async def arcgis_token(self) -> str:
-        """Get or fetch the ArcGIS token
-
-        Args:
-            self: TODO: describe.
-        """
+        """Get or fetch the ArcGIS token"""
         if self._arcgis_token is None:
             self._arcgis_token = get_arcgis_token(provider=self)
         return self._arcgis_token
 
     def refresh_token(self) -> None:
-        """Force refresh of the ArcGIS token
-
-        Args:
-            self: TODO: describe.
-        """
+        """Force refresh of the ArcGIS token"""
         self._arcgis_token = None

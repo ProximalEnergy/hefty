@@ -33,11 +33,11 @@ async def get_operational_data_timeseries(
     query = select(models.OperationalDataTimeseries)
 
     if start:
-        query = query.filter(models.OperationalDataTimeseries.time >= start)
+        query = query.where(models.OperationalDataTimeseries.time >= start)
     if end:
-        query = query.filter(models.OperationalDataTimeseries.time < end)
+        query = query.where(models.OperationalDataTimeseries.time < end)
     if project_ids:
-        query = query.filter(
+        query = query.where(
             models.OperationalDataTimeseries.project_id.in_(project_ids),
         )
 

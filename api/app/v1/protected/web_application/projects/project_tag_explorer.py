@@ -9,6 +9,7 @@ from core.crud.project.tags import get_project_tags
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app import dependencies, utils
@@ -91,7 +92,9 @@ async def get_unique_tag_types(
 
     try:
         # Read only from the precomputed table in the project schema
-        table_rows = project_db.query(models.UniqueTagPatterns).all()
+        table_rows = (
+            project_db.execute(select(models.UniqueTagPatterns)).scalars().all()
+        )
         if not table_rows:
             return []
 
@@ -117,11 +120,8 @@ async def get_unique_tag_types(
         sample_ids = list(set(pattern_to_sample_id.values()))
         id_to_tag: dict[int, models.Tag] = {}
         if sample_ids:
-            tags = (
-                project_db.query(models.Tag)
-                .filter(models.Tag.tag_id.in_(sample_ids))
-                .all()
-            )
+            tag_query = select(models.Tag).where(models.Tag.tag_id.in_(sample_ids))
+            tags = project_db.execute(tag_query).scalars().all()
             id_to_tag = {t.tag_id: t for t in tags}
 
         results: list[dict[str, Any]] = []
@@ -297,7 +297,7 @@ async def put_unique_tag_patterns(
         unique_patterns.sort(key=lambda x: x["count"], reverse=True)
 
         # Remove existing rows
-        project_db.query(models.UniqueTagPatterns).delete()
+        project_db.execute(delete(models.UniqueTagPatterns))
 
         # Prepare rows for bulk insert
         rows = [

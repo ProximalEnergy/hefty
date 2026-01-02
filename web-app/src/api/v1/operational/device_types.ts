@@ -18,7 +18,6 @@ export const useGetDeviceTypes = ({
 }) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -29,7 +28,6 @@ export const useGetDeviceTypes = ({
   return useCustomQuery<DeviceType[]>({
     axiosConfig,
     queryName: 'getDeviceTypes',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

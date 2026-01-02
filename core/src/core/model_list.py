@@ -172,7 +172,6 @@ class ModelList[T]:
         """TODO: add description.
 
         Args:
-            self: TODO: describe.
             query: TODO: describe.
             items: TODO: describe.
             result: TODO: describe.
@@ -207,21 +206,18 @@ class ModelList[T]:
             )
 
     def __iter__(self) -> Iterator[T]:
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
         return iter(self.items)
 
-    def __getitem__(self, index: int) -> T:  # skip-star-syntax
+    def __getitem__(
+        self, index: int
+    ) -> T:  # nosemgrep: python-enforce-keyword-only-args
         """TODO: add description.
 
         Args:
-            self: TODO: describe.
             index: TODO: describe.
         """
         if self.items is None:
@@ -230,22 +226,14 @@ class ModelList[T]:
         return self.items[index]
 
     def __len__(self) -> int:
-        """TODO: add description.
-
-        Args:
-            self: TODO: describe.
-        """
+        """TODO: add description."""
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
         return len(self.items)
 
     def query_items(self) -> None:
-        """Execute query and store the results in `.items`.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Execute query and store the results in `.items`."""
         if self.query is None:
             raise MISSING_QUERY_ERROR
         elif isinstance(self.query, Query):
@@ -264,11 +252,7 @@ class ModelList[T]:
             raise TypeError("query must be an instance of Query | TextClause | Select")
 
     def sql_string(self) -> str:
-        """Return the raw SQL string of the underlying SQLAlchemy query.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Return the raw SQL string of the underlying SQLAlchemy query."""
         if self.query is None:
             raise MISSING_QUERY_ERROR
         elif isinstance(self.query, Query):
@@ -285,11 +269,7 @@ class ModelList[T]:
             raise TypeError("query must be an instance of Query | TextClause | Select")
 
     def models(self) -> list[T]:
-        """Return a list of SQLAlchemy model instances.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Return a list of SQLAlchemy model instances."""
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
@@ -309,10 +289,7 @@ class ModelList[T]:
           SQL (skips Python object materialization; much faster for large
           results).
         - If only in-memory items exist, use a cached attrgetter + tuples +
-          from_records.
-
         Args:
-            self: TODO: describe.
             index: TODO: describe.
             as_datetime: TODO: describe.
             tz: TODO: describe.
@@ -408,11 +385,7 @@ class ModelList[T]:
 
     async def polars_dataframe_async(self) -> pl.DataFrame:
         """Run the query using Polars instead of SQLAlchemy and return a Polars
-        DataFrame.
-
-        Args:
-            self: TODO: describe.
-        """
+        DataFrame."""
         if self.items is not None:
             warnings.warn(
                 """
@@ -458,12 +431,13 @@ class ModelList[T]:
         return await loop.run_in_executor(None, _run_query)
 
     @classmethod
-    def from_items(cls, items: list[T]) -> "ModelList[T]":  # skip-star-syntax
+    def from_items(
+        cls, items: list[T]
+    ) -> "ModelList[T]":  # nosemgrep: python-enforce-keyword-only-args
         """Construct a ModelList directly from an in-memory list of model instances.
                 Avoids needing query/result/model_cls.
 
         Args:
-            cls: TODO: describe.
             items: TODO: describe.
         """
         inst = cls.__new__(cls)  # bypass __init__
@@ -493,7 +467,6 @@ class ModelList[T]:
                     devices.find(created_at__gt="2025-01-01")
 
         Args:
-            self: TODO: describe.
             **criteria: TODO: describe.
         """
         # --- QA ---
@@ -507,7 +480,9 @@ class ModelList[T]:
         SUPPORTED_OPS = {"eq", "ne", "gt", "lt", "ge", "le", "in"}
 
         # --- Internal Functions ---
-        def _is_iterable_but_not_string(x: object) -> bool:  # skip-star-syntax
+        def _is_iterable_but_not_string(
+            x: object,
+        ) -> bool:  # nosemgrep: python-enforce-keyword-only-args
             """TODO: add description.
 
             Args:
@@ -517,7 +492,7 @@ class ModelList[T]:
                 x, (str, bytes, bytearray)
             )
 
-        def _normalize_criteria(  # skip-star-syntax
+        def _normalize_criteria(  # nosemgrep: python-enforce-keyword-only-args
             raw: dict[str, Any],
         ) -> list[tuple[str, str, Any]]:
             """Normalize criteria into (field, op, value).
@@ -611,7 +586,7 @@ class ModelList[T]:
                 if op == "in":
                     in_sets[i] = set(value)
 
-            def _match(obj: Any) -> bool:  # skip-star-syntax
+            def _match(obj: Any) -> bool:  # nosemgrep: python-enforce-keyword-only-args
                 """TODO: add description.
 
                 Args:
@@ -691,7 +666,6 @@ class ModelItem[T]:
         """TODO: add description.
 
         Args:
-            self: TODO: describe.
             query: TODO: describe.
             return_query: TODO: describe.
         """
@@ -699,27 +673,15 @@ class ModelItem[T]:
         self.item: T | None = None if return_query else query.first()
 
     def query_item(self) -> None:
-        """Execute query and store the result in `.item`.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Execute query and store the result in `.item`."""
         self.item = self.query.first()
 
     def sql_string(self) -> str:
-        """Return the raw SQL string of the underlying SQLAlchemy query.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Return the raw SQL string of the underlying SQLAlchemy query."""
         return _sql_string(query=self.query)
 
     def dictionary(self) -> dict[str, Any]:
-        """Return the model as a dictionary.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Return the model as a dictionary."""
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
@@ -731,22 +693,14 @@ class ModelItem[T]:
         return {col.key: getattr(self.item, col.key) for col in mapper.column_attrs}
 
     def model(self) -> T:
-        """Return a SQLAlchemy model instance.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Return a SQLAlchemy model instance."""
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
         return self.item
 
     def pandas_series(self) -> pd.Series:
-        """Return a Pandas Series of the model.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Return a Pandas Series of the model."""
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM
 
@@ -769,7 +723,6 @@ class ModelItem[T]:
         """Convert the model to a Pandas DataFrame.
 
         Args:
-            self: TODO: describe.
             index: TODO: describe.
             as_datetime: TODO: describe.
             tz: TODO: describe.
@@ -811,7 +764,6 @@ class ModelItem[T]:
                     RuntimeWarning if the item is already loaded.
 
         Args:
-            self: TODO: describe.
         """
         if self.item is not None:
             warnings.warn(

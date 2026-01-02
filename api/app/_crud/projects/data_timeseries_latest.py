@@ -1,6 +1,7 @@
 import datetime
 
 from core.enumerations import DeviceType, SensorType
+from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from core import models
@@ -37,10 +38,11 @@ def get_data_timeseries_latest_by_device_type(
         }
         sensor_type_ids = device_type_id_to_sensor_type_ids.get(device_type_id, [])
 
-    query = db.query(models.DataTimeseriesLast).options(
+    stmt = select(models.DataTimeseriesLast).options(
         selectinload(models.DataTimeseriesLast.tag),
     )
-    query = query.join(models.Tag).where(models.Tag.sensor_type_id.in_(sensor_type_ids))
+    stmt = stmt.join(models.Tag).where(models.Tag.sensor_type_id.in_(sensor_type_ids))
     if start:
-        query = query.filter(models.DataTimeseriesLast.time >= start)
-    return query.all()
+        stmt = stmt.where(models.DataTimeseriesLast.time >= start)
+    result = db.execute(stmt)
+    return result.scalars().all()

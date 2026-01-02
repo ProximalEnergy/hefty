@@ -20,7 +20,6 @@ class ReleaseUpdater:
         """TODO: add description.
 
         Args:
-            self: TODO: describe.
             project_root: TODO: describe.
         """
         self.project_root = Path(project_root)
@@ -28,11 +27,7 @@ class ReleaseUpdater:
         self.pyproject_path = self.project_root / "pyproject.toml"
 
     def get_current_version(self) -> str:
-        """Get the current version from pyproject.toml.
-
-        Args:
-            self: TODO: describe.
-        """
+        """Get the current version from pyproject.toml."""
         if not self.pyproject_path.exists():
             raise FileNotFoundError(
                 f"pyproject.toml not found at {self.pyproject_path}"
@@ -47,7 +42,6 @@ class ReleaseUpdater:
         """Determine the appropriate release file for a given version.
 
         Args:
-            self: TODO: describe.
             version: TODO: describe.
         """
         # Extract major and minor version (e.g., "0.2.23" -> "0.2")
@@ -58,7 +52,6 @@ class ReleaseUpdater:
         """Check if a version already exists in the release file.
 
         Args:
-            self: TODO: describe.
             file_path: TODO: describe.
             version: TODO: describe.
         """
@@ -75,7 +68,6 @@ class ReleaseUpdater:
         """Add a new release entry to the appropriate file.
 
         Args:
-            self: TODO: describe.
             version: TODO: describe.
             message: TODO: describe.
         """
@@ -138,7 +130,6 @@ class ReleaseUpdater:
                 Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
 
         Args:
-            self: TODO: describe.
             v1: TODO: describe.
             v2: TODO: describe.
         """
@@ -165,7 +156,6 @@ class ReleaseUpdater:
         """Main method to update releases with the given message.
 
         Args:
-            self: TODO: describe.
             message: TODO: describe.
         """
         try:

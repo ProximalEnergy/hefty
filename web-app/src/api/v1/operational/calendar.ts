@@ -54,7 +54,6 @@ export const useGetCalendarEvents = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/calendar-events`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -84,7 +83,6 @@ export const useGetCalendarEventCategories = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/projects/${pathParams.projectId}/calendar-item-categories`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -93,10 +91,9 @@ export const useGetCalendarEventCategories = ({
   }
 
   return useCustomQuery<CalendarEventCategory[]>({
-    // Expecting an array of categories
     axiosConfig,
     queryName: 'getCalendarEventCategories',
-    pathParams, // Pass projectId here
+    pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

@@ -23,7 +23,6 @@ class DTN(
         """todo
 
         Args:
-            self: TODO: describe.
             data_type: TODO: describe.
             time_span: TODO: describe.
         """
@@ -60,7 +59,6 @@ class DTN(
         """Get hail forecast polygon data from ArcGIS REST API
 
         Args:
-            self: TODO: describe.
             arcgis_layer_id: TODO: describe.
         """
 
@@ -121,7 +119,6 @@ class DTN(
         """Parse ArcGIS response and extract polygons
 
         Args:
-            self: TODO: describe.
             data: TODO: describe.
         """
         if "error" in data:

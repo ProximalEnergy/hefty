@@ -64,7 +64,6 @@ export const useGetProjectContracts = ({
     axiosConfig,
     queryName: 'getProjectContracts',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -187,7 +186,6 @@ export const useGetContractKPIs = ({
     axiosConfig,
     queryName: 'getContractKPIs',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -215,8 +213,6 @@ export const useGetContractCategories = ({
   return useCustomQuery<ContractCategory[]>({
     axiosConfig,
     queryName: 'getContractCategories',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

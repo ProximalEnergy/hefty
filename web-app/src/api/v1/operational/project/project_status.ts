@@ -21,7 +21,6 @@ export const useGetStatusTimeSeries = ({
 }) => {
   const axiosConfig = {
     url: URL,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

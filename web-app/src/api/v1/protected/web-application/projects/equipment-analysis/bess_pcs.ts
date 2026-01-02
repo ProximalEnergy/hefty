@@ -18,7 +18,6 @@ export const useGetEquipmentAnalysisBESSPCS = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/bess-pcs`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -27,7 +26,7 @@ export const useGetEquipmentAnalysisBESSPCS = ({
     axiosConfig,
     queryName: 'getEquipmentAnalysisBESSPCS',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -11,7 +11,7 @@ Generally, routes can be found in `app.v1._category_`. A common pattern is to ha
 
 ## Function Style
 
-- Functions should use the `*` syntax at the beginning (or near the beginning) of each list of parameters in order to ensure that only keyword arguments are allowed. Lint can be ignored with `# skip-star-syntax`
+- Functions should use the `*` syntax at the beginning (or near the beginning) of each list of parameters in order to ensure that only keyword arguments are allowed. Lint can be ignored with `# nosemgrep: python-enforce-keyword-only-args`
 - Pandas functions should not use the `inplace=bool` kwarg if the linter accidentally blocks one of these you can comment `# noqa: inplace`
 
 ## Pre commit hooks

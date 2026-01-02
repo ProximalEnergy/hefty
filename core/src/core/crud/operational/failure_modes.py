@@ -65,7 +65,7 @@ async def get_failure_modes_async(
     stmt = sa.select(models.FailureMode)
 
     if failure_mode_ids:
-        stmt = stmt.filter(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
+        stmt = stmt.where(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
 
     if return_query:
         # Return ModelList with TextClause for polars execution

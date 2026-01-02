@@ -12,7 +12,6 @@ export const useGetCECPVModuleManufacturers = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/cec-pv-modules/manufacturers`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -23,8 +22,7 @@ export const useGetCECPVModuleManufacturers = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: 'cec-pv-module-manufacturers',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -39,7 +37,6 @@ export const useGetCECPVModuleModels = ({
 }) => {
   const axiosConfig = {
     url: `/v1/operational/cec-pv-modules/models`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -51,7 +48,7 @@ export const useGetCECPVModuleModels = ({
   return useCustomQuery<string[]>({
     axiosConfig,
     queryName: `models-${queryParams.manufacturer}`,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -71,7 +68,6 @@ export const useGetCECPVModuleIdsByManufacturerAndModel = ({
 
   const axiosConfig = {
     url: `/v1/operational/cec-pv-modules/lookup-ids`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -86,8 +82,7 @@ export const useGetCECPVModuleIdsByManufacturerAndModel = ({
   return useCustomQuery<(number | null)[]>({
     axiosConfig,
     queryName: 'cec-pv-module-ids-lookup',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -106,8 +101,6 @@ export const useGetCECPVModuleInProximalFormat = ({
 
   const axiosConfig = {
     url: `/v1/operational/cec-pv-modules/proximal-format`,
-    method: 'GET',
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -119,8 +112,7 @@ export const useGetCECPVModuleInProximalFormat = ({
   return useCustomQuery<PVModule>({
     axiosConfig,
     queryName: `cec-module-proximal-${cec_pv_module_id}`,
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

@@ -6,7 +6,7 @@ from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
-from sqlalchemy import Float, cast, func
+from sqlalchemy import Float, cast, func, select
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 
@@ -230,23 +230,24 @@ def get_device_type_power_summary(
         unit_scale = func.coalesce(models.Tag.unit_scale, 1.0)
         value_scaled = value_num * unit_scale
 
-        q = (
-            project_db.query(
+        query = (
+            select(
                 models.Device.device_type_id.label("device_type_id"),
                 func.sum(value_scaled).label("power_sum"),
             )
+            .select_from(models.Device)
             .join(models.Tag, models.Tag.device_id == models.Device.device_id)
             .join(
                 models.DataTimeseriesLast,
                 models.DataTimeseriesLast.tag_id == models.Tag.tag_id,
             )
-            .filter(models.Device.device_type_id == func.any(array(ac_like_types)))
-            .filter(models.Tag.sensor_type_id == SensorType.PV_PCS_AC_POWER)
+            .where(models.Device.device_type_id == func.any(array(ac_like_types)))
+            .where(models.Tag.sensor_type_id == SensorType.PV_PCS_AC_POWER)
             .group_by(models.Device.device_type_id)
         )
 
         try:
-            rows = q.all()
+            rows = project_db.execute(query).all()
             for device_type_id, power_sum in rows:
                 if power_sum is not None:
                     device_type_power[int(device_type_id)] = float(power_sum)

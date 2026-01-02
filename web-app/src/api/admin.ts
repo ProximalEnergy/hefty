@@ -1,3 +1,4 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { useAuth } from '@clerk/clerk-react'
 import {
@@ -9,18 +10,8 @@ import axios from 'axios'
 
 import { baseURL } from '../urlConfig'
 
-interface Permission {
-  permission_id: number
-  name_short: string
-  name_long: string
-}
-
-interface UserWithPermissions {
-  user_id: number
-  name_long: string
-  permission_ids: number[]
-  permission_name_shorts: string[]
-}
+type Permission = types.components['schemas']['Permission']
+type UserWithPermissions = types.components['schemas']['UserWithPermissions']
 
 export interface User {
   user_id: string
@@ -31,27 +22,12 @@ export interface User {
   image_url?: string | null
 }
 
-interface Company {
-  company_id: string
-  name_short: string
-  name_long: string
-}
-
-interface Team {
-  team_id: string
-  company_id: string
-  name_long: string
-  created_at: string
-  updated_at: string
-}
-
-interface TeamWithMembers extends Team {
-  members: { user_id: string; name_long: string }[]
-}
-
-interface UserType {
-  user_type_id: number
-  name_short: 'admin' | 'superadmin' | 'user' // noqa: hardcoded-name-short
+type Company = types.components['schemas']['Company']
+type Team = types.components['schemas']['Team']
+type TeamWithMembers = types.components['schemas']['TeamWithMembers']
+type UserType = types.components['schemas']['UserType'] & {
+  // noqa: hardcoded-name-short
+  name_short: 'admin' | 'superadmin' | 'user'
 }
 
 export const useGetUserType = ({
@@ -71,8 +47,6 @@ export const useGetUserType = ({
   return useCustomQuery<UserType>({
     axiosConfig,
     queryName: 'getUserType',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -94,8 +68,6 @@ export const useGetAllPermissions = ({
   return useCustomQuery<Permission[]>({
     axiosConfig,
     queryName: 'getAllPermissions',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -120,7 +92,6 @@ export const useGetCompanyPermissions = ({
     axiosConfig,
     queryName: 'getCompanyPermissions',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -145,7 +116,6 @@ export const useGetCompanyUsersPermissions = ({
     axiosConfig,
     queryName: 'getCompanyUsersPermissions',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -170,7 +140,6 @@ export const useGetUserPermissions = ({
     axiosConfig,
     queryName: 'getUserPermissions',
     pathParams,
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -271,7 +240,6 @@ export const useGetUsers = ({
 }) => {
   const axiosConfig = {
     url: `/v1/admin/users`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -282,8 +250,7 @@ export const useGetUsers = ({
   return useCustomQuery<User[]>({
     axiosConfig,
     queryName: 'getUsers',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -305,8 +272,6 @@ export const useGetUserSelf = ({
   return useCustomQuery<User>({
     axiosConfig,
     queryName: 'getUserSelf',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -320,7 +285,6 @@ export const useGetCompanies = ({
 }) => {
   const axiosConfig = {
     url: `/v1/admin/companies`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -331,8 +295,7 @@ export const useGetCompanies = ({
   return useCustomQuery<Company[]>({
     axiosConfig,
     queryName: 'getCompanies',
-    pathParams: {},
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -354,8 +317,6 @@ export const useGetCompanyTeams = ({
   return useCustomQuery<Team[]>({
     axiosConfig,
     queryName: 'getCompanyTeams',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -377,8 +338,6 @@ export const useGetCompanyTeamsWithMembers = ({
   return useCustomQuery<TeamWithMembers[]>({
     axiosConfig,
     queryName: 'getCompanyTeamsWithMembers',
-    pathParams: {},
-    queryParams: {},
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -414,7 +373,6 @@ export const useGetTeamsWithMembers = ({
 }) => {
   const axiosConfig = {
     url: `/v1/admin/teams/members`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -425,7 +383,6 @@ export const useGetTeamsWithMembers = ({
   return useCustomQuery<TeamWithMembers[]>({
     axiosConfig,
     queryName: 'getTeamsWithMembers',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session, noload, selectinload
 
 from core import models
@@ -18,8 +19,8 @@ def _get_kpi_types_options(*, deep: bool):
 
 
 def get_kpi_types(
-    db: Session,
     *,
+    db: Session,
     kpi_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
@@ -32,9 +33,9 @@ def get_kpi_types(
     """
     options = _get_kpi_types_options(deep=deep)
 
-    query = db.query(models.KPIType).options(*options)
+    statement = select(models.KPIType).options(*options)
 
     if kpi_type_ids is not None:
-        query = query.filter(models.KPIType.kpi_type_id.in_(kpi_type_ids))
+        statement = statement.where(models.KPIType.kpi_type_id.in_(kpi_type_ids))
 
-    return query.all()
+    return db.execute(statement).scalars().all()

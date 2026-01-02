@@ -1,13 +1,14 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session, noload, selectinload
 
 from core import models
 
 
 def get_kpi_instances(
-    db: Session,
     *,
+    db: Session,
     project_ids: list[UUID] | None = None,
     is_visible: bool | None,
     kpi_type_ids: list[int] | None = None,
@@ -22,19 +23,21 @@ def get_kpi_instances(
         kpi_type_ids: TODO: describe.
         deep: TODO: describe.
     """
-    query = db.query(models.KPIInstance)
+    statement = select(models.KPIInstance).options(
+        _get_kpi_instances_options(deep=deep),
+    )
     if project_ids is not None:
-        query = query.filter(models.KPIInstance.project_id.in_(project_ids))
+        statement = statement.where(
+            models.KPIInstance.project_id.in_(project_ids),
+        )
 
     if is_visible is not None:
-        query = query.filter(models.KPIInstance.is_visible == is_visible)
+        statement = statement.where(models.KPIInstance.is_visible == is_visible)
 
     if kpi_type_ids is not None:
-        query = query.filter(models.KPIInstance.kpi_type_id.in_(kpi_type_ids))
+        statement = statement.where(models.KPIInstance.kpi_type_id.in_(kpi_type_ids))
 
-    query.options(_get_kpi_instances_options(deep=deep))
-
-    return query.all()
+    return db.execute(statement).scalars().all()
 
 
 def _get_kpi_instances_options(*, deep: bool):

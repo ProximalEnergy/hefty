@@ -23,7 +23,6 @@ export const useGetReportType = ({
     axiosConfig,
     queryName: 'getReportType',
     pathParams,
-    queryParams: {},
     queryOptions,
   })
 }

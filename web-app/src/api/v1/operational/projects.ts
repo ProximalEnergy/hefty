@@ -216,7 +216,6 @@ export const useGetProjects = ({
 
   const axiosConfig = {
     url: '/v1/operational/projects',
-    params: paramsWithExclusions,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -233,7 +232,6 @@ export const useGetProjects = ({
   return useCustomQuery<Project[]>({
     axiosConfig,
     queryName: queryName,
-    pathParams: {},
     queryParams: paramsWithExclusions,
     queryOptions: mergedQueryOptions,
   })

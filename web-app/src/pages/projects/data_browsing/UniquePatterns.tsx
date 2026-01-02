@@ -32,7 +32,6 @@ const UniquePatterns = ({
 
   const uniqueTagTypes = useGetUniqueTagTypes({
     pathParams: { projectId: projectId || '-1' },
-    queryParams: {},
   })
 
   const putUniqueTagPatterns = usePutUniqueTagPatterns()

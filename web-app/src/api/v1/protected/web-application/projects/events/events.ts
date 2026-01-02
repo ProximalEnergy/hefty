@@ -52,7 +52,6 @@ export const useGetEventsMetaAnalysis = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/events/meta`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -64,7 +63,7 @@ export const useGetEventsMetaAnalysis = ({
     axiosConfig,
     queryName: 'getEventsMetaAnalysis',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
@@ -82,7 +81,6 @@ export const useGetHomepageSummary = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/events/home-page-summary`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {}
@@ -91,7 +89,7 @@ export const useGetHomepageSummary = ({
     axiosConfig,
     queryName: 'getHomepageSummary',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

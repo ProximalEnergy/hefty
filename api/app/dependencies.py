@@ -120,7 +120,7 @@ async def create_user_data_from_user_async(
         public_metadata: TODO: describe.
     """
     result = await db.execute(
-        sa.select(models.UserProject).filter(models.UserProject.user_id == user.user_id)
+        sa.select(models.UserProject).where(models.UserProject.user_id == user.user_id)
     )
     user_projects = result.scalars().all()
     operational_project_ids = [p.operational_project_id for p in user_projects]
@@ -150,7 +150,7 @@ async def get_user_data_from_api_key_async(
     """
     if x_api_key:
         result = await db.execute(
-            sa.select(models.User).filter(models.User.api_key == x_api_key)
+            sa.select(models.User).where(models.User.api_key == x_api_key)
         )
         user = result.scalars().first()
         if user:
@@ -227,7 +227,7 @@ async def get_user_data_from_jwt_async(
         public_metadata = payload.get("user", {}).get("public_metadata", {})
 
         result = await db.execute(
-            sa.select(models.User).filter(models.User.user_id == user_id)
+            sa.select(models.User).where(models.User.user_id == user_id)
         )
         user = result.scalars().first()
         if user:

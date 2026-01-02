@@ -14,13 +14,10 @@ class BaseIntEnum(IntEnum):
     _db_name_column = nonmember(None)
 
     @classmethod
-    def extract_values(  # skip-star-syntax
-        cls, enum_list: Sequence["BaseIntEnum"]
-    ) -> list[int]:
+    def extract_values(cls, *, enum_list: Sequence["BaseIntEnum"]) -> list[int]:
         """Extract integer values from a list of BaseEnum enums for database queries.
 
         Args:
-            cls: TODO: describe.
             enum_list: TODO: describe.
         """
         return [status.value for status in enum_list]
@@ -30,7 +27,6 @@ class BaseIntEnum(IntEnum):
         """TODO: add description.
 
         Args:
-            cls: TODO: describe.
             session: TODO: describe.
         """
         table = cls._db_table

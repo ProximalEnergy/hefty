@@ -21,7 +21,6 @@ export const useGetDeviceDetailsHorizontalBESS = ({
 }) => {
   const axiosConfig = {
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/horizontal/bess`,
-    params: queryParams,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
@@ -33,7 +32,7 @@ export const useGetDeviceDetailsHorizontalBESS = ({
     axiosConfig,
     queryName: 'getDeviceDetailsHorizontalBESS',
     pathParams,
-    queryParams: queryParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

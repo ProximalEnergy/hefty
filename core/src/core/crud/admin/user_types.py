@@ -16,5 +16,5 @@ def get_user_type(
         user_type_id: TODO: describe.
         return_query: TODO: describe.
     """
-    query = select(models.UserType).filter(models.UserType.user_type_id == user_type_id)
+    query = select(models.UserType).where(models.UserType.user_type_id == user_type_id)
     return ModelList(query=query, return_query=return_query)

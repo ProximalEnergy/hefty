@@ -60,7 +60,6 @@ export const useGetEventMessages = ({
   return useCustomQuery<EventMessage[]>({
     axiosConfig,
     queryName: 'getEventMessages',
-    pathParams: {},
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
@@ -249,7 +248,6 @@ export const useGetEventChatMuteStatus = (
     axiosConfig,
     queryName: 'getEventChatMuteStatus',
     pathParams: { eventId, projectId },
-    queryParams: {},
     queryOptions: {
       refetchOnWindowFocus: false,
     },
@@ -264,14 +262,12 @@ export const useGetEventChatNotificationStatus = (
 
   const axiosConfig = {
     url: `/v1/operational/projects/${projectId}/event-messages/notifications/status`,
-    method: 'get',
   }
 
   return useCustomQuery<{ enabled: boolean }>({
     axiosConfig,
     queryName: 'getEventChatNotificationStatus',
     pathParams: { projectId },
-    queryParams: {},
     queryOptions: {
       refetchOnWindowFocus: false,
       enabled: shouldFetch && queryOptions?.enabled !== false, // Only fetch if projectId is provided and valid, and not explicitly disabled

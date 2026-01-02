@@ -360,7 +360,7 @@ async def get_portfolio_home_long_term(
 
     # Query KPI data
     kpi_df = await get_kpi_data_async(
-        db,
+        db=db,
         start=start_date,
         end=end_date,
         project_ids=project_ids,

@@ -129,7 +129,7 @@ async def get_project_name_short_async(*, project_id: UUID) -> str | None:
         project_id: TODO: describe.
     """
     async with with_db_async(schema=None) as db:
-        stmt = select(models.Project).filter(models.Project.project_id == project_id)
+        stmt = select(models.Project).where(models.Project.project_id == project_id)
         result = await db.execute(stmt)
         project = result.scalar_one_or_none()
     return project.name_short if project else None

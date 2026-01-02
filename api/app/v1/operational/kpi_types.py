@@ -4,7 +4,7 @@ from typing import Annotated
 from core.dependencies import get_db
 from core.models import Company, Contract, ContractKPI, DeviceType, KPIInstance, KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
@@ -98,7 +98,7 @@ def get_kpi_types(
         db: TODO: describe.
         kpi_type_ids: TODO: describe.
     """
-    return crud_get_kpi_types(db, kpi_type_ids=kpi_type_ids)
+    return crud_get_kpi_types(db=db, kpi_type_ids=kpi_type_ids)
 
 
 @router.get(
@@ -116,7 +116,7 @@ def get_kpi_type(
         kpi_type_id: TODO: describe.
         db: TODO: describe.
     """
-    return crud_get_kpi_types(db, kpi_type_ids=[kpi_type_id])[0]
+    return crud_get_kpi_types(db=db, kpi_type_ids=[kpi_type_id])[0]
 
 
 @router.get(
@@ -140,7 +140,7 @@ def get_kpi_types_by_project(
 
         # Query to get all KPI types and their associated contract info
         query = (
-            db.query(
+            select(
                 KPIType,
                 ContractKPI,
                 Contract,
@@ -149,7 +149,6 @@ def get_kpi_types_by_project(
                 DeviceType.name_long.label("device_type_name"),
                 KPIInstance.is_visible,
             )
-            # Start with KPIType as base and left join everything else
             .select_from(KPIType)
             .outerjoin(DeviceType, KPIType.device_type_id == DeviceType.device_type_id)
             .outerjoin(
@@ -172,7 +171,7 @@ def get_kpi_types_by_project(
             .order_by(KPIType.kpi_type_id)
         )
 
-        results = query.all()
+        results = db.execute(query).all()
 
         # Group results by KPI type
         kpi_types_dict = {}
