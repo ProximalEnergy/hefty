@@ -170,14 +170,14 @@ const PowerPlotPVZoom = () => {
     switch (project.data?.project_type_id) {
       case ProjectTypeEnum.PV:
         meterTrace = data.data?.data?.find(
-          (trace) => trace.name === 'Meter Active Power',
+          (trace: DataTimeSeries) => trace.name === 'Meter Active Power',
         )
         break
       case ProjectTypeEnum.BESS:
         return undefined
       case ProjectTypeEnum.PVS:
         meterTrace = data.data?.data?.find(
-          (trace) => trace.name === 'PV Active Power',
+          (trace: DataTimeSeries) => trace.name === 'PV Active Power',
         )
         break
       default:
@@ -195,18 +195,18 @@ const PowerPlotPVZoom = () => {
     }
 
     const expectedTrace = data.data.data.find(
-      (trace) => trace.name === 'Expected Power',
+      (trace: DataTimeSeries) => trace.name === 'Expected Power',
     )
 
     if (!meterTrace || !expectedTrace) return undefined
 
     // Sum the y values, filtering out nulls
     const sumMeter = meterTrace.y.reduce(
-      (sum, val) => sum + (val !== null ? val : 0),
+      (sum: number, val: number | null) => sum + (val ?? 0),
       0,
     )
     const sumExpected = expectedTrace.y.reduce(
-      (sum, val) => sum + (val !== null ? val : 0),
+      (sum: number, val: number | null) => sum + (val ?? 0),
       0,
     )
 
