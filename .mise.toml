@@ -46,6 +46,7 @@ fi
 [tasks.install]
 description = "Install and sync all dependencies across the monorepo"
 run = """
+mise install semgrep && \
 cd core && uv sync && cd .. && \
 mise run api:switch-core && \
 cd api && uv sync && cd .. && \
