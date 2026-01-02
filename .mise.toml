@@ -1,6 +1,5 @@
 
 [tools]
-semgrep = "latest"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
@@ -46,7 +45,8 @@ fi
 [tasks.install]
 description = "Install and sync all dependencies across the monorepo"
 run = """
-mise install semgrep && \
+uv sync && \
+mise install && \
 cd core && uv sync && cd .. && \
 mise run api:switch-core && \
 cd api && uv sync && cd .. && \
@@ -154,12 +154,12 @@ run = "uv run --dev ruff format core/"
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
 dir = "."
-run = "semgrep --config _scripts/rules/star-syntax.yaml core/src"
+run = "uv run semgrep --config _scripts/rules/star-syntax.yaml core/src"
 
 [tasks."core:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in core"
 dir = "."
-run = "semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml core/src"
+run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml core/src"
 
 [tasks."core:pytest"]
 description = "Run pytest for core"
@@ -273,12 +273,12 @@ run = "uv run --dev ruff format microservices/"
 [tasks."micro:star_syntax"]
 description = "Check for star syntax violations in microservices"
 dir = "."
-run = "semgrep --config _scripts/rules/star-syntax.yaml microservices"
+run = "uv run semgrep --config _scripts/rules/star-syntax.yaml microservices"
 
 [tasks."micro:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in micro"
 dir = "."
-run = "semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml microservices"
+run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml microservices"
 
 [tasks."micro:docstring_args"]
 description = "Check docstring Args sections in microservices"
@@ -347,12 +347,12 @@ run = "uv run pytest"
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
 dir = "."
-run = "semgrep --config _scripts/rules/star-syntax.yaml api/app"
+run = "uv run semgrep --config _scripts/rules/star-syntax.yaml api/app"
 
 [tasks."api:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in api"
 dir = "."
-run = "semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml api/app"
+run = "uv run semgrep --error --config _scripts/rules/sqlalchemy-query-filter.yaml api/app"
 
 [tasks."api:hurl"]
 description = "Run hurl smoke tests for api"
