@@ -19,6 +19,7 @@ const COMPANY_THEME_CONFIG: Record<string, KnownMantineColor | CustomColors> = {
   lightsource_bp: 'lightsource-bp-orange',
   oriden: 'oriden-green',
   lydian_energy: 'lydian-energy-blue',
+  goshe_energy_storage: 'goshe-energy-storage-blue',
 }
 
 export const CompanyThemeManager = () => {
