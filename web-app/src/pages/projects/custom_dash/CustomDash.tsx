@@ -65,6 +65,7 @@ import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 // import { Layer, LngLatBoundsLike, Map, Source } from 'react-map-gl'
 import {
+  Link as RouterLink,
   useLocation,
   useNavigate,
   useParams,
@@ -473,11 +474,13 @@ const KPIComponent = ({
   projectId,
   defaultKPITimeRange,
   timeZone,
+  isEditing,
 }: {
   component: DashboardComponent & { config: KPIConfig }
   projectId: string | undefined
   defaultKPITimeRange: number
   timeZone: string
+  isEditing: boolean
 }) => {
   const { start, end } = calculateKPITimeRange(defaultKPITimeRange, timeZone)
 
@@ -525,8 +528,17 @@ const KPIComponent = ({
     return <PageLoader />
   }
 
-  return (
-    <Stack align="center" h="100%">
+  const searchParams = new URLSearchParams({
+    start,
+    end,
+  })
+
+  const content = (
+    <Stack
+      align="center"
+      h="100%"
+      style={isEditing ? undefined : { cursor: 'pointer' }}
+    >
       <Text fw={600} size="lg">
         {kpiType.data?.name_long}
       </Text>
@@ -544,6 +556,19 @@ const KPIComponent = ({
         </Text>
       </Stack>
     </Stack>
+  )
+
+  if (isEditing || !projectId) {
+    return content
+  }
+
+  return (
+    <RouterLink
+      to={`/projects/${projectId}/kpis/type/${parsedKpiTypeId}?${searchParams.toString()}`}
+      style={{ color: 'inherit', textDecoration: 'none', height: '100%' }}
+    >
+      {content}
+    </RouterLink>
   )
 }
 
@@ -1407,6 +1432,7 @@ const RenderComponent = ({
           projectId={projectId}
           defaultKPITimeRange={defaultKPITimeRange}
           timeZone={timeZone}
+          isEditing={isEditing}
         />
       )
     case 'line':
