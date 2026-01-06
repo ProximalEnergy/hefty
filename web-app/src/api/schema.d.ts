@@ -198,37 +198,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/subscriptions/notifications/{project_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Notification Emails
-         * @description Get all emails subscribed to notifications for a project.
-         *             Requires admin permissions.
-         */
-        get: operations["get_notification_emails_v1_admin_subscriptions_notifications__project_id__get"];
-        /**
-         * Update Notification Subscription
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         data: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        put: operations["update_notification_subscription_v1_admin_subscriptions_notifications__project_id__put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/admin/subscriptions/reports/{project_id}": {
         parameters: {
             query?: never;
@@ -252,6 +221,50 @@ export interface paths {
          *         user_data: TODO: describe.
          */
         put: operations["update_report_subscription_v1_admin_subscriptions_reports__project_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Notification Preferences
+         * @description Get notification preferences for the requesting user.
+         */
+        get: operations["get_user_notification_preferences_v1_admin_notification_preferences_get"];
+        /**
+         * Update Notification Preference
+         * @description Update a notification preference.
+         */
+        put: operations["update_notification_preference_v1_admin_notification_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notification Types
+         * @description Get all notification types.
+         */
+        get: operations["get_notification_types_v1_admin_notification_types_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -9628,6 +9641,69 @@ export interface components {
             coordinates: unknown[];
         };
         /**
+         * NotificationPreference
+         * @description Notification preference model.
+         */
+        NotificationPreference: {
+            /** Notification Preference Id */
+            notification_preference_id: number;
+            /** User Id */
+            user_id: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** In App Enabled */
+            in_app_enabled: boolean;
+            /** Email Enabled */
+            email_enabled: boolean;
+            in_app_min_severity: components["schemas"]["NotificationSeverity"];
+            email_min_severity: components["schemas"]["NotificationSeverity"];
+        };
+        /**
+         * NotificationPreferenceUpdate
+         * @description Notification preference update model.
+         */
+        NotificationPreferenceUpdate: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** In App Enabled */
+            in_app_enabled?: boolean | null;
+            /** Email Enabled */
+            email_enabled?: boolean | null;
+            in_app_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+            email_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+        };
+        /**
+         * NotificationSeverity
+         * @enum {string}
+         */
+        NotificationSeverity: "info" | "warning" | "critical";
+        /**
+         * NotificationType
+         * @description Notification type model.
+         */
+        NotificationType: {
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** Name Long */
+            name_long: string;
+            /** In App Enabled Default */
+            in_app_enabled_default: boolean;
+            /** Email Enabled Default */
+            email_enabled_default: boolean;
+            in_app_severity_default: components["schemas"]["NotificationSeverity"] | null;
+            email_severity_default: components["schemas"]["NotificationSeverity"] | null;
+        };
+        /**
          * OperationalKPIData
          * @description Operationalkpidata model.
          */
@@ -11537,78 +11613,6 @@ export interface operations {
             };
         };
     };
-    get_notification_emails_v1_admin_subscriptions_notifications__project_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_notification_subscription_v1_admin_subscriptions_notifications__project_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserSubscriptionUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserSubscription"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_report_emails_v1_admin_subscriptions_reports__project_id__get: {
         parameters: {
             query?: never;
@@ -11668,6 +11672,109 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserSubscription"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_notification_preferences_v1_admin_notification_preferences_get: {
+        parameters: {
+            query?: {
+                /** @description Filter by project IDs */
+                project_ids?: string[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreference"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_notification_preference_v1_admin_notification_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreference"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_notification_types_v1_admin_notification_types_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationType"][];
                 };
             };
             /** @description Validation Error */

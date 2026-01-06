@@ -10,6 +10,8 @@ from app.v1.admin import (
     api_key,
     companies,
     company_projects,
+    notification_preferences,
+    notification_types,
     permissions,
     subscriptions,
     teams,
@@ -23,6 +25,8 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 router.include_router(api_key.router)
 router.include_router(permissions.router)
 router.include_router(subscriptions.router)
+router.include_router(notification_preferences.router)
+router.include_router(notification_types.router)
 router.include_router(company_projects.router)
 router.include_router(companies.router)
 router.include_router(teams.router)

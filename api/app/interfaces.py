@@ -13,7 +13,7 @@ import datetime
 import uuid
 from typing import Annotated, Any
 
-from core.enumerations import UserTypeEnum
+from core.enumerations import NotificationSeverity, UserTypeEnum
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
 from pydantic.config import ConfigDict
@@ -96,6 +96,45 @@ class UserSubscriptionUpdate(BaseModel):
     """Usersubscriptionupdate model."""
 
     subscribe: bool
+
+
+class NotificationType(BaseModel):
+    """Notification type model."""
+
+    model_config = {"from_attributes": True}
+
+    notification_type_id: int
+    name_long: str
+    in_app_enabled_default: bool
+    email_enabled_default: bool
+    in_app_severity_default: NotificationSeverity | None
+    email_severity_default: NotificationSeverity | None
+
+
+class NotificationPreference(BaseModel):
+    """Notification preference model."""
+
+    model_config = {"from_attributes": True}
+
+    notification_preference_id: int
+    user_id: str
+    project_id: uuid.UUID
+    notification_type_id: int
+    in_app_enabled: bool
+    email_enabled: bool
+    in_app_min_severity: NotificationSeverity
+    email_min_severity: NotificationSeverity
+
+
+class NotificationPreferenceUpdate(BaseModel):
+    """Notification preference update model."""
+
+    project_id: uuid.UUID
+    notification_type_id: int
+    in_app_enabled: bool | None = None
+    email_enabled: bool | None = None
+    in_app_min_severity: NotificationSeverity | None = None
+    email_min_severity: NotificationSeverity | None = None
 
 
 class UserProjectFavoriteUpdate(BaseModel):

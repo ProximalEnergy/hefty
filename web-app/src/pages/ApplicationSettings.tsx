@@ -1,4 +1,14 @@
 import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
+import { NotificationSeverityEnum } from '@/api/enumerations'
+import {
+  type NotificationPreference,
+  useGetNotificationPreferences,
+  useUpdateNotificationPreference,
+} from '@/api/v1/admin/notification_preferences'
+import {
+  type NotificationType,
+  useGetNotificationTypes,
+} from '@/api/v1/admin/notification_types'
 import { useGetSubscriptions } from '@/api/v1/admin/subscriptions'
 import {
   useGetEventChatNotificationStatusesBatch,
@@ -10,10 +20,8 @@ import { clearTips } from '@/components/Tips'
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import { Teams as AdminTeams } from '@/components/admin/Teams'
 import { GISContext } from '@/contexts/GISContext'
-import {
-  useUpdateNotificationSubscription,
-  useUpdateReportSubscription,
-} from '@/hooks/api'
+import { useUpdateReportSubscription } from '@/hooks/api'
+import type { UserSubscription } from '@/hooks/types'
 import { useUser } from '@clerk/clerk-react'
 import {
   Accordion,
@@ -29,21 +37,28 @@ import {
   SegmentedControl,
   Stack,
   Switch,
+  Table,
   Text,
   Title,
+  Tooltip,
   rem,
+  useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import {
+  IconAlertCircle,
+  IconAlertTriangle,
   IconBolt,
+  IconInfoCircle,
   IconMessage,
   IconNotification,
   IconReport,
   IconTrash,
+  IconX,
 } from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 const TeamsGate = ({ children }: { children: React.ReactNode }) => (
@@ -141,15 +156,7 @@ const ApplicationSettings = () => {
 function Subscriptions() {
   const projects = useGetProjects({ personalPortfolio: false })
   const subscriptions = useGetSubscriptions({})
-  const notificationMutation = useUpdateNotificationSubscription()
   const reportMutation = useUpdateReportSubscription()
-
-  const handleNotificationSubscriptionChange = (
-    value: boolean,
-    project_id: string,
-  ) => {
-    notificationMutation.mutate({ project_id, subscribe: value })
-  }
 
   const handleReportSubscriptionChange = (
     value: boolean,
@@ -158,27 +165,35 @@ function Subscriptions() {
     reportMutation.mutate({ project_id, subscribe: value })
   }
 
-  // Get array of project IDs for which the user is subscribed to notifications
-  const notificationSubscriptions = subscriptions.data
-    ?.filter((sub) => sub.notifications)
-    .map((sub) => sub.operational_project_id)
-
   // Get array of project IDs for which the user is subscribed to reports
   const reportSubscriptions = subscriptions.data
-    ?.filter((sub) => sub.reports)
-    .map((sub) => sub.operational_project_id)
+    ?.filter((sub: UserSubscription) => sub.reports)
+    .map((sub: UserSubscription) => sub.operational_project_id)
 
   return (
     <>
-      <Title order={2}>Subscriptions</Title>
-      <Text>
-        Subscriptions allow you to receive emails for notifications and reports.
-        You can change your subscription settings by clicking the checkboxes
-        below. Event Chat Notifications control whether you receive emails for
-        the first message posted on event chats for each project.
-      </Text>
+      <Title order={2}>Notifications</Title>
+
       <Accordion multiple={true} variant="separated">
-        <Accordion.Item value={'Notifications'}>
+        <Accordion.Item value={'Event Chat Messages'}>
+          <Accordion.Control
+            icon={
+              <IconMessage
+                style={{
+                  width: rem(20),
+                  height: rem(20),
+                }}
+              />
+            }
+            disabled={!projects.data}
+          >
+            Event Chat Messages
+          </Accordion.Control>
+          <Accordion.Panel>
+            <EventChatNotificationsPanel projects={projects.data || []} />
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value={'Weather'}>
           <Accordion.Control
             icon={
               <IconNotification
@@ -188,32 +203,12 @@ function Subscriptions() {
                 }}
               />
             }
-            disabled={!projects.data || !notificationSubscriptions}
+            disabled={!projects.data}
           >
-            Notifications
+            Weather
           </Accordion.Control>
           <Accordion.Panel>
-            <Stack gap="xs">
-              {notificationSubscriptions &&
-                projects.data
-                  ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
-                  .map((project) => (
-                    <Checkbox
-                      key={project.project_id}
-                      value={project.project_id}
-                      label={project.name_long}
-                      checked={notificationSubscriptions.includes(
-                        project.project_id,
-                      )}
-                      onChange={(value) =>
-                        handleNotificationSubscriptionChange(
-                          value.currentTarget.checked,
-                          project.project_id,
-                        )
-                      }
-                    />
-                  ))}
-            </Stack>
+            <WeatherPanel projects={projects.data || []} />
           </Accordion.Panel>
         </Accordion.Item>
         <Accordion.Item value={'Reports'}>
@@ -226,7 +221,7 @@ function Subscriptions() {
                 }}
               />
             }
-            disabled={!projects.data || !notificationSubscriptions}
+            disabled={!projects.data || !reportSubscriptions}
           >
             Reports
           </Accordion.Control>
@@ -252,26 +247,312 @@ function Subscriptions() {
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>
-        <Accordion.Item value={'Event Chat Notifications'}>
-          <Accordion.Control
-            icon={
-              <IconMessage
-                style={{
-                  width: rem(20),
-                  height: rem(20),
-                }}
-              />
-            }
-            disabled={!projects.data}
-          >
-            First Event Chat Notifications
-          </Accordion.Control>
-          <Accordion.Panel>
-            <EventChatNotificationsPanel projects={projects.data || []} />
-          </Accordion.Panel>
-        </Accordion.Item>
       </Accordion>
     </>
+  )
+}
+
+function WeatherPanel({
+  projects,
+}: {
+  projects: Array<{ project_id: string; name_long: string }>
+}) {
+  const theme = useMantineTheme()
+  const colorScheme = useComputedColorScheme()
+  const notificationTypes = useGetNotificationTypes({})
+  const preferences = useGetNotificationPreferences({})
+  const updateMutation = useUpdateNotificationPreference()
+
+  // Find weather notification types
+  const weatherTypes = useMemo(() => {
+    if (!notificationTypes.data) return []
+    const types = notificationTypes.data.filter((type) => {
+      const nameLower = type.name_long.toLowerCase()
+      return (
+        nameLower.includes('hail') ||
+        nameLower.includes('wind') ||
+        nameLower.includes('fire') ||
+        nameLower.includes('tornado')
+      )
+    })
+
+    // Order: Hail, Wind, Fire, Tornado
+    const order = ['hail', 'wind', 'fire', 'tornado']
+    return types.sort((a, b) => {
+      const aIndex = order.findIndex((o) =>
+        a.name_long.toLowerCase().includes(o),
+      )
+      const bIndex = order.findIndex((o) =>
+        b.name_long.toLowerCase().includes(o),
+      )
+      if (aIndex === -1) return 1
+      if (bIndex === -1) return -1
+      return aIndex - bIndex
+    })
+  }, [notificationTypes.data])
+
+  // Create a map of preferences for quick lookup
+  const preferencesMap = useMemo(() => {
+    const map = new Map<string, NotificationPreference>()
+    preferences.data?.forEach((pref) => {
+      const key = `${pref.project_id}-${pref.notification_type_id}`
+      map.set(key, pref)
+    })
+    return map
+  }, [preferences.data])
+
+  const getPreference = (
+    projectId: string,
+    notificationTypeId: number,
+  ): NotificationPreference | null => {
+    const key = `${projectId}-${notificationTypeId}`
+    return preferencesMap.get(key) || null
+  }
+
+  const sortedProjects = [...projects].sort((a, b) =>
+    a.name_long.localeCompare(b.name_long),
+  )
+
+  if (notificationTypes.isLoading || preferences.isLoading) {
+    return <Loader />
+  }
+
+  // Get display names for weather types
+  const getWeatherTypeName = (type: NotificationType): string => {
+    const nameLower = type.name_long.toLowerCase()
+    if (nameLower.includes('hail')) return 'Hail'
+    if (nameLower.includes('wind')) return 'Wind'
+    if (nameLower.includes('fire')) return 'Fire'
+    if (nameLower.includes('tornado')) return 'Tornadoes'
+    return type.name_long
+  }
+
+  // Get tooltip text for weather types
+  const getWeatherTypeTooltip = (type: NotificationType): string => {
+    const nameLower = type.name_long.toLowerCase()
+    let weatherType = ''
+    if (nameLower.includes('hail')) weatherType = 'Hail'
+    else if (nameLower.includes('wind')) weatherType = 'Wind'
+    else if (nameLower.includes('fire')) weatherType = 'Fire'
+    else if (nameLower.includes('tornado')) weatherType = 'Tornado'
+    else {
+      // Remove all caps and convert to title case
+      const words = type.name_long.toLowerCase().split(' ')
+      weatherType = words
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    }
+
+    return `${weatherType} forecasts from the National Weather Service (NWS)`
+  }
+
+  // Generate severity control data with colored icons
+  const getSeverityControlData = () => {
+    const isDark = colorScheme === 'dark'
+    const iconSize = 14
+
+    return [
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconX
+              size={iconSize}
+              color={isDark ? theme.colors.gray[5] : theme.colors.gray[7]}
+            />
+            <span>OFF</span>
+          </span>
+        ),
+        value: 'OFF',
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconInfoCircle
+              size={iconSize}
+              color={isDark ? theme.colors.blue[4] : theme.colors.blue[6]}
+            />
+            <span>INFO</span>
+          </span>
+        ),
+        value: NotificationSeverityEnum.INFO.toUpperCase(),
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconAlertTriangle
+              size={iconSize}
+              color={isDark ? theme.colors.yellow[4] : theme.colors.yellow[6]}
+            />
+            <span>WARN</span>
+          </span>
+        ),
+        value: NotificationSeverityEnum.WARNING.toUpperCase(),
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconAlertCircle
+              size={iconSize}
+              color={isDark ? theme.colors.red[4] : theme.colors.red[6]}
+            />
+            <span>CRIT</span>
+          </span>
+        ),
+        value: NotificationSeverityEnum.CRITICAL.toUpperCase(),
+      },
+    ]
+  }
+
+  return (
+    <Stack gap="md">
+      <Text size="sm" c="dimmed">
+        Configure notifications for weather-related events. Severity levels:
+        INFO (&lt; 15%), WARNING (&lt; 30%), CRITICAL (&gt; 30%).
+      </Text>
+      <Table.ScrollContainer minWidth={800}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Project Name</Table.Th>
+              {weatherTypes.map((type) => (
+                <Table.Th key={type.notification_type_id}>
+                  <Group gap={4}>
+                    {getWeatherTypeName(type)}
+                    <Tooltip label={getWeatherTypeTooltip(type)}>
+                      <ActionIcon size="xs" variant="transparent" color="gray">
+                        <IconInfoCircle size={14} />
+                      </ActionIcon>
+                    </Tooltip>
+                  </Group>
+                </Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedProjects.map((project) => (
+              <Table.Tr key={project.project_id}>
+                <Table.Td>{project.name_long}</Table.Td>
+                {weatherTypes.map((type) => {
+                  const preference = getPreference(
+                    project.project_id,
+                    type.notification_type_id,
+                  )
+                  const inAppEnabled =
+                    preference?.in_app_enabled ?? type.in_app_enabled_default
+                  const emailEnabled =
+                    preference?.email_enabled ?? type.email_enabled_default
+                  const inAppSeverity =
+                    preference?.in_app_min_severity ??
+                    type.in_app_severity_default ??
+                    'info'
+                  const emailSeverity =
+                    preference?.email_min_severity ??
+                    type.email_severity_default ??
+                    'info'
+
+                  return (
+                    <Table.Td key={type.notification_type_id}>
+                      <Stack gap="xs">
+                        <Group gap="xs" align="center">
+                          <Text size="xs" w={50}>
+                            in-app:
+                          </Text>
+                          <SegmentedControl
+                            size="xs"
+                            value={
+                              inAppEnabled ? inAppSeverity.toUpperCase() : 'OFF'
+                            }
+                            onChange={(value) => {
+                              if (value === 'OFF') {
+                                updateMutation.mutate({
+                                  project_id: project.project_id,
+                                  notification_type_id:
+                                    type.notification_type_id,
+                                  in_app_enabled: false,
+                                })
+                              } else {
+                                updateMutation.mutate({
+                                  project_id: project.project_id,
+                                  notification_type_id:
+                                    type.notification_type_id,
+                                  in_app_enabled: true,
+                                  in_app_min_severity: value?.toLowerCase() as
+                                    | 'info'
+                                    | 'warning'
+                                    | 'critical',
+                                })
+                              }
+                            }}
+                            data={getSeverityControlData()}
+                          />
+                        </Group>
+                        <Group gap="xs" align="center">
+                          <Text size="xs" w={50}>
+                            email:
+                          </Text>
+                          <SegmentedControl
+                            size="xs"
+                            value={
+                              emailEnabled ? emailSeverity.toUpperCase() : 'OFF'
+                            }
+                            onChange={(value) => {
+                              if (value === 'OFF') {
+                                updateMutation.mutate({
+                                  project_id: project.project_id,
+                                  notification_type_id:
+                                    type.notification_type_id,
+                                  email_enabled: false,
+                                })
+                              } else {
+                                updateMutation.mutate({
+                                  project_id: project.project_id,
+                                  notification_type_id:
+                                    type.notification_type_id,
+                                  email_enabled: true,
+                                  email_min_severity: value?.toLowerCase() as
+                                    | 'info'
+                                    | 'warning'
+                                    | 'critical',
+                                })
+                              }
+                            }}
+                            data={getSeverityControlData()}
+                          />
+                        </Group>
+                      </Stack>
+                    </Table.Td>
+                  )
+                })}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
+    </Stack>
   )
 }
 
