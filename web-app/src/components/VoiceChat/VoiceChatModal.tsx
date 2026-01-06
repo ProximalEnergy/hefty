@@ -786,9 +786,14 @@ const VoiceChatModal = ({
                       </Text>
                     )}
                   {isDisconnected && (
-                    <Text size="lg" fw={600} c="white">
-                      Disconnected...
-                    </Text>
+                    <>
+                      <Text size="lg" fw={600} c="white">
+                        Disconnected
+                      </Text>
+                      <Text size="md" fw={600} c="white">
+                        Press the green call button below to reconnect.
+                      </Text>
+                    </>
                   )}
                   {!isConnected &&
                     !isCalling &&
