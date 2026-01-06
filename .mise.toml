@@ -315,8 +315,12 @@ depends = [
   "api:deptry",
   "api:vulture",
   "api:docstring_args",
+  "api:db_query_get",
   "api:unused_routes",
 ]
+run = """
+mise run api:hurl || true
+"""
 
 [tasks."api:ruff"]
 description = "Run ruff linter for api"
@@ -370,6 +374,13 @@ hurl --location --variable baseURL=http://127.0.0.1:8000 \
 description = "Check docstring Args sections in api"
 dir = "."
 run = "uv run _scripts/check_docstring_args.py api"
+
+[tasks."api:db_query_get"]
+description = "Check for DbQuery.get usage in api"
+dir = "api"
+run = """
+../_scripts/db_query_get_check.sh
+"""
 
 [tasks."api:unused_routes"]
 description = "Check for API routes unused by the web-app (fast, OpenAPI-based)"
@@ -462,6 +473,11 @@ run = "npm run preview"
 description = "Run TypeScript check, ESLint, and format web-app"
 dir = "web-app"
 run = "npm run check && npm run lint"
+
+[tasks."web:console_log_check"]
+description = "Fail if console.log is in web-app src TypeScript files"
+dir = "web-app"
+run = "./_pr_checks/console_log_check.sh"
 
 [tasks."web:lint"]
 description = "Run ESLint for web-app"

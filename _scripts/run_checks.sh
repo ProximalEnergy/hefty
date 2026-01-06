@@ -246,6 +246,7 @@ if [ "${RUN_API}" = "true" ]; then
     run_check "API: Ruff Formatting" "mise run api:format"
     run_check "API: Unused Import Check" "mise run api:deptry"
     run_check "API: Dead Code Check" "mise run api:vulture"
+    run_check "API: DbQuery.get Check" "mise run api:db_query_get"
     run_check "API: Pytest" "mise run api:pytest"
     run_check "API: Docstring Args Check" "mise run api:docstring_args"
     run_check "API: Unused Routes Check" \
@@ -264,6 +265,8 @@ fi
 
 if [ "${RUN_WEB}" = "true" ]; then
     run_check "Web-App: TypeScript & Format Check" "mise run web:check"
+    run_check "Web-App: Console Log Check" \
+        "mise run web:console_log_check"
 fi
 
 # Print summary

@@ -85,13 +85,27 @@ def seed_from_project_name(*, name: str) -> None:
     random.seed(seed_value)
 
 
-def anonymize_projects(*, projects: list[models.Project]) -> list[models.Project]:
+def anonymize_projects(
+    *,
+    projects: list[models.Project | dict[str, Any]],
+) -> list[models.Project | dict[str, Any]]:
     """Handle anonymize projects.
 
     Args:
         projects: TODO: describe.
     """
     for project in projects:
+        if isinstance(project, dict):
+            name_long = project.get("name_long")
+            if not name_long:
+                continue
+            seed_from_project_name(name=name_long)
+            name = generate_random_name()
+            name_short = name.lower().replace(" ", "_")
+            project["name_short"] = name_short
+            project["name_long"] = name
+            continue
+
         seed_from_project_name(name=project.name_long)
         name = generate_random_name()
         name_short = name.lower().replace(" ", "_")

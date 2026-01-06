@@ -17,6 +17,7 @@ from core.enumerations import NotificationSeverity, UserTypeEnum
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
 from pydantic.config import ConfigDict
+from shapely import wkb, wkt
 from shapely.geometry import mapping
 
 
@@ -183,6 +184,12 @@ def convert(WKBElement):  # nosemgrep: python-enforce-keyword-only-args
     # If it's already a dict (GeoJSON), return as-is
     if isinstance(WKBElement, dict):
         return WKBElement
+    # If it's raw WKB bytes (e.g. from Polars/Pandas via db_query), parse with shapely
+    if isinstance(WKBElement, bytes):
+        return mapping(wkb.loads(WKBElement))
+    # If it's WKT string (unlikely but possible), parse with shapely
+    if isinstance(WKBElement, str):
+        return mapping(wkt.loads(WKBElement))
     # Only convert WKBElement objects from the database
     return mapping(to_shape(WKBElement))
 
@@ -727,6 +734,8 @@ class Report(BaseModel):
 class ReportType(BaseModel):
     """Reporttype model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     report_type_id: int
     name_short: str
     name_long: str
@@ -734,6 +743,8 @@ class ReportType(BaseModel):
 
 class ReportInstance(BaseModel):
     """Reportinstance model."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     project_id: uuid.UUID
     report_type_id: int

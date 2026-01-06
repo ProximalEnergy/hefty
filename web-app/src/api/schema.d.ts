@@ -2608,6 +2608,7 @@ export interface paths {
          *     Args:
          *         db: TODO: describe.
          *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
          *         device_id: TODO: describe.
          *         time_end_gte: TODO: describe.
          *         time_end_lt: TODO: describe.
@@ -2636,6 +2637,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
+         *         project_id: TODO: describe.
          *         page: TODO: describe.
          *         page_size: TODO: describe.
          *         sort_column: TODO: describe.
@@ -2696,6 +2698,7 @@ export interface paths {
          *     Args:
          *         project_db: TODO: describe.
          *         db: TODO: describe.
+         *         project_id: TODO: describe.
          */
         get: operations["get_event_devices_v1_operational_projects__project_id__events_event_devices_get"];
         put?: never;
@@ -2802,6 +2805,7 @@ export interface paths {
          *     Args:
          *         project_db: TODO: describe.
          *         db: TODO: describe.
+         *         project_id: TODO: describe.
          *         start: TODO: describe.
          *         end: TODO: describe.
          */
@@ -3213,7 +3217,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: TODO: describe.
-         *         db: TODO: describe.
          *         is_superadmin: TODO: describe.
          *         report_type_ids: TODO: describe.
          *         deep: TODO: describe.
@@ -5797,6 +5800,7 @@ export interface paths {
          *     Args:
          *         db: TODO: describe.
          *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
          *         mode: TODO: describe.
          *         ignored_device_type_ids: TODO: describe.
          */
@@ -15991,7 +15995,6 @@ export interface operations {
         parameters: {
             query?: {
                 deep?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;

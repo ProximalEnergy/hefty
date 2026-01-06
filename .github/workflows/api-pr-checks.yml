@@ -124,6 +124,20 @@ jobs:
         run: uv run python _scripts/check_unused_routes.py --mode openapi
         working-directory: api
 
+  db-query-get:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: Check for DbQuery.get usage
+        run: |
+          ./_scripts/db_query_get_check.sh
+
   # smoke_test:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -160,5 +174,7 @@ jobs:
   #     WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
 
   # - name: Run smoke tests
-  #   run: hurl --location --variable baseURL=http://localhost:8000 --variable apiKey=${{ secrets.STAGING_API_KEY }} --test ./_smoke_testing/hurl/get/*
+  #   run: hurl --location --variable baseURL=http://localhost:8000 \
+  #     --variable apiKey=${{ secrets.STAGING_API_KEY }} \
+  #     --test ./_smoke_testing/hurl/get/*
   #   working-directory: api

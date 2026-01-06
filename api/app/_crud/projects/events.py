@@ -1,13 +1,12 @@
 import datetime
 
+from core.db_query import DbQuery
 from sqlalchemy import Date, case, cast, func, or_, select, text
-from sqlalchemy.orm import Session, selectinload
 
 from core import models
 
 
 def get_project_events(
-    db: Session,
     *,
     device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
@@ -16,11 +15,10 @@ def get_project_events(
     device_ids: list[int] | None = None,
     event_ids: list[int] | None = None,
     open_at: datetime.datetime | None = None,
-):
+) -> DbQuery[models.Event]:
     """todo
 
     Args:
-        db: TODO: describe.
         device_id: TODO: describe.
         time_end_gte: TODO: describe.
         time_end_lt: TODO: describe.
@@ -29,9 +27,7 @@ def get_project_events(
         event_ids: TODO: describe.
         open_at: TODO: describe.
     """
-    stmt = select(models.Event).options(
-        selectinload(models.Event.device),
-    )
+    stmt = select(models.Event)
 
     if device_id is not None:
         stmt = stmt.where(models.Event.device_id == device_id)
@@ -51,25 +47,16 @@ def get_project_events(
     if event_ids is not None:
         stmt = stmt.where(models.Event.event_id.in_(event_ids))
 
-    result = db.execute(stmt)
-    return result.scalars().all()
+    return DbQuery(query=stmt)
 
 
-def get_event_device_ids(
-    db: Session,
-) -> list[int]:  # nosemgrep: python-enforce-keyword-only-args
-    """todo
-
-    Args:
-        db: TODO: describe.
-    """
+def get_event_device_ids() -> DbQuery[models.Event]:
+    """todo"""
     stmt = select(models.Event.device_id).distinct()
-    result = db.execute(stmt)
-    return list(result.scalars().all())
+    return DbQuery(query=stmt)
 
 
 def get_paginated_events(
-    db: Session,
     *,
     page: int,
     page_size: int,
@@ -80,11 +67,10 @@ def get_paginated_events(
     device_ids: list[int] | None,
     start: datetime.datetime | None,
     end: datetime.datetime | None,
-):
+) -> DbQuery[models.Event]:
     """todo
 
     Args:
-        db: TODO: describe.
         page: TODO: describe.
         page_size: TODO: describe.
         sort_column: TODO: describe.
@@ -140,14 +126,10 @@ def get_paginated_events(
 
     stmt = stmt.limit(page_size).offset(page * page_size)
 
-    result = db.execute(stmt)
-    if sort_column == "loss_daily":
-        return result.all()
-    return result.scalars().all()
+    return DbQuery(query=stmt)
 
 
 def get_events_with_device_info(
-    db: Session,
     *,
     device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
@@ -159,14 +141,13 @@ def get_events_with_device_info(
     device_type_ids: list[int] | None = None,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-):
+) -> DbQuery[models.Event]:
     """Get events with joined device and device_type information.
 
         This function provides a more efficient way to fetch events with their related
-        device and device type data in a single query using joinedload.
+        device and device type data in a single query using joins.
 
     Args:
-        db: TODO: describe.
         device_id: TODO: describe.
         time_end_gte: TODO: describe.
         time_end_lt: TODO: describe.
@@ -178,11 +159,20 @@ def get_events_with_device_info(
         start: TODO: describe.
         end: TODO: describe.
     """
-    stmt = select(models.Event).options(
-        selectinload(models.Event.device).selectinload(models.Device.device_type)
+    stmt = (
+        select(
+            models.Event,
+            models.Device.name_long.label("device_name_long"),
+            models.DeviceType.name_long.label("device_type_name_long"),
+        )
+        .select_from(models.Event)
+        .join(models.Device, models.Event.device_id == models.Device.device_id)
+        .join(
+            models.DeviceType,
+            models.Device.device_type_id == models.DeviceType.device_type_id,
+            isouter=True,
+        )
     )
-    stmt = stmt.options(selectinload(models.Event.failure_mode))
-    stmt = stmt.options(selectinload(models.Event.root_cause))
 
     # Apply filters
     if device_id is not None:
@@ -213,32 +203,40 @@ def get_events_with_device_info(
     if end is not None:
         stmt = stmt.where(models.Event.time_start <= end)
 
-    result = db.execute(stmt)
-    return result.scalars().all()
+    return DbQuery(query=stmt)
 
 
 def get_events_summary(
-    db: Session,
     *,
     open: bool = True,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     device_type_ids: list[int] | None = None,
     device_ids: list[int] | None = None,
-):
+) -> DbQuery[models.Event]:
     """Get events with filters applied, along with device and device type information.
         This is specifically designed for generating event summaries with device info.
 
     Args:
-        db: TODO: describe.
         open: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         device_type_ids: TODO: describe.
         device_ids: TODO: describe.
     """
-    stmt = select(models.Event).options(
-        selectinload(models.Event.device).selectinload(models.Device.device_type),
+    stmt = (
+        select(
+            models.Event,
+            models.Device.name_long.label("device_name_long"),
+            models.DeviceType.name_long.label("device_type_name_long"),
+        )
+        .select_from(models.Event)
+        .join(models.Device, models.Event.device_id == models.Device.device_id)
+        .join(
+            models.DeviceType,
+            models.Device.device_type_id == models.DeviceType.device_type_id,
+            isouter=True,
+        )
     )
 
     # Apply filters
@@ -257,5 +255,4 @@ def get_events_summary(
     if open:
         stmt = stmt.where(models.Event.time_end.is_(None))
 
-    result = db.execute(stmt)
-    return result.scalars().all()
+    return DbQuery(query=stmt)

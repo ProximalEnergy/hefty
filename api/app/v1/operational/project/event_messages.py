@@ -8,7 +8,8 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
-from core.crud.operational.projects import get_project_async
+from core.crud.operational.projects import get_projects
+from core.db_query import OutputType
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -318,28 +319,28 @@ async def send_event_chat_email(
     <html>
     <body>
         <p>Hi {recipient_name},</p>
-        
+
         <p><strong>{sender_name}</strong> posted a new message on Event #{event_id}:</p>
-        
+
         {event_details_html}
-        
+
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <p style="margin: 0; white-space: pre-wrap;">{message_preview}</p>
         </div>
-        
+
         <p>
             <a href="{event_url}" style="background-color: {company_theme_color}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 View Event Chat
             </a>
         </p>
-        
+
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
             {reason_text}
             <a href="{event_url}&mute=true">Mute this conversation</a>
         </p>
-        
+
         <p style="color: #666; font-size: 12px; margin-top: 15px;">
-            To control email notifications for first messages on event chats per project, 
+            To control email notifications for first messages on event chats per project,
             visit your <a href="https://app.proximal.energy/application-settings" style="color: {company_theme_color}; text-decoration: underline;">Application Settings</a>.
         </p>
     </body>
@@ -476,8 +477,10 @@ async def send_notifications_for_message(
     if project_id:
         try:
             # Get project name
-            project = await get_project_async(db=db, project_id=project_id, deep=False)
-            if project:
+            db_query = get_projects(project_ids=[project_id])
+            rows = await db_query.get_async(output_type=OutputType.SQLALCHEMY)
+            if rows:
+                project = rows[0]
                 project_name = project.name_long
 
             # Get event details from project schema

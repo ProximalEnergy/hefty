@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
@@ -59,9 +60,10 @@ def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-o
 
 
 @router.get("", response_model=list[interfaces.Event])
-def get_events(
+async def get_events(
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
+    project_id: uuid.UUID,
     device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
     time_end_lt: datetime.datetime | None = None,
@@ -74,6 +76,7 @@ def get_events(
     Args:
         db: TODO: describe.
         project_db: TODO: describe.
+        project_id: TODO: describe.
         device_id: TODO: describe.
         time_end_gte: TODO: describe.
         time_end_lt: TODO: describe.
@@ -84,9 +87,12 @@ def get_events(
     if device_id == -1:
         return None
 
+    project_name_short = get_project_name_short(project_id=project_id)
+    if not project_name_short:
+        raise HTTPException(status_code=404, detail="Project not found")
+
     # Use the CRUD function to get events with device information
-    events = crud_get_events_with_device_info(
-        project_db,
+    events_query = crud_get_events_with_device_info(
         device_id=device_id,
         time_end_gte=time_end_gte,
         time_end_lt=time_end_lt,
@@ -94,32 +100,37 @@ def get_events(
         event_ids=event_ids,
         open_at=open_at,
     )
+    events_df = await events_query.get_async(
+        schema=project_name_short,
+        output_type=OutputType.POLARS,
+    )
+    if events_df is None or events_df.is_empty():
+        return []
+    events = events_df.to_dicts()
 
     if len(events) == 0:
         return []
 
     # Process the results using a more efficient approach
-    result = []
+    result: list[interfaces.Event] = []
     for event in events:
-        device = event.device
-        device_type = device.device_type if device else None
-
-        device_type_name = device_type.name_long if device_type else "Unknown"
-        device_name = device.name_long or ""
+        device_type_name = event.get("device_type_name_long") or "Unknown"
+        device_name = event.get("device_name_long") or ""
         device_name_full = f"{device_type_name} {device_name}"
 
-        event_dict = event.__dict__.copy()
-        if "_sa_instance_state" in event_dict:
-            del event_dict["_sa_instance_state"]
+        event_dict = dict(event)
+        event_dict.pop("device_type_name_long", None)
+        event_dict.pop("device_name_long", None)
 
         event_dict["device_name_full"] = device_name_full
-        result.append(event_dict)
+        result.append(interfaces.Event(**event_dict))
 
     return result
 
 
 @router.get("/paginated-events", response_model=list[interfaces.PaginatedEvent])
 async def get_paginated_events(
+    project_id: uuid.UUID,
     page: int,
     page_size: int = 20,
     sort_column: str = "time_start",
@@ -136,6 +147,7 @@ async def get_paginated_events(
     """todo
 
     Args:
+        project_id: TODO: describe.
         page: TODO: describe.
         page_size: TODO: describe.
         sort_column: TODO: describe.
@@ -148,8 +160,11 @@ async def get_paginated_events(
         project_db: TODO: describe.
         db: TODO: describe.
     """
-    data = crud_get_paginated_events(
-        db=project_db,
+    project_name_short = get_project_name_short(project_id=project_id)
+    if not project_name_short:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    data_query = crud_get_paginated_events(
         page=page,
         page_size=page_size,
         sort_column=sort_column,
@@ -160,19 +175,25 @@ async def get_paginated_events(
         start=start,
         end=end,
     )
+    data_df = await data_query.get_async(
+        schema=project_name_short,
+        output_type=OutputType.POLARS,
+    )
+    if data_df is None or data_df.is_empty():
+        return []
+    data = data_df.to_dicts()
 
     if not data:
         return []
 
-    # Extract event objects depending on sort mode
-    event_objs = [x[0] for x in data] if sort_column == "loss_daily" else data
+    event_objs = data
 
-    event_ids = [e.event_id for e in event_objs]
-    device_ids_only = [e.device_id for e in event_objs]
+    event_ids = [int(e["event_id"]) for e in event_objs]
+    device_ids_only = [int(e["device_id"]) for e in event_objs]
 
     # Root causes: fetch only those referenced (minor efficiency boost; same behavior)
     root_cause_ids: list[int] = [
-        int(e.root_cause_id) for e in event_objs if e.root_cause_id is not None
+        int(e["root_cause_id"]) for e in event_objs if e["root_cause_id"] is not None
     ]
 
     root_causes = await get_root_causes(
@@ -202,11 +223,11 @@ async def get_paginated_events(
     # Precompute full device names
     device_name_full_by_event: dict[uuid.UUID, str] = {}
     for e in event_objs:
-        d = device_dict.get(e.device_id)
+        d = device_dict.get(e["device_id"])
         if d:
             dt = device_type_dict.get(d.device_type_id)
             if dt:
-                device_name_full_by_event[e.event_id] = (
+                device_name_full_by_event[e["event_id"]] = (
                     f"{dt.name_long} {d.name_long or ''}"
                 )
 
@@ -237,10 +258,10 @@ async def get_paginated_events(
         ev = pd.DataFrame(
             [
                 {
-                    "event_id": e.event_id,
-                    "time_start": e.time_start,
-                    "time_end": e.time_end
-                    or datetime.datetime.now(e.time_start.tzinfo),
+                    "event_id": e["event_id"],
+                    "time_start": e["time_start"],
+                    "time_end": e["time_end"]
+                    or datetime.datetime.now(e["time_start"].tzinfo),
                 }
                 for e in event_objs
             ]
@@ -296,7 +317,7 @@ async def get_paginated_events(
     # Build response
     out: list[interfaces.PaginatedEvent] = []
     for e in event_objs:
-        ev_id = e.event_id
+        ev_id = e["event_id"]
         name_full = device_name_full_by_event.get(ev_id, "Unknown")
         loss_vals = losses_map.get(ev_id, {})
 
@@ -304,8 +325,8 @@ async def get_paginated_events(
             interfaces.PaginatedEvent(
                 event_id=ev_id,
                 device_name_full=name_full,
-                time_start=e.time_start,
-                time_end=e.time_end,
+                time_start=e["time_start"],
+                time_end=e["time_end"],
                 # per original code, "today" fields are constant zeros
                 loss_daily_power=loss_vals.get("loss_daily_power"),
                 loss_today_power=0,
@@ -313,7 +334,7 @@ async def get_paginated_events(
                 loss_daily_financial=loss_vals.get("loss_daily_financial"),
                 loss_today_financial=0,
                 loss_total_financial=loss_vals.get("loss_total_financial"),
-                root_cause=root_cause_id_to_name.get(e.root_cause_id) or "Unknown",
+                root_cause=root_cause_id_to_name.get(e["root_cause_id"]) or "Unknown",
             )
         )
 
@@ -348,9 +369,10 @@ async def update_event_root_cause(
 
 
 @router.get("/event-devices")
-def get_event_devices(
+async def get_event_devices(
     project_db: Annotated[Session, Depends(get_project_db)],
     db: Annotated[Session, Depends(get_db)],
+    project_id: uuid.UUID,
 ):
     # First get all device IDs that have events in a single query
     """todo
@@ -358,8 +380,24 @@ def get_event_devices(
     Args:
         project_db: TODO: describe.
         db: TODO: describe.
+        project_id: TODO: describe.
     """
-    device_ids = crud_get_event_device_ids(db=project_db)
+    project_name_short = get_project_name_short(project_id=project_id)
+    if not project_name_short:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    device_ids_query = crud_get_event_device_ids()
+    device_ids_df = await device_ids_query.get_async(
+        schema=project_name_short,
+        output_type=OutputType.POLARS,
+    )
+    if device_ids_df is None or device_ids_df.is_empty():
+        return {"unique_types": [], "unique_devices": []}
+    device_ids = [
+        int(row["device_id"])
+        for row in device_ids_df.to_dicts()
+        if row.get("device_id") is not None
+    ]
 
     if not device_ids:
         return {"unique_types": [], "unique_devices": []}
@@ -435,25 +473,38 @@ async def get_events_summary(
     if end is not None:
         end = end.astimezone(tzinfo)
 
-    # Run sync database operations in thread pool to avoid blocking event loop
-    events = await asyncio.to_thread(
-        crud_get_events_summary,
-        project_db,
+    # Fetch events via DbQuery to avoid ORM overhead
+    project_name_short = (
+        get_project_name_short(project_id=project_id)
+        if project_id is not None
+        else project.name_short
+    )
+    if not project_name_short:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    events_query = crud_get_events_summary(
         open=open,
         start=start,
         end=end,
         device_type_ids=device_type_ids,
         device_ids=device_ids,
     )
+    events_df = await events_query.get_async(
+        schema=project_name_short,
+        output_type=OutputType.POLARS,
+    )
+    if events_df is None or events_df.is_empty():
+        return []
+    events = events_df.to_dicts()
     if not events:
         return []
 
-    event_ids = [e.event_id for e in events]
+    event_ids = [int(e["event_id"]) for e in events]
     failure_mode_ids = list(
-        {e.failure_mode_id for e in events if e.failure_mode_id is not None}
+        {int(e["failure_mode_id"]) for e in events if e["failure_mode_id"] is not None}
     )
     root_cause_ids = list(
-        {e.root_cause_id for e in events if e.root_cause_id is not None}
+        {int(e["root_cause_id"]) for e in events if e["root_cause_id"] is not None}
     )
 
     # Parallelize async database calls
@@ -463,7 +514,7 @@ async def get_events_summary(
     losses_task = asyncio.to_thread(
         core.crud.project.event_losses.get_event_losses_summary_in_sql,
         project_db,
-        project_name=project.name_short,
+        project_name=project_name_short,
         event_ids=event_ids,
     )
 
@@ -521,10 +572,10 @@ async def get_events_summary(
         ev = pd.DataFrame(
             [
                 {
-                    "event_id": e.event_id,
-                    "time_start": e.time_start,
-                    "time_end": e.time_end
-                    or datetime.datetime.now(e.time_start.tzinfo),
+                    "event_id": e["event_id"],
+                    "time_start": e["time_start"],
+                    "time_end": e["time_end"]
+                    or datetime.datetime.now(e["time_start"].tzinfo),
                 }
                 for e in events_list
             ]
@@ -563,22 +614,26 @@ async def get_events_summary(
     unknown = "Unknown"
     out: list[interfaces.EventSummary] = []
     for e in events:
-        device = e.device
-        device_type = device.device_type if device else None
+        device_type_name = e.get("device_type_name_long") or unknown
+        device_name = e.get("device_name_long") or ""
+        device_name_full = f"{device_type_name} {device_name}"
 
-        device_type_name = device_type.name_long if device_type else unknown
-        device_name_full = f"{device_type_name} {device.name_long or ''}"
-
-        event_losses = losses_map.get(e.event_id, {})
+        event_losses = losses_map.get(e["event_id"], {})
         out.append(
             interfaces.EventSummary(
-                event_id=e.event_id,
+                event_id=e["event_id"],
                 device_type_name=device_type_name,
                 device_name_full=device_name_full,
-                time_start=e.time_start,
-                time_end=e.time_end,
-                failure_mode=failure_mode_id_to_name.get(e.failure_mode_id, unknown),
-                root_cause=root_cause_id_to_name.get(e.root_cause_id, unknown),
+                time_start=e["time_start"],
+                time_end=e["time_end"],
+                failure_mode=failure_mode_id_to_name.get(
+                    e["failure_mode_id"],
+                    unknown,
+                ),
+                root_cause=root_cause_id_to_name.get(
+                    e["root_cause_id"],
+                    unknown,
+                ),
                 loss_total_financial=event_losses.get("loss_total_financial"),
                 loss_total_energy=event_losses.get("loss_total_energy"),
                 loss_daily_financial=event_losses.get("loss_daily_financial"),
@@ -865,6 +920,7 @@ def get_event_trace_tags(
 async def get_llm_event_losses(
     project_db: Annotated[Session, Depends(get_project_db)],
     db: Annotated[AsyncSession, Depends(get_async_db)],
+    project_id: uuid.UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
@@ -873,6 +929,7 @@ async def get_llm_event_losses(
     Args:
         project_db: TODO: describe.
         db: TODO: describe.
+        project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
     """
@@ -882,17 +939,24 @@ async def get_llm_event_losses(
         if isinstance(end, str):
             end = datetime.datetime.fromisoformat(end.replace("Z", "+00:00"))
 
-        event_data = crud_get_events_with_device_info(
-            project_db,
+        project_name_short = get_project_name_short(project_id=project_id)
+        if not project_name_short:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        event_data_query = crud_get_events_with_device_info(
             time_end_gte=start,
             time_end_lt=end,
             open=False,
         )
-
-        if not event_data:
+        event_data_df = await event_data_query.get_async(
+            schema=project_name_short,
+            output_type=OutputType.POLARS,
+        )
+        if event_data_df is None or event_data_df.is_empty():
             return {"data": pd.DataFrame().to_dict("tight")}
+        event_data = event_data_df.to_dicts()
 
-        event_ids = [event.event_id for event in event_data]
+        event_ids = [int(event["event_id"]) for event in event_data]
         event_losses = core.crud.project.event_losses.get_event_losses(
             project_db,
             event_ids=event_ids,
@@ -915,13 +979,19 @@ async def get_llm_event_losses(
         df = pd.DataFrame(
             [
                 {
-                    "event_id": d.event_id,
-                    "time_start": d.time_start,
-                    "time_end": d.time_end,
-                    "device_id": d.device_id,
-                    "failure_mode": failure_mode_map.get(d.failure_mode_id, "Unknown"),
-                    "root_cause": root_cause_map.get(d.root_cause_id or -1, "Unknown"),
-                    "losses": event_losses_dict.get(d.event_id, []),
+                    "event_id": d["event_id"],
+                    "time_start": d["time_start"],
+                    "time_end": d["time_end"],
+                    "device_id": d["device_id"],
+                    "failure_mode": failure_mode_map.get(
+                        d["failure_mode_id"],
+                        "Unknown",
+                    ),
+                    "root_cause": root_cause_map.get(
+                        d["root_cause_id"] or -1,
+                        "Unknown",
+                    ),
+                    "losses": event_losses_dict.get(d["event_id"], []),
                 }
                 for d in event_data
             ],
