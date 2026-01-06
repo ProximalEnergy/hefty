@@ -23,7 +23,7 @@ def get_failure_modes(
     """
     query = db.query(models.FailureMode)
     if failure_mode_ids:
-        query = query.filter(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
+        query = query.where(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
     return ModelList(query=query, return_query=return_query)
 
 

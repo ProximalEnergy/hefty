@@ -13,4 +13,13 @@ rules:
     languages: [python]
     severity: ERROR
     patterns:
+      # Match generic case
       - pattern: $OBJ.filter(...)
+
+      # Exclude variables starting with 'df' (e.g. df, df_day_behind, df2)
+      - pattern-not:
+          patterns:
+            - pattern: $DF.filter(...)
+            - metavariable-regex:
+                metavariable: $DF
+                regex: ^df.*

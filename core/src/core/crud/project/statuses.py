@@ -451,7 +451,7 @@ def get_status_lookup(
     """
     query = db.query(models.StatusLookup)
     if status_lookup_ids:
-        query = query.filter(
+        query = query.where(
             models.StatusLookup.status_lookup_id.in_(status_lookup_ids),
         )
     return ModelList(query=query, return_query=return_query)
@@ -472,7 +472,7 @@ def get_status_binary(
     """
     query = db.query(models.StatusBinary)
     if status_binary_ids:
-        query = query.filter(
+        query = query.where(
             models.StatusBinary.status_binary_id.in_(status_binary_ids),
         )
     return ModelList(query=query, return_query=return_query)
@@ -493,7 +493,7 @@ def get_status_boolean(
     """
     query = db.query(models.StatusBoolean)
     if status_boolean_ids:
-        query = query.filter(
+        query = query.where(
             models.StatusBoolean.status_boolean_id.in_(status_boolean_ids),
         )
     return ModelList(query=query, return_query=return_query)
@@ -514,7 +514,7 @@ def get_status_string(
     """
     query = db.query(models.StatusString)
     if status_string_ids:
-        query = query.filter(
+        query = query.where(
             models.StatusString.status_string_id.in_(status_string_ids),
         )
     return ModelList(query=query, return_query=return_query)

@@ -30,12 +30,12 @@ def get_project_data_expected(
     """
     query = project_db.query(models.DataExpected)
 
-    query = query.filter(models.DataExpected.time >= start)
-    query = query.filter(models.DataExpected.time < end)
-    query = query.filter(models.DataExpected.device_id.in_(device_ids))
+    query = query.where(models.DataExpected.time >= start)
+    query = query.where(models.DataExpected.time < end)
+    query = query.where(models.DataExpected.device_id.in_(device_ids))
 
     if expected_metric_ids:
-        query = query.filter(
+        query = query.where(
             models.DataExpected.expected_metric_id.in_(expected_metric_ids),
         )
 

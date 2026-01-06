@@ -69,26 +69,26 @@ def get_project_devices(
     query = db.query(models.Device).options(options)
 
     if device_ids:
-        query = query.filter(models.Device.device_id.in_(device_ids))
+        query = query.where(models.Device.device_id.in_(device_ids))
     if device_type_ids:
-        query = query.filter(models.Device.device_type_id.in_(device_type_ids))
+        query = query.where(models.Device.device_type_id.in_(device_type_ids))
     if parent_device_ids:
-        query = query.filter(models.Device.parent_device_id.in_(parent_device_ids))
+        query = query.where(models.Device.parent_device_id.in_(parent_device_ids))
     if name_short:
-        query = query.filter(models.Device.name_short == name_short)
+        query = query.where(models.Device.name_short == name_short)
     if name_long:
-        query = query.filter(models.Device.name_long == name_long)
+        query = query.where(models.Device.name_long == name_long)
     if with_tags:
         tag_exists = (
             exists()
             .where(models.Tag.device_id == models.Device.device_id)
             .where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
         )
-        query = query.filter(tag_exists)
+        query = query.where(tag_exists)
     if device_id_descendent_of is not None:
-        query = query.filter(text(f"device_id_path ~ '*.{device_id_descendent_of}.*'"))
+        query = query.where(text(f"device_id_path ~ '*.{device_id_descendent_of}.*'"))
     if device_id_path_ancestor_of is not None:
-        query = query.filter(
+        query = query.where(
             text(
                 f"'{device_id_path_ancestor_of}'::ltree <@ device_id_path "
                 f"and device_id_path <> '{device_id_path_ancestor_of}'::ltree",
@@ -119,7 +119,7 @@ def get_project_device(
     query = (
         db.query(models.Device)
         .options(options)
-        .filter(models.Device.device_id == device_id)
+        .where(models.Device.device_id == device_id)
     )
     return ModelItem(query=query, return_query=return_query)
 

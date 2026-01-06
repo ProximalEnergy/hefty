@@ -498,7 +498,7 @@ async def send_notifications_for_message(
                             ),
                             selectinload(models.Event.failure_mode),
                         )
-                        .filter(models.Event.event_id == event_id)
+                        .where(models.Event.event_id == event_id)
                     )
                     result = await project_db.execute(stmt)
                     event = result.scalar_one_or_none()

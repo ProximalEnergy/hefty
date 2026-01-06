@@ -40,8 +40,8 @@ def get_device_models(
     query = db.query(models.DeviceModel).options(options)
 
     if device_model_ids is not None:
-        query = query.filter(models.DeviceModel.device_model_id.in_(device_model_ids))
+        query = query.where(models.DeviceModel.device_model_id.in_(device_model_ids))
     if device_type_ids is not None:
-        query = query.filter(models.DeviceModel.device_type_id.in_(device_type_ids))
+        query = query.where(models.DeviceModel.device_type_id.in_(device_type_ids))
 
     return ModelList(query=query, return_query=return_query)

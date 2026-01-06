@@ -19,11 +19,11 @@ async def get_user_notification_preferences(
         user_id: User ID.
         project_ids: Optional list of project IDs to filter by.
     """
-    query = select(models.NotificationPreference).filter(
+    query = select(models.NotificationPreference).where(
         models.NotificationPreference.user_id == user_id
     )
     if project_ids:
-        query = query.filter(models.NotificationPreference.project_id.in_(project_ids))
+        query = query.where(models.NotificationPreference.project_id.in_(project_ids))
     result = await db.execute(query)
     return list(result.scalars().all())
 
@@ -43,7 +43,7 @@ async def get_user_notification_preference(
         project_id: Project ID.
         notification_type_id: Notification type ID.
     """
-    query = select(models.NotificationPreference).filter(
+    query = select(models.NotificationPreference).where(
         models.NotificationPreference.user_id == user_id,
         models.NotificationPreference.project_id == project_id,
         models.NotificationPreference.notification_type_id == notification_type_id,
@@ -79,7 +79,7 @@ async def get_or_create_notification_preference(
         return preference
 
     # Get notification type for defaults
-    query = select(models.NotificationType).filter(
+    query = select(models.NotificationType).where(
         models.NotificationType.notification_type_id == notification_type_id
     )
     result = await db.execute(query)

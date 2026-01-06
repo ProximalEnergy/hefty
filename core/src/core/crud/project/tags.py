@@ -44,7 +44,7 @@ def get_project_tag(
         return_query: TODO: describe.
     """
     options = _get_project_tag_options(deep=deep)
-    query = db.query(models.Tag).options(*options).filter(models.Tag.tag_id == tag_id)
+    query = db.query(models.Tag).options(*options).where(models.Tag.tag_id == tag_id)
     return ModelItem(query=query, return_query=return_query)
 
 
@@ -90,36 +90,36 @@ def get_project_tags(
     query = db.query(models.Tag).options(*options)
 
     if tag_ids:
-        query = query.filter(models.Tag.tag_id.in_(tag_ids))
+        query = query.where(models.Tag.tag_id.in_(tag_ids))
     if in_tsdb is not None:
-        query = query.filter(models.Tag.in_tsdb == in_tsdb)
+        query = query.where(models.Tag.in_tsdb == in_tsdb)
     if device_ids:
-        query = query.filter(models.Tag.device_id.in_(device_ids))
+        query = query.where(models.Tag.device_id.in_(device_ids))
     if sensor_type_ids:
-        query = query.filter(models.Tag.sensor_type_id.in_(sensor_type_ids))
+        query = query.where(models.Tag.sensor_type_id.in_(sensor_type_ids))
     if sensor_type_name_shorts:
-        query = query.filter(
+        query = query.where(
             models.Tag.sensor_type.has(
                 models.SensorType.name_short.in_(sensor_type_name_shorts),
             ),
         )
     if data_type_ids:
-        query = query.filter(models.Tag.data_type_id.in_(data_type_ids))
+        query = query.where(models.Tag.data_type_id.in_(data_type_ids))
     if name_short:
-        query = query.filter(models.Tag.name_short == name_short)
+        query = query.where(models.Tag.name_short == name_short)
     if name_long:
-        query = query.filter(models.Tag.name_long == name_long)
+        query = query.where(models.Tag.name_long == name_long)
     if name_scada:
-        query = query.filter(models.Tag.name_scada == name_scada)
+        query = query.where(models.Tag.name_scada == name_scada)
     if has_sensor_type_id:
-        query = query.filter(models.Tag.sensor_type_id != None)  # noqa: E711
+        query = query.where(models.Tag.sensor_type_id != None)  # noqa: E711
     if device_type_ids:
-        query = query.filter(
+        query = query.where(
             models.Tag.device.has(models.Device.device_type_id.in_(device_type_ids))
         )
     if not include_ghost_tags:
-        query = query.filter(models.Tag.device_id != 0)
-        query = query.filter(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
+        query = query.where(models.Tag.device_id != 0)
+        query = query.where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
     return ModelList(query=query, return_query=return_query)
 
 

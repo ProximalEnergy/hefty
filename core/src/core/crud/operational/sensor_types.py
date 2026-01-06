@@ -14,7 +14,7 @@ def get_sensor_type(
         sensor_type_id: TODO: describe.
         return_query: TODO: describe.
     """
-    query = db.query(models.SensorType).filter(
+    query = db.query(models.SensorType).where(
         models.SensorType.sensor_type_id == sensor_type_id
     )
     return ModelItem(query=query, return_query=return_query)
@@ -44,14 +44,14 @@ def get_sensor_types(
     query = db.query(models.SensorType)
 
     if sensor_type_ids:
-        query = query.filter(models.SensorType.sensor_type_id.in_(sensor_type_ids))
+        query = query.where(models.SensorType.sensor_type_id.in_(sensor_type_ids))
     if name_short:
-        query = query.filter(models.SensorType.name_short == name_short)
+        query = query.where(models.SensorType.name_short == name_short)
     if name_long:
-        query = query.filter(models.SensorType.name_long == name_long)
+        query = query.where(models.SensorType.name_long == name_long)
     if name_metric:
-        query = query.filter(models.SensorType.name_metric == name_metric)
+        query = query.where(models.SensorType.name_metric == name_metric)
     if unit:
-        query = query.filter(models.SensorType.unit == unit)
+        query = query.where(models.SensorType.unit == unit)
 
     return ModelList(query=query, return_query=return_query)
