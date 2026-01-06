@@ -1,7 +1,6 @@
 import { UseQueryOptions, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
-
-import type { components } from '../../schema'
+import type { Feature, FeatureCollection, MultiPolygon } from 'geojson'
 
 const spcWxOutlooksEndpointUrl = [
   'https://mapservices.weather.noaa.gov/vector/rest/services/outlooks',
@@ -25,29 +24,12 @@ interface ArcGisResponse {
   features: ArcGisFeature[]
 }
 
-type GeoJsonMultiPolygon = components['schemas']['MultiPolygon'] & {
-  type: 'MultiPolygon'
-  coordinates: number[][][][]
-}
-
-type GeoJsonFeature = Omit<
-  components['schemas']['Features'],
-  'geometry' | 'properties' | 'type'
-> & {
-  type: 'Feature'
-  geometry: GeoJsonMultiPolygon
-  properties: {
-    dn: number
-  }
-}
-
-type GeoJsonFeatureCollection = Omit<
-  components['schemas']['GeoJSON'],
-  'features' | 'type'
-> & {
-  type: 'FeatureCollection'
-  features: GeoJsonFeature[]
-}
+type GeoJsonFeatureCollection = FeatureCollection<
+  GeoJsonMultiPolygon,
+  { dn: number }
+>
+type GeoJsonFeature = Feature<GeoJsonMultiPolygon, { dn: number }>
+type GeoJsonMultiPolygon = MultiPolygon
 
 const getSPCForecastPolygons = async (
   endpointUrl: string,
@@ -71,7 +53,7 @@ const getSPCForecastPolygons = async (
     throw new Error(`ArcGIS API error`)
   }
 
-  const features = data.features.map((feature) => {
+  const features: GeoJsonFeature[] = data.features.map((feature) => {
     // Convert rings to coordinate arrays
     const rings = feature.geometry.rings.map((ring) => {
       return ring.map((point) => [point[0], point[1]])
@@ -101,20 +83,22 @@ const getSPCForecastPolygons = async (
       }
     })
 
+    const geometry: GeoJsonMultiPolygon = {
+      type: 'MultiPolygon',
+      coordinates: polygons,
+    }
+
     return {
-      type: 'Feature' as const,
+      type: 'Feature',
       properties: {
         dn: feature.attributes.dn,
       },
-      geometry: {
-        type: 'MultiPolygon' as const,
-        coordinates: polygons,
-      },
+      geometry,
     }
   })
 
   return {
-    type: 'FeatureCollection' as const,
+    type: 'FeatureCollection',
     features,
   }
 }

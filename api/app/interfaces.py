@@ -845,7 +845,7 @@ class GeoJSON(BaseModel):
 
         type: str
         properties: Any | None
-        geometry: Point | Polygon
+        geometry: Point | Polygon | MultiPolygon
 
     type: str
     features: list[Features]

@@ -9303,7 +9303,7 @@ export interface components {
             /** Properties */
             properties: unknown | null;
             /** Geometry */
-            geometry: components["schemas"]["Point"] | components["schemas"]["Polygon"];
+            geometry: components["schemas"]["Point"] | components["schemas"]["Polygon"] | components["schemas"]["MultiPolygon"];
         };
         /**
          * GeoJSON
