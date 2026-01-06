@@ -161,6 +161,7 @@ const PlotlyPlot = ({
   onHover,
   onRelayout,
   allowPinning,
+  noDataMessage,
 }: {
   data?: Data[]
   layout?: Partial<Layout>
@@ -172,6 +173,7 @@ const PlotlyPlot = ({
   onHover?: (event: Readonly<PlotHoverEvent>) => void
   onRelayout?: (event: Readonly<PlotRelayoutEvent>) => void
   allowPinning?: boolean
+  noDataMessage?: string
 }) => {
   //////////////////////////////////////////////////////////////////////////////
   /////// If the plot you're looking for is not working, go check //////////////
@@ -676,7 +678,9 @@ const PlotlyPlot = ({
       <Center h={'100%'} w={'100%'}>
         <Stack align="center" gap="xs">
           <IconInfoCircle size={48} />
-          <Text c="dimmed">No data available for the selected inputs.</Text>
+          <Text c="dimmed">
+            {noDataMessage || 'No data available for the selected inputs.'}
+          </Text>
         </Stack>
       </Center>
     )

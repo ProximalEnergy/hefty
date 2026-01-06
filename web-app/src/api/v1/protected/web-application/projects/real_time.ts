@@ -136,3 +136,36 @@ export const useGetDataTimeseriesLast = ({
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
+
+interface ExpectedPowerByDeviceType {
+  device_ids: number[]
+  expected_power: Record<number, number | null>
+}
+
+export const useGetExpectedPowerByDeviceTypeID = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: {
+    projectId: string
+    deviceTypeId: number
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/protected/web-application/projects/${pathParams.projectId}/real-time/${pathParams.deviceTypeId}/expected-power`,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    refetchOnWindowFocus: false,
+    staleTime: 25 * 1000, // 25 seconds
+  }
+
+  return useCustomQuery<ExpectedPowerByDeviceType>({
+    axiosConfig,
+    queryName: 'getExpectedPowerByDeviceTypeID',
+    pathParams,
+    queryParams: {},
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}

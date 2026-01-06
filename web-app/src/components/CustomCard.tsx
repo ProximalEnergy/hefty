@@ -11,8 +11,11 @@ import { useFullscreen } from '@mantine/hooks'
 import {
   IconArrowsMaximize,
   IconArrowsMinimize,
+  IconChevronDown,
+  IconChevronUp,
   IconInfoCircle,
 } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 
 export const iconSize = 20
 export const iconStroke = 1.5
@@ -27,6 +30,9 @@ const CardTitle = ({
   showDownload,
   children,
   allowFullscreen,
+  minimized,
+  onMinimizeToggle,
+  allowMinimize,
 }: {
   beta?: boolean
   title?: React.ReactNode
@@ -37,6 +43,9 @@ const CardTitle = ({
   showDownload?: boolean
   children?: React.ReactNode
   allowFullscreen?: boolean
+  minimized?: boolean
+  onMinimizeToggle?: () => void
+  allowMinimize?: boolean
 }) => {
   return (
     <Group justify="apart" wrap="nowrap">
@@ -44,24 +53,45 @@ const CardTitle = ({
         {beta && <Badge variant="filled">Beta</Badge>}
         {title && <span style={{ fontWeight: 500 }}>{title}</span>}
         {info && (
-          <HoverCard shadow="md">
-            <HoverCard.Target>
-              <IconInfoCircle size={iconSize} stroke={iconStroke} />
-            </HoverCard.Target>
-            <HoverCard.Dropdown maw="50%">
-              <Text size="sm" component="div">
-                {info}
-              </Text>
-            </HoverCard.Dropdown>
-          </HoverCard>
+          <span onClick={(e) => e.stopPropagation()}>
+            <HoverCard shadow="md">
+              <HoverCard.Target>
+                <IconInfoCircle
+                  size={iconSize}
+                  stroke={iconStroke}
+                  style={{ cursor: 'help' }}
+                />
+              </HoverCard.Target>
+              <HoverCard.Dropdown maw="50%">
+                <Text size="sm" component="div">
+                  {info}
+                </Text>
+              </HoverCard.Dropdown>
+            </HoverCard>
+          </span>
         )}
         {quality}
       </Group>
       <Group style={{ flex: 1 }} />
       {children}
-      <Group gap="xs">
+      <Group gap="xs" onClick={(e) => e.stopPropagation()}>
         {showDownload && (
           <ActionIcon>{/* <IconDownload onClick={download} /> */}</ActionIcon>
+        )}
+        {allowMinimize && onMinimizeToggle && (
+          <Tooltip label={minimized ? 'Expand' : 'Minimize'}>
+            <ActionIcon
+              onClick={onMinimizeToggle}
+              variant="transparent"
+              color="text"
+            >
+              {minimized ? (
+                <IconChevronUp size={iconSize} stroke={iconStroke} />
+              ) : (
+                <IconChevronDown size={iconSize} stroke={iconStroke} />
+              )}
+            </ActionIcon>
+          </Tooltip>
         )}
         {allowFullscreen && (
           <Tooltip label={fullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}>
@@ -93,6 +123,8 @@ const CustomCard = ({
   allowFullscreen = true,
   hideBody = false,
   bodyStyle,
+  allowMinimize = false,
+  storageKey,
 }: {
   beta?: boolean
   title?: React.ReactNode
@@ -107,8 +139,35 @@ const CustomCard = ({
   allowFullscreen?: boolean
   hideBody?: boolean
   bodyStyle?: React.CSSProperties
+  allowMinimize?: boolean
+  storageKey?: string
 }) => {
   const { ref, toggle, fullscreen } = useFullscreen()
+
+  // Load minimized state from localStorage if storageKey is provided
+  const getInitialMinimizedState = () => {
+    if (!storageKey || !allowMinimize) return false
+    try {
+      const stored = localStorage.getItem(`card-minimized-${storageKey}`)
+      return stored === 'true'
+    } catch {
+      return false
+    }
+  }
+
+  const [minimized, setMinimized] = useState(getInitialMinimizedState)
+
+  // Save minimized state to localStorage whenever it changes
+  useEffect(() => {
+    if (storageKey && allowMinimize) {
+      try {
+        localStorage.setItem(`card-minimized-${storageKey}`, String(minimized))
+      } catch (error) {
+        // Silently fail if localStorage is not available
+        console.warn('Failed to save card state to localStorage:', error)
+      }
+    }
+  }, [minimized, storageKey, allowMinimize])
 
   let padding: string | number = 'md'
 
@@ -116,19 +175,38 @@ const CustomCard = ({
     padding = 0
   }
 
+  const isBodyHidden = hideBody || (allowMinimize && minimized)
+
+  // When minimized, override height to auto so card only shows header
+  // Extract height from style to prevent it from overriding when minimized
+  const { height: _height, minHeight: _minHeight, ...restStyle } = style || {}
+  const cardStyle: React.CSSProperties =
+    isBodyHidden && allowMinimize
+      ? {
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'auto',
+          minHeight: 'auto',
+          ...restStyle,
+        }
+      : {
+          display: 'flex',
+          flexDirection: 'column',
+          ...style,
+        }
+
   return (
-    <Card
-      withBorder
-      radius="md"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        ...style,
-      }}
-      ref={ref}
-    >
+    <Card withBorder radius="md" style={cardStyle} ref={ref}>
       {header && (
-        <Card.Section withBorder inheritPadding py={5}>
+        <Card.Section
+          withBorder
+          inheritPadding
+          py={5}
+          style={{
+            cursor: allowMinimize ? 'pointer' : 'default',
+          }}
+          onClick={allowMinimize ? () => setMinimized(!minimized) : undefined}
+        >
           <CardTitle
             beta={beta}
             title={title}
@@ -138,12 +216,15 @@ const CustomCard = ({
             fullscreen={fullscreen}
             showDownload={showDownload}
             allowFullscreen={allowFullscreen}
+            minimized={minimized}
+            onMinimizeToggle={() => setMinimized(!minimized)}
+            allowMinimize={allowMinimize}
           >
             {headerChildren}
           </CardTitle>
         </Card.Section>
       )}
-      {!hideBody && (
+      {!isBodyHidden && (
         <Card.Section
           p={padding}
           style={{ height: '100%', ...(bodyStyle || {}) }}

@@ -1,6 +1,7 @@
 import datetime
 from typing import Annotated
 
+import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
@@ -66,7 +67,118 @@ SENSOR_TYPE_NAME = {
 }
 
 
-# --- 3) the endpoint ----------------------------------------------------------------
+# --- 3) Expected power endpoint (must come before generic device_type_id route) ---
+@router.get(
+    "/{device_type_id}/expected-power",
+    response_class=ORJSONResponse,
+)
+def get_expected_power_by_device_type_id(
+    device_type_id: int,
+    project_db: Session = Depends(get_project_db),
+    project: models.Project = Depends(dependencies.get_project_api),
+):
+    """Get latest expected power for all devices of a given device type.
+
+    Uses the same logic as utility_expected in gis.py to fetch expected power
+    with proper fallback handling for expected_metric_ids.
+
+    Args:
+        device_type_id: The device type ID to fetch expected power for.
+        project_db: Database session.
+        project: Project model.
+    """
+    # Get all devices of this type
+    devices = core.crud.project.devices.get_project_devices(
+        db=project_db,
+        device_type_ids=[device_type_id],
+    ).models()
+
+    if not devices:
+        return {"device_ids": [], "expected_power": {}}
+
+    device_ids = [d.device_id for d in devices]
+
+    # Determine expected_metric_ids based on device type (same as utility_expected)
+    if device_type_id == DeviceType.PV_PCS:
+        expected_metric_ids_fallback = [10, 9, 4, 3]  # With soiling first, then without
+        expected_device_ids_for_query = device_ids
+    elif device_type_id == DeviceType.PV_DC_COMBINER:
+        expected_metric_ids_fallback = [8, 7, 2, 1]
+        expected_device_ids_for_query = device_ids
+    else:
+        # Unsupported device type
+        return {"device_ids": device_ids, "expected_power": {}}
+
+    # Get time range (last hour, same as utility_expected default)
+    end = pd.Timestamp.utcnow().floor("5min")
+    start = end - pd.Timedelta(hours=1)
+    start_query = pd.Timestamp(start).tz_convert(project.time_zone)
+    end_query = pd.Timestamp(end).tz_convert(project.time_zone)
+
+    # Query Expected Data with Fallbacks (same logic as utility_expected)
+    data_expected = None
+    found_metric_id = None
+    for expected_metric_id in expected_metric_ids_fallback:
+        data_expected = core.crud.project.data_expected.get_project_data_expected(
+            project_db,
+            start=start_query,
+            end=end_query,
+            device_ids=expected_device_ids_for_query,
+            expected_metric_ids=[expected_metric_id],
+        ).models()
+        if len(data_expected) > 0:
+            found_metric_id = expected_metric_id
+            break
+
+    if not data_expected or len(data_expected) == 0:
+        # No expected data found
+        return {
+            "device_ids": device_ids,
+            "expected_power": {did: None for did in device_ids},
+        }
+
+    # Convert to DataFrame and get latest values
+    df_expected_all = pd.DataFrame([d.__dict__ for d in data_expected])
+    df_expected_filtered = df_expected_all[
+        df_expected_all["expected_metric_id"] == found_metric_id
+    ]
+
+    if df_expected_filtered.empty:
+        return {
+            "device_ids": device_ids,
+            "expected_power": {did: None for did in device_ids},
+        }
+
+    # Pivot to get device_id columns
+    df_expected_pivot = df_expected_filtered.pivot(
+        index="time",
+        columns="device_id",
+        values="value",
+    )
+
+    # Convert from W to MW (divide by 1,000,000)
+    df_expected_pivot = df_expected_pivot / 1_000_000
+
+    # Get the latest value for each device
+    expected_power_dict: dict[int, float | None] = {}
+    for device_id in device_ids:
+        if device_id in df_expected_pivot.columns:
+            # Get the last non-null value
+            series = df_expected_pivot[device_id].dropna()
+            if not series.empty:
+                expected_power_dict[device_id] = float(series.iloc[-1])
+            else:
+                expected_power_dict[device_id] = None
+        else:
+            expected_power_dict[device_id] = None
+
+    return {
+        "device_ids": device_ids,
+        "expected_power": expected_power_dict,
+    }
+
+
+# --- 4) the main endpoint ----------------------------------------------------------------
 @router.get("/{device_type_id}", response_class=ORJSONResponse)
 def get_by_device_type_id(
     device_type_id: int,

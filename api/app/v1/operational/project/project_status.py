@@ -69,6 +69,7 @@ def get_status_time_series(
     end: datetime.datetime,
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
+    device_type_ids: list[int] | None = Query(None),
     sensor_types: list[SensorType] | None = None,
 ):
     """sensor_types: list[SensorType] | None = None
@@ -84,6 +85,7 @@ def get_status_time_series(
         end: TODO: describe.
         device_ids: TODO: describe.
         tag_ids: TODO: describe.
+        device_type_ids: TODO: describe.
         sensor_types: TODO: describe.
     """
     supported_sensor_types = [
@@ -119,6 +121,14 @@ def get_status_time_series(
         tags_model_list = core.crud.project.tags.get_project_tags(
             project_db,
             tag_ids=tag_ids,
+            sensor_type_ids=status_sensor_type_ids,
+            deep=True,
+        )
+    elif device_type_ids is not None:
+        device_type_ids = list(set(device_type_ids))
+        tags_model_list = core.crud.project.tags.get_project_tags(
+            project_db,
+            device_type_ids=device_type_ids,
             sensor_type_ids=status_sensor_type_ids,
             deep=True,
         )
@@ -330,6 +340,7 @@ async def get_status_time_series_python(
     end: datetime.datetime,
     device_ids: list[int] | None = Query(None),
     tag_ids: list[int] | None = Query(None),
+    device_type_ids: list[int] | None = Query(None),
     sensor_types: list[SensorType] | None = None,
 ):
     """todo
@@ -342,6 +353,7 @@ async def get_status_time_series_python(
         end: TODO: describe.
         device_ids: TODO: describe.
         tag_ids: TODO: describe.
+        device_type_ids: TODO: describe.
         sensor_types: TODO: describe.
     """
     try:
@@ -353,6 +365,7 @@ async def get_status_time_series_python(
             end=end,
             device_ids=device_ids,
             tag_ids=tag_ids,
+            device_type_ids=device_type_ids,
             sensor_types=sensor_types,
         )
         return data

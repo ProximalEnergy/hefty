@@ -7,6 +7,7 @@ from app.v1.operational import (
     cec_pv_modules,
     contract_categories,
     data_types,
+    device_models,
     device_types,
     drone_integrations,
     drone_permissions,
@@ -48,6 +49,7 @@ router.include_router(cec_pv_inverters.router)
 router.include_router(cec_pv_modules.router)
 router.include_router(data_types.router)
 router.include_router(device_types.router)
+router.include_router(device_models.router)
 router.include_router(failure_modes.router)
 router.include_router(project_types.router)
 router.include_router(event_message_reactions.router)

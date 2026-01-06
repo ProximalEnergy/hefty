@@ -12,17 +12,23 @@ async def get_inverters(
     *,
     db: AsyncSession,
     inverter_ids: list[int] | None = None,
+    device_model_ids: list[int] | None = None,
 ):
     """todo
 
     Args:
         db: TODO: describe.
         inverter_ids: TODO: describe.
+        device_model_ids: TODO: describe.
     """
     query = select(models.Inverter)
 
     if inverter_ids:
         query = query.where(models.Inverter.inverter_id.in_(inverter_ids))
+
+    if device_model_ids:
+        query = query.where(models.Inverter.device_model_id.in_(device_model_ids))
+
     result = await db.execute(query)
     return result.scalars().all()
 

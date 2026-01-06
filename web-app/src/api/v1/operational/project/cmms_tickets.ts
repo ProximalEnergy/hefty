@@ -1,41 +1,24 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface CMMSTicket {
-  cmms_provider: string
-  id: number
-  key: string
-  created_at?: string
-  due_date?: string
-  summary?: string
-  summary_long?: string
-  status?: string
-  status_change_at?: string
-  priority?: string
-  reporter?: string
-  assigned_to?: string
-  location?: string
-  cmms_device_id?: string
-  cmms_device_name?: string
-  link?: string
-}
+const _URL = '/v1/operational/projects/{project_id}/cmms-tickets' as const
 
-interface CMMSMetadata {
-  integration_configured: boolean
-}
+type get = types.paths[typeof _URL]['get']
+type getQueryParams = get['parameters']['query']
+type getPathParams = get['parameters']['path']
+type getResponse = get['responses'][200]['content']['application/json']
 
-interface CMMSResponse {
-  metadata: CMMSMetadata
-  data: CMMSTicket[]
-}
+type CMMSResponse = getResponse
+export type CMMSTicket = getResponse['data'][number]
 
 export const useGetCMMSTickets = ({
   pathParams,
   queryParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: string }
-  queryParams?: { start?: string; end?: string; device_ids?: number[] }
+  pathParams: { projectId: getPathParams['project_id'] }
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {

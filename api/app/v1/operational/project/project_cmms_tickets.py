@@ -61,6 +61,7 @@ async def get_cmms_tickets(
     start: str | None = None,
     end: str | None = None,
     device_ids: Annotated[list[int] | None, Query()] = None,
+    device_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
     """Pulls the first 50 tickets for each CMMS provider.
 
@@ -80,6 +81,8 @@ async def get_cmms_tickets(
             The end date of the tickets
         device_ids : Optional[List[int]]
             The list of device ids to filter the tickets by
+        device_type_ids : Optional[List[int]]
+            The list of device type ids to filter the tickets by
 
     Args:
         project_id: Operational project identifier for scoping CMMS data.
@@ -89,6 +92,7 @@ async def get_cmms_tickets(
         start: Optional ISO date string to filter tickets created after this time.
         end: Optional ISO date string limiting tickets created before this time.
         device_ids: Optional list of project device IDs to filter matching tickets.
+        device_type_ids: Optional list of device type IDs to filter matching tickets.
     """
     # First get integrations to see if there are any configured
 
@@ -134,6 +138,20 @@ async def get_cmms_tickets(
                     models.CMMSDevice.cmms_integration_id
                     == models.CMMSTicket.cmms_integration_id,
                     models.CMMSDevice.device_id.in_(device_ids),
+                )
+            )
+        )
+    elif device_type_ids is not None:
+        stmt = stmt.where(
+            exists().where(
+                and_(
+                    models.CMMSDevice.cmms_device_id
+                    == models.CMMSTicket.cmms_device_id,
+                    models.CMMSDevice.cmms_integration_id
+                    == models.CMMSTicket.cmms_integration_id,
+                    models.CMMSDevice.device.has(
+                        models.Device.device_type_id.in_(device_type_ids)
+                    ),
                 )
             )
         )

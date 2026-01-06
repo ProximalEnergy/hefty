@@ -17,6 +17,7 @@ from app.v1.operational.project import (
     project_qc,
     project_report_instances,
     project_reports,
+    project_solar,
     project_status,
     project_tags,
     project_waterfall,
@@ -32,6 +33,7 @@ router.include_router(project_events.router)
 router.include_router(project_kpi_data.router)
 router.include_router(project_reports.router)
 router.include_router(project_report_instances.router)
+router.include_router(project_solar.router)
 router.include_router(project_tags.router)
 router.include_router(project_status.router)
 router.include_router(project_pv_budgeted.router)

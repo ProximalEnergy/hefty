@@ -65,6 +65,7 @@ interface DataType {
 export interface Device {
   device_id: number
   device_type_id: number
+  device_model_id: number | null
   parent_device_id: number | null
   logical: boolean
   name_short: string | null
