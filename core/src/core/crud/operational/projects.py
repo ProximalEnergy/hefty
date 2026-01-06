@@ -300,9 +300,9 @@ def update_project_spec(
     Returns:
         Updated project model
     """
-    project = (
-        db.query(models.Project).filter(models.Project.project_id == project_id).first()
-    )
+    stmt = select(models.Project).where(models.Project.project_id == project_id)
+    result = db.execute(stmt)
+    project = result.scalar_one_or_none()
 
     if not project:
         raise ValueError(f"Project with ID {project_id} not found")

@@ -16,6 +16,7 @@ dev = [
     "mypy>=1.18.2",
     "pyarrow-stubs>=20.0.0.20250928",
     "ruff==0.14.10",
+    "semgrep>=1.107.0",
     "sqlalchemy>=2.0.45",
     "vulture>=2.14",
 ]
@@ -60,6 +61,7 @@ select = [
     "T20",     # Lint print and pprint Statements
     "UP",      # pyupgrade
     "S608",    # hardcoded-sql-expression
+    "TID251",  # banned imports
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -91,6 +93,9 @@ external =[]
     "PLC0415", # allow local imports in scripts
     "T20",     # allow print in scripts
 ]
+"api/**" = [
+    "TID251", # api package can import from itself
+]
 "api/app/_crud/projects/data.py" = [
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries
 ]
@@ -115,6 +120,9 @@ external =[]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"api" = { msg = "Avoid importing from the api package outside api itself." }
 
 # =============================================================================
 # MYPY CONFIGURATION

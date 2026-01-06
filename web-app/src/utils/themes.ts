@@ -165,6 +165,18 @@ export const themes = {
     '#445895',
     '#41548D',
   ],
+  'goshe-energy-storage-blue': [
+    '#E8F0F4',
+    '#CADDE6',
+    '#ADCAD8',
+    '#8FB7CA',
+    '#71A4BB',
+    '#5391AD',
+    '#367E9F',
+    '#186B91',
+    '#17668A',
+    '#166083',
+  ],
 } satisfies Record<string, StringArray10 & MantineColorsTuple>
 
 // Extract the keys from the themes object

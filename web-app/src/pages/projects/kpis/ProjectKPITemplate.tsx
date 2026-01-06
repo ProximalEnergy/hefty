@@ -504,9 +504,13 @@ const SelectableChartCard = ({
                     }
           }
           colorscale={
-            KPI_TYPE_IDS_REVERSE.includes(kpiType.kpi_type_id)
-              ? 'good-bad-reversed'
-              : 'good-bad'
+            // For temperature heatmaps, use custom colorscale from data (undefined = use data colorscale)
+            // For all other plots, use the red-green scale from PlotlyPlot
+            plotType === 'heatmap' && kpiType.unit === 'C'
+              ? undefined
+              : KPI_TYPE_IDS_REVERSE.includes(kpiType.kpi_type_id)
+                ? 'good-bad-reversed'
+                : 'good-bad'
           }
         />
       </CustomCard>
@@ -523,6 +527,7 @@ const DevicePlotCard = ({
   isError,
 }: DevicePlotCardProps) => {
   const [plotType, setPlotType] = useState('heatmap')
+  const context = useContext(GISContext)
 
   if (isLoading || isError || !data) {
     return (
@@ -619,12 +624,17 @@ const DevicePlotCard = ({
                 text: yAxisTitle,
               },
             },
-            // Use a custom colorscale for actual data values
-            colorscale: [
-              [0, '#440154'], // Dark purple for minimum value
-              [0.5, '#21908C'], // Teal for middle values
-              [1, '#FDE725'], // Yellow for maximum value
-            ],
+            // Use a custom colorscale only for temperature KPIs (Celsius)
+            // For non-temperature KPIs, the colorscale prop will apply the red-green scale
+            colorscale:
+              kpiType.unit === 'C' && context
+                ? [
+                    [0, context.colorsTemperature[0].value], // Blue for minimum value (cold)
+                    [0.33, context.colorsTemperature[1].value], // Light blue for lower-middle
+                    [0.67, context.colorsTemperature[2].value], // Orange for upper-middle
+                    [1, context.colorsTemperature[3].value], // Red for maximum value (hot)
+                  ]
+                : undefined,
             zmin: minValue,
             zmax: maxValue,
             showscale: true,
@@ -1100,10 +1110,15 @@ const MapCard = ({
       highLabel = `${highValue.toFixed(2)} ${kpiType.unit}`
   }
 
+  // For temperature KPIs, use blue (cold) to red (hot) color scale
+  // For other KPIs, use the standard good-bad color scale
   const colorsBadGood = [...colorsGoodBad].reverse()
-  const colors = KPI_TYPE_IDS_REVERSE.includes(kpiType.kpi_type_id)
-    ? colorsBadGood
-    : colorsGoodBad
+  const colors =
+    kpiType.unit === 'C'
+      ? context.colorsTemperature
+      : KPI_TYPE_IDS_REVERSE.includes(kpiType.kpi_type_id)
+        ? colorsBadGood
+        : colorsGoodBad
 
   return (
     <CustomCard

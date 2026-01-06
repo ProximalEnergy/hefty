@@ -1,31 +1,24 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
-import { Device, MeterPowerAndExpected } from '@/hooks/types'
+import { MeterPowerAndExpected } from '@/hooks/types'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface UtilityExpected {
-  parent_devices: Device[]
-  times: string[]
-  actual: {
-    power: number[]
-  }
-  expected_clean: {
-    power: number[]
-    version: string[]
-    unique_versions: string[]
-    difference: number[]
-  }
-  expected_soiled: {
-    power: number[]
-    version: string[]
-    unique_versions: string[]
-    difference: number[]
-  }
-  poa: {
-    [key: string]: number[]
-  }
-  soiling: {
-    [key: string]: number[]
-  }
+type UtilityExpected = types.components['schemas']['UtilityExpectedResponse']
+
+type UtilityExpectedOperation =
+  'utility_expected_v1_protected__project_id__pv_expected_energy_plot_get'
+type UtilityExpectedQueryParams =
+  types.operations[UtilityExpectedOperation]['parameters']['query']
+
+type MeterPowerQueryParams = {
+  start?: string | null
+  end?: string | null
+  include_storage?: boolean
+  include_setpoint?: boolean
+  include_soiling?: boolean
+  include_degradation?: boolean
+  interval?: string
+  schema?: string | null
 }
 
 export const useGetUtilityExpected = ({
@@ -35,12 +28,7 @@ export const useGetUtilityExpected = ({
 }: {
   pathParams: { projectId: string }
   queryOptions?: Partial<UseQueryOptions>
-  queryParams?: {
-    device_id: number
-    start: string
-    end: string
-    warranted_degradation?: boolean
-  }
+  queryParams?: UtilityExpectedQueryParams
 }) => {
   const axiosConfig = {
     url: `/v1/protected/${pathParams.projectId}/pv-expected-energy/plot`,
@@ -64,19 +52,13 @@ export const useGetMeterPowerAndExpectedPower = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string }
-  queryParams?: {
-    include_storage?: boolean
-    start?: string // Add start parameter type
-    end?: string // Add end parameter type
-    include_setpoint?: boolean // Add this parameter
-    interval?: string
-    include_soiling?: boolean
-    include_degradation?: boolean
-  }
+  queryParams?: MeterPowerQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/system/${pathParams.projectId}/meter-power-and-expected-power-v2`,
+    url:
+      `/v1/protected/system/${pathParams.projectId}` +
+      '/meter-power-and-expected-power-v2',
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {

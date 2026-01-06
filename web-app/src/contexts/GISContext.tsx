@@ -4,6 +4,14 @@ import React, { createContext } from 'react'
 
 type Colors = { id: number; value: string }[]
 
+// Temperature colorscale: blue (cold) to red (hot)
+const COLORS_TEMPERATURE: Colors = [
+  { id: 1, value: '#2166AC' }, // Blue for cold (low)
+  { id: 2, value: '#4393C3' }, // Light blue
+  { id: 3, value: '#FDB863' }, // Orange
+  { id: 4, value: '#B2182B' }, // Red for hot (high)
+]
+
 // Define the type for the GIS context
 interface GISContextType {
   showLabels: boolean
@@ -14,6 +22,7 @@ interface GISContextType {
   setColorsHighLow: React.Dispatch<React.SetStateAction<Colors>>
   colorsGoodBad: Colors
   setColorsGoodBad: React.Dispatch<React.SetStateAction<Colors>>
+  colorsTemperature: Colors
 }
 
 // Create the GIS context with a default value of undefined
@@ -58,6 +67,7 @@ const GISProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         setColorsHighLow,
         colorsGoodBad,
         setColorsGoodBad,
+        colorsTemperature: COLORS_TEMPERATURE,
       }}
     >
       {children}

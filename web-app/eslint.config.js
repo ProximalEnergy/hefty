@@ -87,6 +87,20 @@ export default [
 
       // Import: Combine imports from the same module
       'import/no-duplicates': ['error', { 'prefer-inline': false }],
+
+      // Prevent usage of html2canvas, recommend html2canvas-pro
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'html2canvas',
+              message:
+                'Please use "html2canvas-pro" instead of "html2canvas" to support modern CSS color functions.',
+            },
+          ],
+        },
+      ],
     },
   },
 ]

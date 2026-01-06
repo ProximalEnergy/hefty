@@ -171,9 +171,9 @@ const Page = () => {
               hovertemplate: 'v%{text}',
               mode: 'markers',
               marker: {
-                color: expected.data?.expected_soiled.version.map((version) => {
-                  return versionColorMap[version]
-                }),
+                color: expected.data?.expected_soiled.version.map((version) =>
+                  version ? versionColorMap[version] : theme.colors.gray[4],
+                ),
                 size: 4,
               },
             },
@@ -203,9 +203,9 @@ const Page = () => {
               hovertemplate: 'v%{text}',
               mode: 'markers',
               marker: {
-                color: expected.data?.expected_clean.version.map((version) => {
-                  return versionColorMap[version]
-                }),
+                color: expected.data?.expected_clean.version.map((version) =>
+                  version ? versionColorMap[version] : theme.colors.gray[4],
+                ),
                 size: 4,
               },
               visible: 'legendonly',

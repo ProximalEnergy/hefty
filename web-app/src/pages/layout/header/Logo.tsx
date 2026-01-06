@@ -105,6 +105,8 @@ const Logo = () => {
         return <OdenLogo />
       case 'lydian_energy':
         return <Image src="/logo_lydian_energy.webp" h="70%" />
+      case 'goshe_energy_storage':
+        return <Image src="/logo_goshe_energy_storage.svg" h="70%" />
     }
   }
 

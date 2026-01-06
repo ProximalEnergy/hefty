@@ -1,5 +1,6 @@
 """Main SQLAdmin application using core models and database."""
 
+import logging
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -15,6 +16,7 @@ from admin_views import setup_admin_views
 # Load environment variables
 load_dotenv()
 
+logger = logging.getLogger(__name__)
 
 # Determine schema to use
 SCHEMA_TO_USE = os.getenv("SQL_ADMIN_SCHEMA")
@@ -30,8 +32,8 @@ APP_VERSION = "1.0.0"
 DEBUG = ENVIRONMENT != "production"
 
 
-print(f"Using database URL: {DATABASE_URL}")
-print(f"Environment: {ENVIRONMENT}")
+logger.info("Using database URL: %s", DATABASE_URL)
+logger.info("Environment: %s", ENVIRONMENT)
 
 # Create our own engine for SQLAdmin (avoiding async engine issues)
 engine = create_engine(
@@ -47,13 +49,13 @@ async def lifespan(app: FastAPI):
         app: TODO: describe.
     """
     # Startup
-    print("SQLAdmin application starting...")
-    print("Using existing core database connection")
+    logger.info("SQLAdmin application starting...")
+    logger.info("Using existing core database connection")
 
     yield
 
     # Shutdown
-    print("SQLAdmin application shutting down...")
+    logger.info("SQLAdmin application shutting down...")
 
 
 # Create FastAPI app
@@ -97,7 +99,7 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=8001,  # Use different port to avoid conflict with main API
         reload=DEBUG,
     )

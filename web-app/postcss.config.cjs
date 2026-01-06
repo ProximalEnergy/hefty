@@ -1,4 +1,4 @@
-/* eslint-env node */
+/* global module */
 // https://stackoverflow.com/questions/70973306/how-to-convert-postcss-config-js-and-tailwind-config-js-to-es-modules
 module.exports = {
   plugins: {
