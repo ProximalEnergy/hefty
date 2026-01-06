@@ -1662,6 +1662,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/device-models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Device Models
+         * @description Get device models.
+         *
+         *     Args:
+         *         device_model_ids: Optional list of device model IDs to filter by.
+         *         device_type_ids: Optional list of device type IDs to filter by.
+         *         db: Database session.
+         */
+        get: operations["get_device_models"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/failure-modes": {
         parameters: {
             query?: never;
@@ -3199,6 +3224,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/solar/position": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Solar Position
+         * @description Get current solar position and related information for a project.
+         *
+         *     Args:
+         *         project: The project to get solar position for.
+         *         timestamp: Optional timestamp to calculate solar position for.
+         *                    If not provided, uses current time in project timezone.
+         *
+         *     Returns:
+         *         SolarPositionResponse: Solar position data including elevation, azimuth,
+         *                               daytime status, and next sunrise time.
+         */
+        get: operations["get_solar_position_v1_operational_projects__project_id__solar_position_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/tags": {
         parameters: {
             query?: never;
@@ -3304,6 +3358,7 @@ export interface paths {
          *         end: TODO: describe.
          *         device_ids: TODO: describe.
          *         tag_ids: TODO: describe.
+         *         device_type_ids: TODO: describe.
          *         sensor_types: TODO: describe.
          */
         get: operations["get_status_time_series_v1_operational_projects__project_id__status_time_series_get"];
@@ -3334,6 +3389,7 @@ export interface paths {
          *         end: TODO: describe.
          *         device_ids: TODO: describe.
          *         tag_ids: TODO: describe.
+         *         device_type_ids: TODO: describe.
          *         sensor_types: TODO: describe.
          */
         get: operations["get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get"];
@@ -3603,6 +3659,8 @@ export interface paths {
          *             The end date of the tickets
          *         device_ids : Optional[List[int]]
          *             The list of device ids to filter the tickets by
+         *         device_type_ids : Optional[List[int]]
+         *             The list of device type ids to filter the tickets by
          *
          *     Args:
          *         project_id: Operational project identifier for scoping CMMS data.
@@ -3612,6 +3670,7 @@ export interface paths {
          *         start: Optional ISO date string to filter tickets created after this time.
          *         end: Optional ISO date string limiting tickets created before this time.
          *         device_ids: Optional list of project device IDs to filter matching tickets.
+         *         device_type_ids: Optional list of device type IDs to filter matching tickets.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
         put?: never;
@@ -4827,6 +4886,7 @@ export interface paths {
          *
          *     Args:
          *         inverter_ids: TODO: describe.
+         *         device_model_ids: TODO: describe.
          *         db: TODO: describe.
          */
         get: operations["get_inverters"];
@@ -6041,6 +6101,34 @@ export interface paths {
          *         project_db: TODO: describe.
          */
         get: operations["get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/real-time/{device_type_id}/expected-power": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Expected Power By Device Type Id
+         * @description Get latest expected power for all devices of a given device type.
+         *
+         *     Uses the same logic as utility_expected in gis.py to fetch expected power
+         *     with proper fallback handling for expected_metric_ids.
+         *
+         *     Args:
+         *         device_type_id: The device type ID to fetch expected power for.
+         *         project_db: Database session.
+         *         project: Project model.
+         */
+        get: operations["get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8484,6 +8572,8 @@ export interface components {
             device_id_path: string | null;
             /** Device Type Id */
             device_type_id: number;
+            /** Device Model Id */
+            device_model_id: number | null;
             /** Cec Pv Inverter Id */
             cec_pv_inverter_id: number | null;
             /** Cec Pv Module Id */
@@ -8567,6 +8657,20 @@ export interface components {
             met: components["schemas"]["DeviceDetailsHorizonalData"][];
             /** Pcs */
             pcs: components["schemas"]["DeviceDetailsHorizonalData"][];
+        };
+        /**
+         * DeviceModel
+         * @description Devicemodel model.
+         */
+        DeviceModel: {
+            /** Device Model Id */
+            device_model_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Brand */
+            brand: string;
+            /** Model */
+            model: string;
         };
         /**
          * DeviceTotals
@@ -10568,6 +10672,20 @@ export interface components {
             site_name: string;
             /** Site Capacity Mw */
             site_capacity_mw: number;
+        };
+        /**
+         * SolarPositionResponse
+         * @description Solar position information for a project.
+         */
+        SolarPositionResponse: {
+            /** Elevation Angle */
+            elevation_angle: number;
+            /** Azimuth */
+            azimuth: number;
+            /** Is Daytime */
+            is_daytime: boolean;
+            /** Next Sunrise */
+            next_sunrise: string | null;
         };
         /**
          * StatusTimeSeries
@@ -13688,6 +13806,42 @@ export interface operations {
             };
         };
     };
+    get_device_models: {
+        parameters: {
+            query?: {
+                device_model_ids?: number[];
+                device_type_ids?: number[];
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceModel"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_failure_modes: {
         parameters: {
             query?: {
@@ -15805,6 +15959,43 @@ export interface operations {
             };
         };
     };
+    get_solar_position_v1_operational_projects__project_id__solar_position_get: {
+        parameters: {
+            query?: {
+                timestamp?: string | null;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SolarPositionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_tags_v1_operational_projects__project_id__tags_get: {
         parameters: {
             query?: {
@@ -15933,6 +16124,7 @@ export interface operations {
                 end: string;
                 device_ids?: number[] | null;
                 tag_ids?: number[] | null;
+                device_type_ids?: number[] | null;
                 schema?: string | null;
             };
             header?: {
@@ -15977,6 +16169,7 @@ export interface operations {
                 end: string;
                 device_ids?: number[] | null;
                 tag_ids?: number[] | null;
+                device_type_ids?: number[] | null;
                 schema?: string | null;
             };
             header?: {
@@ -16392,6 +16585,7 @@ export interface operations {
                 start?: string | null;
                 end?: string | null;
                 device_ids?: number[] | null;
+                device_type_ids?: number[] | null;
             };
             header?: {
                 authorization?: string;
@@ -18319,6 +18513,7 @@ export interface operations {
         parameters: {
             query?: {
                 inverter_ids?: number[];
+                device_model_ids?: number[];
             };
             header?: {
                 authorization?: string;
@@ -20185,6 +20380,43 @@ export interface operations {
             };
             path: {
                 tag_pattern: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                device_type_id: number;
                 project_id: string;
             };
             cookie?: never;

@@ -38,17 +38,20 @@ router = APIRouter(prefix="/pv-inverters", tags=["pv_inverters"])
 async def get_inverters(
     *,
     inverter_ids: Annotated[list[int], Query()] = [],
+    device_model_ids: Annotated[list[int], Query()] = [],
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """todo
 
     Args:
         inverter_ids: TODO: describe.
+        device_model_ids: TODO: describe.
         db: TODO: describe.
     """
     return await crud_get_inverters(
         db=db,
         inverter_ids=inverter_ids,
+        device_model_ids=device_model_ids,
     )
 
 

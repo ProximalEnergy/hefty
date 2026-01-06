@@ -391,6 +391,7 @@ const Page = () => {
         c2: c2,
         c3: c3,
         night_tare: nightTare,
+        device_model_id: null,
       }
       // Call the mutation
       const result = await createInverterMutation.mutateAsync(inverterData)

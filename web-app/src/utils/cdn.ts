@@ -1,0 +1,60 @@
+/**
+ * CDN utility functions for generating asset URLs
+ */
+
+/**
+ * Get the CDN base URL from environment variables
+ * Falls back to empty string (relative path) if not configured
+ */
+function getCdnBaseUrl(): string {
+  const cdnUrl = import.meta.env.VITE_CDN_BASE_URL
+  if (cdnUrl && typeof cdnUrl === 'string') {
+    // Ensure URL doesn't end with a slash
+    return cdnUrl.replace(/\/$/, '')
+  }
+  return ''
+}
+
+/**
+ * Generate a CDN URL for a device model image
+ * @param deviceModelId - The device model ID
+ * @returns The full CDN URL or relative path if CDN is not configured
+ */
+export function getDeviceModelImageUrl(deviceModelId: number | null): string {
+  if (deviceModelId === null) {
+    return ''
+  }
+
+  const cdnBaseUrl = getCdnBaseUrl()
+  const imagePath = `/device_models/${deviceModelId}.png`
+
+  if (cdnBaseUrl) {
+    return `${cdnBaseUrl}${imagePath}`
+  }
+
+  // Fallback to relative path (current behavior)
+  return imagePath
+}
+
+/**
+ * Generate a CDN URL for a public asset
+ * @param assetPath - The asset path relative to public folder (e.g., '/icon_pv_pcs.svg')
+ * @returns The full CDN URL or relative path if CDN is not configured
+ */
+export function getPublicAssetUrl(assetPath: string): string {
+  if (!assetPath) {
+    return ''
+  }
+
+  // Ensure path starts with /
+  const normalizedPath = assetPath.startsWith('/') ? assetPath : `/${assetPath}`
+
+  const cdnBaseUrl = getCdnBaseUrl()
+
+  if (cdnBaseUrl) {
+    return `${cdnBaseUrl}${normalizedPath}`
+  }
+
+  // Fallback to relative path (current behavior)
+  return normalizedPath
+}

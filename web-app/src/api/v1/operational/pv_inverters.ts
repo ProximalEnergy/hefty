@@ -21,6 +21,7 @@ export interface Inverter {
   company_id: string
   manufacturer: string
   model: string
+  device_model_id: number | null
 
   // Operating window parameters
   voltage_mpp_min: number
@@ -56,6 +57,7 @@ export interface Inverter {
 interface GetInvertersParams {
   queryParams?: {
     inverter_ids?: number[]
+    device_model_ids?: number[]
   }
   queryOptions?: Partial<UseQueryOptions>
 }
@@ -73,7 +75,7 @@ export const useGetInverters = ({
   queryParams = {},
   queryOptions = {},
 }: GetInvertersParams) => {
-  const { inverter_ids = [] } = queryParams
+  const { inverter_ids = [], device_model_ids = [] } = queryParams
 
   const axiosConfig = {
     url: `/v1/operational/pv-inverters`,
@@ -82,12 +84,12 @@ export const useGetInverters = ({
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minute
-    enabled: inverter_ids.length > 0,
+    enabled: inverter_ids.length > 0 || device_model_ids.length > 0,
   }
 
   return useCustomQuery<Inverter[]>({
     axiosConfig,
-    queryName: `${INVERTERS_QUERY_NAME}For${inverter_ids.join('-')}`,
+    queryName: INVERTERS_QUERY_NAME,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })

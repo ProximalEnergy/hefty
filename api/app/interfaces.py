@@ -413,6 +413,17 @@ class DeviceType(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class DeviceModel(BaseModel):
+    """Devicemodel model."""
+
+    device_model_id: int
+    device_type_id: int
+    brand: str
+    model: str
+
+    model_config = {"from_attributes": True}
+
+
 class Document(BaseModel):
     """Document model."""
 
@@ -428,6 +439,7 @@ class Device(BaseModel):
     device_id: int
     device_id_path: str | None
     device_type_id: int
+    device_model_id: int | None
     cec_pv_inverter_id: int | None
     cec_pv_module_id: int | None
     pv_module_id: int | None
