@@ -175,6 +175,8 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
             parts = re.findall(string_literal, literal_chain, re.DOTALL)
             combined = "".join(part[1:-1] for part in parts)
             for piece in pattern.findall(combined):
+                if piece.startswith("//"):
+                    continue
                 normalized = normalize_path(path=piece)
                 if normalized:
                     found_paths.add(normalized)
@@ -194,11 +196,15 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
                 else:
                     built_items.append("{param}")
             combined = separator.join(built_items)
+            if combined.startswith("//"):
+                continue
             normalized = normalize_path(path=combined)
             if normalized:
                 found_paths.add(normalized)
 
         for match in pattern.findall(content):
+            if match.startswith("//"):
+                continue
             normalized = normalize_path(path=match)
             if normalized:
                 found_paths.add(normalized)
@@ -252,7 +258,14 @@ def main() -> int:
     found_paths = extract_paths_from_sources(roots=search_roots)
 
     allowed = ALLOWED_UNUSED_ROUTES
+    used_allowed = sorted((allowed & found_paths) & api_paths)
     unused_paths = sorted(api_paths - found_paths - allowed)
+
+    if used_allowed:
+        print("Allowed-unused routes are referenced in sources:")
+        for path in used_allowed:
+            print(f"  - {path}")
+        return 1
 
     if unused_paths:
         print("Unused API routes (not referenced in web-app or internal tests):")
