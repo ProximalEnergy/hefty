@@ -66,7 +66,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { FeatureCollection } from 'geojson'
-import html2canvas from 'html2canvas'
+import html2canvas from 'html2canvas-pro'
 import jsPDF from 'jspdf'
 import {
   type MRT_Cell,
