@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
+from core.db_query import DbQuery
 from core.models import QSEField, QSEIntegration, QSEPermission, QSEProvider
 
 
@@ -50,20 +51,17 @@ async def get_qse_integration_by_project_id(
     return result.scalar_one_or_none()
 
 
-async def get_qse_permissions_by_company_id(
+def get_qse_permissions_by_company_id(
     *,
-    db: AsyncSession,
     company_id: UUID,
-) -> list[QSEPermission]:
+) -> DbQuery[QSEPermission]:
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         company_id: TODO: describe.
     """
     query = select(QSEPermission).where(QSEPermission.company_id == company_id)
-    result = await db.execute(query)
-    return list(result.scalars().all())
+    return DbQuery(query=query)
 
 
 async def get_qse_fields_by_provider_id(
