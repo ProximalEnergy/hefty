@@ -84,11 +84,6 @@ function usePortfolioPlotDataLongTermBess({
             : {},
         ].filter((trace) => Object.keys(trace).length > 0)
 
-    const hasData = Boolean(
-      portfolioHomeProject?.state_of_health ||
-      portfolioHomeProject?.cycle_count_string,
-    )
-
     const layout: Partial<Plotly.Layout> = {
       xaxis: {
         showticklabels: true,
@@ -118,16 +113,7 @@ function usePortfolioPlotDataLongTermBess({
           }
         : undefined,
       margin: { l: 50, r: hasCycleCount ? 50 : 0, t: 0, b: 0 },
-      showlegend: hasData,
-      legend: hasData
-        ? {
-            x: 1.02,
-            y: 1,
-            xanchor: 'left',
-            yanchor: 'top',
-            font: { size: 10 },
-          }
-        : undefined,
+      showlegend: false,
     }
 
     const config: Partial<Plotly.Config> = {
@@ -210,7 +196,7 @@ function usePortfolioPlotDataLongTermPV({
       yaxis2: hasPcsAvailability
         ? {
             title: {
-              text: 'Percentage (%)',
+              text: 'PCS Availability (%)',
               font: { color: theme.colors.blue[7] },
             },
             side: 'right',
@@ -225,16 +211,7 @@ function usePortfolioPlotDataLongTermPV({
         t: 0,
         b: 0,
       },
-      showlegend: hasPcsAvailability,
-      legend: hasPcsAvailability
-        ? {
-            x: 1.02,
-            y: 1,
-            xanchor: 'left',
-            yanchor: 'top',
-            font: { size: 10 },
-          }
-        : undefined,
+      showlegend: false,
     }
 
     const config: Partial<Plotly.Config> = {
