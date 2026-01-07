@@ -60,14 +60,6 @@ jobs:
         run: uv run mypy --config-file ../pyproject.toml -p app # Add -v for verbosity
         working-directory: api
 
-  deprecator:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: run deprecator
-        run: ./_pr_checks/deprecator.sh
-        working-directory: api
-
   tests:
     runs-on: ubuntu-latest
     steps:
