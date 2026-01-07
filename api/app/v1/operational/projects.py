@@ -84,12 +84,13 @@ async def get_projects(
     # If report_instance_report_type_ids are requested, filter project IDs that have all
     # requested report_instance_ids
     if report_instance_report_type_ids:
-        report_instances = await crud_get_report_instances(
-            db=db_async,
+        query = crud_get_report_instances(
             project_ids=project_ids_requested,
             report_type_ids=report_instance_report_type_ids,
             is_visible=None,
         )
+
+        report_instances = await query.get_async(output_type=OutputType.SQLALCHEMY)
 
         project_id_to_report_type_ids = defaultdict(list)
         for report_instance in report_instances:

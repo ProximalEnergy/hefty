@@ -1,15 +1,15 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from core.db_query import DbQuery
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, selectinload
 
 from core import models
 
 
-async def get_report_instances(
+def get_report_instances(
     *,
-    db: AsyncSession,
     project_ids: list[UUID] | None = None,
     is_visible: bool | None,
     report_type_ids: list[int] | None = None,
@@ -25,6 +25,7 @@ async def get_report_instances(
         deep: TODO: describe.
     """
     query = select(models.ReportInstance)
+
     if project_ids is not None:
         query = query.where(models.ReportInstance.project_id.in_(project_ids))
 
@@ -34,9 +35,12 @@ async def get_report_instances(
     if report_type_ids is not None:
         query = query.where(models.ReportInstance.report_type_id.in_(report_type_ids))
 
-    query = query.options(_get_report_instances_options(deep=deep))
+    if deep:
+        query = query.options(selectinload(models.ReportInstance.report_type))
+    else:
+        query = query.options(noload(models.ReportInstance.report_type))
 
-    return (await db.execute(query)).scalars().all()
+    return DbQuery(query=query)
 
 
 async def bulk_upsert_report_instances(
@@ -44,6 +48,7 @@ async def bulk_upsert_report_instances(
     db: AsyncSession,
     project_id: UUID,
     report_instances: list[dict[str, int | bool]],
+    report_type_ids_to_delete: list[int] | None = None,
 ):
     """
     Bulk upsert report instances for a project.
@@ -52,10 +57,19 @@ async def bulk_upsert_report_instances(
         db: Database session
         project_id: Project UUID
         report_instances: List of dicts with 'report_type_id' and 'is_visible'
+        report_type_ids_to_delete: Optional list of report_type_ids to delete
 
     Returns:
         List of created/updated report instances
     """
+    # Delete instances if specified
+    if report_type_ids_to_delete:
+        delete_stmt = delete(models.ReportInstance).where(
+            models.ReportInstance.project_id == project_id,
+            models.ReportInstance.report_type_id.in_(report_type_ids_to_delete),
+        )
+        await db.execute(delete_stmt)
+
     # Get existing report instances for this project
     existing_query = select(models.ReportInstance).where(
         models.ReportInstance.project_id == project_id
@@ -96,17 +110,3 @@ async def bulk_upsert_report_instances(
         await db.refresh(instance)
 
     return updated_instances
-
-
-def _get_report_instances_options(*, deep: bool):
-    """todo
-
-    Args:
-        deep: TODO: describe.
-    """
-    if deep:
-        options = selectinload(models.ReportInstance.report_type)
-    else:
-        options = noload(models.ReportInstance.report_type)
-
-    return options

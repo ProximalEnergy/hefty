@@ -4612,7 +4612,6 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
          *         is_superadmin: TODO: describe.
          *         project_ids: TODO: describe.
          *         report_type_ids: TODO: describe.
@@ -10747,6 +10746,8 @@ export interface components {
         ReportInstancesBulkUpdate: {
             /** Report Instances */
             report_instances: components["schemas"]["ReportInstanceUpdate"][];
+            /** Report Type Ids To Delete */
+            report_type_ids_to_delete?: number[] | null;
         };
         /**
          * ReportType

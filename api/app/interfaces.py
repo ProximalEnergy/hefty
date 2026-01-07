@@ -789,6 +789,7 @@ class ReportInstancesBulkUpdate(BaseModel):
     """Reportinstancesbulkupdate model."""
 
     report_instances: list[ReportInstanceUpdate]
+    report_type_ids_to_delete: list[int] | None = None
 
 
 class FailureMode(BaseModel):

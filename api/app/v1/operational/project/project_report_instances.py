@@ -84,6 +84,7 @@ async def bulk_update_project_report_instances(
             db=db,
             project_id=project_id,
             report_instances=report_instances_data,
+            report_type_ids_to_delete=data.report_type_ids_to_delete,
         )
 
         # Load report_type relationships

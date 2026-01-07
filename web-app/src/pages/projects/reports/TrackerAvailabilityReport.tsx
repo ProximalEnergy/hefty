@@ -57,10 +57,9 @@ const Page: React.FC = () => {
 
   const reportType = useGetReportType({
     pathParams: {
-      projectId: projectId || '',
-      reportTypeId: reportTypeId || '',
+      report_type_id: Number(reportTypeId) || 0,
     },
-    queryOptions: { enabled: !!projectId },
+    queryOptions: { enabled: !!projectId && !!Number(reportTypeId) },
   })
 
   const fileName = `reports/persistent/${reportType?.data?.name_short}/${
