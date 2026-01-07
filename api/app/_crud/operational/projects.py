@@ -26,10 +26,14 @@ from app.logger import logger
 
 
 def _get_operational_and_project_metadata():
-    """Get metadata for operational and project schema tables."""
+    """Get metadata for operational, project, and admin schema tables.
+
+    Admin schema is included because project tables may have foreign keys
+    to admin tables (e.g., event_messages.user_id -> admin.users.user_id).
+    """
     meta = sa.MetaData()
     for table in Base.metadata.tables.values():
-        if table.schema in ["operational", "project"]:
+        if table.schema in ["operational", "project", "admin"]:
             _ = table.to_metadata(meta)
     return meta
 
@@ -77,9 +81,11 @@ async def _create_schema_and_tables(
         # Create a separate metadata object to avoid modifying existing metadata
         new_metadata = sa.MetaData()
 
-        # Copy operational tables to new metadata (needed for foreign key constraints)
+        # Copy operational and admin tables to new metadata (needed for foreign key constraints)
+        # Admin tables are not created in project schema, but metadata needs to know about them
+        # for foreign key resolution
         for table in metadata.tables.values():
-            if table.schema == "operational":
+            if table.schema in ["operational", "admin"]:
                 table.to_metadata(new_metadata)
 
         # Create project tables with new schema
@@ -272,12 +278,24 @@ async def create_project(
         project_data["capacity_dc"] = 0.0
     if project_data.get("capacity_ac") is None:
         project_data["capacity_ac"] = 0.0
+    if project_data.get("capacity_bess_power_ac") is None:
+        project_data["capacity_bess_power_ac"] = 0.0
+    if project_data.get("capacity_bess_energy_bol_dc") is None:
+        project_data["capacity_bess_energy_bol_dc"] = 0.0
 
     # --- ATOMIC TRANSACTION: All operations succeed or all fail ---
     try:
-        # Create the project record
-        db_project = DBProject(**project_data)
-        db.add(db_project)
+        # Create the project record using insert() with explicit column selection
+        # to exclude project_id_int, allowing the database server_default to handle it
+        # Get all columns except project_id_int
+        columns_to_insert = {
+            key: value for key, value in project_data.items() if key != "project_id_int"
+        }
+
+        result = await db.execute(
+            sa.insert(DBProject).values(**columns_to_insert).returning(DBProject)
+        )
+        db_project = result.scalar_one()
 
         # Make project available for foreign key references without committing
         await db.flush()

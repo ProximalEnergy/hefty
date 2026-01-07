@@ -961,7 +961,7 @@ class Project(Base):
     __tablename__ = "projects"
 
     project_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    project_id_int: Mapped[int] = mapped_column(sa.SmallInteger)
+    project_id_int: Mapped[int] = mapped_column(sa.SmallInteger, unique=True)
     project_type_id: Mapped[enumerations.ProjectType] = mapped_column(
         sa.ForeignKey("operational.project_types.project_type_id"),
     )
