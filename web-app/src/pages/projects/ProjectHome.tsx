@@ -287,20 +287,25 @@ const PowerPlotBESS = () => {
 
       const filteredX = filteredIndices.map((idx) => firstTrace.x[idx])
       const aggregatedY = filteredIndices.map((idx) => {
-        const sum = chargeTraces.reduce(
-          (acc, trace) => acc + (trace.y[idx] || 0),
-          0,
-        )
+        const values = chargeTraces.map((trace) => trace.y[idx])
+        // If all values are null/undefined, return null to avoid showing zero
+        if (values.every((v) => v === null || v === undefined)) {
+          return null
+        }
+        const sum = values.reduce<number>((acc, v) => acc + (v || 0), 0)
         const mw = sum / -1000
         return Math.max(mw, -poi)
       })
 
-      aggregated.push({
-        ...firstTrace,
-        x: filteredX,
-        y: aggregatedY,
-        name: 'Available Charge Power',
-      })
+      // Only add trace if there's at least one non-null value
+      if (aggregatedY.some((v) => v !== null)) {
+        aggregated.push({
+          ...firstTrace,
+          x: filteredX,
+          y: aggregatedY as number[], // Plotly supports null for gaps, cast to satisfy type
+          name: 'Available Charge Power',
+        })
+      }
     }
 
     // Aggregate discharge power: sum all PCS values, divide by 1000, clip to poi
@@ -322,20 +327,25 @@ const PowerPlotBESS = () => {
 
       const filteredX = filteredIndices.map((idx) => firstTrace.x[idx])
       const aggregatedY = filteredIndices.map((idx) => {
-        const sum = dischargeTraces.reduce(
-          (acc, trace) => acc + (trace.y[idx] || 0),
-          0,
-        )
+        const values = dischargeTraces.map((trace) => trace.y[idx])
+        // If all values are null/undefined, return null to avoid showing zero
+        if (values.every((v) => v === null || v === undefined)) {
+          return null
+        }
+        const sum = values.reduce<number>((acc, v) => acc + (v || 0), 0)
         const mw = sum / 1000
         return Math.min(mw, poi)
       })
 
-      aggregated.push({
-        ...firstTrace,
-        x: filteredX,
-        y: aggregatedY,
-        name: 'Available Discharge Power',
-      })
+      // Only add trace if there's at least one non-null value
+      if (aggregatedY.some((v) => v !== null)) {
+        aggregated.push({
+          ...firstTrace,
+          x: filteredX,
+          y: aggregatedY as number[], // Plotly supports null for gaps, cast to satisfy type
+          name: 'Available Discharge Power',
+        })
+      }
     }
 
     return aggregated
