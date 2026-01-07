@@ -951,27 +951,6 @@ export const useDeleteKPIAlert = () => {
   })
 }
 
-export const useGetTriggeredKPIAlerts = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/kpi-data/user-triggered-alerts`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60,
-  }
-
-  return useCustomQuery<types.KPIAlertProps[]>({
-    axiosConfig,
-    queryName: 'getUserTriggeredAlerts',
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetKPIType = ({
   pathParams,
   queryOptions = {},

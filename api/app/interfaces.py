@@ -110,6 +110,21 @@ class UserSubscriptionUpdate(BaseModel):
     subscribe: bool
 
 
+class Notification(BaseModel):
+    """Notification model."""
+
+    notification_id: int
+    project_id: uuid.UUID
+    notification_type_id: int
+    data: dict
+    severity: str
+    created_at: datetime.datetime
+    sent_at: datetime.datetime | None
+    state: str | None = None  # Notification state: unread, read, deleted
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class NotificationType(BaseModel):
     """Notification type model."""
 

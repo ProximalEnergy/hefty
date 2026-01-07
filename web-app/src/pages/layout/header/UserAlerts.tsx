@@ -1,101 +1,44 @@
-import { useGetTriggeredKPIAlerts } from '@/hooks/api'
-import {
-  ActionIcon,
-  Divider,
-  Group,
-  Indicator,
-  Popover,
-  Text,
-} from '@mantine/core'
-import { IconAlertTriangle, IconBell, IconSettings } from '@tabler/icons-react'
+import { useGetUnreadNotificationCount } from '@/api/v1/admin/notifications'
+import { ActionIcon, Group, Indicator } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { IconBell } from '@tabler/icons-react'
 import cx from 'clsx'
-import { useState } from 'react'
-import { Link, useParams } from 'react-router'
 
+import NotificationsPanel from './NotificationsPanel'
 import classes from './ThemeToggle.module.css'
 
 const UserAlerts = () => {
-  const { data } = useGetTriggeredKPIAlerts({})
-  const [checked, setChecked] = useState<boolean>(false)
-  const { projectId } = useParams<{ projectId?: string }>()
-
-  const showIndicator = data?.length ? checked && data?.length > 0 : true
-  const firstProjectId =
-    projectId || (data && data.length > 0 ? data[0].project_id : null)
+  const { data: unreadCountData } = useGetUnreadNotificationCount({})
+  const [
+    notificationsOpened,
+    { open: openNotifications, close: closeNotifications },
+  ] = useDisclosure(false)
+  const unreadCount = unreadCountData?.count || 0
 
   return (
-    <Group justify="center">
-      <Popover position="bottom" withArrow shadow="md">
-        <Popover.Target>
-          <Indicator
-            disabled={showIndicator}
-            processing
-            label={data?.length}
-            size={16}
-            color="red"
+    <>
+      <Group justify="center">
+        <Indicator
+          disabled={unreadCount === 0}
+          label={unreadCount > 0 ? unreadCount : undefined}
+          size={16}
+          color="red"
+        >
+          <ActionIcon
+            variant="default"
+            size="lg"
+            aria-label="Open notifications"
+            onClick={openNotifications}
           >
-            <ActionIcon
-              variant="default"
-              size="lg"
-              aria-label="Toggle color scheme"
-              onClick={() => setChecked(true)}
-            >
-              <IconBell className={cx(classes.icon)} stroke={1.5} />
-            </ActionIcon>
-          </Indicator>
-        </Popover.Target>
-        <Popover.Dropdown>
-          {Array.isArray(data) && data.length === 0 ? (
-            <>
-              <Text>No alerts at this time.</Text>
-              {firstProjectId && (
-                <>
-                  <Divider my="xs" />
-                  <Link
-                    to={`/projects/${firstProjectId}/kpis/alerts`}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <Group gap="xs">
-                      <IconSettings size={16} />
-                      <Text size="sm">Set up alerts</Text>
-                    </Group>
-                  </Link>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <Text>Triggered Alerts ({data?.length}):</Text>
-              {data?.map((alert, index) => (
-                <Group key={index} align="center">
-                  <IconAlertTriangle size={20} />
-                  <Link
-                    key={index}
-                    to={`projects/${alert.project_id}/kpis/type/${alert.kpi_type_id}`}
-                  >
-                    {alert.config.alert_name}
-                  </Link>
-                </Group>
-              ))}
-              {firstProjectId && (
-                <>
-                  <Divider my="xs" />
-                  <Link
-                    to={`/projects/${firstProjectId}/kpis/alerts`}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <Group gap="xs">
-                      <IconSettings size={16} />
-                      <Text size="sm">Set up alerts</Text>
-                    </Group>
-                  </Link>
-                </>
-              )}
-            </>
-          )}
-        </Popover.Dropdown>
-      </Popover>
-    </Group>
+            <IconBell className={cx(classes.icon)} stroke={1.5} />
+          </ActionIcon>
+        </Indicator>
+      </Group>
+      <NotificationsPanel
+        opened={notificationsOpened}
+        onClose={closeNotifications}
+      />
+    </>
   )
 }
 

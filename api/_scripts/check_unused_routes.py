@@ -24,6 +24,7 @@ ALLOWED_UNUSED_ROUTES = {
     "/v1/operational/projects/{param}/kpi-data/llm-kpis",
     "/v1/operational/projects/{param}/dataframe",
     "/v1/operational/kpi-data/trigger-user-alert",
+    "/v1/operational/kpi-data/user-triggered-alerts",
     "/v1/operational/kpi-data/{param}/kpi-email-alerts",
     "/v1/operational/projects/{param}/events/llm-event-losses",
     "/v1/operational/report-instances",

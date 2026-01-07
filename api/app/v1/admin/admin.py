@@ -12,6 +12,7 @@ from app.v1.admin import (
     company_projects,
     notification_preferences,
     notification_types,
+    notifications,
     permissions,
     subscriptions,
     teams,
@@ -33,6 +34,7 @@ router.include_router(teams.router)
 router.include_router(users.router)
 router.include_router(user_projects.router)
 router.include_router(user_kpi_types.router)
+router.include_router(notifications.router)
 
 
 @router.get(

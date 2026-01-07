@@ -701,11 +701,17 @@ function EventChatNotificationSetting({
   projectName: string
   initialEnabled?: boolean
 }) {
+  const queryClient = useQueryClient()
   const updateMutation = useUpdateEventChatNotification()
 
   // Subscribe to cache changes using useQuery
+  const queryKey = ['getEventChatNotificationStatus', { projectId }]
   const { data: status } = useQuery<{ enabled: boolean }>({
     queryKey: ['getEventChatNotificationStatus', { projectId }],
+    queryFn: () =>
+      queryClient.getQueryData<{ enabled: boolean }>(queryKey) ?? {
+        enabled: initialEnabled ?? false,
+      },
     enabled: false, // Don't make network request, just subscribe to cache
     placeholderData:
       initialEnabled !== undefined ? { enabled: initialEnabled } : undefined,
@@ -714,7 +720,7 @@ function EventChatNotificationSetting({
   })
 
   // Derive the actual value from status or initialEnabled
-  const actualValue = status?.enabled ?? initialEnabled
+  const actualValue = status?.enabled ?? initialEnabled ?? false
 
   // Use local state only for optimistic updates during mutations
   const [optimisticValue, setOptimisticValue] = useState<boolean | undefined>(
