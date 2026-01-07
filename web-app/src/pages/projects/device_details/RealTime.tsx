@@ -376,7 +376,7 @@ const Page = ({
         xgap: xvals.length < 20_000 ? 1 : 0.2,
         ygap: yvals.length < 20_000 ? 1 : 0.2,
         hovertemplate:
-          '%{customdata[1]} %{y}.%{x}<br>%{z:.2f}<br>Received: %{customdata[2]}<extra></extra>',
+          '%{customdata[1]} %{y}.%{x}<br>%{z:.1%}<br>Received: %{customdata[2]}<extra></extra>',
         hoverongaps: false,
         colorbar: {
           title: {
@@ -387,6 +387,7 @@ const Page = ({
                   ? 'Angle (degrees)'
                   : unit || '',
           },
+          tickformat: '.0%',
         },
         // Add text annotations for stale data points (only if enabled)
         text: showStaleWarnings
