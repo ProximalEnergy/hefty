@@ -62,6 +62,17 @@ class UserWithPermissions(BaseModel):
     permission_ids: list[int]
 
 
+class UserWithProjects(BaseModel):
+    """Userwithprojects model."""
+
+    user_id: str
+    user_type_id: UserTypeEnum
+    company_id: uuid.UUID
+    name_long: str
+    operational_project_ids: list[uuid.UUID]
+    image_url: str | None = None
+
+
 class UserData(BaseModel):
     """Userdata model."""
 

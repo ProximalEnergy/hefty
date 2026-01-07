@@ -1,7 +1,8 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-import { User } from './admin'
+type OperationalUser = types.components['schemas']['UserWithProjects']
 
 export const useGetCompanyUsers = ({
   queryParams = {},
@@ -22,7 +23,7 @@ export const useGetCompanyUsers = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<User[]>({
+  return useCustomQuery<OperationalUser[]>({
     axiosConfig,
     queryName: 'getCompanyUsers',
     queryParams,

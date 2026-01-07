@@ -11022,6 +11022,28 @@ export interface components {
             company_name_short: string;
         };
         /**
+         * UserData
+         * @description Userdata model.
+         */
+        UserData: {
+            /** User Id */
+            user_id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Public Metadata */
+            public_metadata: {
+                [key: string]: unknown;
+            };
+            /** Api Key */
+            api_key: string | null;
+            /** Operational Project Ids */
+            operational_project_ids: string[];
+            user_type_id: components["schemas"]["UserTypeEnum"];
+        };
+        /**
          * UserKPITypes
          * @description Userkpitypes model.
          */
@@ -11114,6 +11136,26 @@ export interface components {
             name_long: string;
             /** Permission Ids */
             permission_ids: number[];
+        };
+        /**
+         * UserWithProjects
+         * @description Userwithprojects model.
+         */
+        UserWithProjects: {
+            /** User Id */
+            user_id: string;
+            user_type_id: components["schemas"]["UserTypeEnum"];
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name Long */
+            name_long: string;
+            /** Operational Project Ids */
+            operational_project_ids: string[];
+            /** Image Url */
+            image_url?: string | null;
         };
         /**
          * UtilityExpectedResponse
@@ -12261,7 +12303,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserWithProjects"][];
                 };
             };
             /** @description Validation Error */
@@ -12293,7 +12335,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserData"];
                 };
             };
             /** @description Validation Error */

@@ -12,15 +12,9 @@ import { baseURL } from '../urlConfig'
 
 type Permission = types.components['schemas']['Permission']
 type UserWithPermissions = types.components['schemas']['UserWithPermissions']
-
-export interface User {
-  user_id: string
-  name_long: string
-  company_id: string
-  user_type_id: number
-  operational_project_ids: string[]
-  image_url?: string | null
-}
+type UserWithProjects = types.components['schemas']['UserWithProjects']
+type UserData = types.components['schemas']['UserData']
+type UserCreate = types.components['schemas']['UserCreate']
 
 type Company = types.components['schemas']['Company']
 type Team = types.components['schemas']['Team']
@@ -247,7 +241,7 @@ export const useGetUsers = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<User[]>({
+  return useCustomQuery<UserWithProjects[]>({
     axiosConfig,
     queryName: 'getUsers',
     queryParams,
@@ -269,7 +263,7 @@ export const useGetUserSelf = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<User>({
+  return useCustomQuery<UserData>({
     axiosConfig,
     queryName: 'getUserSelf',
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
@@ -482,14 +476,6 @@ export const useRenameTeam = () => {
   })
 }
 
-interface CreateUserParams {
-  first_name: string
-  last_name: string
-  email: string
-  company_id: string
-  company_name_short: string
-}
-
 export const useCreateUser = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
@@ -501,7 +487,7 @@ export const useCreateUser = () => {
       email,
       company_id,
       company_name_short,
-    }: CreateUserParams) => {
+    }: UserCreate) => {
       const token = await getToken({ template: 'default' })
 
       // Send all data to your backend, let it handle both Clerk and database creation
