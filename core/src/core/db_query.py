@@ -151,7 +151,7 @@ class DbQuery[T]:
         self, executor
     ) -> list[RowMapping] | list[T] | RowMapping | T | None:
         if isinstance(self.query, Select):
-            if self.scalar:
+            if self.is_scalar:
                 result = executor.execute(self.query)
                 return result.scalars().unique().one_or_none()
 
@@ -162,7 +162,7 @@ class DbQuery[T]:
 
         result = executor.execute(self.query)
 
-        if self.scalar:
+        if self.is_scalar:
             return result.mappings().one_or_none()
 
         items = result.mappings().fetchmany(_SQLALCHEMY_ROW_LIMIT)
