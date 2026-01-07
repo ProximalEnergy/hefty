@@ -1,7 +1,7 @@
 """Database query wrapper for efficient Polars and Pandas dataframe operations."""
 
 import warnings
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeVar
@@ -56,13 +56,16 @@ class DbQuery[T]:
     """
 
     query: TextClause | Select
+    is_scalar: bool = False
 
     def get(
         self,
         *,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
-    ) -> pd.DataFrame | pl.DataFrame | Sequence[RowMapping] | Sequence[T]:
+    ) -> (
+        pd.DataFrame | pl.DataFrame | list[RowMapping] | list[T] | RowMapping | T | None
+    ):
         """
         Execute the query on a sync connection and return data.
 
@@ -81,7 +84,9 @@ class DbQuery[T]:
         *,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
-    ) -> pd.DataFrame | pl.DataFrame | Sequence[RowMapping] | Sequence[T]:
+    ) -> (
+        pd.DataFrame | pl.DataFrame | list[RowMapping] | list[T] | RowMapping | T | None
+    ):
         """
         Execute the query on an async connection and return data.
 
@@ -102,7 +107,9 @@ class DbQuery[T]:
         *,
         executor,
         output_type: OutputType,
-    ) -> pd.DataFrame | pl.DataFrame | Sequence[RowMapping] | Sequence[T]:
+    ) -> (
+        pd.DataFrame | pl.DataFrame | list[RowMapping] | list[T] | RowMapping | T | None
+    ):
         """
         Single source of truth for reading data from a connection.
 
@@ -140,14 +147,24 @@ class DbQuery[T]:
         df = self._apply_mapping(df=df)
         return self._normalize_pandas_dtypes(df=df)
 
-    def _read_sqlalchemy(self, executor) -> Sequence[RowMapping] | Sequence[T]:
+    def _read_sqlalchemy(
+        self, executor
+    ) -> list[RowMapping] | list[T] | RowMapping | T | None:
         if isinstance(self.query, Select):
+            if self.scalar:
+                result = executor.execute(self.query)
+                return result.scalars().unique().one_or_none()
+
             result = executor.execute(self.query.limit(_SQLALCHEMY_ROW_LIMIT))
             items = result.scalars().all()  # ORM return
             _raise_for_large_sqlalchemy_result(count=len(items))
             return items
 
         result = executor.execute(self.query)
+
+        if self.scalar:
+            return result.mappings().one_or_none()
+
         items = result.mappings().fetchmany(_SQLALCHEMY_ROW_LIMIT)
         _raise_for_large_sqlalchemy_result(count=len(items))
         return items

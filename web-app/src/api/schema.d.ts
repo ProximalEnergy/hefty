@@ -1324,7 +1324,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: Project UUID used to look up coordinates.
-         *         db: Database session dependency.
          */
         get: operations["get_project_weather_v1_gis__project_id__project_weather_get"];
         put?: never;
@@ -1348,7 +1347,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: Project UUID used to look up coordinates.
-         *         db: Database session dependency.
          */
         get: operations["get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get"];
         put?: never;
@@ -4272,7 +4270,6 @@ export interface paths {
          *     Args:
          *         project_id: TODO: describe.
          *         deep: TODO: describe.
-         *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
         get: operations["get_project_by_id"];
@@ -13602,9 +13599,7 @@ export interface operations {
     };
     get_project_weather_v1_gis__project_id__project_weather_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -13638,9 +13633,7 @@ export interface operations {
     };
     get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -13674,9 +13667,7 @@ export interface operations {
     };
     get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -13752,7 +13743,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -13829,7 +13819,6 @@ export interface operations {
                 west: number;
                 device_type_ids?: number[] | null;
                 power_device_type_id?: number | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15067,9 +15056,7 @@ export interface operations {
     };
     create_contract_v1_operational_projects__project_id__contracts_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -15177,9 +15164,7 @@ export interface operations {
     };
     delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -15715,7 +15700,6 @@ export interface operations {
                 end?: string | null;
                 device_type_ids?: number[] | null;
                 device_ids?: number[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15753,7 +15737,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16360,7 +16343,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16404,7 +16386,6 @@ export interface operations {
                 use_poa_1d: boolean;
                 use_poa_std: boolean;
                 resample_rate?: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16519,7 +16500,6 @@ export interface operations {
         parameters: {
             query?: {
                 timestamp?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16681,7 +16661,6 @@ export interface operations {
                 device_ids?: number[] | null;
                 tag_ids?: number[] | null;
                 device_type_ids?: number[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16955,7 +16934,6 @@ export interface operations {
                 expected_metric_ids?: number[];
                 highest_priority_only?: boolean;
                 cutoff_now?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -17024,9 +17002,7 @@ export interface operations {
     };
     upload_project_document_v1_operational_projects__project_id__documents_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -17180,7 +17156,6 @@ export interface operations {
                 start: string;
                 end: string;
                 device_ids?: number[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -17253,7 +17228,6 @@ export interface operations {
                 level?: string;
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -17884,7 +17858,6 @@ export interface operations {
             query?: {
                 /** @description Load all related objects. */
                 deep?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20206,7 +20179,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20244,7 +20216,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20282,7 +20253,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20320,7 +20290,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20358,7 +20327,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20397,7 +20365,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20437,7 +20404,6 @@ export interface operations {
                 end?: string | null;
                 agg?: string;
                 fillna_zero?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20516,7 +20482,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20554,7 +20519,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20592,7 +20556,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20628,9 +20591,7 @@ export interface operations {
     };
     get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20669,7 +20630,6 @@ export interface operations {
                 device_ids: number[];
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20778,9 +20738,7 @@ export interface operations {
     };
     get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20893,7 +20851,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20964,9 +20921,7 @@ export interface operations {
     };
     get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21038,9 +20993,7 @@ export interface operations {
     };
     get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21077,7 +21030,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21114,7 +21066,6 @@ export interface operations {
         parameters: {
             query?: {
                 sort_by?: "daily" | "total";
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21312,9 +21263,7 @@ export interface operations {
     };
     get_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_user_dashboards_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21348,9 +21297,7 @@ export interface operations {
     };
     get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21384,9 +21331,7 @@ export interface operations {
     };
     create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21424,9 +21369,7 @@ export interface operations {
     };
     duplicate_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_duplicate__dashboard_id__post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21465,9 +21408,7 @@ export interface operations {
     };
     update_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21505,9 +21446,7 @@ export interface operations {
     };
     get_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21542,9 +21481,7 @@ export interface operations {
     };
     delete_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__delete: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21579,9 +21516,7 @@ export interface operations {
     };
     get_dashboard_shared_users_endpoint_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__users_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21616,9 +21551,7 @@ export interface operations {
     };
     share_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21657,9 +21590,7 @@ export interface operations {
     };
     unshare_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__delete: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21701,7 +21632,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21739,7 +21669,6 @@ export interface operations {
             query?: {
                 analysis_date?: string | null;
                 block_names?: string[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21778,7 +21707,6 @@ export interface operations {
                 start?: string | null;
                 end?: string | null;
                 resample_rate?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21816,7 +21744,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21942,7 +21869,6 @@ export interface operations {
                 start: string;
                 end: string;
                 warranted_degradation?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -22132,7 +22058,6 @@ export interface operations {
                 project_id: string;
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;

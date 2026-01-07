@@ -1,5 +1,5 @@
 # General
-- make sure lines are shorter than 88 characters
+- new code lines are shorter than 88 characters, do not refactor old code
 
 # python
 - use uv not pip

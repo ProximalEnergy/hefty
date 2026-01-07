@@ -176,10 +176,9 @@ async def get_projects(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_project_by_id",
 )
-def get_project(
+async def get_project(
     project_id: UUID,
     deep: custom_types.AnnotatedDeep = False,
-    db: Session = Depends(get_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     """todo
@@ -187,13 +186,14 @@ def get_project(
     Args:
         project_id: TODO: describe.
         deep: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
     """
-    project_db_model: models.Project | None = (
-        core.crud.operational.projects.get_project(
-            db=db, project_id=project_id, deep=deep
-        ).model()
+    project_query = core.crud.operational.projects.get_project(
+        project_id=project_id,
+        deep=deep,
+    )
+    project_db_model = await project_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
     )
     utils.check_404(value=project_db_model, detail=DESCRIPTION_404)
 

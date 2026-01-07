@@ -1,14 +1,14 @@
 # test_crud.py
 import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import UUID
 
-import pytest
 from core.crud.operational.projects import get_project
+from core.db_query import DbQuery
 from core.enumerations import DeviceType, ProjectType, SensorType
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import noload, selectinload
 
-from core import model_list, models
+from core import models
 
 # ... (Keep Mock classes, EXPECTED_PROJECT_DATA, TEST_PROJECT_ID) ...
 TEST_PROJECT_ID = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
@@ -19,9 +19,9 @@ TEST_PROJECT_ID = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
 class MockPoint:
     """todo"""
 
-    def __init__(
+    def __init__(  # nosemgrep: python-enforce-keyword-only-args
         self, type, coordinates
-    ):  # nosemgrep: python-enforce-keyword-only-args
+    ):
         """todo"""
         self.type, self.coordinates = type, coordinates
 
@@ -37,9 +37,9 @@ class MockPoint:
 class MockPolygon:
     """todo"""
 
-    def __init__(
+    def __init__(  # nosemgrep: python-enforce-keyword-only-args
         self, type, coordinates
-    ):  # nosemgrep: python-enforce-keyword-only-args
+    ):
         """todo"""
         self.type, self.coordinates = type, coordinates
 
@@ -190,30 +190,10 @@ EXPECTED_PROJECT_DATA = {
 }
 
 
-@pytest.fixture
-def mock_db_session():
-    """Fixture to create a mock SQLAlchemy Session."""
-    mock = MagicMock(spec=Session)
-    mock_query = mock.query.return_value
-    mock_options = mock_query.options.return_value
-    mock_filter = mock_options.filter.return_value
-    mock_filter.first = MagicMock()
-    return mock
-
-
-@pytest.fixture
-def mock_project_instance():
-    """Fixture to create a MOCK Project instance based on expected data."""
-    instance = MockProject(**EXPECTED_PROJECT_DATA)
-    return instance
-
-
 # Adjust the path 'core.crud.operational.projects.get_project_options' if needed
 @patch("core.crud.operational.projects.get_project_options")
 def test_get_project_found_deep(  # nosemgrep: python-enforce-keyword-only-args
     mock_get_options,
-    mock_db_session,
-    mock_project_instance,
     mocker,
 ):
     """
@@ -221,33 +201,22 @@ def test_get_project_found_deep(  # nosemgrep: python-enforce-keyword-only-args
     """
     test_id = TEST_PROJECT_ID
     deep_load = True
-    mock_options_result = [mocker.MagicMock()]  # A list containing one mock
-    mock_get_options.return_value = mock_options_result
+    mock_option = selectinload(models.Project.project_type)
+    mock_get_options.return_value = mock_option
 
-    mock_db_session.query.return_value.options.return_value.filter.return_value.first.return_value = mock_project_instance
+    result = get_project(project_id=test_id, deep=deep_load)
 
-    result = get_project(db=mock_db_session, project_id=test_id, deep=deep_load).model()
-
-    assert result == mock_project_instance
-    mock_db_session.query.assert_called_once_with(models.Project)
+    assert isinstance(result, DbQuery)
     mock_get_options.assert_called_once_with(deep=deep_load)
-
-    # --- MODIFIED ASSERTION ---
-    # Expect options to be called with the LIST itself, not its unpacked content
-    mock_db_session.query.return_value.options.assert_called_once_with(
-        mock_options_result,
-    )
-    # ---
-
-    mock_db_session.query.return_value.options.return_value.filter.assert_called_once()
-    mock_db_session.query.return_value.options.return_value.filter.return_value.first.assert_called_once()
+    assert mock_option in result.query._with_options
+    criteria = result.query._where_criteria
+    assert len(criteria) == 1
+    assert criteria[0].right.value == test_id
 
 
 @patch("core.crud.operational.projects.get_project_options")
 def test_get_project_found_shallow(  # nosemgrep: python-enforce-keyword-only-args
     mock_get_options,
-    mock_db_session,
-    mock_project_instance,
     mocker,
 ):
     """
@@ -255,47 +224,37 @@ def test_get_project_found_shallow(  # nosemgrep: python-enforce-keyword-only-ar
     """
     test_id = TEST_PROJECT_ID
     deep_load = False
-    mock_options_result = []  # Shallow load options (empty list)
-    mock_get_options.return_value = mock_options_result
+    mock_option = noload(models.Project.project_type)
+    mock_get_options.return_value = mock_option
 
-    mock_db_session.query.return_value.options.return_value.filter.return_value.first.return_value = mock_project_instance
+    result = get_project(project_id=test_id, deep=deep_load)
 
-    result = get_project(db=mock_db_session, project_id=test_id, deep=deep_load).model()
-
-    assert result == mock_project_instance
-    mock_db_session.query.assert_called_once_with(models.Project)
+    assert isinstance(result, DbQuery)
     mock_get_options.assert_called_once_with(deep=deep_load)
-
-    # --- MODIFIED ASSERTION ---
-    # Assuming the production code calls options([]) when the list is empty
-    # If it skips the call instead, use assert_not_called()
-    mock_db_session.query.return_value.options.assert_called_once_with(
-        mock_options_result,  # Expect call with the empty list: options([])
-    )
-    # ---
-
-    # If your production code *skips* the .options() call for an empty list, use this instead:
-    # mock_db_session.query.return_value.options.assert_not_called()
-
-    mock_db_session.query.return_value.options.return_value.filter.assert_called_once()
-    mock_db_session.query.return_value.options.return_value.filter.return_value.first.assert_called_once()
+    assert mock_option in result.query._with_options
+    criteria = result.query._where_criteria
+    assert len(criteria) == 1
+    assert criteria[0].right.value == test_id
 
 
 @patch("core.crud.operational.projects.get_project_options")
 def test_get_project_not_found(  # nosemgrep: python-enforce-keyword-only-args
     mock_get_options,
-    mock_db_session,
     mocker,
-):  # nosemgrep: python-enforce-keyword-only-args
+):
     """
-    Test get_project when the project is not found.
+    Test get_project query when the project is not found.
     """
     test_id = UUID("11111111-1111-1111-1111-111111111111")
     deep_load = True
-    mock_options_result = [mocker.MagicMock()]  # List containing one mock
-    mock_get_options.return_value = mock_options_result
+    mock_option = selectinload(models.Project.project_type)
+    mock_get_options.return_value = mock_option
 
-    mock_db_session.query.return_value.options.return_value.filter.return_value.first.return_value = None
+    result = get_project(project_id=test_id, deep=deep_load)
 
-    with pytest.raises(model_list.UninitializedError):
-        get_project(db=mock_db_session, project_id=test_id, deep=deep_load).model()
+    assert isinstance(result, DbQuery)
+    mock_get_options.assert_called_once_with(deep=deep_load)
+    assert mock_option in result.query._with_options
+    criteria = result.query._where_criteria
+    assert len(criteria) == 1
+    assert criteria[0].right.value == test_id

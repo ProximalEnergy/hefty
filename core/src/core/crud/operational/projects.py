@@ -2,13 +2,11 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session, noload, selectinload
-from sqlalchemy.orm.query import Query
+from sqlalchemy.orm import noload, selectinload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from core import enumerations, models
 from core.db_query import DbQuery
-from core.model_list import ModelItem
 
 
 def get_project_options(*, deep: bool) -> _AbstractLoad:
@@ -74,27 +72,20 @@ def get_projects(
     return DbQuery(query=stmt)
 
 
-def get_project(
-    *, db: Session, project_id: UUID, deep: bool = False, return_query: bool = False
-) -> ModelItem[models.Project]:
+def get_project(*, project_id: UUID, deep: bool = False):
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         project_id: TODO: describe.
         deep: TODO: describe.
-        return_query: TODO: describe.
     """
     options = get_project_options(deep=deep)
-    query: Query = (
-        db.query(models.Project)
+    stmt = (
+        select(models.Project)
         .options(options)
-        .filter(models.Project.project_id == project_id)
+        .where(models.Project.project_id == project_id)
     )
-    return ModelItem(query=query, return_query=return_query)
-
-
-# --- ASYNC SECTION ---
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def get_project_timezone_and_data_cagg_interval_by_name_short_async(

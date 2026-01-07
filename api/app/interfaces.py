@@ -263,9 +263,9 @@ class MultiPolygon(BaseModel):
 
     @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_multipolygon(
+    def convert_multipolygon(  # nosemgrep: python-enforce-keyword-only-args
         multipolygon,
-    ):  # nosemgrep: python-enforce-keyword-only-args
+    ):
         """Handle convert multipolygon.
 
         Args:

@@ -5,7 +5,7 @@ from uuid import UUID
 import httpx
 import jwt
 import sqlalchemy as sa
-from core.dependencies import get_db
+from core.db_query import OutputType
 from core.dependencies import get_project_name_short as core_get_project_name_short
 from core.dependencies import (
     get_project_name_short_async as core_get_project_name_short_async,
@@ -15,7 +15,6 @@ from core.dependencies import with_db_async as _with_async_db
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, settings
@@ -45,16 +44,19 @@ def get_project_db(*, project_id: UUID = Path(...)):
         yield project_db
 
 
-def get_project_api(*, project_id: UUID, db: Session = Depends(get_db)):
+async def get_project_api(*, project_id: UUID):
     """Get project api.
 
     Args:
         project_id: TODO: describe.
-        db: TODO: describe.
     """
-    project_model = core.crud.operational.projects.get_project(
-        db=db, project_id=project_id, deep=True
-    ).model()
+    project_query = core.crud.operational.projects.get_project(
+        project_id=project_id,
+        deep=True,
+    )
+    project_model = await project_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
+    )
     if not project_model:
         raise HTTPException(status_code=404, detail="Project not found")
     return interfaces.Project.model_validate(project_model)
