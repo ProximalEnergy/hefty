@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 import core
 from core import models
+from core.db_query import DbQuery, OutputType
 from core.enumerations import SensorType, TimeInterval, TimeOffset
 from core.model_list import ModelList
 
@@ -374,9 +375,8 @@ def get_status_interpret(
                 lambda x: bool(strtobool(str(int(float(x)))))
             )
             status_boolean = core.crud.project.statuses.get_status_boolean(
-                db=db,
                 status_boolean_ids=status_df[status_type].tolist(),
-            ).models()
+            ).get(output_type=OutputType.SQLALCHEMY)
             status_boolean_df = pd.DataFrame([obj.__dict__ for obj in status_boolean])
             status_boolean_df = status_boolean_df.drop(
                 columns="_sa_instance_state", errors="ignore"
@@ -406,9 +406,8 @@ def get_status_interpret(
                 status_df["value"].astype(str).str.translate(tbl).str.lower()  # type: ignore
             )
             status_string = core.crud.project.statuses.get_status_string(
-                db=db,
                 status_string_ids=status_df[status_type].tolist(),
-            ).models()
+            ).get(output_type=OutputType.SQLALCHEMY)
             status_string_df = pd.DataFrame([obj.__dict__ for obj in status_string])
             status_string_df = status_string_df.drop(
                 columns="_sa_instance_state", errors="ignore"
@@ -479,45 +478,37 @@ def get_status_binary(
 
 
 def get_status_boolean(
-    db: Session,
     *,
     status_boolean_ids: list[int] = [],
-    return_query: bool = False,
-) -> ModelList[models.StatusBoolean]:
+) -> DbQuery[models.StatusBoolean]:
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         status_boolean_ids: TODO: describe.
-        return_query: TODO: describe.
     """
-    query = db.query(models.StatusBoolean)
+    stmt = select(models.StatusBoolean)
     if status_boolean_ids:
-        query = query.where(
+        stmt = stmt.where(
             models.StatusBoolean.status_boolean_id.in_(status_boolean_ids),
         )
-    return ModelList(query=query, return_query=return_query)
+    return DbQuery(query=stmt)
 
 
 def get_status_string(
-    db: Session,
     *,
     status_string_ids: list[int] = [],
-    return_query: bool = False,
-) -> ModelList[models.StatusString]:
+) -> DbQuery[models.StatusString]:
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         status_string_ids: TODO: describe.
-        return_query: TODO: describe.
     """
-    query = db.query(models.StatusString)
+    stmt = select(models.StatusString)
     if status_string_ids:
-        query = query.where(
+        stmt = stmt.where(
             models.StatusString.status_string_id.in_(status_string_ids),
         )
-    return ModelList(query=query, return_query=return_query)
+    return DbQuery(query=stmt)
 
 
 # --- ASYNC SECTION ---
