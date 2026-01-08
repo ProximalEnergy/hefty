@@ -1027,10 +1027,13 @@ def bulk_create_events(
 ):
     """Create events in bulk for a set of device_ids and attach a single loss row each.
 
-        - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
-        - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-        - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
-          name_short 'proximal_pv_dc_capacity'.
+    - Creates an `events` row per device with failure_mode_id default 1
+      (Generic Underperformance)
+    - Inserts an `event_losses` row at `time_start` with provided loss and
+      event_loss_type_id
+    - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in
+      operational.event_loss_types, create it with name_short
+      'proximal_pv_dc_capacity'.
 
     Args:
         project_db: TODO: describe.

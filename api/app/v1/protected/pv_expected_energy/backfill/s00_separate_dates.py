@@ -15,7 +15,8 @@ def generate_daily_ranges(
         end_str (str): End datetime in format 'YYYY-MM-DD HH:MM:SS'
 
     Returns:
-        list[tuple[datetime, datetime]]: List of (start, end) datetime tuples for each day
+        list[tuple[datetime, datetime]]: List of (start, end) datetime tuples
+            for each day
     """
     # Convert string inputs to datetime objects
     try:

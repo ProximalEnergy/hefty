@@ -1,14 +1,15 @@
 """
 Test suite for data_timeseries CRUD operations.
 
-This module contains tests to ensure that the two versions of get_project_data_timeseries
-functions generate identical SQL queries. The main purpose is to verify that:
+This module contains tests to ensure that the two versions of
+get_project_data_timeseries functions generate identical SQL queries. The main
+purpose is to verify that:
 
 1. get_project_data_timeseries (v1) - executes queries immediately
 2. get_project_data_timeseries_v2 (v2) - returns queries for deferred execution
 
-Both functions should produce the same SQL query text with identical bind parameters
-for the same input parameters.
+Both functions should produce the same SQL query text with identical bind
+parameters for the same input parameters.
 """
 
 from unittest.mock import MagicMock, patch
@@ -75,10 +76,12 @@ def sample_parameters():
 
 def test_query_text_comparison_default_table(mock_db_session, sample_parameters):
     """
-    Test that both functions generate identical query text for the default data_timeseries table.
+    Test that both functions generate identical query text for the default
+    data_timeseries table.
 
-    This test verifies that get_project_data_timeseries and get_project_data_timeseries_v2
-    construct the same SQL statement when no cagg_interval is specified.
+    This test verifies that get_project_data_timeseries and
+    get_project_data_timeseries_v2 construct the same SQL statement when no
+    cagg_interval is specified.
     """
 
     # Mock the Table creation and its properties
@@ -122,10 +125,12 @@ def test_query_text_comparison_default_table(mock_db_session, sample_parameters)
 
 def test_query_text_comparison_cagg_table(mock_db_session, sample_parameters):
     """
-    Test that both functions generate identical query text for continuous aggregate tables.
+    Test that both functions generate identical query text for continuous
+    aggregate tables.
 
-    This test verifies that both functions correctly construct the table name when
-    cagg_interval is specified (e.g., data_timeseries_1d) and generate the same SQL.
+    This test verifies that both functions correctly construct the table name
+    when cagg_interval is specified (e.g., data_timeseries_1d) and generate the
+    same SQL.
     """
 
     # Modify parameters to use cagg table

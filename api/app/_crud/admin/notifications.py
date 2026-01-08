@@ -20,7 +20,8 @@ async def get_user_in_app_notifications(
         offset: Number of notifications to skip before returning results.
 
     Returns:
-        List of tuples containing (Notification, NotificationState) for IN_APP channel that are not deleted.
+        List of tuples containing (Notification, NotificationState) for IN_APP
+        channel that are not deleted.
     """
     query = (
         select(models.Notification, models.NotificationState)

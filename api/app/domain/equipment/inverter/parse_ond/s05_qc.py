@@ -6,7 +6,8 @@ def validate_inverter_config(*, inverter: dict) -> dict:
         inverter: Dictionary containing inverter configuration
 
     Returns:
-        (is_valid, errors): Tuple containing validation status and list of error messages
+        (is_valid, errors): Tuple containing validation status and list of
+            error messages
     """
     required_keys = {
         # Book-keeping

@@ -376,9 +376,9 @@ def get_devices_in_viewport(
     project: models.Project = Depends(dependencies.get_project_api),
 ):
     """Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-        Optionally filters by device_type_ids.
-        If power_device_type_id is provided, fetches and includes latest actual/expected power
-        for devices matching that type within the viewport.
+    Optionally filters by device_type_ids. If power_device_type_id is provided,
+    fetches and includes latest actual/expected power for devices matching that
+    type within the viewport.
 
     Args:
         north: TODO: describe.

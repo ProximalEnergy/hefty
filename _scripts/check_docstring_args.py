@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ensure functions with parameters include an Args block in docstrings using Semgrep."""
+"""Ensure functions with parameters include an Args block in docstrings."""
 
 from __future__ import annotations
 

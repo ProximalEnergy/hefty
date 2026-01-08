@@ -2,7 +2,9 @@
 Older versions of PAN files created by PVsyst use a Borland Pascal Real48 format.
 
 This is based on:
-    https://github.com/CanadianSolar/CASSYS/blob/b5487bb4e9e77174c805d64e3c960c46d357b7e2/CASSYS%20Interface/DatabaseImportModule.vba#L4
+    https://github.com/CanadianSolar/CASSYS/blob/
+    b5487bb4e9e77174c805d64e3c960c46d357b7e2/CASSYS%20Interface/
+    DatabaseImportModule.vba#L4
 """
 
 import struct

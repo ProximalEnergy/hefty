@@ -100,7 +100,8 @@ class BaseIntEnum(IntEnum):
 
         Args:
             session: Database session to use for validation
-            case_sensitive: Whether to perform case-sensitive name comparison (default: True)
+            case_sensitive: Whether to perform case-sensitive name comparison
+                (default: True)
 
         Returns:
             Dictionary mapping enum class names to their validation results

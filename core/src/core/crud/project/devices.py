@@ -56,8 +56,8 @@ def get_project_devices(
         name_short (str, optional): A short name to filter devices by.
         name_long (str, optional): A long name to filter devices by.
         deep (bool, optional): A flag indicating whether to load related data.
-        include_name_long (bool, optional): A flag indicating whether to load device_type
-            relationship to access device_type.name_long.
+        include_name_long (bool, optional): A flag indicating whether to load
+            device_type relationship to access device_type.name_long.
         device_id_descendent_of (Optional[int], optional): A device ID to filter devices
             that are descendants of it.
 
@@ -151,8 +151,8 @@ async def get_project_devices_async(
         name_short (str, optional): A short name to filter devices by.
         name_long (str, optional): A long name to filter devices by.
         deep (bool, optional): A flag indicating whether to load related data.
-        include_name_long (bool, optional): A flag indicating whether to load device_type
-            relationship to access device_type.name_long.
+        include_name_long (bool, optional): A flag indicating whether to load
+            device_type relationship to access device_type.name_long.
         device_id_descendent_of (Optional[int], optional): A device ID to filter devices
             that are descendants of it.
 

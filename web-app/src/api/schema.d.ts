@@ -1471,9 +1471,9 @@ export interface paths {
         /**
          * Get Devices In Viewport
          * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *         Optionally filters by device_type_ids.
-         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
-         *         for devices matching that type within the viewport.
+         *     Optionally filters by device_type_ids. If power_device_type_id is provided,
+         *     fetches and includes latest actual/expected power for devices matching that
+         *     type within the viewport.
          *
          *     Args:
          *         north: TODO: describe.
@@ -1537,7 +1537,9 @@ export interface paths {
          *         path (Optional[str]): The path to the directory in S3.
          *
          *     Returns:
-         *         List[Contents]: A list of the contents of the directory as dictionaries. Dictionary keys are ["Key", "LastModified", "ETag", "Size", "StorageClass"].
+         *         List[Contents]: A list of the contents of the directory as dictionaries.
+         *         Dictionary keys are ["Key", "LastModified", "ETag", "Size",
+         *         "StorageClass"].
          */
         get: operations["listdir_v1_operational_aws_listdir_get"];
         put?: never;
@@ -1647,10 +1649,10 @@ export interface paths {
          * Get CEC PV module IDs based on manufacturer and model pairs
          * @description Get CEC PV module IDs for each manufacturer and model pair.
          *
-         *         Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
-         *         that don't exist in the database.
+         *     Returns corresponding CEC PV module IDs in the same order. Returns None
+         *     for any pairs that don't exist in the database.
          *
-         *         The input lists must have the same length.
+         *     The input lists must have the same length.
          *
          *     Args:
          *         manufacturers: TODO: describe.
@@ -1920,14 +1922,15 @@ export interface paths {
          * Toggle Event Message Reaction
          * @description Toggle a reaction on a message (add if not exists, remove if exists).
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *         Request Body:
-         *             event_message_id: The ID of the message
-         *             reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
+         *     Path Parameters:
+         *         project_id: The project ID (required to determine schema)
+         *     Request Body:
+         *         event_message_id: The ID of the message
+         *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
+         *             'question_mark', etc.)
          *
-         *         Returns:
-         *             The created reaction (if added) or the deleted reaction info (if removed)
+         *     Returns:
+         *         The created reaction (if added) or the deleted reaction info (if removed)
          *
          *     Args:
          *         project_id: TODO: describe.
@@ -2969,10 +2972,13 @@ export interface paths {
          * Bulk Create Events
          * @description Create events in bulk for a set of device_ids and attach a single loss row each.
          *
-         *         - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
-         *         - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-         *         - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
-         *           name_short 'proximal_pv_dc_capacity'.
+         *     - Creates an `events` row per device with failure_mode_id default 1
+         *       (Generic Underperformance)
+         *     - Inserts an `event_losses` row at `time_start` with provided loss and
+         *       event_loss_type_id
+         *     - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in
+         *       operational.event_loss_types, create it with name_short
+         *       'proximal_pv_dc_capacity'.
          *
          *     Args:
          *         project_db: TODO: describe.
@@ -4634,16 +4640,17 @@ export interface paths {
          * Get Root Causes
          * @description Retrieve root causes with optional filtering by IDs and device types.
          *
-         *     This endpoint returns a list of root causes, optionally filtered by specific root cause IDs
-         *     and/or device type IDs. Each root cause is enriched with a 'name_full' field that
-         *     combines the device type name and root cause name.
+         *     This endpoint returns a list of root causes, optionally filtered by
+         *     specific root cause IDs and/or device type IDs. Each root cause is enriched
+         *     with a 'name_full' field that combines the device type name and root cause
+         *     name.
          *
          *     Args:
          *         db (Session): Database session dependency
-         *         root_cause_ids (List[int], optional): List of specific root cause IDs to filter by.
-         *             If empty, returns all root causes.
-         *         device_type_ids (List[int], optional): List of device type IDs to filter by.
-         *             If empty, returns root causes for all device types.
+         *         root_cause_ids (List[int], optional): List of specific root cause IDs
+         *             to filter by. If empty, returns all root causes.
+         *         device_type_ids (List[int], optional): List of device type IDs to
+         *             filter by. If empty, returns root causes for all device types.
          *
          *     Returns:
          *         List[dict]: List of root cause dictionaries, each containing:
@@ -4852,10 +4859,10 @@ export interface paths {
          * Get PV module IDs based on manufacturer and model pairs
          * @description Get PV module IDs for each manufacturer and model pair.
          *
-         *         Returns corresponding PV module IDs in the same order. Returns None for any pairs
-         *         that don't exist in the database.
+         *     Returns corresponding PV module IDs in the same order. Returns None for
+         *     any pairs that don't exist in the database.
          *
-         *         The input lists must have the same length.
+         *     The input lists must have the same length.
          *
          *     Args:
          *         authorized_company_id: TODO: describe.
@@ -6926,10 +6933,11 @@ export interface paths {
         };
         /**
          * Utility Expected
-         * @description This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.
-         *         Data returned includes parent device tree up to root, expected power data, and actual power data.
-         *         This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
-         *         fit the use case of the page.
+         * @description This function facilitates all backend data required for the Superadmin
+         *     Utility Expected Plotting page. Data returned includes parent device tree
+         *     up to root, expected power data, and actual power data. This data is visible
+         *     exclusively to Proximal Superadmins, and as such can be changed more freely
+         *     to fit the use case of the page.
          *
          *     Args:
          *         device_id: TODO: describe.

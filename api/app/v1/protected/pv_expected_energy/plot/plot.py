@@ -46,10 +46,11 @@ async def utility_expected(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.
-        Data returned includes parent device tree up to root, expected power data, and actual power data.
-        This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
-        fit the use case of the page.
+    """This function facilitates all backend data required for the Superadmin
+    Utility Expected Plotting page. Data returned includes parent device tree
+    up to root, expected power data, and actual power data. This data is visible
+    exclusively to Proximal Superadmins, and as such can be changed more freely
+    to fit the use case of the page.
 
     Args:
         device_id: TODO: describe.

@@ -51,8 +51,8 @@ async def get_user_notifications(
         offset: Number of notifications to skip before returning results.
 
     Returns:
-        List of Notification objects with IN_APP channel that are not deleted, including state.
-        Pagination is supported via limit/offset.
+        List of Notification objects with IN_APP channel that are not deleted,
+        including state. Pagination is supported via limit/offset.
     """
     notification_tuples = await crud_get_user_in_app_notifications(
         db=db,

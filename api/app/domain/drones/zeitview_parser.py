@@ -243,7 +243,8 @@ class ZeitviewAPI:
         Args:
             inspection_uuid: The inspection UUID to query
             start_page: Page to start from (for resuming interrupted syncs)
-            page_callback: Optional callback function called after each page with (page_data, page_number)
+            page_callback: Optional callback function called after each page
+                with (page_data, page_number)
         """
         all_anomalies = []
         page = start_page

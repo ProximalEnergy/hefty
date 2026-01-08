@@ -2,7 +2,9 @@
 Utilities for parsing older PVsyst binary files that use Delphi's Real48 format.
 
 This is based on:
-    https://github.com/CanadianSolar/CASSYS/blob/b5487bb4e9e77174c805d64e3c960c46d357b7e2/CASSYS%20Interface/DatabaseImportModule.vba#L4
+    https://github.com/CanadianSolar/CASSYS/blob/
+    b5487bb4e9e77174c805d64e3c960c46d357b7e2/CASSYS%20Interface/
+    DatabaseImportModule.vba#L4
 """
 
 # --- Constants ---
@@ -18,9 +20,9 @@ VERTICAL_BAR_MARKER = 0xA6
 def _read48_to_float(*, real48: bytes) -> float:
     """Converts a 6-byte Delphi Real48 encoded value to a standard Python float.
 
-        The format consists of:
-        - 1 byte: Exponent (offset by 129)
-        - 5 bytes: Mantissa, with the last bit of the 5th byte as the sign bit.
+    The format consists of:
+    - 1 byte: Exponent (offset by 129)
+    - 5 bytes: Mantissa, with the last bit of the 5th byte as the sign bit.
 
     Args:
         real48: TODO: describe.
@@ -54,7 +56,7 @@ def _read48_to_float(*, real48: bytes) -> float:
 
 def _find_marker_index(*, marker: int, start_index: int, byte_array: bytes) -> int:
     """Finds the index of the first occurrence of a hex marker after a start index.
-        Returns the index right after the marker.
+    Returns the index right after the marker.
 
     Args:
         marker: TODO: describe.
@@ -83,8 +85,9 @@ def _get_param_index(*, start_index: int, offset_num: int) -> int:
 def _extract_byte_parameters(
     *, byte_array: bytes, start_index: int, num_bytes: int
 ) -> bytes:
-    """This function extracts bytes that form a single parameter from the original byte array
-        (contains the bytes from the whole file) into a smaller byte array that it returns.
+    """This function extracts bytes that form a single parameter from the
+    original byte array (contains the bytes from the whole file) into a smaller
+    byte array that it returns.
 
     Args:
         byte_array: TODO: describe.

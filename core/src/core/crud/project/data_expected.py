@@ -23,10 +23,12 @@ def get_project_data_expected(
         start (datetime.datetime): The start time for filtering the data, inclusive.
         end (datetime.datetime): The end time for filtering the data, exclusive.
         device_ids (list[int]): A list of device IDs to filter the expected data.
-        expected_metric_ids (Optional[list[int]], optional): A list of expected metric IDs to filter the data. Defaults to None.
+        expected_metric_ids (Optional[list[int]], optional): A list of expected
+            metric IDs to filter the data. Defaults to None.
 
     Returns:
-        list[models.DataExpected]: A list of expected data records matching the criteria.
+        list[models.DataExpected]: A list of expected data records matching the
+            criteria.
     """
     query = project_db.query(models.DataExpected)
 

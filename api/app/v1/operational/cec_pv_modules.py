@@ -76,10 +76,10 @@ async def get_cec_pv_module_ids_by_manufacturer_and_model(
 ):
     """Get CEC PV module IDs for each manufacturer and model pair.
 
-        Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
-        that don't exist in the database.
+    Returns corresponding CEC PV module IDs in the same order. Returns None
+    for any pairs that don't exist in the database.
 
-        The input lists must have the same length.
+    The input lists must have the same length.
 
     Args:
         manufacturers: TODO: describe.
