@@ -23,7 +23,8 @@ with psycopg2.connect(
                 DO UPDATE SET
                     expected_metric_type_id = EXCLUDED.expected_metric_type_id,
                     includes_soiling = EXCLUDED.includes_soiling,
-                    includes_warranted_degradation = EXCLUDED.includes_warranted_degradation;
+                    includes_warranted_degradation =
+                        EXCLUDED.includes_warranted_degradation;
                 """,
                 (
                     row["expected_metric_id"],

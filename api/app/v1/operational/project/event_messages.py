@@ -284,7 +284,10 @@ async def send_event_chat_email(
 
     # Determine the reason text based on whether it's the first message
     if is_first_message:
-        reason_text = "You're receiving this because a team member started a new conversation on this event chat."
+        reason_text = (
+            "You're receiving this because a team member started a new "
+            "conversation on this event chat."
+        )
     else:
         reason_text = "You're receiving this because you've posted to this event chat."
 
@@ -310,7 +313,15 @@ async def send_event_chat_email(
         bg_color = f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.1)"
 
         event_details_html = f"""
-        <div style="background-color: {bg_color}; padding: 12px; border-radius: 5px; margin: 15px 0; border-left: 4px solid {company_theme_color};">
+        <div
+            style="
+                background-color: {bg_color};
+                padding: 12px;
+                border-radius: 5px;
+                margin: 15px 0;
+                border-left: 4px solid {company_theme_color};
+            "
+        >
             <p style="margin: 0; font-size: 14px; color: #333;">
                 {"<br>".join(event_details_parts)}
             </p>
@@ -326,12 +337,29 @@ async def send_event_chat_email(
 
         {event_details_html}
 
-        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <div
+            style="
+                background-color: #f5f5f5;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+            "
+        >
             <p style="margin: 0; white-space: pre-wrap;">{message_preview}</p>
         </div>
 
         <p>
-            <a href="{event_url}" style="background-color: {company_theme_color}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            <a
+                href="{event_url}"
+                style="
+                    background-color: {company_theme_color};
+                    color: white;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    display: inline-block;
+                "
+            >
                 View Event Chat
             </a>
         </p>
@@ -342,8 +370,14 @@ async def send_event_chat_email(
         </p>
 
         <p style="color: #666; font-size: 12px; margin-top: 15px;">
-            To control email notifications for first messages on event chats per project,
-            visit your <a href="https://app.proximal.energy/application-settings" style="color: {company_theme_color}; text-decoration: underline;">Application Settings</a>.
+            To control email notifications for first messages on event chats per
+            project, visit your
+            <a
+                href="https://app.proximal.energy/application-settings"
+                style="color: {company_theme_color}; text-decoration: underline;"
+            >
+                Application Settings
+            </a>.
         </p>
     </body>
     </html>
@@ -387,11 +421,14 @@ async def send_notifications_for_message(
     """Send email notifications for event chat messages.
 
         Rules:
-        - First message: notify all company users (unless they've disabled notifications for this project)
-        - Subsequent messages: notify users who have posted (excluding muted users)
+        - First message: notify all company users (unless they've disabled
+          notifications for this project)
+        - Subsequent messages: notify users who have posted (excluding muted
+          users)
         - Never notify the sender
         - Never notify muted users
-        - Never notify users who have disabled event chat notifications for this project
+        - Never notify users who have disabled event chat notifications for
+          this project
 
     Args:
         event_id: TODO: describe.
@@ -521,7 +558,10 @@ async def send_notifications_for_message(
 
     # Build event URL with project_id
     if project_id:
-        event_url = f"https://app.proximal.energy/projects/{project_id}/events/event?eventId={event_id}"
+        event_url = (
+            "https://app.proximal.energy/projects/"
+            f"{project_id}/events/event?eventId={event_id}"
+        )
     else:
         # Fallback if project_id is not available
         event_url = f"https://app.proximal.energy/projects/events?eventId={event_id}"
@@ -834,7 +874,8 @@ async def update_event_chat_notification_statuses_batch(
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> EventChatNotificationStatusesBatchUpdateResponse:
-    """Update event chat notification statuses for multiple projects in a single request.
+    """Update event chat notification statuses for multiple projects in a
+    single request.
 
         Request Body:
             statuses: Dictionary mapping project_id (string) -> enabled (bool)
@@ -1264,7 +1305,9 @@ async def upload_event_message_image(
         if not message or message.event_id != event_id:
             raise HTTPException(
                 status_code=404,
-                detail=f"Event message {event_message_id} not found for event {event_id}",
+                detail=(
+                    f"Event message {event_message_id} not found for event {event_id}"
+                ),
             )
 
         # Read file content

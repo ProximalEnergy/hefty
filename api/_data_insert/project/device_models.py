@@ -317,7 +317,9 @@ def update_project_spec_device_models(conn: Any, project_name_short: str) -> boo
             (
                 json.dumps(
                     {
-                        "device_model_ids_by_device_type_id": device_model_ids_by_device_type_id
+                        "device_model_ids_by_device_type_id": (
+                            device_model_ids_by_device_type_id
+                        )
                     }
                 ),
                 project_name_short,
@@ -885,7 +887,8 @@ def main() -> None:
                         )
                         confirm = (
                             input(
-                                "\n⚠️  Are you sure you want to apply all updates? (y/N): "
+                                "\n⚠️  Are you sure you want to apply all "
+                                "updates? (y/N): "
                             )
                             .strip()
                             .lower()
@@ -941,8 +944,9 @@ def main() -> None:
                         print("⚠️  WARNING: This will UPDATE the DATABASE!")
                         print("=" * 60)
                         print(
-                            "This operation will update the 'device_model_ids_by_device_type_id' "
-                            "field in operational.projects.spec for one or more projects."
+                            "This operation will update the "
+                            "'device_model_ids_by_device_type_id' field in "
+                            "operational.projects.spec for one or more projects."
                         )
 
                         if current_project:
@@ -955,7 +959,8 @@ def main() -> None:
 
                         confirm = (
                             input(
-                                f"\n⚠️  Update spec for {len(projects_to_update)} project(s)? (y/N): "
+                                "\n⚠️  Update spec for "
+                                f"{len(projects_to_update)} project(s)? (y/N): "
                             )
                             .strip()
                             .lower()

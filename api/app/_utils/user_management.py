@@ -279,7 +279,8 @@ async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | Non
             except Exception:
                 # If fallback also fails, log and return None
                 logging.warning(
-                    f"Failed to get Clerk user image URL for user {user_id} in both instances",
+                    "Failed to get Clerk user image URL for user "
+                    f"{user_id} in both instances",
                 )
         else:
             # Log other errors (not "not found" errors since we handle those

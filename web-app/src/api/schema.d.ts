@@ -1074,7 +1074,8 @@ export interface paths {
         /**
          * Create Voice Chat Session
          * @description Create a new voice chat session by generating a client ephemeral token.
-         *         This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+         *         This token allows the frontend to securely connect to OpenAI's Realtime
+         *         GPT API.
          *
          *     Args:
          *         request: TODO: describe.
@@ -1098,8 +1099,8 @@ export interface paths {
         put?: never;
         /**
          * Ensure Vector Store
-         * @description Ensure an OpenAI vector store exists for the provided file id. If needed, create it.
-         *         Returns the vector_store_id.
+         * @description Ensure an OpenAI vector store exists for the provided file id. If
+         *         needed, create it. Returns the vector_store_id.
          *
          *     Args:
          *         request: TODO: describe.
@@ -1470,10 +1471,10 @@ export interface paths {
         };
         /**
          * Get Devices In Viewport
-         * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *     Optionally filters by device_type_ids. If power_device_type_id is provided,
-         *     fetches and includes latest actual/expected power for devices matching that
-         *     type within the viewport.
+         * @description Retrieves devices whose geometry intersects the viewport bounding box
+         *     (with buffer). Optionally filters by device_type_ids. If
+         *     power_device_type_id is provided, fetches and includes latest
+         *     actual/expected power for devices matching that type within the viewport.
          *
          *     Args:
          *         north: TODO: describe.
@@ -2346,7 +2347,8 @@ export interface paths {
         get?: never;
         /**
          * Update Event Chat Notification Statuses Batch
-         * @description Update event chat notification statuses for multiple projects in a single request.
+         * @description Update event chat notification statuses for multiple projects in a
+         *     single request.
          *
          *         Request Body:
          *             statuses: Dictionary mapping project_id (string) -> enabled (bool)
@@ -2444,9 +2446,10 @@ export interface paths {
         put?: never;
         /**
          * Analyze Contract Document
-         * @description Analyze a contract document using OpenAI File Search to extract contract fields.
-         *         This endpoint uses the document's OpenAI file_id to perform semantic search and
-         *         extract structured contract information using structured function calling.
+         * @description Analyze a contract document using OpenAI File Search to extract contract
+         *     fields. This endpoint uses the document's OpenAI file_id to perform semantic
+         *     search and extract structured contract information using structured function
+         *     calling.
          *
          *     Args:
          *         document_id: TODO: describe.
@@ -2475,8 +2478,8 @@ export interface paths {
          * Delete Contract
          * @description Delete a contract if it has no associated Contractual KPIs.
          *
-         *         This endpoint will only delete contracts that don't have any Contractual KPIs
-         *         associated with them, ensuring data integrity.
+         *         This endpoint will only delete contracts that don't have any Contractual
+         *         KPIs associated with them, ensuring data integrity.
          *
          *     Args:
          *         project_id: TODO: describe.
@@ -2859,7 +2862,8 @@ export interface paths {
         };
         /**
          * Get Events Summary
-         * @description Generate a summary of events with associated device/failure/root-cause and loss info.
+         * @description Generate a summary of events with associated device/failure/root-cause and
+         *     loss info.
          *
          *     Args:
          *         project_db: TODO: describe.
@@ -4003,8 +4007,8 @@ export interface paths {
         put?: never;
         /**
          * Sync Zeitview Anomalies
-         * @description Fetch anomalies from Zeitview and store them in the database incrementally.
-         *         Can resume from where it left off if interrupted.
+         * @description Fetch anomalies from Zeitview and store them in the database
+         *     incrementally. Can resume from where it left off if interrupted.
          *
          *     Args:
          *         project_id: TODO: describe.

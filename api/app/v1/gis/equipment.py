@@ -375,10 +375,10 @@ def get_devices_in_viewport(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-    Optionally filters by device_type_ids. If power_device_type_id is provided,
-    fetches and includes latest actual/expected power for devices matching that
-    type within the viewport.
+    """Retrieves devices whose geometry intersects the viewport bounding box
+    (with buffer). Optionally filters by device_type_ids. If
+    power_device_type_id is provided, fetches and includes latest
+    actual/expected power for devices matching that type within the viewport.
 
     Args:
         north: TODO: describe.
@@ -405,9 +405,27 @@ def get_devices_in_viewport(
     spatial_filter_sql = text(
         """
         (
-            (polygon IS NOT NULL AND ST_Intersects(polygon, ST_Buffer(ST_MakeEnvelope(:west, :south, :east, :north, 4326), :buffer_size)))
+            (
+                polygon IS NOT NULL
+                AND ST_Intersects(
+                    polygon,
+                    ST_Buffer(
+                        ST_MakeEnvelope(:west, :south, :east, :north, 4326),
+                        :buffer_size,
+                    ),
+                )
+            )
             OR
-            (point IS NOT NULL AND ST_Intersects(point, ST_Buffer(ST_MakeEnvelope(:west, :south, :east, :north, 4326), :buffer_size)))
+            (
+                point IS NOT NULL
+                AND ST_Intersects(
+                    point,
+                    ST_Buffer(
+                        ST_MakeEnvelope(:west, :south, :east, :north, 4326),
+                        :buffer_size,
+                    ),
+                )
+            )
         )
         """,
     ).bindparams(
@@ -446,7 +464,8 @@ def get_devices_in_viewport(
                 all_device_extra_data.update(primary_extra_data)
             except Exception as e:  # Catch a broader range of exceptions
                 logger.logger.error(
-                    f"Error fetching primary additional data for type {power_device_type_id}: {e}"
+                    "Error fetching primary additional data for type "
+                    f"{power_device_type_id}: {e}"
                 )
 
     # 2. Fetch power data for any PCS (type 2) devices if not already fetched as primary
@@ -754,7 +773,10 @@ def utility_expected(
                 # Unexpected parent type
                 raise HTTPException(
                     status_code=422,
-                    detail=f"Combiner {dev_id} has unexpected parent device type {parent_device.device_type_id}.",
+                    detail=(
+                        f"Combiner {dev_id} has unexpected parent device type "
+                        f"{parent_device.device_type_id}."
+                    ),
                 )
 
         # Remove duplicates from parent_pcs_ids
@@ -1166,11 +1188,13 @@ def get_met_station_latest_values(
             )
         else:
             logger.logger.error(
-                f"HTTP error while fetching Met Station data for devices {device_ids}: {e}"
+                "HTTP error while fetching Met Station data for devices "
+                f"{device_ids}: {e}"
             )
         return {}
     except Exception as e:
         logger.logger.error(
-            f"An unexpected error occurred while fetching Met Station data for devices {device_ids}: {e}"
+            "An unexpected error occurred while fetching Met Station data for "
+            f"devices {device_ids}: {e}"
         )
         return {}

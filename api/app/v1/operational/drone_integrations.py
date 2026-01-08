@@ -224,7 +224,10 @@ async def query_provider_sites(
         )
         raise HTTPException(
             status_code=400,
-            detail=f"Provider {request.provider_id} is not yet supported for site querying. Only provider_id=0 (Zeitview) is supported.",
+            detail=(
+                f"Provider {request.provider_id} is not yet supported for site "
+                "querying. Only provider_id=0 (Zeitview) is supported."
+            ),
         )
 
     try:

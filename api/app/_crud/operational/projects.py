@@ -200,7 +200,8 @@ async def _get_elevation(
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
-                f"https://api.open-elevation.com/api/v1/lookup?locations={latitude},{longitude}"
+                "https://api.open-elevation.com/api/v1/lookup?"
+                f"locations={latitude},{longitude}"
             )
             response.raise_for_status()
             data = response.json()

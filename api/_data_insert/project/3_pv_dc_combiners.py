@@ -50,7 +50,8 @@ with psycopg2.connect(
                 SELECT * FROM temp_{project_name_short}_pv_dc_combiners
                 ON CONFLICT (device_id)
                 DO UPDATE SET
-                    modules_per_pv_source_circuit = EXCLUDED.modules_per_pv_source_circuit,
+                    modules_per_pv_source_circuit =
+                        EXCLUDED.modules_per_pv_source_circuit,
                     modules_per_combiner = EXCLUDED.modules_per_combiner,
                     pv_module_id = EXCLUDED.pv_module_id;
                 """,

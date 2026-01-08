@@ -16,7 +16,8 @@ async def fetch_tps_token() -> "TokenResponse":
     token_url = settings.TENASKA_TOKEN_URL
     if not username or not password or not token_url:
         raise RuntimeError(
-            "Missing TENASKA_CLIENT_ID or TENASKA_CLIENT_SECRET or TENASKA_TOKEN_URL env vars"
+            "Missing TENASKA_CLIENT_ID or TENASKA_CLIENT_SECRET or "
+            "TENASKA_TOKEN_URL env vars"
         )
 
     async with httpx.AsyncClient(timeout=10.0) as client:

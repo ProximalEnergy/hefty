@@ -151,7 +151,8 @@ async def generate_daily_performance_summary(
             ],
         },
         "instructions": [
-            "Focus on the Performance Index (actual vs expected energy) as the primary metric",
+            "Focus on the Performance Index (actual vs expected energy) as "
+            "the primary metric",
             "Highlight the expected energy and how actual generation compares to it",
             "Mention the 30-day trailing performance trend",
             "Include revenue impact and any significant events affecting performance",
@@ -187,7 +188,10 @@ async def generate_daily_performance_summary(
                 "properties": {
                     "summary": {
                         "type": "string",
-                        "description": "A concise 2-3 sentence summary of the project's daily performance",
+                        "description": (
+                            "A concise 2-3 sentence summary of the project's "
+                            "daily performance"
+                        ),
                     },
                 },
                 "required": ["summary"],

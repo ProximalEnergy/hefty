@@ -337,7 +337,10 @@ def data_df(
     if data_points > MAX_DATA_POINTS:
         raise HTTPException(
             status_code=422,
-            detail=f"Query would return more than {MAX_DATA_POINTS:,} data points. Please reduce the time range or the number of tags.",
+            detail=(
+                f"Query would return more than {MAX_DATA_POINTS:,} data points. "
+                "Please reduce the time range or the number of tags."
+            ),
         )
 
     date_range_requested = pd.date_range(

@@ -28,7 +28,8 @@ if input("Continue? (y/n): ") != "y":
 with psycopg2.connect(settings.DATABASE_URL) as conn:
     with conn.cursor() as cur:
         cur.execute(
-            "INSERT INTO admin.companies (company_id, name_short, name_long) VALUES (%s, %s, %s)",
+            "INSERT INTO admin.companies (company_id, name_short, name_long) "
+            "VALUES (%s, %s, %s)",
             (str(company_id), company_name_short, COMPANY_NAME_LONG),
         )
 

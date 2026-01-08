@@ -9,7 +9,12 @@ with psycopg2.connect(
     with conn.cursor() as curs:
         curs.execute(
             """
-            INSERT INTO ercot.settlement_points (name, settlement_point_type_id, load_zone_id, trading_hub_id)
+            INSERT INTO ercot.settlement_points (
+                name,
+                settlement_point_type_id,
+                load_zone_id,
+                trading_hub_id
+            )
             VALUES
                 ('HB_BUSAVG', 3, null, null),
                 ('HB_HOUSTON', 3, null, null),

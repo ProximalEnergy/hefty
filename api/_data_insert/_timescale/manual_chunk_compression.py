@@ -112,7 +112,8 @@ logger.info("Retrieving compression statistics...")
 with psycopg2.connect(dsn=utils.CONNECTION_STRING) as conn:
     with conn.cursor() as cursor:
         cursor.execute(
-            f"SELECT * FROM hypertable_columnstore_stats('{PROJECT_NAME_SHORT}.{HYPERTABLE_NAME}');"
+            "SELECT * FROM hypertable_columnstore_stats("
+            f"'{PROJECT_NAME_SHORT}.{HYPERTABLE_NAME}');"
         )
         stats = cursor.fetchone()
 
@@ -133,7 +134,8 @@ with psycopg2.connect(dsn=utils.CONNECTION_STRING) as conn:
                 space_saved_gb = space_saved_bytes / (1024**3)
 
                 logger.info(
-                    f"Compression Statistics: {compressed_chunks}/{total_chunks} chunks compressed"
+                    "Compression Statistics: "
+                    f"{compressed_chunks}/{total_chunks} chunks compressed"
                 )
                 logger.info(
                     f"Space Savings: {space_saved_gb:.3f} GB saved "

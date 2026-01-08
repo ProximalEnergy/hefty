@@ -46,7 +46,8 @@ if (
     .all()
 ):
     raise ValueError(
-        "Every row in the polygon column must be either None or start with 'MULTIPOLYGON'"
+        "Every row in the polygon column must be either None or start with "
+        "'MULTIPOLYGON'"
     )
 
 # Identify unique device_type_ids that are used in the project
@@ -116,7 +117,8 @@ if "device_model_id" not in devices.columns:
     devices["device_model_id"] = None
 else:
     logging.warning(
-        "device_model_id will not be updated. Use the device_models CLI application instead."
+        "device_model_id will not be updated. Use the device_models CLI "
+        "application instead."
     )
 
 if update_devices:

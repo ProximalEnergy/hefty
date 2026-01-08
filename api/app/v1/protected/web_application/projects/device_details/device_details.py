@@ -505,7 +505,10 @@ def get_vertical(
     if len(tags) == 0:
         raise HTTPException(
             status_code=404,
-            detail="There are no tags associated with these devices that are required for this view.",
+            detail=(
+                "There are no tags associated with these devices that are "
+                "required for this view."
+            ),
         )
 
     # Get the data for the desired tags

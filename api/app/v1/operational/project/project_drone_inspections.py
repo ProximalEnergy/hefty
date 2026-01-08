@@ -56,7 +56,8 @@ def get_db_inspections(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(
-            f"Unexpected error fetching inspections from db for project {project_id}: {e}"
+            "Unexpected error fetching inspections from db for project "
+            f"{project_id}: {e}"
         )
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
@@ -161,7 +162,8 @@ def get_db_anomalies(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(
-            f"Unexpected error fetching anomalies from db for inspection {inspection_uuid}: {e}"
+            "Unexpected error fetching anomalies from db for inspection "
+            f"{inspection_uuid}: {e}"
         )
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
@@ -176,8 +178,8 @@ async def sync_zeitview_anomalies(
     db: AsyncSession = Depends(get_async_db),
     project_db: Session = Depends(get_project_db),
 ):
-    """Fetch anomalies from Zeitview and store them in the database incrementally.
-        Can resume from where it left off if interrupted.
+    """Fetch anomalies from Zeitview and store them in the database
+    incrementally. Can resume from where it left off if interrupted.
 
     Args:
         project_id: TODO: describe.
@@ -208,7 +210,9 @@ async def sync_zeitview_anomalies(
         )  # How many anomalies we already have from the starting page
 
         logger.info(
-            f"Starting sync from page {start_page} with offset {offset_within_page} (existing anomalies: {existing_count})"
+            "Starting sync from page "
+            f"{start_page} with offset {offset_within_page} "
+            f"(existing anomalies: {existing_count})"
         )
 
         zeitview_api = ZeitviewAPI(
@@ -234,7 +238,9 @@ async def sync_zeitview_anomalies(
             if is_first_page and offset_within_page > 0:
                 anomalies = anomalies[offset_within_page:]
                 logger.info(
-                    f"Skipping first {offset_within_page} anomalies from page {page}, processing {len(anomalies)} new ones"
+                    "Skipping first "
+                    f"{offset_within_page} anomalies from page {page}, "
+                    f"processing {len(anomalies)} new ones"
                 )
                 is_first_page = False
 

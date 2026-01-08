@@ -341,7 +341,10 @@ async def get_kpi_excel(
     excel_buffer.seek(0)
 
     file = UploadFile(
-        filename=f"{project.name_short}_{kpi_type.name_short}_{start.strftime('%Y-%m-%d')}-{end.strftime('%Y-%m-%d')}.xlsx",
+        filename=(
+            f"{project.name_short}_{kpi_type.name_short}_"
+            f"{start.strftime('%Y-%m-%d')}-{end.strftime('%Y-%m-%d')}.xlsx"
+        ),
         file=excel_buffer,
     )
     file_content = await file.read()

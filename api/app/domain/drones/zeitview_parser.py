@@ -99,7 +99,8 @@ class ZeitviewAPI:
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 504:
                     logger.warning(
-                        f"504 Gateway Timeout on attempt {attempt + 1}/{max_retries} for {url}"
+                        "504 Gateway Timeout on attempt "
+                        f"{attempt + 1}/{max_retries} for {url}"
                     )
                     if attempt == max_retries - 1:
                         raise

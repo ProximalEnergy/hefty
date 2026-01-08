@@ -97,7 +97,6 @@ external =[]
 ]
 "api/**" = [
     "TID251", # api package can import from itself
-    "E501",   # allow long lines in api
 ]
 "api/app/_crud/projects/data.py" = [
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries

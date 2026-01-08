@@ -90,7 +90,8 @@ async def create_contract(
         name_short = contract_data["contract_category_name_short"]
         result = await db.execute(
             sa.text(
-                "SELECT contract_category_id FROM operational.contract_categories WHERE name_short = :name_short"
+                "SELECT contract_category_id FROM operational.contract_categories "
+                "WHERE name_short = :name_short"
             ),
             {"name_short": name_short},
         )
@@ -279,12 +280,18 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found (e.g., 'in section 2.1', 'on page 3', 'in the introduction')",
+                                        "description": (
+                                            "Where in the document this was found "
+                                            "(e.g., 'in section 2.1', 'on page 3', "
+                                            "'in the introduction')"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -295,12 +302,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -311,12 +322,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -327,12 +342,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -343,12 +362,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -359,12 +382,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -375,12 +402,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -391,12 +422,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -407,12 +442,16 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
                                 "properties": {
                                     "location": {
                                         "type": "string",
-                                        "description": "Where in the document this was found",
+                                        "description": (
+                                            "Where in the document this was found"
+                                        ),
                                         "nullable": True,
                                     },
                                     "quoted_text": {
                                         "type": "string",
-                                        "description": "The exact quoted text from the document",
+                                        "description": (
+                                            "The exact quoted text from the document"
+                                        ),
                                         "nullable": True,
                                     },
                                 },
@@ -440,14 +479,26 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
 
     system_prompt = f"""
        Extract the contract fields. If unknown, use null.
-       For `counterparty_name`, make it the name of the company that provides the services. IMPORTANT: The counterparty should NOT be the user's company. The user's company is: {user_company_name or "not specified"}. The counterparty is the OTHER party in the contract that provides services TO the user's company.
-       For `term_end_date`, you may have to calculate it based on the `term_start_date` and the length of the term.
+       For `counterparty_name`, make it the name of the company that provides
+       the services. IMPORTANT: The counterparty should NOT be the user's
+       company. The user's company is: {user_company_name or "not specified"}.
+       The counterparty is the OTHER party in the contract that provides
+       services TO the user's company.
+       For `term_end_date`, you may have to calculate it based on the
+       `term_start_date` and the length of the term.
        For `contract_summary`, make it 8-10 sentences.
-       For `important_dates`, extract only such dates that involved parties would want to put on their calendars. For example, the end of term, the first renewal date, payment deadlines, etc.
+       For `important_dates`, extract only such dates that involved parties
+       would want to put on their calendars. For example, the end of term, the
+       first renewal date, payment deadlines, etc.
 
-       For `source_references`, provide both a document location description and the exact quoted paragraph (max 3 sentences).
-       - For location, use descriptive references like: 'in section 2.1', 'on page 3', 'in the introduction', 'in the terms section', 'in the contact information', etc.
-       - For quoted_text, provide the exact text from the document that supports your extraction. Example: location: 'in section 1.5', quoted_text: 'This Agreement shall commence on January 1, 2024'.",
+       For `source_references`, provide both a document location description
+       and the exact quoted paragraph (max 3 sentences).
+       - For location, use descriptive references like: 'in section 2.1',
+       'on page 3', 'in the introduction', 'in the terms section',
+       'in the contact information', etc.
+       - For quoted_text, provide the exact text from the document that
+       supports your extraction. Example: location: 'in section 1.5',
+       quoted_text: 'This Agreement shall commence on January 1, 2024'.",
     """
 
     resp = client.responses.create(  # type: ignore
@@ -496,9 +547,10 @@ async def analyze_contract_document(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
 ):
-    """Analyze a contract document using OpenAI File Search to extract contract fields.
-        This endpoint uses the document's OpenAI file_id to perform semantic search and
-        extract structured contract information using structured function calling.
+    """Analyze a contract document using OpenAI File Search to extract contract
+    fields. This endpoint uses the document's OpenAI file_id to perform semantic
+    search and extract structured contract information using structured function
+    calling.
 
     Args:
         document_id: TODO: describe.
@@ -567,7 +619,10 @@ async def analyze_contract_document(
             logging.error(f"Error using structured function calling: {response_error}")
             raise HTTPException(
                 status_code=500,
-                detail="Failed to analyze document using OpenAI structured function calling",
+                detail=(
+                    "Failed to analyze document using OpenAI structured "
+                    "function calling"
+                ),
             )
 
     except Exception as e:
@@ -589,8 +644,8 @@ async def delete_contract(
 ):
     """Delete a contract if it has no associated Contractual KPIs.
 
-        This endpoint will only delete contracts that don't have any Contractual KPIs
-        associated with them, ensuring data integrity.
+        This endpoint will only delete contracts that don't have any Contractual
+        KPIs associated with them, ensuring data integrity.
 
     Args:
         project_id: TODO: describe.

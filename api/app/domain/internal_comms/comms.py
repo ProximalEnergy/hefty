@@ -34,7 +34,11 @@ def send_project_creation_notification(
 
     match channel:
         case CommunicationChannel.GOOGLE_CHAT:
-            webhook_url = "https://chat.googleapis.com/v1/spaces/AAQARB4NlwY/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=583d8_DdQio48kmpJTYe0hyTth4dxqAfFMbxgJWwVrA"
+            webhook_url = (
+                "https://chat.googleapis.com/v1/spaces/AAQARB4NlwY/messages"
+                "?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI"
+                "&token=583d8_DdQio48kmpJTYe0hyTth4dxqAfFMbxgJWwVrA"
+            )
             text = f"""
             Project: {project_name} has been created by
             {created_by} @ ({created_by_company}).
@@ -70,7 +74,11 @@ def send_feedback_notification(
     """
     match channel:
         case CommunicationChannel.GOOGLE_CHAT:
-            webhook_url = "https://chat.googleapis.com/v1/spaces/AAQAkqNNa48/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=4cUB-LNkgLEDFyHHHxe0nYPIvrP9DqM5cl1eRXnpuT0"
+            webhook_url = (
+                "https://chat.googleapis.com/v1/spaces/AAQAkqNNa48/messages"
+                "?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI"
+                "&token=4cUB-LNkgLEDFyHHHxe0nYPIvrP9DqM5cl1eRXnpuT0"
+            )
             url = f"https://app.proximal.energy{feedback.url}" if feedback.url else ""
             screenshot_included = feedback.screenshot_filename is not None
             linear_issue_url = (
