@@ -1,55 +1,42 @@
-from typing import Any
 from uuid import UUID
 
-from sqlalchemy.orm import Session, noload, selectinload
+from sqlalchemy import select
+from sqlalchemy.orm import noload, selectinload
 
 from core import models
-from core.model_list import ModelList
+from core.db_query import DbQuery
 
 
 def get_project_report_instances(
-    db: Session,
     *,
     project_id: UUID,
     is_visible: bool | None,
     report_type_ids: list[int] | None = None,
     deep: bool = False,
-    return_query: bool = False,
-) -> ModelList[models.ReportInstance]:
+) -> DbQuery[models.ReportInstance]:
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         project_id: TODO: describe.
         is_visible: TODO: describe.
         report_type_ids: TODO: describe.
         deep: TODO: describe.
-        return_query: TODO: describe.
     """
-    query = db.query(models.ReportInstance).filter(
+    stmt = select(models.ReportInstance)
+
+    stmt = stmt.where(
         models.ReportInstance.project_id == project_id,
     )
 
     if is_visible is not None:
-        query = query.filter(models.ReportInstance.is_visible == is_visible)
+        stmt = stmt.where(models.ReportInstance.is_visible == is_visible)
 
     if report_type_ids is not None:
-        query = query.filter(models.ReportInstance.report_type_id.in_(report_type_ids))
+        stmt = stmt.where(models.ReportInstance.report_type_id.in_(report_type_ids))
 
-    query.options(_get_project_report_instances_options(deep=deep))
-
-    return ModelList(query=query, return_query=return_query)
-
-
-def _get_project_report_instances_options(*, deep: bool) -> Any:
-    """TODO: add description.
-
-    Args:
-        deep: TODO: describe.
-    """
     if deep:
-        options = selectinload(models.ReportInstance.report_type_id)
+        stmt = stmt.options(selectinload(models.ReportInstance.report_type))
     else:
-        options = noload(models.ReportInstance.report_type_id)
+        stmt = stmt.options(noload(models.ReportInstance.report_type))
 
-    return options
+    return DbQuery(query=stmt)

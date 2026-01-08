@@ -1,10 +1,9 @@
 import uuid
 from typing import Annotated
 
-from core.dependencies import get_db
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 import core
 from app import interfaces
@@ -24,9 +23,8 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[interfaces.ReportInstance])
-def get_project_reports_instances(
+async def get_project_reports_instances(
     project_id: uuid.UUID,
-    db: Annotated[Session, Depends(get_db)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     report_type_ids: list[int] | None = None,
     deep: bool = False,
@@ -35,7 +33,6 @@ def get_project_reports_instances(
 
     Args:
         project_id: TODO: describe.
-        db: TODO: describe.
         is_superadmin: TODO: describe.
         report_type_ids: TODO: describe.
         deep: TODO: describe.
@@ -45,15 +42,15 @@ def get_project_reports_instances(
     else:
         is_visible = True
 
-    report_instances = core.crud.project.reports.get_project_report_instances(
-        db=db,
+    query = core.crud.project.reports.get_project_report_instances(
         project_id=project_id,
         is_visible=is_visible,
         report_type_ids=report_type_ids,
         deep=deep,
-    ).models()
+    )
+    data = await query.get_async(output_type=OutputType.SQLALCHEMY)
 
-    return report_instances
+    return data
 
 
 @router.put(
@@ -87,6 +84,7 @@ async def bulk_update_project_report_instances(
             db=db,
             project_id=project_id,
             report_instances=report_instances_data,
+            report_type_ids_to_delete=data.report_type_ids_to_delete,
         )
 
         # Load report_type relationships

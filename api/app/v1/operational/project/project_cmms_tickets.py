@@ -103,7 +103,8 @@ async def get_cmms_tickets(
         can_view=True,
     )
 
-    # If there are any configured integrations, then the integration is considered configured
+    # If there are any configured integrations, then the integration is
+    # considered configured
     integration_configured = len(cmms_permissions) > 0
 
     cmms_integration_ids = [

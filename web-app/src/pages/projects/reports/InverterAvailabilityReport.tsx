@@ -57,8 +57,7 @@ const Page: React.FC = () => {
 
   const reportType = useGetReportType({
     pathParams: {
-      projectId: projectId || '',
-      reportTypeId: reportTypeId.toString(),
+      report_type_id: reportTypeId,
     },
     queryOptions: { enabled: !!projectId },
   })

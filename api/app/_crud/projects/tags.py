@@ -118,10 +118,12 @@ def update_tags_sensor_type_by_pattern_bulk(
     unit_scada: str | None = None,
     unit_scada_provided: bool = False,
 ):
-    """Bulk update sensor_type_id and optionally unit_scale/unit_offset/unit_scada for tags matching a pattern.
-        Uses SQLAlchemy bulk update for better performance with large tag sets.
+    """Bulk update sensor_type_id and optionally unit_scale/unit_offset/unit_scada
+    for tags matching a pattern. Uses SQLAlchemy bulk update for better
+    performance with large tag sets.
 
-        If unit_scada_provided is True, unit_scada will be updated even if it's None (to clear the value).
+    If unit_scada_provided is True, unit_scada will be updated even if it's
+    None (to clear the value).
 
     Args:
         project_db: TODO: describe.

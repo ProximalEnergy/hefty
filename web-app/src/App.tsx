@@ -5,6 +5,7 @@ import { themes } from '@/utils/themes'
 import { ClerkProvider, useUser } from '@clerk/clerk-react'
 import { dark } from '@clerk/themes'
 import {
+  CSSVariablesResolver,
   Loader,
   MantineProvider,
   createTheme,
@@ -633,11 +634,22 @@ export default function App() {
       }),
     },
   })
+  const resolver: CSSVariablesResolver = () => ({
+    variables: {},
+    light: {
+      '--mantine-color-body': 'var(--mantine-color-gray-0)',
+    },
+    dark: {},
+  })
 
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="auto">
+        <MantineProvider
+          theme={theme}
+          cssVariablesResolver={resolver}
+          defaultColorScheme="auto"
+        >
           <ErrorBoundary>
             <Notifications
               autoClose={5000}

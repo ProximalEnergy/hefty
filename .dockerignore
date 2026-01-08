@@ -1,0 +1,99 @@
+# Exclude everything except what's needed for the Lambda
+# Only core/src/core and microservices/weather_alerts_lambda are needed
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/.venv/
+**/venv/
+**/ENV/
+**/env/
+**/*.egg-info/
+**/dist/
+**/build/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Node.js (not needed for Lambda)
+**/node_modules/
+**/npm-debug.log
+**/yarn-error.log
+**/.npm
+**/.yarn/
+
+# Web app (not needed)
+web-app/
+web-app/**/*
+
+# API (not needed, Lambda only uses core)
+api/
+api/**/*
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+**/*.md
+**/docs/
+**/_docs/
+
+# Tests
+**/tests/
+**/_tests/
+**/test_*.py
+**/*_test.py
+
+# Build artifacts
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# CDK
+microservices/cdk/
+microservices/cdk/**/*
+cdk.out/
+cdk.context.json
+
+# Other microservices
+microservices/microservice_1/
+microservices/microservice_1/**/*
+
+# Data and scripts
+**/_data_insert/
+**/_scripts/
+**/_pr_checks/
+**/_smoke_testing/
+**/_tests/
+
+# Lock files (not needed in image)
+**/uv.lock
+**/package-lock.json
+**/yarn.lock
+
+# Config files not needed
+**/.env
+**/.env.*
+**/pyproject.toml
+**/package.json
+**/tsconfig.json
+**/vite.config.ts
+**/eslint.config.js
+
+# Keep only what we need:
+# - core/src/core/** (needed)
+# - microservices/weather_alerts_lambda/** (needed)
+

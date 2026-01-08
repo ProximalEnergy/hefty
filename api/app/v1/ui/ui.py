@@ -12,7 +12,8 @@ router = APIRouter(
     prefix="/ui/{project_id}",
     tags=["ui"],
     dependencies=[Depends(dependencies.check_project_access_async)],
-    # Do not include these endpoints in the Swagger UI because API users will never access
+    # Do not include these endpoints in the Swagger UI because API users will
+    # never access
     # them directly
     include_in_schema=utils.get_include_in_schema(),
 )

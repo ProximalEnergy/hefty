@@ -4,8 +4,9 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
+from core.crud.admin.company_projects import get_company_projects
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
 from openai import OpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +14,6 @@ from app import dependencies, interfaces
 from app._crud.admin.companies import get_companies
 from app._crud.admin.company_projects import (
     create_company_project,
-    get_company_projects,
 )
 from app._crud.operational.contracts import (
     get_contracts_by_document_id as crud_get_contracts_by_document_id,
@@ -68,7 +68,7 @@ async def get_project_documents(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
-):
+) -> list[interfaces.Document]:
     """todo
 
     Args:
@@ -110,7 +110,7 @@ async def upload_project_document(
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     file: UploadFile,
-):
+) -> interfaces.Document:
     # Get company from user.company_id
     """todo
 
@@ -134,11 +134,14 @@ async def upload_project_document(
     # Get or create company project from user.company_id and project.project_id
     try:
         company_projects = await get_company_projects(
-            db=db,
             company_ids=[user.company_id],
             project_ids=[project.project_id],
-        )
-        company_project = company_projects[0]
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+
+        if company_projects:
+            company_project = company_projects[0]
+        else:
+            raise IndexError
 
     except IndexError:
         # Company project doesn't exist, create it
@@ -261,7 +264,10 @@ async def upload_project_document(
     return response_document
 
 
-@router.post("/search-contract/{document_id}")
+@router.post(
+    "/search-contract/{document_id}",
+    response_model=interfaces.ContractSearchResponse,
+)
 async def search_contract_content(
     *,
     document_id: UUID,
@@ -270,7 +276,7 @@ async def search_contract_content(
     vector_store_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
-):
+) -> interfaces.ContractSearchResponse:
     """Search for relevant contract content using OpenAI's Responses API.
 
     Uses vector stores for efficient retrieval of relevant contract information.
@@ -352,11 +358,11 @@ async def search_contract_content(
                 top = results.data
 
                 search_results = [
-                    {
-                        "text": r.content[0].text,
-                        "filename": r.filename,
-                        "score": r.score,
-                    }
+                    interfaces.ContractSearchResult(
+                        text=r.content[0].text,
+                        filename=r.filename,
+                        score=r.score,
+                    )
                     for r in top
                 ]
 
@@ -365,7 +371,7 @@ async def search_contract_content(
                     query,
                     len(search_results),
                 )
-                return {"search_results": search_results}
+                return interfaces.ContractSearchResponse(search_results=search_results)
 
             except Exception as search_error:
                 logger.error(
@@ -374,7 +380,7 @@ async def search_contract_content(
                     query,
                     search_error,
                 )
-                return {"search_results": []}
+                return interfaces.ContractSearchResponse(search_results=[])
 
         except Exception as response_error:
             logger.error(
@@ -395,11 +401,11 @@ async def search_contract_content(
         )
 
 
-@router.delete("/{document_id}")
+@router.delete("/{document_id}", response_model=interfaces.Message)
 async def delete_project_document(
     document_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-):
+) -> interfaces.Message:
     # Check if document is associated with a contract
     """todo
 
@@ -452,7 +458,4 @@ async def delete_project_document(
     # Delete document from database
     await crud_delete_project_document(db=db, document_id=document_id)
 
-    return JSONResponse(
-        content={"message": "Document deleted successfully"},
-        status_code=200,
-    )
+    return interfaces.Message(message="Document deleted successfully")

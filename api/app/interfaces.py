@@ -11,12 +11,13 @@ you should create a child interface in the corresponding _crud file.
 
 import datetime
 import uuid
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
-from core.enumerations import UserTypeEnum
+from core.enumerations import NotificationSeverity, UserTypeEnum
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, conlist, model_validator
 from pydantic.config import ConfigDict
+from shapely import wkb, wkt
 from shapely.geometry import mapping
 
 
@@ -61,6 +62,17 @@ class UserWithPermissions(BaseModel):
     permission_ids: list[int]
 
 
+class UserWithProjects(BaseModel):
+    """Userwithprojects model."""
+
+    user_id: str
+    user_type_id: UserTypeEnum
+    company_id: uuid.UUID
+    name_long: str
+    operational_project_ids: list[uuid.UUID]
+    image_url: str | None = None
+
+
 class UserData(BaseModel):
     """Userdata model."""
 
@@ -98,6 +110,60 @@ class UserSubscriptionUpdate(BaseModel):
     subscribe: bool
 
 
+class Notification(BaseModel):
+    """Notification model."""
+
+    notification_id: int
+    project_id: uuid.UUID
+    notification_type_id: int
+    data: dict
+    severity: str
+    created_at: datetime.datetime
+    sent_at: datetime.datetime | None
+    state: str | None = None  # Notification state: unread, read, deleted
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class NotificationType(BaseModel):
+    """Notification type model."""
+
+    model_config = {"from_attributes": True}
+
+    notification_type_id: int
+    name_long: str
+    in_app_enabled_default: bool
+    email_enabled_default: bool
+    in_app_severity_default: NotificationSeverity | None = None
+    email_severity_default: NotificationSeverity | None = None
+
+
+class NotificationPreference(BaseModel):
+    """Notification preference model."""
+
+    model_config = {"from_attributes": True}
+
+    notification_preference_id: int
+    user_id: str
+    project_id: uuid.UUID
+    notification_type_id: int
+    in_app_enabled: bool
+    email_enabled: bool
+    in_app_min_severity: NotificationSeverity
+    email_min_severity: NotificationSeverity
+
+
+class NotificationPreferenceUpdate(BaseModel):
+    """Notification preference update model."""
+
+    project_id: uuid.UUID
+    notification_type_id: int
+    in_app_enabled: bool | None = None
+    email_enabled: bool | None = None
+    in_app_min_severity: NotificationSeverity | None = None
+    email_min_severity: NotificationSeverity | None = None
+
+
 class UserProjectFavoriteUpdate(BaseModel):
     """Userprojectfavoriteupdate model."""
 
@@ -133,7 +199,9 @@ class UserPermission(BaseModel):
 # WKBElements to GeoJSON. The pydantic models then validate the GeoJSON.
 
 
-def convert(WKBElement):  # nosemgrep: python-enforce-keyword-only-args
+def convert(
+    WKBElement: Any,
+) -> dict[str, Any] | None:  # nosemgrep: python-enforce-keyword-only-args
     """Handle convert.
 
     Args:
@@ -143,9 +211,15 @@ def convert(WKBElement):  # nosemgrep: python-enforce-keyword-only-args
         return None
     # If it's already a dict (GeoJSON), return as-is
     if isinstance(WKBElement, dict):
-        return WKBElement
+        return cast(dict[str, Any], WKBElement)
+    # If it's raw WKB bytes (e.g. from Polars/Pandas via db_query), parse with shapely
+    if isinstance(WKBElement, bytes):
+        return cast(dict[str, Any], mapping(wkb.loads(WKBElement)))
+    # If it's WKT string (unlikely but possible), parse with shapely
+    if isinstance(WKBElement, str):
+        return cast(dict[str, Any], mapping(wkt.loads(WKBElement)))
     # Only convert WKBElement objects from the database
-    return mapping(to_shape(WKBElement))
+    return cast(dict[str, Any], mapping(to_shape(WKBElement)))
 
 
 class Point(BaseModel):
@@ -156,7 +230,9 @@ class Point(BaseModel):
 
     @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_point(point):  # nosemgrep: python-enforce-keyword-only-args
+    def convert_point(
+        point: Any,
+    ) -> dict | None:  # nosemgrep: python-enforce-keyword-only-args
         """Handle convert point.
 
         Args:
@@ -174,7 +250,9 @@ class Polygon(BaseModel):
 
     @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_polygon(polygon):  # nosemgrep: python-enforce-keyword-only-args
+    def convert_polygon(
+        polygon: Any,
+    ) -> dict | None:  # nosemgrep: python-enforce-keyword-only-args
         """Handle convert polygon.
 
         Args:
@@ -191,9 +269,9 @@ class MultiPolygon(BaseModel):
 
     @model_validator(mode="before")  # nosemgrep: python-enforce-keyword-only-args
     @staticmethod
-    def convert_multipolygon(
-        multipolygon,
-    ):  # nosemgrep: python-enforce-keyword-only-args
+    def convert_multipolygon(  # nosemgrep: python-enforce-keyword-only-args
+        multipolygon: Any,
+    ) -> dict | None:
         """Handle convert multipolygon.
 
         Args:
@@ -504,8 +582,8 @@ class KPIType(BaseModel):
     description: str | None
     unit: str | None
     aggregation_method: str
-    device_type: DeviceType | None
-    doc_url: str | None
+    device_type: DeviceType | None = None
+    doc_url: str | None = None
 
 
 class KPIInstance(BaseModel):
@@ -514,7 +592,7 @@ class KPIInstance(BaseModel):
     project_id: uuid.UUID
     kpi_type_id: int
     is_visible: bool
-    kpi_type: KPIType | None
+    kpi_type: KPIType | None = None
 
 
 class KPIAlertPost(BaseModel):
@@ -620,10 +698,10 @@ class Tag(BaseModel):
     point: Point | None
     polygon: Polygon | None
 
-    device: Device | None
-    sensor_type: SensorType | None
-    data_type: DataType | None
-    status_lookup_id: int | None
+    device: Device | None = None
+    sensor_type: SensorType | None = None
+    data_type: DataType | None = None
+    status_lookup_id: int | None = None
 
 
 class Data(BaseModel):
@@ -688,6 +766,8 @@ class Report(BaseModel):
 class ReportType(BaseModel):
     """Reporttype model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     report_type_id: int
     name_short: str
     name_long: str
@@ -696,10 +776,12 @@ class ReportType(BaseModel):
 class ReportInstance(BaseModel):
     """Reportinstance model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     project_id: uuid.UUID
     report_type_id: int
     is_visible: bool
-    report_type: ReportType | None
+    report_type: ReportType | None = None
 
 
 class ReportInstanceUpdate(BaseModel):
@@ -713,6 +795,7 @@ class ReportInstancesBulkUpdate(BaseModel):
     """Reportinstancesbulkupdate model."""
 
     report_instances: list[ReportInstanceUpdate]
+    report_type_ids_to_delete: list[int] | None = None
 
 
 class FailureMode(BaseModel):
@@ -758,9 +841,9 @@ class Event(BaseModel):
     time_last_analyzed: datetime.datetime | None
     loss_total_financial: float | None
 
-    failure_mode: FailureMode | None
-    root_cause: RootCause | None
-    device: Device | None
+    failure_mode: FailureMode | None = None
+    root_cause: RootCause | None = None
+    device: Device | None = None
 
     device_name_full: str | None = None
     version: str | None = None
@@ -806,7 +889,7 @@ class GeoJSON(BaseModel):
 
         type: str
         properties: Any | None
-        geometry: Point | Polygon
+        geometry: Point | Polygon | MultiPolygon
 
     type: str
     features: list[Features]
@@ -866,9 +949,9 @@ class SettlementPointCore(BaseModel):
 class SettlementPoint(SettlementPointCore):
     """Settlementpoint model."""
 
-    settlement_point_type: SettlementPointType | None
-    load_zone: SettlementPointCore | None
-    trading_hub: SettlementPointCore | None
+    settlement_point_type: SettlementPointType | None = None
+    load_zone: SettlementPointCore | None = None
+    trading_hub: SettlementPointCore | None = None
 
 
 class QSE(BaseModel):
@@ -901,9 +984,9 @@ class Resource(BaseModel):
     dme_id: int
     settlement_point_id: int
 
-    qse: QSE | None
-    dme: DME | None
-    settlement_point: SettlementPoint | None
+    qse: QSE | None = None
+    dme: DME | None = None
+    settlement_point: SettlementPoint | None = None
 
 
 class Inspection(BaseModel):
@@ -1780,3 +1863,23 @@ class DroneAnomaly(DroneAnomalyBase):
 
 class DroneAnomalyCreate(DroneAnomalyBase):
     """Droneanomalycreate model."""
+
+
+class ContractSearchResult(BaseModel):
+    """Contractsearchresult model."""
+
+    text: str
+    filename: str
+    score: float
+
+
+class ContractSearchResponse(BaseModel):
+    """Contractsearchresponse model."""
+
+    search_results: list[ContractSearchResult]
+
+
+class Message(BaseModel):
+    """Message model."""
+
+    message: str

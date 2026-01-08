@@ -19,16 +19,17 @@ async def get_root_causes(
 ):
     """Retrieve root causes with optional filtering by IDs and device types.
 
-    This endpoint returns a list of root causes, optionally filtered by specific root cause IDs
-    and/or device type IDs. Each root cause is enriched with a 'name_full' field that
-    combines the device type name and root cause name.
+    This endpoint returns a list of root causes, optionally filtered by
+    specific root cause IDs and/or device type IDs. Each root cause is enriched
+    with a 'name_full' field that combines the device type name and root cause
+    name.
 
     Args:
         db (Session): Database session dependency
-        root_cause_ids (List[int], optional): List of specific root cause IDs to filter by.
-            If empty, returns all root causes.
-        device_type_ids (List[int], optional): List of device type IDs to filter by.
-            If empty, returns root causes for all device types.
+        root_cause_ids (List[int], optional): List of specific root cause IDs
+            to filter by. If empty, returns all root causes.
+        device_type_ids (List[int], optional): List of device type IDs to
+            filter by. If empty, returns root causes for all device types.
 
     Returns:
         List[dict]: List of root cause dictionaries, each containing:

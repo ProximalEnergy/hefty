@@ -59,7 +59,9 @@ def listdir(
         path (Optional[str]): The path to the directory in S3.
 
     Returns:
-        List[Contents]: A list of the contents of the directory as dictionaries. Dictionary keys are ["Key", "LastModified", "ETag", "Size", "StorageClass"].
+        List[Contents]: A list of the contents of the directory as dictionaries.
+        Dictionary keys are ["Key", "LastModified", "ETag", "Size",
+        "StorageClass"].
     """
     if path is None:
         path = ""

@@ -94,18 +94,19 @@ def get_device_id_path(df: pd.DataFrame) -> pd.DataFrame:
     by mapping device IDs to their parent device IDs.
 
     Args:
-        df (pd.DataFrame): A DataFrame containing 'device_id' and 'parent_device_id' columns.
+        df (pd.DataFrame): A DataFrame containing 'device_id' and
+            'parent_device_id' columns.
 
     Returns:
-        pd.DataFrame: The original DataFrame with an additional column 'device_id_path'
-                       that contains the full path for each device.
+        pd.DataFrame: The original DataFrame with an additional column
+            'device_id_path' that contains the full path for each device.
     """
     # Build a map of device_id -> parent_device_id
     parent_map = dict(zip(df["device_id"], df["parent_device_id"]))
 
     def get_device_path(dev_id, parent_map):
         """Builds the full path (ancestor chain) for a single device
-                by following the 'parent_device_id' links.
+        by following the 'parent_device_id' links.
 
         Args:
             dev_id: TODO: describe.

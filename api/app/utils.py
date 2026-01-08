@@ -48,7 +48,10 @@ PROJECT_NAME_NOUNS = [
 
 def get_include_in_schema() -> bool:
     """
-    Get whether to include endpoints in the Swagger UI based on the environment. If the `ENVIRONMENT` environment variable is set to "development", return True. Otherwise, return False.
+    Get whether to include endpoints in the Swagger UI based on the environment.
+
+    If the `ENVIRONMENT` environment variable is set to "development", return
+    True. Otherwise, return False.
 
     Returns:
         bool: Whether to include endpoints in the Swagger UI.
@@ -85,13 +88,27 @@ def seed_from_project_name(*, name: str) -> None:
     random.seed(seed_value)
 
 
-def anonymize_projects(*, projects: list[models.Project]) -> list[models.Project]:
+def anonymize_projects(
+    *,
+    projects: list[models.Project | dict[str, Any]],
+) -> list[models.Project | dict[str, Any]]:
     """Handle anonymize projects.
 
     Args:
         projects: TODO: describe.
     """
     for project in projects:
+        if isinstance(project, dict):
+            name_long = project.get("name_long")
+            if not name_long:
+                continue
+            seed_from_project_name(name=name_long)
+            name = generate_random_name()
+            name_short = name.lower().replace(" ", "_")
+            project["name_short"] = name_short
+            project["name_long"] = name
+            continue
+
         seed_from_project_name(name=project.name_long)
         name = generate_random_name()
         name_short = name.lower().replace(" ", "_")
@@ -176,10 +193,13 @@ def parse_db_data_to_df(*, db_data):
 
     # Collapse value columns into single column (each tag_id only has data of
     # one value type)
-    # NOTE: Context manager required for pandas 3.0 readiness. See the following resources for more information:
-    # - https://pandas.pydata.org/docs/whatsnew/v2.2.0.html#deprecated-automatic-downcasting
+    # NOTE: Context manager required for pandas 3.0 readiness. See the
+    # following resources for more information:
+    # - https://pandas.pydata.org/docs/whatsnew/v2.2.0.html#
+    #   deprecated-automatic-downcasting
     # - https://github.com/pandas-dev/pandas/issues/57734
-    # - https://medium.com/@felipecaballero/deciphering-the-cryptic-futurewarning-for-fillna-in-pandas-2-01deb4e411a1
+    # - https://medium.com/@felipecaballero/
+    #   deciphering-the-cryptic-futurewarning-for-fillna-in-pandas-2-01deb4e411a1
     with pd.option_context("future.no_silent_downcasting", True):
         df["value"] = df.filter(regex="value").bfill(axis=1).iloc[:, 0]
 
@@ -213,16 +233,21 @@ def data_df(
         project_db (Session): SQLAlchemy session.
         project (models.Project): Project model.
         tags (List[models.Tag]): List of Tag models.
-        start (Optional[datetime.datetime], optional): Start time, inclusive. Defaults to None.
-        end (Optional[datetime.datetime], optional): End time, exclusive. Defaults to None.
+        start (Optional[datetime.datetime], optional): Start time, inclusive.
+            Defaults to None.
+        end (Optional[datetime.datetime], optional): End time, exclusive. Defaults
+            to None.
         interval (str, optional): Interval. Defaults to "5min".
         agg (str, optional): Aggregation function. Defaults to "instantaneous".
-        start_offset (str, optional): Start offset. Time prior to `start` to query MQTT data. Defaults to "5min".
+        start_offset (str, optional): Start offset. Time prior to `start` to
+            query MQTT data. Defaults to "5min".
         get_last (bool, optional): Get last known data point. Defaults to False.
-        last_offset (str, optional): Last offset. Window to search for last known data point. Defaults to "1hour".
+        last_offset (str, optional): Last offset. Window to search for last
+            known data point. Defaults to "1hour".
         fillna_zero (bool, optional): Fill NaN with 0. Defaults to True.
         ffill_limit (Optional[int], optional): Forward fill limit. Defaults to None.
-        unit_scaled (bool, optional): Whether to apply unit scaling to the data. Defaults to True.
+        unit_scaled (bool, optional): Whether to apply unit scaling to the data.
+            Defaults to True.
 
     Raises:
         HTTPException: If any of the input parameters are invalid.
@@ -810,7 +835,8 @@ def map_ancestors_to_descendents(
 
         # For each ancestor device_id...
         for id in ids_ancestors:
-            # If the ancestor device_id is in the descendent device_id_path, add the descendent device_id to the mapping
+            # If the ancestor device_id is in the descendent device_id_path,
+            # add the descendent device_id to the mapping
             if str(id) in device_id_path:
                 mapping[id].append(d.device_id)
 
@@ -822,21 +848,24 @@ def map_ancestors_to_descendents(
 
 def kpi_data_list_to_dict(*, kpi_data: list[dict], key: str) -> dict:
     """
-    Convert a list of KPI data dictionaries into a dictionary indexed by a specified key.
+    Convert a list of KPI data dictionaries into a dictionary indexed by a key.
 
-    This function takes a list of dictionaries containing KPI data and transforms it into a
-    dictionary where each entry is keyed by the specified key ('project_id' or 'kpi_type_id').
-    Each value in the resulting dictionary is the original KPI data dictionary.
+    This function takes a list of dictionaries containing KPI data and
+    transforms it into a dictionary where each entry is keyed by the specified
+    key ('project_id' or 'kpi_type_id'). Each value in the resulting dictionary
+    is the original KPI data dictionary.
 
     Args:
         kpi_data (list[dict]): A list of dictionaries containing KPI data.
-        key (str): The key to index the resulting dictionary. Must be either 'project_id' or 'kpi_type_id'.
+        key (str): The key to index the resulting dictionary. Must be either
+            'project_id' or 'kpi_type_id'.
 
     Raises:
         ValueError: If the provided key is not 'project_id' or 'kpi_type_id'.
 
     Returns:
-        dict: A dictionary where each key is the specified key from the KPI data and each value is the corresponding KPI data dictionary.
+        dict: A dictionary where each key is the specified key from the KPI
+            data and each value is the corresponding KPI data dictionary.
     """
     if key not in ["project_id", "kpi_type_id"]:
         raise ValueError("Key must be either 'project_id' or 'kpi_type_id'")
@@ -857,15 +886,17 @@ def parse_kpi_data_to_df(
     in the KPI data dictionary.
 
     Args:
-        kpi_data (dict): A dictionary containing KPI data. It must have the following structure:
+        kpi_data (dict): A dictionary containing KPI data. It must have the
+            following structure:
             - "data": A dictionary containing:
                 - "device_data_obj": A dictionary containing:
-                    - "device_values": A list of device values to be used as the DataFrame data.
+                    - "device_values": A list of device values to be used as
+                      the DataFrame data.
                 - "dates": A list of dates to be used as the DataFrame index.
 
     Returns:
-        pd.DataFrame: A DataFrame where the rows correspond to device values and the index
-        corresponds to the dates from the KPI data.
+        pd.DataFrame: A DataFrame where the rows correspond to device values
+        and the index corresponds to the dates from the KPI data.
     """
     df = pd.DataFrame(
         kpi_data["data"]["device_data_obj"]["device_values"],

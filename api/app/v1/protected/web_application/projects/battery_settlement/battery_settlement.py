@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 from app import dependencies, utils
 from app.integrations.token_manager import TokenManager
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -119,11 +120,13 @@ async def get_battery_settlement_details(
     if qse_integration is None:
         raise HTTPException(status_code=404, detail="QSE integration not found")
 
-    permissions = (
-        await core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
-            db=db_async,
+    permissions_query = (
+        core.crud.operational.qse_integrations.get_qse_permissions_by_company_id(
             company_id=user.company_id,
         )
+    )
+    permissions = await permissions_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
     )
     has_permission = any(
         perm.qse_integration_id == qse_integration.qse_integration_id and perm.can_view

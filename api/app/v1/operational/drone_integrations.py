@@ -1,7 +1,8 @@
 import uuid
 from typing import Annotated
 
-from core.crud.operational.projects import get_project_async
+from core.crud.operational.projects import get_projects
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -149,9 +150,13 @@ async def order_drone_inspection(
     """
     try:
         # Get project information
-        project = await get_project_async(db=db, project_id=request.project_id)
-        if not project:
+        db_query = get_projects(project_ids=[request.project_id])
+        df = await db_query.get_async(output_type=OutputType.PANDAS)
+
+        if df.empty:
             raise HTTPException(status_code=404, detail="Project not found")
+
+        project_name = df.iloc[0]["name_long"]
 
         # Get company information
         companies = await get_companies(db=db, company_ids=[user_data.company_id])
@@ -177,7 +182,7 @@ async def order_drone_inspection(
             user_email=user_email,
             user_name=user.name_long,
             company_name=company.name_long,
-            project_name=project.name_long,
+            project_name=project_name,
             timing=request.timing,
         )
 

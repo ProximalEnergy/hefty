@@ -178,7 +178,7 @@ def get_expected_power_by_device_type_id(
     }
 
 
-# --- 4) the main endpoint ----------------------------------------------------------------
+# --- 4) the main endpoint -----------------------------------------------
 @router.get("/{device_type_id}", response_class=ORJSONResponse)
 def get_by_device_type_id(
     device_type_id: int,

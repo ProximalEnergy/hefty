@@ -725,7 +725,7 @@ class ModelItem[T]:
         Args:
             index: TODO: describe.
             as_datetime: TODO: describe.
-            tz: TODO: describe.
+        tz: TODO: describe.
         """
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM

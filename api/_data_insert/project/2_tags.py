@@ -19,7 +19,8 @@ tags = pd.read_excel(
 )
 
 # Add missing columns if they do not exist
-# NOTE: This is to handle projects where these columns were not created yet in Google Sheets
+# NOTE: This is to handle projects where these columns were not created yet in
+# Google Sheets
 if "in_tsdb" not in tags.columns:
     tags["in_tsdb"] = True
 
@@ -136,7 +137,8 @@ for start in range(0, len(tags), CHUNK_SIZE):
 #     with conn.cursor() as cursor:
 #         for i in range(0, len(tag_ids_to_delete), 1000):
 #             logging.info(
-#                 f"Deleting chunk {(i // 1000) + 1} of {(len(tag_ids_to_delete) // 1000) + 1}",
+#                 f"Deleting chunk {(i // 1000) + 1} of "
+#                 f"{(len(tag_ids_to_delete) // 1000) + 1}",
 #             )
 #             chunk = tag_ids_to_delete[i : i + 1000]
 

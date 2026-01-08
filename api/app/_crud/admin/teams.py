@@ -120,7 +120,7 @@ async def remove_team_member(*, db: AsyncSession, team_id: uuid.UUID, user_id: s
         team_id: TODO: describe.
         user_id: TODO: describe.
     """
-    query = delete(models.TeamMember).filter(
+    query = delete(models.TeamMember).where(
         models.TeamMember.team_id == team_id, models.TeamMember.user_id == user_id
     )
     await db.execute(query)
@@ -143,19 +143,19 @@ async def delete_team(*, db: AsyncSession, team_id: uuid.UUID) -> dict[str, int]
     deleted_assignments = 0
     assignment_model = getattr(models, "CalendarItemAssignment", None)
     if assignment_model is not None:
-        query = delete(assignment_model).filter(assignment_model.team_id == team_id)
+        query = delete(assignment_model).where(assignment_model.team_id == team_id)
         result = await db.execute(query)
         result = cast(CursorResult, result)
         deleted_assignments = result.rowcount
 
     # 2) Remove team member links
-    query = delete(models.TeamMember).filter(models.TeamMember.team_id == team_id)
+    query = delete(models.TeamMember).where(models.TeamMember.team_id == team_id)
     result = await db.execute(query)
     result = cast(CursorResult, result)
     deleted_members = result.rowcount
 
     # 3) Remove the team itself
-    query = delete(models.Team).filter(models.Team.team_id == team_id)
+    query = delete(models.Team).where(models.Team.team_id == team_id)
     result = await db.execute(query)
     result = cast(CursorResult, result)
     deleted_teams = result.rowcount

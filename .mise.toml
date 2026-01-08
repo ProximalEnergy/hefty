@@ -5,6 +5,31 @@
 # MONOREPO-LEVEL TASKS
 # =============================================================================
 
+[tasks.onboarding]
+description = "One time setup, installing packages, configuring aws"
+run = """
+brew install uv awscli hurl && \
+aws configure && \
+mise run api:get_env && \
+cp api/.env.from_parameter_store api/.env && \
+mise run web:get_env && \
+cp web-app/.env.from_parameter_store web-app/.env && \
+mise run sync-deps
+"""
+
+[tasks.sync-deps]
+description = "Install and sync all dependencies across the monorepo"
+run = """
+uv sync && \
+mise install && \
+uv sync --directory core && \
+mise run api:switch-core && \
+uv sync --directory api && \
+cd web-app && npm ci && npx node build-plotly-custom.js && \
+cd .. && \
+mise run sql-admin:install
+"""
+
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
 usage = '''
@@ -13,12 +38,12 @@ usage = '''
 run = """
 if [ "${usage_no_sync:-false}" = "true" ]; then
   mise run api:switch-core && \
-  mise run install && \
+  mise run sync-deps && \
   ./_scripts/run_dev.sh
 else
   mise run sync && \
   mise run api:switch-core && \
-  mise run install && \
+  mise run sync-deps && \
   ./_scripts/run_dev.sh
 fi
 """
@@ -44,20 +69,6 @@ if [ "${usage_static:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --static"
 fi
 ./_scripts/run_checks.sh ${ALL_ARGS}
-"""
-
-[tasks.install]
-description = "Install and sync all dependencies across the monorepo"
-run = """
-uv sync && \
-mise install && \
-cd core && uv sync && cd .. && \
-mise run api:switch-core && \
-cd api && uv sync && cd .. && \
-cd web-app && npm install && npx node build-plotly-custom.js && \
-cd .. && \
-mise run sql-admin:install && \
-brew install hurl
 """
 
 [tasks.depends]
@@ -101,6 +112,16 @@ description = "Run ruff formatter on entire monorepo"
 dir = "."
 run = "uv run --dev ruff format core/ api/ sql-admin/ _scripts/"
 
+[tasks."tools:ruff"]
+description = "Run ruff linter on _tools"
+dir = "."
+run = "uv run --dev ruff check _tools/"
+
+[tasks."tools:format"]
+description = "Run ruff formatter on _tools"
+dir = "."
+run = "uv run --dev ruff format _tools/"
+
 [tasks."hardcoded_type_id_check"]
 description = "Run hardcoded type ID check on entire monorepo"
 dir = "."
@@ -114,6 +135,14 @@ run = "./_scripts/hardcoded_name_shorts_check.sh"
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
 # =============================================================================
+
+[tasks."git:diff"]
+description = "Interactively checkout files from another branch"
+dir = "."
+usage = '''
+  arg "[branch]" help="The source branch to checkout files from (optional)"
+'''
+run = "python3 _tools/git_checkout_tui.py ${usage_branch:-}"
 
 [tasks."core:check"]
 description = "Run all quality checks for core"
@@ -315,8 +344,12 @@ depends = [
   "api:deptry",
   "api:vulture",
   "api:docstring_args",
+  "api:db_query_get",
   "api:unused_routes",
 ]
+run = """
+mise run api:hurl || true
+"""
 
 [tasks."api:ruff"]
 description = "Run ruff linter for api"
@@ -370,6 +403,13 @@ hurl --location --variable baseURL=http://127.0.0.1:8000 \
 description = "Check docstring Args sections in api"
 dir = "."
 run = "uv run _scripts/check_docstring_args.py api"
+
+[tasks."api:db_query_get"]
+description = "Check for DbQuery.get usage in api"
+dir = "api"
+run = """
+../_scripts/db_query_get_check.sh
+"""
 
 [tasks."api:unused_routes"]
 description = "Check for API routes unused by the web-app (fast, OpenAPI-based)"
@@ -458,10 +498,20 @@ description = "Preview production build of web-app"
 dir = "web-app"
 run = "npm run preview"
 
+[tasks."web:get_env"]
+description = "Generate .env file from AWS Systems Manager Parameter Store"
+dir = "api"
+run = "uv run ../web-app/_scripts/generate_env_from_parameter_store.py"
+
 [tasks."web:check"]
 description = "Run TypeScript check, ESLint, and format web-app"
 dir = "web-app"
 run = "npm run check && npm run lint"
+
+[tasks."web:console_log_check"]
+description = "Fail if console.log is in web-app src TypeScript files"
+dir = "web-app"
+run = "./_pr_checks/console_log_check.sh"
 
 [tasks."web:lint"]
 description = "Run ESLint for web-app"

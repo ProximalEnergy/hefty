@@ -2,14 +2,13 @@ import urllib.parse
 from typing import Annotated, Any, cast
 
 import pandas as pd
-from core.crud.operational import projects as crud_projects
 from core.crud.operational.sensor_types import get_sensor_type
 from core.crud.project import tags as crud_project_tags
 from core.crud.project.tags import get_project_tags
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app import dependencies, utils
@@ -228,11 +227,17 @@ async def assign_sensor_type_to_pattern(
 
         # Update the project spec in the operational database
         # We need to use the main database session for this, not the project database
-        crud_projects.update_project_spec(
-            db=db,
-            project_id=project.project_id,
-            spec_updates={"used_sensor_type_ids": unique_sensor_type_ids},
+        stmt = (
+            update(models.Project)
+            .where(models.Project.project_id == project.project_id)
+            .values(
+                spec=models.Project.spec.op("||")(
+                    {"used_sensor_type_ids": unique_sensor_type_ids}
+                )
+            )
         )
+        db.execute(stmt)
+        db.commit()
 
         return {
             "message": f"Successfully updated {updated_count} tags",
@@ -353,7 +358,8 @@ async def get_tag_pattern_samples(
             project_db=project_db, pattern=tag_pattern, limit=5
         )
 
-        # Parse start and end dates, or use default 1 day if not provided (reduced for performance)
+        # Parse start and end dates, or use default 1 day if not provided
+        # (reduced for performance)
         if start and end:
             start_date = pd.Timestamp(start)
             end_date = pd.Timestamp(end)

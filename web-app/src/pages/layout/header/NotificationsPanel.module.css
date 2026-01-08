@@ -1,0 +1,48 @@
+.notificationItem {
+  width: 100%;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.notificationItemUnread {
+  background-color: var(--mantine-primary-color-light);
+}
+
+.notificationItemRead {
+  @mixin light {
+    background-color: transparent;
+  }
+  @mixin dark {
+    background-color: var(--mantine-color-dark-7);
+  }
+}
+
+.notificationItemUnread:hover {
+  background-color: var(--mantine-primary-color-light-hover);
+}
+
+.notificationItemRead:hover {
+  @mixin light {
+    background-color: var(--mantine-color-gray-0);
+  }
+  @mixin dark {
+    background-color: var(--mantine-color-dark-5);
+  }
+}
+
+.menuIconContainer {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.notificationItem:hover .menuIconContainer {
+  opacity: 1;
+  pointer-events: auto;
+}

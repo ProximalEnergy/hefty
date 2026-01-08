@@ -33,7 +33,8 @@ def is_enum_class(obj: Any) -> bool:
 
 def enum_members_in_order(enum_cls: type[Enum]) -> list[Enum]:
     # For IntEnum (and your BaseIntEnum), sort numerically by value.
-    # For others (e.g., StrEnum), preserve definition order (the class' __members__.values()).
+    # For others (e.g., StrEnum), preserve definition order (the class'
+    # __members__.values()).
     """Handle enum members in order.
 
     Args:
@@ -89,7 +90,8 @@ def main():
         if obj.__module__ != mod.__name__:
             continue  # skip imported classes
         if is_enum_class(obj):
-            # skip the base class itself (e.g., BaseIntEnum) if you don't want it emitted
+            # skip the base class itself (e.g., BaseIntEnum) if you don't want
+            # it emitted
             if obj.__name__.startswith("_"):
                 continue
             enums.append(obj)

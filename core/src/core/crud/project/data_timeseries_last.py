@@ -75,7 +75,7 @@ def get_data_timeseries_last(
     query = project_db.query(models.DataTimeseriesLast)
     tag_sets: list[set[int]] = []
     if sensor_type_ids:
-        tags = project_db.query(models.Tag).filter(
+        tags = project_db.query(models.Tag).where(
             models.Tag.sensor_type_id.in_(sensor_type_ids)
         )
         tag_items = tags.all()
@@ -87,14 +87,14 @@ def get_data_timeseries_last(
         tags = (
             project_db.query(models.Tag)
             .join(Device, models.Tag.device)  # Explicit join via relationship
-            .filter(Device.device_type_id.in_(device_type_ids))
+            .where(Device.device_type_id.in_(device_type_ids))
         )
         tag_items = tags.all()
         tag_ids_filtered = {tag.tag_id for tag in tag_items}
         tag_sets.append(tag_ids_filtered)
 
     if device_ids:
-        tags = project_db.query(models.Tag).filter(models.Tag.device_id.in_(device_ids))
+        tags = project_db.query(models.Tag).where(models.Tag.device_id.in_(device_ids))
         tag_items = tags.all()
         tag_ids_filtered = {tag.tag_id for tag in tag_items}
         tag_sets.append(tag_ids_filtered)
@@ -104,16 +104,17 @@ def get_data_timeseries_last(
 
     if tag_sets:
         final_tag_ids: list[int] = list(set.intersection(*tag_sets))
-        query = query.filter(models.DataTimeseriesLast.tag_id.in_(final_tag_ids))
+        query = query.where(models.DataTimeseriesLast.tag_id.in_(final_tag_ids))
 
     if not include_ghost_tags:
-        # Join with Tag table to filter out tags with no sensor_type_id (i.e., ghost tags)
+        # Join with Tag table to filter out tags with no sensor_type_id (i.e.,
+        # ghost tags)
         subq = (
             project_db.query(models.Tag.tag_id)
-            .filter(models.Tag.sensor_type_id > 0)
+            .where(models.Tag.sensor_type_id > 0)
             .subquery()
         )
-        query = query.filter(models.DataTimeseriesLast.tag_id.in_(select(subq)))
+        query = query.where(models.DataTimeseriesLast.tag_id.in_(select(subq)))
 
     if deep:
         query = query.options(

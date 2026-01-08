@@ -280,7 +280,8 @@ async def update_user_dashboard(
     existing_dashboard.dashboard_name = dashboard_name
     existing_dashboard.default_time_range = default_time_range
     existing_dashboard.default_kpi_time_range = default_kpi_time_range
-    # Update components using the model's update method if available, or direct assignment
+    # Update components using the model's update method if available, or direct
+    # assignment
     setattr(existing_dashboard, "components", component_sizing)
 
     # Commit all changes and refresh

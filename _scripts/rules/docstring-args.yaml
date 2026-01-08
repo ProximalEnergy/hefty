@@ -3,6 +3,9 @@ rules:
     languages: [python]
     message: "Function has arguments but missing Args section in docstring"
     severity: ERROR
+    paths:
+      exclude:
+        - "*.pyi"
     patterns:
       # Exclude routers and overloads
       - pattern-not: |
@@ -31,4 +34,3 @@ rules:
                   metavariable: $ARG
                   regex: ^(?!self$|cls$).*$
               - pattern-not-regex: (?s).*(Args:|Arguments:).*
-

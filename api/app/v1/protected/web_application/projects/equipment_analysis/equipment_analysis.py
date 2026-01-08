@@ -277,6 +277,7 @@ def get_heatmap(
 async def get_sunburst_data(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
+    project_id,
     mode: str = "events",
     ignored_device_type_ids: list[int] = [4, 5, 7, 10, 19, 20, 29, 30],
 ):
@@ -285,6 +286,7 @@ async def get_sunburst_data(
     Args:
         db: TODO: describe.
         project_db: TODO: describe.
+        project_id: TODO: describe.
         mode: TODO: describe.
         ignored_device_type_ids: TODO: describe.
     """
@@ -349,10 +351,18 @@ async def get_sunburst_data(
     ][0]
 
     if mode == "events":
+        project_name_short = dependencies.get_project_name_short(project_id=project_id)
+        if not project_name_short:
+            raise HTTPException(status_code=404, detail="Project not found")
+
         online_status_dict = {x.device_id: 0 for x in devices}
-        events = get_project_events(db=project_db, open=True)
-        for event in events:
-            online_status_dict[event.device_id] = 2
+        events_query = get_project_events(
+            open=True,
+        )
+        events_df = await events_query.get_async(schema=project_name_short)
+        if events_df is not None and not events_df.is_empty():
+            for event in events_df.to_dicts():
+                online_status_dict[int(event["device_id"])] = 2
 
         for parent, children in hierarchy.items():
             all_online = True

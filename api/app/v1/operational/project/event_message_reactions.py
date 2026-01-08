@@ -133,14 +133,15 @@ async def toggle_event_message_reaction(
 ) -> EventMessageReaction:
     """Toggle a reaction on a message (add if not exists, remove if exists).
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-        Request Body:
-            event_message_id: The ID of the message
-            reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
+    Path Parameters:
+        project_id: The project ID (required to determine schema)
+    Request Body:
+        event_message_id: The ID of the message
+        reaction_type: The type of reaction ('thumbs_up', 'eyes',
+            'question_mark', etc.)
 
-        Returns:
-            The created reaction (if added) or the deleted reaction info (if removed)
+    Returns:
+        The created reaction (if added) or the deleted reaction info (if removed)
 
     Args:
         project_id: TODO: describe.

@@ -409,11 +409,6 @@ export interface SunburstProps {
   hierarchy: Record<number, number[]>
 }
 
-export interface BlockDropdownItem {
-  device_id: number
-  name_full: string
-}
-
 interface ContractKPI {
   contract_id: number
   kpi_type_id: number

@@ -1,8 +1,8 @@
 import { KPISummaryCard } from '@/api/v1/operational/project/kpi_data'
 import {
+  Card,
   Group,
   HoverCard,
-  Paper,
   Stack,
   Text,
   ThemeIcon,
@@ -28,7 +28,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
   onClick,
 }) => {
   return (
-    <Paper h="100%" withBorder p="xs" radius="md" onClick={onClick} miw={400}>
+    <Card h="100%" withBorder p="xs" radius="md" onClick={onClick} miw={400}>
       <Stack justify="apart" gap={0}>
         <Group gap="xs" preventGrowOverflow={true} wrap="nowrap">
           {!is_visible && (
@@ -109,7 +109,7 @@ const KPICard: React.FC<KPISummaryCard> = ({
           </Stack>
         </Group>
       </Stack>
-    </Paper>
+    </Card>
   )
 }
 

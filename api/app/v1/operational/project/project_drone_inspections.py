@@ -244,7 +244,8 @@ async def sync_zeitview_anomalies(
 
             anomalies_to_create = []
             for item in anomalies:
-                # Handle location field - GeoJSON Point format with coordinates [lon, lat]
+                # Handle location field - GeoJSON Point format with
+                # coordinates [lon, lat]
                 location = item.pop("location", {})
                 if isinstance(location, str):
                     try:
@@ -268,7 +269,8 @@ async def sync_zeitview_anomalies(
                 # Extract image URLs from the images field
                 raw_images = item.pop("images", {})
                 if isinstance(raw_images, dict):
-                    # Fix URL encoding where Zeitview returns "%2520" so they become usable ("%20")
+                    # Fix URL encoding where Zeitview returns "%2520" so they
+                    # become usable ("%20")
                     def _fix_url(*, url: str | None) -> str | None:
                         """todo
 
@@ -285,7 +287,8 @@ async def sync_zeitview_anomalies(
                     item["ir_image_url"] = None
                     item["rgb_image_url"] = None
 
-                # Handle ir_signal and rgb_signal (they might not be in the API response when not explicitly requested)
+                # Handle ir_signal and rgb_signal (they might not be in the API
+                # response when not explicitly requested)
                 if "ir_signal" not in item:
                     item["ir_signal"] = None
                 if "rgb_signal" not in item:

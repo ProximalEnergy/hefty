@@ -131,7 +131,8 @@ def run_migrations_online() -> None:
 # Check if this is an upgrade command by looking at sys.argv
 if len(sys.argv) > 1 and sys.argv[1] == "upgrade":
     confirmation = input(
-        "🚦 Are you sure there are no public demos in progress or upcoming? (Type 'y' to confirm): "
+        "🚦 Are you sure there are no public demos in progress or upcoming? "
+        "(Type 'y' to confirm): "
     )
 
     # Check if the user's input is 'k', ignoring case and whitespace

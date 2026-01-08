@@ -1,8 +1,9 @@
 from collections import defaultdict
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Any, cast
 from uuid import UUID
 
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.models import Project as DBProject
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -20,7 +21,7 @@ from app._crud.operational.report_instances import (
     get_report_instances as crud_get_report_instances,
 )
 from app.logger import logger
-from core import enumerations
+from core import enumerations, models
 
 DESCRIPTION_404 = "Project not found"
 
@@ -29,6 +30,7 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 @router.get("", response_model=list[interfaces.Project], operation_id="get_projects")
 async def get_projects(
+    *,
     project_ids: Annotated[list[UUID] | None, Query()] = None,
     project_ids_excluded: Annotated[list[UUID] | None, Query()] = None,
     project_type_ids: Annotated[list[int] | None, Query()] = None,
@@ -82,12 +84,13 @@ async def get_projects(
     # If report_instance_report_type_ids are requested, filter project IDs that have all
     # requested report_instance_ids
     if report_instance_report_type_ids:
-        report_instances = await crud_get_report_instances(
-            db=db_async,
+        query = crud_get_report_instances(
             project_ids=project_ids_requested,
             report_type_ids=report_instance_report_type_ids,
             is_visible=None,
         )
+
+        report_instances = await query.get_async(output_type=OutputType.SQLALCHEMY)
 
         project_id_to_report_type_ids = defaultdict(list)
         for report_instance in report_instances:
@@ -139,9 +142,7 @@ async def get_projects(
             set(project_ids_requested) & set(project_ids_kpi_instances),
         )
 
-    projects = core.crud.operational.projects.get_projects(
-        db=db,
-        deep=deep,
+    projects_query = core.crud.operational.projects.get_projects(
         project_ids=project_ids_requested,
         project_type_ids=project_type_ids,
         project_status_type_ids=project_status_type_ids,
@@ -149,15 +150,23 @@ async def get_projects(
         name_long=name_long,
         name_shorts=name_shorts,
         has_pv_pcs_modules=has_pv_pcs_modules,
-    ).models()
+    )
+    projects_df = await projects_query.get_async(
+        output_type=OutputType.POLARS,
+    )
+    projects_dicts: list[dict[str, Any]] = projects_df.to_dicts()
 
     if user_data.public_metadata.get("demo"):
-        projects = utils.anonymize_projects(projects=projects)
+        # Cast to satisfy mypy's invariance requirements
+        projects_for_anon = cast(list[models.Project | dict[str, Any]], projects_dicts)
+        projects_anonymized = utils.anonymize_projects(projects=projects_for_anon)
+        # Cast back to list of dicts since we know they're all dicts in this path
+        projects_dicts = cast(list[dict[str, Any]], projects_anonymized)
 
     # Sort projects by name_short
-    projects.sort(key=lambda x: x.name_short)
+    projects_dicts.sort(key=lambda project: project["name_short"])
 
-    return projects
+    return projects_dicts
 
 
 @router.get(
@@ -167,10 +176,9 @@ async def get_projects(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_project_by_id",
 )
-def get_project(
+async def get_project(
     project_id: UUID,
     deep: custom_types.AnnotatedDeep = False,
-    db: Session = Depends(get_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     """todo
@@ -178,18 +186,30 @@ def get_project(
     Args:
         project_id: TODO: describe.
         deep: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
     """
-    project = core.crud.operational.projects.get_project(
-        db=db, project_id=project_id, deep=deep
-    ).model()
-    utils.check_404(value=project, detail=DESCRIPTION_404)
+    project_query = core.crud.operational.projects.get_project(
+        project_id=project_id,
+        deep=deep,
+    )
+    project_db_model = await project_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
+    )
+    utils.check_404(value=project_db_model, detail=DESCRIPTION_404)
 
     if user_data.public_metadata.get("demo"):
-        [project] = utils.anonymize_projects(projects=[project])
+        # Runtime check to satisfy type checker
+        if project_db_model is None:
+            raise ValueError("Project model should not be None after 404 check")
+        projects_for_anon = cast(
+            list[models.Project | dict[str, Any]], [project_db_model]
+        )
+        anonymized = utils.anonymize_projects(projects=projects_for_anon)
+        # Return the anonymized model directly
+        return cast(interfaces.Project, anonymized[0])
 
-    return project
+    # Return the db model directly (FastAPI will serialize it)
+    return cast(interfaces.Project, project_db_model)
 
 
 @router.post("", response_model=interfaces.Project)
@@ -293,7 +313,8 @@ async def update_project(
                     parsed_date = date.fromisoformat(value)
                     setattr(existing_project, field, parsed_date)
                     # print(
-                    #     f"[DEBUG] Project {project_id} - set {field} = {parsed_date} (from string {value})"
+                    #     f"[DEBUG] Project {project_id} - set {field} = "
+                    #     f"{parsed_date} (from string {value})"
                     # )
                 else:
                     setattr(existing_project, field, value)
@@ -316,7 +337,8 @@ async def update_project(
         for field in update_data.keys():
             after_refresh_values[field] = getattr(existing_project, field, None)
         # print(
-        #     f"[DEBUG] Project {project_id} update - after refresh values: {after_refresh_values}"
+        #     f"[DEBUG] Project {project_id} update - after refresh values: "
+        #     f"{after_refresh_values}"
         # )
 
         return interfaces.Project.model_validate(existing_project)

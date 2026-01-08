@@ -66,7 +66,8 @@ def update_anomalies_with_event_id(
     event_id: int,
 ):
     """Update drone anomalies with the event_id they are associated with.
-        Note: This function does NOT commit the transaction - it should be called within an existing transaction.
+    Note: This function does NOT commit the transaction - it should be called
+    within an existing transaction.
 
     Args:
         db: TODO: describe.

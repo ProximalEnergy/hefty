@@ -37,12 +37,12 @@ def get_project_cmms_devices(
     )
 
     if cmms_integration_ids:
-        query = query.filter(
+        query = query.where(
             models.CMMSDevice.cmms_integration_id.in_(cmms_integration_ids),
         )
 
     if device_ids:
-        query = query.filter(
+        query = query.where(
             models.CMMSDevice.device_id.in_(device_ids),
         )
 

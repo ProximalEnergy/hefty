@@ -200,10 +200,11 @@ class DataTimeseries:
     ) -> tuple[str, TimeInterval | None, TimeInterval | None, datetime, datetime]:
         """Pre-process data timeseries request.
 
-                Fetches project info and determines whether to use continuous aggregate table.
+        Fetches project info and determines whether to use continuous aggregate
+        table.
 
-                Returns:
-                    tuple: (timezone, interval, cagg_interval)
+        Returns:
+            tuple: (timezone, interval, cagg_interval)
 
         Args:
             operational_db: TODO: describe.

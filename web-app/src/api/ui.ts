@@ -1,5 +1,5 @@
+import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
-import * as types from '@/hooks/types'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 export const useGetBlockDropdown = ({
@@ -18,7 +18,7 @@ export const useGetBlockDropdown = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<types.BlockDropdownItem[]>({
+  return useCustomQuery<components['schemas']['BlockDropdownItem'][]>({
     axiosConfig,
     queryName: 'getBlockDropdown',
     pathParams,

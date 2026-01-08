@@ -198,37 +198,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/subscriptions/notifications/{project_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Notification Emails
-         * @description Get all emails subscribed to notifications for a project.
-         *             Requires admin permissions.
-         */
-        get: operations["get_notification_emails_v1_admin_subscriptions_notifications__project_id__get"];
-        /**
-         * Update Notification Subscription
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         data: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        put: operations["update_notification_subscription_v1_admin_subscriptions_notifications__project_id__put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/admin/subscriptions/reports/{project_id}": {
         parameters: {
             query?: never;
@@ -252,6 +221,50 @@ export interface paths {
          *         user_data: TODO: describe.
          */
         put: operations["update_report_subscription_v1_admin_subscriptions_reports__project_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Notification Preferences
+         * @description Get notification preferences for the requesting user.
+         */
+        get: operations["get_user_notification_preferences_v1_admin_notification_preferences_get"];
+        /**
+         * Update Notification Preference
+         * @description Update a notification preference.
+         */
+        put: operations["update_notification_preference_v1_admin_notification_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notification Types
+         * @description Get all notification types.
+         */
+        get: operations["get_notification_types_v1_admin_notification_types_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -786,6 +799,146 @@ export interface paths {
         patch: operations["update_kpi_type_favorite_v1_admin_user_kpi_types_favorite_patch"];
         trace?: never;
     };
+    "/v1/admin/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Notifications
+         * @description Get all IN_APP notifications for the requesting user.
+         */
+        get: operations["get_user_notifications_v1_admin_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Unread Notification Count
+         * @description Get count of unread IN_APP notifications for the requesting user.
+         */
+        get: operations["get_unread_notification_count_v1_admin_notifications_unread_count_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notifications/delete-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete All Notifications
+         * @description Delete all IN_APP notifications for the requesting user.
+         */
+        delete: operations["delete_all_notifications_v1_admin_notifications_delete_all_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark Notification Read
+         * @description Mark a notification as read for the requesting user.
+         */
+        put: operations["mark_notification_read_v1_admin_notifications__notification_id__read_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notifications/{notification_id}/unread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark Notification Unread
+         * @description Mark a notification as unread for the requesting user.
+         */
+        put: operations["mark_notification_unread_v1_admin_notifications__notification_id__unread_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notifications/{notification_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Notification
+         * @description Delete a notification for the requesting user.
+         */
+        delete: operations["delete_notification_v1_admin_notifications__notification_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark All Notifications Read
+         * @description Mark all IN_APP notifications as read for the requesting user.
+         */
+        put: operations["mark_all_notifications_read_v1_admin_notifications_read_all_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/user-type": {
         parameters: {
             query?: never;
@@ -1171,7 +1324,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: Project UUID used to look up coordinates.
-         *         db: Database session dependency.
          */
         get: operations["get_project_weather_v1_gis__project_id__project_weather_get"];
         put?: never;
@@ -1195,7 +1347,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: Project UUID used to look up coordinates.
-         *         db: Database session dependency.
          */
         get: operations["get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get"];
         put?: never;
@@ -1320,9 +1471,9 @@ export interface paths {
         /**
          * Get Devices In Viewport
          * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *         Optionally filters by device_type_ids.
-         *         If power_device_type_id is provided, fetches and includes latest actual/expected power
-         *         for devices matching that type within the viewport.
+         *     Optionally filters by device_type_ids. If power_device_type_id is provided,
+         *     fetches and includes latest actual/expected power for devices matching that
+         *     type within the viewport.
          *
          *     Args:
          *         north: TODO: describe.
@@ -1386,7 +1537,9 @@ export interface paths {
          *         path (Optional[str]): The path to the directory in S3.
          *
          *     Returns:
-         *         List[Contents]: A list of the contents of the directory as dictionaries. Dictionary keys are ["Key", "LastModified", "ETag", "Size", "StorageClass"].
+         *         List[Contents]: A list of the contents of the directory as dictionaries.
+         *         Dictionary keys are ["Key", "LastModified", "ETag", "Size",
+         *         "StorageClass"].
          */
         get: operations["listdir_v1_operational_aws_listdir_get"];
         put?: never;
@@ -1496,10 +1649,10 @@ export interface paths {
          * Get CEC PV module IDs based on manufacturer and model pairs
          * @description Get CEC PV module IDs for each manufacturer and model pair.
          *
-         *         Returns corresponding CEC PV module IDs in the same order. Returns None for any pairs
-         *         that don't exist in the database.
+         *     Returns corresponding CEC PV module IDs in the same order. Returns None
+         *     for any pairs that don't exist in the database.
          *
-         *         The input lists must have the same length.
+         *     The input lists must have the same length.
          *
          *     Args:
          *         manufacturers: TODO: describe.
@@ -1769,14 +1922,15 @@ export interface paths {
          * Toggle Event Message Reaction
          * @description Toggle a reaction on a message (add if not exists, remove if exists).
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *         Request Body:
-         *             event_message_id: The ID of the message
-         *             reaction_type: The type of reaction ('thumbs_up', 'eyes', 'question_mark', etc.)
+         *     Path Parameters:
+         *         project_id: The project ID (required to determine schema)
+         *     Request Body:
+         *         event_message_id: The ID of the message
+         *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
+         *             'question_mark', etc.)
          *
-         *         Returns:
-         *             The created reaction (if added) or the deleted reaction info (if removed)
+         *     Returns:
+         *         The created reaction (if added) or the deleted reaction info (if removed)
          *
          *     Args:
          *         project_id: TODO: describe.
@@ -2595,6 +2749,7 @@ export interface paths {
          *     Args:
          *         db: TODO: describe.
          *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
          *         device_id: TODO: describe.
          *         time_end_gte: TODO: describe.
          *         time_end_lt: TODO: describe.
@@ -2623,6 +2778,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
+         *         project_id: TODO: describe.
          *         page: TODO: describe.
          *         page_size: TODO: describe.
          *         sort_column: TODO: describe.
@@ -2683,6 +2839,7 @@ export interface paths {
          *     Args:
          *         project_db: TODO: describe.
          *         db: TODO: describe.
+         *         project_id: TODO: describe.
          */
         get: operations["get_event_devices_v1_operational_projects__project_id__events_event_devices_get"];
         put?: never;
@@ -2789,6 +2946,7 @@ export interface paths {
          *     Args:
          *         project_db: TODO: describe.
          *         db: TODO: describe.
+         *         project_id: TODO: describe.
          *         start: TODO: describe.
          *         end: TODO: describe.
          */
@@ -2814,10 +2972,13 @@ export interface paths {
          * Bulk Create Events
          * @description Create events in bulk for a set of device_ids and attach a single loss row each.
          *
-         *         - Creates an `events` row per device with failure_mode_id default 1 (Generic Underperformance)
-         *         - Inserts an `event_losses` row at `time_start` with provided loss and event_loss_type_id
-         *         - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in operational.event_loss_types, create it with
-         *           name_short 'proximal_pv_dc_capacity'.
+         *     - Creates an `events` row per device with failure_mode_id default 1
+         *       (Generic Underperformance)
+         *     - Inserts an `event_losses` row at `time_start` with provided loss and
+         *       event_loss_type_id
+         *     - If event_loss_type_id=PROXIMAL_PV_DC_CAPACITY is not present in
+         *       operational.event_loss_types, create it with name_short
+         *       'proximal_pv_dc_capacity'.
          *
          *     Args:
          *         project_db: TODO: describe.
@@ -3200,7 +3361,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: TODO: describe.
-         *         db: TODO: describe.
          *         is_superadmin: TODO: describe.
          *         report_type_ids: TODO: describe.
          *         deep: TODO: describe.
@@ -4116,7 +4276,6 @@ export interface paths {
          *     Args:
          *         project_id: TODO: describe.
          *         deep: TODO: describe.
-         *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
         get: operations["get_project_by_id"];
@@ -4456,7 +4615,6 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
          *         is_superadmin: TODO: describe.
          *         project_ids: TODO: describe.
          *         report_type_ids: TODO: describe.
@@ -4482,16 +4640,17 @@ export interface paths {
          * Get Root Causes
          * @description Retrieve root causes with optional filtering by IDs and device types.
          *
-         *     This endpoint returns a list of root causes, optionally filtered by specific root cause IDs
-         *     and/or device type IDs. Each root cause is enriched with a 'name_full' field that
-         *     combines the device type name and root cause name.
+         *     This endpoint returns a list of root causes, optionally filtered by
+         *     specific root cause IDs and/or device type IDs. Each root cause is enriched
+         *     with a 'name_full' field that combines the device type name and root cause
+         *     name.
          *
          *     Args:
          *         db (Session): Database session dependency
-         *         root_cause_ids (List[int], optional): List of specific root cause IDs to filter by.
-         *             If empty, returns all root causes.
-         *         device_type_ids (List[int], optional): List of device type IDs to filter by.
-         *             If empty, returns root causes for all device types.
+         *         root_cause_ids (List[int], optional): List of specific root cause IDs
+         *             to filter by. If empty, returns all root causes.
+         *         device_type_ids (List[int], optional): List of device type IDs to
+         *             filter by. If empty, returns root causes for all device types.
          *
          *     Returns:
          *         List[dict]: List of root cause dictionaries, each containing:
@@ -4700,10 +4859,10 @@ export interface paths {
          * Get PV module IDs based on manufacturer and model pairs
          * @description Get PV module IDs for each manufacturer and model pair.
          *
-         *         Returns corresponding PV module IDs in the same order. Returns None for any pairs
-         *         that don't exist in the database.
+         *     Returns corresponding PV module IDs in the same order. Returns None for
+         *     any pairs that don't exist in the database.
          *
-         *         The input lists must have the same length.
+         *     The input lists must have the same length.
          *
          *     Args:
          *         authorized_company_id: TODO: describe.
@@ -5784,6 +5943,7 @@ export interface paths {
          *     Args:
          *         db: TODO: describe.
          *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
          *         mode: TODO: describe.
          *         ignored_device_type_ids: TODO: describe.
          */
@@ -6773,10 +6933,11 @@ export interface paths {
         };
         /**
          * Utility Expected
-         * @description This function facilitates all backend data required for the Superadmin Utility Expected Plotting page.
-         *         Data returned includes parent device tree up to root, expected power data, and actual power data.
-         *         This data is visible exclusively to Proximal Superadmins, and as such can be changed more freely to
-         *         fit the use case of the page.
+         * @description This function facilitates all backend data required for the Superadmin
+         *     Utility Expected Plotting page. Data returned includes parent device tree
+         *     up to root, expected power data, and actual power data. This data is visible
+         *     exclusively to Proximal Superadmins, and as such can be changed more freely
+         *     to fit the use case of the page.
          *
          *     Args:
          *         device_id: TODO: describe.
@@ -8319,6 +8480,26 @@ export interface components {
             document_url?: string | null;
         };
         /**
+         * ContractSearchResponse
+         * @description Contractsearchresponse model.
+         */
+        ContractSearchResponse: {
+            /** Search Results */
+            search_results: components["schemas"]["ContractSearchResult"][];
+        };
+        /**
+         * ContractSearchResult
+         * @description Contractsearchresult model.
+         */
+        ContractSearchResult: {
+            /** Text */
+            text: string;
+            /** Filename */
+            filename: string;
+            /** Score */
+            score: number;
+        };
+        /**
          * ContractWithCompany
          * @description Contractwithcompany model.
          */
@@ -9053,9 +9234,9 @@ export interface components {
             time_last_analyzed: string | null;
             /** Loss Total Financial */
             loss_total_financial: number | null;
-            failure_mode: components["schemas"]["FailureMode"] | null;
-            root_cause: components["schemas"]["RootCause"] | null;
-            device: components["schemas"]["Device"] | null;
+            failure_mode?: components["schemas"]["FailureMode"] | null;
+            root_cause?: components["schemas"]["RootCause"] | null;
+            device?: components["schemas"]["Device"] | null;
             /** Device Name Full */
             device_name_full?: string | null;
             /** Version */
@@ -9290,7 +9471,7 @@ export interface components {
             /** Properties */
             properties: unknown | null;
             /** Geometry */
-            geometry: components["schemas"]["Point"] | components["schemas"]["Polygon"];
+            geometry: components["schemas"]["Point"] | components["schemas"]["Polygon"] | components["schemas"]["MultiPolygon"];
         };
         /**
          * GeoJSON
@@ -9502,7 +9683,7 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type: components["schemas"]["app__interfaces__KPIType"] | null;
+            kpi_type?: components["schemas"]["app__interfaces__KPIType"] | null;
         };
         /**
          * KPISummary
@@ -9561,9 +9742,9 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceType"] | null;
             /** Doc Url */
-            doc_url: string | null;
+            doc_url?: string | null;
             /**
              * Contract Kpis
              * @default []
@@ -9603,9 +9784,9 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceType"] | null;
             /** Doc Url */
-            doc_url: string | null;
+            doc_url?: string | null;
             /**
              * Contracts
              * @default []
@@ -9618,6 +9799,14 @@ export interface components {
             contract_kpis: components["schemas"]["ContractKPIs"][];
         };
         /**
+         * Message
+         * @description Message model.
+         */
+        Message: {
+            /** Message */
+            message: string;
+        };
+        /**
          * MultiPolygon
          * @description Multipolygon model.
          */
@@ -9626,6 +9815,99 @@ export interface components {
             type: string;
             /** Coordinates */
             coordinates: unknown[];
+        };
+        /**
+         * Notification
+         * @description Notification model.
+         */
+        Notification: {
+            /** Notification Id */
+            notification_id: number;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Severity */
+            severity: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Sent At */
+            sent_at: string | null;
+            /** State */
+            state?: string | null;
+        };
+        /**
+         * NotificationPreference
+         * @description Notification preference model.
+         */
+        NotificationPreference: {
+            /** Notification Preference Id */
+            notification_preference_id: number;
+            /** User Id */
+            user_id: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** In App Enabled */
+            in_app_enabled: boolean;
+            /** Email Enabled */
+            email_enabled: boolean;
+            in_app_min_severity: components["schemas"]["NotificationSeverity"];
+            email_min_severity: components["schemas"]["NotificationSeverity"];
+        };
+        /**
+         * NotificationPreferenceUpdate
+         * @description Notification preference update model.
+         */
+        NotificationPreferenceUpdate: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** In App Enabled */
+            in_app_enabled?: boolean | null;
+            /** Email Enabled */
+            email_enabled?: boolean | null;
+            in_app_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+            email_min_severity?: components["schemas"]["NotificationSeverity"] | null;
+        };
+        /**
+         * NotificationSeverity
+         * @enum {string}
+         */
+        NotificationSeverity: "info" | "warning" | "critical";
+        /**
+         * NotificationType
+         * @description Notification type model.
+         */
+        NotificationType: {
+            /** Notification Type Id */
+            notification_type_id: number;
+            /** Name Long */
+            name_long: string;
+            /** In App Enabled Default */
+            in_app_enabled_default: boolean;
+            /** Email Enabled Default */
+            email_enabled_default: boolean;
+            in_app_severity_default?: components["schemas"]["NotificationSeverity"] | null;
+            email_severity_default?: components["schemas"]["NotificationSeverity"] | null;
         };
         /**
          * OperationalKPIData
@@ -10478,7 +10760,7 @@ export interface components {
             report_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            report_type: components["schemas"]["ReportType"] | null;
+            report_type?: components["schemas"]["ReportType"] | null;
         };
         /**
          * ReportInstanceUpdate
@@ -10497,6 +10779,8 @@ export interface components {
         ReportInstancesBulkUpdate: {
             /** Report Instances */
             report_instances: components["schemas"]["ReportInstanceUpdate"][];
+            /** Report Type Ids To Delete */
+            report_type_ids_to_delete?: number[] | null;
         };
         /**
          * ReportType
@@ -10535,9 +10819,9 @@ export interface components {
             dme_id: number;
             /** Settlement Point Id */
             settlement_point_id: number;
-            qse: components["schemas"]["QSE"] | null;
-            dme: components["schemas"]["DME"] | null;
-            settlement_point: components["schemas"]["SettlementPoint"] | null;
+            qse?: components["schemas"]["QSE"] | null;
+            dme?: components["schemas"]["DME"] | null;
+            settlement_point?: components["schemas"]["SettlementPoint"] | null;
         };
         /**
          * RootCause
@@ -10606,9 +10890,9 @@ export interface components {
             load_zone_id: number | null;
             /** Trading Hub Id */
             trading_hub_id: number | null;
-            settlement_point_type: components["schemas"]["SettlementPointType"] | null;
-            load_zone: components["schemas"]["SettlementPointCore"] | null;
-            trading_hub: components["schemas"]["SettlementPointCore"] | null;
+            settlement_point_type?: components["schemas"]["SettlementPointType"] | null;
+            load_zone?: components["schemas"]["SettlementPointCore"] | null;
+            trading_hub?: components["schemas"]["SettlementPointCore"] | null;
         };
         /**
          * SettlementPointCore
@@ -10775,11 +11059,11 @@ export interface components {
             unit_scale: number | null;
             point: components["schemas"]["Point"] | null;
             polygon: components["schemas"]["Polygon"] | null;
-            device: components["schemas"]["Device"] | null;
-            sensor_type: components["schemas"]["app__interfaces__SensorType"] | null;
-            data_type: components["schemas"]["DataType"] | null;
+            device?: components["schemas"]["Device"] | null;
+            sensor_type?: components["schemas"]["app__interfaces__SensorType"] | null;
+            data_type?: components["schemas"]["DataType"] | null;
             /** Status Lookup Id */
-            status_lookup_id: number | null;
+            status_lookup_id?: number | null;
         };
         /**
          * Team
@@ -10942,6 +11226,28 @@ export interface components {
             company_name_short: string;
         };
         /**
+         * UserData
+         * @description Userdata model.
+         */
+        UserData: {
+            /** User Id */
+            user_id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Public Metadata */
+            public_metadata: {
+                [key: string]: unknown;
+            };
+            /** Api Key */
+            api_key: string | null;
+            /** Operational Project Ids */
+            operational_project_ids: string[];
+            user_type_id: components["schemas"]["UserTypeEnum"];
+        };
+        /**
          * UserKPITypes
          * @description Userkpitypes model.
          */
@@ -11034,6 +11340,26 @@ export interface components {
             name_long: string;
             /** Permission Ids */
             permission_ids: number[];
+        };
+        /**
+         * UserWithProjects
+         * @description Userwithprojects model.
+         */
+        UserWithProjects: {
+            /** User Id */
+            user_id: string;
+            user_type_id: components["schemas"]["UserTypeEnum"];
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name Long */
+            name_long: string;
+            /** Operational Project Ids */
+            operational_project_ids: string[];
+            /** Image Url */
+            image_url?: string | null;
         };
         /**
          * UtilityExpectedResponse
@@ -11154,9 +11480,9 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceType"] | null;
             /** Doc Url */
-            doc_url: string | null;
+            doc_url?: string | null;
         };
         /**
          * SensorType
@@ -11537,78 +11863,6 @@ export interface operations {
             };
         };
     };
-    get_notification_emails_v1_admin_subscriptions_notifications__project_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_notification_subscription_v1_admin_subscriptions_notifications__project_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserSubscriptionUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserSubscription"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_report_emails_v1_admin_subscriptions_reports__project_id__get: {
         parameters: {
             query?: never;
@@ -11668,6 +11922,109 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserSubscription"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_notification_preferences_v1_admin_notification_preferences_get: {
+        parameters: {
+            query?: {
+                /** @description Filter by project IDs */
+                project_ids?: string[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreference"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_notification_preference_v1_admin_notification_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreference"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_notification_types_v1_admin_notification_types_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationType"][];
                 };
             };
             /** @description Validation Error */
@@ -12150,7 +12507,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserWithProjects"][];
                 };
             };
             /** @description Validation Error */
@@ -12182,7 +12539,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserData"];
                 };
             };
             /** @description Validation Error */
@@ -12502,6 +12859,239 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_notifications_v1_admin_notifications_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_unread_notification_count_v1_admin_notifications_unread_count_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_all_notifications_v1_admin_notifications_delete_all_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_notification_read_v1_admin_notifications__notification_id__read_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_notification_unread_v1_admin_notifications__notification_id__unread_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_notification_v1_admin_notifications__notification_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_all_notifications_read_v1_admin_notifications_read_all_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -13045,9 +13635,7 @@ export interface operations {
     };
     get_project_weather_v1_gis__project_id__project_weather_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -13081,9 +13669,7 @@ export interface operations {
     };
     get_project_weather_forecast_v1_gis__project_id__project_weather_forecast_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -13117,9 +13703,7 @@ export interface operations {
     };
     get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -13195,7 +13779,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -13272,7 +13855,6 @@ export interface operations {
                 west: number;
                 device_type_ids?: number[] | null;
                 power_device_type_id?: number | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -14510,9 +15092,7 @@ export interface operations {
     };
     create_contract_v1_operational_projects__project_id__contracts_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -14620,9 +15200,7 @@ export interface operations {
     };
     delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -15158,7 +15736,6 @@ export interface operations {
                 end?: string | null;
                 device_type_ids?: number[] | null;
                 device_ids?: number[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15196,7 +15773,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15803,7 +16379,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15847,7 +16422,6 @@ export interface operations {
                 use_poa_1d: boolean;
                 use_poa_std: boolean;
                 resample_rate?: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15884,7 +16458,6 @@ export interface operations {
         parameters: {
             query?: {
                 deep?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15963,7 +16536,6 @@ export interface operations {
         parameters: {
             query?: {
                 timestamp?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16125,7 +16697,6 @@ export interface operations {
                 device_ids?: number[] | null;
                 tag_ids?: number[] | null;
                 device_type_ids?: number[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16399,7 +16970,6 @@ export interface operations {
                 expected_metric_ids?: number[];
                 highest_priority_only?: boolean;
                 cutoff_now?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16468,9 +17038,7 @@ export interface operations {
     };
     upload_project_document_v1_operational_projects__project_id__documents_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -16530,7 +17098,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ContractSearchResponse"];
                 };
             };
             /** @description Validation Error */
@@ -16565,7 +17133,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Validation Error */
@@ -16624,7 +17192,6 @@ export interface operations {
                 start: string;
                 end: string;
                 device_ids?: number[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16697,7 +17264,6 @@ export interface operations {
                 level?: string;
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -17328,7 +17894,6 @@ export interface operations {
             query?: {
                 /** @description Load all related objects. */
                 deep?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19650,7 +20215,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19688,7 +20252,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19726,7 +20289,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19764,7 +20326,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19802,7 +20363,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19841,7 +20401,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19881,7 +20440,6 @@ export interface operations {
                 end?: string | null;
                 agg?: string;
                 fillna_zero?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19960,7 +20518,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19998,7 +20555,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20036,7 +20592,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20072,9 +20627,7 @@ export interface operations {
     };
     get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20113,7 +20666,6 @@ export interface operations {
                 device_ids: number[];
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20222,9 +20774,7 @@ export interface operations {
     };
     get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20337,7 +20887,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20408,9 +20957,7 @@ export interface operations {
     };
     get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20482,9 +21029,7 @@ export interface operations {
     };
     get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20521,7 +21066,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20558,7 +21102,6 @@ export interface operations {
         parameters: {
             query?: {
                 sort_by?: "daily" | "total";
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -20756,9 +21299,7 @@ export interface operations {
     };
     get_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_user_dashboards_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20792,9 +21333,7 @@ export interface operations {
     };
     get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20828,9 +21367,7 @@ export interface operations {
     };
     create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20868,9 +21405,7 @@ export interface operations {
     };
     duplicate_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_duplicate__dashboard_id__post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20909,9 +21444,7 @@ export interface operations {
     };
     update_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20949,9 +21482,7 @@ export interface operations {
     };
     get_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20986,9 +21517,7 @@ export interface operations {
     };
     delete_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__delete: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21023,9 +21552,7 @@ export interface operations {
     };
     get_dashboard_shared_users_endpoint_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__users_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21060,9 +21587,7 @@ export interface operations {
     };
     share_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21101,9 +21626,7 @@ export interface operations {
     };
     unshare_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__delete: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -21145,7 +21668,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21183,7 +21705,6 @@ export interface operations {
             query?: {
                 analysis_date?: string | null;
                 block_names?: string[] | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21222,7 +21743,6 @@ export interface operations {
                 start?: string | null;
                 end?: string | null;
                 resample_rate?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21260,7 +21780,6 @@ export interface operations {
             query: {
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21386,7 +21905,6 @@ export interface operations {
                 start: string;
                 end: string;
                 warranted_degradation?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21576,7 +22094,6 @@ export interface operations {
                 project_id: string;
                 start: string;
                 end: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;

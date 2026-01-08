@@ -72,3 +72,9 @@ rules:
       - pattern-not-inside: |
           @router
           def $FUNC(...): ...
+
+      # Exclude AWS Lambda handlers (they have a fixed signature required by AWS)
+      - pattern-not:
+          pattern: |
+            def lambda_handler($EVENT, $CONTEXT, ...):
+              ...

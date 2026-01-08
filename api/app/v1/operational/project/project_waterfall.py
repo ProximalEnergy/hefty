@@ -219,7 +219,8 @@ async def get_project_waterfall(
         }
     )
     grouped_losses = pd.concat([new_row, grouped_losses]).reset_index(drop=True)
-    # Convert meter power to energy: multiply sum by time interval (5/60 hours for 5-min data)
+    # Convert meter power to energy: multiply sum by time interval (5/60 hours
+    # for 5-min data)
     if len(series_meter) > 1:
         # Calculate average time interval between data points
         meter_time_deltas = series_meter.index.to_series().diff().dropna()

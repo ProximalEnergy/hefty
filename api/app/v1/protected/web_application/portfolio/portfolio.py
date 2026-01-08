@@ -1,8 +1,9 @@
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 from uuid import UUID
 
 import pandas as pd
+from core.db_query import OutputType, postprocess_pandas_df
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
@@ -75,16 +76,21 @@ async def get_portfolio_home_short_term(
     if len(project_ids) == 0:
         return []
 
-    projects_ml = await core.crud.operational.projects.get_projects_async(
-        db=db, project_ids=project_ids
+    projects_query = core.crud.operational.projects.get_projects(
+        project_ids=project_ids
     )
-    projects = projects_ml.models()
-    projects_df = pd.DataFrame([x.__dict__ for x in projects]).set_index("project_id")
+    projects_df = cast(
+        pd.DataFrame,
+        await projects_query.get_async(output_type=OutputType.PANDAS),
+    )
+    projects_df = postprocess_pandas_df(df=projects_df, index="project_id")
 
-    real_time_project_ids = [x.project_id for x in projects if x.has_real_time_data]
-    day_behind_project_ids = [
-        x.project_id for x in projects if not x.has_real_time_data
-    ]
+    real_time_project_ids = projects_df[
+        projects_df["has_real_time_data"]
+    ].index.tolist()
+    day_behind_project_ids = projects_df[
+        ~projects_df["has_real_time_data"]
+    ].index.tolist()
 
     # end equal to current time in utc
     end = pd.Timestamp.utcnow().floor("5min")

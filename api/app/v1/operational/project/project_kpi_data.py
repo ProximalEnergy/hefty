@@ -8,7 +8,8 @@ from core.crud.operational.kpi_data import (
     get_project_kpi_data_agg,
     get_project_kpi_data_agg_freq,
 )
-from core.crud.operational.projects import get_project_async
+from core.crud.operational.projects import get_projects
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -676,10 +677,13 @@ async def get_rte(
     if level != "string":
         raise HTTPException(status_code=400, detail="Invalid level")
 
-    project = await get_project_async(db=db, project_id=project_id)
+    db_query = get_projects(project_ids=[project_id])
+    df_project = await db_query.get_async(output_type=OutputType.PANDAS)
 
-    if project is None or project.capacity_bess_energy_bol_dc is None:
+    if df_project.empty or pd.isna(df_project.iloc[0]["capacity_bess_energy_bol_dc"]):
         return RTEResponse(rte=None)
+
+    capacity_bess_energy_bol_dc = df_project.iloc[0]["capacity_bess_energy_bol_dc"]
 
     df = await crud_get_kpi_data_async(
         db=db,
@@ -711,7 +715,7 @@ async def get_rte(
     )
 
     energy_cols = [STRING_ENERGY_CHARGED_KPI_ID, STRING_ENERGY_DISCHARGED_KPI_ID]
-    pivot_df[energy_cols] = pivot_df[energy_cols] / project.capacity_bess_energy_bol_dc
+    pivot_df[energy_cols] = pivot_df[energy_cols] / capacity_bess_energy_bol_dc
     pivot_df = pivot_df.dropna()
 
     sum_df = pivot_df.sum(min_count=1)

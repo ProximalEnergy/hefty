@@ -17,7 +17,8 @@ class UserDict(TypedDict):
     first_name: str
     last_name: str
     email: str
-    # Currently only "parent_company" is supported by Proximal, but this can be extended to other metadata keys.
+    # Currently only "parent_company" is supported by Proximal, but this can
+    # be extended to other metadata keys.
     public_metadata: dict[Literal["parent_company"], str] | None
 
 

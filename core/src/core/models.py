@@ -961,6 +961,7 @@ class Project(Base):
     __tablename__ = "projects"
 
     project_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    project_id_int: Mapped[int] = mapped_column(sa.SmallInteger, unique=True)
     project_type_id: Mapped[enumerations.ProjectType] = mapped_column(
         sa.ForeignKey("operational.project_types.project_type_id"),
     )
@@ -1240,7 +1241,8 @@ class CalendarItemAssignment(Base):
     )
 
     __table_args__ = (
-        # Ensure an assignee exists (user or team). Rows should represent exactly one assignee type.
+        # Ensure an assignee exists (user or team). Rows should represent
+        # exactly one assignee type.
         sa.CheckConstraint(
             "(user_id IS NOT NULL) <> (team_id IS NOT NULL)",
             name="chk_calendar_item_assignment_exactly_one_assignee",

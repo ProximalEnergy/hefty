@@ -5,7 +5,8 @@ from uuid import UUID
 
 from async_lru import alru_cache
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import Session
 
 from core import models
@@ -13,18 +14,23 @@ from core.database import async_engine, engine
 
 
 @contextmanager
-def with_db(*, schema: str | None) -> Generator[Session, None, None]:
+def with_db(
+    *,
+    schema: str | None = "operational",
+) -> Generator[Session, None, None]:
     """Get a database session with the specified schema.
 
     Args:
         schema: TODO: describe.
     """
-    if schema:
-        schema_translate_map = dict(project=schema)
-    else:
-        schema_translate_map = None
-
-    connectable = engine.execution_options(schema_translate_map=schema_translate_map)
+    # Only set schema_translate_map when schema is provided.
+    # Passing schema_translate_map=None still enables translation mode
+    # and generates __[SCHEMA_x]__ placeholders that won't resolve.
+    connectable: Engine = (
+        engine.execution_options(schema_translate_map={"project": schema})
+        if schema
+        else engine
+    )
 
     db: Session | None = None
     try:
@@ -36,19 +42,22 @@ def with_db(*, schema: str | None) -> Generator[Session, None, None]:
 
 
 @asynccontextmanager
-async def with_db_async(*, schema: str | None) -> AsyncGenerator[AsyncSession, None]:
+async def with_db_async(
+    *,
+    schema: str | None = "operational",
+) -> AsyncGenerator[AsyncSession, None]:
     """Get an async database session with the specified schema.
 
     Args:
         schema: TODO: describe.
     """
-    if schema:
-        schema_translate_map = dict(project=schema)
-    else:
-        schema_translate_map = None
-
-    connectable = async_engine.execution_options(
-        schema_translate_map=schema_translate_map
+    # Only set schema_translate_map when schema is provided.
+    # Passing schema_translate_map=None still enables translation mode
+    # and generates __[SCHEMA_x]__ placeholders that won't resolve.
+    connectable: AsyncEngine = (
+        async_engine.execution_options(schema_translate_map={"project": schema})
+        if schema
+        else async_engine
     )
 
     db: AsyncSession | None = None
@@ -60,7 +69,10 @@ async def with_db_async(*, schema: str | None) -> AsyncGenerator[AsyncSession, N
             await db.close()
 
 
-def get_db(*, schema: str | None = None) -> Generator[Session, None, None]:
+def get_db(
+    *,
+    schema: str | None = "operational",
+) -> Generator[Session, None, None]:
     """TODO: add description.
 
     Args:
@@ -71,7 +83,8 @@ def get_db(*, schema: str | None = None) -> Generator[Session, None, None]:
 
 
 async def get_db_async(
-    *, schema: str | None = None
+    *,
+    schema: str | None = "operational",
 ) -> AsyncGenerator[AsyncSession, None]:
     """TODO: add description.
 
@@ -82,7 +95,10 @@ async def get_db_async(
         yield db
 
 
-def get_db_session(*, schema: str | None = None) -> Session:
+def get_db_session(
+    *,
+    schema: str | None = "operational",
+) -> Session:
     """Get a database session directly (not a generator).
 
     Args:
@@ -93,7 +109,8 @@ def get_db_session(*, schema: str | None = None) -> Session:
 
 @asynccontextmanager
 async def get_db_session_async(
-    *, schema: str | None = None
+    *,
+    schema: str | None = "operational",
 ) -> AsyncIterator[AsyncSession]:
     """Get an async database session directly (not a generator).
 

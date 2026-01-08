@@ -225,14 +225,14 @@ async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dic
 async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | None:
     """Get a user's profile picture URL from Clerk.
 
-    Tries the primary Clerk instance first (based on ENVIRONMENT setting), then falls back
-    to the other instance if the user is not found. This handles cases where users might
-    exist in different Clerk instances (dev vs prod).
+    Tries the primary Clerk instance first (based on ENVIRONMENT setting), then
+    falls back to the other instance if the user is not found. This handles
+    cases where users might exist in different Clerk instances (dev vs prod).
 
     Args:
         user_id (str): The ID of the user to get the image URL for.
-        api_prod (bool): Deprecated - kept for backward compatibility.
-                       Now uses settings.ENVIRONMENT instead.
+        api_prod (bool): Deprecated - kept for backward compatibility. Now
+            uses settings.ENVIRONMENT instead.
 
     Returns:
         str | None: The user's profile picture URL, or None if not available.
@@ -282,7 +282,8 @@ async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | Non
                     f"Failed to get Clerk user image URL for user {user_id} in both instances",
                 )
         else:
-            # Log other errors (not "not found" errors since we handle those with fallback)
+            # Log other errors (not "not found" errors since we handle those
+            # with fallback)
             logging.warning(
                 f"Failed to get Clerk user image URL for user {user_id}: {e}",
             )

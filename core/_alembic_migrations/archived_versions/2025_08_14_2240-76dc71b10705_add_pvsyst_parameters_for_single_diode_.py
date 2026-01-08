@@ -20,7 +20,8 @@ depends_on: str | Sequence[str] | None = None
 # Remember to remove any operations unrelated to your migration!
 # Are you making changes to the project schemas?
 #   If so, pass the `schema` arg to all operations (`op` functions)
-#   If not, remove the `for_each_project_schema` decorator and `schema` arg in `upgrade` and `downgrade` functions
+#   If not, remove the `for_each_project_schema` decorator and
+#   `schema` arg in `upgrade` and `downgrade` functions
 
 
 def upgrade() -> None:

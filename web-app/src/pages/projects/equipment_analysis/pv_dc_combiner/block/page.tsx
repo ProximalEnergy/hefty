@@ -331,16 +331,16 @@ const Page = () => {
 
   let data = combinerTags.data
     ?.filter((d) => {
-      if (!pcsDeviceIds || !d.device.device_id_path) return false
+      if (!pcsDeviceIds || !d.device?.device_id_path) return false
       const idPathNums = d.device.device_id_path
         .split('.')
         .map((n) => Number(n))
       return idPathNums.some((id) => pcsDeviceIds.includes(id))
     })
     .map((d) => ({
-      combiner_device_id: d.device.device_id,
-      combiner_dc_capacity: d.device.capacity_dc ?? 0,
-      combiner_name_long: d.device.name_long ?? '',
+      combiner_device_id: d.device?.device_id || -1,
+      combiner_dc_capacity: d.device?.capacity_dc ?? 0,
+      combiner_name_long: d.device?.name_long ?? '',
       tag_name_scada: d.name_scada,
       original_tag_name_scada: d.name_scada,
       tag_id: d.tag_id,

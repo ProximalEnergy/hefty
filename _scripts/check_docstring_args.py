@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Ensure functions with parameters include an Args block in docstrings using Semgrep."""
+"""Ensure functions with parameters include an Args block in docstrings."""
 
 from __future__ import annotations
 
 import argparse
 import subprocess
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 
 def parse_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:

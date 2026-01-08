@@ -158,71 +158,6 @@ export const useCreateFeedbackMutation = () => {
   })
 }
 
-export const useUpdateNotificationSubscription = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({
-      project_id,
-      subscribe,
-    }: {
-      project_id: string
-      subscribe: boolean
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'put',
-        url: `${baseURL}/v1/admin/subscriptions/notifications/${project_id}`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          subscribe,
-        },
-      })
-    },
-    onMutate: async (newSubscription) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['getSubscriptions'] })
-
-      // Snapshot the previous value
-      const previousSubscriptions = queryClient.getQueryData<
-        types.UserSubscription[]
-      >(['getSubscriptions'])
-
-      // Optimistically update the new value
-      queryClient.setQueryData(
-        ['getSubscriptions'],
-        (oldSubscriptions: types.UserSubscription[]) => {
-          return oldSubscriptions?.map((subscription) => {
-            if (
-              subscription.operational_project_id === newSubscription.project_id
-            ) {
-              return {
-                ...subscription,
-                notifications: newSubscription.subscribe,
-              }
-            }
-            return subscription
-          })
-        },
-      )
-
-      // Return a context object with the snapshotted value
-      return { previousSubscriptions }
-    },
-    onError: (_err, _newSubscription, context) => {
-      queryClient.setQueryData(
-        ['getSubscriptions'],
-        context?.previousSubscriptions,
-      )
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['getSubscriptions'] })
-    },
-  })
-}
-
 export const useUpdateReportSubscription = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
@@ -1013,27 +948,6 @@ export const useDeleteKPIAlert = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
     },
-  })
-}
-
-export const useGetTriggeredKPIAlerts = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/kpi-data/user-triggered-alerts`,
-  }
-
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 60,
-  }
-
-  return useCustomQuery<types.KPIAlertProps[]>({
-    axiosConfig,
-    queryName: 'getUserTriggeredAlerts',
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

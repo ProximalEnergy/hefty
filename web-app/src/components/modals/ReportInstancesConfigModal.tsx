@@ -1,16 +1,14 @@
 import { useGetProjectReportInstances } from '@/api/v1/operational/project/report_instances'
-import {
-  useBulkUpdateReportInstances,
-  useGetReportTypes,
-} from '@/api/v1/operational/report_instances'
+import { useBulkUpdateReportInstances } from '@/api/v1/operational/report_instances'
+import { useGetReportTypes } from '@/api/v1/operational/report_types'
 import {
   Button,
   Group,
   Loader,
   Modal,
   ScrollArea,
+  SegmentedControl,
   Stack,
-  Switch,
   Text,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
@@ -21,6 +19,8 @@ interface ReportInstancesConfigModalProps {
   onClose: () => void
   projectId: string
 }
+
+type ReportInstanceState = 'off' | 'invisible' | 'visible'
 
 export const ReportInstancesConfigModal = ({
   opened,
@@ -34,45 +34,50 @@ export const ReportInstancesConfigModal = ({
   })
   const updateMutation = useBulkUpdateReportInstances()
 
-  // Initialize visibility state from existing report instances
-  const initialVisibility = useMemo(() => {
+  // Initialize state from existing report instances
+  const initialStates = useMemo(() => {
     if (!reportInstances.data || !reportTypes.data) {
       return {}
     }
 
-    const visibility: Record<number, boolean> = {}
+    const states: Record<number, ReportInstanceState> = {}
 
-    // Start with all report types as not visible
+    // Start with all report types as "off"
     reportTypes.data.forEach((reportType) => {
-      visibility[reportType.report_type_id] = false
+      states[reportType.report_type_id] = 'off'
     })
 
     // Update with existing instances
     reportInstances.data.forEach((instance) => {
-      visibility[instance.report_type_id] = instance.is_visible
+      states[instance.report_type_id] = instance.is_visible
+        ? 'visible'
+        : 'invisible'
     })
 
-    return visibility
+    return states
   }, [reportInstances.data, reportTypes.data])
 
-  const [visibilityOverrides, setVisibilityOverrides] = useState<Record<
+  const [reportStates, setReportStates] = useState<Record<
     number,
-    boolean
+    ReportInstanceState
   > | null>(null)
 
-  const reportVisibility = visibilityOverrides ?? initialVisibility
+  const currentStates = reportStates ?? initialStates
 
   const handleClose = () => {
-    setVisibilityOverrides(null)
+    setReportStates(null)
     onClose()
   }
 
-  const handleToggle = (reportTypeId: number) => {
-    setVisibilityOverrides((prev) => {
-      const base = prev ?? initialVisibility
+  const handleStateChange = (
+    reportTypeId: number,
+    value: ReportInstanceState,
+  ) => {
+    setReportStates((prev) => {
+      const base = prev ?? initialStates
       return {
         ...base,
-        [reportTypeId]: !base[reportTypeId],
+        [reportTypeId]: value,
       }
     })
   }
@@ -80,16 +85,42 @@ export const ReportInstancesConfigModal = ({
   const handleSave = async () => {
     if (!reportTypes.data) return
 
-    const reportInstancesData = reportTypes.data.map((reportType) => ({
-      report_type_id: reportType.report_type_id,
-      is_visible: reportVisibility[reportType.report_type_id] || false,
-    }))
+    // Calculate delta: only include instances that changed
+    const reportInstancesToUpdate: Array<{
+      report_type_id: number
+      is_visible: boolean
+    }> = []
+    const reportTypeIdsToDelete: number[] = []
+
+    reportTypes.data.forEach((reportType) => {
+      const reportTypeId = reportType.report_type_id
+      const initialState = initialStates[reportTypeId]
+      const currentState = currentStates[reportTypeId]
+
+      // Only process if state changed
+      if (initialState !== currentState) {
+        if (currentState === 'off') {
+          // If changed to "off", add to deletion list (only if it existed before)
+          if (initialState !== 'off') {
+            reportTypeIdsToDelete.push(reportTypeId)
+          }
+        } else {
+          // If changed to "invisible" or "visible", add to update list
+          reportInstancesToUpdate.push({
+            report_type_id: reportTypeId,
+            is_visible: currentState === 'visible',
+          })
+        }
+      }
+    })
 
     try {
       await updateMutation.mutateAsync({
-        projectId,
+        project_id: projectId,
         data: {
-          report_instances: reportInstancesData,
+          report_instances: reportInstancesToUpdate,
+          report_type_ids_to_delete:
+            reportTypeIdsToDelete.length > 0 ? reportTypeIdsToDelete : null,
         },
       })
 
@@ -126,20 +157,33 @@ export const ReportInstancesConfigModal = ({
       ) : (
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            Enable or disable report types for this project. Only enabled
-            reports will be visible to users.
+            Configure report types for this project. Set reports to
+            &quot;Off&quot; to remove them, &quot;Invisible&quot; to hide from
+            non-superadmin users, or &quot;Visible&quot; to show to all users.
           </Text>
 
           <ScrollArea h={400}>
             <Stack gap="sm">
               {reportTypes.data?.map((reportType) => (
-                <Group key={reportType.report_type_id} justify="space-between">
+                <Group
+                  key={reportType.report_type_id}
+                  justify="space-between"
+                  align="center"
+                >
                   <Text fw={500}>{reportType.name_long}</Text>
-                  <Switch
-                    checked={
-                      reportVisibility[reportType.report_type_id] || false
+                  <SegmentedControl
+                    value={currentStates[reportType.report_type_id] || 'off'}
+                    onChange={(value) =>
+                      handleStateChange(
+                        reportType.report_type_id,
+                        value as ReportInstanceState,
+                      )
                     }
-                    onChange={() => handleToggle(reportType.report_type_id)}
+                    data={[
+                      { label: 'Off', value: 'off' },
+                      { label: 'Invisible', value: 'invisible' },
+                      { label: 'Visible', value: 'visible' },
+                    ]}
                   />
                 </Group>
               ))}

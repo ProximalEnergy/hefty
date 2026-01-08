@@ -178,7 +178,8 @@ async def get_project_devices_v2(
 
     # Process polygon column if it exists
     if "polygon" in devices_df.columns:
-        # NOTE: The database guarantees that polygon data are valid MULTIPOLYGONs (or nulls)
+        # NOTE: The database guarantees that polygon data are valid
+        # MULTIPOLYGONs (or nulls)
         multipolygon_dtype = pl.Struct(
             [
                 pl.Field("type", pl.Utf8),

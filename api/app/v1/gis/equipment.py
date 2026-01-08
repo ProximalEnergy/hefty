@@ -376,9 +376,9 @@ def get_devices_in_viewport(
     project: models.Project = Depends(dependencies.get_project_api),
 ):
     """Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-        Optionally filters by device_type_ids.
-        If power_device_type_id is provided, fetches and includes latest actual/expected power
-        for devices matching that type within the viewport.
+    Optionally filters by device_type_ids. If power_device_type_id is provided,
+    fetches and includes latest actual/expected power for devices matching that
+    type within the viewport.
 
     Args:
         north: TODO: describe.
@@ -453,7 +453,8 @@ def get_devices_in_viewport(
     if (
         power_device_type_id != DeviceType.PV_PCS
     ):  # Check if PCS wasn't the primary type
-        # Identify PCS devices that are in the viewport AND don't already have their data fetched
+        # Identify PCS devices that are in the viewport AND don't already have
+        # their data fetched
         pcs_to_fetch_ids = [
             dev.device_id
             for dev in devices
@@ -488,8 +489,10 @@ def get_devices_in_viewport(
                 project_db=project_db,
                 project=project,
             )
-            # The met_station_data_values is already in the format {device_id: {poa: val, ghi: val, ...}}
-            # We need to merge this carefully if a device_id could somehow already be in all_device_extra_data
+            # The met_station_data_values is already in the format {device_id:
+            # {poa: val, ghi: val, ...}}
+            # We need to merge this carefully if a device_id could somehow
+            # already be in all_device_extra_data
             # with a different structure, though for Met Stations this step is distinct.
             for dev_id, data_vals in met_station_data_values.items():
                 if dev_id not in all_device_extra_data:  # Should typically be true
@@ -543,9 +546,11 @@ def get_devices_in_viewport(
             elif device.device_type_id == DeviceType.MET_STATION:
                 # extra_data_for_this_device should be the dict like {poa: val, ...}
                 device_dict["met_station_values"] = extra_data_for_this_device
-            # Add other device type specific data handling here if utility_expected supports them
+            # Add other device type specific data handling here if
+            # utility_expected supports them
         else:
-            # Ensure keys for power_data or tracker_data are present (as None) for frontend consistency if expected
+            # Ensure keys for power_data or tracker_data are present (as None)
+            # for frontend consistency if expected
             if device.device_type_id == DeviceType.TRACKER_ROW:
                 device_dict["tracker_data"] = None
             elif device.device_type_id in [
@@ -556,7 +561,8 @@ def get_devices_in_viewport(
                 device_dict["power_data"] = None
             elif device.device_type_id == DeviceType.MET_STATION:
                 device_dict["met_station_values"] = None
-            # Met stations (type 4) etc. won't have these keys added here unless explicitly handled
+            # Met stations (type 4) etc. won't have these keys added here
+            # unless explicitly handled
 
         response_data.append(device_dict)
 
@@ -667,13 +673,15 @@ def utility_expected(
     if first_device_type_id == DeviceType.PV_PCS:
         sensor_type_ids = [SensorType.PV_PCS_AC_POWER]
         # Add fallback expected metric IDs for PCS (expected_metric_type_id 2)
-        # Try with soiling first (10), then without soiling (9), then with degradation (3), then without degradation (4)
+        # Try with soiling first (10), then without soiling (9), then with
+        # degradation (3), then without degradation (4)
         expected_metric_ids_fallback = [10, 9, 4, 3]
         multiplier = 1_000.0  # Raw data presumed in kW?
         expected_device_ids_for_query = device_ids
     elif first_device_type_id == DeviceType.PV_DC_COMBINER:
         # Add fallback expected metric IDs for Combiner (expected_metric_type_id 1)
-        # Try with soiling first (8), then without soiling (7), then with degradation (1), then without degradation (2)
+        # Try with soiling first (8), then without soiling (7), then with
+        # degradation (1), then without degradation (2)
         expected_metric_ids_fallback = [8, 7, 2, 1]
         multiplier = 1 / 1_000  # V * A = W -> kW
         expected_device_ids_for_query = device_ids
@@ -719,7 +727,8 @@ def utility_expected(
         ).models()
         parent_device_dict = {dev.device_id: dev for dev in parent_devices}
 
-        # Determine PCS IDs: if parent is a module (type 3), get its parent; if it's a PCS (type 2), use it directly
+        # Determine PCS IDs: if parent is a module (type 3), get its parent; if
+        # it's a PCS (type 2), use it directly
         parent_pcs_ids = []
         combiner_to_parent_pcs_id = {}
         for dev_id in device_ids:
@@ -775,7 +784,8 @@ def utility_expected(
                 parent_pcs_id_to_module_ids[pcs_id].append(mod.device_id)
 
         if not module_ids:
-            # Consider if this check is still needed if parent_pcs_id_to_module_ids handles empty cases
+            # Consider if this check is still needed if parent_pcs_id_to_module_ids
+            # handles empty cases
             raise HTTPException(
                 status_code=404,
                 detail="Could not find PV PCS Modules for parent PCS devices.",

@@ -1,51 +1,16 @@
-import { useCustomQuery } from '@/hooks/api'
+import type * as types from '@/api/schema'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
-import {
-  UseQueryOptions,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 
-interface ReportType {
-  report_type_id: number
-  name_short: string
-  name_long: string
-  doc_url: string
-}
+const _COMPONENT_NAME_REPORT_INSTANCE = 'ReportInstance'
+const _COMPONENT_NAME_REPORT_INSTANCES_BULK_UPDATE = 'ReportInstancesBulkUpdate'
 
-interface ReportInstance {
-  project_id: string
-  report_type_id: number
-  is_visible: boolean
-  report_type?: ReportType
-}
-
-interface ReportInstanceUpdate {
-  report_type_id: number
-  is_visible: boolean
-}
-
-interface ReportInstancesBulkUpdate {
-  report_instances: ReportInstanceUpdate[]
-}
-
-export const useGetReportTypes = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: '/v1/operational/report-types',
-  }
-
-  return useCustomQuery<ReportType[]>({
-    axiosConfig,
-    queryName: 'getReportTypes',
-    queryOptions,
-  })
-}
+type ReportInstance =
+  types.components['schemas'][typeof _COMPONENT_NAME_REPORT_INSTANCE]
+type ReportInstancesBulkUpdate =
+  types.components['schemas'][typeof _COMPONENT_NAME_REPORT_INSTANCES_BULK_UPDATE]
 
 export const useBulkUpdateReportInstances = () => {
   const { getToken } = useAuth()
@@ -54,13 +19,13 @@ export const useBulkUpdateReportInstances = () => {
   return useMutation<
     ReportInstance[],
     Error,
-    { projectId: string; data: ReportInstancesBulkUpdate }
+    { project_id: string; data: ReportInstancesBulkUpdate }
   >({
-    mutationFn: async ({ projectId, data }) => {
+    mutationFn: async ({ project_id, data }) => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
         method: 'put',
-        url: `${baseURL}/v1/operational/projects/${projectId}/report-instances`,
+        url: `${baseURL}/v1/operational/projects/${project_id}/report-instances`,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -72,7 +37,7 @@ export const useBulkUpdateReportInstances = () => {
     onSuccess: (_, variables) => {
       // Invalidate report instances query for this project
       queryClient.invalidateQueries({
-        queryKey: ['getReportInstances', { projectId: variables.projectId }],
+        queryKey: ['getReportInstances', { project_id: variables.project_id }],
       })
     },
   })

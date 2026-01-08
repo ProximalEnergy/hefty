@@ -196,7 +196,7 @@ if [ "${RUN_ALL}" = "false" ]; then
     if diff_has '^web-app/'; then
         RUN_WEB=true
     fi
-    if diff_has '^_scripts/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
+    if diff_has '^_scripts/|^_tools/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
         RUN_ALL=true
     fi
 fi
@@ -246,6 +246,7 @@ if [ "${RUN_API}" = "true" ]; then
     run_check "API: Ruff Formatting" "mise run api:format"
     run_check "API: Unused Import Check" "mise run api:deptry"
     run_check "API: Dead Code Check" "mise run api:vulture"
+    run_check "API: DbQuery.get Check" "mise run api:db_query_get"
     run_check "API: Pytest" "mise run api:pytest"
     run_check "API: Docstring Args Check" "mise run api:docstring_args"
     run_check "API: Unused Routes Check" \
@@ -255,6 +256,8 @@ fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
     run_check "Root: No package.json" "check_root_for_package_json"
+    run_check "Root: Ruff Linting (_tools)" "mise run tools:ruff"
+    run_check "Root: Ruff Formatting (_tools)" "mise run tools:format"
     run_check "Root: Hardcoded Type ID Check" \
         "mise run hardcoded_type_id_check"
     run_check "Root: Hardcoded Name Shorts Check" \
@@ -264,6 +267,8 @@ fi
 
 if [ "${RUN_WEB}" = "true" ]; then
     run_check "Web-App: TypeScript & Format Check" "mise run web:check"
+    run_check "Web-App: Console Log Check" \
+        "mise run web:console_log_check"
 fi
 
 # Print summary

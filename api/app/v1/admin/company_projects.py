@@ -1,13 +1,13 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app import dependencies, interfaces
-from app._crud.admin.company_projects import (
+from core.crud.admin.company_projects import (
     get_company_projects as crud_get_company_projects,
 )
+from core.db_query import OutputType
+from fastapi import APIRouter, Depends
+
+from app import dependencies, interfaces
 
 router = APIRouter(prefix="/company-projects", tags=["company-projects"])
 
@@ -19,11 +19,10 @@ router = APIRouter(prefix="/company-projects", tags=["company-projects"])
 )
 async def get_company_projects(
     project_id: UUID,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
-):
+) -> list[interfaces.CompanyProject]:
     """todo
 
     Args:
@@ -31,11 +30,11 @@ async def get_company_projects(
         db: TODO: describe.
         user_data: TODO: describe.
     """
-    return await crud_get_company_projects(
-        db=db,
+    df = await crud_get_company_projects(
         company_ids=[user_data.company_id],
         project_ids=[project_id],
-    )
+    ).get_async(output_type=OutputType.POLARS)
+    return [interfaces.CompanyProject.model_validate(item) for item in df.to_dicts()]
 
 
 @router.get(
@@ -45,11 +44,7 @@ async def get_company_projects(
 )
 async def get_all_company_projects_for_project(
     project_id: UUID,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
-):
+) -> list[interfaces.CompanyProject]:
     """Get all companies with access to a project.
 
         This endpoint is used by the event chat visibility dropdown to show
@@ -60,8 +55,9 @@ async def get_all_company_projects_for_project(
         db: TODO: describe.
         user_data: TODO: describe.
     """
-    return await crud_get_company_projects(
-        db=db,
-        company_ids=None,  # Don't filter by company - get all companies for this project
+    # Don't filter by company - get all companies for this project
+    df = await crud_get_company_projects(
+        company_ids=None,
         project_ids=[project_id],
-    )
+    ).get_async(output_type=OutputType.POLARS)
+    return [interfaces.CompanyProject.model_validate(item) for item in df.to_dicts()]
