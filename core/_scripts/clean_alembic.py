@@ -103,7 +103,8 @@ class MigrationCleaner:
             if has_cleanable_fk_refs:
                 return (
                     False,
-                    "uses schema parameter for project tables with FK to cleanable schemas",
+                    "uses schema parameter for project tables with FK to "
+                    "cleanable schemas",
                 )
             else:
                 return (False, "uses schema parameter for operations (likely correct)")

@@ -107,7 +107,8 @@ def get_data_timeseries_last(
         query = query.where(models.DataTimeseriesLast.tag_id.in_(final_tag_ids))
 
     if not include_ghost_tags:
-        # Join with Tag table to filter out tags with no sensor_type_id (i.e., ghost tags)
+        # Join with Tag table to filter out tags with no sensor_type_id (i.e.,
+        # ghost tags)
         subq = (
             project_db.query(models.Tag.tag_id)
             .where(models.Tag.sensor_type_id > 0)

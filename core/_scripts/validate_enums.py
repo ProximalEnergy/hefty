@@ -170,8 +170,8 @@ def main() -> None:
     session = get_db_session(schema=None)
 
     try:
-        # Run validation with case-insensitive comparison since enum names are UPPER_CASE
-        # and database names are typically lower_case
+        # Run validation with case-insensitive comparison since enum names are
+        # UPPER_CASE and database names are typically lower_case
         results = BaseIntEnum.validate_all_enums(session=session)
 
         print("\n=== Enum Validation Results ===\n")  # noqa: T201

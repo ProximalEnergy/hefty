@@ -70,7 +70,6 @@ ignore = [
     "COM819",
     "FAST002",
     "FURB162",
-    "E501",    # E501 line too long
 ]
 external =[]
 
@@ -98,6 +97,7 @@ external =[]
 ]
 "api/**" = [
     "TID251", # api package can import from itself
+    "E501",   # allow long lines in api
 ]
 "api/app/_crud/projects/data.py" = [
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries

@@ -1241,7 +1241,8 @@ class CalendarItemAssignment(Base):
     )
 
     __table_args__ = (
-        # Ensure an assignee exists (user or team). Rows should represent exactly one assignee type.
+        # Ensure an assignee exists (user or team). Rows should represent
+        # exactly one assignee type.
         sa.CheckConstraint(
             "(user_id IS NOT NULL) <> (team_id IS NOT NULL)",
             name="chk_calendar_item_assignment_exactly_one_assignee",
