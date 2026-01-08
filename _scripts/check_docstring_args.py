@@ -6,8 +6,8 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 
 def parse_args(*, argv: Sequence[str] | None = None) -> argparse.Namespace:

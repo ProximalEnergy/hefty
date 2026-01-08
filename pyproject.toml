@@ -93,6 +93,9 @@ external =[]
     "PLC0415", # allow local imports in scripts
     "T20",     # allow print in scripts
 ]
+"_tools/**/*.py" = [
+    "T20",  # allow print in tools
+]
 "api/**" = [
     "TID251", # api package can import from itself
 ]

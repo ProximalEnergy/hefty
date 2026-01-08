@@ -110,6 +110,16 @@ description = "Run ruff formatter on entire monorepo"
 dir = "."
 run = "uv run --dev ruff format core/ api/ sql-admin/ _scripts/"
 
+[tasks."tools:ruff"]
+description = "Run ruff linter on _tools"
+dir = "."
+run = "uv run --dev ruff check _tools/"
+
+[tasks."tools:format"]
+description = "Run ruff formatter on _tools"
+dir = "."
+run = "uv run --dev ruff format _tools/"
+
 [tasks."hardcoded_type_id_check"]
 description = "Run hardcoded type ID check on entire monorepo"
 dir = "."
@@ -123,6 +133,14 @@ run = "./_scripts/hardcoded_name_shorts_check.sh"
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
 # =============================================================================
+
+[tasks."git:diff"]
+description = "Interactively checkout files from another branch"
+dir = "."
+usage = '''
+  arg "[branch]" help="The source branch to checkout files from (optional)"
+'''
+run = "python3 _tools/git_checkout_tui.py ${usage_branch:-}"
 
 [tasks."core:check"]
 description = "Run all quality checks for core"

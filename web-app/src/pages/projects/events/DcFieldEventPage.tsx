@@ -208,7 +208,7 @@ const DcFieldEventHeader = ({
   <Stack>
     <Group>
       <Title order={2}>
-        {event?.device.device_type?.name_long} {event?.device.name_long}{' '}
+        {event?.device?.device_type?.name_long} {event?.device?.name_long}{' '}
         {' Event'}
       </Title>
       <Badge color={eventStatus === 'open' ? 'red' : 'green'}>
@@ -475,7 +475,7 @@ const Page = () => {
         eventLossesSummary.data?.loss_capacity !== null &&
         eventLossesSummary.data?.loss_capacity !== undefined
           ? eventLossesSummary.data.loss_capacity?.toFixed(2)
-          : (event?.device.capacity_dc || 0)?.toFixed(2),
+          : (event?.device?.capacity_dc || 0)?.toFixed(2),
       unit: 'kW DC',
     },
   }

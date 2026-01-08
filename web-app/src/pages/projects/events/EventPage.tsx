@@ -161,19 +161,19 @@ const EventHeader = ({
   <Stack>
     <Group>
       <Title order={2}>
-        {event?.device.device_type_id === DeviceTypeEnum.TRACKER_ROW ? (
+        {event?.device?.device_type_id === DeviceTypeEnum.TRACKER_ROW ? (
           <>
             <Link
               to={`/projects/${projectId}/device-details/tracker-row/${event?.device_id}`}
               style={{ color: 'inherit' }}
             >
-              {event?.device.device_type?.name_long} {event?.device.name_long}
+              {event?.device?.device_type?.name_long} {event?.device?.name_long}
             </Link>{' '}
             {' Event'}
           </>
         ) : (
           <>
-            {event?.device.device_type?.name_long} {event?.device.name_long}{' '}
+            {event?.device?.device_type?.name_long} {event?.device?.name_long}{' '}
             {' Event'}
           </>
         )}
@@ -328,7 +328,7 @@ const useEventTraces = (
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
-      enabled: [28, 29].includes(event?.device.device_type_id || -1),
+      enabled: [28, 29].includes(event?.device?.device_type_id || -1),
     },
   })
 
@@ -549,7 +549,7 @@ const Page = () => {
   // Process eventTraces.data for device type 28 to average Position and Setpoint traces
   let processedEventTraces = eventTraces.data
   if (
-    event?.device.device_type_id === DeviceTypeEnum.TRACKER_ZONE &&
+    event?.device?.device_type_id === DeviceTypeEnum.TRACKER_ZONE &&
     eventTraces.data
   ) {
     // Group traces by name to identify Position and Setpoint traces
@@ -591,7 +591,7 @@ const Page = () => {
                 return values.reduce((sum, val) => sum + val, 0) / values.length
               })
               .filter((value): value is number => value !== null),
-            device_name_long: event?.device.name_long || '',
+            device_name_long: event?.device?.name_long || '',
           }
           averagedTraces.push(averagedTrace)
         } else {
@@ -626,7 +626,7 @@ const Page = () => {
   const eventEndTime = dayjs(event?.time_end).tz(project.data?.time_zone)
 
   const currentType = [2, 3].includes(
-    event?.device.device_type?.device_type_id || 0,
+    event?.device?.device_type?.device_type_id || 0,
   )
     ? 'ac'
     : 'dc'
@@ -654,8 +654,8 @@ const Page = () => {
         eventLossesSummary.data?.loss_capacity !== undefined
           ? eventLossesSummary.data.loss_capacity
           : currentType === 'ac'
-            ? event?.device.capacity_ac || 0
-            : event?.device.capacity_dc || 0,
+            ? event?.device?.capacity_ac || 0
+            : event?.device?.capacity_dc || 0,
       unit:
         eventLossesSummary.data?.loss_capacity !== null &&
         eventLossesSummary.data?.loss_capacity !== undefined
@@ -825,7 +825,7 @@ const Page = () => {
             />
             <EventLosses
               losses={losses}
-              deviceTypeId={event?.device.device_type_id || -1}
+              deviceTypeId={event?.device?.device_type_id || -1}
             />
           </Stack>
           <CustomCard
@@ -850,7 +850,7 @@ const Page = () => {
           >
             <Card withBorder w="100%" h="100%" p={0} radius="md">
               {project.data?.spec.device_types_all_with_polygons?.includes(
-                event?.device.device_type_id || -1,
+                event?.device?.device_type_id || -1,
               ) ? (
                 <EventGISCard deviceId={event?.device_id.toString() || '-1'} />
               ) : (
@@ -905,12 +905,12 @@ const Page = () => {
                         (value): value is number => value !== null,
                       ),
                       name:
-                        event?.device.device_type_id ===
+                        event?.device?.device_type_id ===
                         DeviceTypeEnum.TRACKER_ZONE
                           ? 'Average ' +
                             tag?.sensor_type?.name_long +
                             ' ' +
-                            event?.device.name_long
+                            event?.device?.name_long
                           : tag?.sensor_type?.name_long +
                             ' ' +
                             tag?.device?.name_long,

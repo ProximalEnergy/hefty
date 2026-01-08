@@ -8,36 +8,6 @@ from app.logger import logger
 from core import models
 
 
-async def get_company_projects(
-    db: AsyncSession,
-    *,
-    company_ids: list[UUID] | None = None,
-    project_ids: list[UUID] | None = None,
-    vector_store_ids: str | None = None,
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-        company_ids: TODO: describe.
-        project_ids: TODO: describe.
-        vector_store_ids: TODO: describe.
-    """
-    query = select(models.CompanyProject)
-
-    if company_ids:
-        query = query.where(models.CompanyProject.company_id.in_(company_ids))
-    if project_ids:
-        query = query.where(models.CompanyProject.project_id.in_(project_ids))
-    if vector_store_ids:
-        query = query.where(
-            models.CompanyProject.vector_store_id.in_(vector_store_ids),
-        )
-
-    result = await db.execute(query)
-    return list(result.scalars().all())
-
-
 async def create_company_project(
     *,
     db: AsyncSession,

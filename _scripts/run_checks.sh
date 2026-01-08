@@ -196,7 +196,7 @@ if [ "${RUN_ALL}" = "false" ]; then
     if diff_has '^web-app/'; then
         RUN_WEB=true
     fi
-    if diff_has '^_scripts/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
+    if diff_has '^_scripts/|^_tools/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
         RUN_ALL=true
     fi
 fi
@@ -256,6 +256,8 @@ fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
     run_check "Root: No package.json" "check_root_for_package_json"
+    run_check "Root: Ruff Linting (_tools)" "mise run tools:ruff"
+    run_check "Root: Ruff Formatting (_tools)" "mise run tools:format"
     run_check "Root: Hardcoded Type ID Check" \
         "mise run hardcoded_type_id_check"
     run_check "Root: Hardcoded Name Shorts Check" \

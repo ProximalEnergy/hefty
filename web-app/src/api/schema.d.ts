@@ -8472,6 +8472,26 @@ export interface components {
             document_url?: string | null;
         };
         /**
+         * ContractSearchResponse
+         * @description Contractsearchresponse model.
+         */
+        ContractSearchResponse: {
+            /** Search Results */
+            search_results: components["schemas"]["ContractSearchResult"][];
+        };
+        /**
+         * ContractSearchResult
+         * @description Contractsearchresult model.
+         */
+        ContractSearchResult: {
+            /** Text */
+            text: string;
+            /** Filename */
+            filename: string;
+            /** Score */
+            score: number;
+        };
+        /**
          * ContractWithCompany
          * @description Contractwithcompany model.
          */
@@ -9206,9 +9226,9 @@ export interface components {
             time_last_analyzed: string | null;
             /** Loss Total Financial */
             loss_total_financial: number | null;
-            failure_mode: components["schemas"]["FailureMode"] | null;
-            root_cause: components["schemas"]["RootCause"] | null;
-            device: components["schemas"]["Device"] | null;
+            failure_mode?: components["schemas"]["FailureMode"] | null;
+            root_cause?: components["schemas"]["RootCause"] | null;
+            device?: components["schemas"]["Device"] | null;
             /** Device Name Full */
             device_name_full?: string | null;
             /** Version */
@@ -9655,7 +9675,7 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type: components["schemas"]["app__interfaces__KPIType"] | null;
+            kpi_type?: components["schemas"]["app__interfaces__KPIType"] | null;
         };
         /**
          * KPISummary
@@ -9714,9 +9734,9 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceType"] | null;
             /** Doc Url */
-            doc_url: string | null;
+            doc_url?: string | null;
             /**
              * Contract Kpis
              * @default []
@@ -9756,9 +9776,9 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceType"] | null;
             /** Doc Url */
-            doc_url: string | null;
+            doc_url?: string | null;
             /**
              * Contracts
              * @default []
@@ -9769,6 +9789,14 @@ export interface components {
              * @default []
              */
             contract_kpis: components["schemas"]["ContractKPIs"][];
+        };
+        /**
+         * Message
+         * @description Message model.
+         */
+        Message: {
+            /** Message */
+            message: string;
         };
         /**
          * MultiPolygon
@@ -9870,8 +9898,8 @@ export interface components {
             in_app_enabled_default: boolean;
             /** Email Enabled Default */
             email_enabled_default: boolean;
-            in_app_severity_default: components["schemas"]["NotificationSeverity"] | null;
-            email_severity_default: components["schemas"]["NotificationSeverity"] | null;
+            in_app_severity_default?: components["schemas"]["NotificationSeverity"] | null;
+            email_severity_default?: components["schemas"]["NotificationSeverity"] | null;
         };
         /**
          * OperationalKPIData
@@ -10724,7 +10752,7 @@ export interface components {
             report_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            report_type: components["schemas"]["ReportType"] | null;
+            report_type?: components["schemas"]["ReportType"] | null;
         };
         /**
          * ReportInstanceUpdate
@@ -10783,9 +10811,9 @@ export interface components {
             dme_id: number;
             /** Settlement Point Id */
             settlement_point_id: number;
-            qse: components["schemas"]["QSE"] | null;
-            dme: components["schemas"]["DME"] | null;
-            settlement_point: components["schemas"]["SettlementPoint"] | null;
+            qse?: components["schemas"]["QSE"] | null;
+            dme?: components["schemas"]["DME"] | null;
+            settlement_point?: components["schemas"]["SettlementPoint"] | null;
         };
         /**
          * RootCause
@@ -10854,9 +10882,9 @@ export interface components {
             load_zone_id: number | null;
             /** Trading Hub Id */
             trading_hub_id: number | null;
-            settlement_point_type: components["schemas"]["SettlementPointType"] | null;
-            load_zone: components["schemas"]["SettlementPointCore"] | null;
-            trading_hub: components["schemas"]["SettlementPointCore"] | null;
+            settlement_point_type?: components["schemas"]["SettlementPointType"] | null;
+            load_zone?: components["schemas"]["SettlementPointCore"] | null;
+            trading_hub?: components["schemas"]["SettlementPointCore"] | null;
         };
         /**
          * SettlementPointCore
@@ -11023,11 +11051,11 @@ export interface components {
             unit_scale: number | null;
             point: components["schemas"]["Point"] | null;
             polygon: components["schemas"]["Polygon"] | null;
-            device: components["schemas"]["Device"] | null;
-            sensor_type: components["schemas"]["app__interfaces__SensorType"] | null;
-            data_type: components["schemas"]["DataType"] | null;
+            device?: components["schemas"]["Device"] | null;
+            sensor_type?: components["schemas"]["app__interfaces__SensorType"] | null;
+            data_type?: components["schemas"]["DataType"] | null;
             /** Status Lookup Id */
-            status_lookup_id: number | null;
+            status_lookup_id?: number | null;
         };
         /**
          * Team
@@ -11444,9 +11472,9 @@ export interface components {
             unit: string | null;
             /** Aggregation Method */
             aggregation_method: string;
-            device_type: components["schemas"]["DeviceType"] | null;
+            device_type?: components["schemas"]["DeviceType"] | null;
             /** Doc Url */
-            doc_url: string | null;
+            doc_url?: string | null;
         };
         /**
          * SensorType
@@ -17062,7 +17090,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ContractSearchResponse"];
                 };
             };
             /** @description Validation Error */
@@ -17097,7 +17125,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Message"];
                 };
             };
             /** @description Validation Error */

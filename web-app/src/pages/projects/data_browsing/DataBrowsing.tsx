@@ -348,17 +348,17 @@ const DataBrowsing = () => {
       if (
         tag.device_id &&
         tag.device?.device_type_id &&
-        supportedEEMDeviceTypes.includes(tag.device.device_type_id) &&
+        supportedEEMDeviceTypes.includes(tag.device?.device_type_id) &&
         !deviceMap.has(tag.device_id)
       ) {
         // Ensure device_type is populated
         const device = {
           ...tag.device,
           device_type:
-            tag.device.device_type ||
-            deviceTypeMap.get(tag.device.device_type_id),
+            tag.device?.device_type ||
+            deviceTypeMap.get(tag.device?.device_type_id || -1),
         }
-        deviceMap.set(tag.device_id, device)
+        deviceMap.set(tag.device_id, device as Tag['device'])
       }
     })
 
