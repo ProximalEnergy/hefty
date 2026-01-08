@@ -8,13 +8,20 @@
 [tasks.onboarding]
 description = "One time setup, installing packages, configuring aws"
 run = """
-brew install uv awscli hurl && \
+brew install uv awscli hurl ripgrep semgrep && \
+uv sync && \
+mise install && \
+uv sync --directory core && \
+mise run api:switch-core && \
+uv sync --directory api && \
+cd web-app && npm ci && npx node build-plotly-custom.js && \
 aws configure && \
 mise run api:get_env && \
 cp api/.env.from_parameter_store api/.env && \
 mise run web:get_env && \
 cp web-app/.env.from_parameter_store web-app/.env && \
-mise run sync-deps
+cd .. && \
+mise run sql-admin:install
 """
 
 [tasks.sync-deps]
