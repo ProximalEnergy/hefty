@@ -1148,7 +1148,8 @@ def bulk_create_events(
         # Create events and losses with proper event_id assignment
         created_event_ids = []
         losses_data = []
-        event_to_anomalies_mapping = {}  # Track which event_id corresponds to which anomaly UUIDs
+        # Track which event_id corresponds to which anomaly UUIDs
+        event_to_anomalies_mapping = {}
         event_objects = []  # Collect all events for bulk insert
 
         for target_device_id, items in device_items.items():

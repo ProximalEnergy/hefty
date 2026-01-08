@@ -1912,7 +1912,7 @@ export interface paths {
          *             List of reactions for the message(s)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_message_id: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
@@ -2310,7 +2310,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Get Event Chat Notification Statuses Batch
+         * Get Event Chat Notification Statuses Batch Route
          * @description Get event chat notification statuses for multiple projects in a single request.
          *
          *         Request Body:
@@ -2330,7 +2330,7 @@ export interface paths {
          *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
-        post: operations["get_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_status_batch_post"];
+        post: operations["get_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_status_batch_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2346,7 +2346,7 @@ export interface paths {
         };
         get?: never;
         /**
-         * Update Event Chat Notification Statuses Batch
+         * Update Event Chat Notification Statuses Batch Route
          * @description Update event chat notification statuses for multiple projects in a
          *     single request.
          *
@@ -2367,7 +2367,7 @@ export interface paths {
          *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
-        put: operations["update_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_batch_put"];
+        put: operations["update_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_batch_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -14988,7 +14988,7 @@ export interface operations {
             };
         };
     };
-    get_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_status_batch_post: {
+    get_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_status_batch_post: {
         parameters: {
             query?: never;
             header?: {
@@ -15024,7 +15024,7 @@ export interface operations {
             };
         };
     };
-    update_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_batch_put: {
+    update_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_batch_put: {
         parameters: {
             query?: never;
             header?: {

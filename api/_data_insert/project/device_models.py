@@ -777,7 +777,8 @@ def main() -> None:
                         elif selected:
                             current_project = selected
                             print(
-                                f"\n✅ Project selected: {current_project['name_short']}"
+                                f"\n✅ Project selected: "
+                                f"{current_project['name_short']}"
                             )
 
                     elif choice == "2":

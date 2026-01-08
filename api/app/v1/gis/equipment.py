@@ -516,7 +516,9 @@ def get_devices_in_viewport(
             for dev_id, data_vals in met_station_data_values.items():
                 if dev_id not in all_device_extra_data:  # Should typically be true
                     all_device_extra_data[dev_id] = data_vals
-                else:  # If it exists, assume it's from a previous step and merge if necessary (unlikely for met stations)
+                # If it exists, assume it's from a previous step and
+                # merge if necessary (unlikely for met stations)
+                else:
                     if isinstance(all_device_extra_data[dev_id], dict) and isinstance(
                         data_vals, dict
                     ):
@@ -1178,8 +1180,8 @@ def get_met_station_latest_values(
                     latest_values[device_id]["ambient_temp"] = value
                 elif sensor_short_name == "met_station_wind_speed":
                     latest_values[device_id]["wind_speed"] = value
-
-        return latest_values  # Return the dictionary directly, FastAPI will handle JSON serialization
+        # Return the dictionary directly, FastAPI will handle JSON serialization
+        return latest_values
 
     except HTTPException as e:
         if e.status_code == 404:

@@ -28,16 +28,12 @@ from sqlalchemy.orm import selectinload
 from app import dependencies
 from app._crud.admin.companies import get_companies as crud_get_companies
 from app._crud.admin.user_subscriptions import (
-    get_event_chat_notification_statuses_batch as crud_get_event_chat_notification_statuses_batch,
+    get_event_chat_notification_statuses_batch,
+    update_event_chat_notification_statuses_batch,
+    update_user_event_chat_notification_subscription,
 )
 from app._crud.admin.user_subscriptions import (
     is_event_chat_notification_enabled as crud_is_event_chat_notification_enabled,
-)
-from app._crud.admin.user_subscriptions import (
-    update_event_chat_notification_statuses_batch as crud_update_event_chat_notification_statuses_batch,
-)
-from app._crud.admin.user_subscriptions import (
-    update_user_event_chat_notification_subscription as crud_update_event_chat_notification,
 )
 from app._crud.admin.users import get_users as crud_get_users
 from app._crud.projects import (
@@ -789,7 +785,7 @@ async def update_event_chat_notification_setting(
         db: TODO: describe.
         user_data: TODO: describe.
     """
-    await crud_update_event_chat_notification(
+    await update_user_event_chat_notification_subscription(
         db=db,
         user_id=user_data.user_id,
         operational_project_id=project_id,
@@ -812,7 +808,7 @@ class EventChatNotificationStatusesBatchResponse(BaseModel):
 
 
 @batch_router.post("/notifications/status/batch")
-async def get_event_chat_notification_statuses_batch(
+async def get_event_chat_notification_statuses_batch_route(
     *,
     request: EventChatNotificationStatusesBatchRequest,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -839,7 +835,7 @@ async def get_event_chat_notification_statuses_batch(
         db: TODO: describe.
         user_data: TODO: describe.
     """
-    status_map = await crud_get_event_chat_notification_statuses_batch(
+    status_map = await get_event_chat_notification_statuses_batch(
         db=db,
         user_id=user_data.user_id,
         operational_project_ids=request.project_ids,
@@ -866,7 +862,7 @@ class EventChatNotificationStatusesBatchUpdateResponse(BaseModel):
 
 
 @batch_router.put("/notifications/batch")
-async def update_event_chat_notification_statuses_batch(
+async def update_event_chat_notification_statuses_batch_route(
     *,
     request: EventChatNotificationStatusesBatchUpdateRequest,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -900,7 +896,7 @@ async def update_event_chat_notification_statuses_batch(
         for project_id_str, enabled in request.statuses.items()
     }
 
-    updated_statuses = await crud_update_event_chat_notification_statuses_batch(
+    updated_statuses = await update_event_chat_notification_statuses_batch(
         db=db,
         user_id=user_data.user_id,
         project_statuses=project_statuses,

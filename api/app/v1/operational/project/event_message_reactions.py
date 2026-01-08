@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies
 from app._crud.projects import (
@@ -63,7 +64,10 @@ def _string_to_reaction_type(*, reaction_type_str: str) -> enumerations.Reaction
 @router.get("")
 async def get_event_message_reactions(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[
+        AsyncSession,
+        Depends(dependencies.get_project_db_async),
+    ],
     event_message_id: int | None = Query(default=None),
     event_id: int | None = Query(default=None),
     user_data: Annotated[
@@ -82,44 +86,42 @@ async def get_event_message_reactions(
             List of reactions for the message(s)
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_message_id: TODO: describe.
         event_id: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
 
-    async with _with_async_db(schema=project_name_short) as project_db:
-        if event_id is not None:
-            # Batch fetch all reactions for the event
-            reaction_models = await crud_event_message_reactions.get_event_message_reactions_by_event_id(
+    if event_id is not None:
+        # Batch fetch all reactions for the event
+        reaction_models = (
+            await crud_event_message_reactions.get_event_message_reactions_by_event_id(
                 db=project_db, event_id=event_id
             )
-        elif event_message_id is not None:
-            # Single message reactions (backward compatibility)
-            reaction_models = (
-                await crud_event_message_reactions.get_event_message_reactions(
-                    db=project_db, event_message_id=event_message_id
-                )
+        )
+    elif event_message_id is not None:
+        # Single message reactions (backward compatibility)
+        reaction_models = (
+            await crud_event_message_reactions.get_event_message_reactions(
+                db=project_db, event_message_id=event_message_id
             )
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail="Either event_message_id or event_id must be provided",
-            )
+        )
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Either event_message_id or event_id must be provided",
+        )
 
-        return [
-            EventMessageReaction(
-                reaction_id=r.reaction_id,
-                event_message_id=r.event_message_id,
-                user_id=r.user_id,
-                reaction_type=r.reaction_type.value,
-                created_at=r.created_at,
-            )
-            for r in reaction_models
-        ]
+    return [
+        EventMessageReaction(
+            reaction_id=r.reaction_id,
+            event_message_id=r.event_message_id,
+            user_id=r.user_id,
+            reaction_type=r.reaction_type.value,
+            created_at=r.created_at,
+        )
+        for r in reaction_models
+    ]
 
 
 @router.post("")

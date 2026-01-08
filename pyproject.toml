@@ -62,6 +62,7 @@ select = [
     "UP",      # pyupgrade
     "S608",    # hardcoded-sql-expression
     "TID251",  # banned imports
+    "E501",    # line too long
 ]
 fixable = ["ALL"]
 unfixable = []
