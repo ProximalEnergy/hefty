@@ -105,7 +105,8 @@ def get_meter_power_and_expected_power_v2(
         df_expected_power.columns = pd.Index(["Expected Power"])
 
         # Ensure a full date range is returned from endpoint
-        # NOTE: EEM data is available at 5-minute intervals but start and end might not be aligned with 5-minute interval
+        # NOTE: EEM data is available at 5-minute intervals but start and end
+        # might not be aligned with 5-minute interval
         full_index = pd.date_range(
             start=start.ceil("5min"),
             end=end.ceil("5min"),

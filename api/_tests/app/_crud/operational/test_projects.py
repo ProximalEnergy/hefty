@@ -14,7 +14,8 @@ from core import models
 TEST_PROJECT_ID = UUID("043fecf7-6cce-4228-acda-b1f23fd6d5f5")
 
 
-# --- Mock Classes (MockPoint, MockPolygon, MockProjectSpec, MockProjectType, MockProject) ---
+# --- Mock Classes (MockPoint, MockPolygon, MockProjectSpec, MockProjectType,
+# MockProject) ---
 # (Keep these as they were defined in the previous correct version)
 class MockPoint:
     """todo"""

@@ -106,7 +106,8 @@ class ZeitviewAPI:
                     # Longer delay for 504 errors
                     await asyncio.sleep(5 * (2**attempt))
                 elif e.response.status_code == 422:
-                    # 422 Unprocessable Entity - don't retry, raise immediately with details
+                    # 422 Unprocessable Entity - don't retry, raise immediately
+                    # with details
                     error_detail = e.response.text
                     logger.error(
                         f"422 Validation error on {url}: {error_detail}. "
@@ -273,7 +274,8 @@ class ZeitviewAPI:
 
             page = int(next_page)
 
-            # Rate limiting: wait 1 second between requests to be respectful to Zeitview's API
+            # Rate limiting: wait 1 second between requests to be respectful to
+            # Zeitview's API
             await asyncio.sleep(1)
 
         # The final dictionary should still contain the metadata from the last call,

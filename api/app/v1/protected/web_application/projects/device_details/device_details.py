@@ -260,7 +260,10 @@ def get_single_by_device_id(
         device_ids=[device_id],
         deep=True,
     ).models()
-    # At the time of writing, the tags.sensor_type_id column is nullable. This means there could be some tags that have a null sensor_type_id and some tags that have a sensor_type_id of 0 (ghost). We want to remove both.
+    # At the time of writing, the tags.sensor_type_id column is nullable.
+    # This means there could be some tags that have a null sensor_type_id and
+    # some tags that have a sensor_type_id of 0 (ghost). We want to remove
+    # both.
     tags = [t for t in tags if t.sensor_type_id not in [0, None]]
 
     {t.tag_id: t.sensor_type.name_long for t in tags}
@@ -300,8 +303,10 @@ async def get_vertical_controller(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
-    # Manually define the device type IDs that are supported for each technology (e.g. PV or BESS).
-    # If the user selects a device that is not of a supported type, they will get an error letting them know.
+    # Manually define the device type IDs that are supported for each
+    # technology (e.g. PV or BESS).
+    # If the user selects a device that is not of a supported type, they will
+    # get an error letting them know.
     """todo
 
     Args:
@@ -338,7 +343,8 @@ async def get_vertical_controller(
             status_code=404, detail="We are not able to find the device you requested."
         )
 
-    # Once we have the device, determine the technology of the device from the mapping above.
+    # Once we have the device, determine the technology of the device from the
+    # mapping above.
     for technology, _device_type_ids in SUPPORTED_DEVICE_TYPE_IDS_BY_TECHNOLOGY.items():
         if device.device_type_id in _device_type_ids:
             device_technology: Literal["pv", "bess"] = technology
@@ -379,13 +385,17 @@ async def get_vertical_controller(
     ]
 
     # Add additional requirements for including devices
-    # NOTE - This is wrapped in a try/except block because accessing project.spec is a bit volatile right now.
-    # If the return statement of the get_project dependency is changed, there is a possibility this will break.
-    # (At the time of writing, we are manually parsing the returned db model using Pydantic)
+    # NOTE - This is wrapped in a try/except block because accessing
+    # project.spec is a bit volatile right now.
+    # If the return statement of the get_project dependency is changed, there
+    # is a possibility this will break.
+    # (At the time of writing, we are manually parsing the returned db model
+    # using Pydantic)
     try:
         spec_used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore[attr-defined]
         if spec_used_sensor_type_ids is not None:
-            # If we do not have PV PCS Module Power tags, remove the PV PCS Module device type
+            # If we do not have PV PCS Module Power tags, remove the PV PCS
+            # Module device type
             if 3 not in spec_used_sensor_type_ids and 3 in device_type_ids:
                 device_type_ids.remove(3)
     except Exception as e:

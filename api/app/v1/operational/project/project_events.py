@@ -684,7 +684,8 @@ async def get_uptime(
             get_last=False,
         )
 
-        # Create a set of allowed downtime timestamps (more efficient than DatetimeIndex)
+        # Create a set of allowed downtime timestamps (more efficient than
+        # DatetimeIndex)
         allowed_timestamps = set(poa_df[poa_df > 10].mean(axis=1).dropna().index)
     else:
         allowed_timestamps = set(pd.date_range(start=start, end=end, freq="5min"))
@@ -699,7 +700,8 @@ async def get_uptime(
 
     for event in events:
         # Get event boundaries, clipping to window
-        # Convert timestamps to use the same UTC timezone object to avoid pandas timezone comparison issues
+        # Convert timestamps to use the same UTC timezone object to avoid
+        # pandas timezone comparison issues
         event_start = max(event.time_start, start)
         if event_start.tzinfo is not None:
             event_start = event_start.replace(tzinfo=utc_tz)
@@ -1090,7 +1092,8 @@ def bulk_create_events(
         )
         project_db.execute(text("COMMIT"))
 
-        # Map DC Combiner device_ids to their DC Field children (device_type_id = DC_FIELD)
+        # Map DC Combiner device_ids to their DC Field children (device_type_id
+        # = DC_FIELD)
         combiner_device_ids = [item.device_id for item in payload.items]
 
         # Get DC Field devices that are direct children of our combiners
@@ -1109,7 +1112,8 @@ def bulk_create_events(
         # Group items by target device_id to handle time offsets properly
         device_items: dict[int, list[interfaces.BulkEventItem]] = {}
         for item in payload.items:
-            # Use DC Field device_id if available, otherwise fall back to combiner device_id
+            # Use DC Field device_id if available, otherwise fall back to
+            # combiner device_id
             target_device_id = combiner_to_field_mapping.get(
                 item.device_id, item.device_id
             )

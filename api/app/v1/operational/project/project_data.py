@@ -419,7 +419,8 @@ def get_time_series(
     return data
 
 
-## This is a temporary endpoint, eventually we will replace the above with DataTimeseries.get()
+## This is a temporary endpoint, eventually we will replace the above with
+## DataTimeseries.get()
 @router.get("/data-timeseries-v3", response_model=list[interfaces.DataTimeSeries])
 async def get_timeseries_v3(
     project_db: Annotated[Session, Depends(get_project_db)],

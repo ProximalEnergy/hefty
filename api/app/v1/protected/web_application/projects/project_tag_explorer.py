@@ -358,7 +358,8 @@ async def get_tag_pattern_samples(
             project_db=project_db, pattern=tag_pattern, limit=5
         )
 
-        # Parse start and end dates, or use default 1 day if not provided (reduced for performance)
+        # Parse start and end dates, or use default 1 day if not provided
+        # (reduced for performance)
         if start and end:
             start_date = pd.Timestamp(start)
             end_date = pd.Timestamp(end)

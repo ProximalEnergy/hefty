@@ -313,7 +313,8 @@ async def update_project(
                     parsed_date = date.fromisoformat(value)
                     setattr(existing_project, field, parsed_date)
                     # print(
-                    #     f"[DEBUG] Project {project_id} - set {field} = {parsed_date} (from string {value})"
+                    #     f"[DEBUG] Project {project_id} - set {field} = "
+                    #     f"{parsed_date} (from string {value})"
                     # )
                 else:
                     setattr(existing_project, field, value)
@@ -336,7 +337,8 @@ async def update_project(
         for field in update_data.keys():
             after_refresh_values[field] = getattr(existing_project, field, None)
         # print(
-        #     f"[DEBUG] Project {project_id} update - after refresh values: {after_refresh_values}"
+        #     f"[DEBUG] Project {project_id} update - after refresh values: "
+        #     f"{after_refresh_values}"
         # )
 
         return interfaces.Project.model_validate(existing_project)

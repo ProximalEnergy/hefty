@@ -268,7 +268,8 @@ async def send_event_chat_email(
         message_body[:200] + "..." if len(message_body) > 200 else message_body
     )
 
-    # Build subject line: <Project Name>: <Failure Mode> - <User Name> message on Event #<event_id>
+    # Build subject line: <Project Name>: <Failure Mode> - <User Name> message
+    # on Event #<event_id>
     subject_parts = []
     if project_name:
         subject_parts.append(project_name)
@@ -288,7 +289,8 @@ async def send_event_chat_email(
         reason_text = "You're receiving this because you've posted to this event chat."
 
     # Build event details section with company theme color
-    # Lighten the theme color for background (add opacity effect using rgba approximation)
+    # Lighten the theme color for background (add opacity effect using rgba
+    # approximation)
     event_details_parts = []
     if project_name:
         event_details_parts.append(f"<strong>Project:</strong> {project_name}")
@@ -440,7 +442,8 @@ async def send_notifications_for_message(
     recipient_user_ids -= muted_user_ids
 
     # Remove users who have disabled event chat notifications for this project
-    # (only applies to first messages - subsequent messages only go to active participants)
+    # (only applies to first messages - subsequent messages only go to active
+    # participants)
     if is_first_message and project_id:
         disabled_user_ids = set()
         for user_id in recipient_user_ids:

@@ -61,7 +61,8 @@ def get_expected_power(
 
     devices["requested"] = devices.index.isin(requested_device_ids)
 
-    # Allow the user to retrieve project-level data by requesting either project or meter.
+    # Allow the user to retrieve project-level data by requesting either
+    # project or meter.
     requested_has_project = (
         devices["requested"] & (devices["device_type_id"] == 1)
     ).any()

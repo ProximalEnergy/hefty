@@ -81,8 +81,10 @@ async def _create_schema_and_tables(
         # Create a separate metadata object to avoid modifying existing metadata
         new_metadata = sa.MetaData()
 
-        # Copy operational and admin tables to new metadata (needed for foreign key constraints)
-        # Admin tables are not created in project schema, but metadata needs to know about them
+        # Copy operational and admin tables to new metadata (needed for foreign
+        # key constraints)
+        # Admin tables are not created in project schema, but metadata needs to
+        # know about them
         # for foreign key resolution
         for table in metadata.tables.values():
             if table.schema in ["operational", "admin"]:
