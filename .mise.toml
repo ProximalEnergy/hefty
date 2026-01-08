@@ -12,6 +12,8 @@ brew install uv awscli hurl && \
 aws configure && \
 mise run api:get_env && \
 cp api/.env.from_parameter_store api/.env && \
+mise run web:get_env && \
+cp web-app/.env.from_parameter_store web-app/.env && \
 mise run sync-deps
 """
 
@@ -495,6 +497,11 @@ run = "npm run build"
 description = "Preview production build of web-app"
 dir = "web-app"
 run = "npm run preview"
+
+[tasks."web:get_env"]
+description = "Generate .env file from AWS Systems Manager Parameter Store"
+dir = "api"
+run = "uv run ../web-app/_scripts/generate_env_from_parameter_store.py"
 
 [tasks."web:check"]
 description = "Run TypeScript check, ESLint, and format web-app"
