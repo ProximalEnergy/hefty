@@ -411,8 +411,8 @@ def get_devices_in_viewport(
                     polygon,
                     ST_Buffer(
                         ST_MakeEnvelope(:west, :south, :east, :north, 4326),
-                        :buffer_size,
-                    ),
+                        :buffer_size
+                    )
                 )
             )
             OR
@@ -422,8 +422,8 @@ def get_devices_in_viewport(
                     point,
                     ST_Buffer(
                         ST_MakeEnvelope(:west, :south, :east, :north, 4326),
-                        :buffer_size,
-                    ),
+                        :buffer_size
+                    )
                 )
             )
         )
