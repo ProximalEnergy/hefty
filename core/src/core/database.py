@@ -46,6 +46,7 @@ async_engine = create_async_engine(
 
 
 AsyncSessionLambda = async_sessionmaker(
+    poolclass=NullPool,
     autocommit=False,
     autoflush=False,
     expire_on_commit=False,

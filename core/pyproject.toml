@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.15"
+version = "0.3.16"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -19,6 +19,8 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "python-dotenv~=1.2.1",
     "sqlalchemy>=2.0.41",
+    "httpx>=0.28.1",
+    "shapely>=2.1.2",
 ]
 
 [project.scripts]
