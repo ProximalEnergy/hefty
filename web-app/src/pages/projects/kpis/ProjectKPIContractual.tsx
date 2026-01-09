@@ -172,6 +172,32 @@ const ProjectKPIContractual = () => {
     pathParams: { nameShort: nameShort || '' },
   })
 
+  // Filter contracts and contract_kpis to only those for the current project
+  const filteredKpiTypeData = useMemo(() => {
+    if (!kpiTypeData || !projectId) return kpiTypeData
+
+    // Filter contracts by project_id
+    const projectContracts = kpiTypeData.contracts.filter(
+      (contract) => contract.project_id === projectId,
+    )
+
+    // Get contract IDs for the filtered contracts
+    const projectContractIds = new Set(
+      projectContracts.map((contract) => contract.contract_id),
+    )
+
+    // Filter contract_kpis to only those belonging to the filtered contracts
+    const projectContractKpis = kpiTypeData.contract_kpis.filter((ck) =>
+      projectContractIds.has(ck.contract_id),
+    )
+
+    return {
+      ...kpiTypeData,
+      contracts: projectContracts,
+      contract_kpis: projectContractKpis,
+    }
+  }, [kpiTypeData, projectId])
+
   // Single query to fetch all KPI data
   const { data: allKPIData, isLoading: kpiDataLoading } =
     useGetOperationalKPIData({
@@ -661,7 +687,7 @@ const ProjectKPIContractual = () => {
 
   if (kpiLoading) return <PageLoader />
 
-  if (!kpiTypeData) {
+  if (!filteredKpiTypeData) {
     return (
       <Container fluid pt="md">
         <Text>KPI type not found.</Text>
@@ -672,17 +698,19 @@ const ProjectKPIContractual = () => {
   return (
     <Container fluid pt="md">
       <Stack p="sm">
-        <Title order={1}>{kpiTypeData.name_long}</Title>
-        <Text>{kpiTypeData.description || ''}</Text>
+        <Title order={1}>{filteredKpiTypeData.name_long}</Title>
+        <Text>{filteredKpiTypeData.description || ''}</Text>
 
         <Grid>
           <Grid.Col span={8}>
             <BarAndHeatmapCard
               parsedData={
-                filteredData ? parseData(filteredData, kpiTypeData) : undefined
+                filteredData
+                  ? parseData(filteredData, filteredKpiTypeData)
+                  : undefined
               }
               isLoading={kpiDataLoading}
-              kpiTypeData={kpiTypeData}
+              kpiTypeData={filteredKpiTypeData}
               selectedYear={selectedYear}
               setSelectedYear={setSelectedYear}
               yearOptions={yearOptions}
@@ -691,16 +719,16 @@ const ProjectKPIContractual = () => {
             <Box mt="md">
               <AnnualAveragesCard
                 // @ts-expect-error manually ignoring for now
-                parsedData={parseAnnualData(allKPIData, kpiTypeData)}
+                parsedData={parseAnnualData(allKPIData, filteredKpiTypeData)}
                 isLoading={kpiDataLoading}
-                kpiTypeData={kpiTypeData}
+                kpiTypeData={filteredKpiTypeData}
               />
             </Box>
           </Grid.Col>
 
           {/* Right side - Contract Information */}
           <Grid.Col span={4}>
-            {kpiTypeData.contracts.map((contract) => (
+            {filteredKpiTypeData.contracts.map((contract) => (
               <Paper key={contract.contract_id} withBorder p="md" mb="md">
                 <Stack>
                   {/* Contract Header */}
@@ -765,7 +793,7 @@ const ProjectKPIContractual = () => {
                     </Tabs.List>
 
                     <Tabs.Panel value="threshold" pt="md">
-                      {kpiTypeData.contract_kpis
+                      {filteredKpiTypeData.contract_kpis
                         .filter((ck) => ck.contract_id === contract.contract_id)
                         .map((contractKpi) => (
                           <Stack
@@ -790,8 +818,8 @@ const ProjectKPIContractual = () => {
                                   <Table.Th>Year</Table.Th>
                                   <Table.Th>
                                     Target{' '}
-                                    {kpiTypeData.unit
-                                      ? `(${kpiTypeData.unit})`
+                                    {filteredKpiTypeData.unit
+                                      ? `(${filteredKpiTypeData.unit})`
                                       : ''}
                                   </Table.Th>
                                 </Table.Tr>
@@ -805,7 +833,7 @@ const ProjectKPIContractual = () => {
                                       {dayjs(date).format('YYYY')}
                                     </Table.Td>
                                     <Table.Td>
-                                      {kpiTypeData.unit === '%'
+                                      {filteredKpiTypeData.unit === '%'
                                         ? value * 100
                                         : value}
                                     </Table.Td>
@@ -820,7 +848,7 @@ const ProjectKPIContractual = () => {
                     <Tabs.Panel value="remedies" pt="md">
                       <Stack>
                         <Title order={3}>Liquidated Damages</Title>
-                        {kpiTypeData.contract_kpis
+                        {filteredKpiTypeData.contract_kpis
                           .filter(
                             (ck) => ck.contract_id === contract.contract_id,
                           )
@@ -854,7 +882,7 @@ const ProjectKPIContractual = () => {
                     <Tabs.Panel value="recordKeeping" pt="md">
                       <Stack>
                         <Title order={3}>Claims</Title>
-                        {kpiTypeData.contract_kpis
+                        {filteredKpiTypeData.contract_kpis
                           .filter(
                             (ck) => ck.contract_id === contract.contract_id,
                           )

@@ -40,7 +40,7 @@ def get_expected_power(
         highest_priority_only: TODO: describe.
         cutoff_now: TODO: describe.
     """
-    project_device_id = 1  # The device_id whose device_type_id is 1 (Project). This is always device_id = 1.'
+    project_device_id = 1  # The device_id whose device_type_id is 1 (Project).
     if device_ids == []:
         return []
 

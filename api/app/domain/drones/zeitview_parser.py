@@ -99,7 +99,8 @@ class ZeitviewAPI:
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 504:
                     logger.warning(
-                        f"504 Gateway Timeout on attempt {attempt + 1}/{max_retries} for {url}"
+                        "504 Gateway Timeout on attempt "
+                        f"{attempt + 1}/{max_retries} for {url}"
                     )
                     if attempt == max_retries - 1:
                         raise
@@ -145,6 +146,7 @@ class ZeitviewAPI:
             "fields": [
                 "site_id",
                 "site_capacity_mw",
+                "site_name",
             ],
             "filters": {},
             "page_size": 200,
@@ -264,7 +266,7 @@ class ZeitviewAPI:
 
             # Call the callback function if provided
             if page_callback and callable(page_callback):
-                await page_callback(anomalies, page)
+                await page_callback(anomalies=anomalies, page=page)
 
             pagination = response_data.get("metadata", {}).get("pagination", {})
             next_page = pagination.get("next_page")

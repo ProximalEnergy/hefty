@@ -75,7 +75,8 @@ def create_company_project(
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT * FROM admin.company_projects WHERE company_id = %s AND project_id = %s",
+                "SELECT * FROM admin.company_projects WHERE company_id = %s "
+                "AND project_id = %s",
                 (company_id, project_id),
             )
             if cur.fetchone():
@@ -84,11 +85,13 @@ def create_company_project(
                 )
             else:
                 cur.execute(
-                    "INSERT INTO admin.company_projects (company_id, project_id, vector_store_id) VALUES (%s, %s, %s)",
+                    "INSERT INTO admin.company_projects (company_id, project_id, "
+                    "vector_store_id) VALUES (%s, %s, %s)",
                     (company_id, project_id, vector_store_id),
                 )
                 logging.info(
-                    f"Created company project {company_id}|{project_id}|{vector_store_id}",
+                    "Created company project "
+                    f"{company_id}|{project_id}|{vector_store_id}",
                 )
 
 

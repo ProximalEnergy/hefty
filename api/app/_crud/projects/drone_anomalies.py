@@ -12,7 +12,8 @@ from app.interfaces import DroneAnomalyCreate
 def get_anomalies_by_inspection_uuid(
     *, db: Session, inspection_uuid: uuid.UUID
 ) -> Sequence[DroneAnomaly]:
-    """Get all anomalies for a given inspection from the project-specific schema.
+    """Get all anomalies for a given inspection from the project-specific
+    schema.
 
     Args:
         db: TODO: describe.
@@ -26,7 +27,8 @@ def get_anomalies_by_inspection_uuid(
 def get_anomaly_count_by_inspection_uuid(
     *, db: Session, inspection_uuid: uuid.UUID
 ) -> int:
-    """Get the count of anomalies for a given inspection from the project-specific schema.
+    """Get the count of anomalies for a given inspection from the
+    project-specific schema.
 
     Args:
         db: TODO: describe.
@@ -75,7 +77,8 @@ def update_anomalies_with_event_id(
         event_id: TODO: describe.
     """
     logging.info(
-        f"🔧 update_anomalies_with_event_id called: event_id={event_id}, anomaly_uuids={anomaly_uuids}"
+        "🔧 update_anomalies_with_event_id called: "
+        f"event_id={event_id}, anomaly_uuids={anomaly_uuids}"
     )
 
     # First, check how many anomalies exist with these UUIDs
@@ -88,7 +91,9 @@ def update_anomalies_with_event_id(
     existing_count = result.scalar_one()
 
     logging.info(
-        f"📊 Found {existing_count} existing anomalies out of {len(anomaly_uuids)} requested UUIDs"
+        "📊 Found "
+        f"{existing_count} existing anomalies out of "
+        f"{len(anomaly_uuids)} requested UUIDs"
     )
 
     # Update the anomalies using a more efficient bulk update
@@ -100,9 +105,7 @@ def update_anomalies_with_event_id(
 
     result = db.execute(update_stmt)
 
-    logging.info(
-        f"🔄 Updated {result.rowcount} anomalies with event_id {event_id}"  # type: ignore[attr-defined]
-    )
+    logging.info(f"🔄 Updated {result.rowcount} anomalies with event_id {event_id}")  # type: ignore[attr-defined]
 
     # Note: No commit here - let the calling function handle the transaction
 

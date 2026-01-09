@@ -222,6 +222,7 @@ def get_by_device_type_id(
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_ids=device_ids,
+        device_type_ids=[device_type_id],
         deep=False,
     ).models()
     devices = [d for d in devices if d.device_type_id != DeviceType.GHOST]

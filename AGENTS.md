@@ -1,5 +1,5 @@
 # General
-- new code lines are shorter than 88 characters, do not refactor old code for line length
+- code lines are shorter than 88 characters 
 
 # python
 - use uv not pip

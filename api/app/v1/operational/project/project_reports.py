@@ -7,6 +7,7 @@ from typing import Annotated
 import boto3
 import numpy as np
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from natsort import natsort_keygen, natsorted
@@ -241,11 +242,14 @@ async def dc_amperage_report_v2(
 
     met_devices = [d for d in devices if d.device_type_id == DeviceType.MET_STATION]
 
-    pv_dc_combiners = core.crud.project.pv_dc_combiners.get_pv_dc_combiners(
-        project_db,
-    ).models()
+    pv_dc_combiners_query = core.crud.project.pv_dc_combiners.get_pv_dc_combiners()
+    pv_dc_combiners = await pv_dc_combiners_query.get_async(
+        schema=project.name_short,
+        output_type=OutputType.POLARS,
+    )
     cb_device_id_to_modules_per_pv_source_circuit = {
-        x.device_id: x.modules_per_pv_source_circuit for x in pv_dc_combiners
+        row["device_id"]: row["modules_per_pv_source_circuit"]
+        for row in pv_dc_combiners.iter_rows(named=True)
     }
 
     if df_cb_report["pv_module_id"].unique().tolist() != [None]:

@@ -71,7 +71,10 @@ def get_project_dataframe(
     ):
         raise HTTPException(
             status_code=400,
-            detail="No tag_ids, sensor_type_name_shorts, sensor_type_ids, or device_ids provided",
+            detail=(
+                "No tag_ids, sensor_type_name_shorts, sensor_type_ids, or "
+                "device_ids provided"
+            ),
         )
 
     tags = core.crud.project.tags.get_project_tags(
@@ -469,7 +472,8 @@ async def get_timeseries_v3(
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Invalid interval '{interval}'. Valid intervals are: {valid_options}"
+                    f"Invalid interval '{interval}'. Valid intervals are: "
+                    f"{valid_options}"
                 ),
             ) from exc
 

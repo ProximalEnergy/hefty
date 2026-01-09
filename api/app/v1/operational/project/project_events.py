@@ -451,7 +451,8 @@ async def get_events_summary(
     project_id: uuid.UUID | None = None,
     project: Annotated[models.Project, Depends(get_project_api)],
 ) -> list[interfaces.EventSummary]:
-    """Generate a summary of events with associated device/failure/root-cause and loss info.
+    """Generate a summary of events with associated device/failure/root-cause and
+    loss info.
 
     Args:
         project_db: TODO: describe.
@@ -907,7 +908,10 @@ def get_event_trace_tags(
             )
             raise HTTPException(
                 status_code=400,
-                detail="This device type is not yet supported. The Proximal Team has been notified.",
+                detail=(
+                    "This device type is not yet supported. The Proximal Team "
+                    "has been notified."
+                ),
             )
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
@@ -1086,8 +1090,10 @@ def bulk_create_events(
         # Note: project_name_short is validated above to contain only safe characters
         project_db.execute(
             text(
-                f"SELECT setval( pg_get_serial_sequence('{project_name_short}.events', 'event_id'), "  # noqa: S608
-                f"COALESCE((SELECT MAX(event_id) FROM {project_name_short}.events), 1), true )"  # noqa: S608
+                "SELECT setval( pg_get_serial_sequence("  # noqa: S608
+                f"'{project_name_short}.events', 'event_id'), "
+                f"COALESCE((SELECT MAX(event_id) FROM "
+                f"{project_name_short}.events), 1), true )"
             )
         )
         project_db.execute(text("COMMIT"))
@@ -1142,7 +1148,8 @@ def bulk_create_events(
         # Create events and losses with proper event_id assignment
         created_event_ids = []
         losses_data = []
-        event_to_anomalies_mapping = {}  # Track which event_id corresponds to which anomaly UUIDs
+        # Track which event_id corresponds to which anomaly UUIDs
+        event_to_anomalies_mapping = {}
         event_objects = []  # Collect all events for bulk insert
 
         for target_device_id, items in device_items.items():

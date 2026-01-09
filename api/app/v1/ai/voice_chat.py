@@ -32,7 +32,8 @@ async def create_voice_chat_session(
     request: VoiceChatSessionRequest, user_data: UserData = Depends(get_user_data_async)
 ):
     """Create a new voice chat session by generating a client ephemeral token.
-        This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+        This token allows the frontend to securely connect to OpenAI's Realtime
+        GPT API.
 
     Args:
         request: TODO: describe.
@@ -44,7 +45,10 @@ async def create_voice_chat_session(
         if not openai_api_key:
             raise HTTPException(
                 status_code=500,
-                detail="OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.",
+                detail=(
+                    "OpenAI API key not configured. Please set OPENAI_API_KEY "
+                    "environment variable."
+                ),
             )
 
         # Request client secret from OpenAI
@@ -88,7 +92,10 @@ async def create_voice_chat_session(
             else:
                 raise HTTPException(
                     status_code=500,
-                    detail="Unexpected OpenAI API response structure. Please check the backend logs for details.",
+                    detail=(
+                        "Unexpected OpenAI API response structure. Please "
+                        "check the backend logs for details."
+                    ),
                 )
 
             return VoiceChatSessionResponse(
@@ -125,8 +132,8 @@ async def ensure_vector_store(
     request: EnsureVectorStoreRequest,
     user_data: UserData = Depends(get_user_data_async),
 ):
-    """Ensure an OpenAI vector store exists for the provided file id. If needed, create it.
-        Returns the vector_store_id.
+    """Ensure an OpenAI vector store exists for the provided file id. If
+        needed, create it. Returns the vector_store_id.
 
     Args:
         request: TODO: describe.
@@ -137,7 +144,10 @@ async def ensure_vector_store(
         if not openai_api_key:
             raise HTTPException(
                 status_code=500,
-                detail="OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.",
+                detail=(
+                    "OpenAI API key not configured. Please set OPENAI_API_KEY "
+                    "environment variable."
+                ),
             )
 
         # Fast-path: return cached store if we've already resolved it for this file

@@ -1074,7 +1074,8 @@ export interface paths {
         /**
          * Create Voice Chat Session
          * @description Create a new voice chat session by generating a client ephemeral token.
-         *         This token allows the frontend to securely connect to OpenAI's Realtime GPT API.
+         *         This token allows the frontend to securely connect to OpenAI's Realtime
+         *         GPT API.
          *
          *     Args:
          *         request: TODO: describe.
@@ -1098,8 +1099,8 @@ export interface paths {
         put?: never;
         /**
          * Ensure Vector Store
-         * @description Ensure an OpenAI vector store exists for the provided file id. If needed, create it.
-         *         Returns the vector_store_id.
+         * @description Ensure an OpenAI vector store exists for the provided file id. If
+         *         needed, create it. Returns the vector_store_id.
          *
          *     Args:
          *         request: TODO: describe.
@@ -1470,10 +1471,10 @@ export interface paths {
         };
         /**
          * Get Devices In Viewport
-         * @description Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-         *     Optionally filters by device_type_ids. If power_device_type_id is provided,
-         *     fetches and includes latest actual/expected power for devices matching that
-         *     type within the viewport.
+         * @description Retrieves devices whose geometry intersects the viewport bounding box
+         *     (with buffer). Optionally filters by device_type_ids. If
+         *     power_device_type_id is provided, fetches and includes latest
+         *     actual/expected power for devices matching that type within the viewport.
          *
          *     Args:
          *         north: TODO: describe.
@@ -1911,7 +1912,7 @@ export interface paths {
          *             List of reactions for the message(s)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_message_id: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
@@ -1922,8 +1923,6 @@ export interface paths {
          * Toggle Event Message Reaction
          * @description Toggle a reaction on a message (add if not exists, remove if exists).
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
          *     Request Body:
          *         event_message_id: The ID of the message
          *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
@@ -1933,7 +1932,7 @@ export interface paths {
          *         The created reaction (if added) or the deleted reaction info (if removed)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         reaction: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -1955,8 +1954,6 @@ export interface paths {
          * Get Event Messages
          * @description Get all non-deleted messages for a specific event.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
          *         Query Parameters:
          *             event_id: The ID of the event to get messages for
          *
@@ -1964,7 +1961,7 @@ export interface paths {
          *             List of event messages, ordered by created_at (ascending)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -1980,8 +1977,6 @@ export interface paths {
          *             - First message: all company users
          *             - Subsequent messages: users who have posted (excluding muted users)
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
          *         Request Body:
          *             event_id: The ID of the event
          *             body: The message content (may contain @mentions)
@@ -1990,6 +1985,7 @@ export interface paths {
          *             The created event message
          *
          *     Args:
+         *         project_db: TODO: describe.
          *         project_id: TODO: describe.
          *         message: TODO: describe.
          *         background_tasks: TODO: describe.
@@ -2083,8 +2079,6 @@ export interface paths {
          *         - User owns the message
          *         - Message exists and is not deleted
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
          *         Request Body:
          *             body: The updated message content (may contain @mentions)
          *
@@ -2092,7 +2086,7 @@ export interface paths {
          *             The updated event message
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_message_id: TODO: describe.
          *         message: TODO: describe.
          *         db: TODO: describe.
@@ -2108,14 +2102,11 @@ export interface paths {
          *         - User owns the message
          *         - Message exists
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             The deleted event message (with deleted_at set)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_message_id: TODO: describe.
          *         db: TODO: describe.
          *         user_data: TODO: describe.
@@ -2139,14 +2130,11 @@ export interface paths {
          * Toggle Event Chat Mute
          * @description Toggle mute status for an event chat.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {"muted": bool} - True if muted, False if unmuted
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -2168,14 +2156,11 @@ export interface paths {
          * Get Event Chat Mute Status
          * @description Get mute status for an event chat.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {"muted": bool} - True if muted, False if not muted
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -2206,9 +2191,6 @@ export interface paths {
          *         - File is a valid image type (jpeg, png, gif, webp)
          *         - File size is within limit (10MB)
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {
          *                 "event_message_image_id": UUID,
@@ -2220,7 +2202,7 @@ export interface paths {
          *             }
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         event_message_id: TODO: describe.
          *         file: TODO: describe.
@@ -2246,14 +2228,11 @@ export interface paths {
          *
          *         Validates user has access to the event before generating URL.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {"presigned_url": str, "s3_key": str}
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         image_id: TODO: describe.
          *         user_data: TODO: describe.
@@ -2278,14 +2257,11 @@ export interface paths {
          * Get Event Message Images
          * @description Get all images for an event message with presigned URLs.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             List of image objects with presigned URLs
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         event_message_id: TODO: describe.
          *         user_data: TODO: describe.
@@ -2309,7 +2285,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Get Event Chat Notification Statuses Batch
+         * Get Event Chat Notification Statuses Batch Route
          * @description Get event chat notification statuses for multiple projects in a single request.
          *
          *         Request Body:
@@ -2329,7 +2305,7 @@ export interface paths {
          *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
-        post: operations["get_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_status_batch_post"];
+        post: operations["get_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_status_batch_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2345,8 +2321,9 @@ export interface paths {
         };
         get?: never;
         /**
-         * Update Event Chat Notification Statuses Batch
-         * @description Update event chat notification statuses for multiple projects in a single request.
+         * Update Event Chat Notification Statuses Batch Route
+         * @description Update event chat notification statuses for multiple projects in a
+         *     single request.
          *
          *         Request Body:
          *             statuses: Dictionary mapping project_id (string) -> enabled (bool)
@@ -2365,7 +2342,7 @@ export interface paths {
          *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
-        put: operations["update_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_batch_put"];
+        put: operations["update_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_batch_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2444,9 +2421,10 @@ export interface paths {
         put?: never;
         /**
          * Analyze Contract Document
-         * @description Analyze a contract document using OpenAI File Search to extract contract fields.
-         *         This endpoint uses the document's OpenAI file_id to perform semantic search and
-         *         extract structured contract information using structured function calling.
+         * @description Analyze a contract document using OpenAI File Search to extract contract
+         *     fields. This endpoint uses the document's OpenAI file_id to perform semantic
+         *     search and extract structured contract information using structured function
+         *     calling.
          *
          *     Args:
          *         document_id: TODO: describe.
@@ -2475,8 +2453,8 @@ export interface paths {
          * Delete Contract
          * @description Delete a contract if it has no associated Contractual KPIs.
          *
-         *         This endpoint will only delete contracts that don't have any Contractual KPIs
-         *         associated with them, ensuring data integrity.
+         *         This endpoint will only delete contracts that don't have any Contractual
+         *         KPIs associated with them, ensuring data integrity.
          *
          *     Args:
          *         project_id: TODO: describe.
@@ -2859,7 +2837,8 @@ export interface paths {
         };
         /**
          * Get Events Summary
-         * @description Generate a summary of events with associated device/failure/root-cause and loss info.
+         * @description Generate a summary of events with associated device/failure/root-cause and
+         *     loss info.
          *
          *     Args:
          *         project_db: TODO: describe.
@@ -4003,8 +3982,8 @@ export interface paths {
         put?: never;
         /**
          * Sync Zeitview Anomalies
-         * @description Fetch anomalies from Zeitview and store them in the database incrementally.
-         *         Can resume from where it left off if interrupted.
+         * @description Fetch anomalies from Zeitview and store them in the database
+         *     incrementally. Can resume from where it left off if interrupted.
          *
          *     Args:
          *         project_id: TODO: describe.
@@ -5355,7 +5334,7 @@ export interface paths {
         };
         /**
          * Get Drone Integrations
-         * @description Retrieve all drone integrations.
+         * @description Get all drone integrations.
          *
          *     Args:
          *         db: TODO: describe.
@@ -10709,12 +10688,10 @@ export interface components {
          * @description todo
          */
         ProviderSite: {
-            /** Site Name */
-            site_name?: string | null;
-            /** Site Uuid */
-            site_uuid: string;
-            /** Site Id */
-            site_id?: number | null;
+            /** Provider Site Id */
+            provider_site_id: string;
+            /** Name */
+            name: string;
         };
         /**
          * QSE
@@ -14726,8 +14703,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14765,8 +14742,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14800,8 +14777,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14837,8 +14814,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14874,9 +14851,9 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14916,9 +14893,9 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
                 image_id: string;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14954,9 +14931,9 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14984,7 +14961,7 @@ export interface operations {
             };
         };
     };
-    get_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_status_batch_post: {
+    get_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_status_batch_post: {
         parameters: {
             query?: never;
             header?: {
@@ -15020,7 +14997,7 @@ export interface operations {
             };
         };
     };
-    update_event_chat_notification_statuses_batch_v1_operational_event_messages_notifications_batch_put: {
+    update_event_chat_notification_statuses_batch_route_v1_operational_event_messages_notifications_batch_put: {
         parameters: {
             query?: never;
             header?: {

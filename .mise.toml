@@ -8,13 +8,20 @@
 [tasks.onboarding]
 description = "One time setup, installing packages, configuring aws"
 run = """
-brew install uv awscli hurl && \
+brew install uv awscli hurl ripgrep semgrep && \
+uv sync && \
+mise install && \
+uv sync --directory core && \
+mise run api:switch-core && \
+uv sync --directory api && \
+cd web-app && npm ci && npx node build-plotly-custom.js && \
 aws configure && \
 mise run api:get_env && \
 cp api/.env.from_parameter_store api/.env && \
 mise run web:get_env && \
 cp web-app/.env.from_parameter_store web-app/.env && \
-mise run sync-deps
+cd .. && \
+mise run sql-admin:install
 """
 
 [tasks.sync-deps]
@@ -187,7 +194,7 @@ run = "uv run --dev ruff format core/"
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
 dir = "."
-run = "uv run semgrep --config _scripts/rules/star-syntax.yaml core/src"
+run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml core/src"
 
 [tasks."core:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in core"
@@ -306,7 +313,7 @@ run = "uv run --dev ruff format microservices/"
 [tasks."micro:star_syntax"]
 description = "Check for star syntax violations in microservices"
 dir = "."
-run = "uv run semgrep --config _scripts/rules/star-syntax.yaml microservices"
+run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml microservices"
 
 [tasks."micro:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in micro"
@@ -345,6 +352,7 @@ depends = [
   "api:vulture",
   "api:docstring_args",
   "api:db_query_get",
+  "api:with_async_db",
   "api:unused_routes",
 ]
 run = """
@@ -384,7 +392,7 @@ run = "uv run pytest"
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
 dir = "."
-run = "uv run semgrep --config _scripts/rules/star-syntax.yaml api/app"
+run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml api/app"
 
 [tasks."api:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in api"
@@ -410,6 +418,11 @@ dir = "api"
 run = """
 ../_scripts/db_query_get_check.sh
 """
+
+[tasks."api:with_async_db"]
+description = "Check for disallowed _with_async_db usage in api"
+dir = "."
+run = "uv run semgrep --error --config _scripts/rules/with-async-db.yaml api/app --exclude api/app/dependencies.py"
 
 [tasks."api:unused_routes"]
 description = "Check for API routes unused by the web-app (fast, OpenAPI-based)"

@@ -402,7 +402,8 @@ async def get_line(
                 raise HTTPException(
                     status_code=400,
                     detail=(
-                        "If tag_ids are passed for a trace, aggregation_type must be 'none'."
+                        "If tag_ids are passed for a trace, aggregation_type "
+                        "must be 'none'."
                     ),
                 )
 
@@ -879,7 +880,8 @@ async def duplicate_user_dashboard(
         *,
         target_project_id: uuid.UUID,
     ) -> list[DashboardComponent]:
-        """Process components, replacing tag IDs with -1 if duplicating to a different project.
+        """Process components, replacing tag IDs with -1 if duplicating to a
+        different project.
 
         Args:
             target_project_id: TODO: describe.

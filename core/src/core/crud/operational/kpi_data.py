@@ -16,6 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy import func, select
 
 from core import models
+from core.db_query import DbQuery
 from core.enumerations import KPIType
 
 
@@ -125,7 +126,7 @@ def get_project_kpi_data_agg(
     start: datetime.date | None = None,
     end: datetime.date | None = None,
     aggregation_method: Literal["sum", "avg"],
-) -> sa.Select:
+) -> DbQuery[float, Literal[True]]:
     """
     Build a query to aggregate KPI data into a single value across entire date range.
 
@@ -141,8 +142,7 @@ def get_project_kpi_data_agg(
         aggregation_method: Aggregation to apply ("sum" or "avg").
 
     Returns:
-        SQLAlchemy Select object that returns a single aggregated float value.
-        Must be executed with a database session.
+        DbQuery that returns a single aggregated float value.
 
     Example:
         >>> query = get_project_kpi_data_agg(
@@ -152,9 +152,7 @@ def get_project_kpi_data_agg(
         ...     end=date(2025, 12, 31),
         ...     aggregation_method="avg"
         ... )
-        >>> async with db_session() as db:
-        ...     result = await db.execute(query)
-        ...     avg_value = result.scalar_one()
+        >>> avg_value = await query.get_async(output_type=OutputType.SQLALCHEMY)
     """
 
     query = select(
@@ -192,4 +190,4 @@ def get_project_kpi_data_agg(
         )
     )
 
-    return query
+    return DbQuery(query=query, is_scalar=True)

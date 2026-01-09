@@ -12,7 +12,10 @@ class DTN(
     """Specialized provider for hail and precipitation data"""
 
     arcgis_token_url = "https://arcgis.dtn.com/portal/sharing/rest/generateToken"  # noqa
-    arcgis_endpoint_url = "https://arcgis.dtn.com/feature/rest/services/Severe/StormPredictionCenterOutlook_US/FeatureServer"
+    arcgis_endpoint_url = (
+        "https://arcgis.dtn.com/feature/rest/services/Severe/"
+        "StormPredictionCenterOutlook_US/FeatureServer"
+    )
 
     async def _get_data(
         self,

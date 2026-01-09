@@ -6,6 +6,7 @@ import {
 } from '@/api/v1/admin/user_kpi_types'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useGetProjectKPITypes } from '@/api/v1/operational/kpi_types'
+import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { ContractWithCompany } from '@/hooks/types'
@@ -31,11 +32,17 @@ import {
   IconHeartFilled,
   IconInfoCircle,
 } from '@tabler/icons-react'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 import { getKPIThresholdbyDate } from './ProjectKPIHome.utils'
 import RequestKPIModal from './RequestKPIModal'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 interface ProcessedKPI {
   kpi_type_id: number
@@ -425,6 +432,7 @@ const KpiTable = ({
 const ProjectKPIHome = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const { data: user } = useGetUserSelf({})
+  const project = useSelectProject(projectId!)
   const { data: favoriteKpis } = useGetUserFavoriteKPITypes({
     userId: user?.user_id,
   })
@@ -547,8 +555,41 @@ const ProjectKPIHome = () => {
         // Get the last two days of data and dates (if data exists)
         const projectData = kpiData?.data.project_data ?? []
         const dates = kpiData?.data.dates ?? []
-        const lastValue = projectData[projectData.length - 1] ?? null
-        const previousValue = projectData[projectData.length - 2] ?? null
+
+        // Calculate yesterday's date using project timezone
+        const projectTz = project.data?.time_zone || 'UTC'
+        const yesterdayStr = dayjs()
+          .tz(projectTz)
+          .subtract(1, 'day')
+          .format('YYYY-MM-DD')
+        const dayBeforeYesterdayStr = dayjs()
+          .tz(projectTz)
+          .subtract(2, 'day')
+          .format('YYYY-MM-DD')
+
+        // Find indices for yesterday and day before
+        const yesterdayIndex = dates.findIndex((date) => {
+          const dateStr =
+            typeof date === 'string'
+              ? date.split('T')[0]
+              : new Date(date).toISOString().split('T')[0]
+          return dateStr === yesterdayStr
+        })
+        const dayBeforeYesterdayIndex = dates.findIndex((date) => {
+          const dateStr =
+            typeof date === 'string'
+              ? date.split('T')[0]
+              : new Date(date).toISOString().split('T')[0]
+          return dateStr === dayBeforeYesterdayStr
+        })
+
+        // Get values
+        const lastValue =
+          yesterdayIndex >= 0 ? (projectData[yesterdayIndex] ?? null) : null
+        const previousValue =
+          dayBeforeYesterdayIndex >= 0
+            ? (projectData[dayBeforeYesterdayIndex] ?? null)
+            : null
 
         // Calculate YTD value (average of all non-null values in the current year)
         const currentYear = new Date().getFullYear()
@@ -636,7 +677,14 @@ const ProjectKPIHome = () => {
       benchmark,
       favorited,
     }
-  }, [kpiTypesWithContracts, allKPIData, deviceTypeId, favoriteKpis, projectId])
+  }, [
+    kpiTypesWithContracts,
+    allKPIData,
+    deviceTypeId,
+    favoriteKpis,
+    projectId,
+    project.data?.time_zone,
+  ])
 
   // Add this memoized helper to check if there are any hidden KPIs
   const hasHiddenKPIs = useMemo(() => {

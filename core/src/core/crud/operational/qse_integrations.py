@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
@@ -54,7 +55,7 @@ async def get_qse_integration_by_project_id(
 def get_qse_permissions_by_company_id(
     *,
     company_id: UUID,
-) -> DbQuery[QSEPermission]:
+) -> DbQuery[QSEPermission, Literal[False]]:
     """TODO: add description.
 
     Args:

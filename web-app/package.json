@@ -102,6 +102,9 @@
     "typescript": "^5.9.2",
     "vite": "^7.2.2"
   },
+  "overrides": {
+    "@modelcontextprotocol/sdk": "^1.25.2"
+  },
   "prettier": {
     "singleQuote": true,
     "trailingComma": "all",

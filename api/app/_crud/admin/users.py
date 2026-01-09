@@ -1,61 +1,10 @@
 import secrets
-import uuid
 
-import sqlalchemy as sa
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces import User
 from core import models
-
-
-async def get_user(*, db: AsyncSession, user_id):
-    """todo
-
-    Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-    """
-    query = select(models.User).where(models.User.user_id == user_id)
-    result = await db.execute(query)
-    return result.scalar_one_or_none()
-
-
-async def get_users(
-    *,
-    db: AsyncSession,
-    company_ids: list[uuid.UUID] | None = None,
-    user_ids: list[str] | None = None,
-):
-    """todo
-
-    Args:
-        db: TODO: describe.
-        company_ids: TODO: describe.
-        user_ids: TODO: describe.
-    """
-    query = (
-        select(
-            models.User,
-            sa.func.array_agg(models.UserProject.operational_project_id).label(
-                "project_ids",
-            ),
-        )
-        .outerjoin(
-            models.UserProject,
-            models.User.user_id == models.UserProject.user_id,
-        )
-        .group_by(models.User.user_id)
-    )
-
-    if company_ids:
-        query = query.where(models.User.company_id.in_(company_ids))
-
-    if user_ids:
-        query = query.where(models.User.user_id.in_(user_ids))
-
-    result = await db.execute(query)
-    return result.all()
 
 
 async def create_user(

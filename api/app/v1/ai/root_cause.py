@@ -116,8 +116,9 @@ async def suggest_root_cause(
         "You are an expert at classifying solar asset anomalies. "
         "Given IR and RGB signal descriptors and a list of allowed "
         "root cause candidates, select the best matching root_cause_id "
-        "for each pair. If uncertain, return null and explain briefly."
-        "String Outage events that are not related to a broken module, should be classified as `DC Field Connector Broken`"
+        "for each pair. If uncertain, return null and explain briefly. "
+        "String Outage events that are not related to a broken module, should "
+        "be classified as `DC Field Connector Broken`"
     )
 
     user_prompt = {
@@ -125,7 +126,8 @@ async def suggest_root_cause(
         "pairs": pairs_payload,
         "candidates": candidates_payload,
         "rules": [
-            "Consider device_type_id relevance (9=DC Combiner, 29=Tracker, 30=DC Field)",
+            "Consider device_type_id relevance (9=DC Combiner, 29=Tracker, "
+            "30=DC Field)",
             "Prefer exact/semantically close matches in name_short/name_long",
             "If multiple plausible, pick the most specific",
             "Do NOT include explanations/rationales in the output",

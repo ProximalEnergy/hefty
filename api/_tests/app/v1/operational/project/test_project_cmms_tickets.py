@@ -19,7 +19,8 @@ async def test_get_cmms_tickets_no_permissions():
 
     # Mock the get_cmms_permissions_by_project_id to return empty list
     with patch(
-        "app.v1.operational.project.project_cmms_tickets.get_cmms_permissions_by_project_id"
+        "app.v1.operational.project.project_cmms_tickets."
+        "get_cmms_permissions_by_project_id"
     ) as mock_get_permissions:
         mock_get_permissions.return_value = []
 

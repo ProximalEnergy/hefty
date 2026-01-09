@@ -28,7 +28,10 @@ if settings.ENVIRONMENT in ["staging", "production"]:
         },
     }
     sentry_sdk.init(
-        dsn="https://4bb149534df11fb24f1ab6e8d61650b7@o4506555874672640.ingest.sentry.io/4506555876442112",
+        dsn=(
+            "https://4bb149534df11fb24f1ab6e8d61650b7@"
+            "o4506555874672640.ingest.sentry.io/4506555876442112"
+        ),
         traces_sample_rate=sentry_config[settings.ENVIRONMENT]["traces_sample_rate"],
         profiles_sample_rate=sentry_config[settings.ENVIRONMENT][
             "profiles_sample_rate"

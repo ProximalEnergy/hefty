@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
@@ -34,7 +35,7 @@ def get_projects(
     name_shorts: list[str] | None = None,
     name_long: str | None = None,
     has_pv_pcs_modules: bool | None = None,
-) -> DbQuery[models.Project]:
+) -> DbQuery[models.Project, Literal[False]]:
     """TODO: add description.
 
     Args:
@@ -72,7 +73,9 @@ def get_projects(
     return DbQuery(query=stmt)
 
 
-def get_project(*, project_id: UUID, deep: bool = False):
+def get_project(
+    *, project_id: UUID, deep: bool = False
+) -> DbQuery[models.Project, Literal[True]]:
     """TODO: add description.
 
     Args:

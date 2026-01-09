@@ -375,10 +375,10 @@ def get_devices_in_viewport(
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
-    """Retrieves devices whose geometry intersects the viewport bounding box (with buffer).
-    Optionally filters by device_type_ids. If power_device_type_id is provided,
-    fetches and includes latest actual/expected power for devices matching that
-    type within the viewport.
+    """Retrieves devices whose geometry intersects the viewport bounding box
+    (with buffer). Optionally filters by device_type_ids. If
+    power_device_type_id is provided, fetches and includes latest
+    actual/expected power for devices matching that type within the viewport.
 
     Args:
         north: TODO: describe.
@@ -405,9 +405,27 @@ def get_devices_in_viewport(
     spatial_filter_sql = text(
         """
         (
-            (polygon IS NOT NULL AND ST_Intersects(polygon, ST_Buffer(ST_MakeEnvelope(:west, :south, :east, :north, 4326), :buffer_size)))
+            (
+                polygon IS NOT NULL
+                AND ST_Intersects(
+                    polygon,
+                    ST_Buffer(
+                        ST_MakeEnvelope(:west, :south, :east, :north, 4326),
+                        :buffer_size
+                    )
+                )
+            )
             OR
-            (point IS NOT NULL AND ST_Intersects(point, ST_Buffer(ST_MakeEnvelope(:west, :south, :east, :north, 4326), :buffer_size)))
+            (
+                point IS NOT NULL
+                AND ST_Intersects(
+                    point,
+                    ST_Buffer(
+                        ST_MakeEnvelope(:west, :south, :east, :north, 4326),
+                        :buffer_size
+                    )
+                )
+            )
         )
         """,
     ).bindparams(
@@ -446,7 +464,8 @@ def get_devices_in_viewport(
                 all_device_extra_data.update(primary_extra_data)
             except Exception as e:  # Catch a broader range of exceptions
                 logger.logger.error(
-                    f"Error fetching primary additional data for type {power_device_type_id}: {e}"
+                    "Error fetching primary additional data for type "
+                    f"{power_device_type_id}: {e}"
                 )
 
     # 2. Fetch power data for any PCS (type 2) devices if not already fetched as primary
@@ -497,7 +516,9 @@ def get_devices_in_viewport(
             for dev_id, data_vals in met_station_data_values.items():
                 if dev_id not in all_device_extra_data:  # Should typically be true
                     all_device_extra_data[dev_id] = data_vals
-                else:  # If it exists, assume it's from a previous step and merge if necessary (unlikely for met stations)
+                # If it exists, assume it's from a previous step and
+                # merge if necessary (unlikely for met stations)
+                else:
                     if isinstance(all_device_extra_data[dev_id], dict) and isinstance(
                         data_vals, dict
                     ):
@@ -754,7 +775,10 @@ def utility_expected(
                 # Unexpected parent type
                 raise HTTPException(
                     status_code=422,
-                    detail=f"Combiner {dev_id} has unexpected parent device type {parent_device.device_type_id}.",
+                    detail=(
+                        f"Combiner {dev_id} has unexpected parent device type "
+                        f"{parent_device.device_type_id}."
+                    ),
                 )
 
         # Remove duplicates from parent_pcs_ids
@@ -1156,8 +1180,8 @@ def get_met_station_latest_values(
                     latest_values[device_id]["ambient_temp"] = value
                 elif sensor_short_name == "met_station_wind_speed":
                     latest_values[device_id]["wind_speed"] = value
-
-        return latest_values  # Return the dictionary directly, FastAPI will handle JSON serialization
+        # Return the dictionary directly, FastAPI will handle JSON serialization
+        return latest_values
 
     except HTTPException as e:
         if e.status_code == 404:
@@ -1166,11 +1190,13 @@ def get_met_station_latest_values(
             )
         else:
             logger.logger.error(
-                f"HTTP error while fetching Met Station data for devices {device_ids}: {e}"
+                "HTTP error while fetching Met Station data for devices "
+                f"{device_ids}: {e}"
             )
         return {}
     except Exception as e:
         logger.logger.error(
-            f"An unexpected error occurred while fetching Met Station data for devices {device_ids}: {e}"
+            "An unexpected error occurred while fetching Met Station data for "
+            f"devices {device_ids}: {e}"
         )
         return {}

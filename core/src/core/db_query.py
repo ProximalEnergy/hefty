@@ -4,7 +4,7 @@ import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import TypeVar
+from typing import Literal, TypeVar
 
 import pandas as pd
 import polars as pl
@@ -18,6 +18,10 @@ from core.database import async_engine, engine
 from core.dependencies import with_db, with_db_async
 
 T = TypeVar("T")
+S = TypeVar(
+    "S",
+    bound=Literal[True] | Literal[False],
+)
 _SQL_TO_MODEL_COL_MAP: Mapping[str, str] = {"time_bucket": "time"}
 _SQLALCHEMY_ROW_LIMIT = 101
 _SQLALCHEMY_ROW_THRESHOLD = 100
@@ -39,7 +43,7 @@ class OutputType(Enum):
 
 
 @dataclass
-class DbQuery[T]:
+class DbQuery[T, S]:
     """
     This class wraps SQL queries (TextClause or Select) and provides
     methods to efficiently load data directly into Polars or Pandas
@@ -57,6 +61,7 @@ class DbQuery[T]:
 
     query: TextClause | Select
     is_scalar: bool = False
+    use_scalars: bool = True
 
     def get(
         self,
@@ -73,7 +78,7 @@ class DbQuery[T]:
             schema: Optional schema name for translation map.
             output_type: Output format for the returned data.
         """
-        with self._get_sync_context(schema, output_type) as db_obj:
+        with self._get_sync_context(schema=schema, output_type=output_type) as db_obj:
             return self._read_data(
                 executor=db_obj,
                 output_type=output_type,
@@ -94,7 +99,9 @@ class DbQuery[T]:
             schema: Optional schema name for translation map.
             output_type: Output format for the returned data.
         """
-        async with self._get_async_context(schema, output_type) as db_obj:
+        async with self._get_async_context(
+            schema=schema, output_type=output_type
+        ) as db_obj:
             return await db_obj.run_sync(
                 lambda sync_obj: self._read_data(
                     executor=sync_obj,
@@ -119,36 +126,36 @@ class DbQuery[T]:
         """
         match output_type:
             case OutputType.POLARS:
-                return self._read_polars(executor)
+                return self._read_polars(executor=executor)
             case OutputType.PANDAS:
-                return self._read_pandas(executor)
+                return self._read_pandas(executor=executor)
             case OutputType.SQLALCHEMY:
-                return self._read_sqlalchemy(executor)
+                return self._read_sqlalchemy(executor=executor)
             case _:
                 raise ValueError(f"Unsupported output_type: {output_type}")
 
-    def _read_polars(self, executor) -> pl.DataFrame:
-        conn = self._get_connection(executor)
+    def _read_polars(self, *, executor) -> pl.DataFrame:
+        conn = self._get_connection(executor=executor)
         self._check_for_selectinload()
         df = pl.read_database(
-            self._compile_query(conn),
+            self._compile_query(conn=conn),
             connection=conn,
             infer_schema_length=None,
         )
         return self._apply_mapping(df=df)
 
-    def _read_pandas(self, executor) -> pd.DataFrame:
-        conn = self._get_connection(executor)
+    def _read_pandas(self, *, executor) -> pd.DataFrame:
+        conn = self._get_connection(executor=executor)
         self._check_for_selectinload()
         df = pd.read_sql(
-            self._compile_query(conn),
+            self._compile_query(conn=conn),
             con=conn,
         )
         df = self._apply_mapping(df=df)
         return self._normalize_pandas_dtypes(df=df)
 
     def _read_sqlalchemy(
-        self, executor
+        self, *, executor
     ) -> list[RowMapping] | list[T] | RowMapping | T | None:
         if isinstance(self.query, Select):
             if self.is_scalar:
@@ -156,7 +163,11 @@ class DbQuery[T]:
                 return result.scalars().unique().one_or_none()
 
             result = executor.execute(self.query.limit(_SQLALCHEMY_ROW_LIMIT))
-            items = result.scalars().all()  # ORM return
+            if self.use_scalars:
+                items = result.scalars().all()  # ORM return
+            else:
+                items = result.all()  # Row return
+
             _raise_for_large_sqlalchemy_result(count=len(items))
             return items
 
@@ -169,7 +180,7 @@ class DbQuery[T]:
         _raise_for_large_sqlalchemy_result(count=len(items))
         return items
 
-    def _get_connection(self, executor):
+    def _get_connection(self, *, executor):
         """Extract the underlying connection from a session or connection object."""
         return (
             executor.connection()
@@ -177,7 +188,7 @@ class DbQuery[T]:
             else executor
         )
 
-    def _get_sync_context(self, schema: str | None, output_type: OutputType):
+    def _get_sync_context(self, *, schema: str | None, output_type: OutputType):
         """Get the appropriate synchronous context manager."""
         if output_type == OutputType.SQLALCHEMY:
             return with_db(schema=schema)
@@ -191,7 +202,7 @@ class DbQuery[T]:
             ).connect()
         return engine.connect()
 
-    def _get_async_context(self, schema: str | None, output_type: OutputType):
+    def _get_async_context(self, *, schema: str | None, output_type: OutputType):
         """Get the appropriate asynchronous context manager."""
         if output_type == OutputType.SQLALCHEMY:
             return with_db_async(schema=schema)
@@ -205,7 +216,7 @@ class DbQuery[T]:
             ).connect()
         return async_engine.connect()
 
-    def _compile_query(self, conn) -> str | Select | TextClause:
+    def _compile_query(self, *, conn) -> str | Select | TextClause:
         """Helper to compile the query with the correct dialect and options."""
         if isinstance(self.query, TextClause):
             return self.query

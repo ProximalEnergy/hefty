@@ -184,8 +184,10 @@ async def get_project_aggregated_kpi_data(
         end=end,
         aggregation_method=aggregation,
     )
-    result = await db.execute(query)
-    return result.scalar_one()
+    result = await query.get_async(output_type=OutputType.SQLALCHEMY)
+    if result is None:
+        raise HTTPException(status_code=404, detail="No KPI data found")
+    return result
 
 
 # Update the function to fetch contractual KPI type IDs along with contract IDs

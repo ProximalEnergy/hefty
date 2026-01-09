@@ -3,7 +3,9 @@ from datetime import timedelta
 
 import httpx
 import sqlalchemy as sa
+from core.crud.admin.users import get_user
 from core.database import Base
+from core.db_query import OutputType
 from core.enumerations import ProjectDataInterval, ProjectStatusType
 from core.models import Project as DBProject
 from fastapi import HTTPException
@@ -16,7 +18,6 @@ from app._crud.admin.companies import get_companies
 from app._crud.admin.user_projects import (
     assign_project_to_relevant_users,
 )
-from app._crud.admin.users import get_user
 from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_project_creation_notification,
@@ -200,7 +201,8 @@ async def _get_elevation(
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
-                f"https://api.open-elevation.com/api/v1/lookup?locations={latitude},{longitude}"
+                "https://api.open-elevation.com/api/v1/lookup?"
+                f"locations={latitude},{longitude}"
             )
             response.raise_for_status()
             data = response.json()
@@ -340,7 +342,9 @@ async def create_project(
     company_name = str(company_id)  # fallback to ID
 
     try:
-        user = await get_user(db=db, user_id=user_id)
+        user = await get_user(user_id=user_id).get_async(
+            output_type=OutputType.SQLALCHEMY
+        )
         if user and user.name_long:
             user_name = user.name_long
     except Exception as e:

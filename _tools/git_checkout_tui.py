@@ -166,7 +166,6 @@ def merge_file(*, branch, file_path):
         # 1. Check if file exists in current working directory
         if not os.path.exists(file_path):
             # If not in current, just checkout (copy)
-            # But wait, checking out might overwrite untracked files? git handles this generally.
             print(f"File {file_path} not found locally. Copying from {branch}...")
             subprocess.run(
                 f"git checkout {branch} -- {file_path}",

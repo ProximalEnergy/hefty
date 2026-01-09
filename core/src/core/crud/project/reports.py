@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
@@ -13,7 +14,7 @@ def get_project_report_instances(
     is_visible: bool | None,
     report_type_ids: list[int] | None = None,
     deep: bool = False,
-) -> DbQuery[models.ReportInstance]:
+) -> DbQuery[models.ReportInstance, Literal[False]]:
     """TODO: add description.
 
     Args:

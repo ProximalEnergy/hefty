@@ -61,7 +61,8 @@ restricted_columns = [
 
 if any(column in columns for column in restricted_columns):
     raise ValueError(
-        f"The following columns should only be updated via the Tag Explorer UI: {restricted_columns}"
+        "The following columns should only be updated via the Tag Explorer UI: "
+        f"{restricted_columns}"
     )
 
 tags = tags[columns]
@@ -125,7 +126,9 @@ for start in range(0, len(tags), CHUNK_SIZE):
     end = start + CHUNK_SIZE
     tag_chunk = tags.iloc[start:end]
     logging.info(
-        f"Processing tag chunk {start // CHUNK_SIZE + 1} of {(len(tags) - 1) // CHUNK_SIZE + 1}"
+        "Processing tag chunk "
+        f"{start // CHUNK_SIZE + 1} of "
+        f"{(len(tags) - 1) // CHUNK_SIZE + 1}"
     )
     process_tag_chunk(tag_chunk)
 

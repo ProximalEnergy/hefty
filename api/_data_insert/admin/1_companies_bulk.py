@@ -142,7 +142,8 @@ def main():
                     try:
                         # Check if company already exists
                         cur.execute(
-                            "SELECT COUNT(*) FROM admin.companies WHERE name_long = %s OR name_short = %s",
+                            "SELECT COUNT(*) FROM admin.companies WHERE "
+                            "name_long = %s OR name_short = %s",
                             (company_name_long, company_name_short),
                         )
 
@@ -155,7 +156,9 @@ def main():
 
                         # Insert the company
                         cur.execute(
-                            "INSERT INTO admin.companies (company_id, name_short, name_long) VALUES (%s, %s, %s)",
+                            "INSERT INTO admin.companies "
+                            "(company_id, name_short, name_long) "
+                            "VALUES (%s, %s, %s)",
                             (str(company_id), company_name_short, company_name_long),
                         )
 
@@ -172,7 +175,8 @@ def main():
                 # Commit all changes
                 conn.commit()
                 logging.info(
-                    f"Bulk insertion completed! Inserted: {inserted_count}, Skipped: {skipped_count}"
+                    "Bulk insertion completed! Inserted: "
+                    f"{inserted_count}, Skipped: {skipped_count}"
                 )
 
     except psycopg2.Error as e:

@@ -1,6 +1,8 @@
 import uuid
 from typing import Annotated
 
+from core.crud.admin.users import get_users as get_users_core
+from core.db_query import OutputType
 from core.enumerations import UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -9,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import dependencies, interfaces
 from app._crud.admin.users import create_user as create_user_crud
 from app._crud.admin.users import delete_user as delete_user_crud
-from app._crud.admin.users import get_users as crud_get_users
 from app._utils.user_management import (
     create_clerk_user,
     delete_clerk_user,
@@ -60,7 +61,9 @@ async def get_users(
         include_image_urls: Whether to request profile images from Clerk.
         api_prod: Flag indicating if requests should target the prod Clerk API.
     """
-    users = await crud_get_users(db=db, company_ids=company_ids, user_ids=user_ids)
+    users = await get_users_core(company_ids=company_ids, user_ids=user_ids).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
 
     # Process each user tuple and add operational_project_ids and optionally image URLs
     users_with_project_ids = []

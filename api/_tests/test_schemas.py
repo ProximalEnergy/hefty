@@ -23,7 +23,7 @@ def test_point_valid_wkb_conversion():
     wkb_element = from_shape(shapely_point)
 
     # Convert WKBElement to GeoJSON format
-    geojson_data = convert(wkb_element)
+    geojson_data = convert(WKBElement=wkb_element)
 
     # Validate with Point model
     point = Point.model_validate(geojson_data)
@@ -51,9 +51,9 @@ def test_point_invalid_coordinate_types():
         )
 
 
-def test_convert_function_with_none():
-    """Tests convert function returns None when input is None."""
-    result = convert(None)
+def test_convert_none():
+    """Test convert with None input."""
+    result = convert(WKBElement=None)
     assert result is None
 
 
@@ -64,7 +64,7 @@ def test_convert_function_with_wkb_element():
     wkb_element = from_shape(shapely_point)
 
     # Convert to GeoJSON
-    result = convert(wkb_element)
+    result = convert(WKBElement=wkb_element)
 
     assert result is not None
     assert result["type"] == "Point"
