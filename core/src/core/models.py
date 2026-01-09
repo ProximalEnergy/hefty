@@ -854,6 +854,10 @@ class KPIType(Base):
     unit: Mapped[str | None]
     aggregation_method: Mapped[str]
     doc_url: Mapped[str | None]
+    critical_low: Mapped[float | None]
+    warning_low: Mapped[float | None]
+    warning_high: Mapped[float | None]
+    critical_high: Mapped[float | None]
 
     device_type = relationship("DeviceType")
     __table_args__ = {"schema": "operational"}
