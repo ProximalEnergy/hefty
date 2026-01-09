@@ -10,6 +10,7 @@ from uuid import UUID
 import boto3
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
+from core.dependencies import with_db_async
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -47,7 +48,6 @@ from app._crud.projects import (
 )
 from app._utils.user_management import get_user_email_from_clerk
 from app.dependencies import (
-    _with_async_db,
     check_project_access_async,
     get_project_name_short_async,
 )
@@ -405,13 +405,14 @@ async def send_event_chat_email(
 
 async def send_notifications_for_message(
     *,
+    db: AsyncSession,
+    project_db: AsyncSession,
+    project_id: UUID,
     event_id: int,
     sender_user_id: str,
     sender_company_id: UUID,
     message_body: str,
     is_first_message: bool,
-    project_id: UUID | None,
-    db: AsyncSession,
     api_prod: bool,
 ) -> None:
     """Send email notifications for event chat messages.
@@ -427,32 +428,21 @@ async def send_notifications_for_message(
           this project
 
     Args:
+        db: TODO: describe.
+        project_db: database with project schema
+        project_id: the project id
         event_id: TODO: describe.
         sender_user_id: TODO: describe.
         sender_company_id: TODO: describe.
         message_body: TODO: describe.
         is_first_message: TODO: describe.
-        project_id: TODO: describe.
-        db: TODO: describe.
         api_prod: TODO: describe.
     """
-    # Get project schema name
-    project_name_short = None
-    if project_id:
-        project_name_short = await get_project_name_short_async(project_id=project_id)
-
-    if not project_name_short:
-        logger.warning(
-            f"Could not determine project schema for project_id {project_id}, "
-            "skipping notifications"
-        )
-        return
 
     # Get users who have posted to this event
-    async with _with_async_db(schema=project_name_short) as project_db:
-        users_who_posted = await crud_event_messages.get_users_who_posted_to_event(
-            db=project_db, event_id=event_id
-        )
+    users_who_posted = await crud_event_messages.get_users_who_posted_to_event(
+        db=project_db, event_id=event_id
+    )
 
     # Determine recipients
     if is_first_message:
@@ -465,19 +455,18 @@ async def send_notifications_for_message(
 
     # Remove sender and muted users
     recipient_user_ids.discard(sender_user_id)
-    async with _with_async_db(schema=project_name_short) as project_db:
-        mutes = await crud_event_chat_mutes.get_event_chat_mutes(
-            db=project_db, event_id=event_id
-        )
-        muted_user_ids = {
-            mute.user_id for mute in mutes if mute.user_id in recipient_user_ids
-        }
+    mutes = await crud_event_chat_mutes.get_event_chat_mutes(
+        db=project_db, event_id=event_id
+    )
+    muted_user_ids = {
+        mute.user_id for mute in mutes if mute.user_id in recipient_user_ids
+    }
     recipient_user_ids -= muted_user_ids
 
     # Remove users who have disabled event chat notifications for this project
     # (only applies to first messages - subsequent messages only go to active
     # participants)
-    if is_first_message and project_id:
+    if is_first_message:
         disabled_user_ids = set()
         for user_id in recipient_user_ids:
             enabled = await crud_is_event_chat_notification_enabled(
@@ -510,57 +499,47 @@ async def send_notifications_for_message(
     device_type_name = None
     failure_mode_name = None
 
-    if project_id:
-        try:
-            # Get project name
-            db_query = get_projects(project_ids=[project_id])
-            rows = await db_query.get_async(output_type=OutputType.SQLALCHEMY)
-            if rows:
-                project = rows[0]
-                project_name = project.name_long
+    try:
+        # Get project name
+        db_query = get_projects(project_ids=[project_id])
+        rows = await db_query.get_async(output_type=OutputType.SQLALCHEMY)
+        if rows:
+            project = rows[0]
+            project_name = project.name_long
 
-            # Get event details from project schema
-            project_name_short = await get_project_name_short_async(
-                project_id=project_id
+        # Get event details from project schema
+        project_name_short = await get_project_name_short_async(project_id=project_id)
+        if project_name_short:
+            # Query event with device and failure_mode relationships
+            stmt = (
+                select(models.Event)
+                .options(
+                    selectinload(models.Event.device).selectinload(
+                        models.Device.device_type
+                    ),
+                    selectinload(models.Event.failure_mode),
+                )
+                .where(models.Event.event_id == event_id)
             )
-            if project_name_short:
-                async with _with_async_db(schema=project_name_short) as project_db:
-                    # Query event with device and failure_mode relationships
-                    stmt = (
-                        select(models.Event)
-                        .options(
-                            selectinload(models.Event.device).selectinload(
-                                models.Device.device_type
-                            ),
-                            selectinload(models.Event.failure_mode),
-                        )
-                        .where(models.Event.event_id == event_id)
-                    )
-                    result = await project_db.execute(stmt)
-                    event = result.scalar_one_or_none()
+            result = await project_db.execute(stmt)
+            event = result.scalar_one_or_none()
 
-                    if event:
-                        # Get device type name
-                        if event.device and event.device.device_type:
-                            device_type_name = event.device.device_type.name_long
+            if event:
+                # Get device type name
+                if event.device and event.device.device_type:
+                    device_type_name = event.device.device_type.name_long
 
-                        # Get failure mode name
-                        if event.failure_mode:
-                            failure_mode_name = event.failure_mode.name_long
-        except Exception as e:
-            logger.warning(
-                f"Failed to fetch event details for event {event_id}: {str(e)}"
-            )
+                # Get failure mode name
+                if event.failure_mode:
+                    failure_mode_name = event.failure_mode.name_long
+    except Exception as e:
+        logger.warning(f"Failed to fetch event details for event {event_id}: {str(e)}")
 
     # Build event URL with project_id
-    if project_id:
-        event_url = (
-            "https://app.proximal.energy/projects/"
-            f"{project_id}/events/event?eventId={event_id}"
-        )
-    else:
-        # Fallback if project_id is not available
-        event_url = f"https://app.proximal.energy/projects/events?eventId={event_id}"
+    event_url = (
+        "https://app.proximal.energy/projects/"
+        f"{project_id}/events/event?eventId={event_id}"
+    )
 
     # Send emails to each recipient
     for user_tuple in recipient_users:
@@ -595,7 +574,7 @@ async def send_notifications_for_message(
 @router.get("")
 async def get_event_messages(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: Annotated[int, Query(...)],
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
@@ -603,8 +582,6 @@ async def get_event_messages(
 ) -> list[EventMessage]:
     """Get all non-deleted messages for a specific event.
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
         Query Parameters:
             event_id: The ID of the event to get messages for
 
@@ -612,25 +589,21 @@ async def get_event_messages(
             List of event messages, ordered by created_at (ascending)
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_id: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    message_models = await crud_event_messages.get_event_messages(
+        db=project_db, event_id=event_id
+    )
 
-    async with _with_async_db(schema=project_name_short) as project_db:
-        message_models = await crud_event_messages.get_event_messages(
-            db=project_db, event_id=event_id
-        )
-
-        return [_model_to_pydantic_message(model=msg) for msg in message_models]
+    return [_model_to_pydantic_message(model=msg) for msg in message_models]
 
 
 @router.post("")
 async def create_event_message(
     *,
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     project_id: Annotated[UUID, Path(...)],
     message: EventMessageCreate,
     background_tasks: BackgroundTasks,
@@ -648,8 +621,6 @@ async def create_event_message(
             - First message: all company users
             - Subsequent messages: users who have posted (excluding muted users)
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
         Request Body:
             event_id: The ID of the event
             body: The message content (may contain @mentions)
@@ -658,6 +629,7 @@ async def create_event_message(
             The created event message
 
     Args:
+        project_db: TODO: describe.
         project_id: TODO: describe.
         message: TODO: describe.
         background_tasks: TODO: describe.
@@ -668,55 +640,55 @@ async def create_event_message(
     # Extract mentions from body
     mentioned_usernames = extract_mentions(body=message.body)
 
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    # Check if this is the first message BEFORE creating (for notification logic)
+    existing_messages = await crud_event_messages.get_event_messages(
+        db=project_db, event_id=message.event_id
+    )
+    is_first_message = len(existing_messages) == 0
 
-    async with _with_async_db(schema=project_name_short) as project_db:
-        # Check if this is the first message BEFORE creating (for notification logic)
-        existing_messages = await crud_event_messages.get_event_messages(
-            db=project_db, event_id=message.event_id
+    # Create message in database
+    message_model = await crud_event_messages.create_event_message(
+        db=project_db,
+        event_id=message.event_id,
+        user_id=user_data.user_id,
+        body=message.body,
+        mentions=",".join(mentioned_usernames) if mentioned_usernames else None,
+        parent_message_id=message.parent_message_id,
+        private=message.private,
+    )
+    # Save the ID before commit (flush already populated it)
+    message_id = message_model.event_message_id
+    await project_db.commit()
+    # Reload message with images relationship after commit
+    reloaded_message_model = await crud_event_messages.get_event_message_by_id(
+        db=project_db, event_message_id=message_id
+    )
+    if not reloaded_message_model:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve created message"
         )
-        is_first_message = len(existing_messages) == 0
 
-        # Create message in database
-        message_model = await crud_event_messages.create_event_message(
-            db=project_db,
-            event_id=message.event_id,
-            user_id=user_data.user_id,
-            body=message.body,
-            mentions=",".join(mentioned_usernames) if mentioned_usernames else None,
-            parent_message_id=message.parent_message_id,
-            private=message.private,
-        )
-        # Save the ID before commit (flush already populated it)
-        message_id = message_model.event_message_id
-        await project_db.commit()
-        # Reload message with images relationship after commit
-        reloaded_message_model = await crud_event_messages.get_event_message_by_id(
-            db=project_db, event_message_id=message_id
-        )
-        if not reloaded_message_model:
-            raise HTTPException(
-                status_code=500, detail="Failed to retrieve created message"
-            )
-
-        event_message = _model_to_pydantic_message(model=reloaded_message_model)
+    event_message = _model_to_pydantic_message(model=reloaded_message_model)
 
     # Send notifications in background
     async def send_notifications_background():
-        """todo"""
-        async with _with_async_db(schema=None) as bg_db:
-            await send_notifications_for_message(
-                event_id=message.event_id,
-                sender_user_id=user_data.user_id,
-                sender_company_id=user_data.company_id,
-                message_body=message.body,
-                is_first_message=is_first_message,
-                project_id=project_id,
-                db=bg_db,
-                api_prod=api_prod,
+        """Send notifications for the message in a background task."""
+        async with with_db_async(schema=None) as db_session:
+            project_name_short = await get_project_name_short_async(
+                project_id=project_id
             )
+            async with with_db_async(schema=project_name_short) as project_db_session:
+                await send_notifications_for_message(
+                    event_id=message.event_id,
+                    sender_user_id=user_data.user_id,
+                    sender_company_id=user_data.company_id,
+                    message_body=message.body,
+                    is_first_message=is_first_message,
+                    project_id=project_id,
+                    db=db_session,
+                    project_db=project_db_session,
+                    api_prod=api_prod,
+                )
 
     background_tasks.add_task(send_notifications_background)
 
@@ -913,7 +885,7 @@ async def update_event_chat_notification_statuses_batch_route(
 @router.put("/{event_message_id}")
 async def update_event_message(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
     message: EventMessageUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -927,8 +899,6 @@ async def update_event_message(
         - User owns the message
         - Message exists and is not deleted
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
         Request Body:
             body: The updated message content (may contain @mentions)
 
@@ -936,7 +906,7 @@ async def update_event_message(
             The updated event message
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_message_id: TODO: describe.
         message: TODO: describe.
         db: TODO: describe.
@@ -945,95 +915,90 @@ async def update_event_message(
     # Extract mentions from body
     mentioned_usernames = extract_mentions(body=message.body)
 
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-
-    async with _with_async_db(schema=project_name_short) as project_db:
-        # Verify message exists and user owns it
-        message_model = await crud_event_messages.get_event_message_by_id(
-            db=project_db, event_message_id=event_message_id
-        )
-        if not message_model:
-            raise HTTPException(
-                status_code=404, detail=f"Event message {event_message_id} not found"
-            )
-
-        if message_model.user_id != user_data.user_id:
-            raise HTTPException(
-                status_code=403, detail="You can only edit your own messages"
-            )
-
-        # Get all existing images for this message
-        existing_images = await crud_event_message_images.get_event_message_images(
-            db=project_db, event_message_id=event_message_id
+    # Verify message exists and user owns it
+    message_model = await crud_event_messages.get_event_message_by_id(
+        db=project_db, event_message_id=event_message_id
+    )
+    if not message_model:
+        raise HTTPException(
+            status_code=404, detail=f"Event message {event_message_id} not found"
         )
 
-        # If image_ids is provided, delete images not in the list
-        # This allows the frontend to specify exactly which images to keep
-        if message.image_ids is not None:
-            try:
-                # Convert to UUID objects if needed (Pydantic may already convert them)
-                image_ids_set = set()
-                for img_id in message.image_ids:
-                    if isinstance(img_id, UUID):
-                        image_ids_set.add(img_id)
-                    else:
-                        # If it's a string, convert it
-                        image_ids_set.add(UUID(img_id))
-            except (ValueError, TypeError) as e:
-                logger.error(f"Error converting image IDs to UUIDs: {e}")
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid image ID format: {e}",
+    if message_model.user_id != user_data.user_id:
+        raise HTTPException(
+            status_code=403, detail="You can only edit your own messages"
+        )
+
+    # Get all existing images for this message
+    existing_images = await crud_event_message_images.get_event_message_images(
+        db=project_db, event_message_id=event_message_id
+    )
+
+    # If image_ids is provided, delete images not in the list
+    # This allows the frontend to specify exactly which images to keep
+    if message.image_ids is not None:
+        try:
+            # Convert to UUID objects if needed (Pydantic may already convert them)
+            image_ids_set = set()
+            for img_id in message.image_ids:
+                if isinstance(img_id, UUID):
+                    image_ids_set.add(img_id)
+                else:
+                    # If it's a string, convert it
+                    image_ids_set.add(UUID(img_id))
+        except (ValueError, TypeError) as e:
+            logger.error(f"Error converting image IDs to UUIDs: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid image ID format: {e}",
+            )
+
+        images_deleted = False
+        for img in existing_images:
+            if img.event_message_image_id not in image_ids_set:
+                await crud_event_message_images.delete_event_message_image(
+                    db=project_db,
+                    event_message_image_id=img.event_message_image_id,
                 )
+                images_deleted = True
 
-            images_deleted = False
-            for img in existing_images:
-                if img.event_message_image_id not in image_ids_set:
-                    await crud_event_message_images.delete_event_message_image(
-                        db=project_db,
-                        event_message_image_id=img.event_message_image_id,
-                    )
-                    images_deleted = True
+        # Flush deletions before querying remaining keys
+        if images_deleted:
+            await project_db.flush()
 
-            # Flush deletions before querying remaining keys
-            if images_deleted:
-                await project_db.flush()
+    # Update message
+    updated_message = await crud_event_messages.update_event_message(
+        db=project_db,
+        event_message_id=event_message_id,
+        body=message.body,
+        mentions=",".join(mentioned_usernames) if mentioned_usernames else None,
+    )
+    if not updated_message:
+        raise HTTPException(status_code=500, detail="Failed to update message")
 
-        # Update message
-        updated_message = await crud_event_messages.update_event_message(
-            db=project_db,
-            event_message_id=event_message_id,
-            body=message.body,
-            mentions=",".join(mentioned_usernames) if mentioned_usernames else None,
+    # Always update image_s3_keys to reflect current state after any deletions
+    # Get fresh list of remaining images after deletions
+    remaining_keys = await crud_event_message_images.get_image_s3_keys_for_message(
+        db=project_db, event_message_id=event_message_id
+    )
+    await crud_event_messages.update_event_message_image_s3_keys(
+        db=project_db,
+        event_message_id=event_message_id,
+        image_s3_keys=",".join(remaining_keys) if remaining_keys else None,
+    )
+
+    await project_db.commit()
+
+    # Reload message with images relationship after commit
+    reloaded_message_model = await crud_event_messages.get_event_message_by_id(
+        db=project_db, event_message_id=event_message_id
+    )
+    if not reloaded_message_model:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve updated message"
         )
-        if not updated_message:
-            raise HTTPException(status_code=500, detail="Failed to update message")
 
-        # Always update image_s3_keys to reflect current state after any deletions
-        # Get fresh list of remaining images after deletions
-        remaining_keys = await crud_event_message_images.get_image_s3_keys_for_message(
-            db=project_db, event_message_id=event_message_id
-        )
-        await crud_event_messages.update_event_message_image_s3_keys(
-            db=project_db,
-            event_message_id=event_message_id,
-            image_s3_keys=",".join(remaining_keys) if remaining_keys else None,
-        )
-
-        await project_db.commit()
-
-        # Reload message with images relationship after commit
-        reloaded_message_model = await crud_event_messages.get_event_message_by_id(
-            db=project_db, event_message_id=event_message_id
-        )
-        if not reloaded_message_model:
-            raise HTTPException(
-                status_code=500, detail="Failed to retrieve updated message"
-            )
-
-        event_message = _model_to_pydantic_message(model=reloaded_message_model)
+    event_message = _model_to_pydantic_message(model=reloaded_message_model)
 
     return event_message
 
@@ -1041,7 +1006,7 @@ async def update_event_message(
 @router.delete("/{event_message_id}")
 async def delete_event_message(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
@@ -1054,57 +1019,49 @@ async def delete_event_message(
         - User owns the message
         - Message exists
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-
         Returns:
             The deleted event message (with deleted_at set)
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_message_id: TODO: describe.
         db: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-
-    async with _with_async_db(schema=project_name_short) as project_db:
-        # Delete message (soft delete)
-        deleted_message = await crud_event_messages.delete_event_message(
-            db=project_db,
-            event_message_id=event_message_id,
-            user_id=user_data.user_id,
+    # Delete message (soft delete)
+    deleted_message = await crud_event_messages.delete_event_message(
+        db=project_db,
+        event_message_id=event_message_id,
+        user_id=user_data.user_id,
+    )
+    if not deleted_message:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Event message {event_message_id} not found or you don't have "
+                "permission to delete it"
+            ),
         )
-        if not deleted_message:
-            raise HTTPException(
-                status_code=404,
-                detail=(
-                    f"Event message {event_message_id} not found or you don't have "
-                    "permission to delete it"
-                ),
-            )
 
-        await project_db.commit()
+    await project_db.commit()
 
-        # Reload message with images relationship after commit
-        # Note: get_event_message_by_id filters out deleted messages,
-        # so we need to fetch it directly
-        stmt = (
-            select(models.EventMessage)
-            .options(selectinload(models.EventMessage.images))
-            .where(models.EventMessage.event_message_id == event_message_id)
+    # Reload message with images relationship after commit
+    # Note: get_event_message_by_id filters out deleted messages,
+    # so we need to fetch it directly
+    stmt = (
+        select(models.EventMessage)
+        .options(selectinload(models.EventMessage.images))
+        .where(models.EventMessage.event_message_id == event_message_id)
+    )
+    result = await project_db.execute(stmt)
+    reloaded_message_model = result.scalar_one_or_none()
+
+    if not reloaded_message_model:
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve deleted message"
         )
-        result = await project_db.execute(stmt)
-        reloaded_message_model = result.scalar_one_or_none()
 
-        if not reloaded_message_model:
-            raise HTTPException(
-                status_code=500, detail="Failed to retrieve deleted message"
-            )
-
-        event_message = _model_to_pydantic_message(model=reloaded_message_model)
+    event_message = _model_to_pydantic_message(model=reloaded_message_model)
 
     return event_message
 
@@ -1112,7 +1069,7 @@ async def delete_event_message(
 @router.post("/{event_id}/mute")
 async def toggle_event_chat_mute(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
@@ -1120,26 +1077,18 @@ async def toggle_event_chat_mute(
 ) -> dict:
     """Toggle mute status for an event chat.
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-
         Returns:
             {"muted": bool} - True if muted, False if unmuted
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_id: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-
-    async with _with_async_db(schema=project_name_short) as project_db:
-        is_muted = await crud_event_chat_mutes.toggle_event_chat_mute(
-            db=project_db, event_id=event_id, user_id=user_data.user_id
-        )
-        await project_db.commit()
+    is_muted = await crud_event_chat_mutes.toggle_event_chat_mute(
+        db=project_db, event_id=event_id, user_id=user_data.user_id
+    )
+    await project_db.commit()
 
     return {"muted": is_muted}
 
@@ -1147,7 +1096,7 @@ async def toggle_event_chat_mute(
 @router.get("/{event_id}/mute-status")
 async def get_event_chat_mute_status(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
@@ -1155,25 +1104,17 @@ async def get_event_chat_mute_status(
 ) -> dict:
     """Get mute status for an event chat.
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-
         Returns:
             {"muted": bool} - True if muted, False if not muted
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_id: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-
-    async with _with_async_db(schema=project_name_short) as project_db:
-        is_muted = await crud_event_chat_mutes.is_event_chat_muted(
-            db=project_db, event_id=event_id, user_id=user_data.user_id
-        )
+    is_muted = await crud_event_chat_mutes.is_event_chat_muted(
+        db=project_db, event_id=event_id, user_id=user_data.user_id
+    )
 
     return {"muted": is_muted}
 
@@ -1251,7 +1192,7 @@ def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -
 @router.post("/{event_id}/images/{event_message_id}")
 async def upload_event_message_image(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     event_message_id: int,
     file: UploadFile = File(...),
@@ -1266,9 +1207,6 @@ async def upload_event_message_image(
         - File is a valid image type (jpeg, png, gif, webp)
         - File size is within limit (10MB)
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-
         Returns:
             {
                 "event_message_image_id": UUID,
@@ -1280,7 +1218,7 @@ async def upload_event_message_image(
             }
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_id: TODO: describe.
         event_message_id: TODO: describe.
         file: TODO: describe.
@@ -1289,105 +1227,98 @@ async def upload_event_message_image(
     # Validate file type
     _validate_image_file(file=file)
 
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-
-    async with _with_async_db(schema=project_name_short) as project_db:
-        # Verify message exists and belongs to this event
-        message = await crud_event_messages.get_event_message_by_id(
-            db=project_db, event_message_id=event_message_id
-        )
-        if not message or message.event_id != event_id:
-            raise HTTPException(
-                status_code=404,
-                detail=(
-                    f"Event message {event_message_id} not found for event {event_id}"
-                ),
-            )
-
-        # Read file content
-        file_content = await file.read()
-        file_size = len(file_content)
-
-        # Validate file size
-        if file_size > MAX_IMAGE_SIZE_BYTES:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"File size ({file_size / 1024 / 1024:.2f}MB) exceeds "
-                    f"maximum allowed size ({MAX_IMAGE_SIZE_MB}MB)"
-                ),
-            )
-
-        if file_size == 0:
-            raise HTTPException(status_code=400, detail="File is empty")
-
-        # Generate S3 key
-        filename = file.filename or "image"
-        s3_key = _generate_image_s3_key(
-            event_id=event_id,
-            event_message_id=event_message_id,
-            filename=filename,
+    # Verify message exists and belongs to this event
+    message = await crud_event_messages.get_event_message_by_id(
+        db=project_db, event_message_id=event_message_id
+    )
+    if not message or message.event_id != event_id:
+        raise HTTPException(
+            status_code=404,
+            detail=(f"Event message {event_message_id} not found for event {event_id}"),
         )
 
-        # Upload to S3
-        s3_client = boto3.client("s3", region_name=EVENT_CHAT_IMAGES_REGION_NAME)
-        try:
-            s3_client.put_object(
-                Bucket=EVENT_CHAT_IMAGES_BUCKET_NAME,
-                Key=s3_key,
-                Body=file_content,
-                ContentType=file.content_type or "image/jpeg",
-            )
-        except Exception as e:
-            logger.error(f"Failed to upload image to S3: {e}")
-            raise HTTPException(
-                status_code=500, detail="Failed to upload image. Please try again."
-            )
+    # Read file content
+    file_content = await file.read()
+    file_size = len(file_content)
 
-        # Create image record in database
-        image_model = await crud_event_message_images.create_event_message_image(
-            db=project_db,
-            event_message_id=event_message_id,
-            event_id=event_id,
-            s3_key=s3_key,
-            filename=filename,
-            content_type=file.content_type or "image/jpeg",
-            file_size=file_size,
+    # Validate file size
+    if file_size > MAX_IMAGE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"File size ({file_size / 1024 / 1024:.2f}MB) exceeds "
+                f"maximum allowed size ({MAX_IMAGE_SIZE_MB}MB)"
+            ),
         )
-        # Save the ID before commit (flush already populated it)
-        image_id = image_model.event_message_image_id
-        await project_db.commit()
 
-        # Update message's image_s3_keys (computed field)
-        existing_keys = await crud_event_message_images.get_image_s3_keys_for_message(
-            db=project_db, event_message_id=event_message_id
+    if file_size == 0:
+        raise HTTPException(status_code=400, detail="File is empty")
+
+    # Generate S3 key
+    filename = file.filename or "image"
+    s3_key = _generate_image_s3_key(
+        event_id=event_id,
+        event_message_id=event_message_id,
+        filename=filename,
+    )
+
+    # Upload to S3
+    s3_client = boto3.client("s3", region_name=EVENT_CHAT_IMAGES_REGION_NAME)
+    try:
+        s3_client.put_object(
+            Bucket=EVENT_CHAT_IMAGES_BUCKET_NAME,
+            Key=s3_key,
+            Body=file_content,
+            ContentType=file.content_type or "image/jpeg",
         )
-        await crud_event_messages.update_event_message_image_s3_keys(
-            db=project_db,
-            event_message_id=event_message_id,
-            image_s3_keys=",".join(existing_keys),
+    except Exception as e:
+        logger.error(f"Failed to upload image to S3: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to upload image. Please try again."
         )
-        await project_db.commit()
 
-        # Generate presigned URL
-        presigned_url = _generate_image_presigned_url(s3_key=s3_key)
+    # Create image record in database
+    image_model = await crud_event_message_images.create_event_message_image(
+        db=project_db,
+        event_message_id=event_message_id,
+        event_id=event_id,
+        s3_key=s3_key,
+        filename=filename,
+        content_type=file.content_type or "image/jpeg",
+        file_size=file_size,
+    )
+    # Save the ID before commit (flush already populated it)
+    image_id = image_model.event_message_image_id
+    await project_db.commit()
 
-        return {
-            "event_message_image_id": image_id,
-            "s3_key": s3_key,
-            "filename": filename,
-            "content_type": file.content_type or "image/jpeg",
-            "file_size": file_size,
-            "presigned_url": presigned_url,
-        }
+    # Update message's image_s3_keys (computed field)
+    existing_keys = await crud_event_message_images.get_image_s3_keys_for_message(
+        db=project_db, event_message_id=event_message_id
+    )
+    await crud_event_messages.update_event_message_image_s3_keys(
+        db=project_db,
+        event_message_id=event_message_id,
+        image_s3_keys=",".join(existing_keys),
+    )
+    await project_db.commit()
+
+    # Generate presigned URL
+    presigned_url = _generate_image_presigned_url(s3_key=s3_key)
+
+    return {
+        "event_message_image_id": image_id,
+        "s3_key": s3_key,
+        "filename": filename,
+        "content_type": file.content_type or "image/jpeg",
+        "file_size": file_size,
+        "presigned_url": presigned_url,
+    }
 
 
 @router.get("/{event_id}/images/{image_id}/url")
 async def get_event_message_image_url(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     image_id: UUID,
     user_data: Annotated[
@@ -1398,50 +1329,42 @@ async def get_event_message_image_url(
 
         Validates user has access to the event before generating URL.
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-
         Returns:
             {"presigned_url": str, "s3_key": str}
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_id: TODO: describe.
         image_id: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    # Find image record
+    image = await crud_event_message_images.get_event_message_image_by_id(
+        db=project_db, event_message_image_id=image_id
+    )
 
-    async with _with_async_db(schema=project_name_short) as project_db:
-        # Find image record
-        image = await crud_event_message_images.get_event_message_image_by_id(
-            db=project_db, event_message_image_id=image_id
-        )
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
 
-        if not image:
-            raise HTTPException(status_code=404, detail="Image not found")
+    # Verify image belongs to this event
+    if image.event_id != event_id:
+        raise HTTPException(status_code=404, detail="Image not found")
 
-        # Verify image belongs to this event
-        if image.event_id != event_id:
-            raise HTTPException(status_code=404, detail="Image not found")
+    # Generate presigned URL with download disposition
+    presigned_url = _generate_image_presigned_url(
+        s3_key=image.s3_key, filename=image.filename
+    )
 
-        # Generate presigned URL with download disposition
-        presigned_url = _generate_image_presigned_url(
-            s3_key=image.s3_key, filename=image.filename
-        )
-
-        return {
-            "presigned_url": presigned_url,
-            "s3_key": image.s3_key,
-        }
+    return {
+        "presigned_url": presigned_url,
+        "s3_key": image.s3_key,
+    }
 
 
 @router.get("/{event_id}/messages/{event_message_id}/images")
 async def get_event_message_images(
     *,
-    project_id: Annotated[UUID, Path(...)],
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     event_message_id: int,
     user_data: Annotated[
@@ -1450,49 +1373,41 @@ async def get_event_message_images(
 ) -> list[dict]:
     """Get all images for an event message with presigned URLs.
 
-        Path Parameters:
-            project_id: The project ID (required to determine schema)
-
         Returns:
             List of image objects with presigned URLs
 
     Args:
-        project_id: TODO: describe.
+        project_db: TODO: describe.
         event_id: TODO: describe.
         event_message_id: TODO: describe.
         user_data: TODO: describe.
     """
-    project_name_short = await get_project_name_short_async(project_id=project_id)
-    if not project_name_short:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    # Verify message exists and belongs to this event
+    message = await crud_event_messages.get_event_message_by_id(
+        db=project_db, event_message_id=event_message_id
+    )
+    if not message or message.event_id != event_id:
+        raise HTTPException(status_code=404, detail="Event message not found")
 
-    async with _with_async_db(schema=project_name_short) as project_db:
-        # Verify message exists and belongs to this event
-        message = await crud_event_messages.get_event_message_by_id(
-            db=project_db, event_message_id=event_message_id
+    # Get images for this message
+    image_models = await crud_event_message_images.get_event_message_images(
+        db=project_db, event_message_id=event_message_id
+    )
+
+    # Generate presigned URLs for each image
+    result = []
+    for image in image_models:
+        # For display, don't force download (use filename=None)
+        presigned_url = _generate_image_presigned_url(s3_key=image.s3_key)
+        result.append(
+            {
+                "event_message_image_id": image.event_message_image_id,
+                "s3_key": image.s3_key,
+                "filename": image.filename,
+                "content_type": image.content_type,
+                "file_size": image.file_size,
+                "presigned_url": presigned_url,
+            }
         )
-        if not message or message.event_id != event_id:
-            raise HTTPException(status_code=404, detail="Event message not found")
 
-        # Get images for this message
-        image_models = await crud_event_message_images.get_event_message_images(
-            db=project_db, event_message_id=event_message_id
-        )
-
-        # Generate presigned URLs for each image
-        result = []
-        for image in image_models:
-            # For display, don't force download (use filename=None)
-            presigned_url = _generate_image_presigned_url(s3_key=image.s3_key)
-            result.append(
-                {
-                    "event_message_image_id": image.event_message_image_id,
-                    "s3_key": image.s3_key,
-                    "filename": image.filename,
-                    "content_type": image.content_type,
-                    "file_size": image.file_size,
-                    "presigned_url": presigned_url,
-                }
-            )
-
-        return result
+    return result

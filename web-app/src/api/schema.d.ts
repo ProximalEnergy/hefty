@@ -1923,8 +1923,6 @@ export interface paths {
          * Toggle Event Message Reaction
          * @description Toggle a reaction on a message (add if not exists, remove if exists).
          *
-         *     Path Parameters:
-         *         project_id: The project ID (required to determine schema)
          *     Request Body:
          *         event_message_id: The ID of the message
          *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
@@ -1934,7 +1932,7 @@ export interface paths {
          *         The created reaction (if added) or the deleted reaction info (if removed)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         reaction: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -1956,8 +1954,6 @@ export interface paths {
          * Get Event Messages
          * @description Get all non-deleted messages for a specific event.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
          *         Query Parameters:
          *             event_id: The ID of the event to get messages for
          *
@@ -1965,7 +1961,7 @@ export interface paths {
          *             List of event messages, ordered by created_at (ascending)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -1981,8 +1977,6 @@ export interface paths {
          *             - First message: all company users
          *             - Subsequent messages: users who have posted (excluding muted users)
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
          *         Request Body:
          *             event_id: The ID of the event
          *             body: The message content (may contain @mentions)
@@ -1991,6 +1985,7 @@ export interface paths {
          *             The created event message
          *
          *     Args:
+         *         project_db: TODO: describe.
          *         project_id: TODO: describe.
          *         message: TODO: describe.
          *         background_tasks: TODO: describe.
@@ -2084,8 +2079,6 @@ export interface paths {
          *         - User owns the message
          *         - Message exists and is not deleted
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
          *         Request Body:
          *             body: The updated message content (may contain @mentions)
          *
@@ -2093,7 +2086,7 @@ export interface paths {
          *             The updated event message
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_message_id: TODO: describe.
          *         message: TODO: describe.
          *         db: TODO: describe.
@@ -2109,14 +2102,11 @@ export interface paths {
          *         - User owns the message
          *         - Message exists
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             The deleted event message (with deleted_at set)
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_message_id: TODO: describe.
          *         db: TODO: describe.
          *         user_data: TODO: describe.
@@ -2140,14 +2130,11 @@ export interface paths {
          * Toggle Event Chat Mute
          * @description Toggle mute status for an event chat.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {"muted": bool} - True if muted, False if unmuted
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -2169,14 +2156,11 @@ export interface paths {
          * Get Event Chat Mute Status
          * @description Get mute status for an event chat.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {"muted": bool} - True if muted, False if not muted
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -2207,9 +2191,6 @@ export interface paths {
          *         - File is a valid image type (jpeg, png, gif, webp)
          *         - File size is within limit (10MB)
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {
          *                 "event_message_image_id": UUID,
@@ -2221,7 +2202,7 @@ export interface paths {
          *             }
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         event_message_id: TODO: describe.
          *         file: TODO: describe.
@@ -2247,14 +2228,11 @@ export interface paths {
          *
          *         Validates user has access to the event before generating URL.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             {"presigned_url": str, "s3_key": str}
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         image_id: TODO: describe.
          *         user_data: TODO: describe.
@@ -2279,14 +2257,11 @@ export interface paths {
          * Get Event Message Images
          * @description Get all images for an event message with presigned URLs.
          *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *
          *         Returns:
          *             List of image objects with presigned URLs
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_db: TODO: describe.
          *         event_id: TODO: describe.
          *         event_message_id: TODO: describe.
          *         user_data: TODO: describe.
@@ -14730,8 +14705,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14769,8 +14744,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14804,8 +14779,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14841,8 +14816,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14878,9 +14853,9 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14920,9 +14895,9 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
                 image_id: string;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -14958,9 +14933,9 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                project_id: string;
                 event_id: number;
                 event_message_id: number;
+                project_id: string;
             };
             cookie?: never;
         };

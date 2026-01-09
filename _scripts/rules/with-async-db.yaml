@@ -1,0 +1,8 @@
+rules:
+  - id: forbidden-with-async-db-usage
+    message: "_with_async_db should only be used as a FastAPI dependency (within Depends()) or inside api/app/dependencies.py"
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern: _with_async_db(...)
+      - pattern-not-inside: Depends(...)
