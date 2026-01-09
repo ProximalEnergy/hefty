@@ -38,7 +38,7 @@ jobs:
         with:
           enable-cache: true
       - name: Run Semgrep star-syntax check
-        run: uvx semgrep --config _scripts/rules/star-syntax.yaml core/src
+        run: uvx semgrep --error --config _scripts/rules/star-syntax.yaml core/src
 
   mypy:
     runs-on: ubuntu-latest

@@ -194,7 +194,7 @@ run = "uv run --dev ruff format core/"
 [tasks."core:star_syntax"]
 description = "Check for star syntax violations in core"
 dir = "."
-run = "uv run semgrep --config _scripts/rules/star-syntax.yaml core/src"
+run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml core/src"
 
 [tasks."core:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in core"
@@ -313,7 +313,7 @@ run = "uv run --dev ruff format microservices/"
 [tasks."micro:star_syntax"]
 description = "Check for star syntax violations in microservices"
 dir = "."
-run = "uv run semgrep --config _scripts/rules/star-syntax.yaml microservices"
+run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml microservices"
 
 [tasks."micro:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in micro"
@@ -392,7 +392,7 @@ run = "uv run pytest"
 [tasks."api:star_syntax"]
 description = "Check for star syntax violations in api"
 dir = "."
-run = "uv run semgrep --config _scripts/rules/star-syntax.yaml api/app"
+run = "uv run semgrep --error --config _scripts/rules/star-syntax.yaml api/app"
 
 [tasks."api:sqlalchemy"]
 description = "Check for disallowed SQLAlchemy query/filter usage in api"
