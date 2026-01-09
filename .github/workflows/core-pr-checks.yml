@@ -132,7 +132,7 @@ jobs:
         working-directory: core
         run: |
           # Extract the current version from the pyproject.toml file.
-          current_version=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          current_version=$(uv run -q python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           echo "Current version in pyproject.toml: $current_version"
 
           # Fetch the latest published version from AWS CodeArtifact.
@@ -143,17 +143,22 @@ jobs:
 
           # Use Python's `packaging` library for a robust semantic version comparison.
           # The script will exit with an error if the current version is not strictly greater than the latest published version.
-          uv run python - <<EOF
+          uv run -q python - <<EOF
           from packaging.version import parse as V
 
-          current = "$current_version"
-          latest = "$latest_version"
+          current = "$current_version".strip()
+          latest = "$latest_version".strip()
 
-          current_parsed = V(current)
-          latest_parsed = V(latest)
+          print(f"DEBUG: Comparing '{current}' vs '{latest}'")
 
-          # Compare base versions only
-          if current_parsed.base_version <= latest_parsed.base_version:
+          try:
+              current_parsed = V(current)
+              latest_parsed = V(latest)
+          except Exception as e:
+               print(f"::error::Version parsing failed: {e}")
+               exit(1)
+
+          if current_parsed <= latest_parsed:
               print(f"::error::Version check failed. The current version ({current}) must be greater than the latest published version ({latest}). Please bump the version in core/pyproject.toml.")
               exit(1)
 
