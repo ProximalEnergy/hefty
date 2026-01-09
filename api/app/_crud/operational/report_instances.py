@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from core.db_query import DbQuery
@@ -14,7 +15,7 @@ def get_report_instances(
     is_visible: bool | None,
     report_type_ids: list[int] | None = None,
     deep: bool = False,
-):
+) -> DbQuery[models.ReportInstance, Literal[False]]:
     """todo
 
     Args:

@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
@@ -11,7 +12,7 @@ def get_company_projects(
     company_ids: list[UUID] | None = None,
     project_ids: list[UUID] | None = None,
     vector_store_ids: str | None = None,
-) -> DbQuery[models.CompanyProject]:
+) -> DbQuery[models.CompanyProject, Literal[False]]:
     """Get company projects by filters.
 
     Args:

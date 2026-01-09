@@ -27,6 +27,7 @@ class DbQuery(Generic[T, S]):
     query: TextClause | Select
     sql_string: str
     is_scalar: S
+    use_scalars: bool
 
     @overload
     def __init__(
@@ -41,6 +42,7 @@ class DbQuery(Generic[T, S]):
         *,
         query: TextClause,
         is_scalar: Literal[False] = False,
+        use_scalars: bool = True,
     ) -> None: ...
     @overload
     def __init__(
@@ -55,6 +57,7 @@ class DbQuery(Generic[T, S]):
         *,
         query: Select,
         is_scalar: Literal[False] = False,
+        use_scalars: bool = True,
     ) -> None: ...
     @overload
     def _read_data(

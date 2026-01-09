@@ -8,6 +8,7 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
+from core.crud.admin.users import get_users
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
 from core.dependencies import with_db_async
@@ -36,7 +37,6 @@ from app._crud.admin.user_subscriptions import (
 from app._crud.admin.user_subscriptions import (
     is_event_chat_notification_enabled as crud_is_event_chat_notification_enabled,
 )
-from app._crud.admin.users import get_users as crud_get_users
 from app._crud.projects import (
     event_chat_mutes as crud_event_chat_mutes,
 )
@@ -447,7 +447,9 @@ async def send_notifications_for_message(
     # Determine recipients
     if is_first_message:
         # First message: notify all company users
-        company_users = await crud_get_users(db=db, company_ids=[sender_company_id])
+        company_users = await get_users(company_ids=[sender_company_id]).get_async(
+            output_type=OutputType.SQLALCHEMY
+        )
         recipient_user_ids = {user[0].user_id for user in company_users}
     else:
         # Subsequent messages: notify users who posted
@@ -481,7 +483,9 @@ async def send_notifications_for_message(
         return
 
     # Get sender info
-    sender_users = await crud_get_users(db=db, user_ids=[sender_user_id])
+    sender_users = await get_users(user_ids=[sender_user_id]).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
     sender_name = sender_users[0][0].name_long if sender_users else "Unknown User"
 
     # Get company info for theme colors
@@ -492,7 +496,9 @@ async def send_notifications_for_message(
     )
 
     # Get recipient user details
-    recipient_users = await crud_get_users(db=db, user_ids=list(recipient_user_ids))
+    recipient_users = await get_users(user_ids=list(recipient_user_ids)).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
 
     # Get event details (project name, device type, failure mode)
     project_name = None

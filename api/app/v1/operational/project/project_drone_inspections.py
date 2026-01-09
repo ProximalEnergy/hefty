@@ -222,7 +222,7 @@ async def sync_zeitview_anomalies(
         total_synced = 0
         is_first_page = True
 
-        async def process_page(anomalies: list, page: int):
+        async def process_page(*, anomalies: list, page: int):
             """Process a single page of anomalies and insert them into the database
 
             Args:

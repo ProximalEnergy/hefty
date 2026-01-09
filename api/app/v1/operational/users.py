@@ -1,11 +1,12 @@
 import asyncio
 from typing import Annotated
 
+from core.crud.admin.users import get_users as get_users_core
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies
-from app._crud.admin.users import get_users as crud_get_users
 from app._dependencies.authorization import require_jwt_or_api_superadmin
 from app._utils.user_management import get_clerk_user_image_url
 
@@ -45,9 +46,13 @@ async def get_users(
         # Fetch requested users - security is handled at the message/project level:
         # user_ids come from event messages in projects the user has access to,
         # so it's safe to return user information for these IDs
-        filtered_users = await crud_get_users(db=db, user_ids=user_ids)
+        filtered_users = await get_users_core(user_ids=user_ids).get_async(
+            output_type=OutputType.SQLALCHEMY
+        )
     else:
-        filtered_users = await crud_get_users(db=db, company_ids=[user_data.company_id])
+        filtered_users = await get_users_core(
+            company_ids=[user_data.company_id]
+        ).get_async(output_type=OutputType.SQLALCHEMY)
 
     # Process each user tuple and add operational_project_ids and optionally image URLs
     users_with_project_ids = []

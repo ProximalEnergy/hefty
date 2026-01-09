@@ -50,9 +50,7 @@ class TokenManager:
         """todo"""
         return int(time.time())
 
-    def _needs_refresh(
-        self, force: bool = False
-    ) -> bool:  # nosemgrep: python-enforce-keyword-only-args
+    def _needs_refresh(self, *, force: bool = False) -> bool:
         """todo
 
         Args:

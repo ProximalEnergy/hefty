@@ -276,7 +276,7 @@ def get_status_time_series(
         """
         tag = col.name
 
-        def get_status_value(x):  # skip-star-syntax
+        def get_status_value(*, x):
             """Get status value, ensuring it's a scalar string."""
             if pd.isnull(x):
                 return np.nan
@@ -286,7 +286,7 @@ def get_status_time_series(
                 return status.iloc[0] if len(status) > 0 else np.nan
             return status
 
-        return col.map(get_status_value)
+        return col.map(lambda val: get_status_value(x=val))
 
     # Create status_strings_df from typed df_timeseries
     status_strings_df = df_timeseries_typed.apply(map_status)

@@ -1,7 +1,7 @@
 import datetime
 import json
 import string
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -480,7 +480,7 @@ def get_status_binary(
 def get_status_boolean(
     *,
     status_boolean_ids: list[int] = [],
-) -> DbQuery[models.StatusBoolean]:
+) -> DbQuery[models.StatusBoolean, Literal[False]]:
     """TODO: add description.
 
     Args:
@@ -497,7 +497,7 @@ def get_status_boolean(
 def get_status_string(
     *,
     status_string_ids: list[int] = [],
-) -> DbQuery[models.StatusString]:
+) -> DbQuery[models.StatusString, Literal[False]]:
     """TODO: add description.
 
     Args:

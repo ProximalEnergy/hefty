@@ -51,9 +51,7 @@ class EventMetaData(BaseModel):
     device_totals: list[DeviceTotals]
 
 
-def _ensure_tz_aware(
-    ts: pd.Series, tz: str
-) -> pd.Series:  # nosemgrep: python-enforce-keyword-only-args
+def _ensure_tz_aware(*, ts: pd.Series, tz: str) -> pd.Series:
     """Convert a datetime series to timezone-aware (project tz).
         - If any values are tz-aware already, use tz_convert.
         - If entirely naive or entirely None, localize.
@@ -130,11 +128,11 @@ async def get_meta_analysis(
     df = event_data.pandas_dataframe(index="event_id").copy()
 
     # Time columns → project tz (preserve original behavior for None/naive)
-    df["time_start"] = _ensure_tz_aware(df["time_start"], tz)
+    df["time_start"] = _ensure_tz_aware(ts=df["time_start"], tz=tz)
     # Special case kept: if all time_end are None, localize; else convert
     time_end_series = pd.to_datetime(df["time_end"])
     if time_end_series.notna().any():
-        df["time_end"] = _ensure_tz_aware(df["time_end"], tz)
+        df["time_end"] = _ensure_tz_aware(ts=df["time_end"], tz=tz)
     else:
         df["time_end"] = time_end_series.dt.tz_localize(tz)
 

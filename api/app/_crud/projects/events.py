@@ -1,4 +1,5 @@
 import datetime
+from typing import Any, Literal
 
 from core.db_query import DbQuery
 from sqlalchemy import Date, case, cast, func, or_, select, text
@@ -15,7 +16,7 @@ def get_project_events(
     device_ids: list[int] | None = None,
     event_ids: list[int] | None = None,
     open_at: datetime.datetime | None = None,
-) -> DbQuery[models.Event]:
+) -> DbQuery[models.Event, Literal[False]]:
     """todo
 
     Args:
@@ -50,7 +51,7 @@ def get_project_events(
     return DbQuery(query=stmt)
 
 
-def get_event_device_ids() -> DbQuery[models.Event]:
+def get_event_device_ids() -> DbQuery[Any, Literal[False]]:
     """todo"""
     stmt = select(models.Event.device_id).distinct()
     return DbQuery(query=stmt)
@@ -67,7 +68,7 @@ def get_paginated_events(
     device_ids: list[int] | None,
     start: datetime.datetime | None,
     end: datetime.datetime | None,
-) -> DbQuery[models.Event]:
+) -> DbQuery[models.Event, Literal[False]]:
     """todo
 
     Args:
@@ -141,7 +142,7 @@ def get_events_with_device_info(
     device_type_ids: list[int] | None = None,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-) -> DbQuery[models.Event]:
+) -> DbQuery[Any, Literal[False]]:
     """Get events with joined device and device_type information.
 
         This function provides a more efficient way to fetch events with their related
@@ -213,7 +214,7 @@ def get_events_summary(
     end: datetime.datetime | None = None,
     device_type_ids: list[int] | None = None,
     device_ids: list[int] | None = None,
-) -> DbQuery[models.Event]:
+) -> DbQuery[Any, Literal[False]]:
     """Get events with filters applied, along with device and device type information.
         This is specifically designed for generating event summaries with device info.
 

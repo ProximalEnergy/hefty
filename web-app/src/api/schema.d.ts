@@ -5334,7 +5334,7 @@ export interface paths {
         };
         /**
          * Get Drone Integrations
-         * @description Retrieve all drone integrations.
+         * @description Get all drone integrations.
          *
          *     Args:
          *         db: TODO: describe.
@@ -10688,12 +10688,10 @@ export interface components {
          * @description todo
          */
         ProviderSite: {
-            /** Site Name */
-            site_name?: string | null;
-            /** Site Uuid */
-            site_uuid: string;
-            /** Site Id */
-            site_id?: number | null;
+            /** Provider Site Id */
+            provider_site_id: string;
+            /** Name */
+            name: string;
         };
         /**
          * QSE

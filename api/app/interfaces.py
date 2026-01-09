@@ -199,9 +199,7 @@ class UserPermission(BaseModel):
 # WKBElements to GeoJSON. The pydantic models then validate the GeoJSON.
 
 
-def convert(
-    WKBElement: Any,
-) -> dict[str, Any] | None:  # nosemgrep: python-enforce-keyword-only-args
+def convert(*, WKBElement: Any) -> dict[str, Any] | None:
     """Handle convert.
 
     Args:
@@ -238,7 +236,7 @@ class Point(BaseModel):
         Args:
             point: TODO: describe.
         """
-        return convert(point)
+        return convert(WKBElement=point)
 
 
 class Polygon(BaseModel):
@@ -258,7 +256,7 @@ class Polygon(BaseModel):
         Args:
             polygon: TODO: describe.
         """
-        return convert(polygon)
+        return convert(WKBElement=polygon)
 
 
 class MultiPolygon(BaseModel):
@@ -277,7 +275,7 @@ class MultiPolygon(BaseModel):
         Args:
             multipolygon: TODO: describe.
         """
-        return convert(multipolygon)
+        return convert(WKBElement=multipolygon)
 
 
 class ProjectType(BaseModel):

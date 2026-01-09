@@ -1,17 +1,21 @@
 import base64
+import logging
 from typing import Annotated
 
+from core.crud.admin.users import get_user
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies
-from app._crud.admin.users import get_user
 from app.domain.internal_comms.comms import (
     CommunicationChannel,
     send_feedback_notification,
 )
 from app.domain.linear_integration import create_linear_issue
 from core import models
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/feedback",
@@ -57,12 +61,16 @@ async def create_feedback(
         screenshot_filename=screenshot.filename if screenshot else None,
         screenshot_mimetype=screenshot.content_type if screenshot else None,
     )
-    # Get user name from db
-    user = await get_user(db=db, user_id=user_id)
-    if user:
-        user_name_long = user.name_long or "Unknown"
-    else:
-        user_name_long = "Unknown"
+    # Get user name from database if available
+    user_name = "Unknown"
+    try:
+        user = await get_user(user_id=user_id).get_async(
+            output_type=OutputType.SQLALCHEMY
+        )
+        if user and user.name_long:
+            user_name = user.name_long
+    except Exception as e:
+        logger.warning(f"Failed to get user name for feedback: {e}")
 
     # Send feedback to Linear
     issue_id = await create_linear_issue(
@@ -75,7 +83,7 @@ async def create_feedback(
 
     # Send feedback to Google Chat
     send_feedback_notification(
-        user_name_long=user_name_long,
+        user_name_long=user_name,
         feedback=feedback,
         channel=CommunicationChannel.GOOGLE_CHAT,
         issue_id=issue_id,

@@ -146,6 +146,7 @@ class ZeitviewAPI:
             "fields": [
                 "site_id",
                 "site_capacity_mw",
+                "site_name",
             ],
             "filters": {},
             "page_size": 200,
@@ -265,7 +266,7 @@ class ZeitviewAPI:
 
             # Call the callback function if provided
             if page_callback and callable(page_callback):
-                await page_callback(anomalies, page)
+                await page_callback(anomalies=anomalies, page=page)
 
             pagination = response_data.get("metadata", {}).get("pagination", {})
             next_page = pagination.get("next_page")

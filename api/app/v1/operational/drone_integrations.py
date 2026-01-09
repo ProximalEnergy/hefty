@@ -1,6 +1,8 @@
+import logging
 import uuid
 from typing import Annotated
 
+from core.crud.admin.users import get_user
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,7 +10,6 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app._crud.admin.companies import get_companies
-from app._crud.admin.users import get_user
 from app._crud.operational.drone_integrations import (
     create_drone_integration,
     delete_drone_integration,
@@ -32,9 +33,13 @@ from app.interfaces import (
     DroneIntegrationUpdate,
     UserData,
 )
-from app.logger import logger
 
-router = APIRouter(prefix="/drone-integrations")
+logger = logging.getLogger(__name__)
+
+router = APIRouter(
+    prefix="/drone-integrations",
+    tags=["drone-integrations"],
+)
 
 
 class DroneInspectionOrderRequest(BaseModel):
@@ -51,22 +56,19 @@ class QueryProviderSitesRequest(BaseModel):
     api_key: str
     provider_id: int
 
-    model_config = {"extra": "forbid"}
-
 
 class ProviderSite(BaseModel):
     """todo"""
 
-    site_name: str | None = None
-    site_uuid: str
-    site_id: int | None = None
+    provider_site_id: str
+    name: str
 
 
 @router.get("", response_model=list[DroneIntegration])
 async def get_drone_integrations_(
     db: AsyncSession = Depends(get_async_db),
 ):
-    """Retrieve all drone integrations.
+    """Get all drone integrations.
 
     Args:
         db: TODO: describe.
@@ -151,12 +153,10 @@ async def order_drone_inspection(
     try:
         # Get project information
         db_query = get_projects(project_ids=[request.project_id])
-        df = await db_query.get_async(output_type=OutputType.PANDAS)
-
-        if df.empty:
+        rows = await db_query.get_async(output_type=OutputType.SQLALCHEMY)
+        if not rows:
             raise HTTPException(status_code=404, detail="Project not found")
-
-        project_name = df.iloc[0]["name_long"]
+        project_name = rows[0].name_long
 
         # Get company information
         companies = await get_companies(db=db, company_ids=[user_data.company_id])
@@ -164,8 +164,10 @@ async def order_drone_inspection(
             raise HTTPException(status_code=404, detail="Company not found")
         company = companies[0]
 
-        # Get user information for email
-        user = await get_user(db=db, user_id=user_data.user_id)
+        # Get user details for the email
+        user = await get_user(user_id=user_data.user_id).get_async(
+            output_type=OutputType.SQLALCHEMY
+        )
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -180,7 +182,7 @@ async def order_drone_inspection(
         await send_drone_inspection_order_email(
             provider_email=request.provider_email,
             user_email=user_email,
-            user_name=user.name_long,
+            user_name=user.name_long or "Unknown",
             company_name=company.name_long,
             project_name=project_name,
             timing=request.timing,
@@ -209,50 +211,16 @@ async def query_provider_sites(
     Args:
         request: TODO: describe.
     """
-    logger.info(
-        f"Query provider sites request: provider_id={request.provider_id}, "
-        f"api_key_length={len(request.api_key) if request.api_key else 0}"
-    )
-
-    if not request.api_key:
-        raise HTTPException(status_code=400, detail="API key is required")
-
-    if request.provider_id != 0:  # Zeitview
-        logger.warning(
-            f"Unsupported provider_id {request.provider_id} requested. "
-            "Only provider_id=0 (Zeitview) is supported."
-        )
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                f"Provider {request.provider_id} is not yet supported for site "
-                "querying. Only provider_id=0 (Zeitview) is supported."
-            ),
-        )
-
-    try:
-        # Create a temporary ZeitviewAPI instance with the provided API key
-        zeitview_api = ZeitviewAPI.from_api_key(api_key=request.api_key)
-        sites_data = await zeitview_api.query_sites()
-
-        # Parse the response
-        sites = []
-        for site in sites_data.get("data", []):
-            sites.append(
-                ProviderSite(
-                    site_name=site.get("site_name"),
-                    site_uuid=site.get("site_uuid", ""),
-                    site_id=site.get("site_id"),
-                )
+    if request.provider_id == 0:
+        client = ZeitviewAPI(api_key=request.api_key)
+        response = await client.query_sites()
+        sites = response.get("data", [])
+        return [
+            ProviderSite(
+                provider_site_id=str(site.get("site_id")),
+                name=site.get("site_name", "Unknown"),
             )
-
-        return sites
-    except ValueError as e:
-        # This catches errors from ZeitviewAPI init or API validation
-        logger.error(f"Validation error querying provider sites: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error querying provider sites: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Failed to query provider sites: {str(e)}"
-        )
+            for site in sites
+        ]
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported provider")

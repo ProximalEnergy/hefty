@@ -139,9 +139,9 @@ const DroneIntegrations: React.FC = () => {
     }
   }
 
-  const handleSiteSelect = (siteUuid: string) => {
-    setSelectedSite(siteUuid)
-    form.setFieldValue('provider_project_id', siteUuid)
+  const handleSiteSelect = (siteId: string) => {
+    setSelectedSite(siteId)
+    form.setFieldValue('provider_project_id', siteId)
   }
 
   const handleCopyToClipboard = async (text: string) => {
@@ -309,8 +309,8 @@ const DroneIntegrations: React.FC = () => {
                 label="Select Site"
                 placeholder="Select a site"
                 data={providerSites.map((site) => ({
-                  value: site.site_uuid,
-                  label: site.site_name || site.site_uuid,
+                  value: site.provider_site_id,
+                  label: site.name || site.provider_site_id,
                 }))}
                 value={selectedSite}
                 onChange={(value) => {
