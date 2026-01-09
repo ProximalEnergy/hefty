@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool
 
@@ -42,6 +42,14 @@ async_engine = create_async_engine(
     async_database_url,
     pool_pre_ping=True,
     connect_args=connect_args,
+)
+
+
+AsyncSessionLambda = async_sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+    bind=async_engine,
 )
 
 metadata = sa.MetaData(
