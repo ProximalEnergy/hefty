@@ -951,7 +951,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
+         *         _db: TODO: describe.
          *         user_data: TODO: describe.
          */
         get: operations["get_user_type_v1_admin_user_type_get"];

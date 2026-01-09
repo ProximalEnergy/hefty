@@ -2,6 +2,7 @@ import logging
 from typing import Annotated
 
 import httpx
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,7 +43,7 @@ router.include_router(notifications.router)
     response_model=interfaces.UserType,
 )
 async def get_user_type(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    _db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -50,19 +51,15 @@ async def get_user_type(
     """todo
 
     Args:
-        db: TODO: describe.
+        _db: TODO: describe.
         user_data: TODO: describe.
     """
     user_type_id = user_data.user_type_id
 
-    model_list = crud.admin.user_types.get_user_type(
+    user_type_query = crud.admin.user_types.get_user_type(
         user_type_id=user_type_id,
-        return_query=True,
     )
-    if model_list.query is None:
-        raise ValueError("Query cannot be None")
-    result = await db.execute(model_list.query)
-    user_type = result.scalar_one_or_none()
+    user_type = await user_type_query.get_async(output_type=OutputType.SQLALCHEMY)
 
     return user_type
 

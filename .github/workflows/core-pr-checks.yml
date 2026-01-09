@@ -141,10 +141,11 @@ jobs:
           latest_version=$(echo $aws_output | jq -r '.versions[0].version')
           echo "Latest published version from CodeArtifact: $latest_version"
 
-          # Use Python's `packaging` library for a robust semantic version comparison.
-          # The script will exit with an error if the current version is not strictly greater than the latest published version.
+          # Compare only the numeric release segments (ignore rc/beta tags).
+          # The script will exit with an error if the current release is not
+          # strictly greater than the latest published release.
           uv run -q python - <<EOF
-          from packaging.version import parse as V
+          from packaging.version import Version
 
           current = "$current_version".strip()
           latest = "$latest_version".strip()
@@ -152,14 +153,22 @@ jobs:
           print(f"DEBUG: Comparing '{current}' vs '{latest}'")
 
           try:
-              current_parsed = V(current)
-              latest_parsed = V(latest)
+              current_parsed = Version(current)
+              latest_parsed = Version(latest)
           except Exception as e:
                print(f"::error::Version parsing failed: {e}")
                exit(1)
 
-          if current_parsed <= latest_parsed:
-              print(f"::error::Version check failed. The current version ({current}) must be greater than the latest published version ({latest}). Please bump the version in core/pyproject.toml.")
+          current_release = current_parsed.release
+          latest_release = latest_parsed.release
+
+          if current_release <= latest_release:
+              print(
+                  "::error::Version check failed. The current version "
+                  f"({current}) must be greater than the latest published "
+                  f"version ({latest}). Please bump the version in "
+                  "core/pyproject.toml."
+              )
               exit(1)
 
           print(f"Version check passed. Current version ({current}) > Latest version ({latest}).")

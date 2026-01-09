@@ -119,12 +119,15 @@ EOF
 
 
     (cd core && uv run python - <<EOF
-from packaging.version import parse as V
+from packaging.version import Version
 
 current = "$current_version"
 latest = "$latest_version"
 
-if V(current) <= V(latest):
+current_release = Version(current).release
+latest_release = Version(latest).release
+
+if current_release <= latest_release:
     print(
         "::error::Version check failed. The current version "
         f"({current}) must be greater than the latest published version "

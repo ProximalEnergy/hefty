@@ -1,20 +1,20 @@
+from typing import Literal
+
 from sqlalchemy import select
 
 from core import models
+from core.db_query import DbQuery
 from core.enumerations import UserTypeEnum
-from core.model_list import ModelList
 
 
 def get_user_type(
     *,
     user_type_id: UserTypeEnum,
-    return_query: bool = True,
-) -> ModelList[models.UserType]:
+) -> DbQuery[models.UserType, Literal[True]]:
     """TODO: add description.
 
     Args:
         user_type_id: TODO: describe.
-        return_query: TODO: describe.
     """
     query = select(models.UserType).where(models.UserType.user_type_id == user_type_id)
-    return ModelList(query=query, return_query=return_query)
+    return DbQuery(query=query, is_scalar=True)
