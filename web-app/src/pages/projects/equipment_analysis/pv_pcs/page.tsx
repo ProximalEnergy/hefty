@@ -642,10 +642,6 @@ const PCSEquipmentAnalysis = () => {
                     style={{
                       objectFit: 'contain',
                       cursor: 'pointer',
-                      filter:
-                        colorScheme === 'dark'
-                          ? 'invert(1) brightness(0.7)'
-                          : 'none',
                     }}
                     onClick={() => setImageModalOpened(true)}
                     onError={(e) => {
