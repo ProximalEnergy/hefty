@@ -113,6 +113,15 @@ git merge dev && \
 echo "Sync complete! Your branch is now up to date with dev."
 """
 
+[tasks.worktree]
+description = "Create a new git worktree with environment files and open in editor"
+usage = '''
+  arg "<folder>" help="Name of the folder to create (sibling to current directory)"
+  arg "<branch>" help="Name of the branch to create"
+  flag "-e --editor <editor>" help="Editor to open the worktree in (cursor, zed)"
+'''
+run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-}"
+
 [tasks."ruff:check"]
 description = "Run ruff linter on entire monorepo"
 dir = "."
