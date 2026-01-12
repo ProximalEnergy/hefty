@@ -3,6 +3,7 @@ from uuid import UUID
 
 import numpy as np
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
@@ -26,7 +27,7 @@ router = APIRouter(
     response_model=interfaces.GeoJSON,
     response_class=ORJSONResponse,
 )
-def get_combiner_block_performance(
+async def get_combiner_block_performance(
     *,
     project_id: UUID,
     block_device_id: int,
@@ -46,9 +47,14 @@ def get_combiner_block_performance(
     start = end - pd.Timedelta(minutes=30)
 
     # Get requested pv_block device
-    device_block = core.crud.project.devices.get_project_device(
-        db=project_db, device_id=block_device_id, deep=False
-    ).model()
+    schema_translate_map = (
+        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
+    )
+    project_schema = schema_translate_map.get("project")
+    device_block = await core.crud.project.devices.get_project_device(
+        device_id=block_device_id,
+        deep=False,
+    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
 
     if device_block is None:
         raise HTTPException(

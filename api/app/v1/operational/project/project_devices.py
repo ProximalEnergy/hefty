@@ -4,6 +4,7 @@ from typing import Annotated
 
 import polars as pl
 import pyarrow as pa
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from natsort import natsorted
@@ -45,7 +46,7 @@ class DevicesFilterRequest(BaseModel):
     operation_id="get_project_device_by_id",
     responses={404: {"description": DESCRIPTION_404}},
 )
-def get_project_device(
+async def get_project_device(
     device_id: int,
     deep: custom_types.AnnotatedDeep = False,
     project_db: Session = Depends(get_project_db),
@@ -57,11 +58,14 @@ def get_project_device(
         deep: Whether to include related entities such as children and tags.
         project_db: Database session for the current project.
     """
-    device = core.crud.project.devices.get_project_device(
-        db=project_db,
+    schema_translate_map = (
+        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
+    )
+    project_schema = schema_translate_map.get("project")
+    device = await core.crud.project.devices.get_project_device(
         device_id=device_id,
         deep=deep,
-    ).model()
+    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
     utils.check_404(value=device, detail=DESCRIPTION_404)
     return device
 

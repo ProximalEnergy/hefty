@@ -8,6 +8,7 @@ import pandas as pd
 import polars as pl
 import pyarrow as pa
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
+from core.db_query import OutputType
 from core.enumerations import DeviceType
 from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -332,11 +333,14 @@ async def get_vertical_controller(
     }
 
     # Get the device associated with the device_id
-    device = core.crud.project.devices.get_project_device(
-        db=project_db,
+    schema_translate_map = (
+        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
+    )
+    project_schema = schema_translate_map.get("project")
+    device = await core.crud.project.devices.get_project_device(
         device_id=device_id,
         deep=False,
-    ).model()
+    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
 
     if device is None:
         raise HTTPException(

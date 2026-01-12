@@ -1,12 +1,13 @@
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy import exists, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, joinedload, noload
 
 from core import models
+from core.db_query import DbQuery
 from core.enumerations import SensorType
-from core.model_list import ModelItem, ModelList
+from core.model_list import ModelList
 
 
 def get_project_device_options(*, deep: bool, include_name_long: bool = False) -> Any:
@@ -100,28 +101,24 @@ def get_project_devices(
 
 def get_project_device(
     *,
-    db: Session,
     device_id: int,
     deep: bool,
     include_name_long: bool = False,
-    return_query: bool = False,
-) -> ModelItem[models.Device]:
-    """Fetch a single device by id.
+) -> DbQuery[models.Device, Literal[True]]:
+    """TODO: add description.
 
     Args:
-        db: Project database session.
-        device_id: Device id to fetch.
-        deep: Whether to eager-load related device type data.
-        include_name_long: Load device type name_long only when True.
-        return_query: Return the query without executing when True.
+        device_id: TODO: describe.
+        deep: TODO: describe.
+        include_name_long: TODO: describe.
     """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
-    query = (
-        db.query(models.Device)
+    stmt = (
+        select(models.Device)
         .options(options)
         .where(models.Device.device_id == device_id)
     )
-    return ModelItem(query=query, return_query=return_query)
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 # --- ASYNC SECTION ---

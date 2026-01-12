@@ -6,6 +6,7 @@ from app import dependencies, interfaces
 from app._utils.recursive_parents import get_recursive_parents
 from app.utils import data_df
 from core.crud.operational.device_types import get_device_types
+from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
@@ -91,9 +92,14 @@ async def utility_expected(
         for device in parent_devices
     ]
 
-    device = core.crud.project.devices.get_project_device(
-        db=project_db, device_id=device_id, deep=False
-    ).model()
+    schema_translate_map = (
+        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
+    )
+    project_schema = schema_translate_map.get("project")
+    device = await core.crud.project.devices.get_project_device(
+        device_id=device_id,
+        deep=False,
+    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
     if device is None:
         raise HTTPException(status_code=404, detail="Device not found")
 
