@@ -33,17 +33,53 @@ export const useGetNotificationPreferences = ({
 
   const queryParams = projectIds ? { project_ids: projectIds } : {}
 
+  const defaultQueryOptions: Partial<
+    UseQueryOptions<NotificationPreference[]>
+  > = {
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Only refetch if explicitly requested
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    staleTime: Infinity, // User settings don't change unless user changes them
+    gcTime: Infinity, // Keep in cache forever (formerly cacheTime)
+  }
+
   return useCustomQuery<NotificationPreference[]>({
     axiosConfig,
     queryName: 'getNotificationPreferences',
     queryParams,
-    queryOptions,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
+}
+
+// Track mutation order per preference to ensure we only apply the latest mutation
+// Use WeakMap keyed by QueryClient instance to ensure state is tied to user session
+const mutationTimestampsByClient = new WeakMap<
+  ReturnType<typeof useQueryClient>,
+  Map<string, number>
+>()
+
+const getPreferenceKey = (
+  projectId: string,
+  notificationTypeId: number,
+): string => {
+  return `${projectId}-${notificationTypeId}`
+}
+
+const getMutationTimestamps = (
+  queryClient: ReturnType<typeof useQueryClient>,
+): Map<string, number> => {
+  let timestamps = mutationTimestampsByClient.get(queryClient)
+  if (!timestamps) {
+    timestamps = new Map<string, number>()
+    mutationTimestampsByClient.set(queryClient, timestamps)
+  }
+  return timestamps
 }
 
 export const useUpdateNotificationPreference = () => {
   const { getToken } = useAuth()
   const queryClient = useQueryClient()
+  const mutationTimestamps = getMutationTimestamps(queryClient)
 
   return useMutation<
     NotificationPreference,
@@ -51,6 +87,8 @@ export const useUpdateNotificationPreference = () => {
     NotificationPreferenceUpdate,
     {
       previousQueries: Map<string, NotificationPreference[] | undefined>
+      mutationTimestamp: number
+      preferenceKey: string
     }
   >({
     mutationFn: async (data) => {
@@ -70,6 +108,12 @@ export const useUpdateNotificationPreference = () => {
     onMutate: async (data) => {
       const projectId = data.project_id
       const notificationTypeId = data.notification_type_id
+      const preferenceKey = getPreferenceKey(projectId, notificationTypeId)
+
+      // Record this mutation's timestamp - this ensures we only apply the latest mutation
+      const mutationTimestamp = Date.now()
+      mutationTimestamps.set(preferenceKey, mutationTimestamp)
+
       // Cancel any outgoing refetches for all notification preference queries
       await queryClient.cancelQueries({
         predicate: (query) =>
@@ -83,112 +127,198 @@ export const useUpdateNotificationPreference = () => {
       >()
       queryClient
         .getQueryCache()
-        .getAll()
+        .findAll({ queryKey: ['getNotificationPreferences'] })
         .forEach((query) => {
-          if (query.queryKey[0] === 'getNotificationPreferences') {
-            const keyStr = JSON.stringify(query.queryKey)
-            previousQueries.set(
-              keyStr,
-              query.state.data as NotificationPreference[] | undefined,
-            )
-          }
+          const keyStr = JSON.stringify(query.queryKey)
+          previousQueries.set(
+            keyStr,
+            query.state.data as NotificationPreference[] | undefined,
+          )
         })
 
       // Optimistically update all matching query caches
       queryClient
         .getQueryCache()
-        .getAll()
+        .findAll({ queryKey: ['getNotificationPreferences'] })
         .forEach((query) => {
-          if (query.queryKey[0] === 'getNotificationPreferences') {
-            queryClient.setQueryData<NotificationPreference[]>(
-              query.queryKey,
-              (old) => {
-                if (!old) return old
+          queryClient.setQueryData<NotificationPreference[]>(
+            query.queryKey,
+            (old) => {
+              if (!old) return old
 
-                const existingIndex = old.findIndex(
-                  (pref) =>
-                    pref.project_id === projectId &&
-                    pref.notification_type_id === notificationTypeId,
-                )
+              const existingIndex = old.findIndex(
+                (pref) =>
+                  pref.project_id === projectId &&
+                  pref.notification_type_id === notificationTypeId,
+              )
 
-                if (existingIndex >= 0) {
-                  // Update existing preference
-                  const updated = [...old]
-                  const existing = updated[existingIndex]
-                  updated[existingIndex] = {
-                    ...existing,
-                    ...(data.in_app_enabled !== undefined &&
-                      data.in_app_enabled !== null && {
-                        in_app_enabled: data.in_app_enabled,
-                      }),
-                    ...(data.email_enabled !== undefined &&
-                      data.email_enabled !== null && {
-                        email_enabled: data.email_enabled,
-                      }),
-                    ...(data.in_app_min_severity !== undefined &&
-                      data.in_app_min_severity !== null && {
-                        in_app_min_severity: data.in_app_min_severity,
-                      }),
-                    ...(data.email_min_severity !== undefined &&
-                      data.email_min_severity !== null && {
-                        email_min_severity: data.email_min_severity,
-                      }),
-                  }
-                  return updated
+              if (existingIndex >= 0) {
+                // Update existing preference
+                // Note: null values mean "don't change" per backend logic, so we only update non-null fields
+                const updated = [...old]
+                const existing = updated[existingIndex]
+                updated[existingIndex] = {
+                  ...existing,
+                  ...(data.in_app_enabled !== undefined &&
+                    data.in_app_enabled !== null && {
+                      in_app_enabled: data.in_app_enabled,
+                    }),
+                  ...(data.email_enabled !== undefined &&
+                    data.email_enabled !== null && {
+                      email_enabled: data.email_enabled,
+                    }),
+                  ...(data.in_app_min_severity !== undefined &&
+                    data.in_app_min_severity !== null && {
+                      in_app_min_severity: data.in_app_min_severity,
+                    }),
+                  ...(data.email_min_severity !== undefined &&
+                    data.email_min_severity !== null && {
+                      email_min_severity: data.email_min_severity,
+                    }),
                 }
+                return updated
+              }
 
-                // Preference doesn't exist yet in this query's data.
-                // Get notification type defaults from cache to preserve current UI state
-                const notificationTypes = queryClient.getQueryData<
-                  NotificationType[]
-                >(['getNotificationTypes'])
-                const notificationType = notificationTypes?.find(
-                  (type) => type.notification_type_id === notificationTypeId,
-                )
+              // Preference doesn't exist yet in this query's data.
+              // Get notification type defaults from cache to preserve current UI state
+              const notificationTypes = queryClient.getQueryData<
+                NotificationType[]
+              >(['getNotificationTypes'])
+              const notificationType = notificationTypes?.find(
+                (type) => type.notification_type_id === notificationTypeId,
+              )
 
-                // Use defaults from notification type for fields we're not updating
-                // This preserves what the UI is currently displaying
-                const optimisticPreference: NotificationPreference = {
-                  notification_preference_id: -1,
-                  user_id: '',
-                  project_id: projectId,
-                  notification_type_id: notificationTypeId,
-                  in_app_enabled:
-                    data.in_app_enabled !== undefined &&
-                    data.in_app_enabled !== null
-                      ? data.in_app_enabled
-                      : data.in_app_min_severity !== undefined
-                        ? true
-                        : (notificationType?.in_app_enabled_default ?? false),
-                  email_enabled:
-                    data.email_enabled !== undefined &&
-                    data.email_enabled !== null
-                      ? data.email_enabled
-                      : data.email_min_severity !== undefined
-                        ? true
-                        : (notificationType?.email_enabled_default ?? false),
-                  in_app_min_severity:
-                    data.in_app_min_severity ??
-                    notificationType?.in_app_severity_default ??
-                    'info',
-                  email_min_severity:
-                    data.email_min_severity ??
-                    notificationType?.email_severity_default ??
-                    'info',
-                }
+              // Use defaults from notification type for fields we're not updating
+              // This preserves what the UI is currently displaying
+              const optimisticPreference: NotificationPreference = {
+                notification_preference_id: -1,
+                user_id: '',
+                project_id: projectId,
+                notification_type_id: notificationTypeId,
+                in_app_enabled:
+                  data.in_app_enabled !== undefined &&
+                  data.in_app_enabled !== null
+                    ? data.in_app_enabled
+                    : data.in_app_min_severity !== undefined
+                      ? true
+                      : (notificationType?.in_app_enabled_default ?? false),
+                email_enabled:
+                  data.email_enabled !== undefined &&
+                  data.email_enabled !== null
+                    ? data.email_enabled
+                    : data.email_min_severity !== undefined
+                      ? true
+                      : (notificationType?.email_enabled_default ?? false),
+                in_app_min_severity:
+                  data.in_app_min_severity ??
+                  notificationType?.in_app_severity_default ??
+                  'info',
+                email_min_severity:
+                  data.email_min_severity ??
+                  notificationType?.email_severity_default ??
+                  'info',
+              }
 
-                return [...old, optimisticPreference]
-              },
-            )
-          }
+              return [...old, optimisticPreference]
+            },
+          )
         })
 
-      // Return context with the previous values
-      return { previousQueries }
+      // Return context with the previous values and mutation tracking info
+      return { previousQueries, mutationTimestamp, preferenceKey }
     },
-    onError: (_err, _variables, context) => {
-      // Rollback to the previous values on error
-      if (context?.previousQueries) {
+    onSuccess: (data, variables, context) => {
+      const preferenceKey =
+        context?.preferenceKey ??
+        getPreferenceKey(variables.project_id, variables.notification_type_id)
+      const mutationTimestamp = context?.mutationTimestamp ?? 0
+
+      // Only apply this mutation if it's still the latest one for this preference
+      // This prevents older mutations from overwriting newer optimistic updates
+      const latestTimestamp = mutationTimestamps.get(preferenceKey) ?? 0
+      if (mutationTimestamp < latestTimestamp) {
+        // A newer mutation has already started, ignore this older result
+        return
+      }
+
+      // Update query cache directly with server response, merging intelligently
+      // to prevent race conditions when multiple mutations happen rapidly or GET
+      // requests complete concurrently
+      queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ['getNotificationPreferences'] })
+        .forEach((query) => {
+          queryClient.setQueryData<NotificationPreference[]>(
+            query.queryKey,
+            (old) => {
+              if (!old) return old
+
+              const existingIndex = old.findIndex(
+                (pref) =>
+                  pref.project_id === variables.project_id &&
+                  pref.notification_type_id === variables.notification_type_id,
+              )
+
+              if (existingIndex >= 0) {
+                // Always merge intelligently: only update fields that this mutation was updating.
+                // This preserves concurrent optimistic updates from other mutations or GET requests
+                // that may have completed while this mutation was in flight.
+                const updated = [...old]
+                const current = updated[existingIndex]
+
+                // Merge server response, but only update fields that were explicitly changed
+                // in this mutation (from variables), preserving other fields from current cache
+                updated[existingIndex] = {
+                  ...current,
+                  ...(variables.in_app_enabled !== undefined && {
+                    in_app_enabled: data.in_app_enabled,
+                  }),
+                  ...(variables.email_enabled !== undefined && {
+                    email_enabled: data.email_enabled,
+                  }),
+                  ...(variables.in_app_min_severity !== undefined && {
+                    in_app_min_severity: data.in_app_min_severity,
+                  }),
+                  ...(variables.email_min_severity !== undefined && {
+                    email_min_severity: data.email_min_severity,
+                  }),
+                  // Always update the ID and other server fields
+                  notification_preference_id: data.notification_preference_id,
+                  user_id: data.user_id,
+                }
+                return updated
+              }
+
+              // Add new preference if it doesn't exist
+              return [...old, data]
+            },
+          )
+        })
+
+      // Clean up: remove timestamp once mutation completes successfully
+      // Only remove if this was the latest mutation (to avoid race conditions)
+      if (mutationTimestamp >= latestTimestamp) {
+        mutationTimestamps.delete(preferenceKey)
+      }
+    },
+    onError: (_err, variables, context) => {
+      const preferenceKey =
+        context?.preferenceKey ??
+        getPreferenceKey(variables.project_id, variables.notification_type_id)
+      const mutationTimestamp = context?.mutationTimestamp ?? 0
+
+      // Only rollback if this was the latest mutation (or if we don't have tracking info)
+      // This prevents rolling back when a newer mutation has already updated the cache
+      const latestTimestamp = mutationTimestamps.get(preferenceKey) ?? 0
+      const shouldRollback =
+        !context?.mutationTimestamp || mutationTimestamp >= latestTimestamp
+
+      if (shouldRollback && context?.previousQueries) {
+        // Rollback to the previous values on error
+        // We don't invalidate queries here because:
+        // 1. We've already rolled back to the previous state
+        // 2. Invalidating would trigger refetches that can interfere with other mutations
+        // 3. The data is already correct after rollback
         context.previousQueries.forEach(
           (
             previousData: NotificationPreference[] | undefined,
@@ -199,13 +329,11 @@ export const useUpdateNotificationPreference = () => {
           },
         )
       }
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure we have the latest data
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === 'getNotificationPreferences',
-      })
+
+      // Clean up timestamp if this was the latest mutation
+      if (shouldRollback) {
+        mutationTimestamps.delete(preferenceKey)
+      }
     },
   })
 }
