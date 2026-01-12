@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project.events import get_project_events
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
@@ -11,7 +12,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from app._crud.projects.events import get_project_events
 from app.domain.current_day_pages.bess import get_bess_data
 from app.domain.current_day_pages.bess_pcs import get_bess_pcs_data
 from app.domain.current_day_pages.combiner import get_equipment_analysis_combiner_data

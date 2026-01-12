@@ -273,6 +273,256 @@ def get_events_by_id(
     return DbQuery(query=stmt)
 
 
+def get_project_events(
+    *,
+    device_id: int | None = None,
+    time_end_gte: datetime.datetime | None = None,
+    time_end_lt: datetime.datetime | None = None,
+    open: bool = True,
+    device_ids: list[int] | None = None,
+    event_ids: list[int] | None = None,
+    open_at: datetime.datetime | None = None,
+) -> DbQuery[models.Event, Literal[False]]:
+    """TODO: add description.
+
+    Args:
+        device_id: TODO: describe.
+        time_end_gte: TODO: describe.
+        time_end_lt: TODO: describe.
+        open: TODO: describe.
+        device_ids: TODO: describe.
+        event_ids: TODO: describe.
+        open_at: TODO: describe.
+    """
+    stmt = sa.select(models.Event)
+
+    if device_id is not None:
+        stmt = stmt.where(models.Event.device_id == device_id)
+    if device_ids is not None:
+        stmt = stmt.where(models.Event.device_id.in_(device_ids))
+    if time_end_gte is not None:
+        stmt = stmt.where(models.Event.time_end >= time_end_gte)
+    if time_end_lt is not None:
+        stmt = stmt.where(models.Event.time_end < time_end_lt)
+    if open_at is not None:
+        stmt = stmt.where(models.Event.time_start <= open_at)
+        stmt = stmt.where(
+            or_(models.Event.time_end.is_(None), models.Event.time_end > open_at),
+        )
+    elif open:
+        stmt = stmt.where(models.Event.time_end.is_(None))
+    if event_ids is not None:
+        stmt = stmt.where(models.Event.event_id.in_(event_ids))
+
+    return DbQuery(query=stmt)
+
+
+def get_event_device_ids() -> DbQuery[Any, Literal[False]]:
+    """TODO: add description."""
+    stmt = sa.select(models.Event.device_id).distinct()
+    return DbQuery(query=stmt)
+
+
+def get_paginated_events(
+    *,
+    page: int,
+    page_size: int,
+    sort_column: str,
+    sort_direction: str,
+    open: bool,
+    device_type_id: list[int] | None,
+    device_ids: list[int] | None,
+    start: datetime.datetime | None,
+    end: datetime.datetime | None,
+) -> DbQuery[models.Event, Literal[False]]:
+    """TODO: add description.
+
+    Args:
+        page: TODO: describe.
+        page_size: TODO: describe.
+        sort_column: TODO: describe.
+        sort_direction: TODO: describe.
+        open: TODO: describe.
+        device_type_id: TODO: describe.
+        device_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
+    stmt = sa.select(models.Event)
+    if open:
+        stmt = stmt.where(models.Event.time_end.is_(None))
+    if device_type_id:
+        stmt = stmt.where(
+            models.Event.device.has(models.Device.device_type_id.in_(device_type_id)),
+        )
+    if device_ids:
+        stmt = stmt.where(
+            models.Event.device.has(models.Device.device_id.in_(device_ids)),
+        )
+    if start and end:
+        stmt = stmt.where(models.Event.time_start <= end)
+        stmt = stmt.where(
+            or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
+        )
+    if sort_column == "loss_daily":
+        daily_loss = (
+            models.Event.loss_total_financial
+            / sa.case(
+                (
+                    models.Event.time_end.is_(None),
+                    sa.cast(sa.func.current_date(), sa.Date)
+                    - sa.cast(models.Event.time_start, sa.Date)
+                    + 1,
+                ),
+                else_=(
+                    sa.cast(models.Event.time_end, sa.Date)
+                    - sa.cast(models.Event.time_start, sa.Date)
+                    + 1
+                ),
+            )
+        ).label("daily_loss")
+
+        stmt = stmt.add_columns(daily_loss).order_by(
+            sa.text(f"daily_loss {sort_direction} NULLS LAST"),
+        )
+    else:
+        stmt = stmt.order_by(
+            sa.text(f"{sort_column} {sort_direction} NULLS LAST"),
+        )
+
+    stmt = stmt.limit(page_size).offset(page * page_size)
+
+    return DbQuery(query=stmt)
+
+
+def get_events_with_device_info(
+    *,
+    device_id: int | None = None,
+    time_end_gte: datetime.datetime | None = None,
+    time_end_lt: datetime.datetime | None = None,
+    open: bool = True,
+    device_ids: list[int] | None = None,
+    event_ids: list[int] | None = None,
+    open_at: datetime.datetime | None = None,
+    device_type_ids: list[int] | None = None,
+    start: datetime.datetime | None = None,
+    end: datetime.datetime | None = None,
+) -> DbQuery[Any, Literal[False]]:
+    """Get events with joined device and device_type information.
+
+    This function provides a more efficient way to fetch events with their related
+    device and device type data in a single query using joins.
+
+    Args:
+        device_id: TODO: describe.
+        time_end_gte: TODO: describe.
+        time_end_lt: TODO: describe.
+        open: TODO: describe.
+        device_ids: TODO: describe.
+        event_ids: TODO: describe.
+        open_at: TODO: describe.
+        device_type_ids: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+    """
+    stmt = (
+        sa.select(
+            models.Event,
+            models.Device.name_long.label("device_name_long"),
+            models.DeviceType.name_long.label("device_type_name_long"),
+        )
+        .select_from(models.Event)
+        .join(models.Device, models.Event.device_id == models.Device.device_id)
+        .join(
+            models.DeviceType,
+            models.Device.device_type_id == models.DeviceType.device_type_id,
+            isouter=True,
+        )
+    )
+
+    if device_id is not None:
+        stmt = stmt.where(models.Event.device_id == device_id)
+    if device_ids is not None:
+        stmt = stmt.where(models.Event.device_id.in_(device_ids))
+    if time_end_gte is not None:
+        stmt = stmt.where(models.Event.time_end >= time_end_gte)
+    if time_end_lt is not None:
+        stmt = stmt.where(models.Event.time_end < time_end_lt)
+    if open_at is not None:
+        stmt = stmt.where(models.Event.time_start <= open_at)
+        stmt = stmt.where(
+            or_(models.Event.time_end.is_(None), models.Event.time_end > open_at),
+        )
+    elif open:
+        stmt = stmt.where(models.Event.time_end.is_(None))
+    if event_ids is not None:
+        stmt = stmt.where(models.Event.event_id.in_(event_ids))
+    if device_type_ids is not None:
+        stmt = stmt.where(
+            models.Event.device.has(models.Device.device_type_id.in_(device_type_ids)),
+        )
+    if start is not None:
+        stmt = stmt.where(
+            or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
+        )
+    if end is not None:
+        stmt = stmt.where(models.Event.time_start <= end)
+
+    return DbQuery(query=stmt)
+
+
+def get_events_summary(
+    *,
+    open: bool = True,
+    start: datetime.datetime | None = None,
+    end: datetime.datetime | None = None,
+    device_type_ids: list[int] | None = None,
+    device_ids: list[int] | None = None,
+) -> DbQuery[Any, Literal[False]]:
+    """Get events with filters applied, along with device and device type information.
+
+    This is specifically designed for generating event summaries with device info.
+
+    Args:
+        open: TODO: describe.
+        start: TODO: describe.
+        end: TODO: describe.
+        device_type_ids: TODO: describe.
+        device_ids: TODO: describe.
+    """
+    stmt = (
+        sa.select(
+            models.Event,
+            models.Device.name_long.label("device_name_long"),
+            models.DeviceType.name_long.label("device_type_name_long"),
+        )
+        .select_from(models.Event)
+        .join(models.Device, models.Event.device_id == models.Device.device_id)
+        .join(
+            models.DeviceType,
+            models.Device.device_type_id == models.DeviceType.device_type_id,
+            isouter=True,
+        )
+    )
+
+    if device_ids is not None:
+        stmt = stmt.where(models.Event.device_id.in_(device_ids))
+    if device_type_ids is not None:
+        stmt = stmt.where(
+            models.Event.device.has(models.Device.device_type_id.in_(device_type_ids)),
+        )
+    if start is not None:
+        stmt = stmt.where(
+            or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
+        )
+    if end is not None:
+        stmt = stmt.where(models.Event.time_start <= end)
+    if open:
+        stmt = stmt.where(models.Event.time_end.is_(None))
+
+    return DbQuery(query=stmt)
+
+
 def get_homepage_summary(
     db: Session, *, project_name: str, sort_by: Literal["daily", "total"] = "daily"
 ) -> dict[str, Any]:

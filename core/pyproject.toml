@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.19"
+version = "0.3.20"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -15,7 +15,8 @@ dependencies = [
     "numpy>=1.24.0",
     "pandas>=2.3.0",
     "pyarrow>=18.1.0",
-    "polars==1.35.2",          # Added strict version constraint to avoid breaking change introduced here https://github.com/pola-rs/polars/pull/24027
+    # Added strict constraint to avoid breaking change in polars/polars#24027.
+    "polars==1.35.2",
     "psycopg2-binary>=2.9.11",
     "python-dotenv~=1.2.1",
     "sqlalchemy>=2.0.41",

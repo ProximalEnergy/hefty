@@ -10,6 +10,7 @@ import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
+from core.crud.project import events as core_events
 from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
@@ -28,12 +29,6 @@ from app._crud.projects.drone_anomalies import bulk_update_anomalies_with_event_
 from app._crud.projects.drone_anomalies import (
     get_anomalies_by_event_id as crud_get_anomalies_by_event_id,
 )
-from app._crud.projects.events import get_event_device_ids as crud_get_event_device_ids
-from app._crud.projects.events import get_events_summary as crud_get_events_summary
-from app._crud.projects.events import (
-    get_events_with_device_info as crud_get_events_with_device_info,
-)
-from app._crud.projects.events import get_paginated_events as crud_get_paginated_events
 from app.dependencies import (
     get_async_db,
     get_project_api,
@@ -93,7 +88,7 @@ async def get_events(
         raise HTTPException(status_code=404, detail="Project not found")
 
     # Use the CRUD function to get events with device information
-    events_query = crud_get_events_with_device_info(
+    events_query = core_events.get_events_with_device_info(
         device_id=device_id,
         time_end_gte=time_end_gte,
         time_end_lt=time_end_lt,
@@ -212,7 +207,7 @@ async def get_paginated_events(
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    data_query = crud_get_paginated_events(
+    data_query = core_events.get_paginated_events(
         page=page,
         page_size=page_size,
         sort_column=sort_column,
@@ -437,7 +432,7 @@ async def get_event_devices(
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    device_ids_query = crud_get_event_device_ids()
+    device_ids_query = core_events.get_event_device_ids()
     device_ids_df = await device_ids_query.get_async(
         schema=project_name_short,
         output_type=OutputType.POLARS,
@@ -534,7 +529,7 @@ async def get_events_summary(
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    events_query = crud_get_events_summary(
+    events_query = core_events.get_events_summary(
         open=open,
         start=start,
         end=end,
@@ -717,7 +712,7 @@ async def get_uptime(
         db: TODO: describe.
         project: TODO: describe.
     """
-    events = core.crud.project.events.get_windowed_events(
+    events = core_events.get_windowed_events(
         db=project_db, start=start, end=end, include_underperformance=False
     ).models()
 
@@ -1003,7 +998,7 @@ async def get_llm_event_losses(
         if not project_name_short:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        event_data_query = crud_get_events_with_device_info(
+        event_data_query = core_events.get_events_with_device_info(
             time_end_gte=start,
             time_end_lt=end,
             open=False,
@@ -1349,7 +1344,7 @@ async def get_event_losses_summary(
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    events = await core.crud.project.events.get_events_by_id(
+    events = await core_events.get_events_by_id(
         event_ids=[event_id],
     ).get_async(
         schema=project_name_short,
