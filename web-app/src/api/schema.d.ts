@@ -3008,7 +3008,6 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
          *         project_id: The UUID of the project
          *         event_id: TODO: describe.
          */

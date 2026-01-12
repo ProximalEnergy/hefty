@@ -1336,14 +1336,12 @@ def get_event_anomalies(
 
 @router.get("/event-losses-summary")
 async def get_event_losses_summary(
-    project_db: Annotated[Session, Depends(get_project_db)],
     project_id: uuid.UUID,
     event_id: int,
 ) -> dict[str, float | None]:
     """todo
 
     Args:
-        project_db: TODO: describe.
         project_id: The UUID of the project
         event_id: TODO: describe.
     """
@@ -1351,7 +1349,12 @@ async def get_event_losses_summary(
     if not project_name_short:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    events = core.crud.project.events.get_events_by_id(project_db, event_ids=[event_id])
+    events = await core.crud.project.events.get_events_by_id(
+        event_ids=[event_id],
+    ).get_async(
+        schema=project_name_short,
+        output_type=OutputType.SQLALCHEMY,
+    )
     if not events:
         raise HTTPException(status_code=404, detail="Event not found")
     event = events[0]

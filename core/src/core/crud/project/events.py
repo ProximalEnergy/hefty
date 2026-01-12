@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from core import models
 from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
+from core.db_query import DbQuery
 from core.model_list import ModelList
 
 
@@ -259,16 +260,17 @@ def upsert_event_losses(
     return affected
 
 
-def get_events_by_id(db: Session, *, event_ids: list[int]) -> ModelList[models.Event]:
+def get_events_by_id(
+    *,
+    event_ids: list[int],
+) -> DbQuery[models.Event, Literal[False]]:
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         event_ids: TODO: describe.
     """
     stmt = sa.select(models.Event).where(models.Event.event_id.in_(event_ids))
-    items = list(db.scalars(stmt).all())
-    return ModelList(query=stmt, items=items, return_query=False)
+    return DbQuery(query=stmt)
 
 
 def get_homepage_summary(
