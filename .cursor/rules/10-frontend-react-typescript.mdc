@@ -1,0 +1,66 @@
+---
+description: React/TypeScript frontend patterns for web-app
+globs: web-app/**/*.{ts,tsx}
+---
+
+# File Organization
+- `src/api/` - API client functions organized by backend structure (`v1/operational/`, `v1/admin/`, etc.)
+- `src/components/` - Reusable UI components
+- `src/pages/` - Route-level page components
+- `src/hooks/` - Custom hooks including API query hooks
+- `src/contexts/` - React context providers
+- `src/utils/` - Utility functions
+
+# API Calls
+- Use `useCustomQuery` from `@/hooks/api.ts` for GET requests with TanStack Query
+- API functions go in `src/api/v1/` mirroring backend router structure
+- Use axios with the Bearer token pattern from `@clerk/clerk-react`
+- Base URL from `@/urlConfig`, never hardcode URLs
+- Use `@` path alias for imports (configured in tsconfig.json)
+- **Important:** The `axiosConfig.url` must match the exact API route path (e.g., `/v1/operational/projects`) so that `check_unused_routes.py` can detect the endpoint is used
+
+```typescript
+// Example API call pattern
+const { data, isLoading } = useCustomQuery<Project[]>({
+  axiosConfig: { method: 'get', url: '/v1/operational/projects' },
+  queryName: 'projects',
+  queryParams: { project_ids: projectIds },
+})
+```
+
+# State Management
+- Use TanStack Query for server state (caching, refetching)
+- Use React context for global UI state (ThemeContext, GISContext)
+- Use `@mantine/form` for form state management
+
+# UI Components
+- Prefer Mantine components over custom implementations
+- Use Mantine's theme system for consistent styling
+- Use `@mantine/hooks` for common UI behaviors
+- Use `@tabler/icons-react` for icons (not other icon libraries)
+- Use `@mantine/notifications` for user feedback
+
+# TypeScript
+- Strict mode enabled - provide proper types, avoid `any`
+- Prefix unused variables with `_` (e.g., `_unusedParam`)
+- Define interfaces in component files or dedicated types files
+- Import types from `@/api/schema.d.ts` for API response types
+
+# React Patterns
+- Use functional components with hooks
+- Always provide unique `key` props in lists
+- Use React.memo for expensive components
+- Keep components focused; extract reusable logic to hooks
+
+# Linting & Formatting
+- ESLint with TypeScript rules enabled
+- Prettier for formatting (run via `npm run check`)
+- No `console.log` in production code (checked by `mise run web:console_log_check`)
+- No `html2canvas` - use `html2canvas-pro` instead (restricted import)
+
+# Common Imports
+```typescript
+import { baseURL } from '@/urlConfig'
+import { useAuth } from '@clerk/clerk-react'
+import { useCustomQuery } from '@/hooks/api'
+```

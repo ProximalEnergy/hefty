@@ -1,0 +1,144 @@
+---
+description: Quality checks and mise task runner commands
+globs: **/*
+---
+
+# Before Committing
+Always run `mise run check` from the mono root. It runs checks based on changed files vs dev branch.
+
+# Quick Reference - Common Check Commands
+```bash
+# Full check (runs relevant checks based on git diff)
+mise run check
+
+# Run all checks regardless of diff
+mise run check --all
+
+# Static checks only (skip pytest/hurl)
+mise run check --static
+```
+
+# Python Checks (core, api, microservices)
+
+## Ruff Linting & Formatting
+- Line length: 88 characters
+- Auto-fix enabled - ruff will fix most issues automatically
+- Key rules enforced:
+  - `F401` - Remove unused imports
+  - `I` - isort import sorting
+  - `T20` - No print statements (except in scripts)
+  - `S101` - No assert in production code (allowed in tests)
+  - `D101-D103, D417` - Google-style docstrings required
+  - `UP` - Modern Python syntax (pyupgrade)
+  - `PLC0415` - Imports must be at module level, not inside functions
+
+```bash
+mise run api:ruff       # Lint API
+mise run api:format     # Format API
+mise run core:ruff_check
+mise run core:ruff_format
+```
+
+## Type Checking (mypy)
+- Python 3.12 target
+- SQLAlchemy plugin enabled
+- All functions should have type hints
+- `disallow_untyped_defs = false` (gradual typing)
+
+```bash
+mise run api:types
+mise run core:types
+```
+
+## Semgrep Rules
+- `star-syntax` - Functions must use `*` for keyword-only args (except routes)
+- `sqlalchemy-query-filter` - No `.query()` or `.filter()` - use `select()` + `.where()`
+- `with-async-db` - Don't use `_with_async_db` directly in routes
+
+```bash
+mise run api:star_syntax
+mise run api:sqlalchemy
+```
+
+## Dead Code & Unused Imports
+- Vulture (min-confidence 100) - finds unused code
+- Deptry - finds unused dependencies
+
+```bash
+mise run api:vulture
+mise run api:deptry
+```
+
+## Unused Routes Check
+- `check_unused_routes.py` detects API endpoints not used in web-app or other code
+- **Do NOT** add routes to `ALLOWED_UNUSED_ROUTES` if they are actually used in web-app
+- Instead, ensure frontend hooks use the exact route path in `axiosConfig.url` so the script can detect usage
+- Only add to `ALLOWED_UNUSED_ROUTES` for legitimately unused internal/background endpoints
+
+## Docstrings
+- All public functions need docstrings with Args section
+- Google docstring convention
+
+```bash
+mise run api:docstring_args
+mise run core:docstring_args
+```
+
+# TypeScript/React Checks (web-app)
+
+```bash
+mise run web:check    # TypeScript + Prettier + Knip
+mise run web:lint     # ESLint only
+```
+
+## ESLint Rules
+- `@typescript-eslint/no-explicit-any` - Warn on `any` type
+- `@typescript-eslint/no-unused-vars` - Warn on unused (use `_` prefix to ignore)
+- `react/jsx-key` - Error if missing keys in lists
+- `no-restricted-imports` - `html2canvas` blocked, use `html2canvas-pro`
+
+## Other Web Checks
+- No `console.log` in source files
+- Knip checks for unused exports/dependencies
+
+# Common Failure Modes & Fixes
+
+| Check | Common Issue | Fix |
+|-------|-------------|-----|
+| `star_syntax` | Missing `*` in function params | Add `*` after first positional arg |
+| `sqlalchemy` | Using `.filter()` | Replace with `.where()` |
+| `docstring_args` | Missing Args in docstring | Add Google-style Args section |
+| `vulture` | Unused function | Remove or add to whitelist if false positive |
+| `ruff F401` | Unused import | Remove the import |
+| `ruff PLC0415` | Import inside function | Move import to top of file |
+| `check_unused_routes` | Route in ALLOWED list | Update frontend hook to use exact route path |
+| `web:console_log_check` | `console.log` in code | Remove or use proper logging |
+
+# Package-Specific Commands
+
+## Core
+```bash
+mise run core:check       # All core checks
+mise run core:db "msg"    # Generate migration
+mise run core:release     # Full release workflow
+```
+
+## API
+```bash
+mise run api:check        # All API checks
+mise run api:run          # Run dev server
+mise run api:pytest       # Run tests
+```
+
+## Web-App
+```bash
+mise run web:check        # TS + Prettier + Knip
+mise run web:dev          # Dev server
+mise run web:build        # Production build
+```
+
+# Codegen
+After changing API schemas or enums, regenerate TypeScript types:
+```bash
+mise run codegen
+```

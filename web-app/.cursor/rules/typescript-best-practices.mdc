@@ -2,7 +2,26 @@
 description: TypeScript coding standards and type safety guidelines
 globs: **/*.{ts,tsx}
 ---
-- Use strict null checks
-- Prefer interface over type
-- Use type guards and assertions
-- Implement proper type inference
+
+# API Types
+
+- Use auto-generated types from `@/api/schema.d.ts` - never redefine API types manually
+- Import types as: `import type { components } from '@/api/schema'`
+- Access schema types via: `type MyType = components['schemas']['MySchemaName']`
+
+# General Type Safety
+
+- Use strict null checks - handle `null` and `undefined` explicitly
+- Prefer `interface` over `type` for object shapes (better error messages, extensibility)
+- Use type guards and narrowing for runtime type checking
+- Avoid `any` - use `unknown` and narrow with type guards when needed
+
+# Naming Conventions
+
+- Prefix unused variables with `_` to satisfy ESLint (e.g., `_unusedParam`)
+- Use PascalCase for types/interfaces, camelCase for variables/functions
+
+# Enums
+
+- Import enums from `@/api/enumerations` (auto-generated from backend)
+- Don't redefine enums that exist in the backend

@@ -1,0 +1,84 @@
+---
+description: FastAPI backend patterns for the api package
+globs: api/**/*.py
+---
+
+# Project Structure
+- `app/main.py` - FastAPI app setup, middleware, router mounting
+- `app/v1/` - API routers organized by domain (operational, admin, ai, gis, etc.)
+- `app/_crud/` - API-specific CRUD operations (extends core crud)
+- `app/_dependencies/` - Auth and authorization helpers
+- `app/interfaces.py` - Pydantic request/response models
+- `app/dependencies.py` - FastAPI dependency injection functions
+- `app/settings.py` - Environment configuration
+
+# Router Structure
+- Routers in `app/v1/` are organized by domain (e.g., `operational/projects.py`)
+- Use APIRouter with prefix and tags
+- Include `operation_id` for OpenAPI docs
+
+```python
+router = APIRouter(prefix="/projects", tags=["projects"])
+
+@router.get("", response_model=list[interfaces.Project], operation_id="get_projects")
+async def get_projects(
+    *,
+    project_ids: Annotated[list[UUID] | None, Query()] = None,
+    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+):
+    """Docstring describing the endpoint."""
+```
+
+# Dependency Injection
+- `get_user_data_async` - Get authenticated user from JWT or API key
+- `get_project_db_async` - Get project-scoped async DB session
+- `get_async_db` - Get async DB session for operational schema
+- `check_project_access_async` - Verify user has access to project
+- `requires_admin_async` / `requires_superadmin_async` - Role checks
+
+# Database Access
+- Use `core.crud.*` for database operations via `DbQuery` pattern
+- Never use `_with_async_db` directly in routes - use dependency injection
+- Use `DbQuery.get_async()` for async operations with proper output type
+- For large results use `OutputType.POLARS` or `OutputType.PANDAS`
+- For <100 records use `OutputType.SQLALCHEMY`
+
+```python
+# Using core CRUD
+result = await core.crud.operational.projects.get_project(
+    project_id=project_id,
+    deep=True,
+).get_async(output_type=OutputType.SQLALCHEMY)
+```
+
+# Pydantic Models
+- Define in `app/interfaces.py` for GET responses
+- Create child models in `app/_crud/` files for partial responses
+- Use `model_validate` to convert SQLAlchemy models
+- Use `ConfigDict(from_attributes=True)` for ORM compatibility
+
+# Error Handling
+- Raise `HTTPException` with appropriate status codes
+- 404 for not found, 403 for forbidden, 401 for unauthorized
+- Use `app.logger` for logging, not print statements
+
+# Function Signatures
+- Use keyword-only args with `*` (semgrep enforced)
+- Exception: FastAPI route handlers don't need `*`
+- All functions need docstrings with Args section (checked by `check_docstring_args.py`)
+
+```python
+# Correct - keyword-only args
+def get_project(*, project_id: UUID, deep: bool = False):
+    """Get a project by ID.
+
+    Args:
+        project_id: The project UUID.
+        deep: Load related objects.
+    """
+```
+
+# Type Hints
+- Full type hints required (mypy enforced)
+- Use `Annotated` for FastAPI Query/Path parameters
+- Import models as `core.models`, enums as `core.enumerations`

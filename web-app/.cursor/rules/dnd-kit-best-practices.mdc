@@ -1,8 +1,0 @@
----
-description: Best practices for implementing drag-and-drop functionality with dnd-kit
-globs: **/*.{ts,tsx,js,jsx}
----
-- Use the `useSensor` hook for custom drag behavior
-- Implement proper collision detection for complex layouts
-- Utilize the `useSortable` hook for sortable lists
-- Ensure accessibility by using dnd-kit's built-in ARIA attributes

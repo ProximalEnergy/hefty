@@ -1,0 +1,14 @@
+---
+description: Best practices for using the CustomCard component for layout containers
+globs: **/*.{ts,tsx}
+---
+- Import from `@/components/CustomCard` (default export)
+- Always provide a `title` prop for the card header
+- Use `info` prop (ReactNode) for tooltip help text shown on hover
+- Use `fill` prop when the card body content needs zero padding (e.g., plots)
+- Use `style={{ height: '100%' }}` or explicit height for cards in flex layouts
+- Use `headerChildren` prop to add controls (buttons, badges) to the card header
+- Use `allowMinimize` with `storageKey` for collapsible cards that persist state
+- Use `quality` prop for QualityCard indicators on data-driven cards
+- Set `allowFullscreen={false}` when fullscreen toggle is not appropriate
+- Combine with `PlotlyPlot` for chart containers: `<CustomCard fill><PlotlyPlot /></CustomCard>`

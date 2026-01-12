@@ -1,9 +1,0 @@
----
-description: Best practices for FastAPI applications
-globs: **/*.{py}
----
-- Use `Depends` for dependency injection to manage resources and authentication.
-- Implement proper error handling with custom exception handlers.
-- Use `BackgroundTasks` for long-running operations to keep the API responsive.
-- Leverage `Response` models for consistent API responses and status codes.
-- Utilize `pydantic` models for request validation and response serialization.

@@ -1,9 +1,0 @@
----
-description: Best practices for data validation and settings management with Pydantic
-globs: **/*.{py}
----
-- Use `BaseModel` for defining structured data models with automatic validation.
-- Implement custom validators with `@validator` for complex validation logic.
-- Use `Field` to set default values, aliases, and additional constraints.
-- Leverage `pydantic_settings` for configuration management and environment variables.
-- Use `root_validator` for cross-field validation and data normalization.

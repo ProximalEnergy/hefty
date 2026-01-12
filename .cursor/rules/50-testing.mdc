@@ -1,0 +1,46 @@
+---
+description: Testing patterns and conventions
+globs: "**/{tests,_tests}/**/*.py"
+---
+
+# Test Locations
+- `core/tests/` - Core package unit tests
+- `api/_tests/` - API unit tests (pytest)
+- `api/_smoke_testing/` - API smoke tests (Bruno and Hurl)
+
+# Pytest Conventions
+- Test files: `test_*.py` or `*_test.py`
+- Test functions: `test_*`
+- Use fixtures for shared setup
+- `assert` statements allowed in tests (ruff S101 disabled)
+
+# Running Tests
+```bash
+mise run api:pytest    # API unit tests
+mise run core:pytest   # Core unit tests
+mise run api:hurl      # API smoke tests (requires running server)
+```
+
+# Smoke Testing
+- Bruno files in `api/_smoke_testing/bruno/` - GUI-based API testing
+- Hurl files in `api/_smoke_testing/hurl/` - CLI-based HTTP testing
+- Hurl tests run against local server at `http://127.0.0.1:8000`
+
+# Test Guidelines
+- Test async endpoints with `pytest-asyncio`
+- Mock external services (Clerk, AWS, etc.)
+- Use factories or fixtures for test data
+- Don't test against production database
+
+# Assertions
+- Use plain `assert` statements (pytest rewrites them for better output)
+- For complex assertions, use pytest helpers or custom matchers
+
+```python
+# Example test
+async def test_get_project_returns_project():
+    """Test that get_project returns the correct project."""
+    project = await get_project(project_id=TEST_PROJECT_ID)
+    assert project is not None
+    assert project.name_short == "expected_name"
+```

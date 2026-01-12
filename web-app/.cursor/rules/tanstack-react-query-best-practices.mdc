@@ -1,8 +1,35 @@
 ---
 description: Best practices for data fetching and caching with React Query
-globs: **/*.{ts,tsx,js,jsx}
+globs: **/*.{ts,tsx}
 ---
-- Use query keys effectively for caching and refetching
-- Implement proper error handling and loading states
-- Utilize mutations for data updates and optimistic UI
-- Use query client to manage global query settings
+
+# Custom Query Hook
+
+- Use `useCustomQuery` from `@/hooks/api.ts` instead of raw `useQuery`
+- The `useCustomQuery` hook handles auth tokens, query keys, and axios config automatically
+- For mutations, use `useMutation` from `@tanstack/react-query` directly
+
+# Query Patterns
+
+- Use `queryName` as the first part of the query key for cache identification
+- Pass `pathParams` for URL path variables (e.g., `{project_id}`)
+- Pass `queryParams` for URL query string parameters
+- Use `queryOptions` for React Query options like `enabled`, `refetchInterval`
+
+# Example
+
+```tsx
+const { data, isLoading, error } = useCustomQuery<ResponseType>({
+  axiosConfig: { url: '/v1/projects/{project_id}/data', method: 'GET' },
+  queryName: 'projectData',
+  pathParams: { project_id: projectId },
+  queryParams: { start_date: startDate },
+  queryOptions: { enabled: !!projectId },
+})
+```
+
+# Optimistic Updates
+
+- Use `onMutate` for optimistic updates with query cache snapshots
+- Implement `onError` rollback using the snapshot from `onMutate`
+- Use `onSettled` to invalidate queries for fresh data after mutation

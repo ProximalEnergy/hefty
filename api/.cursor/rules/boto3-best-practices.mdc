@@ -1,9 +1,0 @@
----
-description: Best practices for AWS SDK usage with boto3
-globs: **/*.{py}
----
-- Use resource abstractions for higher-level operations and easier code readability.
-- Implement proper error handling with `try/except` blocks for AWS-specific exceptions.
-- Use `boto3.client` for low-level operations and fine-grained control.
-- Leverage `boto3.session.Session` for managing multiple AWS accounts or regions.
-- Utilize `boto3.paginator` for handling paginated API responses efficiently.

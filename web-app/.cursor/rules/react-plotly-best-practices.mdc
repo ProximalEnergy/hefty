@@ -1,8 +1,50 @@
 ---
-description: Best practices for creating interactive plots with React Plotly
-globs: **/*.{ts,tsx,js,jsx}
+description: Best practices for Plotly charts including color conventions and styling
+globs: **/*.{ts,tsx}
 ---
-- Use React Plotly's responsive props for mobile-friendly charts
-- Implement proper data formatting for Plotly
-- Utilize Plotly's event handling for interactivity
-- Use Plotly's layout options for customization
+
+# Component Usage
+
+- Use `PlotlyPlot` from `@/components/plots/PlotlyPlot` (not raw react-plotly.js)
+- Wrap in `CustomCard` with `fill` prop for consistent card styling
+- Pass `isLoading` and `error` props to PlotlyPlot for loading/error states
+
+# Color Conventions (use `useMantineTheme()`)
+
+- Measured/Actual Active Power: `theme.colors.green[7]` with `fill: 'tozeroy'`
+- Expected Power: `theme.colors.orange[7]` (solid line, no fill)
+- PPC Setpoint: `theme.colors.blue[7]`
+- SOC (State of Charge): `theme.colors.blue[6]`
+- BESS Active Power: `theme.colors.yellow[7]`
+- Interconnection/Curtailment Limits: `theme.colors.red[7]` with `dash: 'dash'`
+- Thresholds: red for bad (<80%), yellow for warning (80-90%), green for good (>90%)
+
+# Vertical Line for Current Time ("now")
+
+- Add a red dashed vertical line at current timestamp using `shapes` in layout:
+
+```tsx
+shapes: [
+  {
+    type: 'line',
+    x0: dayjs().toISOString(),
+    x1: dayjs().toISOString(),
+    y0: 0,
+    y1: 1,
+    yref: 'paper',
+    line: { color: theme.colors.red[6], width: 1, dash: 'dash' },
+  },
+]
+```
+
+# Line Styling
+
+- Use `mode: 'lines'` for continuous data (power, setpoints)
+- Use `mode: 'lines+markers'` for sparse/discrete data
+- Use `connectgaps: false` for expected power to show gaps in availability
+- Line width: 2 for primary traces, 1 for secondary/difference traces
+
+# Event Highlighting
+
+- Use `shapes` with `type: 'rect'` to highlight event time ranges
+- Use `fillcolor: 'rgba(255, 0, 0, 0.2)'` for event highlighting overlays

@@ -1,10 +1,34 @@
 ---
 description: Best practices for using Mantine UI components and styling
-globs: **/*.{ts,tsx,js,jsx,css}
+globs: **/*.{ts,tsx,css}
 ---
-- Use Mantine's theme system for consistent styling
-- Implement form validation with `@mantine/form`
-- Utilize `@mantine/hooks` for custom hooks and state management
-- Use `@mantine/notifications` for user feedback
-- Implement date pickers with `@mantine/dates`
-- Use `@mantine/dropzone` for file uploads
+
+# Component Preferences
+
+- Use Mantine components over custom CSS (per global rules)
+- Use `SegmentedControl` over `Select`/dropdowns when options are few and discrete
+  - Saves space and reduces clicks
+  - Good for: severity levels, toggle options, view modes
+- Use `@mantine/form` with `useForm` hook for form state and validation
+
+# Theme Usage
+
+- Access theme via `useMantineTheme()` hook for colors and spacing
+- Use `theme.colors.[color][shade]` for consistent coloring (e.g., `theme.colors.green[7]`)
+- Prefer theme colors over hardcoded hex values
+
+# Common Packages
+
+- `@mantine/core` - Core components (Button, Card, Text, etc.)
+- `@mantine/hooks` - Utility hooks (useDisclosure, useFullscreen, etc.)
+- `@mantine/form` - Form state management and validation
+- `@mantine/notifications` - Toast notifications
+- `@mantine/dates` - Date/time pickers with dayjs
+- `@mantine/dropzone` - File upload dropzone
+- `@mantine/spotlight` - Command palette / search
+
+# Styling
+
+- Use Mantine's style props (p, m, c, bg, etc.) over inline styles
+- Use `rem()` function for consistent sizing
+- Use `@mantine/core` Stack/Group for layout instead of custom flexbox

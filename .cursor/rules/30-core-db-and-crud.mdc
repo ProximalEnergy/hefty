@@ -1,0 +1,95 @@
+---
+description: Core package patterns for database models, CRUD, and shared utilities
+globs: core/**/*.py
+---
+
+# Package Structure
+- `src/core/models.py` - All SQLAlchemy ORM models
+- `src/core/crud/` - CRUD helpers organized by schema (admin, operational, ercot, project)
+- `src/core/database.py` - Engine setup, Base class, async session factory
+- `src/core/db_query.py` - DbQuery wrapper for efficient data fetching
+- `src/core/enumerations.py` - IntEnum/StrEnum classes synced with DB lookup tables
+- `src/core/dependencies.py` - DB session context managers
+- `_alembic_migrations/` - Database migrations
+
+# SQLAlchemy Models
+- All models inherit from `Base` (from `core.database`)
+- Models specify schema via `__table_args__ = {"schema": "admin"}` or similar
+- Use `Mapped[]` type annotations with `mapped_column()`
+- Primary keys use `UUID(as_uuid=True)` with server-generated UUIDs
+
+```python
+class Project(Base):
+    __tablename__ = "projects"
+    __table_args__ = {"schema": "operational"}
+
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=sa.text("gen_random_uuid()"),
+    )
+    name_short: Mapped[str] = mapped_column(unique=True)
+    name_long: Mapped[str]
+```
+
+# Database Schemas
+- `admin` - Users, companies, permissions, notifications
+- `operational` - Projects, devices, KPIs, reports (shared across projects)
+- `ercot` - ERCOT market data
+- `project_*` (dynamic) - Per-project timeseries data (e.g., `project_abc`)
+
+# CRUD Functions with DbQuery
+- Return `DbQuery` objects instead of executing queries directly
+- Caller decides output format: `POLARS`, `PANDAS`, or `SQLALCHEMY`
+- Use `is_scalar=True` for single-object queries
+
+```python
+def get_project(*, project_id: UUID, deep: bool = False) -> DbQuery[models.Project, Literal[True]]:
+    """Get project by ID."""
+    options = get_project_options(deep=deep)
+    stmt = select(models.Project).options(options).where(models.Project.project_id == project_id)
+    return DbQuery(query=stmt, is_scalar=True)
+
+# Usage
+project = await crud.get_project(project_id=id, deep=True).get_async(output_type=OutputType.SQLALCHEMY)
+```
+
+# SQLAlchemy Rules (Semgrep Enforced)
+- **NEVER** use `.query()` - use `select()` instead
+- **NEVER** use `.filter()` - use `.where()` instead
+- Use `selectinload` for eager loading relationships
+- Use `noload` when relationships aren't needed
+
+# Database Sessions
+- Use `with_db(schema=name)` for sync sessions
+- Use `with_db_async(schema=name)` for async sessions
+- Schema is `None` for admin, "operational" for operational, or project name_short
+
+```python
+from core.dependencies import with_db, with_db_async
+
+# Sync
+with with_db(schema="operational") as db:
+    result = db.execute(stmt).scalars().all()
+
+# Async
+async with with_db_async(schema=project_name_short) as db:
+    result = await db.execute(stmt)
+```
+
+# Enumerations
+- Define in `core/enumerations.py` as `IntEnum` or `StrEnum`
+- Inherit from `BaseIntEnum` for database-synced enums
+- Validation runs via `mise run core:enum` to ensure sync with DB
+
+# Migrations
+- Run `mise run core:db "<description>"` to generate migrations
+- Migrations auto-cleaned and formatted
+- Bump core version when releasing: `mise run core:bump`
+- Full release: `mise run core:release`
+
+# Performance
+- Use Polars for large tabular data (>100 rows) - fastest
+- Use Pandas for compatibility with existing code
+- SQLAlchemy objects only for small result sets (<100 rows)
+- Avoid N+1 queries - use `selectinload` for relationships

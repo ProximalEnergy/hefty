@@ -1,9 +1,0 @@
----
-description: Best practices for asynchronous HTTP requests with aiohttp
-globs: **/*.{py}
----
- Use `async with` for proper resource management and connection pooling.
-- Implement timeouts with `ClientTimeout` to prevent hanging requests.
-- Use `aiohttp.ClientSession` for multiple requests to share connection pool.
-- Leverage `aiohttp_jinja2` for server-side rendering of HTML templates.
-- Handle exceptions with `try/except` blocks to manage network errors gracefully.

@@ -1,0 +1,52 @@
+---
+description: Global conventions and behaviors for the Proximal Energy monorepo
+globs: **/*
+---
+
+# Monorepo Structure
+
+- `core/` - Shared database models, CRUD helpers, and utilities (published as Python package)
+- `api/` - FastAPI backend application
+- `web-app/` - React/TypeScript frontend with Mantine UI
+- `microservices/` - AWS Lambda functions
+- `sql-admin/` - Database admin tools
+
+# Code Style
+
+- Line length: 88 characters max
+- Use keyword-only arguments with `*` in Python functions (except FastAPI routes and `self`-only methods)
+- Prefer Mantine components over custom CSS in the frontend
+- Use `uv` not `pip` for Python dependency management
+
+# Before Making Changes
+
+- Read existing code in the same module to match patterns
+- For unclear patterns, search for similar features and mirror them
+- Never invent new endpoints, schemas, or DB models without understanding existing conventions
+
+# Cross-Cutting Safety
+
+- Never hardcode type IDs, permission IDs, or project name_shorts - use enumerations from `core.enumerations`
+- Never modify database schema without an alembic migration in `core/_alembic_migrations/`
+- Use `core.models` for all SQLAlchemy model references
+- Never use SQLAlchemy's deprecated `.query()` or `.filter()` - use `select()` with `.where()`
+
+# Adding Features End-to-End
+
+1. **DB Model** (if needed): Add to `core/src/core/models.py`, create migration
+2. **CRUD Helper**: Add to `core/src/core/crud/` using `DbQuery` pattern
+3. **API Endpoint**: Add router in `api/app/v1/`, schemas in `api/app/interfaces.py`
+4. **Frontend API**: Add TypeScript API function in `web-app/src/api/v1/`
+5. **UI Component**: Add page/component using `useCustomQuery` hook
+
+# Dependencies
+
+- Frontend: Use `npm ci` in web-app, versions pinned in package-lock.json
+- Backend: Use `uv sync` for core and api packages
+- Run `mise run sync-deps` to sync all dependencies
+
+# Git Workflow
+
+- Base branch: `dev`
+- Run `mise run sync` to sync current branch with latest dev
+- Always run `mise run check` before creating a PR

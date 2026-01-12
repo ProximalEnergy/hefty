@@ -1,8 +1,0 @@
----
-description: Best practices for solar energy calculations using pvlib
-globs: **/*.py
----
-- Use the latest solar position algorithms for accurate calculations
-- Implement proper error handling for edge cases in solar calculations
-- Use pvlib's built-in functions for weather data processing
-- Validate input data to ensure accurate solar energy predictions

@@ -1,8 +1,0 @@
----
-description: Guidelines for using Pydantic Core for data validation and settings management
-globs: **/*.py
----
-- Use Pydantic models for request/response validation
-- Implement custom validators for complex data validation
-- Use Pydantic's built-in serialization and deserialization
-- Leverage Pydantic's type hints for better code readability and maintainability
