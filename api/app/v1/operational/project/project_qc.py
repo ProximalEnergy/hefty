@@ -7,9 +7,3 @@ router = APIRouter(
     tags=["qc"],
 )
 router.include_router(combiner_swaps.router)
-
-
-@router.get("/health")
-async def health():
-    """todo"""
-    return {"status": "ok"}
