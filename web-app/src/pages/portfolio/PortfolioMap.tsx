@@ -1,3 +1,4 @@
+import { useGetUserType } from '@/api/admin'
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import {
@@ -46,7 +47,14 @@ import {
   IconWind,
 } from '@tabler/icons-react'
 import { Feature } from 'geojson'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import MapboxMap, {
   Layer,
   MapMouseEvent,
@@ -56,6 +64,26 @@ import MapboxMap, {
 import { Link } from 'react-router'
 
 import styles from './PortfolioMap.module.css'
+
+// Project Type Icon Component
+const ProjectTypeIcon = ({
+  project_type_id,
+  icon_style,
+}: {
+  project_type_id: number
+  icon_style: React.CSSProperties
+}) => {
+  switch (project_type_id) {
+    case ProjectTypeEnum.PV:
+      return <IconSolarPanel style={icon_style} />
+    case ProjectTypeEnum.BESS:
+      return <IconBattery4 style={icon_style} />
+    case ProjectTypeEnum.PVS:
+      return <IconSolarElectricity style={icon_style} />
+    default:
+      return <IconSolarPanel style={icon_style} />
+  }
+}
 
 // Project Marker Component with Hover Card
 const ProjectMarker = ({
@@ -91,18 +119,10 @@ const ProjectMarker = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div>
-              {(() => {
-                switch (project.project_type_id) {
-                  case ProjectTypeEnum.PV:
-                    return <IconSolarPanel style={icon_style} />
-                  case ProjectTypeEnum.BESS:
-                    return <IconBattery4 style={icon_style} />
-                  case ProjectTypeEnum.PVS:
-                    return <IconSolarElectricity style={icon_style} />
-                  default:
-                    return <IconSolarPanel style={icon_style} />
-                }
-              })()}
+              <ProjectTypeIcon
+                project_type_id={project.project_type_id}
+                icon_style={icon_style}
+              />
             </div>
           </Link>
         </HoverCard.Target>
@@ -308,6 +328,21 @@ const PortfolioMap = () => {
     key: 'show-temperature',
     defaultValue: false,
   })
+  const [showDemo, _setShowDemo] = useLocalStorage({
+    key: 'show-demo',
+    defaultValue: false,
+  })
+  const [demoSeed, setDemoSeed] = useState(() => Date.now())
+
+  // Wrapper for setShowDemo that resets seed when demo mode is enabled
+  const setShowDemo = (value: boolean | ((prev: boolean) => boolean)) => {
+    const willShow = typeof value === 'function' ? value(showDemo) : value
+    if (willShow && !showDemo) {
+      // Reset seed only when turning demo mode on
+      setDemoSeed(Date.now())
+    }
+    _setShowDemo(willShow)
+  }
 
   // One-time normalization on mount: enforce mutual exclusion if both persisted as true
   useEffect(() => {
@@ -315,6 +350,95 @@ const PortfolioMap = () => {
       setShowTemperature(false)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Type definition for demo markers
+  type DemoMarker = {
+    id: string
+    longitude: number
+    latitude: number
+    project_type_id: number
+  }
+
+  // Generate 19 random demo markers with random locations and project types
+  // Includes a couple in California and Texas, rest in continental USA interior
+  const demoMarkers = useMemo(() => {
+    if (!showDemo) return []
+
+    // Use seed-based random number generator for deterministic but varied results
+    let seed = demoSeed
+    const random = () => {
+      seed = (seed * 9301 + 49297) % 233280
+      return seed / 233280
+    }
+
+    const markers: DemoMarker[] = []
+    const projectTypes = [
+      ProjectTypeEnum.PV,
+      ProjectTypeEnum.BESS,
+      ProjectTypeEnum.PVS,
+    ]
+
+    // Fixed locations in California (central California, avoiding coast)
+    const californiaLocations = [
+      { lng: -120.5, lat: 36.5 }, // Central Valley area
+      { lng: -118.2, lat: 34.0 }, // Inland Southern California
+    ]
+
+    // Fixed locations in Texas (interior Texas)
+    const texasLocations = [
+      { lng: -98.5, lat: 32.8 }, // Central Texas
+      { lng: -97.7, lat: 30.3 }, // South Central Texas
+    ]
+
+    // Add California markers
+    californiaLocations.forEach((loc, idx) => {
+      const projectTypeId =
+        projectTypes[Math.floor(random() * projectTypes.length)]
+      markers.push({
+        id: `demo-ca-${idx}`,
+        longitude: loc.lng,
+        latitude: loc.lat,
+        project_type_id: projectTypeId,
+      })
+    })
+
+    // Add Texas markers
+    texasLocations.forEach((loc, idx) => {
+      const projectTypeId =
+        projectTypes[Math.floor(random() * projectTypes.length)]
+      markers.push({
+        id: `demo-tx-${idx}`,
+        longitude: loc.lng,
+        latitude: loc.lat,
+        project_type_id: projectTypeId,
+      })
+    })
+
+    // Add remaining random markers in continental USA interior (avoiding coasts and major water bodies)
+    // Longitude: -110 to -85 (central to eastern USA, avoiding Pacific coast)
+    // Latitude: 32 to 45 (avoiding Gulf coast and northern border)
+    const minLng = -110
+    const maxLng = -85
+    const minLat = 32
+    const maxLat = 45
+    const remainingCount = 19 - markers.length
+
+    for (let i = 0; i < remainingCount; i++) {
+      const lng = minLng + random() * (maxLng - minLng)
+      const lat = minLat + random() * (maxLat - minLat)
+      const projectTypeId =
+        projectTypes[Math.floor(random() * projectTypes.length)]
+
+      markers.push({
+        id: `demo-${i}`,
+        longitude: lng,
+        latitude: lat,
+        project_type_id: projectTypeId,
+      })
+    }
+
+    return markers
+  }, [showDemo, demoSeed])
 
   // Draggable position for overlay controls
   const [overlayPosition, setOverlayPosition] = useLocalStorage<{
@@ -406,6 +530,7 @@ const PortfolioMap = () => {
   })
 
   const { userId } = useAuth()
+  const { data: userType } = useGetUserType({})
 
   const { data, isLoading, error } = useGetProjects({
     queryParams: { deep: true },
@@ -418,6 +543,15 @@ const PortfolioMap = () => {
         enabled: !!userId,
       },
     })
+
+  const isSuperadmin = userType?.name_short === 'superadmin'
+
+  // Reset showDemo if user is not a superadmin
+  useEffect(() => {
+    if (!isSuperadmin && showDemo) {
+      _setShowDemo(false)
+    }
+  }, [isSuperadmin, showDemo, _setShowDemo])
 
   const { data: hailData } = useGetHailForecastPolygons({
     arcgis_layer_id: 5, // Day 1
@@ -1002,6 +1136,22 @@ const PortfolioMap = () => {
             icon_style={icon_style}
           />
         ))}
+        {showDemo &&
+          isSuperadmin &&
+          demoMarkers.map((demoMarker: DemoMarker) => (
+            <Marker
+              key={demoMarker.id}
+              longitude={demoMarker.longitude}
+              latitude={demoMarker.latitude}
+            >
+              <div>
+                <ProjectTypeIcon
+                  project_type_id={demoMarker.project_type_id}
+                  icon_style={icon_style}
+                />
+              </div>
+            </Marker>
+          ))}
       </MapboxMap>
       {/* Hover Tooltip for Polygon Layers */}
       {hoverInfo.features.length > 0 && (
@@ -1390,7 +1540,11 @@ const PortfolioMap = () => {
         px="md"
         py="md"
       >
-        <MapSettings disableLabels />
+        <MapSettings
+          disableLabels
+          showDemo={showDemo}
+          onDemoChange={setShowDemo}
+        />
       </Box>
       <Attribution />
     </div>

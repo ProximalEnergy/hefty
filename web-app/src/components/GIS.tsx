@@ -1,3 +1,4 @@
+import { useGetUserType } from '@/api/admin'
 import { GISContext } from '@/contexts/GISContext'
 import {
   ActionIcon,
@@ -59,11 +60,16 @@ export function ColorBar({
 export function MapSettings({
   disableLabels = false,
   disableSatellite = false,
+  showDemo,
+  onDemoChange,
 }: {
   disableLabels?: boolean
   disableSatellite?: boolean
+  showDemo?: boolean
+  onDemoChange?: (checked: boolean) => void
 }) {
   const context = useContext(GISContext)
+  const { data: userType } = useGetUserType({})
 
   if (!context) {
     throw new Error('GISContext is not provided')
@@ -77,6 +83,7 @@ export function MapSettings({
   }
 
   const switchSize = 'xs'
+  const isSuperadmin = userType?.name_short === 'superadmin'
 
   return (
     <Popover position="top-start">
@@ -87,6 +94,14 @@ export function MapSettings({
       </Popover.Target>
       <Popover.Dropdown>
         <Stack gap="xs">
+          {isSuperadmin && showDemo !== undefined && onDemoChange && (
+            <Switch
+              label="Demo"
+              size={switchSize}
+              checked={showDemo}
+              onChange={(event) => onDemoChange(event.currentTarget.checked)}
+            />
+          )}
           {!disableSatellite && (
             <Switch
               label="Satellite"
