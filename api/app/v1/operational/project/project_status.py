@@ -237,35 +237,16 @@ def get_status_time_series(
         if status_lookup_id and status_lookup_id_to_is_string.get(status_lookup_id):
             # This is a string lookup, ensure data is string and normalized
             col_series = df_timeseries_typed[col]
-            # If float, convert to Int64Dtype first, then string
             if pd.api.types.is_float_dtype(col_series):
-                # Convert to nullable integer first, then string
-                # Preserve NaN values - convert non-NaN values only
-                mask = pd.notna(col_series)
-                if mask.any():
-                    col_series.loc[mask] = (
-                        col_series.loc[mask]
-                        .astype("Int64")
-                        .astype(str)
-                        .str.translate(tbl)
-                        .str.lower()
-                    )
-            elif pd.api.types.is_integer_dtype(col_series):
-                # Preserve NaN values - convert non-NaN values only
-                mask = pd.notna(col_series)
-                if mask.any():
-                    col_series.loc[mask] = (
-                        col_series.loc[mask].astype(str).str.translate(tbl).str.lower()
-                    )
+                col_series = col_series.astype("Int64").astype("string")
             elif (
-                pd.api.types.is_string_dtype(col_series) or col_series.dtype == "object"
+                pd.api.types.is_integer_dtype(col_series)
+                or pd.api.types.is_bool_dtype(col_series)
+                or pd.api.types.is_string_dtype(col_series)
+                or col_series.dtype == "object"
             ):
-                # Already string, but normalize to match lookup keys
-                mask = pd.notna(col_series)
-                if mask.any():
-                    col_series.loc[mask] = (
-                        col_series.loc[mask].astype(str).str.translate(tbl).str.lower()
-                    )
+                col_series = col_series.astype("string")
+            col_series = col_series.str.translate(tbl).str.lower()
             df_timeseries_typed[col] = col_series
 
     def map_status(col):  # nosemgrep: python-enforce-keyword-only-args
