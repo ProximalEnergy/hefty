@@ -25,11 +25,11 @@ def get_current_branch() -> str:
 def update_pyproject_toml(*, pyproject_path: Path, use_editable: bool) -> bool:
     """Update pyproject.toml with the appropriate core source.
 
-        Returns True if changes were made, False if already correct.
+    Returns True if changes were made, False if already correct.
 
     Args:
-        pyproject_path: TODO: describe.
-        use_editable: TODO: describe.
+        pyproject_path: Path to the pyproject.toml to update.
+        use_editable: Whether to use the local editable core dependency.
     """
     content = pyproject_path.read_text()
     lines = content.splitlines()

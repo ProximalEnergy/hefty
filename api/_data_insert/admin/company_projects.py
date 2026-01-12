@@ -13,10 +13,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 def get_company_id_from_name_short(*, name_short: str) -> uuid.UUID:
-    """todo
+    """Look up a company ID by its short name.
 
     Args:
-        name_short: TODO: describe.
+        name_short: Short name for the company.
     """
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
@@ -31,10 +31,10 @@ def get_company_id_from_name_short(*, name_short: str) -> uuid.UUID:
 
 
 def get_project_id_from_name_short(*, name_short: str) -> uuid.UUID:
-    """todo
+    """Look up a project ID by its short name.
 
     Args:
-        name_short: TODO: describe.
+        name_short: Short name for the project.
     """
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
@@ -49,10 +49,10 @@ def get_project_id_from_name_short(*, name_short: str) -> uuid.UUID:
 
 
 def create_vector_store(*, name: str) -> str:
-    """todo
+    """Create an OpenAI vector store and return its ID.
 
     Args:
-        name: TODO: describe.
+        name: Name to assign to the vector store.
     """
     client = OpenAI()
     vector_store = client.vector_stores.create(name=name)
@@ -65,12 +65,12 @@ def create_company_project(
     project_id: uuid.UUID,
     vector_store_id: str,
 ) -> None:
-    """todo
+    """Create a company-project association if it does not exist.
 
     Args:
-        company_id: TODO: describe.
-        project_id: TODO: describe.
-        vector_store_id: TODO: describe.
+        company_id: Company identifier to link.
+        project_id: Project identifier to link.
+        vector_store_id: Vector store identifier to associate.
     """
     with psycopg2.connect(utils.CONNECTION_STRING) as conn:
         with conn.cursor() as cur:

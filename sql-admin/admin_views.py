@@ -271,7 +271,7 @@ def setup_admin_views(admin: Admin) -> None:
     """Set up all admin views for core models.
 
     Args:
-        admin: TODO: describe.
+        admin: SQLAdmin instance used to register model views.
     """
     # Core business models
     admin.add_view(CompanyAdmin)

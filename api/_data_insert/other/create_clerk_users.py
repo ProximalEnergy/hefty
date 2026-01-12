@@ -26,7 +26,7 @@ def create_user(*, user: UserDict) -> None:
     """Create a user in Clerk.
 
     Args:
-        user: TODO: describe.
+        user: User payload to send to the Clerk API.
     """
 
     # Generate a random password

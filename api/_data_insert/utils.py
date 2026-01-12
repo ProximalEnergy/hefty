@@ -49,8 +49,8 @@ def clean_df(df: pd.DataFrame, *, index_col: str | None = None) -> pd.DataFrame:
     """Handle clean df.
 
     Args:
-        df: TODO: describe.
-        index_col: TODO: describe.
+        df: DataFrame to clean before loading.
+        index_col: Optional column name used to drop rows with null values.
     """
     if index_col:
         df = df.dropna(subset=[index_col])
@@ -109,8 +109,8 @@ def get_device_id_path(df: pd.DataFrame) -> pd.DataFrame:
         by following the 'parent_device_id' links.
 
         Args:
-            dev_id: TODO: describe.
-            parent_map: TODO: describe.
+            dev_id: Device identifier to start the traversal.
+            parent_map: Mapping of device IDs to their parent device IDs.
         """
         path = []
         current_id = dev_id
@@ -137,7 +137,7 @@ def application_name(file_path: str) -> str:
     """Handle application name.
 
     Args:
-        file_path: TODO: describe.
+        file_path: Path to the script used to derive the application name.
     """
     file_name = os.path.basename(file_path)
     file_name = file_name.replace(".py", "")

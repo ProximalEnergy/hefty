@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager.
 
     Args:
-        app: TODO: describe.
+        app: FastAPI application instance.
     """
     # Startup
     logger.info("SQLAdmin application starting...")
