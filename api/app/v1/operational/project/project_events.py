@@ -712,9 +712,13 @@ async def get_uptime(
         db: TODO: describe.
         project: TODO: describe.
     """
-    events = core_events.get_windowed_events(
-        db=project_db, start=start, end=end, include_underperformance=False
-    ).models()
+    events_query = core_events.get_windowed_events(
+        start=start, end=end, include_underperformance=False
+    )
+    events = await events_query.get_async(
+        schema=project.name_short,
+        output_type=OutputType.SQLALCHEMY,
+    )
 
     if not events:
         return []

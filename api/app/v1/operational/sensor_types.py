@@ -48,16 +48,15 @@ async def get_sensor_types(
         name_metric: TODO: describe.
         unit: TODO: describe.
     """
-    return (
-        await core_get_sensor_types(
-            sensor_type_ids=sensor_type_ids,
-            name_short=name_short,
-            name_long=name_long,
-            name_metric=name_metric,
-            unit=unit,
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
-    )
+    df = await core_get_sensor_types(
+        sensor_type_ids=sensor_type_ids,
+        name_short=name_short,
+        name_long=name_long,
+        name_metric=name_metric,
+        unit=unit,
+    ).get_async(output_type=OutputType.PANDAS)
+
+    return df.to_dict(orient="records")
 
 
 @router.get(

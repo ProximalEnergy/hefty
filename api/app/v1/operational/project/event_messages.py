@@ -448,9 +448,9 @@ async def send_notifications_for_message(
     if is_first_message:
         # First message: notify all company users
         company_users = await get_users(company_ids=[sender_company_id]).get_async(
-            output_type=OutputType.SQLALCHEMY
+            output_type=OutputType.PANDAS
         )
-        recipient_user_ids = {user[0].user_id for user in company_users}
+        recipient_user_ids = set(company_users["user_id"])
     else:
         # Subsequent messages: notify users who posted
         recipient_user_ids = users_who_posted
@@ -497,7 +497,7 @@ async def send_notifications_for_message(
 
     # Get recipient user details
     recipient_users = await get_users(user_ids=list(recipient_user_ids)).get_async(
-        output_type=OutputType.SQLALCHEMY
+        output_type=OutputType.PANDAS
     )
 
     # Get event details (project name, device type, failure mode)
@@ -548,22 +548,22 @@ async def send_notifications_for_message(
     )
 
     # Send emails to each recipient
-    for user_tuple in recipient_users:
-        user = user_tuple[0]
+    for _, user_row in recipient_users.iterrows():
         recipient_email = await get_user_email_from_clerk(
-            user_id=user.user_id, api_prod=api_prod
+            user_id=user_row["user_id"], api_prod=api_prod
         )
 
         if not recipient_email:
             logger.warning(
-                f"Could not get email for user {user.user_id}, skipping notification"
+                f"Could not get email for user {user_row['user_id']}, skipping "
+                "notification"
             )
             continue
 
         await send_event_chat_email(
-            recipient_user_id=user.user_id,
+            recipient_user_id=user_row["user_id"],
             recipient_email=recipient_email,
-            recipient_name=user.name_long,
+            recipient_name=user_row["name_long"],
             sender_user_id=sender_user_id,
             sender_name=sender_name,
             event_id=event_id,

@@ -44,6 +44,6 @@ async def get_report_instances(
         deep=deep,
     )
 
-    report_instances = await query.get_async(output_type=OutputType.SQLALCHEMY)
+    report_instances_df = await query.get_async(output_type=OutputType.POLARS)
 
-    return report_instances
+    return report_instances_df.to_dicts()

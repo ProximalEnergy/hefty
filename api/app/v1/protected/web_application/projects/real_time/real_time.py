@@ -248,13 +248,12 @@ async def get_by_device_type_id(
 
     # ── fetch all sensor types at once for name_short lookup -------------------
     sensor_type_ids = list(values_by_sensor.keys())
-    sensor_types = (
-        await get_sensor_types(
-            sensor_type_ids=sensor_type_ids,
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
+    sensor_types = await get_sensor_types(
+        sensor_type_ids=sensor_type_ids,
+    ).get_async(output_type=OutputType.PANDAS)
+    sensor_type_names = dict(
+        zip(sensor_types["sensor_type_id"], sensor_types["name_short"])
     )
-    sensor_type_names = {st.sensor_type_id: st.name_short for st in sensor_types}
 
     # ── convert to front-end "traces" shape -------------------------------------
     traces: list[dict[str, str | list | int]] = []

@@ -11,26 +11,21 @@ from sqlalchemy.orm import Session, selectinload
 from core import models
 from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
 from core.db_query import DbQuery
-from core.model_list import ModelList
 
 
 def get_windowed_events(
-    db: Session,
     *,
     start: datetime.datetime,
     end: datetime.datetime,
     deep: bool = False,
-    return_query: bool = False,
     include_underperformance: bool = True,
-) -> ModelList[models.Event]:
+) -> DbQuery[models.Event, Literal[False]]:
     """Query events that start before `end` and end after `start` or are ongoing.
 
     Args:
-        db: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         deep: TODO: describe.
-        return_query: TODO: describe.
         include_underperformance: TODO: describe.
     """
     stmt = sa.select(models.Event).where(models.Event.time_start <= end)
@@ -49,10 +44,7 @@ def get_windowed_events(
         )
     if options:
         stmt = stmt.options(*options)
-    if return_query:
-        return ModelList(query=stmt, return_query=True)
-    items = list(db.scalars(stmt).all())
-    return ModelList(query=stmt, items=items, return_query=False)
+    return DbQuery(query=stmt)
 
 
 def get_maximum_event_id(*, db: Session) -> int:

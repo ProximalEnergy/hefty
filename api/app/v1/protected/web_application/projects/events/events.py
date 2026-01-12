@@ -3,6 +3,7 @@ from typing import Literal
 
 import core.models as models
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType
 from core.model_list import ModelList
 from fastapi import APIRouter, Depends
@@ -118,14 +119,16 @@ async def get_meta_analysis(
     # -----------------------
     # Source data
     # -----------------------
-    event_data = core.crud.project.events.get_windowed_events(
-        db=project_db, start=start, end=end
-    )
+    event_data = core.crud.project.events.get_windowed_events(start=start, end=end)
     devices = core.crud.project.devices.get_project_devices(
         project_db
     ).pandas_dataframe(index="device_id")
 
-    df = event_data.pandas_dataframe(index="event_id").copy()
+    df = await event_data.get_async(
+        schema=project.name_short,
+        output_type=OutputType.PANDAS,
+    )
+    df = df.copy()
 
     # Time columns → project tz (preserve original behavior for None/naive)
     df["time_start"] = _ensure_tz_aware(ts=df["time_start"], tz=tz)

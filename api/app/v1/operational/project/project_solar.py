@@ -82,7 +82,7 @@ def get_solar_position(
     hourly_times = pd.date_range(
         start=start_time,
         periods=48,  # 48 hours
-        freq="1H",
+        freq="1h",
         tz=project.time_zone,
     )
     hourly_solpos = site.get_solarposition(hourly_times)

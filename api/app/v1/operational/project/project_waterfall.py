@@ -147,9 +147,13 @@ async def get_project_waterfall(
     if len(data_expected) == 0:
         raise HTTPException(status_code=404, detail="No expected data found")
     df_expected = df_from_objects(data_expected, "time", time_zone=project.time_zone)
-    data_events = core.crud.project.events.get_windowed_events(
-        project_db, start=start, end=end, deep=True
-    ).models()
+    events_query = core.crud.project.events.get_windowed_events(
+        start=start, end=end, deep=True
+    )
+    data_events = await events_query.get_async(
+        schema=project.name_short,
+        output_type=OutputType.SQLALCHEMY,
+    )
     df_events = df_from_objects(data_events, "event_id")  # type: ignore
     df_events = df_events.assign(
         device_type_id=df_events["device"].map(attrgetter("device_type_id"))

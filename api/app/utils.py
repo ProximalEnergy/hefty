@@ -604,19 +604,18 @@ async def get_tag_id_to_tag_name(
         {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
     )
 
+    if not sensor_type_ids:
+        return {tag.tag_id: "" for tag in tags}
+
     # Get list of sensor types
-    sensor_types = (
-        await get_sensor_types(
-            sensor_type_ids=sensor_type_ids,
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
-    )
+    sensor_types = await get_sensor_types(
+        sensor_type_ids=sensor_type_ids,
+    ).get_async(output_type=OutputType.PANDAS)
 
     # Create mapping from sensor type id to sensor type name
-    sensor_type_id_to_name_metric = {
-        sensor_type.sensor_type_id: sensor_type.name_metric
-        for sensor_type in sensor_types
-    }
+    sensor_type_id_to_name_metric = dict(
+        zip(sensor_types["sensor_type_id"], sensor_types["name_metric"])
+    )
 
     # Create mapping from tag id to sensor type name metric
     tag_id_to_name_metric: dict[int, str] = {}
@@ -626,9 +625,9 @@ async def get_tag_id_to_tag_name(
             tag_id_to_name_metric[tag.tag_id] = ""
             continue
 
-        tag_id_to_name_metric[tag.tag_id] = sensor_type_id_to_name_metric[
-            sensor_type_id
-        ]
+        tag_id_to_name_metric[tag.tag_id] = sensor_type_id_to_name_metric.get(
+            sensor_type_id, ""
+        )
 
     return tag_id_to_name_metric
 
@@ -649,19 +648,18 @@ async def get_tag_id_to_sensor_type_name(
         {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
     )
 
+    if not sensor_type_ids:
+        return {tag.tag_id: "" for tag in tags}
+
     # Get list of sensor types
-    sensor_types = (
-        await get_sensor_types(
-            sensor_type_ids=sensor_type_ids,
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
-    )
+    sensor_types = await get_sensor_types(
+        sensor_type_ids=sensor_type_ids,
+    ).get_async(output_type=OutputType.PANDAS)
 
     # Create mapping from sensor type id to sensor type name
-    sensor_type_id_to_name_short = {
-        sensor_type.sensor_type_id: sensor_type.name_short
-        for sensor_type in sensor_types
-    }
+    sensor_type_id_to_name_short = dict(
+        zip(sensor_types["sensor_type_id"], sensor_types["name_short"])
+    )
 
     # Create mapping from tag id to sensor type name metric
     tag_id_to_name_short: dict[int, str] = {}
@@ -671,7 +669,9 @@ async def get_tag_id_to_sensor_type_name(
             tag_id_to_name_short[tag.tag_id] = ""
             continue
 
-        tag_id_to_name_short[tag.tag_id] = sensor_type_id_to_name_short[sensor_type_id]
+        tag_id_to_name_short[tag.tag_id] = sensor_type_id_to_name_short.get(
+            sensor_type_id, ""
+        )
 
     return tag_id_to_name_short
 

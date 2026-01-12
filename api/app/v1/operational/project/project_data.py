@@ -111,19 +111,20 @@ async def get_project_dataframe(
         interval=effective_interval,
     )
 
-    sensor_types = (
-        await get_sensor_types(
-            sensor_type_ids=[
-                tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None
-            ],
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
-    )
+    sensor_type_ids = [
+        tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None
+    ]
 
-    sensor_type_id_to_name_short = {
-        sensor_type.sensor_type_id: sensor_type.name_short
-        for sensor_type in sensor_types
-    }
+    if sensor_type_ids:
+        sensor_types = await get_sensor_types(
+            sensor_type_ids=sensor_type_ids,
+        ).get_async(output_type=OutputType.PANDAS)
+
+        sensor_type_id_to_name_short = dict(
+            zip(sensor_types["sensor_type_id"], sensor_types["name_short"])
+        )
+    else:
+        sensor_type_id_to_name_short = {}
 
     tag_id_to_sensor_type_name_short: dict[int, str] = {}
     for tag in tags:
