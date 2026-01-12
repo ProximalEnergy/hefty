@@ -8,6 +8,7 @@ set +e  # Don't exit on first error - we want to run all checks
 # Parse command line arguments
 SKIP_TESTS=false
 RUN_ALL=false
+OFFLINE=false
 for arg in "$@"; do
     case $arg in
         --static)
@@ -16,6 +17,10 @@ for arg in "$@"; do
             ;;
         --all)
             RUN_ALL=true
+            shift
+            ;;
+        --offline)
+            OFFLINE=true
             shift
             ;;
     esac
@@ -216,7 +221,11 @@ fi
 
 # Run all checks
 if [ "${RUN_CORE}" = "true" ]; then
-    run_check "Core: Version" "check_core_version"
+    if [ "${OFFLINE}" = "true" ]; then
+        echo -e "${YELLOW}Skipping Core: Version (offline mode)${NC}"
+    else
+        run_check "Core: Version" "check_core_version"
+    fi
     run_check "Core: Type Checking (mypy)" "mise run core:types"
     run_check "Core: Ruff Linting" "mise run core:ruff_check"
     run_check "Core: Ruff Formatting" "mise run core:ruff_format"

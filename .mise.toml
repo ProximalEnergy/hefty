@@ -66,6 +66,7 @@ depends = ["api:switch-core"]
 usage = '''
   flag "--static" help="Skip non-static tests"
   flag "--all" help="Run all checks without diff filtering"
+  flag "--offline" help="Skip checks that need network access"
 '''
 run = """
 ALL_ARGS=""
@@ -74,6 +75,9 @@ if [ "${usage_all:-false}" = "true" ]; then
 fi
 if [ "${usage_static:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --static"
+fi
+if [ "${usage_offline:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --offline"
 fi
 ./_scripts/run_checks.sh ${ALL_ARGS}
 """
