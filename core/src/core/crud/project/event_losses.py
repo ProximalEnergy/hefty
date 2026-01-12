@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Literal
 
 import sqlalchemy as sa
 from sqlalchemy import func
@@ -11,28 +11,24 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from core import models
+from core.db_query import DbQuery
 from core.enumerations import EventLossType
-from core.model_list import ModelList
 
 
 def get_event_losses(
-    db: Session,
     *,
     time_equals: datetime.datetime | None = None,
     time_gte: datetime.datetime | None = None,
     time_lt: datetime.datetime | None = None,
-    event_ids: list | None = None,
-    return_query: bool = False,
-) -> ModelList[models.EventLoss]:
+    event_ids: list[int] | None = None,
+) -> DbQuery[models.EventLoss, Literal[False]]:
     """TODO: add description.
 
     Args:
-        db: TODO: describe.
         time_equals: TODO: describe.
         time_gte: TODO: describe.
         time_lt: TODO: describe.
         event_ids: TODO: describe.
-        return_query: TODO: describe.
     """
     stmt = sa.select(models.EventLoss)
     if time_equals is not None:
@@ -43,10 +39,7 @@ def get_event_losses(
         stmt = stmt.where(models.EventLoss.time < time_lt)
     if event_ids is not None:
         stmt = stmt.where(models.EventLoss.event_id.in_(event_ids))
-    if return_query:
-        return ModelList(query=stmt, return_query=True)
-    items = list(db.scalars(stmt).all())
-    return ModelList(query=stmt, items=items, return_query=False)
+    return DbQuery(query=stmt)
 
 
 def get_event_losses_aggregated(

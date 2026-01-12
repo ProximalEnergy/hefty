@@ -232,9 +232,12 @@ async def get_paginated_events(
                 )
 
     # Losses (pivot once, NaN -> None)
-    losses_df = core.crud.project.event_losses.get_event_losses(
-        project_db, event_ids=event_ids
-    ).pandas_dataframe()
+    losses_df = await core.crud.project.event_losses.get_event_losses(
+        event_ids=event_ids,
+    ).get_async(
+        schema=project_name_short,
+        output_type=OutputType.PANDAS,
+    )
 
     # If no losses, keep existing behavior
     if losses_df.empty:
@@ -963,12 +966,14 @@ async def get_llm_event_losses(
         event_data = event_data_df.to_dicts()
 
         event_ids = [int(event["event_id"]) for event in event_data]
-        event_losses = core.crud.project.event_losses.get_event_losses(
-            project_db,
+        event_losses = await core.crud.project.event_losses.get_event_losses(
             event_ids=event_ids,
             time_gte=start,
             time_lt=end,
-        ).models()
+        ).get_async(
+            schema=project_name_short,
+            output_type=OutputType.SQLALCHEMY,
+        )
 
         failure_modes = await get_failure_modes(db=db)
         failure_mode_map = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
@@ -1277,26 +1282,33 @@ def get_event_anomalies(
 
 
 @router.get("/event-losses-summary")
-def get_event_losses_summary(
+async def get_event_losses_summary(
     project_db: Annotated[Session, Depends(get_project_db)],
+    project_id: uuid.UUID,
     event_id: int,
 ) -> dict[str, float | None]:
     """todo
 
     Args:
         project_db: TODO: describe.
+        project_id: The UUID of the project
         event_id: TODO: describe.
     """
-    event = core.crud.project.events.get_events_by_id(project_db, event_ids=[event_id])[
-        0
-    ]
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+    project_name_short = get_project_name_short(project_id=project_id)
+    if not project_name_short:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    losses_df = core.crud.project.event_losses.get_event_losses(
-        project_db,
+    events = core.crud.project.events.get_events_by_id(project_db, event_ids=[event_id])
+    if not events:
+        raise HTTPException(status_code=404, detail="Event not found")
+    event = events[0]
+
+    losses_df = await core.crud.project.event_losses.get_event_losses(
         event_ids=[event_id],
-    ).pandas_dataframe()
+    ).get_async(
+        schema=project_name_short,
+        output_type=OutputType.PANDAS,
+    )
 
     # Default output (None when data is missing)
     out: dict[str, float | None] = {

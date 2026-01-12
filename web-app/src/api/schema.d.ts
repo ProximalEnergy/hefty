@@ -3010,6 +3010,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_id: The UUID of the project
          *         event_id: TODO: describe.
          */
         get: operations["get_event_losses_summary_v1_operational_projects__project_id__events_event_losses_summary_get"];
