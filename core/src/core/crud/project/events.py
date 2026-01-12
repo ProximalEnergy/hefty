@@ -48,21 +48,21 @@ def get_windowed_events(
 
 
 def get_maximum_event_id(*, db: Session) -> int:
-    """TODO: add description.
+    """Return the maximum event_id in the events table.
 
     Args:
-        db: TODO: describe.
+        db: SQLAlchemy session for querying events.
     """
     return db.scalar(sa.select(func.max(models.Event.event_id))) or 0
 
 
 # ---- dynamic per-project tables (tsdb.<project>.*) ----
 def get_project_tables(db: Session, *, project: str) -> tuple[sa.Table, sa.Table]:
-    """TODO: add description.
+    """Load per-project events and event_losses tables.
 
     Args:
-        db: TODO: describe.
-        project: TODO: describe.
+        db: SQLAlchemy session used to reflect tables.
+        project: Project schema name in the tsdb.
     """
     md = sa.MetaData(schema=project)
     events = sa.Table("events", md, autoload_with=db.bind)
@@ -77,13 +77,13 @@ def bulk_insert_events_returning_ids(
     new_event_rows: Iterable[Mapping],
     events_table: sa.Table | None = None,
 ) -> list[int]:
-    """TODO: add description.
+    """Insert events into the project schema and return new event ids.
 
     Args:
-        db: TODO: describe.
-        project: TODO: describe.
-        new_event_rows: TODO: describe.
-        events_table: TODO: describe.
+        db: SQLAlchemy session for the project schema.
+        project: Project schema name in the tsdb.
+        new_event_rows: Iterable of event row mappings to insert.
+        events_table: Optional pre-reflected events table.
     """
     if events_table is None:
         events_table, _ = get_project_tables(db, project=project)
@@ -150,10 +150,10 @@ def bulk_update_events(
         Returns count of updated rows.
 
     Args:
-        db: TODO: describe.
-        project: TODO: describe.
-        update_rows: TODO: describe.
-        events_table: TODO: describe.
+        db: SQLAlchemy session for the project schema.
+        project: Project schema name in the tsdb.
+        update_rows: Iterable of mappings with event_id and updates.
+        events_table: Optional pre-reflected events table.
     """
     if events_table is None:
         events_table, _ = get_project_tables(db, project=project)
@@ -219,10 +219,10 @@ def upsert_event_losses(
         Returns number of affected rows (inserted + updated).
 
     Args:
-        db: TODO: describe.
-        project: TODO: describe.
-        loss_rows: TODO: describe.
-        event_losses_table: TODO: describe.
+        db: SQLAlchemy session for the project schema.
+        project: Project schema name in the tsdb.
+        loss_rows: Iterable of event loss row mappings to upsert.
+        event_losses_table: Optional pre-reflected event_losses table.
     """
     if event_losses_table is None:
         _, event_losses_table = get_project_tables(db, project=project)
@@ -256,10 +256,10 @@ def get_events_by_id(
     *,
     event_ids: list[int],
 ) -> DbQuery[models.Event, Literal[False]]:
-    """TODO: add description.
+    """Build a query for events matching the provided ids.
 
     Args:
-        event_ids: TODO: describe.
+        event_ids: List of event ids to include.
     """
     stmt = sa.select(models.Event).where(models.Event.event_id.in_(event_ids))
     return DbQuery(query=stmt)
@@ -275,16 +275,16 @@ def get_project_events(
     event_ids: list[int] | None = None,
     open_at: datetime.datetime | None = None,
 ) -> DbQuery[models.Event, Literal[False]]:
-    """TODO: add description.
+    """Build a query for events matching filter parameters.
 
     Args:
-        device_id: TODO: describe.
-        time_end_gte: TODO: describe.
-        time_end_lt: TODO: describe.
-        open: TODO: describe.
-        device_ids: TODO: describe.
-        event_ids: TODO: describe.
-        open_at: TODO: describe.
+        device_id: Filter by a single device id.
+        time_end_gte: Filter events ending on/after this time.
+        time_end_lt: Filter events ending before this time.
+        open: Include only open events when True.
+        device_ids: Filter by a list of device ids.
+        event_ids: Filter by a list of event ids.
+        open_at: Filter events open at a specific time.
     """
     stmt = sa.select(models.Event)
 
@@ -310,7 +310,7 @@ def get_project_events(
 
 
 def get_event_device_ids() -> DbQuery[Any, Literal[False]]:
-    """TODO: add description."""
+    """Return a query for distinct device ids that have events."""
     stmt = sa.select(models.Event.device_id).distinct()
     return DbQuery(query=stmt)
 
@@ -327,18 +327,18 @@ def get_paginated_events(
     start: datetime.datetime | None,
     end: datetime.datetime | None,
 ) -> DbQuery[models.Event, Literal[False]]:
-    """TODO: add description.
+    """Build a paginated, sortable events query.
 
     Args:
-        page: TODO: describe.
-        page_size: TODO: describe.
-        sort_column: TODO: describe.
-        sort_direction: TODO: describe.
-        open: TODO: describe.
-        device_type_id: TODO: describe.
-        device_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        page: Zero-based page index.
+        page_size: Number of rows per page.
+        sort_column: Column name to order by.
+        sort_direction: Sort direction (ASC or DESC).
+        open: Whether to include only open events.
+        device_type_id: Optional list of device type ids.
+        device_ids: Optional list of device ids.
+        start: Window start for event overlap filtering.
+        end: Window end for event overlap filtering.
     """
     stmt = sa.select(models.Event)
     if open:
@@ -406,16 +406,16 @@ def get_events_with_device_info(
     device and device type data in a single query using joins.
 
     Args:
-        device_id: TODO: describe.
-        time_end_gte: TODO: describe.
-        time_end_lt: TODO: describe.
-        open: TODO: describe.
-        device_ids: TODO: describe.
-        event_ids: TODO: describe.
-        open_at: TODO: describe.
-        device_type_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        device_id: Filter by a single device id.
+        time_end_gte: Filter events ending on/after this time.
+        time_end_lt: Filter events ending before this time.
+        open: Include only open events when True.
+        device_ids: Filter by a list of device ids.
+        event_ids: Filter by a list of event ids.
+        open_at: Filter events open at a specific time.
+        device_type_ids: Filter by device type ids.
+        start: Window start for event overlap filtering.
+        end: Window end for event overlap filtering.
     """
     stmt = (
         sa.select(
@@ -476,11 +476,11 @@ def get_events_summary(
     This is specifically designed for generating event summaries with device info.
 
     Args:
-        open: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_type_ids: TODO: describe.
-        device_ids: TODO: describe.
+        open: Include only open events when True.
+        start: Window start for event overlap filtering.
+        end: Window end for event overlap filtering.
+        device_type_ids: Filter by device type ids.
+        device_ids: Filter by device ids.
     """
     stmt = (
         sa.select(
@@ -518,12 +518,12 @@ def get_events_summary(
 def get_homepage_summary(
     db: Session, *, project_name: str, sort_by: Literal["daily", "total"] = "daily"
 ) -> dict[str, Any]:
-    """TODO: add description.
+    """Summarize open events and losses for the homepage.
 
     Args:
-        db: TODO: describe.
-        project_name: TODO: describe.
-        sort_by: TODO: describe.
+        db: SQLAlchemy session for querying events.
+        project_name: Project schema name for loss calculations.
+        sort_by: Sort top events by daily or total loss.
     """
     base_stmt = (
         sa.select(func.count())

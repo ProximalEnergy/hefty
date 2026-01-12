@@ -11,10 +11,10 @@ from core.db_query import DbQuery
 
 
 def get_project_options(*, deep: bool) -> _AbstractLoad:
-    """TODO: add description.
+    """Return loader options for project queries.
 
     Args:
-        deep: TODO: describe.
+        deep: Whether to eager-load related project type data.
     """
     if deep:
         options = selectinload(models.Project.project_type)
@@ -36,19 +36,16 @@ def get_projects(
     name_long: str | None = None,
     has_pv_pcs_modules: bool | None = None,
 ) -> DbQuery[models.Project, Literal[False]]:
-    """TODO: add description.
+    """Build a query for projects with optional filters.
 
     Args:
-        db: TODO: describe.
-        deep: TODO: describe.
-        project_ids: TODO: describe.
-        project_type_ids: TODO: describe.
-        project_status_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_shorts: TODO: describe.
-        name_long: TODO: describe.
-        has_pv_pcs_modules: TODO: describe.
-        return_query: TODO: describe.
+        project_ids: Project ids to filter by.
+        project_type_ids: Project type ids to filter by.
+        project_status_type_ids: Status types to filter by.
+        name_short: Filter by name_short.
+        name_shorts: Filter by a list of name_short values.
+        name_long: Filter by name_long.
+        has_pv_pcs_modules: Filter by PV/PCS module presence.
     """
     stmt = select(models.Project)
 
@@ -76,11 +73,11 @@ def get_projects(
 def get_project(
     *, project_id: UUID, deep: bool = False
 ) -> DbQuery[models.Project, Literal[True]]:
-    """TODO: add description.
+    """Build a query for a single project by id.
 
     Args:
-        project_id: TODO: describe.
-        deep: TODO: describe.
+        project_id: Project id to fetch.
+        deep: Whether to eager-load related project type data.
     """
     options = get_project_options(deep=deep)
     stmt = (

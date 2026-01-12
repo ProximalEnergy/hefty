@@ -18,16 +18,16 @@ class BaseIntEnum(IntEnum):
         """Extract integer values from a list of BaseEnum enums for database queries.
 
         Args:
-            enum_list: TODO: describe.
+            enum_list: Sequence of enum members to extract ids from.
         """
         return [status.value for status in enum_list]
 
     @classmethod
     def validate_against_database(cls, *, session: "Session") -> dict[str, Any]:
-        """TODO: add description.
+        """Compare enum members against rows in the configured lookup table.
 
         Args:
-            session: TODO: describe.
+            session: SQLAlchemy session used to query the lookup table.
         """
         table = cls._db_table
         id_column = cls._db_id_column

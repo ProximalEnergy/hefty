@@ -22,13 +22,13 @@ def get_event_losses(
     time_lt: datetime.datetime | None = None,
     event_ids: list[int] | None = None,
 ) -> DbQuery[models.EventLoss, Literal[False]]:
-    """TODO: add description.
+    """Build a query for event losses with optional filters.
 
     Args:
-        time_equals: TODO: describe.
-        time_gte: TODO: describe.
-        time_lt: TODO: describe.
-        event_ids: TODO: describe.
+        time_equals: Filter losses at an exact timestamp.
+        time_gte: Filter losses at or after this time.
+        time_lt: Filter losses before this time.
+        event_ids: Filter losses for specific event ids.
     """
     stmt = sa.select(models.EventLoss)
     if time_equals is not None:
@@ -102,12 +102,12 @@ def get_event_losses_summary_in_sql(
     event_ids: list[int],
 ) -> Sequence[Row[Any]]:
     # Early return for empty list to avoid IN ()
-    """TODO: add description.
+    """Return per-event loss summaries from the project event_losses table.
 
     Args:
-        db: TODO: describe.
-        project_name: TODO: describe.
-        event_ids: TODO: describe.
+        db: SQLAlchemy session for the project schema.
+        project_name: Project schema name to query.
+        event_ids: Event ids to summarize.
     """
     if not event_ids:
         return []
@@ -205,8 +205,8 @@ def get_total_daily_type2_loss_open_events(
         Now uses the loss_daily_financial column directly from the events table.
 
     Args:
-        db: TODO: describe.
-        project_name: TODO: describe.
+        db: SQLAlchemy session for querying events.
+        project_name: Project schema name for context.
     """
     return float(
         db.scalar(

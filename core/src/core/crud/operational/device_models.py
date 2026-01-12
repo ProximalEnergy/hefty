@@ -6,10 +6,10 @@ from core.model_list import ModelList
 
 
 def get_device_model_options(*, deep: bool) -> _AbstractLoad:
-    """TODO: add description.
+    """Return loader options for device model queries.
 
     Args:
-        deep: TODO: describe.
+        deep: Whether to eager-load device type data.
     """
     if deep:
         options = selectinload(models.DeviceModel.device_type)
@@ -27,14 +27,14 @@ def get_device_models(
     device_type_ids: list[int] | None = None,
     return_query: bool = False,
 ) -> ModelList[models.DeviceModel]:
-    """TODO: add description.
+    """Query device models with optional filters.
 
     Args:
-        db: TODO: describe.
-        deep: TODO: describe.
+        db: Operational database session.
+        deep: Whether to eager-load device type data.
         device_model_ids: Optional list of device model IDs to filter by.
         device_type_ids: Optional list of device type IDs to filter by.
-        return_query: TODO: describe.
+        return_query: Return the query without executing when True.
     """
     options = get_device_model_options(deep=deep)
     query = db.query(models.DeviceModel).options(options)

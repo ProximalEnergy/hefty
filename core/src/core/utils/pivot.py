@@ -17,8 +17,8 @@ def canon_time(df_part: pl.DataFrame, *, like: pl.DataFrame) -> pl.DataFrame:
     """Make df_part['time'] exactly match like['time'] in unit and timezone.
 
     Args:
-        df_part: TODO: describe.
-        like: TODO: describe.
+        df_part: DataFrame whose time column will be normalized.
+        like: Reference DataFrame providing the desired time dtype.
     """
     ref_dt = like.schema["time"]
 
@@ -269,8 +269,8 @@ def pivot_timeseries_by_tag(
         Each tag_id is expected to use only one of the value_* columns.
 
     Args:
-        df: TODO: describe.
-        tags: TODO: describe.
+        df: Long-format pandas timeseries with tag_id and value_* columns.
+        tags: Tag metadata used for unit scaling and offsets.
     """
 
     if tags is None:

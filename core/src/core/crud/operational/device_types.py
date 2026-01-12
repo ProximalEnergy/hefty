@@ -9,11 +9,11 @@ async def get_device_type(
     db: AsyncSession,
     device_type_id: int,
 ):
-    """TODO: add description.
+    """Fetch a single device type by id.
 
     Args:
-        db: TODO: describe.
-        device_type_id: TODO: describe.
+        db: Async session for operational data.
+        device_type_id: Device type id to fetch.
     """
     stmt = sa.select(models.DeviceType).where(
         models.DeviceType.device_type_id == device_type_id

@@ -13,7 +13,7 @@ def get_failure_modes(
     """Return a DbQuery for failure modes.
 
     Args:
-        failure_mode_ids: TODO: describe.
+        failure_mode_ids: Failure mode ids to filter by.
     """
     stmt = sa.select(models.FailureMode)
     if failure_mode_ids:

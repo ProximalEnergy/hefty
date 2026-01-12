@@ -17,10 +17,10 @@ from pathlib import Path
 
 class ReleaseUpdater:
     def __init__(self, project_root: str = "."):
-        """TODO: add description.
+        """Initialize release updater paths from the project root.
 
         Args:
-            project_root: TODO: describe.
+            project_root: Path to the repository root directory.
         """
         self.project_root = Path(project_root)
         self.releases_dir = self.project_root / "_docs" / "releases"
@@ -42,7 +42,7 @@ class ReleaseUpdater:
         """Determine the appropriate release file for a given version.
 
         Args:
-            version: TODO: describe.
+            version: Version string like "0.2.23".
         """
         # Extract major and minor version (e.g., "0.2.23" -> "0.2")
         major_minor = ".".join(version.split(".")[:2])
@@ -52,8 +52,8 @@ class ReleaseUpdater:
         """Check if a version already exists in the release file.
 
         Args:
-            file_path: TODO: describe.
-            version: TODO: describe.
+            file_path: Release notes file to inspect.
+            version: Version string to search for.
         """
         if not file_path.exists():
             return False
@@ -68,8 +68,8 @@ class ReleaseUpdater:
         """Add a new release entry to the appropriate file.
 
         Args:
-            version: TODO: describe.
-            message: TODO: describe.
+            version: Version string to add to the release notes.
+            message: Release note entry text to insert.
         """
         release_file = self.get_release_file_path(version)
 
@@ -130,17 +130,18 @@ class ReleaseUpdater:
                 Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
 
         Args:
-            v1: TODO: describe.
-            v2: TODO: describe.
+            v1: First version string to compare.
+            v2: Second version string to compare.
         """
 
         def version_tuple(v):
-            """TODO: add description.
+            """Convert a dotted version string into an integer tuple.
 
             Args:
-                v: TODO: describe.
+                v: Version string like "0.2.23".
             """
-            return tuple(map(int, v.split(".")))
+
+        return tuple(map(int, v.split(".")))
 
         tuple1 = version_tuple(v1)
         tuple2 = version_tuple(v2)
@@ -156,7 +157,7 @@ class ReleaseUpdater:
         """Main method to update releases with the given message.
 
         Args:
-            message: TODO: describe.
+            message: Migration message to append to release notes.
         """
         try:
             current_version = self.get_current_version()

@@ -17,14 +17,14 @@ def get_data_timeseries_latest_by_device_type(
     sensor_type_ids: list[int] | None = None,
     return_query: bool = False,
 ) -> ModelList[models.DataTimeseriesLast]:
-    """TODO: add description.
+    """Fetch the latest timeseries rows for a device type and sensors.
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
-        device_type_id: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        return_query: TODO: describe.
+        db: Project database session.
+        project_id: Project id for scoping the query.
+        device_type_id: Device type id used to infer default sensors.
+        sensor_type_ids: Optional sensor type ids to filter by.
+        return_query: Return the query without executing when True.
     """
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
@@ -60,17 +60,17 @@ def get_data_timeseries_last(
     return_query: bool = False,
     include_ghost_tags: bool = False,
 ) -> ModelList[models.DataTimeseriesLast]:
-    """TODO: add description.
+    """Query the latest timeseries values with optional filters.
 
     Args:
-        project_db: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        tag_ids: TODO: describe.
-        device_ids: TODO: describe.
-        deep: TODO: describe.
-        return_query: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        project_db: Project database session.
+        device_type_ids: Device type ids to filter tags by.
+        sensor_type_ids: Sensor type ids to filter tags by.
+        tag_ids: Tag ids to filter results by.
+        device_ids: Device ids to filter tags by.
+        deep: Whether to eager-load tag and device relationships.
+        return_query: Return the query without executing when True.
+        include_ghost_tags: Include tags without sensor_type_id when True.
     """
     query = project_db.query(models.DataTimeseriesLast)
     tag_sets: list[set[int]] = []
@@ -146,14 +146,14 @@ def get_data_timeseries_last_v2(
         ideal for general-purpose use.
 
     Args:
-        project_db: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        tag_ids: TODO: describe.
-        device_ids: TODO: describe.
-        deep: TODO: describe.
-        return_query: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        project_db: Project database session.
+        device_type_ids: Device type ids to filter by.
+        sensor_type_ids: Sensor type ids to filter by.
+        tag_ids: Tag ids to filter by.
+        device_ids: Device ids to filter by.
+        deep: Whether to eager-load tag and device relationships.
+        return_query: Return the query without executing when True.
+        include_ghost_tags: Include tags without sensor_type_id when True.
     """
     # 1. Define the age calculation once to reuse it.
     age_in_seconds = extract("epoch", func.now() - models.DataTimeseriesLast.time)

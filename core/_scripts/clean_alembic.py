@@ -20,10 +20,10 @@ SCHEMAS_TO_CLEAN = {"operational", "admin"}
 
 class MigrationCleaner:
     def __init__(self, migrations_dir: str):
-        """TODO: add description.
+        """Initialize with the root Alembic migrations directory.
 
         Args:
-            migrations_dir: TODO: describe.
+            migrations_dir: Path to the Alembic migrations folder.
         """
         self.migrations_dir = Path(migrations_dir)
 
@@ -42,7 +42,7 @@ class MigrationCleaner:
                 3. Reason for the decision
 
         Args:
-            file_path: TODO: describe.
+            file_path: Path to the migration file to analyze.
         """
         with open(file_path) as f:
             content = f.read()
@@ -67,7 +67,7 @@ class MigrationCleaner:
                 Returns: (should_clean, reason)
 
         Args:
-            content: TODO: describe.
+            content: File contents to inspect for schema usage.
         """
         # Count schema references (both single and double quotes)
         schema_param_count = len(re.findall(r"schema=schema", content))
@@ -117,7 +117,7 @@ class MigrationCleaner:
                 Returns True if file was modified.
 
         Args:
-            file_path: TODO: describe.
+            file_path: Migration file to update in-place.
         """
         with open(file_path) as f:
             content = f.read()

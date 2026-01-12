@@ -21,10 +21,10 @@ tbl = str.maketrans("", "", delete_chars)
 
 
 def strtobool(val: str) -> int:  # nosemgrep: python-enforce-keyword-only-args
-    """TODO: add description.
+    """Convert a truthy/falsey string to 1 or 0.
 
     Args:
-        val: TODO: describe.
+        val: String representation of a boolean value.
     """
     val = val.lower()
     if val in ("y", "yes", "t", "true", "on", "1"):
@@ -41,11 +41,11 @@ def validate_status_tags_and_values(
     status_tags: list[int],
     status_values: list[Any],
 ):  # nosemgrep: python-enforce-keyword-only-args
-    """TODO: add description.
+    """Validate that status tags and values lists are non-empty and aligned.
 
     Args:
-        status_tags: TODO: describe.
-        status_values: TODO: describe.
+        status_tags: Tag ids whose statuses are being interpreted.
+        status_values: Raw status values corresponding to each tag.
     """
     if len(status_tags) != len(status_values) or len(status_tags) == 0:
         raise ValueError(
@@ -61,13 +61,13 @@ async def get_status_interpret_async(
     status_tags: list[int] = [],
     status_values: list[Any] = [],
 ):
-    """TODO: add description.
+    """Interpret status values into human-readable status data asynchronously.
 
     Args:
-        db: TODO: describe.
-        project_db: TODO: describe.
-        status_tags: TODO: describe.
-        status_values: TODO: describe.
+        db: Async session for operational status lookup tables.
+        project_db: Project session for tag metadata.
+        status_tags: Tag ids whose statuses should be interpreted.
+        status_values: Raw status values for each tag.
     """
     validate_status_tags_and_values(
         status_tags=status_tags,
@@ -142,11 +142,11 @@ async def get_status_interpret_async(
                 row,
                 grouped,
             ):  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Decode a binary status value into a status payload.
 
                 Args:
-                    row: TODO: describe.
-                    grouped: TODO: describe.
+                    row: Row containing status lookup ids and value.
+                    grouped: Status binary table grouped by status_binary_id.
                 """
                 try:
                     sub_df = grouped.get_group(row["status_binary_id"]).set_index(
@@ -204,10 +204,10 @@ async def get_status_interpret_async(
                 *,
                 row,
             ):  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Resolve a boolean status into status text and failure mode.
 
                 Args:
-                    row: TODO: describe.
+                    row: Row containing status lookup id and value.
                 """
                 entry = status_boolean_df.loc[row[status_type]]
                 if entry is None:
@@ -244,10 +244,10 @@ async def get_status_interpret_async(
                 *,
                 row,
             ):  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Resolve a string status into status text and failure mode.
 
                 Args:
-                    row: TODO: describe.
+                    row: Row containing status lookup id and value.
                 """
                 try:
                     entry = status_string_df.loc[row.value]
@@ -272,12 +272,12 @@ def get_status_interpret(
     status_tags: list[int] = [],
     status_values: list[Any] = [],
 ):
-    """TODO: add description.
+    """Interpret status values into human-readable status data.
 
     Args:
-        db: TODO: describe.
-        status_tags: TODO: describe.
-        status_values: TODO: describe.
+        db: Sync session for operational status lookup tables.
+        status_tags: Tag ids whose statuses should be interpreted.
+        status_values: Raw status values for each tag.
     """
     validate_status_tags_and_values(
         status_tags=status_tags,
@@ -330,11 +330,11 @@ def get_status_interpret(
                 row,
                 grouped,
             ):  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Decode a binary status value into a status payload.
 
                 Args:
-                    row: TODO: describe.
-                    grouped: TODO: describe.
+                    row: Row containing status lookup ids and value.
+                    grouped: Status binary table grouped by status_binary_id.
                 """
                 try:
                     sub_df = grouped.get_group(row["status_binary_id"]).set_index(
@@ -384,10 +384,10 @@ def get_status_interpret(
             status_boolean_df = status_boolean_df.set_index(status_type)
 
             def resolve_bool(row):  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Resolve a boolean status into status text and failure mode.
 
                 Args:
-                    row: TODO: describe.
+                    row: Row containing status lookup id and value.
                 """
                 entry = status_boolean_df.loc[row[status_type]]
                 if entry is None:
@@ -415,10 +415,10 @@ def get_status_interpret(
             status_string_df = status_string_df.set_index("string_trigger")
 
             def resolve_string(row):  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Resolve a string status into status text and failure mode.
 
                 Args:
-                    row: TODO: describe.
+                    row: Row containing status lookup id and value.
                 """
                 try:
                     entry = status_string_df.loc[row.value]
@@ -441,12 +441,12 @@ def get_status_lookup(
     status_lookup_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.StatusLookup]:
-    """TODO: add description.
+    """Query status lookup rows by id.
 
     Args:
-        db: TODO: describe.
-        status_lookup_ids: TODO: describe.
-        return_query: TODO: describe.
+        db: Sync session for operational status tables.
+        status_lookup_ids: Status lookup ids to filter by.
+        return_query: Return the query without executing when True.
     """
     query = db.query(models.StatusLookup)
     if status_lookup_ids:
@@ -462,12 +462,12 @@ def get_status_binary(
     status_binary_ids: list[int] = [],
     return_query: bool = False,
 ) -> ModelList[models.StatusBinary]:
-    """TODO: add description.
+    """Query status binary rows by id.
 
     Args:
-        db: TODO: describe.
-        status_binary_ids: TODO: describe.
-        return_query: TODO: describe.
+        db: Sync session for operational status tables.
+        status_binary_ids: Status binary ids to filter by.
+        return_query: Return the query without executing when True.
     """
     query = db.query(models.StatusBinary)
     if status_binary_ids:
@@ -481,10 +481,10 @@ def get_status_boolean(
     *,
     status_boolean_ids: list[int] = [],
 ) -> DbQuery[models.StatusBoolean, Literal[False]]:
-    """TODO: add description.
+    """Build a query for status boolean rows.
 
     Args:
-        status_boolean_ids: TODO: describe.
+        status_boolean_ids: Status boolean ids to filter by.
     """
     stmt = select(models.StatusBoolean)
     if status_boolean_ids:
@@ -498,10 +498,10 @@ def get_status_string(
     *,
     status_string_ids: list[int] = [],
 ) -> DbQuery[models.StatusString, Literal[False]]:
-    """TODO: add description.
+    """Build a query for status string rows.
 
     Args:
-        status_string_ids: TODO: describe.
+        status_string_ids: Status string ids to filter by.
     """
     stmt = select(models.StatusString)
     if status_string_ids:
@@ -517,11 +517,11 @@ async def get_status_lookup_async(
     *,
     status_lookup_ids: list[int] = [],
 ) -> list[models.StatusLookup]:
-    """TODO: add description.
+    """Fetch status lookup rows asynchronously by id.
 
     Args:
-        db: TODO: describe.
-        status_lookup_ids: TODO: describe.
+        db: Async session for operational status tables.
+        status_lookup_ids: Status lookup ids to filter by.
     """
     stmt = select(models.StatusLookup)
     if status_lookup_ids:
@@ -537,11 +537,11 @@ async def get_status_binary_async(
     *,
     status_binary_ids: list[int] = [],
 ) -> list[models.StatusBinary]:
-    """TODO: add description.
+    """Fetch status binary rows asynchronously by id.
 
     Args:
-        db: TODO: describe.
-        status_binary_ids: TODO: describe.
+        db: Async session for operational status tables.
+        status_binary_ids: Status binary ids to filter by.
     """
     stmt = select(models.StatusBinary)
     if status_binary_ids:
@@ -557,11 +557,11 @@ async def get_status_boolean_async(
     *,
     status_boolean_ids: list[int] = [],
 ) -> list[models.StatusBoolean]:
-    """TODO: add description.
+    """Fetch status boolean rows asynchronously by id.
 
     Args:
-        db: TODO: describe.
-        status_boolean_ids: TODO: describe.
+        db: Async session for operational status tables.
+        status_boolean_ids: Status boolean ids to filter by.
     """
     stmt = select(models.StatusBoolean)
     if status_boolean_ids:
@@ -577,11 +577,11 @@ async def get_status_string_async(
     *,
     status_string_ids: list[int] = [],
 ) -> list[models.StatusString]:
-    """TODO: add description.
+    """Fetch status string rows asynchronously by id.
 
     Args:
-        db: TODO: describe.
-        status_string_ids: TODO: describe.
+        db: Async session for operational status tables.
+        status_string_ids: Status string ids to filter by.
     """
     stmt = select(models.StatusString)
     if status_string_ids:
@@ -610,15 +610,15 @@ async def get_status_timeseries_python(
         If not provided, all supported sensor types will be used.
 
     Args:
-        db: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_ids: TODO: describe.
-        tag_ids: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_types: TODO: describe.
+        db: Async session for operational metadata.
+        project: Project instance containing timezone information.
+        project_db: Project database session for tag lookups.
+        start: Query start time.
+        end: Query end time.
+        device_ids: Optional device ids to scope tags.
+        tag_ids: Optional tag ids to scope tags.
+        device_type_ids: Optional device type ids to scope tags.
+        sensor_types: Optional sensor types to include.
     """
     supported_sensor_types = [
         SensorType.PV_PCS_STATUS,
@@ -721,10 +721,10 @@ async def get_status_timeseries_python(
     data_to_df = data_to_df.ffill()
 
     def _maybe_hex(value):  # nosemgrep: python-enforce-keyword-only-args
-        """TODO: add description.
+        """Convert hex string values to integers when possible.
 
         Args:
-            value: TODO: describe.
+            value: Raw value from the dataframe cell.
         """
         if isinstance(value, str):
             trimmed = value.strip().lower()
@@ -795,10 +795,10 @@ async def get_status_timeseries_python(
     }
 
     def map_status(col):  # nosemgrep: python-enforce-keyword-only-args
-        """TODO: add description.
+        """Map status values to failure mode ids for a column.
 
         Args:
-            col: TODO: describe.
+            col: Series of status values for a tag.
         """
         tag = col.name
         return col.map(

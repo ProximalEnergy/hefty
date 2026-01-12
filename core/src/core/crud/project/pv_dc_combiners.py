@@ -7,6 +7,6 @@ from core.db_query import DbQuery
 
 
 def get_pv_dc_combiners() -> DbQuery[models.PVDCCombiner, Literal[False]]:
-    """TODO: add description."""
+    """Build a query for PV DC combiner rows."""
     stmt = select(models.PVDCCombiner)
     return DbQuery(query=stmt)

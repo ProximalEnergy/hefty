@@ -21,7 +21,7 @@ def with_db(
     """Get a database session with the specified schema.
 
     Args:
-        schema: TODO: describe.
+        schema: Schema name to bind for schema translation.
     """
     # Only set schema_translate_map when schema is provided.
     # Passing schema_translate_map=None still enables translation mode
@@ -49,7 +49,7 @@ async def with_db_async(
     """Get an async database session with the specified schema.
 
     Args:
-        schema: TODO: describe.
+        schema: Schema name to bind for schema translation.
     """
     # Only set schema_translate_map when schema is provided.
     # Passing schema_translate_map=None still enables translation mode
@@ -73,10 +73,10 @@ def get_db(
     *,
     schema: str | None = "operational",
 ) -> Generator[Session, None, None]:
-    """TODO: add description.
+    """Yield a database session scoped to the requested schema.
 
     Args:
-        schema: TODO: describe.
+        schema: Schema name to bind for schema translation.
     """
     with with_db(schema=schema) as db:
         yield db
@@ -86,10 +86,10 @@ async def get_db_async(
     *,
     schema: str | None = "operational",
 ) -> AsyncGenerator[AsyncSession, None]:
-    """TODO: add description.
+    """Yield an async database session scoped to the requested schema.
 
     Args:
-        schema: TODO: describe.
+        schema: Schema name to bind for schema translation.
     """
     async with with_db_async(schema=schema) as db:
         yield db
@@ -102,7 +102,7 @@ def get_db_session(
     """Get a database session directly (not a generator).
 
     Args:
-        schema: TODO: describe.
+        schema: Schema name to bind for schema translation.
     """
     return next(get_db(schema=schema))
 
@@ -115,7 +115,7 @@ async def get_db_session_async(
     """Get an async database session directly (not a generator).
 
     Args:
-        schema: TODO: describe.
+        schema: Schema name to bind for schema translation.
     """
 
     async with with_db_async(schema=schema) as db:
@@ -124,10 +124,10 @@ async def get_db_session_async(
 
 @lru_cache(maxsize=128)
 def get_project_name_short(*, project_id: UUID) -> str | None:
-    """TODO: add description.
+    """Lookup a project's short name by project id.
 
     Args:
-        project_id: TODO: describe.
+        project_id: UUID of the project to look up.
     """
     with with_db(schema=None) as db:
         stmt = select(models.Project.name_short).where(
@@ -139,10 +139,10 @@ def get_project_name_short(*, project_id: UUID) -> str | None:
 
 @alru_cache(maxsize=128)
 async def get_project_name_short_async(*, project_id: UUID) -> str | None:
-    """TODO: add description.
+    """Lookup a project's short name asynchronously by project id.
 
     Args:
-        project_id: TODO: describe.
+        project_id: UUID of the project to look up.
     """
     async with with_db_async(schema=None) as db:
         stmt = select(models.Project).where(models.Project.project_id == project_id)

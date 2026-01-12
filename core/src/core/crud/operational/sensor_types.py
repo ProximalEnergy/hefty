@@ -9,10 +9,10 @@ from core.db_query import DbQuery
 def get_sensor_type(
     *, sensor_type_id: int
 ) -> DbQuery[models.SensorType, Literal[True]]:
-    """TODO: add description.
+    """Build a query for a single sensor type by id.
 
     Args:
-        sensor_type_id: TODO: describe.
+        sensor_type_id: Sensor type id to fetch.
     """
     stmt = select(models.SensorType).where(
         models.SensorType.sensor_type_id == sensor_type_id
@@ -28,14 +28,14 @@ def get_sensor_types(
     name_metric: str | None = None,
     unit: str | None = None,
 ) -> DbQuery[models.SensorType, Literal[False]]:
-    """TODO: add description.
+    """Build a query for sensor types matching optional filters.
 
     Args:
-        sensor_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
-        name_metric: TODO: describe.
-        unit: TODO: describe.
+        sensor_type_ids: Sensor type ids to include.
+        name_short: Filter by name_short.
+        name_long: Filter by name_long.
+        name_metric: Filter by name_metric.
+        unit: Filter by unit.
     """
     stmt = select(models.SensorType)
 

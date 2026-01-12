@@ -58,8 +58,8 @@ def _normalize_df_dtypes(
         - Optionally: strings -> object (many libs still expect object dtype)
 
     Args:
-        df: TODO: describe.
-        strings_as_object: TODO: describe.
+        df: DataFrame to normalize to pandas/numpy dtypes.
+        strings_as_object: Whether to coerce string dtype to object.
     """
     # Fast path: only do work if any Arrow dtype present
     if any(getattr(dt, "pyarrow_dtype", None) is not None for dt in df.dtypes):
@@ -85,10 +85,10 @@ def _normalize_df_dtypes(
 
 
 def _sql_string[T](*, query: Query[T]) -> str:
-    """TODO: add description.
+    """Compile a SQLAlchemy ORM query to a SQL string with literal binds.
 
     Args:
-        query: TODO: describe.
+        query: SQLAlchemy ORM query to compile.
     """
     if not hasattr(query, "statement"):
         raise ValueError("The query does not support SQL compilation.")
@@ -169,14 +169,14 @@ class ModelList[T]:
         model_cls: type[T] | None = None,
         return_query: bool = False,
     ):
-        """TODO: add description.
+        """Initialize a ModelList from a query, items, or raw SQL result.
 
         Args:
-            query: TODO: describe.
-            items: TODO: describe.
-            result: TODO: describe.
-            model_cls: TODO: describe.
-            return_query: TODO: describe.
+            query: ORM query or SQL expression to wrap.
+            items: Preloaded items to store directly.
+            result: Raw SQLAlchemy Result to map into model instances.
+            model_cls: Model class used to map raw results.
+            return_query: Keep the query unexecuted when True.
         """
         self.query: Query[T] | TextClause | Select | None = None
         self.items: list[T] | None = None
@@ -206,7 +206,7 @@ class ModelList[T]:
             )
 
     def __iter__(self) -> Iterator[T]:
-        """TODO: add description."""
+        """Iterate over loaded items."""
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
@@ -215,10 +215,10 @@ class ModelList[T]:
     def __getitem__(
         self, index: int
     ) -> T:  # nosemgrep: python-enforce-keyword-only-args
-        """TODO: add description.
+        """Return an item by index from the loaded items.
 
         Args:
-            index: TODO: describe.
+            index: Zero-based index into the loaded items.
         """
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
@@ -226,7 +226,7 @@ class ModelList[T]:
         return self.items[index]
 
     def __len__(self) -> int:
-        """TODO: add description."""
+        """Return the number of loaded items."""
         if self.items is None:
             raise UNINITIALIZED_ERROR_ITEMS
 
@@ -290,9 +290,9 @@ class ModelList[T]:
           results).
         - If only in-memory items exist, use a cached attrgetter + tuples +
         Args:
-            index: TODO: describe.
-            as_datetime: TODO: describe.
-            tz: TODO: describe.
+            index: Column name to set as the DataFrame index.
+            as_datetime: Convert the index column to datetime.
+            tz: Timezone to localize/convert the datetime index.
         """
         # ---- 1) Prefer DB -> pandas whenever we still have a query ----
         if isinstance(self.query, TextClause):
@@ -438,7 +438,7 @@ class ModelList[T]:
                 Avoids needing query/result/model_cls.
 
         Args:
-            items: TODO: describe.
+            items: List of SQLAlchemy model instances.
         """
         inst = cls.__new__(cls)  # bypass __init__
         inst.query = None
@@ -467,7 +467,7 @@ class ModelList[T]:
                     devices.find(created_at__gt="2025-01-01")
 
         Args:
-            **criteria: TODO: describe.
+            **criteria: Field filters using equality or suffix operators.
         """
         # --- QA ---
         if isinstance(self.query, TextClause):
@@ -483,10 +483,10 @@ class ModelList[T]:
         def _is_iterable_but_not_string(
             x: object,
         ) -> bool:  # nosemgrep: python-enforce-keyword-only-args
-            """TODO: add description.
+            """Check whether a value is iterable but not a string/bytes.
 
             Args:
-                x: TODO: describe.
+                x: Value to test for non-string iterability.
             """
             return isinstance(x, Iterable) and not isinstance(
                 x, (str, bytes, bytearray)
@@ -498,7 +498,7 @@ class ModelList[T]:
             """Normalize criteria into (field, op, value).
 
             Args:
-                raw: TODO: describe.
+                raw: Raw criteria mapping from keyword arguments.
             """
             norm: list[tuple[str, str, Any]] = []
             for key, val in raw.items():
@@ -587,10 +587,10 @@ class ModelList[T]:
                     in_sets[i] = set(value)
 
             def _match(obj: Any) -> bool:  # nosemgrep: python-enforce-keyword-only-args
-                """TODO: add description.
+                """Check whether an object matches the normalized criteria.
 
                 Args:
-                    obj: TODO: describe.
+                    obj: Object to test against the criteria.
                 """
                 for i, (field, op, value) in enumerate(normalized):
                     attr = getattr(obj, field)
@@ -663,11 +663,11 @@ class ModelItem[T]:
     """
 
     def __init__(self, *, query: Query[T], return_query: bool = False):
-        """TODO: add description.
+        """Initialize a ModelItem from a query for a single row.
 
         Args:
-            query: TODO: describe.
-            return_query: TODO: describe.
+            query: ORM query expected to return a single row.
+            return_query: Keep the query unexecuted when True.
         """
         self.query: Query[T] = query
         self.item: T | None = None if return_query else query.first()
@@ -723,9 +723,9 @@ class ModelItem[T]:
         """Convert the model to a Pandas DataFrame.
 
         Args:
-            index: TODO: describe.
-            as_datetime: TODO: describe.
-        tz: TODO: describe.
+            index: Column name to set as the DataFrame index.
+            as_datetime: Convert the index column to datetime.
+            tz: Timezone to localize/convert the datetime index.
         """
         if self.item is None:
             raise UNINITIALIZED_ERROR_ITEM

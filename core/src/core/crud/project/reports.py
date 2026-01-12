@@ -15,13 +15,13 @@ def get_project_report_instances(
     report_type_ids: list[int] | None = None,
     deep: bool = False,
 ) -> DbQuery[models.ReportInstance, Literal[False]]:
-    """TODO: add description.
+    """Build a query for report instances for a project.
 
     Args:
-        project_id: TODO: describe.
-        is_visible: TODO: describe.
-        report_type_ids: TODO: describe.
-        deep: TODO: describe.
+        project_id: Project UUID to filter report instances.
+        is_visible: Optional visibility filter.
+        report_type_ids: Optional list of report type ids to include.
+        deep: Whether to eager-load report type relationships.
     """
     stmt = select(models.ReportInstance)
 

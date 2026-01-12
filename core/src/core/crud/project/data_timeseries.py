@@ -38,7 +38,7 @@ def _interval_to_minutes(*, interval_str: str) -> float:
         numeric portion and unit.
 
     Args:
-        interval_str: TODO: describe.
+        interval_str: Interval string like "5min" or "1hour".
     """
     # Extract numeric portion and unit from the interval string
     match = re.match(r"(\d+)(min|hour|sec)", interval_str.lower())
@@ -89,25 +89,25 @@ class DataTimeseries:
         return_arrow: bool = True,
     ) -> "DataTimeseries":
         # --- Pre-Processing ---
-        """TODO: add description.
+        """Fetch and process project timeseries data.
 
         Args:
-            project_name_short: TODO: describe.
-            tag_ids: TODO: describe.
-            sensor_type_ids: TODO: describe.
-            query_start: TODO: describe.
-            query_end: TODO: describe.
-            max_lookback_period: TODO: describe.
-            agg_interval: TODO: describe.
-            aggregation: TODO: describe.
-            pagination_limit: TODO: describe.
-            pagination_offset: TODO: describe.
-            dangerous_pagination_override: TODO: describe.
-            project_db: TODO: describe.
-            operational_db: TODO: describe.
-            ffill_limit: TODO: describe.
-            ensure_full_range: TODO: describe.
-            return_arrow: TODO: describe.
+            project_name_short: Project schema name to query.
+            tag_ids: Tag ids to include in the query.
+            sensor_type_ids: Sensor type ids to include in the query.
+            query_start: Inclusive start time for the query window.
+            query_end: Exclusive end time for the query window.
+            max_lookback_period: Lookback window for prior values.
+            agg_interval: Aggregation interval for time buckets.
+            aggregation: Aggregation function to apply.
+            pagination_limit: Maximum rows to return per request.
+            pagination_offset: Row offset for pagination.
+            dangerous_pagination_override: Disable limit/offset safeguards.
+            project_db: Sync session for the project schema.
+            operational_db: Async session for operational metadata.
+            ffill_limit: Max forward-fill steps for missing values.
+            ensure_full_range: Fill gaps to cover the full time range.
+            return_arrow: Whether to return an Arrow response.
         """
         self = cls()
         (
@@ -207,13 +207,13 @@ class DataTimeseries:
             tuple: (timezone, interval, cagg_interval)
 
         Args:
-            operational_db: TODO: describe.
-            project_name_short: TODO: describe.
-            tag_ids: TODO: describe.
-            sensor_type_ids: TODO: describe.
-            agg_interval: TODO: describe.
-            query_start: TODO: describe.
-            query_end: TODO: describe.
+            operational_db: Async session for operational metadata.
+            project_name_short: Project name_short for metadata lookup.
+            tag_ids: Tag ids used to validate request.
+            sensor_type_ids: Sensor type ids used to validate request.
+            agg_interval: Requested aggregation interval.
+            query_start: Requested start time for the query.
+            query_end: Requested end time for the query.
         """
         # --- Validate Inputs ---
         if tag_ids and sensor_type_ids:
@@ -308,20 +308,20 @@ class DataTimeseries:
         dangerous_pagination_override: bool = False,
     ) -> TextClause:
         # --- Build schema and table in a sql-injection safe manner ---
-        """TODO: add description.
+        """Build the SQL query for timeseries data retrieval.
 
         Args:
-            project_name_short: TODO: describe.
-            tag_ids: TODO: describe.
-            sensor_type_ids: TODO: describe.
-            interval: TODO: describe.
-            cagg_interval: TODO: describe.
-            aggregation: TODO: describe.
-            query_start: TODO: describe.
-            query_end: TODO: describe.
-            pagination_limit: TODO: describe.
-            pagination_offset: TODO: describe.
-            dangerous_pagination_override: TODO: describe.
+            project_name_short: Project schema name to query.
+            tag_ids: Tag ids to filter when provided.
+            sensor_type_ids: Sensor type ids to filter when provided.
+            interval: Time bucket interval for aggregation.
+            cagg_interval: Continuous aggregate interval to query.
+            aggregation: Aggregation type to apply.
+            query_start: Inclusive start time for the query.
+            query_end: Exclusive end time for the query.
+            pagination_limit: Maximum rows to return.
+            pagination_offset: Row offset for pagination.
+            dangerous_pagination_override: Disable limit/offset safeguards.
         """
         if cagg_interval:
             table_name = f"data_timeseries_{cagg_interval.value}"
@@ -465,12 +465,12 @@ class DataTimeseries:
         """Build query to get the last value before query_start for each tag.
 
         Args:
-            project_name_short: TODO: describe.
-            tag_ids: TODO: describe.
-            sensor_type_ids: TODO: describe.
-            cagg_interval: TODO: describe.
-            query_start: TODO: describe.
-            max_lookback_period: TODO: describe.
+            project_name_short: Project schema name to query.
+            tag_ids: Tag ids to filter when provided.
+            sensor_type_ids: Sensor type ids to filter when provided.
+            cagg_interval: Continuous aggregate interval to query.
+            query_start: Query start time used for lookback cutoff.
+            max_lookback_period: Max duration to search for prior values.
         """
         # --- Build schema and table in a sql-injection safe manner ---
         if cagg_interval:
@@ -568,19 +568,19 @@ class DataTimeseries:
                 and ensure full range.
 
         Args:
-            df: TODO: describe.
-            lookback_df: TODO: describe.
-            tag_ids: TODO: describe.
-            sensor_type_ids: TODO: describe.
-            project_db: TODO: describe.
-            timezone: TODO: describe.
-            ffill_limit: TODO: describe.
-            ensure_full_range: TODO: describe.
-            query_start: TODO: describe.
-            query_end: TODO: describe.
-            agg_interval: TODO: describe.
-            pagination_limit: TODO: describe.
-            dangerous_pagination_override: TODO: describe.
+            df: Raw timeseries data from the main query.
+            lookback_df: Last-known values prior to query_start.
+            tag_ids: Tag ids to resolve metadata.
+            sensor_type_ids: Sensor type ids to resolve metadata.
+            project_db: Sync session for project metadata queries.
+            timezone: Project timezone for time alignment.
+            ffill_limit: Max forward-fill steps for missing values.
+            ensure_full_range: Whether to pad missing timestamps.
+            query_start: Inclusive query start time.
+            query_end: Exclusive query end time.
+            agg_interval: Aggregation interval for full-range padding.
+            pagination_limit: Max rows per page.
+            dangerous_pagination_override: Disable limit/offset safeguards.
         """
         # Check pagination limit
         if len(df) == pagination_limit and not dangerous_pagination_override:
@@ -702,16 +702,16 @@ def get_project_data_timeseries(
     interval: str,
     cagg_interval: str | None = None,
 ) -> ModelList[models.DataTimeseries]:
-    """TODO: add description.
+    """Fetch timeseries data using the legacy SQL builder.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        interval: TODO: describe.
-        cagg_interval: TODO: describe.
+        project_db: Sync session for the project schema.
+        project_name_short: Project schema name to query.
+        tag_ids: Tag ids to include.
+        start: Inclusive start time for the query.
+        end: Exclusive end time for the query.
+        interval: Aggregation interval string.
+        cagg_interval: Optional cagg interval string to query.
     """
     if cagg_interval:
         table_name = f"data_timeseries_{cagg_interval}"

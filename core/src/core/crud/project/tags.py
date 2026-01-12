@@ -11,10 +11,10 @@ from core.model_list import ModelItem, ModelList
 
 
 def _get_project_tag_options(*, deep: bool) -> Any:
-    """TODO: add description.
+    """Return loader options for tag queries.
 
     Args:
-        deep: TODO: describe.
+        deep: Whether to eager-load tag relationships.
     """
     if deep:
         options = (
@@ -35,13 +35,13 @@ def _get_project_tag_options(*, deep: bool) -> Any:
 def get_project_tag(
     db: Session, tag_id: int, *, deep: bool, return_query: bool = False
 ) -> ModelItem[models.Tag]:
-    """TODO: add description.
+    """Fetch a single tag by id.
 
     Args:
-        db: TODO: describe.
-        tag_id: TODO: describe.
-        deep: TODO: describe.
-        return_query: TODO: describe.
+        db: Project database session.
+        tag_id: Tag id to fetch.
+        deep: Whether to eager-load tag relationships.
+        return_query: Return the query without executing when True.
     """
     options = _get_project_tag_options(deep=deep)
     query = db.query(models.Tag).options(*options).where(models.Tag.tag_id == tag_id)
@@ -66,24 +66,24 @@ def get_project_tags(
     has_sensor_type_id: bool = False,
     return_query: bool = False,
 ) -> ModelList[models.Tag]:
-    """TODO: add description.
+    """Query tags with a variety of filter options.
 
     Args:
-        db: TODO: describe.
-        tag_ids: TODO: describe.
-        in_tsdb: TODO: describe.
-        device_ids: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        sensor_type_name_shorts: TODO: describe.
-        data_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
-        name_scada: TODO: describe.
-        deep: TODO: describe.
-        include_ghost_tags: TODO: describe.
-        has_sensor_type_id: TODO: describe.
-        return_query: TODO: describe.
+        db: Project database session.
+        tag_ids: Tag ids to filter by.
+        in_tsdb: Filter by presence in TSDB.
+        device_ids: Device ids to filter by.
+        device_type_ids: Device type ids to filter by.
+        sensor_type_ids: Sensor type ids to filter by.
+        sensor_type_name_shorts: Sensor type short names to filter by.
+        data_type_ids: Data type ids to filter by.
+        name_short: Tag name_short to filter by.
+        name_long: Tag name_long to filter by.
+        name_scada: Tag name_scada to filter by.
+        deep: Whether to eager-load tag relationships.
+        include_ghost_tags: Include ghost tags when True.
+        has_sensor_type_id: Require a non-null sensor_type_id when True.
+        return_query: Return the query without executing when True.
     """
     options = _get_project_tag_options(deep=deep)
 
@@ -165,10 +165,10 @@ async def get_tags_by_regex(
     """Get all tags whose name_scada matches a given regex (PostgreSQL '~*' operator).
 
     Args:
-        db: TODO: describe.
-        regex: TODO: describe.
-        limit: TODO: describe.
-        deep: TODO: describe.
+        db: Project database session.
+        regex: Regular expression to match name_scada.
+        limit: Maximum number of tags to return.
+        deep: Whether to eager-load tag relationships.
     """
     options = _get_project_tag_options(deep=deep)
     stmt = (

@@ -10,11 +10,11 @@ from core.model_list import ModelItem, ModelList
 
 
 def get_project_device_options(*, deep: bool, include_name_long: bool = False) -> Any:
-    """TODO: add description.
+    """Return loader options for device queries.
 
     Args:
-        deep: TODO: describe.
-        include_name_long: TODO: describe.
+        deep: Whether to eager-load related device type data.
+        include_name_long: Load device type name_long only when True.
     """
     if deep:
         options = joinedload(models.Device.device_type)
@@ -106,14 +106,14 @@ def get_project_device(
     include_name_long: bool = False,
     return_query: bool = False,
 ) -> ModelItem[models.Device]:
-    """TODO: add description.
+    """Fetch a single device by id.
 
     Args:
-        db: TODO: describe.
-        device_id: TODO: describe.
-        deep: TODO: describe.
-        include_name_long: TODO: describe.
-        return_query: TODO: describe.
+        db: Project database session.
+        device_id: Device id to fetch.
+        deep: Whether to eager-load related device type data.
+        include_name_long: Load device type name_long only when True.
+        return_query: Return the query without executing when True.
     """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
     query = (
@@ -197,13 +197,13 @@ async def get_project_devices_async(
 async def get_project_device_async(
     *, db: AsyncSession, device_id: int, deep: bool, include_name_long: bool = False
 ) -> models.Device | None:
-    """TODO: add description.
+    """Fetch a single device by id asynchronously.
 
     Args:
-        db: TODO: describe.
-        device_id: TODO: describe.
-        deep: TODO: describe.
-        include_name_long: TODO: describe.
+        db: Project database session.
+        device_id: Device id to fetch.
+        deep: Whether to eager-load related device type data.
+        include_name_long: Load device type name_long only when True.
     """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
     stmt = (
