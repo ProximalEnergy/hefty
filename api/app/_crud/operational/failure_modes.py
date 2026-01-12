@@ -4,25 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core import models
 
 
-async def get_failure_modes(
-    *,
-    db: AsyncSession,
-    failure_mode_ids: list[int] = [],
-):
-    """Retrieve failure modes, optionally filtering by identifier list.
-
-    Args:
-        db: Operational database session used for querying failure modes.
-        failure_mode_ids: Specific failure mode IDs to include; returns all when
-            empty.
-    """
-    query = select(models.FailureMode)
-    if failure_mode_ids:
-        query = query.where(models.FailureMode.failure_mode_id.in_(failure_mode_ids))
-    result = await db.execute(query)
-    return result.scalars().all()
-
-
 async def update_event_failure_mode(
     *,
     db: AsyncSession,
