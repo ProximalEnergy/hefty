@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
+from core.crud.operational.failure_modes import get_failure_modes
 from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
@@ -19,7 +20,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, utils
-from app._crud.operational.failure_modes import get_failure_modes, get_root_causes
+from app._crud.operational.failure_modes import get_root_causes
 from app._crud.operational.failure_modes import (
     update_event_root_cause as crud_update_event_root_cause,
 )
@@ -61,7 +62,7 @@ def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-o
 
 @router.get("", response_model=list[interfaces.Event])
 async def get_events(
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
     project_id: uuid.UUID,
     device_id: int | None = None,
@@ -111,6 +112,46 @@ async def get_events(
     if len(events) == 0:
         return []
 
+    # Collect IDs
+    failure_mode_ids = list(
+        {e["failure_mode_id"] for e in events if e.get("failure_mode_id") is not None}
+    )
+    root_cause_ids = list(
+        {e["root_cause_id"] for e in events if e.get("root_cause_id") is not None}
+    )
+
+    # Fetch Failure Modes and Root Causes
+    failure_modes_task = get_failure_modes(failure_mode_ids=failure_mode_ids).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
+
+    root_causes_task = get_root_causes(db=db, root_cause_ids=root_cause_ids)
+
+    failure_modes, root_causes = await asyncio.gather(
+        failure_modes_task, root_causes_task
+    )
+
+    # Create mappings
+    failure_mode_map = {
+        fm.failure_mode_id: interfaces.FailureMode(
+            failure_mode_id=fm.failure_mode_id,
+            device_type_id=fm.device_type_id,
+            name_short=fm.name_short,
+            name_long=fm.name_long,
+        )
+        for fm in failure_modes
+    }
+
+    root_cause_map = {
+        rc.root_cause_id: interfaces.RootCause(
+            root_cause_id=rc.root_cause_id,
+            device_type_id=rc.device_type_id,
+            name_short=rc.name_short,
+            name_long=rc.name_long,
+        )
+        for rc in root_causes
+    }
+
     # Process the results using a more efficient approach
     result: list[interfaces.Event] = []
     for event in events:
@@ -123,6 +164,13 @@ async def get_events(
         event_dict.pop("device_name_long", None)
 
         event_dict["device_name_full"] = device_name_full
+
+        if event_dict.get("failure_mode_id") in failure_mode_map:
+            event_dict["failure_mode"] = failure_mode_map[event_dict["failure_mode_id"]]
+
+        if event_dict.get("root_cause_id") in root_cause_map:
+            event_dict["root_cause"] = root_cause_map[event_dict["root_cause_id"]]
+
         result.append(interfaces.Event(**event_dict))
 
     return result
@@ -512,7 +560,10 @@ async def get_events_summary(
     )
 
     # Parallelize async database calls
-    failure_modes_task = get_failure_modes(db=db, failure_mode_ids=failure_mode_ids)
+    failure_modes_query = get_failure_modes(failure_mode_ids=failure_mode_ids)
+    failure_modes_task = failure_modes_query.get_async(
+        output_type=OutputType.SQLALCHEMY,
+    )
     root_causes_task = get_root_causes(db=db, root_cause_ids=root_cause_ids)
     # Run loss query in parallel with other async calls
     losses_task = asyncio.to_thread(
@@ -927,8 +978,8 @@ def get_event_trace_tags(
 
 @router.get("/llm-event-losses")
 async def get_llm_event_losses(
-    project_db: Annotated[Session, Depends(get_project_db)],
     db: Annotated[AsyncSession, Depends(get_async_db)],
+    project_db: Annotated[Session, Depends(get_project_db)],
     project_id: uuid.UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
@@ -936,8 +987,8 @@ async def get_llm_event_losses(
     """todo
 
     Args:
+        db: Operational database
         project_db: TODO: describe.
-        db: TODO: describe.
         project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
@@ -975,7 +1026,9 @@ async def get_llm_event_losses(
             output_type=OutputType.SQLALCHEMY,
         )
 
-        failure_modes = await get_failure_modes(db=db)
+        failure_modes = await get_failure_modes().get_async(
+            output_type=OutputType.SQLALCHEMY,
+        )
         failure_mode_map = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
 
         root_causes = await get_root_causes(db=db)

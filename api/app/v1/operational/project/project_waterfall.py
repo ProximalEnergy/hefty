@@ -7,10 +7,11 @@ import pandas as pd
 from core.crud.operational.device_types import (
     get_device_types as crud_get_device_types,
 )
+from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.project.event_losses import (
     get_event_losses_aggregated,
 )
-from core.database import Base
+from core.db_query import OutputType
 from core.enumerations import EventLossType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,9 +19,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from app._crud.operational.failure_modes import (
-    get_failure_modes as crud_get_failure_modes,
-)
 from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expected
 from core import models
 
@@ -32,7 +30,7 @@ router = APIRouter(
 
 
 def df_from_objects(  # nosemgrep: python-enforce-keyword-only-args
-    objects: list[Base], index_col: str, time_zone: str | None = None
+    objects: list, index_col: str, time_zone: str | None = None
 ) -> pd.DataFrame:
     """todo
 
@@ -54,9 +52,6 @@ async def get_project_waterfall(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    async_project_db: Annotated[
-        AsyncSession, Depends(dependencies.get_project_db_async)
-    ],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     level: str = "device_type",
     start: datetime.datetime | None = None,
@@ -68,7 +63,6 @@ async def get_project_waterfall(
         project_id: TODO: describe.
         db: TODO: describe.
         project_db: TODO: describe.
-        async_project_db: TODO: describe.
         project: TODO: describe.
         level: TODO: describe.
         start: TODO: describe.
@@ -183,9 +177,11 @@ async def get_project_waterfall(
         )
         grouped_losses["name"] = df_device_types.loc[grouped_losses.index, "name_long"]
     elif level == "failure_mode":
-        data_failure_modes = await crud_get_failure_modes(
-            db=async_project_db,
+        failure_modes_query = get_failure_modes(
             failure_mode_ids=df_events["failure_mode_id"].unique().tolist(),
+        )
+        data_failure_modes = await failure_modes_query.get_async(
+            output_type=OutputType.SQLALCHEMY,
         )
         df_failure_modes = df_from_objects(data_failure_modes, "failure_mode_id")
         grouped_losses = (

@@ -1849,11 +1849,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Failure Modes
+         * Get Failure Modes Route
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
          *         failure_mode_ids: TODO: describe.
          */
         get: operations["get_failure_modes"];
@@ -2923,8 +2922,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
+         *         db: Operational database
          *         project_db: TODO: describe.
-         *         db: TODO: describe.
          *         project_id: TODO: describe.
          *         start: TODO: describe.
          *         end: TODO: describe.
@@ -3884,7 +3883,6 @@ export interface paths {
          *         project_id: TODO: describe.
          *         db: TODO: describe.
          *         project_db: TODO: describe.
-         *         async_project_db: TODO: describe.
          *         project: TODO: describe.
          *         level: TODO: describe.
          *         start: TODO: describe.
@@ -15554,7 +15552,6 @@ export interface operations {
                 open?: boolean;
                 event_ids?: number[] | null;
                 open_at?: string | null;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
