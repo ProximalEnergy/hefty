@@ -3,7 +3,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import noload, selectinload
+from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from core import enumerations, models
@@ -17,7 +17,7 @@ def get_project_options(*, deep: bool) -> _AbstractLoad:
         deep: Whether to eager-load related project type data.
     """
     if deep:
-        options = selectinload(models.Project.project_type)
+        options = joinedload(models.Project.project_type)
     else:
         options = noload(models.Project.project_type)
 

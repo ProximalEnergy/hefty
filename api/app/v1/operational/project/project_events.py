@@ -3,6 +3,7 @@ import datetime
 import logging
 import traceback
 import uuid
+from collections.abc import Sequence
 from typing import Annotated, Any
 from zoneinfo import ZoneInfo
 
@@ -12,7 +13,6 @@ from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.project import events as core_events
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from sqlalchemy import insert, select, text
@@ -247,14 +247,16 @@ async def get_paginated_events(
     root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
 
     # Devices and types
-    devices = core.crud.project.devices.get_project_devices(
-        project_db, device_ids=device_ids_only
-    ).models()
-    device_dict = {d.device_id: d for d in devices}
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
+        device_ids=device_ids_only
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["device_id"] = devices_df["device_id"].astype(int)
+    devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
+    device_dict = devices_df.set_index("device_id").to_dict(orient="index")
 
-    device_type_ids_only: list[int] = [
-        int(d.device_type_id) for d in devices if d.device_type_id is not None
-    ]
+    device_type_ids_only = devices_df["device_type_id"].dropna().astype(int).tolist()
 
     device_types = await get_device_types(
         db=db,
@@ -266,13 +268,14 @@ async def get_paginated_events(
     # Precompute full device names
     device_name_full_by_event: dict[uuid.UUID, str] = {}
     for e in event_objs:
-        d = device_dict.get(e["device_id"])
+        d = device_dict.get(int(e["device_id"]))
         if d:
-            dt = device_type_dict.get(d.device_type_id)
+            dt = device_type_dict.get(d["device_type_id"])
             if dt:
-                device_name_full_by_event[e["event_id"]] = (
-                    f"{dt.name_long} {d.name_long or ''}"
-                )
+                name_long = d.get("name_long")
+                if pd.isna(name_long):
+                    name_long = ""
+                device_name_full_by_event[e["event_id"]] = f"{dt.name_long} {name_long}"
 
     # Losses (pivot once, NaN -> None)
     losses_df = await core.crud.project.event_losses.get_event_losses(
@@ -417,7 +420,7 @@ async def update_event_root_cause(
 @router.get("/event-devices")
 async def get_event_devices(
     project_db: Annotated[Session, Depends(get_project_db)],
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_id: uuid.UUID,
 ):
     # First get all device IDs that have events in a single query
@@ -448,28 +451,40 @@ async def get_event_devices(
     if not device_ids:
         return {"unique_types": [], "unique_devices": []}
 
-    devices_with_types = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
-        deep=True,
-    ).models()
+        deep=False,
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    # Process results efficiently
-    unique_type_ids = set()
-    unique_type_names = {}
+    device_type_ids = devices_df["device_type_id"].dropna().astype(int).tolist()
+    device_types = await get_device_types(
+        db=db,
+        device_type_ids=device_type_ids,
+    )
+    device_type_names = {
+        device_type.device_type_id: device_type.name_long
+        for device_type in device_types
+    }
+
+    unique_type_names = {
+        device_type_id: device_type_name
+        for device_type_id, device_type_name in device_type_names.items()
+    }
     unique_device_names = {}
-
-    for device in devices_with_types:
-        device_type = device.device_type
-        if device_type:
-            type_id = device_type.device_type_id
-            unique_type_ids.add(type_id)
-            unique_type_names[type_id] = device_type.name_long
-
-            device_name = device.name_long or ""
-            unique_device_names[device.device_id] = (
-                f"{device_type.name_long} {device_name}".strip()
-            )
+    for device in devices_df.to_dict("records"):
+        device_type_id = device.get("device_type_id")
+        if device_type_id is None or pd.isna(device_type_id):
+            continue
+        device_name = device.get("name_long")
+        if pd.isna(device_name):
+            device_name = ""
+        device_type_name = device_type_names.get(int(device_type_id))
+        if not device_type_name:
+            continue
+        unique_device_names[int(device["device_id"])] = (
+            f"{device_type_name} {device_name}".strip()
+        )
 
     # Format response
     return {
@@ -799,12 +814,16 @@ async def get_uptime(
     if not device_ids:
         return []
 
-    devices = core.crud.project.devices.get_project_devices(
-        project_db, device_ids=device_ids
-    ).models()
-    device_dict = {device.device_id: device for device in devices}
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
+        device_ids=device_ids
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["device_id"] = devices_df["device_id"].astype(int)
+    devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
+    device_dict = devices_df.set_index("device_id").to_dict(orient="index")
 
-    device_type_ids = list(set(device.device_type_id for device in devices))
+    device_type_ids = list(set(devices_df["device_type_id"].tolist()))
     device_types = await get_device_types(db=db, device_type_ids=device_type_ids)
     device_type_dict = {dt.device_type_id: dt for dt in device_types}
 
@@ -816,20 +835,22 @@ async def get_uptime(
             continue
 
         # Skip tracker_pv_pcs
-        if device.device_type_id == DeviceType.TRACKER_PV_PCS:
+        if device["device_type_id"] == DeviceType.TRACKER_PV_PCS:
             continue
 
-        device_type = device_type_dict.get(device.device_type_id)
+        device_type = device_type_dict.get(device["device_type_id"])
         if not device_type:
             continue
 
-        device_name_long = device.name_long or ""
+        device_name_long = device.get("name_long")
+        if pd.isna(device_name_long):
+            device_name_long = ""
         device_type_name = device_type.name_long
 
         result.append(
             {
                 "device_id": device_id,
-                "device_type_id": device.device_type_id,
+                "device_type_id": device["device_type_id"],
                 "device_name_full": f"{device_type_name} {device_name_long}".strip(),
                 "downtime_hours": min(data["hours"], possible_uptime),
                 "downtime_percentage": min(data["hours"] / possible_uptime, 1),
@@ -841,7 +862,7 @@ async def get_uptime(
 
 
 @router.get("/event-trace-tags", response_model=list[interfaces.Tag])
-def get_event_trace_tags(
+async def get_event_trace_tags(
     project_db: Annotated[Session, Depends(get_project_db)],
     device_id: int,
 ):
@@ -851,21 +872,21 @@ def get_event_trace_tags(
         project_db: TODO: describe.
         device_id: TODO: describe.
     """
-    device = core.crud.project.devices.get_project_devices(
-        project_db, device_ids=[device_id]
-    ).models()[0]
-    child_devices = core.crud.project.devices.get_project_devices(
-        project_db,
-        device_id_descendent_of=device.device_id,
-    ).models()
-    ancestor_devices = core.crud.project.devices.get_project_devices(
-        project_db,
-        device_id_path_ancestor_of=device.device_id_path,
-    ).models()
+    project_schema = utils.get_project_schema(project_db=project_db)
+    device_df = await core.crud.project.devices.get_project_devices(
+        device_ids=[device_id]
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    device = device_df.to_dict("records")[0]
+    child_devices_df = await core.crud.project.devices.get_project_devices(
+        device_id_descendent_of=int(device["device_id"]),
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    ancestor_devices_df = await core.crud.project.devices.get_project_devices(
+        device_id_path_ancestor_of=device.get("device_id_path"),
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     device_ids = [device_id]
-    device_ids.extend([child.device_id for child in child_devices])
-    device_ids.extend([ancestor.device_id for ancestor in ancestor_devices])
-    match device.device_type_id:
+    device_ids.extend(child_devices_df["device_id"].astype(int).tolist())
+    device_ids.extend(ancestor_devices_df["device_id"].astype(int).tolist())
+    match int(device["device_type_id"]):
         case 2:  # PV PCS
             sensor_type_ids = [
                 2,  # PV PCS AC Power
@@ -957,7 +978,7 @@ def get_event_trace_tags(
             ]
         case _:
             sentry_sdk.capture_exception(
-                ValueError(f"Device type {device.device_type_id} not supported.")
+                ValueError(f"Device type {device['device_type_id']} not supported.")
             )
             raise HTTPException(
                 status_code=400,
@@ -1082,9 +1103,9 @@ async def get_llm_event_losses(
 
 
 @router.post("/bulk-create", response_model=interfaces.BulkCreateEventsResponse)
-def bulk_create_events(
-    project_db: Annotated[Session, Depends(get_project_db)],
-    db: Annotated[Session, Depends(get_db)],
+async def bulk_create_events(
+    project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_id: uuid.UUID,
     payload: interfaces.BulkCreateEventsRequest,
 ):
@@ -1110,16 +1131,17 @@ def bulk_create_events(
         exists_query = select(models.EventLossType).where(
             models.EventLossType.event_loss_type_id == loss_type_id
         )
-        exists = db.execute(exists_query).scalars().first()
-        if not exists:
+        result_loss_type = await db.execute(exists_query)
+        exists_loss_type = result_loss_type.scalars().first()
+        if not exists_loss_type:
             new_type = models.EventLossType(
                 event_loss_type_id=loss_type_id,
                 name_short="proximal_pv_dc_capacity",  # allow: hardcoded-name-short
             )
             db.add(new_type)
-            db.commit()
+            await db.commit()
     except Exception:
-        db.rollback()
+        await db.rollback()
         raise
 
     # Default failure mode to DC Field Underperforming (94) for drone inspection events
@@ -1136,16 +1158,16 @@ def bulk_create_events(
 
     try:
         # Implement lock mechanism to prevent race conditions
-        project_db.execute(text("SET lock_timeout = '30s'"))
-        project_db.execute(text("BEGIN"))
+        await project_db.execute(text("SET lock_timeout = '30s'"))
+        await project_db.execute(text("BEGIN"))
         # Note: project_name_short is validated above to contain only safe characters
-        project_db.execute(
+        await project_db.execute(
             text(f"LOCK TABLE {project_name_short}.events IN ACCESS EXCLUSIVE MODE")  # noqa: S608
         )
 
         # Update sequence to ensure proper ID generation
         # Note: project_name_short is validated above to contain only safe characters
-        project_db.execute(
+        await project_db.execute(
             text(
                 "SELECT setval( pg_get_serial_sequence("  # noqa: S608
                 f"'{project_name_short}.events', 'event_id'), "
@@ -1153,24 +1175,28 @@ def bulk_create_events(
                 f"{project_name_short}.events), 1), true )"
             )
         )
-        project_db.execute(text("COMMIT"))
+        await project_db.execute(text("COMMIT"))
 
         # Map DC Combiner device_ids to their DC Field children (device_type_id
         # = DC_FIELD)
         combiner_device_ids = [item.device_id for item in payload.items]
 
         # Get DC Field devices that are direct children of our combiners
-        dc_field_children = core.crud.project.devices.get_project_devices(
-            project_db,
+        project_schema = await utils.get_project_schema_async(project_db=project_db)
+        dc_field_children_df = await core.crud.project.devices.get_project_devices(
             device_type_ids=[DeviceType.DC_FIELD],
             parent_device_ids=[device_id for device_id in combiner_device_ids],
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
         # Create mapping from combiner_id to dc_field_id
-        combiner_to_field_mapping = {
-            dc_field.parent_device_id: dc_field.device_id
-            for dc_field in dc_field_children
-        }
+        combiner_to_field_mapping = {}
+        for dc_field in dc_field_children_df.to_dict("records"):
+            parent_device_id = dc_field.get("parent_device_id")
+            if parent_device_id is None or pd.isna(parent_device_id):
+                continue
+            combiner_to_field_mapping[int(parent_device_id)] = int(
+                dc_field["device_id"]
+            )
 
         # Group items by target device_id to handle time offsets properly
         device_items: dict[int, list[interfaces.BulkEventItem]] = {}
@@ -1195,7 +1221,8 @@ def bulk_create_events(
             models.Event.time_start >= payload.time_start,
             models.Event.time_start < existing_events_end,
         )
-        existing_events = project_db.execute(existing_events_query).scalars().all()
+        event_result = await project_db.execute(existing_events_query)
+        existing_events: Sequence[models.Event] = event_result.scalars().all()
 
         # Create a set of existing (device_id, time_start) combinations
         existing_combinations = {
@@ -1250,7 +1277,7 @@ def bulk_create_events(
         # Add all events to session and flush to get their IDs
         for event in event_objects:
             project_db.add(event)
-        project_db.flush()  # Flush once to get all event_ids
+        await project_db.flush()  # Flush once to get all event_ids
 
         # Now create loss data and update mappings with actual event_ids
         actual_event_mapping = {}
@@ -1290,7 +1317,7 @@ def bulk_create_events(
 
         # Bulk update all anomalies in a single operation
         if actual_event_mapping:
-            bulk_update_anomalies_with_event_ids(
+            await bulk_update_anomalies_with_event_ids(
                 db=project_db,
                 event_mapping=actual_event_mapping,
             )
@@ -1299,12 +1326,12 @@ def bulk_create_events(
         if losses_data:
             # Single bulk INSERT with all data - this is the fastest approach
             stmt = insert(models.EventLoss)
-            project_db.execute(stmt, losses_data)
+            await project_db.execute(stmt, losses_data)
 
-        project_db.commit()
+        await project_db.commit()
 
     except Exception as e:
-        project_db.rollback()
+        await project_db.rollback()
         logging.error(f"bulk_create_events failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to create events")
 
@@ -1312,8 +1339,8 @@ def bulk_create_events(
 
 
 @router.get("/{event_id}/anomalies")
-def get_event_anomalies(
-    project_db: Annotated[Session, Depends(get_project_db)],
+async def get_event_anomalies(
+    project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
     event_id: int = Path(..., description="Event ID to get anomalies for"),
 ):
     """Get all drone anomalies associated with a specific event.
@@ -1324,7 +1351,9 @@ def get_event_anomalies(
         event_id: TODO: describe.
     """
     try:
-        anomalies = crud_get_anomalies_by_event_id(db=project_db, event_id=event_id)
+        anomalies = await crud_get_anomalies_by_event_id(
+            db=project_db, event_id=event_id
+        )
         return anomalies
     except Exception as e:
         logging.error(f"Failed to get anomalies for event {event_id}: {e}")

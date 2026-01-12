@@ -2,7 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from app import dependencies, interfaces
+from app import dependencies, interfaces, utils
 from app._utils.recursive_parents import get_recursive_parents
 from app.utils import data_df
 from core.crud.operational.device_types import get_device_types
@@ -92,19 +92,17 @@ async def utility_expected(
         for device in parent_devices
     ]
 
-    schema_translate_map = (
-        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
-    )
-    project_schema = schema_translate_map.get("project")
-    device = await core.crud.project.devices.get_project_device(
+    project_schema = utils.get_project_schema(project_db=project_db)
+    device_df = await core.crud.project.devices.get_project_device(
         device_id=device_id,
         deep=False,
-    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
-    if device is None:
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    if device_df.empty:
         raise HTTPException(status_code=404, detail="Device not found")
+    device = device_df.to_dict("records")[0]
 
     # Meter
-    if device.device_type_id == DeviceType.METER:
+    if device["device_type_id"] == DeviceType.METER:
         sensor_type_ids = [SensorType.METER_ACTIVE_POWER]
         expected_metric_id_clean = 11 if not warranted_degradation else 5
         expected_metric_id_soiled = 12 if not warranted_degradation else 6
@@ -112,7 +110,7 @@ async def utility_expected(
         expected_device_ids = [1]
         pv_dc_combiner = False
     # PV PCS
-    elif device.device_type_id == DeviceType.PV_PCS:
+    elif device["device_type_id"] == DeviceType.PV_PCS:
         sensor_type_ids = [SensorType.PV_PCS_AC_POWER]
         expected_metric_id_clean = 9 if not warranted_degradation else 3
         expected_metric_id_soiled = 10 if not warranted_degradation else 4
@@ -120,7 +118,7 @@ async def utility_expected(
         expected_device_ids = [device_id]
         pv_dc_combiner = False
     # PV DC Combiner
-    elif device.device_type_id == DeviceType.PV_DC_COMBINER:
+    elif device["device_type_id"] == DeviceType.PV_DC_COMBINER:
         sensor_type_ids = [SensorType.PV_DC_COMBINER_CURRENT]
         expected_metric_id_clean = 7 if not warranted_degradation else 1
         expected_metric_id_soiled = 8 if not warranted_degradation else 2
@@ -133,22 +131,22 @@ async def utility_expected(
     # Query device data
     # If combiner, need to pull PCS module voltage and combiner current
     if pv_dc_combiner:
-        device_pv_pcs_models = core.crud.project.devices.get_project_devices(
-            project_db,
+        device_pv_pcs_df = await core.crud.project.devices.get_project_devices(
             device_type_ids=[DeviceType.PV_PCS],
-            device_id_path_ancestor_of=device.device_id_path,
-        ).models()
-        if not device_pv_pcs_models:
+            device_id_path_ancestor_of=device["device_id_path"],
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        if device_pv_pcs_df.empty:
             raise HTTPException(status_code=404, detail="PV PCS device not found")
-        device_pv_pcs = device_pv_pcs_models[0]
+        device_pv_pcs = device_pv_pcs_df.to_dict("records")[0]
 
-        devices_pv_pcs_modules_models = core.crud.project.devices.get_project_devices(
-            project_db,
+        devices_pv_pcs_modules_df = await core.crud.project.devices.get_project_devices(
             device_type_ids=[DeviceType.PV_PCS_MODULE],
-            device_id_descendent_of=device_pv_pcs.device_id,
-        ).models()
+            device_id_descendent_of=int(device_pv_pcs["device_id"]),
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-        device_ids_pv_pcs_modules = [x.device_id for x in devices_pv_pcs_modules_models]
+        device_ids_pv_pcs_modules = (
+            devices_pv_pcs_modules_df["device_id"].astype(int).tolist()
+        )
 
         tags_pv_pcs_module_voltage = core.crud.project.tags.get_project_tags(
             project_db,
@@ -162,7 +160,7 @@ async def utility_expected(
         if len(tags_pv_pcs_module_voltage) == 0:
             tags_pv_pcs_module_voltage = core.crud.project.tags.get_project_tags(
                 project_db,
-                device_ids=[device_pv_pcs.device_id],
+                device_ids=[int(device_pv_pcs["device_id"])],
                 sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
             ).models()
 

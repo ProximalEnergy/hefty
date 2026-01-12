@@ -1,11 +1,13 @@
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType
 from sqlalchemy.orm import Session
 
 import core
+from app import utils
 
 
-def add_devices_blocks(
+async def add_devices_blocks(
     *,
     project_db: Session,
     system: pd.DataFrame,
@@ -17,11 +19,10 @@ def add_devices_blocks(
         project_db: TODO: describe.
         system: TODO: describe.
     """
-    transformers_data = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    transformers = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.MVT],
-    ).models()
-    transformers = pd.DataFrame([x.__dict__ for x in transformers_data])
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     transformers = transformers[["device_id", "parent_device_id"]].rename(
         columns={
             "device_id": "transformer_device_id",

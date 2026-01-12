@@ -2,7 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import extract, func, select  # Make sure to import 'select'
 from sqlalchemy.dialects.postgresql import array
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, joinedload
 
 from core import models
 from core.enumerations import DeviceType, SensorType
@@ -43,7 +43,7 @@ def get_data_timeseries_latest_by_device_type(
         sensor_type_ids = device_type_id_to_sensor_type_ids.get(device_type_id, [])
 
     query = db.query(models.DataTimeseriesLast).options(
-        selectinload(models.DataTimeseriesLast.tag),
+        joinedload(models.DataTimeseriesLast.tag),
     )
     query = query.join(models.Tag).where(models.Tag.sensor_type_id.in_(sensor_type_ids))
     return ModelList(query=query, return_query=return_query)
@@ -118,7 +118,7 @@ def get_data_timeseries_last(
 
     if deep:
         query = query.options(
-            selectinload(models.DataTimeseriesLast.tag).selectinload(models.Tag.device)
+            joinedload(models.DataTimeseriesLast.tag).joinedload(models.Tag.device)
         )
 
     return ModelList(query=query, return_query=return_query)

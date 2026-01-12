@@ -2,12 +2,11 @@ from typing import Any, Literal
 
 from sqlalchemy import exists, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session, joinedload, noload
+from sqlalchemy.orm import joinedload, noload
 
 from core import models
 from core.db_query import DbQuery
 from core.enumerations import SensorType
-from core.model_list import ModelList
 
 
 def get_project_device_options(*, deep: bool, include_name_long: bool = False) -> Any:
@@ -31,7 +30,6 @@ def get_project_device_options(*, deep: bool, include_name_long: bool = False) -
 
 
 def get_project_devices(
-    db: Session,
     *,
     device_ids: list[int] = [],
     device_type_ids: list[int] = [],
@@ -43,13 +41,11 @@ def get_project_devices(
     device_id_descendent_of: int | None = None,
     device_id_path_ancestor_of: str | None = None,
     with_tags: bool = False,
-    return_query: bool = False,
-) -> ModelList[models.Device]:
+) -> DbQuery[models.Device, Literal[False]]:
     """
     Retrieve a list of devices from the database based on various filtering criteria.
 
     Args:
-        db (Session): The database session to use for the query.
         device_ids (list[int], optional): A list of specific device IDs to filter by.
         device_type_ids (list[int], optional): A list of device type IDs to filter by.
         parent_device_ids (list[int], optional): A list of parent device IDs to filter
@@ -67,36 +63,36 @@ def get_project_devices(
     """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
 
-    query = db.query(models.Device).options(options)
+    stmt = select(models.Device).options(options)
 
     if device_ids:
-        query = query.where(models.Device.device_id.in_(device_ids))
+        stmt = stmt.where(models.Device.device_id.in_(device_ids))
     if device_type_ids:
-        query = query.where(models.Device.device_type_id.in_(device_type_ids))
+        stmt = stmt.where(models.Device.device_type_id.in_(device_type_ids))
     if parent_device_ids:
-        query = query.where(models.Device.parent_device_id.in_(parent_device_ids))
+        stmt = stmt.where(models.Device.parent_device_id.in_(parent_device_ids))
     if name_short:
-        query = query.where(models.Device.name_short == name_short)
+        stmt = stmt.where(models.Device.name_short == name_short)
     if name_long:
-        query = query.where(models.Device.name_long == name_long)
+        stmt = stmt.where(models.Device.name_long == name_long)
     if with_tags:
         tag_exists = (
             exists()
             .where(models.Tag.device_id == models.Device.device_id)
             .where(models.Tag.sensor_type_id != SensorType.GHOST_UNKNOWN)
         )
-        query = query.where(tag_exists)
+        stmt = stmt.where(tag_exists)
     if device_id_descendent_of is not None:
-        query = query.where(text(f"device_id_path ~ '*.{device_id_descendent_of}.*'"))
+        stmt = stmt.where(text(f"device_id_path ~ '*.{device_id_descendent_of}.*'"))
     if device_id_path_ancestor_of is not None:
-        query = query.where(
+        stmt = stmt.where(
             text(
                 f"'{device_id_path_ancestor_of}'::ltree <@ device_id_path "
                 f"and device_id_path <> '{device_id_path_ancestor_of}'::ltree",
             ),
         )
 
-    return ModelList(query=query, return_query=return_query)
+    return DbQuery(query=stmt)
 
 
 def get_project_device(
@@ -140,7 +136,6 @@ async def get_project_devices_async(
     Retrieve a list of devices from the database based on various filtering criteria.
 
     Args:
-        db (Session): The database session to use for the query.
         device_ids (list[int], optional): A list of specific device IDs to filter by.
         device_type_ids (list[int], optional): A list of device type IDs to filter by.
         parent_device_ids (list[int], optional): A list of parent device IDs to filter

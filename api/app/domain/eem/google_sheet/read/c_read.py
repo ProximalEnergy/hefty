@@ -69,22 +69,22 @@ async def import_google_sheet(
     )
 
     # --- Parse Device Ids ---
-    system = parse_devices_combiners(
+    system = await parse_devices_combiners(
         project_db=project_db,
         system=system,
     )
 
-    system = parse_devices_inverters(
+    system = await parse_devices_inverters(
         project_db=project_db,
         system=system,
     )
 
     # --- Add Devices that don't need parsing ---
-    system = add_devices_blocks(
+    system = await add_devices_blocks(
         project_db=project_db,
         system=system,
     )
-    system = add_devices_circuits(
+    system = await add_devices_circuits(
         project_db=project_db,
         system=system,
     )

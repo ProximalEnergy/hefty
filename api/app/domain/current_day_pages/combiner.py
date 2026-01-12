@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import Depends
 from natsort import natsorted
@@ -12,7 +13,7 @@ from app import dependencies, utils
 from core import models
 
 
-def get_equipment_analysis_combiner_data(
+async def get_equipment_analysis_combiner_data(
     *,
     project_db: Session,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -44,10 +45,13 @@ def get_equipment_analysis_combiner_data(
         )
 
     # Get combiner devices
-    devices_combiner = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_combiner_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_DC_COMBINER],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_combiner_df = devices_combiner_df.copy()
+    devices_combiner_df["name_long"] = devices_combiner_df["name_long"].fillna("")
+    devices_combiner_df["capacity_dc"] = devices_combiner_df["capacity_dc"].fillna(1)
 
     # Get combiner current tags
     tags_combiner_current = core.crud.project.tags.get_project_tags(
@@ -56,16 +60,19 @@ def get_equipment_analysis_combiner_data(
         sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
     ).models()
 
-    device_id_to_device: dict[int, models.Device] = {
-        device.device_id: device for device in devices_combiner
+    device_id_to_device = {
+        int(device["device_id"]): device
+        for device in devices_combiner_df.to_dict("records")
     }
 
     tag_id_to_combiner_name_long: dict[int, str] = {
-        tag.tag_id: (device_id_to_device[tag.device_id].name_long or "NO NAME LONG")
+        tag.tag_id: (
+            device_id_to_device[tag.device_id].get("name_long") or "NO NAME LONG"
+        )
         for tag in tags_combiner_current
     }
     tag_id_to_combiner_capacity_dc: dict[int, float] = {
-        tag.tag_id: (device_id_to_device[tag.device_id].capacity_dc or 1)
+        tag.tag_id: device_id_to_device[tag.device_id].get("capacity_dc") or 1
         for tag in tags_combiner_current
     }
 

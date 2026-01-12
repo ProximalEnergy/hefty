@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType, KPIType, SensorType
 from fastapi import Depends, HTTPException
 from natsort import natsorted
@@ -13,7 +14,7 @@ from app.v1.operational.kpi_data import get_kpi_data_helper
 from core import models
 
 
-def get_tracker_data(
+async def get_tracker_data(
     *,
     start: datetime.date,
     end: datetime.date,
@@ -33,19 +34,26 @@ def get_tracker_data(
         A dictionary containing tracker data.
     """
     # Get devices
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[
             DeviceType.BLOCK,
             DeviceType.TRACKER_ROW,
         ],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
 
     # Create lookup mappings
-    device_id_to_name_long = {d.device_id: d.name_long for d in devices}
+    device_id_to_name_long = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["name_long"].fillna(""),
+        )
+    )
     block_device_id_to_tracker_row_ids = utils.map_ancestors_to_descendents(
-        ancestors=[d for d in devices if d.device_type_id == DeviceType.BLOCK],
-        descendents=[d for d in devices if d.device_type_id == DeviceType.TRACKER_ROW],
+        ancestors=devices_df[devices_df["device_type_id"] == DeviceType.BLOCK],
+        descendents=devices_df[devices_df["device_type_id"] == DeviceType.TRACKER_ROW],
     )
 
     # Get KPI data
@@ -127,7 +135,7 @@ def get_tracker_data(
     }
 
 
-def get_tracker_by_pv_block_id_data(
+async def get_tracker_by_pv_block_id_data(
     *,
     pv_block_id: int,
     project: models.Project,
@@ -149,16 +157,16 @@ def get_tracker_by_pv_block_id_data(
         A dictionary containing tracker data for the specified PV block.
     """
     # Get tracker rows that are descendants of the pv block
-    devices = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.TRACKER_ROW],
         device_id_descendent_of=pv_block_id,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get all position and setpoint tags for the tracker rows
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
-        device_ids=[d.device_id for d in devices],
+        device_ids=devices_df["device_id"].astype(int).tolist(),
         sensor_type_ids=[
             SensorType.TRACKER_POSITION,
             SensorType.TRACKER_SETPOINT,
@@ -177,7 +185,12 @@ def get_tracker_by_pv_block_id_data(
 
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
 
-    device_id_to_name_short = {d.device_id: d.name_short for d in devices}
+    device_id_to_name_short = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["name_short"].fillna(""),
+        )
+    )
     tag_id_to_device_name_short = {
         t.tag_id: device_id_to_name_short[t.device_id] for t in tags
     }

@@ -2,6 +2,7 @@ import datetime
 from typing import Any
 
 import pandas as pd
+from core.db_query import OutputType
 from core.dependencies import get_db_session_async
 from core.enumerations import DeviceType, SensorType, TimeInterval, TimeOffset
 from fastapi import HTTPException
@@ -200,13 +201,16 @@ async def get_equipment_analysis_pcs_data(
 
     # BLOCKs
     # Get block devices
-    devices_block = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_block = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.BLOCK],
-    ).models()
-    devices_block_device_id_to_name_long = {
-        device.device_id: device.name_long for device in devices_block
-    }
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_block_device_id_to_name_long = dict(
+        zip(
+            devices_block["device_id"].astype(int),
+            devices_block["name_long"].fillna(""),
+        )
+    )
     sorted_block_device_ids_by_name_long = natsorted(
         devices_block_device_id_to_name_long.keys(),
         key=lambda x: devices_block_device_id_to_name_long[x],
@@ -224,13 +228,15 @@ async def get_equipment_analysis_pcs_data(
 
     # PCSs
     # Get PCS devices
-    devices_pcs = core.crud.project.devices.get_project_devices(
-        project_db,
+    devices_pcs = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_PCS],
-    ).models()
-    devices_pcs_device_id_to_name_long = {
-        device.device_id: device.name_long for device in devices_pcs
-    }
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_pcs_device_id_to_name_long = dict(
+        zip(
+            devices_pcs["device_id"].astype(int),
+            devices_pcs["name_long"].fillna(""),
+        )
+    )
     sorted_pcs_device_ids_by_name_long = natsorted(
         devices_pcs_device_id_to_name_long.keys(),
         key=lambda x: devices_pcs_device_id_to_name_long[x],
@@ -248,13 +254,15 @@ async def get_equipment_analysis_pcs_data(
 
     # PCS MODULEs
     # Get PCS module devices
-    devices_pcs_module = core.crud.project.devices.get_project_devices(
-        project_db,
+    devices_pcs_module = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_PCS_MODULE],
-    ).models()
-    devices_pcs_module_device_id_to_name_long = {
-        device.device_id: device.name_long for device in devices_pcs_module
-    }
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_pcs_module_device_id_to_name_long = dict(
+        zip(
+            devices_pcs_module["device_id"].astype(int),
+            devices_pcs_module["name_long"].fillna(""),
+        )
+    )
 
     # Get PCS module tags
     tags_pcs_module = core.crud.project.tags.get_project_tags(
@@ -367,14 +375,9 @@ async def get_equipment_analysis_pcs_data(
     df_block = df_block.reindex(columns=sorted_block_device_ids_by_name_long)
     generating_power_block = (df_block.T > 0).sum().values.tolist()
     max_capacity_block = (
-        max(
-            [
-                device.capacity_ac
-                for device in devices_block
-                if device.capacity_ac is not None
-            ]
-        )
-        / 1_000
+        devices_block["capacity_ac"].max() / 1_000
+        if not devices_block.empty and "capacity_ac" in devices_block.columns
+        else 0
     )
     return_data["generating_power_block"] = {
         "value": generating_power_block,
@@ -390,20 +393,19 @@ async def get_equipment_analysis_pcs_data(
         "yaxis_range_max": max_capacity_block,
     }
 
-    norm_factor = {
-        x: y
-        for x, y in zip(
-            [device.device_id for device in devices_block],
-            [
-                device.capacity_dc / 1000
-                for device in devices_block
-                if device.capacity_dc is not None
-            ],
+    norm_factor = (
+        dict(
+            zip(
+                devices_block["device_id"].astype(int),
+                devices_block["capacity_dc"].fillna(0) / 1000,
+            )
         )
-    }
+        if "capacity_dc" in devices_block.columns
+        else {}
+    )
     df_block_norm = df_block.copy()
     for col_name in df_block_norm.columns:
-        if int(col_name) in norm_factor:
+        if int(col_name) in norm_factor and norm_factor[int(col_name)] != 0:
             df_block_norm[col_name] = (
                 df_block_norm[col_name] / norm_factor[int(col_name)]
             )
@@ -422,14 +424,9 @@ async def get_equipment_analysis_pcs_data(
     df_pcs = df_pcs[sorted_pcs_device_ids_by_name_long]
     generating_power_pcs = (df_pcs.T > 0).sum().values.tolist()
     max_capacity_pcs = (
-        max(
-            [
-                device.capacity_ac
-                for device in devices_pcs
-                if device.capacity_ac is not None
-            ]
-        )
-        / 1_000
+        devices_pcs["capacity_ac"].max() / 1_000
+        if not devices_pcs.empty and "capacity_ac" in devices_pcs.columns
+        else 0
     )
     return_data["generating_power_pcs"] = {
         "value": generating_power_pcs,
@@ -445,20 +442,19 @@ async def get_equipment_analysis_pcs_data(
         "yaxis_range_max": max_capacity_pcs,
     }
 
-    norm_factor = {
-        x: y
-        for x, y in zip(
-            [device.device_id for device in devices_pcs],
-            [
-                device.capacity_dc / 1000
-                for device in devices_pcs
-                if device.capacity_dc is not None
-            ],
+    norm_factor = (
+        dict(
+            zip(
+                devices_pcs["device_id"].astype(int),
+                devices_pcs["capacity_dc"].fillna(0) / 1000,
+            )
         )
-    }
+        if "capacity_dc" in devices_pcs.columns
+        else {}
+    )
     df_pcs_norm = df_pcs.copy()
     for col_name in df_pcs_norm.columns:
-        if int(col_name) in norm_factor:
+        if int(col_name) in norm_factor and norm_factor[int(col_name)] != 0:
             df_pcs_norm[col_name] = df_pcs_norm[col_name] / norm_factor[int(col_name)]
 
     return_data["pcs_power_distribution_norm"] = {
@@ -475,14 +471,10 @@ async def get_equipment_analysis_pcs_data(
     if has_pcs_module_tags:
         generating_power_pcs_module = (df_pcs_module.T > 0).sum().values.tolist()
         max_capacity_pcs_module = (
-            max(
-                [
-                    device.capacity_ac
-                    for device in devices_pcs_module
-                    if device.capacity_ac is not None
-                ]
-            )
-            / 1_000
+            devices_pcs_module["capacity_ac"].max() / 1_000
+            if not devices_pcs_module.empty
+            and "capacity_ac" in devices_pcs_module.columns
+            else 0
         )
         return_data["generating_power_pcs_module"] = {
             "value": generating_power_pcs_module,
@@ -498,20 +490,19 @@ async def get_equipment_analysis_pcs_data(
             "yaxis_range_max": max_capacity_pcs_module,
         }
 
-        norm_factor = {
-            x: y
-            for x, y in zip(
-                [device.device_id for device in devices_pcs_module],
-                [
-                    device.capacity_ac / 1000
-                    for device in devices_pcs_module
-                    if device.capacity_ac is not None
-                ],
+        norm_factor = (
+            dict(
+                zip(
+                    devices_pcs_module["device_id"].astype(int),
+                    devices_pcs_module["capacity_ac"].fillna(0) / 1000,
+                )
             )
-        }
+            if "capacity_ac" in devices_pcs_module.columns
+            else {}
+        )
         df_pcs_module_norm = df_pcs_module.copy()
         for col_name in df_pcs_module_norm.columns:
-            if int(col_name) in norm_factor:
+            if int(col_name) in norm_factor and norm_factor[int(col_name)] != 0:
                 df_pcs_module_norm[col_name] = (
                     df_pcs_module_norm[col_name] / norm_factor[int(col_name)]
                 )
@@ -528,14 +519,11 @@ async def get_equipment_analysis_pcs_data(
 
     total_power = df_block.sum(axis=1).round(0).values.tolist()
     total_nameplate = round(
-        sum(
-            [
-                device.capacity_ac
-                for device in devices_block
-                if device.capacity_ac is not None
-            ]
-        )
-        / 1_000,
+        (
+            devices_block["capacity_ac"].sum() / 1000
+            if not devices_block.empty and "capacity_ac" in devices_block.columns
+            else 0
+        ),
         0,
     )
 

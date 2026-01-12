@@ -3,7 +3,7 @@ from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session, noload, selectinload
+from sqlalchemy.orm import Session, joinedload, noload
 
 from core import models
 from core.enumerations import SensorType
@@ -18,9 +18,9 @@ def _get_project_tag_options(*, deep: bool) -> Any:
     """
     if deep:
         options = (
-            selectinload(models.Tag.device),
-            selectinload(models.Tag.sensor_type),
-            selectinload(models.Tag.data_type),
+            joinedload(models.Tag.device),
+            joinedload(models.Tag.sensor_type),
+            joinedload(models.Tag.data_type),
         )
     else:
         options = (

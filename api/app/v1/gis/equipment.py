@@ -1,9 +1,11 @@
 import datetime
+import typing
 from typing import Annotated
 from uuid import UUID
 
 import numpy as np
 import pandas as pd
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -44,19 +46,19 @@ async def get_pcs(
         project_db: TODO: describe.
         project: TODO: describe.
     """
-    devices_block = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_block = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.BLOCK],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    devices_pcs = core.crud.project.devices.get_project_devices(
-        project_db,
+    devices_pcs = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_PCS],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    device_ids = [device.device_id for device in devices_pcs] + [
-        device.device_id for device in devices_block
-    ]
+    device_ids = (
+        devices_pcs["device_id"].astype(int).tolist()
+        + devices_block["device_id"].astype(int).tolist()
+    )
 
     block_device_id_to_pcs_device_ids = utils.map_ancestors_to_descendents(
         ancestors=devices_block,
@@ -244,7 +246,7 @@ async def get_pcs(
 
 
 @router.get("/tracker-by-block/{block_id}", response_model=interfaces.GeoJSON)
-def get_tracker_by_block(
+async def get_tracker_by_block(
     *,
     block_id: int,
     start: datetime.date,
@@ -262,11 +264,11 @@ def get_tracker_by_block(
         project_db: TODO: describe.
         project: TODO: describe.
     """
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.TRACKER_ROW],
         device_id_descendent_of=block_id,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get KPI data
     kpi_data_dict = utils.kpi_data_list_to_dict(
@@ -316,13 +318,13 @@ def get_tracker_by_block(
             {
                 "type": "Feature",
                 "properties": {
-                    "name": device.name_long,
-                    "position_deviation": s_pos_row.get(device.device_id),
-                    "setpoint_deviation": s_sp_row.get(device.device_id),
+                    "name": device.get("name_long"),
+                    "position_deviation": s_pos_row.get(int(device["device_id"])),
+                    "setpoint_deviation": s_sp_row.get(int(device["device_id"])),
                 },
-                "geometry": device.polygon,
+                "geometry": device.get("polygon"),
             }
-            for device in devices
+            for device in devices_df.to_dict("records")
         ],
     }
 
@@ -330,7 +332,7 @@ def get_tracker_by_block(
 
 
 @router.get("/bess-enclosure", response_model=interfaces.GeoJSON)
-def get_bess_enclosure(
+async def get_bess_enclosure(
     *,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
@@ -340,19 +342,20 @@ def get_bess_enclosure(
     Args:
         project_db: TODO: describe.
     """
-    devices = core.crud.project.devices.get_project_devices(
-        project_db, device_type_ids=[DeviceType.BESS_ENCLOSURE]
-    ).models()
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
+        device_type_ids=[DeviceType.BESS_ENCLOSURE]
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     features = [
         {
             "type": "Feature",
             "properties": {
-                "name_long": device.name_long,
+                "name_long": device.get("name_long"),
             },
-            "geometry": device.polygon,
+            "geometry": device.get("polygon"),
         }
-        for device in devices
+        for device in devices_df.to_dict("records")
     ]
 
     return_data = {
@@ -364,7 +367,7 @@ def get_bess_enclosure(
 
 
 @router.get("/devices-in-viewport", response_class=ORJSONResponse)
-def get_devices_in_viewport(
+async def get_devices_in_viewport(
     *,
     north: float,
     east: float,
@@ -456,7 +459,7 @@ def get_devices_in_viewport(
         ]
         if primary_data_device_ids:
             try:
-                primary_extra_data = utility_expected(
+                primary_extra_data = await utility_expected(
                     device_ids=primary_data_device_ids,
                     project_db=project_db,
                     project=project,
@@ -485,7 +488,7 @@ def get_devices_in_viewport(
                 f"Fetching supplementary power data for PCS devices: {pcs_to_fetch_ids}"
             )
             try:
-                pcs_extra_data = utility_expected(
+                pcs_extra_data = await utility_expected(
                     device_ids=list(set(pcs_to_fetch_ids)),  # Ensure unique IDs
                     project_db=project_db,
                     project=project,
@@ -591,7 +594,7 @@ def get_devices_in_viewport(
 
 
 # Removed @router.post decorator - this is now an internal helper function
-def utility_expected(
+async def utility_expected(
     *,
     device_ids: list[int],
     start: datetime.datetime | None = None,
@@ -622,11 +625,19 @@ def utility_expected(
 
     # --- Device Type Validation ---
     # Fetch devices once for validation and later use
-    devices = core.crud.project.devices.get_project_devices(
-        project_db, device_ids=device_ids
-    ).models()
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
+        device_ids=device_ids
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["device_id"] = devices_df["device_id"].astype(int)
+    devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
+    devices_df["parent_device_id"] = devices_df["parent_device_id"].where(
+        pd.notna(devices_df["parent_device_id"]), None
+    )
+    devices = list(devices_df.itertuples(index=False))
     if len(devices) != len(device_ids):
-        missing_ids = set(device_ids) - set(d.device_id for d in devices)
+        missing_ids = set(device_ids) - set(devices_df["device_id"])
         raise HTTPException(
             status_code=404,
             detail=f"Device IDs not found: {missing_ids}",
@@ -742,11 +753,21 @@ def utility_expected(
 
         # Fetch parent devices to check their types
         parent_device_ids = [pid for pid in parent_ids_with_none if pid is not None]
-        parent_devices = core.crud.project.devices.get_project_devices(
-            project_db,
-            device_ids=parent_device_ids,
-        ).models()
-        parent_device_dict = {dev.device_id: dev for dev in parent_devices}
+        parent_devices_df = await core.crud.project.devices.get_project_devices(
+            device_ids=[typing.cast(int, pid) for pid in parent_device_ids],
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        parent_devices_df = parent_devices_df.copy()
+        parent_devices_df["device_id"] = parent_devices_df["device_id"].astype(int)
+        parent_devices_df["device_type_id"] = parent_devices_df[
+            "device_type_id"
+        ].astype(int)
+        parent_devices_df["parent_device_id"] = parent_devices_df[
+            "parent_device_id"
+        ].where(pd.notna(parent_devices_df["parent_device_id"]), None)
+        parent_devices = list(parent_devices_df.itertuples(index=False))
+        parent_device_dict = {
+            typing.cast(int, dev.device_id): dev for dev in parent_devices
+        }
 
         # Determine PCS IDs: if parent is a module (type 3), get its parent; if
         # it's a PCS (type 2), use it directly
@@ -757,7 +778,7 @@ def utility_expected(
             if parent_id is None:
                 continue
 
-            parent_device = parent_device_dict.get(parent_id)
+            parent_device = parent_device_dict.get(typing.cast(int, parent_id))
             if parent_device is None:
                 continue
 
@@ -765,12 +786,12 @@ def utility_expected(
             if parent_device.device_type_id == DeviceType.PV_PCS_MODULE:
                 pcs_id = parent_device.parent_device_id
                 if pcs_id is not None:
-                    parent_pcs_ids.append(pcs_id)
-                    combiner_to_parent_pcs_id[dev_id] = pcs_id
+                    parent_pcs_ids.append(typing.cast(int, pcs_id))
+                    combiner_to_parent_pcs_id[dev_id] = typing.cast(int, pcs_id)
             # If parent is already a PCS (type 2), use it directly
             elif parent_device.device_type_id == DeviceType.PV_PCS:
-                parent_pcs_ids.append(parent_id)
-                combiner_to_parent_pcs_id[dev_id] = parent_id
+                parent_pcs_ids.append(typing.cast(int, parent_id))
+                combiner_to_parent_pcs_id[dev_id] = typing.cast(int, parent_id)
             else:
                 # Unexpected parent type
                 raise HTTPException(
@@ -791,21 +812,29 @@ def utility_expected(
             )
 
         # DB Call 1: Fetch all relevant PV PCS Modules using parent IDs
-        all_pcs_modules = core.crud.project.devices.get_project_devices(
-            project_db,
+        all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
             device_type_ids=[DeviceType.PV_PCS_MODULE],
-            parent_device_ids=parent_pcs_ids,  # type: ignore # Use direct parent IDs
-        ).models()
-        module_ids = [mod.device_id for mod in all_pcs_modules]
+            parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        all_pcs_modules_df = all_pcs_modules_df.copy()
+        all_pcs_modules_df["device_id"] = all_pcs_modules_df["device_id"].astype(int)
+        all_pcs_modules_df["parent_device_id"] = all_pcs_modules_df[
+            "parent_device_id"
+        ].where(pd.notna(all_pcs_modules_df["parent_device_id"]), None)
+        all_pcs_modules = list(all_pcs_modules_df.itertuples(index=False))
+        module_ids = [typing.cast(int, mod.device_id) for mod in all_pcs_modules]
 
         # Build mapping from parent PCS ID to its module IDs
         parent_pcs_id_to_module_ids: dict[int, list[int]] = {}
         for mod in all_pcs_modules:
             pcs_id = mod.parent_device_id
             if pcs_id is not None:  # Ensure parent_device_id is not None
-                if pcs_id not in parent_pcs_id_to_module_ids:
-                    parent_pcs_id_to_module_ids[pcs_id] = []
-                parent_pcs_id_to_module_ids[pcs_id].append(mod.device_id)
+                pcs_id_int = typing.cast(int, pcs_id)
+                if pcs_id_int not in parent_pcs_id_to_module_ids:
+                    parent_pcs_id_to_module_ids[pcs_id_int] = []
+                parent_pcs_id_to_module_ids[pcs_id_int].append(
+                    typing.cast(int, mod.device_id)
+                )
 
         if not module_ids:
             # Consider if this check is still needed if parent_pcs_id_to_module_ids

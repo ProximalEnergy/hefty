@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
+from app import utils
 from app._crud.operational.cec_pv_inverters import get_cec_pv_inverters
 from app._crud.operational.cec_pv_modules import get_cec_pv_modules
 from app._crud.operational.pv_modules import get_pv_modules
@@ -89,20 +90,18 @@ async def get_pcs_apparent_vs_voltage(
     for device_id, tag_ids in voltage_items.items():
         df_voltage.loc[:, device_id] = df.loc[:, tag_ids].mean(axis=1)
 
-    devices = core.crud.project.devices.get_project_devices(
-        project_db, device_ids=df_voltage.columns.astype(int).tolist()
-    ).models()
-    device_id_to_name = {device.device_id: device.name_long for device in devices}
-    mask = (df_voltage > 10) & (df_apparent > 0.01)
-    cec_pv_inverter_ids = list(
-        set(
-            [
-                device.cec_pv_inverter_id
-                for device in devices
-                if device.cec_pv_inverter_id is not None
-            ]
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
+        device_ids=df_voltage.columns.astype(int).tolist()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    device_id_to_name = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["name_long"].fillna(""),
         )
     )
+    mask = (df_voltage > 10) & (df_apparent > 0.01)
+    cec_pv_inverter_ids = list(set(devices_df["cec_pv_inverter_id"].dropna().tolist()))
     await get_cec_pv_inverters(db, cec_pv_inverter_ids=cec_pv_inverter_ids)
 
     out = []
@@ -218,29 +217,31 @@ async def dc_amperage_report_v2(
     )
 
     logger.info("CB data processing")
-    devices = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[
             DeviceType.PV_PCS,
             DeviceType.MET_STATION,
             DeviceType.PV_DC_COMBINER,
         ],
         deep=False,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["name_long"] = devices_df["name_long"].fillna("")
+    devices_df["name_short"] = devices_df["name_short"].fillna("")
 
-    inv_devices = [d for d in devices if d.device_type_id == DeviceType.PV_PCS]
-    inv_devices_df = pd.DataFrame([x.__dict__ for x in inv_devices]).set_index(
-        "device_id",
-        drop=True,
-    )
+    inv_devices_df = devices_df[
+        devices_df["device_type_id"] == DeviceType.PV_PCS
+    ].set_index("device_id", drop=True)
 
-    cb_devices = [d for d in devices if d.device_type_id == DeviceType.PV_DC_COMBINER]
-    df_cb_report = pd.DataFrame([x.__dict__ for x in cb_devices]).set_index(
-        "device_id",
-        drop=True,
-    )
+    df_cb_report = devices_df[
+        devices_df["device_type_id"] == DeviceType.PV_DC_COMBINER
+    ].set_index("device_id", drop=True)
 
-    met_devices = [d for d in devices if d.device_type_id == DeviceType.MET_STATION]
+    met_devices = devices_df[
+        devices_df["device_type_id"] == DeviceType.MET_STATION
+    ].to_dict("records")
+    cb_devices = df_cb_report.reset_index().to_dict("records")
 
     pv_dc_combiners_query = core.crud.project.pv_dc_combiners.get_pv_dc_combiners()
     pv_dc_combiners = await pv_dc_combiners_query.get_async(
@@ -674,7 +675,7 @@ async def dc_amperage_report_v2(
         """
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in poa_tags}
         device_id_to_name_short = {
-            device.device_id: device.name_short for device in met_devices
+            int(device["device_id"]): device.get("name_short") for device in met_devices
         }
 
         new_columns = [
@@ -700,7 +701,7 @@ async def dc_amperage_report_v2(
         """
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in tags_cb}
         device_id_to_name_long = {
-            device.device_id: device.name_long for device in cb_devices
+            int(device["device_id"]): device.get("name_long") for device in cb_devices
         }
 
         new_columns = [

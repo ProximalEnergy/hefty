@@ -4,13 +4,13 @@ from collections.abc import Sequence
 
 from core.models import DroneAnomaly
 from sqlalchemy import case, func, select, update
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.interfaces import DroneAnomalyCreate
 
 
-def get_anomalies_by_inspection_uuid(
-    *, db: Session, inspection_uuid: uuid.UUID
+async def get_anomalies_by_inspection_uuid(
+    *, db: AsyncSession, inspection_uuid: uuid.UUID
 ) -> Sequence[DroneAnomaly]:
     """Get all anomalies for a given inspection from the project-specific
     schema.
@@ -20,12 +20,12 @@ def get_anomalies_by_inspection_uuid(
         inspection_uuid: TODO: describe.
     """
     stmt = select(DroneAnomaly).where(DroneAnomaly.inspection_uuid == inspection_uuid)
-    result = db.execute(stmt)
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
-def get_anomaly_count_by_inspection_uuid(
-    *, db: Session, inspection_uuid: uuid.UUID
+async def get_anomaly_count_by_inspection_uuid(
+    *, db: AsyncSession, inspection_uuid: uuid.UUID
 ) -> int:
     """Get the count of anomalies for a given inspection from the
     project-specific schema.
@@ -39,13 +39,13 @@ def get_anomaly_count_by_inspection_uuid(
         .select_from(DroneAnomaly)
         .where(DroneAnomaly.inspection_uuid == inspection_uuid)
     )
-    result = db.execute(stmt)
+    result = await db.execute(stmt)
     return result.scalar_one()
 
 
-def bulk_create_drone_anomalies_incremental(
+async def bulk_create_drone_anomalies_incremental(
     *,
-    db: Session,
+    db: AsyncSession,
     anomalies_data: list[DroneAnomalyCreate],
     inspection_uuid: uuid.UUID,
 ):
@@ -58,12 +58,12 @@ def bulk_create_drone_anomalies_incremental(
     """
     db_anomalies = [DroneAnomaly(**data.model_dump()) for data in anomalies_data]
     db.add_all(db_anomalies)
-    db.commit()
+    await db.commit()
 
 
-def update_anomalies_with_event_id(
+async def update_anomalies_with_event_id(
     *,
-    db: Session,
+    db: AsyncSession,
     anomaly_uuids: list[uuid.UUID],
     event_id: int,
 ):
@@ -87,7 +87,7 @@ def update_anomalies_with_event_id(
         .select_from(DroneAnomaly)
         .where(DroneAnomaly.anomaly_uuid.in_(anomaly_uuids))
     )
-    result = db.execute(stmt)
+    result = await db.execute(stmt)
     existing_count = result.scalar_one()
 
     logging.info(
@@ -103,16 +103,16 @@ def update_anomalies_with_event_id(
         .values(event_id=event_id)
     )
 
-    result = db.execute(update_stmt)
+    result = await db.execute(update_stmt)
 
     logging.info(f"🔄 Updated {result.rowcount} anomalies with event_id {event_id}")  # type: ignore[attr-defined]
 
     # Note: No commit here - let the calling function handle the transaction
 
 
-def bulk_update_anomalies_with_event_ids(
+async def bulk_update_anomalies_with_event_ids(
     *,
-    db: Session,
+    db: AsyncSession,
     event_mapping: dict[int, list[uuid.UUID]],
 ):
     """
@@ -146,12 +146,14 @@ def bulk_update_anomalies_with_event_ids(
         .values(event_id=case_stmt)
     )
 
-    db.execute(stmt)
+    await db.execute(stmt)
 
     # Note: No commit here - let the calling function handle the transaction
 
 
-def get_anomalies_by_event_id(*, db: Session, event_id: int) -> Sequence[DroneAnomaly]:
+async def get_anomalies_by_event_id(
+    *, db: AsyncSession, event_id: int
+) -> Sequence[DroneAnomaly]:
     """Get all anomalies for a given event from the project-specific schema.
 
     Args:
@@ -159,5 +161,5 @@ def get_anomalies_by_event_id(*, db: Session, event_id: int) -> Sequence[DroneAn
         event_id: TODO: describe.
     """
     stmt = select(DroneAnomaly).where(DroneAnomaly.event_id == event_id)
-    result = db.execute(stmt)
+    result = await db.execute(stmt)
     return result.scalars().all()

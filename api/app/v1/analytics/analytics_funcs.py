@@ -4,8 +4,10 @@ from uuid import UUID
 import numpy as np
 import pandas as pd
 import pvlib
+from app import utils
 from app.v1.analytics import analytics_vars as vars
 from app.v1.operational.project.project_data import get_project_dataframe
+from core.db_query import OutputType
 from core.enumerations import SensorType
 from sqlalchemy.orm import Session
 
@@ -118,14 +120,17 @@ async def get_expected_power(
     )
     s_cell_temp.name = "t_cell"
 
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[params["device_type_id"]],  # type: ignore
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    device_id_to_capacity_dc = {
-        device.device_id: device.capacity_dc for device in devices
-    }
+    device_id_to_capacity_dc = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["capacity_dc"],
+        )
+    )
 
     df_solpos = pvlib.solarposition.get_solarposition(
         time=s_poa.index,

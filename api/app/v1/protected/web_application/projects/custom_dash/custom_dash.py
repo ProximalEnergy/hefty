@@ -179,14 +179,16 @@ async def get_bar(
         case "std":
             out = df.std(axis=0)
             name = sensor_type.name_long + " Standard Deviation"
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=list(set([t.device_id for t in tags])),
-    )
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["name_long"] = devices_df["name_long"].fillna("")
     tag_to_name = (
         tags.pandas_dataframe(index="tag_id")
         .loc[out.index, "device_id"]
-        .map(devices.pandas_dataframe(index="device_id")["name_long"])
+        .map(devices_df.set_index("device_id")["name_long"])
     )
     out = out.rename(index=tag_to_name.to_dict())
     # Sort by device name using natural sort for consistent ordering
@@ -257,13 +259,13 @@ async def get_gauge(
     match maximum_value:
         case "expected_energy":
             metrics_priority_order = [12, 11, 6, 5]
-            device = core.crud.project.devices.get_project_devices(
-                db=project_db,
+            project_schema = utils.get_project_schema(project_db=project_db)
+            device_df = await core.crud.project.devices.get_project_devices(
                 device_type_ids=[DeviceType.PROJECT],
-            )
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
             data_expected = core.crud.project.data_expected.get_project_data_expected(
                 project_db=project_db,
-                device_ids=[device[0].device_id],
+                device_ids=[int(device_df["device_id"].iloc[0])],
                 start=start,
                 end=end,
             )
@@ -327,6 +329,7 @@ async def get_line(
         maximum: TODO: describe.
         minimum: TODO: describe.
     """
+    project_schema = utils.get_project_schema(project_db=project_db)
     # --- Time handling (unchanged) ---
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
@@ -578,10 +581,12 @@ async def get_line(
         match aggregation_type:
             case "none":
                 # For "none", we keep one column per tag; need device names
-                devices = core.crud.project.devices.get_project_devices(
-                    db=project_db,
+                devices_df = await core.crud.project.devices.get_project_devices(
                     device_ids=list({int(t.device_id) for t in related_tags}),
-                ).pandas_dataframe(index="device_id")
+                ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+                devices_df = devices_df.copy()
+                devices_df["name_long"] = devices_df["name_long"].fillna("")
+                devices_df = devices_df.set_index("device_id")
             case "avg":
                 temp_df = pd.DataFrame(temp_df.mean(axis=1))
                 name = sensor_name + " Mean"
@@ -629,7 +634,7 @@ async def get_line(
                 tag = tag_by_id(tag_id=int(col))
                 if not tag:
                     continue
-                device_name = str(devices.loc[int(tag.device_id), "name_long"])
+                device_name = str(devices_df.loc[int(tag.device_id), "name_long"])
                 if device_name != "None":
                     trace_name = f"{sensor_name} {device_name}"
                 else:

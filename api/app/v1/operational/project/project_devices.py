@@ -11,11 +11,12 @@ from natsort import natsorted
 from pydantic import BaseModel
 from shapely.geometry import mapping
 from shapely.wkb import loads as wkb_loads
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
 from app import custom_types, interfaces, utils
-from app.dependencies import get_project_db
+from app.dependencies import get_project_db, get_project_db_async
 from app.logger import logger
 
 DESCRIPTION_404 = "Device not found"
@@ -49,7 +50,7 @@ class DevicesFilterRequest(BaseModel):
 async def get_project_device(
     device_id: int,
     deep: custom_types.AnnotatedDeep = False,
-    project_db: Session = Depends(get_project_db),
+    project_db: AsyncSession = Depends(get_project_db_async),
 ):
     """Return a single project device with optional relationship data.
 
@@ -58,14 +59,11 @@ async def get_project_device(
         deep: Whether to include related entities such as children and tags.
         project_db: Database session for the current project.
     """
-    schema_translate_map = (
-        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
-    )
-    project_schema = schema_translate_map.get("project")
-    device = await core.crud.project.devices.get_project_device(
+    device = await core.crud.project.devices.get_project_device_async(
+        db=project_db,
         device_id=device_id,
         deep=deep,
-    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
+    )
     utils.check_404(value=device, detail=DESCRIPTION_404)
     return device
 
@@ -110,9 +108,8 @@ async def get_project_devices_v2(
     # Handle large device_type_ids lists by chunking if necessary
     # SQLAlchemy typically has a limit around 32K-65K parameters
 
-    # Get the query object and use polars_dataframe for v2
+    project_schema = utils.get_project_schema(project_db=project_db)
     query_obj = core.crud.project.devices.get_project_devices(
-        project_db,
         device_ids=filters.device_ids,
         device_type_ids=filters.device_type_ids,
         parent_device_ids=filters.parent_device_ids,
@@ -122,11 +119,13 @@ async def get_project_devices_v2(
         device_id_descendent_of=filters.device_id_descendent_of,
         with_tags=filters.with_tags,
         include_name_long=True,
-        return_query=True,
     )
 
-    # Use polars_dataframe method for efficient data processing
-    devices_df = await query_obj.polars_dataframe_async()
+    devices_pd = await query_obj.get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    devices_df = pl.from_pandas(devices_pd)
 
     # Define a helper function to safely convert WKB bytes to GeoJSON
     def wkb_to_geojson(wkb_bytes):  # nosemgrep: python-enforce-keyword-only-args

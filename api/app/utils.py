@@ -10,6 +10,7 @@ from core.crud.operational.sensor_types import get_sensor_types
 from core.db_query import OutputType
 from fastapi import HTTPException
 from pvlib import irradiance, location, tracking
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -63,6 +64,22 @@ def get_include_in_schema() -> bool:
         return True
     else:
         return False
+
+
+def get_project_schema(*, project_db: Session) -> str | None:
+    """Return the project schema name from a project-scoped session."""
+    schema_translate_map = (
+        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
+    )
+    return schema_translate_map.get("project")  # type: ignore
+
+
+async def get_project_schema_async(*, project_db: AsyncSession) -> str | None:
+    """Return the project schema name from a project-scoped session (async)."""
+    schema_translate_map = (
+        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
+    )
+    return schema_translate_map.get("project")  # type: ignore
 
 
 def check_404(*, value: Any, detail: Any = None):
@@ -676,7 +693,7 @@ async def get_tag_id_to_sensor_type_name(
     return tag_id_to_name_short
 
 
-def get_tag_id_to_device_name_long(
+async def get_tag_id_to_device_name_long(
     db: Session,
     *,
     tags: list[models.Tag],
@@ -691,16 +708,16 @@ def get_tag_id_to_device_name_long(
     device_ids = list(set([tag.device_id for tag in tags]))
 
     # Get list of devices
-    devices = core.crud.project.devices.get_project_devices(
-        db,
+    project_schema = get_project_schema(project_db=db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Create mapping from device id to device name long
-    device_id_to_name_long = {
-        device.device_id: device.name_long if device.name_long else ""
-        for device in devices
-    }
+    name_long_series = devices_df["name_long"].fillna("")
+    device_id_to_name_long = dict(
+        zip(devices_df["device_id"].astype(int), name_long_series)
+    )
 
     # Create mapping from tag id to device name long
     tag_id_to_name_long = {
@@ -818,8 +835,8 @@ def get_truetracking_irradiance(
 
 def map_ancestors_to_descendents(
     *,
-    ancestors: list[models.Device],
-    descendents: list[models.Device],
+    ancestors: list[models.Device] | pd.DataFrame,
+    descendents: list[models.Device] | pd.DataFrame,
 ) -> dict[int, list[int]]:
     """Map ancestor device ids to a list of descendent device ids.
 
@@ -827,29 +844,44 @@ def map_ancestors_to_descendents(
         ancestors: TODO: describe.
         descendents: TODO: describe.
     """
-    # Get all ancestor device_ids
-    ids_ancestors = {a.device_id for a in ancestors}
+    if isinstance(ancestors, pd.DataFrame):
+        ids_ancestors = set(ancestors["device_id"].dropna().astype(int).tolist())
+    else:
+        ids_ancestors = {a.device_id for a in ancestors}
 
     mapping = defaultdict(list)
 
-    # For each descendent device...
-    for d in descendents:
-        # Ensure the descendent device has a device_id_path
-        if d.device_id_path is None:
-            raise ValueError(f"Device {d.device_id} has no device_id_path")
+    if isinstance(descendents, pd.DataFrame):
+        for _, row in descendents.iterrows():
+            device_id_path = row.get("device_id_path")
+            if device_id_path is None:
+                raise ValueError(f"Device {row.get('device_id')} has no device_id_path")
 
-        # Get the device_id_path as a list of strings
-        device_id_path = d.device_id_path.split(".")
+            device_id = int(row["device_id"])
+            path_parts = str(device_id_path).split(".")
+            for ancestor_id in ids_ancestors:
+                if str(ancestor_id) in path_parts:
+                    mapping[ancestor_id].append(device_id)
+                    break
+    else:
+        # For each descendent device...
+        for d in descendents:
+            # Ensure the descendent device has a device_id_path
+            if d.device_id_path is None:
+                raise ValueError(f"Device {d.device_id} has no device_id_path")
 
-        # For each ancestor device_id...
-        for id in ids_ancestors:
-            # If the ancestor device_id is in the descendent device_id_path,
-            # add the descendent device_id to the mapping
-            if str(id) in device_id_path:
-                mapping[id].append(d.device_id)
+            # Get the device_id_path as a list of strings
+            device_id_path = d.device_id_path.split(".")
 
-                # Break out of the loop because we have found the mapping
-                break
+            # For each ancestor device_id...
+            for ancestor_id in ids_ancestors:
+                # If the ancestor device_id is in the descendent device_id_path,
+                # add the descendent device_id to the mapping
+                if str(ancestor_id) in device_id_path:
+                    mapping[ancestor_id].append(d.device_id)
+
+                    # Break out of the loop because we have found the mapping
+                    break
 
     return mapping
 

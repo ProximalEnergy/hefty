@@ -1,7 +1,7 @@
 from typing import Literal
 
 import sqlalchemy as sa
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload
 
 from core import models
 from core.db_query import DbQuery
@@ -19,7 +19,7 @@ def get_project_cmms_devices(
         device_ids: Optional list of device IDs to narrow the CMMS devices.
     """
     stmt = sa.select(models.CMMSDevice).options(
-        selectinload(models.CMMSDevice.device),
+        joinedload(models.CMMSDevice.device),
     )
 
     if cmms_integration_ids:

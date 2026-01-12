@@ -90,12 +90,12 @@ async def get_projects(
             is_visible=None,
         )
 
-        report_instances = await query.get_async(output_type=OutputType.SQLALCHEMY)
+        report_instances_df = await query.get_async(output_type=OutputType.POLARS)
 
         project_id_to_report_type_ids = defaultdict(list)
-        for report_instance in report_instances:
-            project_id_to_report_type_ids[report_instance.project_id].append(
-                report_instance.report_type_id,
+        for report_instance in report_instances_df.to_dicts():
+            project_id_to_report_type_ids[report_instance["project_id"]].append(
+                report_instance["report_type_id"],
             )
 
         # Identify project_ids that have all requested report_instance_report_type_ids

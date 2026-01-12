@@ -327,10 +327,11 @@ async def get_time_series(
         interval: TODO: describe.
     """
     if parent_device_id:
-        devices = core.crud.project.devices.get_project_devices(
-            project_db, parent_device_ids=[parent_device_id]
-        ).models()
-        device_ids_from_parent = [device.device_id for device in devices]
+        project_schema = utils.get_project_schema(project_db=project_db)
+        devices_df = await core.crud.project.devices.get_project_devices(
+            parent_device_ids=[parent_device_id]
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        device_ids_from_parent = devices_df["device_id"].astype(int).tolist()
 
     else:
         device_ids_from_parent = []
@@ -371,7 +372,7 @@ async def get_time_series(
         db=project_db,
         tags=tags,
     )
-    tag_id_to_device_name_long = utils.get_tag_id_to_device_name_long(
+    tag_id_to_device_name_long = await utils.get_tag_id_to_device_name_long(
         project_db,
         tags=tags,
     )
@@ -534,7 +535,7 @@ async def get_timeseries_v3(
         db=project_db,
         tags=tags,
     )
-    tag_id_to_device_name_long = utils.get_tag_id_to_device_name_long(
+    tag_id_to_device_name_long = await utils.get_tag_id_to_device_name_long(
         project_db,
         tags=tags,
     )

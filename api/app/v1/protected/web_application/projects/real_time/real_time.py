@@ -1,4 +1,5 @@
 import datetime
+import typing
 from typing import Annotated
 
 import pandas as pd
@@ -73,7 +74,7 @@ SENSOR_TYPE_NAME = {
     "/{device_type_id}/expected-power",
     response_class=ORJSONResponse,
 )
-def get_expected_power_by_device_type_id(
+async def get_expected_power_by_device_type_id(
     device_type_id: int,
     project_db: Session = Depends(get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
@@ -89,15 +90,15 @@ def get_expected_power_by_device_type_id(
         project: Project model.
     """
     # Get all devices of this type
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[device_type_id],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    if not devices:
+    if devices_df.empty:
         return {"device_ids": [], "expected_power": {}}
 
-    device_ids = [d.device_id for d in devices]
+    device_ids = devices_df["device_id"].astype(int).tolist()
 
     # Determine expected_metric_ids based on device type (same as utility_expected)
     if device_type_id == DeviceType.PV_PCS:
@@ -220,17 +221,22 @@ async def get_by_device_type_id(
             device_ids.append(did)
 
     # ── device metadata (names) --------------------------------------------------
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
         device_type_ids=[device_type_id],
         deep=False,
-    ).models()
-    devices = [d for d in devices if d.device_type_id != DeviceType.GHOST]
-    device_ids = [d.device_id for d in devices]
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df[devices_df["device_type_id"] != DeviceType.GHOST]
+    device_ids = devices_df["device_id"].astype(int).tolist()
 
     # id ➜ long_name lookup
-    name_by_id = {d.device_id: d.name_long for d in devices}
+    name_by_id = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["name_long"].fillna(""),
+        )
+    )
 
     device_names: list[str | None] = [name_by_id[d] for d in device_ids]
     # device_names = natsorted(device_names)
@@ -299,7 +305,7 @@ class DeviceTypePowerSummary(BaseModel):
     response_model=DeviceTypePowerSummary,
     response_class=ORJSONResponse,
 )
-def get_device_type_power_summary(
+async def get_device_type_power_summary(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
@@ -321,6 +327,7 @@ def get_device_type_power_summary(
         )
 
     device_type_power = {}
+    project_schema = utils.get_project_schema(project_db=project_db)
 
     # --- Optimized path: compute power sums for most device types in one query ---
     # We treat AC-power-like device types (PCS/MVT/Circuit/BESS PCS/MVT/Circuit, etc.)
@@ -373,13 +380,12 @@ def get_device_type_power_summary(
     if 9 in used_device_type_ids:
         try:
             # Fetch combiner devices once
-            combiner_devices = core.crud.project.devices.get_project_devices(
-                project_db,
+            combiner_devices_df = await core.crud.project.devices.get_project_devices(
                 device_type_ids=[DeviceType.PV_DC_COMBINER],
-            ).models()
-            device_ids = [d.device_id for d in combiner_devices]
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+            device_ids = combiner_devices_df["device_id"].astype(int).tolist()
             if device_ids:
-                power_sum = _calculate_dc_combiner_power_sum(
+                power_sum = await _calculate_dc_combiner_power_sum(
                     project_db=project_db, project=project, device_ids=device_ids
                 )
                 if power_sum is not None:
@@ -393,7 +399,7 @@ def get_device_type_power_summary(
     )
 
 
-def _calculate_dc_combiner_power_sum(
+async def _calculate_dc_combiner_power_sum(
     *, project_db: Session, project: models.Project, device_ids: list[int]
 ) -> float | None:
     """Calculate total power for DC combiners using the proven utility_expected logic.
@@ -407,18 +413,22 @@ def _calculate_dc_combiner_power_sum(
         return None
 
     # Get device information
-    device_dict = {
-        device.device_id: device
-        for device in core.crud.project.devices.get_project_devices(
-            project_db, device_ids=device_ids
-        ).models()
-    }
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
+        device_ids=device_ids
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = devices_df.copy()
+    devices_df["device_id"] = devices_df["device_id"].astype(int)
+    devices_df["parent_device_id"] = devices_df["parent_device_id"].where(
+        pd.notna(devices_df["parent_device_id"]), None
+    )
+    device_dict = devices_df.set_index("device_id").to_dict(orient="index")
 
     # Find parent PCS IDs
     parent_pcs_ids = [
-        device_dict[dev_id].parent_device_id
+        device_dict[dev_id]["parent_device_id"]
         for dev_id in device_ids
-        if device_dict[dev_id].parent_device_id is not None
+        if device_dict[dev_id]["parent_device_id"] is not None
     ]
 
     if not parent_pcs_ids:
@@ -426,28 +436,36 @@ def _calculate_dc_combiner_power_sum(
 
     # Map combiners to their parent PCS ID
     combiner_to_parent_pcs_id = {
-        dev_id: device_dict[dev_id].parent_device_id
+        dev_id: device_dict[dev_id]["parent_device_id"]
         for dev_id in device_ids
-        if device_dict[dev_id].parent_device_id is not None
+        if device_dict[dev_id]["parent_device_id"] is not None
     }
 
     # Get PV PCS Modules for voltage data
-    all_pcs_modules = core.crud.project.devices.get_project_devices(
-        project_db,
+    all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_PCS_MODULE],
         parent_device_ids=parent_pcs_ids,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    all_pcs_modules_df = all_pcs_modules_df.copy()
+    all_pcs_modules_df["device_id"] = all_pcs_modules_df["device_id"].astype(int)
+    all_pcs_modules_df["parent_device_id"] = all_pcs_modules_df[
+        "parent_device_id"
+    ].where(pd.notna(all_pcs_modules_df["parent_device_id"]), None)
+    all_pcs_modules = list(all_pcs_modules_df.itertuples(index=False))
 
-    module_ids = [mod.device_id for mod in all_pcs_modules]
+    module_ids = [typing.cast(int, mod.device_id) for mod in all_pcs_modules]
 
     # Build mapping from parent PCS ID to its module IDs
     parent_pcs_id_to_module_ids: dict[int, list[int]] = {}
     for mod in all_pcs_modules:
         pcs_id = mod.parent_device_id
         if pcs_id is not None:
-            if pcs_id not in parent_pcs_id_to_module_ids:
-                parent_pcs_id_to_module_ids[pcs_id] = []
-            parent_pcs_id_to_module_ids[pcs_id].append(mod.device_id)
+            pcs_id_int = typing.cast(int, pcs_id)
+            if pcs_id_int not in parent_pcs_id_to_module_ids:
+                parent_pcs_id_to_module_ids[pcs_id_int] = []
+            parent_pcs_id_to_module_ids[pcs_id_int].append(
+                typing.cast(int, mod.device_id)
+            )
 
     # Fetch latest currents at combiner level from timeseries_last
     rows_current = core.crud.project.data_timeseries_last.get_data_timeseries_last(

@@ -1,10 +1,10 @@
 import datetime
 import json
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from app._crud.operational.drone_integrations import (
     get_drone_integration_by_project_id,
@@ -19,7 +19,7 @@ from app._crud.projects.drone_inspections import (
     get_drone_inspections,
 )
 from app._dependencies.authorization import require_jwt_or_api_superadmin
-from app.dependencies import get_async_db, get_project_db
+from app.dependencies import get_async_db, get_project_db_async
 from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
     DroneAnomaly,
@@ -38,9 +38,9 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[DroneInspection])
-def get_db_inspections(
+async def get_db_inspections(
     project_id: uuid.UUID,
-    db: Session = Depends(get_project_db),
+    db: Annotated[AsyncSession, Depends(get_project_db_async)],
 ):
     """Get a list of historical inspections from the database for a given project.
 
@@ -49,7 +49,7 @@ def get_db_inspections(
         db: TODO: describe.
     """
     try:
-        inspections = get_drone_inspections(db=db)
+        inspections = await get_drone_inspections(db=db)
         return inspections
     except ValueError as e:
         logger.error(f"Error getting inspections from db for project {project_id}: {e}")
@@ -68,8 +68,8 @@ def get_db_inspections(
 )
 async def get_zeitview_inspections(
     project_id: uuid.UUID,
-    db: AsyncSession = Depends(get_async_db),
-    project_db: Session = Depends(get_project_db),
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
 ):
     """Get a list of historical inspections from Zeitview for a given project.
 
@@ -119,7 +119,9 @@ async def get_zeitview_inspections(
                 total_affected_modules=inspection.total_affected_modules,
                 report_summary=inspection.report_summary,
             )
-            create_drone_inspection(db=project_db, inspection_data=inspection_create)
+            await create_drone_inspection(
+                db=project_db, inspection_data=inspection_create
+            )
 
         return parsed_inspections
     except ValueError as e:
@@ -140,9 +142,9 @@ async def get_zeitview_inspections(
     "/{inspection_uuid}/anomalies",
     response_model=list[DroneAnomaly],
 )
-def get_db_anomalies(
+async def get_db_anomalies(
     inspection_uuid: uuid.UUID,
-    db: Session = Depends(get_project_db),
+    db: Annotated[AsyncSession, Depends(get_project_db_async)],
 ):
     """Get a list of anomalies from the database for a given inspection.
 
@@ -151,7 +153,7 @@ def get_db_anomalies(
         db: TODO: describe.
     """
     try:
-        anomalies = get_anomalies_by_inspection_uuid(
+        anomalies = await get_anomalies_by_inspection_uuid(
             db=db, inspection_uuid=inspection_uuid
         )
         return anomalies
@@ -175,8 +177,8 @@ def get_db_anomalies(
 async def sync_zeitview_anomalies(
     project_id: uuid.UUID,
     inspection_uuid: uuid.UUID,
-    db: AsyncSession = Depends(get_async_db),
-    project_db: Session = Depends(get_project_db),
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
 ):
     """Fetch anomalies from Zeitview and store them in the database
     incrementally. Can resume from where it left off if interrupted.
@@ -198,7 +200,7 @@ async def sync_zeitview_anomalies(
 
     try:
         # Check how many anomalies we already have
-        existing_count = get_anomaly_count_by_inspection_uuid(
+        existing_count = await get_anomaly_count_by_inspection_uuid(
             db=project_db, inspection_uuid=inspection_uuid
         )
 
@@ -307,7 +309,7 @@ async def sync_zeitview_anomalies(
                 anomalies_to_create.append(DroneAnomalyCreate(**item))
 
             if anomalies_to_create:
-                bulk_create_drone_anomalies_incremental(
+                await bulk_create_drone_anomalies_incremental(
                     db=project_db,
                     anomalies_data=anomalies_to_create,
                     inspection_uuid=inspection_uuid,

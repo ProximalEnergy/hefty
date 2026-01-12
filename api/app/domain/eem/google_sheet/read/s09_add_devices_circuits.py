@@ -1,11 +1,13 @@
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import DeviceType
 from sqlalchemy.orm import Session
 
 import core
+from app import utils
 
 
-def add_devices_circuits(
+async def add_devices_circuits(
     *,
     project_db: Session,
     system: pd.DataFrame,
@@ -17,11 +19,10 @@ def add_devices_circuits(
         project_db: TODO: describe.
         system: TODO: describe.
     """
-    blocks_list = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    blocks = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.BLOCK],
-    ).models()
-    blocks = pd.DataFrame([x.__dict__ for x in blocks_list])
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     blocks = blocks[["device_id", "parent_device_id"]].rename(
         columns={
             "device_id": "block_device_id",

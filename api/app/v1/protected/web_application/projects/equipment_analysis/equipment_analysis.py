@@ -3,6 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 from core.crud.project.events import get_project_events
+from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
@@ -90,7 +91,7 @@ def get_bess_pcs(
     response_class=ORJSONResponse,
     deprecated=True,
 )
-def get_equipment_analysis_combiner(
+async def get_equipment_analysis_combiner(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
@@ -104,7 +105,7 @@ def get_equipment_analysis_combiner(
         start: TODO: describe.
         end: TODO: describe.
     """
-    return get_equipment_analysis_combiner_data(
+    return await get_equipment_analysis_combiner_data(
         project_db=project_db,
         project=project,
         start=start,
@@ -116,7 +117,7 @@ def get_equipment_analysis_combiner(
     "/tracker",
     response_class=ORJSONResponse,
 )
-def get_tracker(
+async def get_tracker(
     start: datetime.date,
     end: datetime.date,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
@@ -132,7 +133,7 @@ def get_tracker(
         project: TODO: describe.
         project_id: TODO: describe.
     """
-    return get_tracker_data(
+    return await get_tracker_data(
         start=start,
         end=end,
         project_db=project_db,
@@ -144,7 +145,7 @@ def get_tracker(
     "/tracker/{pv_block_id}",
     response_class=ORJSONResponse,
 )
-def get_tracker_by_pv_block_id(
+async def get_tracker_by_pv_block_id(
     pv_block_id: int,
     project_id,
     start: datetime.datetime | None = None,
@@ -162,7 +163,7 @@ def get_tracker_by_pv_block_id(
         project: TODO: describe.
         project_db: TODO: describe.
     """
-    return get_tracker_by_pv_block_id_data(
+    return await get_tracker_by_pv_block_id_data(
         pv_block_id=pv_block_id,
         project=project,
         project_db=project_db,
@@ -195,7 +196,7 @@ async def get_equipment_analysis_pcs(
 
 
 @router.get("/heatmap/{sensor_type_name_short}", response_class=ORJSONResponse)
-def get_heatmap(
+async def get_heatmap(
     *,
     sensor_type_name_short: str,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
@@ -247,12 +248,17 @@ def get_heatmap(
     )
 
     device_ids = [tag.device_id for tag in tags]
-    devices = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    device_id_to_name_long = {device.device_id: device.name_long for device in devices}
+    device_id_to_name_long = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["name_long"].fillna(""),
+        )
+    )
     tag_id_to_device_name_long = {
         tag.tag_id: device_id_to_name_long[tag.device_id] for tag in tags
     }
@@ -290,39 +296,58 @@ async def get_sunburst_data(
         mode: TODO: describe.
         ignored_device_type_ids: TODO: describe.
     """
-    devices = core.crud.project.devices.get_project_devices(project_db).models()
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_query = core.crud.project.devices.get_project_devices()
+    devices_df = await devices_query.get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    devices_df = devices_df.copy()
+    devices_df["device_id"] = devices_df["device_id"].astype(int)
+    devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
+    devices_df["parent_device_id"] = devices_df["parent_device_id"].where(
+        pd.notna(devices_df["parent_device_id"]), None
+    )
+    devices = devices_df.to_dict("records")
 
     if len(devices) == 0:
         raise HTTPException(status_code=404, detail="No devices found")
 
-    device_map = {device.device_id: device for device in devices}
+    device_map = {device["device_id"]: device for device in devices}
 
     # Reassign children of ignored devices
     for device in devices:
-        current_parent_id = device.parent_device_id
+        current_parent_id = device.get("parent_device_id")
         while current_parent_id:
-            parent_device = device_map.get(current_parent_id)
+            parent_device = device_map.get(int(current_parent_id))
             if (
                 not parent_device
-                or parent_device.device_type_id not in ignored_device_type_ids
+                or parent_device["device_type_id"] not in ignored_device_type_ids
             ):
                 break
-            current_parent_id = parent_device.parent_device_id
-        device.parent_device_id = current_parent_id
+            current_parent_id = parent_device.get("parent_device_id")
+        device["parent_device_id"] = current_parent_id
 
     # Filter devices again to remove ignored devices after re-parenting
-    devices = [x for x in devices if x.device_type_id not in ignored_device_type_ids]
-    devices = natsorted(devices, key=lambda x: (x.device_type_id, x.name_long or ""))
+    devices = [
+        device
+        for device in devices
+        if device["device_type_id"] not in ignored_device_type_ids
+    ]
+    devices = natsorted(
+        devices,
+        key=lambda x: (x["device_type_id"], x.get("name_long") or ""),
+    )
 
     # Build hierarchy
     hierarchy: dict[int, list[int]] = {}
     for device in devices:
-        if device.parent_device_id is not None:
-            parent = int(device.parent_device_id)
-            if parent in hierarchy.keys():
-                hierarchy[parent].append(device.device_id)
+        if device.get("parent_device_id") is not None:
+            parent = int(device["parent_device_id"])
+            if parent in hierarchy:
+                hierarchy[parent].append(device["device_id"])
             else:
-                hierarchy[parent] = [device.device_id]
+                hierarchy[parent] = [device["device_id"]]
 
     ## Serrano hotfix
     ## TODO: figure out why the Ghost device is in the hierarchy in the first place
@@ -332,14 +357,15 @@ async def get_sunburst_data(
     device_types = await core.crud.operational.device_types.get_device_types(db=db)
     device_names = {}
     for device in devices:
-        device_id = device.device_id
+        device_id = device["device_id"]
         device_type = [
-            x for x in device_types if x.device_type_id == device.device_type_id
+            x for x in device_types if x.device_type_id == device["device_type_id"]
         ][0]
-        if device.name_long is not None:
-            device_names[device_id] = (
-                str(device_type.name_long) + " " + str(device.name_long)
-            )
+        name_long = device.get("name_long")
+        if pd.isna(name_long):
+            name_long = None
+        if name_long is not None:
+            device_names[device_id] = f"{device_type.name_long} {name_long}"
         else:
             device_names[device_id] = str(device_type.name_long)
 
@@ -347,7 +373,9 @@ async def get_sunburst_data(
     parents = []
     colors = []
     project_device = [
-        x.device_id for x in devices if x.device_type_id == DeviceType.PROJECT
+        device["device_id"]
+        for device in devices
+        if device["device_type_id"] == DeviceType.PROJECT
     ][0]
 
     if mode == "events":
@@ -355,7 +383,7 @@ async def get_sunburst_data(
         if not project_name_short:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        online_status_dict = {x.device_id: 0 for x in devices}
+        online_status_dict = {x["device_id"]: 0 for x in devices}
         events_query = get_project_events(
             open=True,
         )
@@ -383,17 +411,17 @@ async def get_sunburst_data(
                 device: TODO: describe.
                 hierarchy: TODO: describe.
             """
-            if device.parent_device_id:
+            if device["parent_device_id"]:
                 parent_device = [
-                    x for x in devices if x.device_id == device.parent_device_id
+                    x for x in devices if x["device_id"] == device["parent_device_id"]
                 ][0]
-                if online_status_dict[parent_device.device_id] == 0:
-                    online_status_dict[parent_device.device_id] = 1
+                if online_status_dict[parent_device["device_id"]] == 0:
+                    online_status_dict[parent_device["device_id"]] = 1
                     # Recursively update the parent device
                     update_parents(device=parent_device, hierarchy=hierarchy)
 
         for device in devices:
-            if online_status_dict[device.device_id] in [1, 2]:
+            if online_status_dict[device["device_id"]] in [1, 2]:
                 update_parents(device=device, hierarchy=hierarchy)
 
         labels.append(device_names[project_device])

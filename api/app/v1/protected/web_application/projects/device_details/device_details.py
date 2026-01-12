@@ -333,10 +333,7 @@ async def get_vertical_controller(
     }
 
     # Get the device associated with the device_id
-    schema_translate_map = (
-        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
-    )
-    project_schema = schema_translate_map.get("project")
+    project_schema = utils.get_project_schema(project_db=project_db)
     device = await core.crud.project.devices.get_project_device(
         device_id=device_id,
         deep=False,
@@ -368,15 +365,14 @@ async def get_vertical_controller(
         block_device_type_id = DeviceType.BESS_BLOCK
 
     # Get the block associated with the device_id
-    _block: list[models.Device] = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    block_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[block_device_type_id],
         device_id_path_ancestor_of=device.device_id_path,
         deep=False,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    if len(_block) == 1:
-        block: models.Device = _block[0]
+    if len(block_df) == 1:
+        block = block_df.to_dict("records")[0]
     else:
         raise HTTPException(
             status_code=404,
@@ -414,11 +410,13 @@ async def get_vertical_controller(
     }
 
     # Get the child devices associated with the block
-    child_devices: list[models.Device] = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    child_devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=device_type_ids,
-        device_id_descendent_of=block.device_id,
-    ).models()
+        device_id_descendent_of=int(block["device_id"]),
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    child_devices_df = child_devices_df.copy()
+    child_devices_df["device_type_id"] = child_devices_df["device_type_id"].astype(int)
+    child_devices_df["device_id"] = child_devices_df["device_id"].astype(int)
 
     # Define the type of the data that we will return
     class DeviceTreeItem(TypedDict):
@@ -435,13 +433,13 @@ async def get_vertical_controller(
 
     # Parse out child devices by device_type
     for device_type_id in device_type_ids:
-        child_devices_of_type: list[models.Device] = [
-            d for d in child_devices if d.device_type_id == device_type_id
+        child_devices_of_type = child_devices_df[
+            child_devices_df["device_type_id"] == device_type_id
         ]
         # If there are any child devices of this type, add them to the return data
         # NOTE, not all projects will have all the device types
         if len(child_devices_of_type) > 0:
-            child_device_ids: list[int] = [d.device_id for d in child_devices_of_type]
+            child_device_ids = child_devices_of_type["device_id"].tolist()
             return_data.append(
                 {
                     "id": device_type_id,

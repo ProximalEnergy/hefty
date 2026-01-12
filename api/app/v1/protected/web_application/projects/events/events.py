@@ -120,9 +120,13 @@ async def get_meta_analysis(
     # Source data
     # -----------------------
     event_data = core.crud.project.events.get_windowed_events(start=start, end=end)
-    devices = core.crud.project.devices.get_project_devices(
-        project_db
-    ).pandas_dataframe(index="device_id")
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_query = core.crud.project.devices.get_project_devices()
+    devices = await devices_query.get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    devices = devices.set_index("device_id")
 
     df = await event_data.get_async(
         schema=project.name_short,

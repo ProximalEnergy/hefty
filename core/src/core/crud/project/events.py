@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import func, or_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, joinedload
 
 from core import models
 from core.crud.project.event_losses import get_total_daily_type2_loss_open_events
@@ -34,9 +34,9 @@ def get_windowed_events(
     )
     options = []
     if deep:
-        options.append(selectinload(models.Event.device))
+        options.append(joinedload(models.Event.device))
     if not include_underperformance:
-        options.append(selectinload(models.Event.failure_mode))
+        options.append(joinedload(models.Event.failure_mode))
         stmt = stmt.where(
             ~models.Event.failure_mode.has(
                 models.FailureMode.name_long.contains("Underperforming")
@@ -539,7 +539,7 @@ def get_homepage_summary(
         }
     query = sa.select(models.Event).where(models.Event.time_end.is_(None))
     query = query.options(
-        selectinload(models.Event.device).selectinload(models.Device.device_type)
+        joinedload(models.Event.device).joinedload(models.Device.device_type)
     )
     if sort_by == "daily":
         query = query.order_by(models.Event.loss_daily_financial.desc().nullslast())

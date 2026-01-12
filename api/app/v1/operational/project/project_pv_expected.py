@@ -3,10 +3,12 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 import core
+from app import utils
 from app.dependencies import get_project_api, get_project_db
 from core import models
 
@@ -18,7 +20,7 @@ router = APIRouter(
 
 
 @router.get("")
-def get_expected_power(
+async def get_expected_power(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime,
@@ -49,9 +51,13 @@ def get_expected_power(
     if project_device_id not in requested_device_ids:
         query_device_ids.append(project_device_id)
 
-    devices = core.crud.project.devices.get_project_devices(
-        db=project_db, device_ids=query_device_ids
-    ).pandas_dataframe(index="device_id")
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices = await core.crud.project.devices.get_project_devices(
+        device_ids=query_device_ids
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices = devices.set_index("device_id")
+    devices.index = devices.index.astype(int)
+    devices["device_type_id"] = devices["device_type_id"].astype(int)
     device_types = {
         1: "Project",
         2: "PV_PCS",

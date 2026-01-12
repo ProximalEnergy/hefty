@@ -3,6 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import ORJSONResponse
@@ -21,7 +22,7 @@ router = APIRouter(
 
 
 @router.get("/clearsky-poa", response_class=ORJSONResponse)
-def get_clearsky_poa(
+async def get_clearsky_poa(
     *,
     project_id: UUID,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -61,11 +62,16 @@ def get_clearsky_poa(
         df = df.resample(resample_rate).mean()
 
     device_ids = [tag.device_id for tag in tags]
-    devices = core.crud.project.devices.get_project_devices(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
-    ).models()
-    device_id_to_name_long = {device.device_id: device.name_long for device in devices}
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    device_id_to_name_long = dict(
+        zip(
+            devices_df["device_id"].astype(int),
+            devices_df["name_long"].fillna(""),
+        )
+    )
     tag_id_to_device_name_long = {
         tag.tag_id: device_id_to_name_long[tag.device_id] for tag in tags
     }

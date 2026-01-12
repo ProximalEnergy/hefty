@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session, noload, selectinload
+from sqlalchemy.orm import Session, joinedload, noload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
 from core import models
@@ -12,7 +12,7 @@ def get_device_model_options(*, deep: bool) -> _AbstractLoad:
         deep: Whether to eager-load device type data.
     """
     if deep:
-        options = selectinload(models.DeviceModel.device_type)
+        options = joinedload(models.DeviceModel.device_type)
     else:
         options = noload(models.DeviceModel.device_type)
 

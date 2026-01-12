@@ -48,9 +48,7 @@ async def get_project_reports_instances(
         report_type_ids=report_type_ids,
         deep=deep,
     )
-    data = await query.get_async(output_type=OutputType.SQLALCHEMY)
-
-    return data
+    return await query.get_async(output_type=OutputType.SQLALCHEMY)
 
 
 @router.put(

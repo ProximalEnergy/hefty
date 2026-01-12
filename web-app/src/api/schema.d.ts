@@ -15666,9 +15666,7 @@ export interface operations {
     };
     get_event_devices_v1_operational_projects__project_id__events_event_devices_get: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -15852,9 +15850,7 @@ export interface operations {
     };
     bulk_create_events_v1_operational_projects__project_id__events_bulk_create_post: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;

@@ -8,6 +8,7 @@ import boto3
 import numpy as np
 import pandas as pd
 from core.crud.operational.device_types import get_device_types
+from core.db_query import OutputType
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import ORJSONResponse
@@ -15,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app import interfaces
+from app import interfaces, utils
 from app._crud.operational.kpi_alerts import (
     get_user_triggered_alerts as crud_get_user_triggered_alerts,
 )
@@ -294,14 +295,16 @@ async def get_kpi_excel(
             kpi_data[0]["data"]["device_data_obj"]["device_values"],
             index=kpi_data[0]["data"]["dates"],
         )
-        devices = core.crud.project.devices.get_project_devices(
-            project_db,
+        project_schema = utils.get_project_schema(project_db=project_db)
+        devices_df = await core.crud.project.devices.get_project_devices(
             device_ids=device_df.columns.astype(int).tolist(),
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        devices_df = devices_df.copy()
+        devices_df["name_long"] = devices_df["name_long"].fillna("")
         device_types = await get_device_types(
             db=db,
             device_type_ids=np.unique(
-                [device.device_type_id for device in devices],
+                devices_df["device_type_id"].astype(int),
             ).tolist(),
         )
         device_types_dict = {
@@ -309,10 +312,11 @@ async def get_kpi_excel(
             for device_type in device_types
         }
         device_id_to_name_full = {
-            device.device_id: f"{device_types_dict[device.device_type_id]} {
-                device.name_long
-            }"
-            for device in devices
+            int(device["device_id"]): (
+                f"{device_types_dict[int(device['device_type_id'])]} "
+                f"{device.get('name_long')}"
+            )
+            for device in devices_df.to_dict("records")
         }
         device_df = device_df.rename(columns=device_id_to_name_full)
         device_df.index.name = "Date"

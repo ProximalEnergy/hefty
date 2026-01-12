@@ -2,7 +2,7 @@ from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import noload, selectinload
+from sqlalchemy.orm import joinedload, noload
 
 from core import models
 from core.db_query import DbQuery
@@ -36,7 +36,7 @@ def get_project_report_instances(
         stmt = stmt.where(models.ReportInstance.report_type_id.in_(report_type_ids))
 
     if deep:
-        stmt = stmt.options(selectinload(models.ReportInstance.report_type))
+        stmt = stmt.options(joinedload(models.ReportInstance.report_type))
     else:
         stmt = stmt.options(noload(models.ReportInstance.report_type))
 

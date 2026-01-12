@@ -47,33 +47,30 @@ async def get_combiner_block_performance(
     start = end - pd.Timedelta(minutes=30)
 
     # Get requested pv_block device
-    schema_translate_map = (
-        project_db.get_bind().get_execution_options().get("schema_translate_map", {})
-    )
-    project_schema = schema_translate_map.get("project")
-    device_block = await core.crud.project.devices.get_project_device(
+    project_schema = utils.get_project_schema(project_db=project_db)
+    device_block_df = await core.crud.project.devices.get_project_device(
         device_id=block_device_id,
         deep=False,
-    ).get_async(output_type=OutputType.SQLALCHEMY, schema=project_schema)
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    if device_block is None:
+    if device_block_df.empty:
         raise HTTPException(
             status_code=404,
             detail="Block device not found",
         )
+    device_block = device_block_df.to_dict("records")[0]
 
     # Get descendent pv_dc_combiner devices of requests pv_block
-    devices_combiner = core.crud.project.devices.get_project_devices(
-        db=project_db,
+    devices_combiner_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_DC_COMBINER],
-        device_id_descendent_of=device_block.device_id,
-    ).models()
+        device_id_descendent_of=int(device_block["device_id"]),
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get tags for combiner current
     tags = core.crud.project.tags.get_project_tags(
         project_db,
         sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
-        device_ids=[d.device_id for d in devices_combiner],
+        device_ids=devices_combiner_df["device_id"].astype(int).tolist(),
     ).models()
 
     # Get data for combiner current
@@ -118,15 +115,15 @@ async def get_combiner_block_performance(
                 "timestamp": timestamp,
                 # TODO: This needs to be better than just grabbing the last value
                 "combiner_current": (
-                    df[device.device_id].iloc[-1] if not missing_data else np.nan
+                    df[device["device_id"]].iloc[-1] if not missing_data else np.nan
                 ),
-                "combiner_name": device.name_long,
-                "block_name": device_block.name_long,
+                "combiner_name": device.get("name_long"),
+                "block_name": device_block["name_long"],
                 "max_current": max_current,
             },
-            "geometry": device.polygon,
+            "geometry": device.get("polygon"),
         }
-        for device in devices_combiner
+        for device in devices_combiner_df.to_dict("records")
     ]
 
     return_data = {
