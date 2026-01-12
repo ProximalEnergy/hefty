@@ -5,6 +5,7 @@ import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_type
 from core.crud.project import tags as crud_project_tags
 from core.crud.project.tags import get_project_tags
+from core.db_query import OutputType
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -191,7 +192,9 @@ async def assign_sensor_type_to_pattern(
         project: TODO: describe.
         db: TODO: describe.
     """
-    sensor_type = get_sensor_type(db=db, sensor_type_id=request.sensor_type_id).item
+    sensor_type = await get_sensor_type(
+        sensor_type_id=request.sensor_type_id,
+    ).get_async(output_type=OutputType.SQLALCHEMY)
 
     try:
         # First, check if any tags match the pattern (for validation)

@@ -26,7 +26,7 @@ router = APIRouter(
 
 
 @router.get("/pcs", response_class=ORJSONResponse)
-def get_pcs(
+async def get_pcs(
     project_id: UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
@@ -87,7 +87,7 @@ def get_pcs(
             ).astype(float)
             try:
                 df_pcs_ep = (
-                    funcs.get_expected_power(
+                    await funcs.get_expected_power(
                         project_id=project_id,
                         start=start,
                         end=end,

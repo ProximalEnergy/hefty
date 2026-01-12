@@ -7,6 +7,7 @@ from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import DeviceType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -126,10 +127,18 @@ async def get_bar(
     except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
-    sensor_types = core.crud.operational.sensor_types.get_sensor_types(
-        db=db,
-        sensor_type_ids=[sensor_type_id],
+    sensor_types = (
+        await core.crud.operational.sensor_types.get_sensor_types(
+            sensor_type_ids=[sensor_type_id],
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
     )
+    sensor_type_map = {
+        sensor_type.sensor_type_id: sensor_type for sensor_type in sensor_types
+    }
+    sensor_type = sensor_type_map.get(sensor_type_id)
+    if sensor_type is None:
+        raise HTTPException(status_code=404, detail="Sensor type not found")
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
         sensor_type_ids=[sensor_type_id],
@@ -154,38 +163,22 @@ async def get_bar(
     match aggregation_type:
         case "avg" | "mean":
             out = df.mean(axis=0)
-            name = (
-                sensor_types.find(sensor_type_id=sensor_type_id)[0].name_long + " Mean"
-            )
+            name = sensor_type.name_long + " Mean"
         case "max":
             out = df.max(axis=0)
-            name = (
-                sensor_types.find(sensor_type_id=sensor_type_id)[0].name_long
-                + " Maximum"
-            )
+            name = sensor_type.name_long + " Maximum"
         case "min":
             out = df.min(axis=0)
-            name = (
-                sensor_types.find(sensor_type_id=sensor_type_id)[0].name_long
-                + " Minimum"
-            )
+            name = sensor_type.name_long + " Minimum"
         case "sum":
             out = df.sum(axis=0)
-            name = (
-                sensor_types.find(sensor_type_id=sensor_type_id)[0].name_long + " Sum"
-            )
+            name = sensor_type.name_long + " Sum"
         case "median":
             out = df.median(axis=0)
-            name = (
-                sensor_types.find(sensor_type_id=sensor_type_id)[0].name_long
-                + " Median"
-            )
+            name = sensor_type.name_long + " Median"
         case "std":
             out = df.std(axis=0)
-            name = (
-                sensor_types.find(sensor_type_id=sensor_type_id)[0].name_long
-                + " Standard Deviation"
-            )
+            name = sensor_type.name_long + " Standard Deviation"
     devices = core.crud.project.devices.get_project_devices(
         db=project_db,
         device_ids=list(set([t.device_id for t in tags])),
@@ -203,7 +196,7 @@ async def get_bar(
         "x": out.index.tolist(),
         "y": out.tolist(),
         "sensor_type_id": sensor_type_id,
-        "unit": sensor_types.find(sensor_type_id=sensor_type_id)[0].unit,
+        "unit": sensor_type.unit,
         "name": name,
     }
 
@@ -408,10 +401,17 @@ async def get_line(
                 )
 
     # --- Load sensor type metadata (unchanged) ---
-    sensor_types = core.crud.operational.sensor_types.get_sensor_types(
-        db=db,
+    sensor_types = await core.crud.operational.sensor_types.get_sensor_types(
         sensor_type_ids=list(set(sensor_type_ids)),
-    ).pandas_dataframe(index="sensor_type_id")
+    ).get_async(output_type=OutputType.PANDAS)
+
+    if not sensor_types.empty:
+        sensor_types = sensor_types.set_index("sensor_type_id").sort_index()
+    else:
+        sensor_types = pd.DataFrame(
+            columns=["name_long", "unit"],
+            index=pd.Index([], name="sensor_type_id"),
+        )
 
     # ------------------------------------------------------------------
     # Decide which tags to pull:
@@ -680,10 +680,15 @@ async def get_scatter(
     except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
-    sensor_types = core.crud.operational.sensor_types.get_sensor_types(
-        db=db,
-        sensor_type_ids=[x_axis_sensor_type_id, y_axis_sensor_type_id],
+    sensor_types = (
+        await core.crud.operational.sensor_types.get_sensor_types(
+            sensor_type_ids=[x_axis_sensor_type_id, y_axis_sensor_type_id],
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
     )
+    sensor_type_map = {
+        sensor_type.sensor_type_id: sensor_type for sensor_type in sensor_types
+    }
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
         sensor_type_ids=[x_axis_sensor_type_id, y_axis_sensor_type_id],
@@ -748,20 +753,25 @@ async def get_scatter(
     )
 
     out = tmp[["x", "y"]].reset_index(drop=True)
+    x_sensor_type = sensor_type_map.get(x_axis_sensor_type_id)
+    y_sensor_type = sensor_type_map.get(y_axis_sensor_type_id)
+
+    if not x_sensor_type or not y_sensor_type:
+        raise HTTPException(
+            status_code=404,
+            detail="One or more sensor types not found",
+        )
+
     return {
         "x": {
             "values": out["x"].tolist(),
-            "name": sensor_types.find(sensor_type_id=x_axis_sensor_type_id)[
-                0
-            ].name_long,
-            "unit": sensor_types.find(sensor_type_id=x_axis_sensor_type_id)[0].unit,
+            "name": x_sensor_type.name_long,
+            "unit": x_sensor_type.unit,
         },
         "y": {
             "values": out["y"].tolist(),
-            "name": sensor_types.find(sensor_type_id=y_axis_sensor_type_id)[
-                0
-            ].name_long,
-            "unit": sensor_types.find(sensor_type_id=y_axis_sensor_type_id)[0].unit,
+            "name": y_sensor_type.name_long,
+            "unit": y_sensor_type.unit,
         },
     }
 

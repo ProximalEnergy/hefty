@@ -22,7 +22,7 @@ router = APIRouter(
 
 
 @router.get("/meter-power-and-expected-power-v2", response_class=ORJSONResponse)
-def get_meter_power_and_expected_power_v2(
+async def get_meter_power_and_expected_power_v2(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
@@ -128,7 +128,7 @@ def get_meter_power_and_expected_power_v2(
     if include_setpoint:
         sensor_type_ids.append(SensorType.PPC_ACTIVE_POWER_SETPOINT)
 
-    df_tags = get_project_dataframe(
+    df_tags = await get_project_dataframe(
         tag_ids=[],
         sensor_type_ids=sensor_type_ids,
         sensor_type_name_shorts=[],

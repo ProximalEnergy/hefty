@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
+from core.db_query import OutputType
 from fastapi import HTTPException
 from pvlib import irradiance, location, tracking
 from sqlalchemy.orm import Session
@@ -587,9 +588,9 @@ def data_latest_df(
     return df
 
 
-def get_tag_id_to_tag_name(
-    db: Session,
+async def get_tag_id_to_tag_name(
     *,
+    db: Session,
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
@@ -604,10 +605,12 @@ def get_tag_id_to_tag_name(
     )
 
     # Get list of sensor types
-    sensor_types = get_sensor_types(
-        db,
-        sensor_type_ids=sensor_type_ids,
-    ).models()
+    sensor_types = (
+        await get_sensor_types(
+            sensor_type_ids=sensor_type_ids,
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
+    )
 
     # Create mapping from sensor type id to sensor type name
     sensor_type_id_to_name_metric = {
@@ -630,9 +633,9 @@ def get_tag_id_to_tag_name(
     return tag_id_to_name_metric
 
 
-def get_tag_id_to_sensor_type_name(
-    db: Session,
+async def get_tag_id_to_sensor_type_name(
     *,
+    db: Session,
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
@@ -647,10 +650,12 @@ def get_tag_id_to_sensor_type_name(
     )
 
     # Get list of sensor types
-    sensor_types = get_sensor_types(
-        db,
-        sensor_type_ids=sensor_type_ids,
-    ).models()
+    sensor_types = (
+        await get_sensor_types(
+            sensor_type_ids=sensor_type_ids,
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
+    )
 
     # Create mapping from sensor type id to sensor type name
     sensor_type_id_to_name_short = {

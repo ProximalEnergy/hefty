@@ -6,6 +6,7 @@ from core.crud.operational.sensor_types import (
 from core.crud.operational.sensor_types import (
     get_sensor_types as core_get_sensor_types,
 )
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import SensorType, UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -31,13 +32,12 @@ router = APIRouter(prefix="/sensor-types", tags=["sensor_types"])
 @router.get(
     "", response_model=list[interfaces.SensorType], operation_id="get_sensor_types"
 )
-def get_sensor_types(
+async def get_sensor_types(
     sensor_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",
     name_metric: str = "",
     unit: str = "",
-    db: Session = Depends(get_db),
 ):
     """todo
 
@@ -47,16 +47,17 @@ def get_sensor_types(
         name_long: TODO: describe.
         name_metric: TODO: describe.
         unit: TODO: describe.
-        db: TODO: describe.
     """
-    return core_get_sensor_types(
-        db,
-        sensor_type_ids=sensor_type_ids,
-        name_short=name_short,
-        name_long=name_long,
-        name_metric=name_metric,
-        unit=unit,
-    ).models()
+    return (
+        await core_get_sensor_types(
+            sensor_type_ids=sensor_type_ids,
+            name_short=name_short,
+            name_long=name_long,
+            name_metric=name_metric,
+            unit=unit,
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
+    )
 
 
 @router.get(
@@ -65,17 +66,15 @@ def get_sensor_types(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_sensor_type",
 )
-def get_sensor_type(sensor_type_id: int, db: Annotated[Session, Depends(get_db)]):
+async def get_sensor_type(sensor_type_id: int):
     """todo
 
     Args:
         sensor_type_id: TODO: describe.
-        db: TODO: describe.
     """
-    sensor_type = core_get_sensor_type(
-        db=db,
+    sensor_type = await core_get_sensor_type(
         sensor_type_id=sensor_type_id,
-    ).item
+    ).get_async(output_type=OutputType.SQLALCHEMY)
     utils.check_404(value=sensor_type, detail=DESCRIPTION_404)
     return sensor_type
 

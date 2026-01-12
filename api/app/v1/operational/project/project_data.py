@@ -5,6 +5,7 @@ from uuid import UUID
 
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
+from core.db_query import OutputType
 from core.dependencies import get_db, get_db_async
 from core.enumerations import TimeInterval
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -23,7 +24,7 @@ from core import models
 router = APIRouter(prefix="/projects/{project_id}", tags=["project_data"])
 
 
-def get_project_dataframe(
+async def get_project_dataframe(
     *,
     tag_ids: list[int],
     sensor_type_ids: Sequence[int],
@@ -110,12 +111,14 @@ def get_project_dataframe(
         interval=effective_interval,
     )
 
-    sensor_types = get_sensor_types(
-        db,
-        sensor_type_ids=[
-            tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None
-        ],
-    ).models()
+    sensor_types = (
+        await get_sensor_types(
+            sensor_type_ids=[
+                tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None
+            ],
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
+    )
 
     sensor_type_id_to_name_short = {
         sensor_type.sensor_type_id: sensor_type.name_short
@@ -149,7 +152,7 @@ def get_project_dataframe(
 
 
 @router.get("/llm-time-series")
-def get_llm_time_series(
+async def get_llm_time_series(
     project_id: UUID,
     db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
@@ -195,9 +198,12 @@ def get_llm_time_series(
         agg=interval,
     )
 
-    tag_id_to_tag_name = utils.get_tag_id_to_tag_name(project_db, tags=tags)
-    tag_id_to_sensor_type_name = utils.get_tag_id_to_sensor_type_name(
-        project_db,
+    tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
+        db=project_db,
+        tags=tags,
+    )
+    tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(
+        db=project_db,
         tags=tags,
     )
     tag_id_to_tag_name_scada = {tag.tag_id: tag.name_scada for tag in tags}
@@ -228,7 +234,7 @@ def get_llm_time_series(
 
 
 @router.get("/dataframe", response_class=ORJSONResponse)
-def get_project_dataframe_endpoint(
+async def get_project_dataframe_endpoint(
     tag_ids: Annotated[list[int], Query()] = [],
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
     device_ids: Annotated[list[int], Query()] = [],
@@ -264,7 +270,7 @@ def get_project_dataframe_endpoint(
         interval: TODO: describe.
         include_ghost_tags: TODO: describe.
     """
-    df = get_project_dataframe(
+    df = await get_project_dataframe(
         tag_ids=tag_ids,
         sensor_type_ids=[],
         sensor_type_name_shorts=sensor_type_name_shorts,
@@ -287,7 +293,7 @@ def get_project_dataframe_endpoint(
 
 
 @router.get("/time-series", response_class=ORJSONResponse)
-def get_time_series(
+async def get_time_series(
     project_id: UUID,
     tag_ids: Annotated[list[int], Query()] = [],
     device_ids: Annotated[list[int], Query()] = [],
@@ -356,9 +362,12 @@ def get_time_series(
         interval=interval,
     )
 
-    tag_id_to_tag_name = utils.get_tag_id_to_tag_name(project_db, tags=tags)
-    tag_id_to_sensor_type_name = utils.get_tag_id_to_sensor_type_name(
-        project_db,
+    tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
+        db=project_db,
+        tags=tags,
+    )
+    tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(
+        db=project_db,
         tags=tags,
     )
     tag_id_to_device_name_long = utils.get_tag_id_to_device_name_long(
@@ -516,9 +525,12 @@ async def get_timeseries_v3(
         ).models()
 
     # Build metadata mappings
-    tag_id_to_tag_name = utils.get_tag_id_to_tag_name(project_db, tags=tags)
-    tag_id_to_sensor_type_name = utils.get_tag_id_to_sensor_type_name(
-        project_db,
+    tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
+        db=project_db,
+        tags=tags,
+    )
+    tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(
+        db=project_db,
         tags=tags,
     )
     tag_id_to_device_name_long = utils.get_tag_id_to_device_name_long(

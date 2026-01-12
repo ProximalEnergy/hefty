@@ -3,6 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
+from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
@@ -180,7 +181,7 @@ def get_expected_power_by_device_type_id(
 
 # --- 4) the main endpoint -----------------------------------------------
 @router.get("/{device_type_id}", response_class=ORJSONResponse)
-def get_by_device_type_id(
+async def get_by_device_type_id(
     device_type_id: int,
     sensor_type_ids: Annotated[list[int] | None, Query()] = None,
     project_db: Session = Depends(get_project_db),
@@ -247,10 +248,12 @@ def get_by_device_type_id(
 
     # ── fetch all sensor types at once for name_short lookup -------------------
     sensor_type_ids = list(values_by_sensor.keys())
-    sensor_types = get_sensor_types(
-        db=project_db,
-        sensor_type_ids=sensor_type_ids,
-    ).models()
+    sensor_types = (
+        await get_sensor_types(
+            sensor_type_ids=sensor_type_ids,
+        ).get_async(output_type=OutputType.SQLALCHEMY)
+        or []
+    )
     sensor_type_names = {st.sensor_type_id: st.name_short for st in sensor_types}
 
     # ── convert to front-end "traces" shape -------------------------------------

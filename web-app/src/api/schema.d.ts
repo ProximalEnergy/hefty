@@ -4660,7 +4660,6 @@ export interface paths {
          *         name_long: TODO: describe.
          *         name_metric: TODO: describe.
          *         unit: TODO: describe.
-         *         db: TODO: describe.
          */
         get: operations["get_sensor_types"];
         put?: never;
@@ -4693,7 +4692,6 @@ export interface paths {
          *
          *     Args:
          *         sensor_type_id: TODO: describe.
-         *         db: TODO: describe.
          */
         get: operations["get_sensor_type"];
         /**
@@ -18460,7 +18458,6 @@ export interface operations {
                 name_long?: string;
                 name_metric?: string;
                 unit?: string;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -18531,9 +18528,7 @@ export interface operations {
     };
     get_sensor_type: {
         parameters: {
-            query?: {
-                schema?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;

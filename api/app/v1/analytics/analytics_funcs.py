@@ -13,7 +13,7 @@ import core
 from core import models
 
 
-def get_expected_power(
+async def get_expected_power(
     *,
     project_id: UUID,
     start: datetime.datetime | None,
@@ -41,7 +41,7 @@ def get_expected_power(
     location = vars.PROJECT_LOCATION_MAP[project_name_short]
     params = vars.PROJECT_PARAMS[project_name_short]
 
-    df_met = get_project_dataframe(
+    df_met = await get_project_dataframe(
         tag_ids=[],
         sensor_type_ids=[
             SensorType.MET_STATION_POA,
@@ -173,7 +173,7 @@ def get_expected_power(
     return df_power_ac
 
 
-def get_project_expected_power(
+async def get_project_expected_power(
     *,
     project: models.Project,
     db: Session,
@@ -199,7 +199,7 @@ def get_project_expected_power(
     location = vars.PROJECT_LOCATION_MAP[project_name_short]
     params = vars.PROJECT_PARAMS[project_name_short]
 
-    df_met = get_project_dataframe(
+    df_met = await get_project_dataframe(
         tag_ids=[],
         sensor_type_ids=[
             SensorType.MET_STATION_POA,
