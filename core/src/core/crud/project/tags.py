@@ -1,13 +1,14 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, joinedload, noload
 
 from core import models
+from core.db_query import DbQuery
 from core.enumerations import SensorType
-from core.model_list import ModelItem, ModelList
+from core.model_list import ModelList
 
 
 def _get_project_tag_options(*, deep: bool) -> Any:
@@ -33,19 +34,22 @@ def _get_project_tag_options(*, deep: bool) -> Any:
 
 
 def get_project_tag(
-    db: Session, tag_id: int, *, deep: bool, return_query: bool = False
-) -> ModelItem[models.Tag]:
+    *,
+    tag_id: int,
+    deep: bool,
+) -> DbQuery[
+    models.Tag,
+    Literal[True],
+]:
     """Fetch a single tag by id.
 
     Args:
-        db: Project database session.
         tag_id: Tag id to fetch.
         deep: Whether to eager-load tag relationships.
-        return_query: Return the query without executing when True.
     """
     options = _get_project_tag_options(deep=deep)
-    query = db.query(models.Tag).options(*options).where(models.Tag.tag_id == tag_id)
-    return ModelItem(query=query, return_query=return_query)
+    stmt = select(models.Tag).options(*options).where(models.Tag.tag_id == tag_id)
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 def get_project_tags(
