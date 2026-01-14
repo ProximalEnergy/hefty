@@ -59,6 +59,8 @@ export const useInfiniteNotifications = ({
     },
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     initialPageParam: 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent frequent background refetches
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
     ...queryOptions,
   })
 }
@@ -75,6 +77,7 @@ export const useGetUnreadNotificationCount = ({
   const defaultQueryOptions: Partial<UseQueryOptions> = {
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000, // 30 seconds - count doesn't need to be super fresh
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds to check for new notifications
   }
 
   return useCustomQuery<{ count: number }>({

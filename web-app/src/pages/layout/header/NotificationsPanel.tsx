@@ -54,7 +54,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteNotifications({ pageSize: 50 })
+  } = useInfiniteNotifications({ pageSize: 20 })
   const { data: projects, isLoading: projectsLoading } = useGetProjects({
     queryParams: { deep: true },
     personalPortfolio: false, // Get all projects user has access to, not just personal portfolio
@@ -118,6 +118,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
 
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const [intersectionRoot, setIntersectionRoot] = useState<Element | null>(null)
+  const lastIntersectingRef = useRef(false)
   const { ref: loadMoreRef, entry } = useIntersection({
     root: intersectionRoot,
     threshold: 0,
@@ -129,10 +130,20 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
   }, [])
 
   useEffect(() => {
-    if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+    const isIntersecting = entry?.isIntersecting ?? false
+
+    // Only trigger if we've transitioned from not intersecting to intersecting
+    if (
+      isIntersecting &&
+      !lastIntersectingRef.current &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
       fetchNextPage()
     }
-  }, [entry?.isIntersecting, fetchNextPage, hasNextPage, isFetchingNextPage])
+
+    lastIntersectingRef.current = isIntersecting
+  }, [entry?.isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const notifications = useMemo(() => {
     const pages = (notificationsPages?.pages ?? []) as NotificationPage[]
@@ -153,7 +164,8 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
           padding: 0,
           display: 'flex',
           flexDirection: 'column',
-          height: '100%',
+          flex: 1,
+          minHeight: 0,
         },
       }}
       overlayProps={{ opacity: 0 }}
@@ -202,9 +214,8 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
       }
     >
       <ScrollArea
-        h="100%"
-        style={{ flex: 1 }}
-        type="scroll"
+        style={{ flex: 1, minHeight: 0 }}
+        type="auto"
         viewportRef={viewportRef}
       >
         <Stack
