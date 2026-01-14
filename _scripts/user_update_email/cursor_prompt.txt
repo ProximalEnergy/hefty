@@ -1,0 +1,109 @@
+# Platform Update Email Generation Prompt
+
+Our Proximal platform is a Performance Analytics and Asset Management platform that helps users get the best out of their utility scale solar and storage projects.
+Use Linear issues to create a professional platform update email for our users - write it as if you're an expert in the solar industry, and also your audience are experts as well.
+
+## ⚠️ CRITICAL REQUIREMENT: NO COMPANY OR PERSON NAMES
+
+**THIS IS MANDATORY - NO EXCEPTIONS:**
+- **DO NOT** include any company names in the email, LinkedIn post, or any generated content
+- **DO NOT** include any person names (developers, team members, users, customers, etc.) in any generated content
+- Use generic terms instead: "users", "customers", "our team", "the platform", "developers", etc.
+- This applies to ALL sections: email body, LinkedIn post, subject lines, and any other generated text
+- **Always review the final output** to verify no names appear before saving files
+
+## Data Source: Linear Issues
+
+Use Linear MCP tools to fetch completed issues for the specified month. The data source will be Linear issues that were completed (status: "Done") during the month of [MONTH].
+
+## Instructions
+
+**CRITICAL: NO COMPANY NAMES OR PERSON NAMES**
+- DO NOT mention any company names in the email, LinkedIn post, or any generated content
+- DO NOT mention any person names (developers, users, customers, etc.) in the email, LinkedIn post, or any generated content
+- Use generic terms like "users", "customers", "the platform", "our team" instead
+- This is a strict requirement - double-check all generated content before finalizing
+
+Please create a platform update email and LinkedIn post based on Linear issues completed in [MONTH]. Follow these steps:
+
+1. **Fetch Linear Issues**: Use `mcp_linear_list_issues` with filters:
+   - `state: "Done"` - Only completed issues
+   - `updatedAt: "[MONTH]-01"` - Issues updated/completed in the target month
+   - `limit: 250` - Get all relevant issues
+   
+2. **Filter for User-Facing Features**: Review each issue and identify:
+   - Issues that impact users on the frontend (new features, UI improvements)
+   - Issues that improve user experience
+   - Bug fixes that users would notice
+   - Skip internal/backend-only improvements unless they significantly impact performance
+
+3. **Get Issue Details**: For significant issues, use `mcp_linear_get_issue` to get full descriptions and understand the user impact
+
+4. **Be user-friendly**: Focus on features and improvements that users will notice and benefit from
+
+5. **Be organized**: Group changes into logical categories:
+   - 🚀 Performance Improvements
+   - 🆕 New Features
+   - ✨ User Experience Improvements
+   - 🐛 Bug Fixes
+   - 🔧 Technical Improvements
+   - 🧹 Platform Cleanup
+
+6. **Be concise**: Don't overwhelm users with too much technical detail
+
+7. **Highlight value**: Emphasize how changes improve the user experience
+
+8. **Use the email template**: Reference `email_template.html` for consistent styling
+
+## Email Template
+
+The email template is located at `email_template.html`. Use it as a reference for:
+- HTML structure and styling
+- Section organization
+- Tone and formatting
+
+## Output Format
+
+Generate three files:
+
+1. **HTML format** (for email clients) - save as `platform_update_[MONTH]_[YEAR].html`
+   - Use the email template structure
+   - Include all sections with proper HTML formatting
+   - Maintain consistent styling with the template
+
+2. **Markdown format** (for documentation) - save as `platform_update_[MONTH]_[YEAR].md`
+   - Clean markdown version of the email content
+   - Useful for version control and documentation
+
+3. **LinkedIn post** (for social media) - save as `linkedin_post_[MONTH]_[YEAR].txt`
+   - Engaging, professional tone
+   - Highlight 3-5 most significant features
+   - Include relevant hashtags (#SolarEnergy #EnergyStorage #AssetManagement #RenewableEnergy #BESS #SolarPV #EnergyTech)
+   - Add a call to action asking for feedback
+   - Keep it concise (LinkedIn posts perform better when not too long)
+   - Use emojis strategically but not excessively
+
+Replace [MONTH] and [YEAR] with the actual month and year (e.g., "December" and "2025").
+
+## LinkedIn Post Guidelines
+
+- Start with an engaging hook
+- Highlight the most impactful features (3-5 items)
+- Use bullet points or short paragraphs for readability
+- Include a question or call to action to encourage engagement
+- Use relevant industry hashtags
+- Keep professional but conversational tone
+- Focus on benefits and user impact
+
+## Notes
+
+- **STRICTLY PROHIBITED: Company names and person names** - Never include any company names or person names in any generated content. This includes names from Linear issues, PR descriptions, or any other source. Always use generic terms.
+- Focus on user-facing changes rather than internal technical improvements
+- Group similar changes together
+- Use clear, non-technical language
+- Include "Need Help?" section at the end
+- Prioritize issues with labels like "Feature", "Improvement", or customer-facing bug fixes
+- Skip issues that are purely technical debt or internal refactoring unless they significantly impact user experience
+- For issues with attachments (PR links), the PR may contain additional context, but the Linear issue description should be sufficient
+- **Before finalizing**: Review all generated content to ensure no company or person names appear anywhere
+
