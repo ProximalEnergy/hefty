@@ -25,7 +25,7 @@ const PlaceholderTicket = () => {
     <Card>
       <CMMSTicketCard ticket={placeholderTicket} withBorder={false} />
       <Card.Section withBorder inheritPadding py="md" mt="md">
-        <Text c="dimmed">
+        <Text c="dimmed" component="div">
           <ThemeIcon variant="transparent" size="lg" c="dimmed">
             <IconInfoCircle
               style={{
