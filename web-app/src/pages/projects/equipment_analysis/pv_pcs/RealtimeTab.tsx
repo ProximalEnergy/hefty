@@ -54,6 +54,9 @@ const RealtimeTab = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const project = useSelectProject(projectId!)
 
+  // Only include expected power values if the project has expected energy integration
+  const hasExpectedIntegration = project.data?.has_expected_energy_integration
+
   // Get all PV PCS devices for CMMS tickets
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
@@ -162,7 +165,7 @@ const RealtimeTab = () => {
       interval: '5min',
     },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && hasExpectedIntegration === true,
       refetchInterval: 30000, // Refetch every 30 seconds
       refetchOnWindowFocus: false,
       refetchOnMount: false,
@@ -190,7 +193,7 @@ const RealtimeTab = () => {
       deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
     },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && hasExpectedIntegration === true,
       refetchInterval: 30000, // Refetch every 30 seconds
       refetchOnWindowFocus: false,
       refetchOnMount: false,
@@ -392,15 +395,21 @@ const RealtimeTab = () => {
       poiPowerMW: poiPowerMW !== null ? poiPowerMW.toFixed(2) : null,
       poiPowerTimestamp,
       expectedPowerMW:
-        finalExpectedPowerMW !== null ? finalExpectedPowerMW.toFixed(2) : null,
-      expectedPowerTimestamp: finalExpectedPowerTimestamp,
+        hasExpectedIntegration && finalExpectedPowerMW !== null
+          ? finalExpectedPowerMW.toFixed(2)
+          : null,
+      expectedPowerTimestamp: hasExpectedIntegration
+        ? finalExpectedPowerTimestamp
+        : null,
       cumulativePCSPowerMW: totalPowerMW.toFixed(2),
       cumulativePCSPowerTimestamp,
       cumulativeExpectedPCSPowerMW:
-        cumulativeExpectedPCSPowerMW !== null
+        hasExpectedIntegration && cumulativeExpectedPCSPowerMW !== null
           ? cumulativeExpectedPCSPowerMW.toFixed(2)
           : null,
-      cumulativeExpectedPCSPowerTimestamp,
+      cumulativeExpectedPCSPowerTimestamp: hasExpectedIntegration
+        ? cumulativeExpectedPCSPowerTimestamp
+        : null,
       cumulativePCSReactivePowerMVar: totalReactivePowerMVar.toFixed(2),
       totalEventsCount,
       pcsEventsCount,
@@ -425,6 +434,7 @@ const RealtimeTab = () => {
     devices.data,
     solarPosition.data,
     meterRealtimeData.data,
+    hasExpectedIntegration,
   ])
 
   // Calculate max capacity_ac from devices (convert from kWac to MWac)
@@ -447,6 +457,9 @@ const RealtimeTab = () => {
       <ActivePowerChart
         realtimeData={realtimeData}
         maxCapacityMWac={maxCapacityMWac}
+        hasExpectedEnergyIntegration={
+          project.data?.has_expected_energy_integration
+        }
       />
 
       <ReactivePowerChart

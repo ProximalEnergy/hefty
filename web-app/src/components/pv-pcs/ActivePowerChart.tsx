@@ -16,11 +16,13 @@ const PV_PCS_DEVICE_TYPE_ID = DeviceTypeEnum.PV_PCS
 interface ActivePowerChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
   maxCapacityMWac: number | null
+  hasExpectedEnergyIntegration?: boolean
 }
 
 export const ActivePowerChart = ({
   realtimeData,
   maxCapacityMWac,
+  hasExpectedEnergyIntegration,
 }: ActivePowerChartProps) => {
   const { projectId } = useParams<{ projectId: string }>()
   const [viewMode, setViewMode] = useState<'chart' | 'map'>('chart')
@@ -31,7 +33,7 @@ export const ActivePowerChart = ({
       deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
     },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && hasExpectedEnergyIntegration === true,
       refetchInterval: 30000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
@@ -97,7 +99,10 @@ export const ActivePowerChart = ({
       } satisfies Data)
     }
 
-    if (pcsExpectedPower.data?.expected_power) {
+    if (
+      hasExpectedEnergyIntegration === true &&
+      pcsExpectedPower.data?.expected_power
+    ) {
       const expectedPowerValues: number[] = []
       if (
         realtimeData.data.device_ids &&
@@ -151,7 +156,12 @@ export const ActivePowerChart = ({
     }
 
     return traces
-  }, [realtimeData.data, maxCapacityMWac, pcsExpectedPower.data])
+  }, [
+    realtimeData.data,
+    maxCapacityMWac,
+    pcsExpectedPower.data,
+    hasExpectedEnergyIntegration,
+  ])
 
   const setpointShapes = useMemo(() => {
     const setpointTrace = realtimeData.data?.traces?.find(
@@ -200,6 +210,7 @@ export const ActivePowerChart = ({
 
   const expectedPowerShapes = useMemo(() => {
     if (
+      hasExpectedEnergyIntegration === false ||
       !pcsExpectedPower.data?.expected_power ||
       !realtimeData.data?.device_names ||
       realtimeData.data.device_names.length === 0 ||
@@ -243,7 +254,7 @@ export const ActivePowerChart = ({
         }
       })
       .filter((shape): shape is NonNullable<typeof shape> => shape !== null)
-  }, [realtimeData.data, pcsExpectedPower.data])
+  }, [realtimeData.data, pcsExpectedPower.data, hasExpectedEnergyIntegration])
 
   const yAxisRangeComputed = useMemo(() => {
     if (!maxCapacityMWac) return undefined
