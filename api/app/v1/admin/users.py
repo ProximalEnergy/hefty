@@ -62,21 +62,29 @@ async def get_users(
         api_prod: Flag indicating if requests should target the prod Clerk API.
     """
     users = await get_users_core(company_ids=company_ids, user_ids=user_ids).get_async(
-        output_type=OutputType.SQLALCHEMY
+        output_type=OutputType.PANDAS
     )
 
     # Process each user tuple and add operational_project_ids and optionally image URLs
     users_with_project_ids = []
-    for user in users:
+    for _, user in users.iterrows():
         user_dict = {
-            **{k: v for k, v in user[0].__dict__.items() if k != "api_key"},
-            "operational_project_ids": user[1],
+            **{k: v for k, v in user.to_dict().items() if k != "api_key"},
         }
+
+        # Rename project_ids key to operational_project_ids
+        user_dict["operational_project_ids"] = user_dict.pop("project_ids")
+
+        # If user_dict["operational_project_ids"] is [None], set it to an empty list.
+        # NOTE: This is to comply with the UserWithProjects interface.
+        if user_dict["operational_project_ids"] == [None]:
+            user_dict["operational_project_ids"] = []
+
         # Only fetch profile picture URL from Clerk if explicitly requested
         # This avoids unnecessary API calls for users that may not exist in Clerk
         if include_image_urls:
             image_url = await get_clerk_user_image_url(
-                user_id=user[0].user_id, api_prod=api_prod
+                user_id=user_dict["user_id"], api_prod=api_prod
             )
             if image_url:
                 user_dict["image_url"] = image_url
