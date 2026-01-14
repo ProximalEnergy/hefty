@@ -216,6 +216,11 @@ export const ProjectDataIntervalEnum = {
   FIVE_MINUTES: "5min",
 } as const;
 
+export const ProjectDatabaseProviderEnum = {
+  TIMESCALE: "timescale",
+  CLICKHOUSE: "clickhouse",
+} as const;
+
 export const ProjectStatusTypeEnum = {
   ACTIVE: 1,
   ONBOARDING: 2,

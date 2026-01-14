@@ -1060,6 +1060,9 @@ class Project(Base):
     owner: Mapped[uuid.UUID | None] = mapped_column(
         sa.ForeignKey("admin.companies.company_id"),
     )
+    database_provider: Mapped[enumerations.ProjectDatabaseProvider] = mapped_column(
+        sa.String, server_default=enumerations.ProjectDatabaseProvider.CLICKHOUSE
+    )
 
     project_type = relationship("ProjectType")
 

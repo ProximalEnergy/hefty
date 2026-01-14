@@ -640,3 +640,8 @@ class NotificationState(StrEnum):
     UNREAD = "unread"
     READ = "read"
     DELETED = "deleted"
+
+
+class ProjectDatabaseProvider(StrEnum):
+    TIMESCALE = "timescale"
+    CLICKHOUSE = "clickhouse"
