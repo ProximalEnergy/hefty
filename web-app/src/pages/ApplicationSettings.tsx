@@ -174,7 +174,7 @@ function Subscriptions() {
     <>
       <Title order={2}>Notifications</Title>
 
-      <Accordion multiple={true} variant="separated">
+      <Accordion multiple={true} variant="contained">
         <Accordion.Item value={'Event Chat Messages'}>
           <Accordion.Control
             icon={
@@ -792,7 +792,7 @@ function PersonalPortfolio() {
         to and display them throughout the application. You can change your
         personal portfolio by clicking the checkboxes below.
       </Text>
-      <Accordion multiple={true} variant="separated">
+      <Accordion multiple={true} variant="contained">
         <Accordion.Item value={'Notifications'}>
           <Accordion.Control
             icon={

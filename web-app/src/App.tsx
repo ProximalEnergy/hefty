@@ -632,6 +632,16 @@ export default function App() {
           type: 'hex',
         },
       }),
+      Accordion: {
+        styles: {
+          root: {
+            backgroundColor: 'var(--mantine-color-default)',
+          },
+          item: {
+            backgroundColor: 'var(--mantine-color-default)',
+          },
+        },
+      },
     },
   })
   const resolver: CSSVariablesResolver = () => ({
