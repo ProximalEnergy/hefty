@@ -263,16 +263,30 @@ async def get_gauge(
             device_df = await core.crud.project.devices.get_project_devices(
                 device_type_ids=[DeviceType.PROJECT],
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-            data_expected = core.crud.project.data_expected.get_project_data_expected(
-                project_db=project_db,
-                device_ids=[int(device_df["device_id"].iloc[0])],
-                start=start,
-                end=end,
+            data_expected = await (
+                core.crud.project.data_expected.get_project_data_expected(
+                    device_ids=[int(device_df["device_id"].iloc[0])],
+                    start=start,
+                    end=end,
+                ).get_async(
+                    output_type=OutputType.PANDAS,
+                    schema=project_schema,
+                )
             )
-            df_expected = data_expected.pandas_dataframe(
-                index="time", as_datetime=True, tz=project.time_zone
-            )
+            df_expected = data_expected
             if not df_expected.empty:
+                df_expected["time"] = pd.to_datetime(
+                    df_expected["time"], errors="coerce"
+                )
+                if getattr(df_expected["time"].dt, "tz", None) is None:
+                    df_expected["time"] = df_expected["time"].dt.tz_localize(
+                        "UTC", nonexistent="NaT", ambiguous="NaT"
+                    )
+                df_expected["time"] = df_expected["time"].dt.tz_convert(
+                    project.time_zone
+                )
+                df_expected = df_expected.set_index("time")
+
                 for metric_id in metrics_priority_order:
                     df_exp_temp = df_expected[
                         df_expected["expected_metric_id"] == metric_id

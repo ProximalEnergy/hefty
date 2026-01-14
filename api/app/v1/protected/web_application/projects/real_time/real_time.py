@@ -121,18 +121,17 @@ async def get_expected_power_by_device_type_id(
     data_expected = None
     found_metric_id = None
     for expected_metric_id in expected_metric_ids_fallback:
-        data_expected = core.crud.project.data_expected.get_project_data_expected(
-            project_db,
+        data_expected = await core.crud.project.data_expected.get_project_data_expected(
             start=start_query,
             end=end_query,
             device_ids=expected_device_ids_for_query,
             expected_metric_ids=[expected_metric_id],
-        ).models()
-        if len(data_expected) > 0:
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        if not data_expected.empty:
             found_metric_id = expected_metric_id
             break
 
-    if not data_expected or len(data_expected) == 0:
+    if data_expected is None or data_expected.empty:
         # No expected data found
         return {
             "device_ids": device_ids,
@@ -140,7 +139,13 @@ async def get_expected_power_by_device_type_id(
         }
 
     # Convert to DataFrame and get latest values
-    df_expected_all = pd.DataFrame([d.__dict__ for d in data_expected])
+    df_expected_all = data_expected.copy()
+    df_expected_all["time"] = pd.to_datetime(df_expected_all["time"], errors="coerce")
+    if getattr(df_expected_all["time"].dt, "tz", None) is None:
+        df_expected_all["time"] = df_expected_all["time"].dt.tz_localize(
+            "UTC", nonexistent="NaT", ambiguous="NaT"
+        )
+    df_expected_all["time"] = df_expected_all["time"].dt.tz_convert(project.time_zone)
     df_expected_filtered = df_expected_all[
         df_expected_all["expected_metric_id"] == found_metric_id
     ]

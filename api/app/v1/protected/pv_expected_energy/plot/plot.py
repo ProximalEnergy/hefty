@@ -214,19 +214,22 @@ async def utility_expected(
     s_actual = s_actual * multiplier
 
     # Query expected data
-    data_expected = core.crud.project.data_expected.get_project_data_expected(
-        project_db,
+    data_expected = await core.crud.project.data_expected.get_project_data_expected(
         start=start,
         end=end,
         device_ids=expected_device_ids,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    if len(data_expected) == 0:
+    if data_expected.empty:
         raise HTTPException(status_code=422, detail="No expected data found")
 
-    df_expected = pd.DataFrame([d.__dict__ for d in data_expected]).drop(
-        columns=["_sa_instance_state", "device_id"],
-    )
+    df_expected = data_expected.copy().drop(columns=["device_id"])
+    df_expected["time"] = pd.to_datetime(df_expected["time"], errors="coerce")
+    if getattr(df_expected["time"].dt, "tz", None) is None:
+        df_expected["time"] = df_expected["time"].dt.tz_localize(
+            "UTC", nonexistent="NaT", ambiguous="NaT"
+        )
+    df_expected["time"] = df_expected["time"].dt.tz_convert(project.time_zone)
 
     def parse_df(*, expected_metric_id: int):
         """todo

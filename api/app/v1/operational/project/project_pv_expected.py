@@ -92,18 +92,25 @@ async def get_expected_power(
     start_query = pd.Timestamp(start).tz_convert(project.time_zone)
     end_query = pd.Timestamp(end).tz_convert(project.time_zone)
     eem_priority_expected_metric_ids = [[12, 11, 5, 6], [10, 9, 3, 4], [8, 7, 1, 2]]
-    data = core.crud.project.data_expected.get_project_data_expected(
-        project_db=project_db,
+    data = await core.crud.project.data_expected.get_project_data_expected(
         start=start_query,
         end=end_query,
         device_ids=devices.index.tolist(),
         expected_metric_ids=expected_metric_ids,
-    )
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    if data.empty:
+        return []
+    data["time"] = pd.to_datetime(data["time"], errors="coerce")
+    if getattr(data["time"].dt, "tz", None) is None:
+        data["time"] = data["time"].dt.tz_localize(
+            "UTC", nonexistent="NaT", ambiguous="NaT"
+        )
+    data["time"] = data["time"].dt.tz_convert(project.time_zone)
     df = (
-        data.pandas_dataframe().pivot(
+        data.pivot(
             index="time", columns=["device_id", "expected_metric_id"], values="value"
         )
-        / 1_000_000  ## W -> MW
+        / 1_000_000  # W -> MW
     )
     df = df.reindex(
         pd.date_range(start_query, end_query, freq="5min", inclusive="left")

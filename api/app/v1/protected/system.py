@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Any
 
 import pandas as pd
+from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends
@@ -89,15 +90,26 @@ async def get_meter_power_and_expected_power_v2(
     #     interval = "5min"  # 5 minutes
 
     # Get expected power (usually 5-min interval)
-    df_expected_power = core.crud.project.data_expected.get_project_data_expected(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    df_expected_power = await core.crud.project.data_expected.get_project_data_expected(
         start=start,
         end=end,
         device_ids=[1],
         expected_metric_ids=expected_metric_ids,
-    ).pandas_dataframe(index="time", as_datetime=True, tz=project.time_zone)
-
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     if not df_expected_power.empty:
+        df_expected_power["time"] = pd.to_datetime(
+            df_expected_power["time"], errors="coerce"
+        )
+        if getattr(df_expected_power["time"].dt, "tz", None) is None:
+            df_expected_power["time"] = df_expected_power["time"].dt.tz_localize(
+                "UTC", nonexistent="NaT", ambiguous="NaT"
+            )
+        df_expected_power["time"] = df_expected_power["time"].dt.tz_convert(
+            project.time_zone
+        )
+        df_expected_power = df_expected_power.set_index("time")
+
         df_expected_power = pd.DataFrame(df_expected_power["value"])
         df_expected_power["value"] = (
             df_expected_power["value"] / 1_000_000
