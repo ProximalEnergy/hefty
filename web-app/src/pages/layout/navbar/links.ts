@@ -174,12 +174,6 @@ export const projectLinks: DropdownLink[] = [
       },
       {
         to: (projectId: string) =>
-          `/projects/${projectId}/device-details/horizontal/pv`,
-        label: 'Timeline',
-        requiresPV: true,
-      },
-      {
-        to: (projectId: string) =>
           `/projects/${projectId}/events/meta-analysis`,
         label: 'Events Meta Analysis',
         requiresEventIntegration: true,
