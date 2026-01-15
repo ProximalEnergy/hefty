@@ -126,6 +126,29 @@ async def get_events(
         failure_modes_task, root_causes_task
     )
 
+    device_map: dict[int, interfaces.Device] = {}
+    device_ids = [
+        int(device_id)
+        for device_id in events_df["device_id"].unique().to_list()
+        if device_id is not None
+    ]
+    if device_ids:
+        device_query = core.crud.project.devices.get_project_devices(
+            device_ids=device_ids,
+            deep=True,
+        )
+        devices = await device_query.get_async(
+            schema=project_name_short,
+            output_type=OutputType.SQLALCHEMY,
+        )
+        if devices:
+            device_map = {
+                device.device_id: interfaces.Device.model_validate(
+                    device, from_attributes=True
+                )
+                for device in devices
+            }
+
     # Create mappings
     failure_mode_map = {
         fm.failure_mode_id: interfaces.FailureMode(
@@ -165,6 +188,9 @@ async def get_events(
 
         if event_dict.get("root_cause_id") in root_cause_map:
             event_dict["root_cause"] = root_cause_map[event_dict["root_cause_id"]]
+
+        if event_dict.get("device_id") in device_map:
+            event_dict["device"] = device_map[event_dict["device_id"]]
 
         result.append(interfaces.Event(**event_dict))
 

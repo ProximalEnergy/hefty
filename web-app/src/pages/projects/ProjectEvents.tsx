@@ -1,3 +1,4 @@
+import { ProjectTypeEnum } from '@/api/enumerations'
 import {
   useGetEventDevices,
   useGetEventsSummary,
@@ -32,7 +33,7 @@ import {
   MantineReactTable,
   useMantineReactTable,
 } from 'mantine-react-table'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 dayjs.extend(timezone)
@@ -65,6 +66,10 @@ const ProjectEvents = () => {
   const { data: project, isLoading: isProjectLoading } = useSelectProject(
     projectId!,
   )
+  const showLosses = Boolean(
+    project?.project_type_id === ProjectTypeEnum.BESS ||
+    project?.has_expected_energy_integration,
+  )
 
   const { data: eventDevices, isLoading: isEventDevicesLoading } =
     useGetEventDevices({
@@ -85,6 +90,24 @@ const ProjectEvents = () => {
   })
 
   const isLoading = isEventDevicesLoading || isProjectLoading
+
+  const defaultColumnVisibility = useMemo(
+    () => ({
+      loss_total_financial: false,
+      loss_total_energy: false,
+      loss_daily_energy: false,
+      loss_daily_financial: showLosses,
+    }),
+    [showLosses],
+  )
+
+  const defaultSorting = useMemo(
+    () =>
+      showLosses
+        ? [{ id: 'loss_daily_financial', desc: true }]
+        : [{ id: 'time_start', desc: true }],
+    [showLosses],
+  )
 
   const columns = useMemo(
     () => [
@@ -297,12 +320,8 @@ const ProjectEvents = () => {
     initialState: {
       density: 'xs',
       grouping: ['device_type_name'],
-      columnVisibility: {
-        loss_total_financial: false,
-        loss_total_energy: false,
-        loss_daily_energy: false,
-      },
-      sorting: [{ id: 'loss_daily_financial', desc: true }],
+      columnVisibility: defaultColumnVisibility,
+      sorting: defaultSorting,
     },
     mantineTableBodyRowProps: ({ row }) => ({
       onClick: () => {
@@ -317,6 +336,11 @@ const ProjectEvents = () => {
       },
     }),
   })
+
+  useEffect(() => {
+    table.setColumnVisibility(defaultColumnVisibility)
+    table.setSorting(defaultSorting)
+  }, [defaultColumnVisibility, defaultSorting, projectId, table])
 
   if (isLoading) {
     return <PageLoader />

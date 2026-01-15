@@ -202,82 +202,115 @@ const EventHeader = ({
 const EventLosses = ({
   losses,
   deviceTypeId,
+  capacityOnly,
 }: {
   losses: Record<
     string,
     { title: string; value: string | number; unit: string; info?: string }
   >
   deviceTypeId: number
-}) => (
-  <Table w="100%">
-    <Table.Thead>
-      <Table.Tr>
-        <Table.Td>
-          {losses.financial.title}
-          {losses.financial.info && (
-            <HoverCard>
-              <HoverCard.Target>
-                <IconInfoCircle size={10} />
-              </HoverCard.Target>
-              <HoverCard.Dropdown w="50%">
-                <Text>{losses.financial.info}</Text>
-              </HoverCard.Dropdown>
-            </HoverCard>
-          )}
-        </Table.Td>
-        <Table.Td>{losses.energetic.title}</Table.Td>
-        <Table.Td>{losses.capacity.title}</Table.Td>
-      </Table.Tr>
-    </Table.Thead>
-    <Table.Tbody>
-      <Table.Tr>
-        <Table.Td>
-          <Text>
-            {losses.financial.unit}
-            {Number(losses.financial.value).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </Text>
-        </Table.Td>
-        <Table.Td>
-          <Text>
-            {Number(losses.energetic.value).toLocaleString()}{' '}
-            {losses.energetic.unit}
-          </Text>
-        </Table.Td>
-        <Table.Td>
-          {deviceTypeId !== DeviceTypeEnum.TRACKER_ROW &&
-          deviceTypeId !== DeviceTypeEnum.TRACKER_ZONE ? (
-            <Text>
-              {Number(losses.capacity.value).toLocaleString()}{' '}
-              {losses.capacity.unit}
-            </Text>
-          ) : (
-            <Group gap={2}>
-              <Text>Varies</Text>
+  capacityOnly: boolean
+}) =>
+  capacityOnly ? (
+    <Group gap={4} align="center">
+      <Text fw={500}>{losses.capacity.title}:</Text>
+      {deviceTypeId !== DeviceTypeEnum.TRACKER_ROW &&
+      deviceTypeId !== DeviceTypeEnum.TRACKER_ZONE ? (
+        <Text>
+          {Number(losses.capacity.value).toLocaleString()}{' '}
+          {losses.capacity.unit}
+        </Text>
+      ) : (
+        <Group gap={2} align="center">
+          <Text>Varies</Text>
+          <HoverCard>
+            <HoverCard.Target>
+              <IconInfoCircle size={16} />
+            </HoverCard.Target>
+            <HoverCard.Dropdown w="33%">
+              <Text>
+                Trackers don&apos;t have a fixed capacity loss when offline
+                because they remain stuck at a single tilt angle rather than
+                following the sun. When the tracker&apos;s fixed position
+                happens to align well with the optimal angle, production is
+                nearly normal; when it doesn&apos;t, the loss increases
+                proportionally with the misalignment.
+              </Text>
+            </HoverCard.Dropdown>
+          </HoverCard>
+        </Group>
+      )}
+    </Group>
+  ) : (
+    <Table w="100%">
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Td>
+            {losses.financial.title}
+            {losses.financial.info && (
               <HoverCard>
                 <HoverCard.Target>
-                  <IconInfoCircle size={16} />
+                  <IconInfoCircle size={10} />
                 </HoverCard.Target>
-                <HoverCard.Dropdown w="33%">
-                  <Text>
-                    Trackers don&apos;t have a fixed capacity loss when offline
-                    because they remain stuck at a single tilt angle rather than
-                    following the sun. When the tracker&apos;s fixed position
-                    happens to align well with the optimal angle, production is
-                    nearly normal; when it doesn&apos;t, the loss increases
-                    proportionally with the misalignment.
-                  </Text>
+                <HoverCard.Dropdown w="50%">
+                  <Text>{losses.financial.info}</Text>
                 </HoverCard.Dropdown>
               </HoverCard>
-            </Group>
-          )}
-        </Table.Td>
-      </Table.Tr>
-    </Table.Tbody>
-  </Table>
-)
+            )}
+          </Table.Td>
+          <Table.Td>{losses.energetic.title}</Table.Td>
+          <Table.Td>{losses.capacity.title}</Table.Td>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        <Table.Tr>
+          <Table.Td>
+            <Text>
+              {losses.financial.unit}
+              {Number(losses.financial.value).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Text>
+          </Table.Td>
+          <Table.Td>
+            <Text>
+              {Number(losses.energetic.value).toLocaleString()}{' '}
+              {losses.energetic.unit}
+            </Text>
+          </Table.Td>
+          <Table.Td>
+            {deviceTypeId !== DeviceTypeEnum.TRACKER_ROW &&
+            deviceTypeId !== DeviceTypeEnum.TRACKER_ZONE ? (
+              <Text>
+                {Number(losses.capacity.value).toLocaleString()}{' '}
+                {losses.capacity.unit}
+              </Text>
+            ) : (
+              <Group gap={2}>
+                <Text>Varies</Text>
+                <HoverCard>
+                  <HoverCard.Target>
+                    <IconInfoCircle size={16} />
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown w="33%">
+                    <Text>
+                      Trackers don&apos;t have a fixed capacity loss when
+                      offline because they remain stuck at a single tilt angle
+                      rather than following the sun. When the tracker&apos;s
+                      fixed position happens to align well with the optimal
+                      angle, production is nearly normal; when it doesn&apos;t,
+                      the loss increases proportionally with the misalignment.
+                    </Text>
+                  </HoverCard.Dropdown>
+                </HoverCard>
+              </Group>
+            )}
+          </Table.Td>
+        </Table.Tr>
+      </Table.Tbody>
+    </Table>
+  )
 
 // Custom hook for event traces data
 const useEventTraces = (
@@ -751,39 +784,9 @@ const Page = () => {
   } else {
     mapComponent = <AdaptiveGisMap />
   }
-
-  // const annotations = [
-  //   // Status annotations
-  //   ...(hasStatus
-  //     ? heatmapData.uniqueY.map((status, statusIndex) => {
-  //         const firstTrueIndex = flatCustomData.findIndex(
-  //           (data) => data[0] === status.replace(/,/g, '<br>'),
-  //         )
-  //         const firstX = flatX[firstTrueIndex]
-  //         const firstY = flatY[firstTrueIndex]
-
-  //         return {
-  //           x: firstX,
-  //           y: firstY,
-  //           text: (status?.toString() || 'Unknown').replace(/,/g, '<br>'),
-  //           showarrow: true,
-  //           arrowhead: 2,
-  //           arrowsize: 1,
-  //           arrowwidth: 1,
-  //           ax: 0,
-  //           ay: statusIndex % 2 === 0 ? -20 : 20,
-  //           font: { size: 10, color: '#fff' },
-  //           bgcolor: 'rgba(0,0,0,0.7)',
-  //           bordercolor: 'rgba(255,255,255,0.3)',
-  //           borderwidth: 1,
-  //           borderpad: 4,
-  //           captureevents: true,
-  //           xref: 'x' as const,
-  //           yref: 'y2' as const,
-  //         }
-  //       })
-  //     : []),
-  // ]
+  const capacityOnly =
+    !project.data?.has_expected_energy_integration &&
+    project.data?.project_type_id !== ProjectTypeEnum.BESS
 
   return (
     <Group gap="md" p="md" align="stretch">
@@ -825,7 +828,8 @@ const Page = () => {
             />
             <EventLosses
               losses={losses}
-              deviceTypeId={event?.device?.device_type_id || -1}
+              deviceTypeId={event?.device.device_type_id || -1}
+              capacityOnly={capacityOnly}
             />
           </Stack>
           <CustomCard

@@ -634,9 +634,12 @@ const KPICards = () => {
   )
 }
 
-const EventTable = () => {
+const EventTable = ({ project }: { project: Project }) => {
   const { projectId } = useParams()
   const [sortBy, setSortBy] = useState<'daily' | 'total'>('daily')
+  const showLosses =
+    project.project_type_id === ProjectTypeEnum.BESS ||
+    project.has_expected_energy_integration
 
   const homepageSummary = useGetHomepageSummary({
     pathParams: { projectId: projectId || '-1' },
@@ -654,10 +657,13 @@ const EventTable = () => {
       homepageSummary.data &&
       homepageSummary.data?.total_number_of_open_events > 0
     ) {
-      return `Top Events (${homepageSummary.data?.total_number_of_open_events} Open | $${homepageSummary.data?.total_daily_loss.toFixed(2)}/day)`
+      if (showLosses) {
+        return `Top Events (${homepageSummary.data?.total_number_of_open_events} Open | $${homepageSummary.data?.total_daily_loss.toFixed(2)}/day)`
+      }
+      return `Top Events (${homepageSummary.data?.total_number_of_open_events} Open)`
     }
     return 'Top Events'
-  }, [homepageSummary.data])
+  }, [homepageSummary.data, showLosses])
 
   return (
     <CustomCard
@@ -669,26 +675,28 @@ const EventTable = () => {
       fill
       style={{ flex: 1 }}
       headerChildren={
-        <Popover position="bottom" withArrow shadow="md">
-          <Popover.Target>
-            <ActionIcon variant="default">
-              <IconSettings size={20} stroke={1.5} />
-            </ActionIcon>
-          </Popover.Target>
-          <Popover.Dropdown>
-            <Group>
-              <Text>Sort by</Text>
-              <SegmentedControl
-                data={[
-                  { label: 'Daily Loss', value: 'daily' },
-                  { label: 'Total Loss', value: 'total' },
-                ]}
-                value={sortBy}
-                onChange={(value) => setSortBy(value as 'daily' | 'total')}
-              />
-            </Group>
-          </Popover.Dropdown>
-        </Popover>
+        showLosses ? (
+          <Popover position="bottom" withArrow shadow="md">
+            <Popover.Target>
+              <ActionIcon variant="default">
+                <IconSettings size={20} stroke={1.5} />
+              </ActionIcon>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Group>
+                <Text>Sort by</Text>
+                <SegmentedControl
+                  data={[
+                    { label: 'Daily Loss', value: 'daily' },
+                    { label: 'Total Loss', value: 'total' },
+                  ]}
+                  value={sortBy}
+                  onChange={(value) => setSortBy(value as 'daily' | 'total')}
+                />
+              </Group>
+            </Popover.Dropdown>
+          </Popover>
+        ) : null
       }
     >
       <LoadingOverlay visible={homepageSummary.isLoading} />
@@ -696,45 +704,69 @@ const EventTable = () => {
       {homepageSummary.data &&
       homepageSummary.data.top_events &&
       homepageSummary.data.top_events.length > 0 ? (
-        <Table striped>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Device</Table.Th>
-              <Table.Th>Loss - Daily</Table.Th>
-              <Table.Th>Loss - Total</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {homepageSummary.data.top_events.map((event) => (
-              <Table.Tr key={event.event_id}>
-                <Table.Td>
-                  <Link
-                    to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
-                    style={{ color: 'inherit' }}
-                  >
-                    {event.device_name_full}
-                  </Link>
-                </Table.Td>
-                <Table.Td>
-                  {event.loss_daily_financial
-                    ? `$${event.loss_daily_financial.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}`
-                    : '-'}
-                </Table.Td>
-                <Table.Td>
-                  {event.loss_total_financial
-                    ? `$${event.loss_total_financial.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}`
-                    : '-'}
-                </Table.Td>
+        showLosses ? (
+          <Table striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Device</Table.Th>
+                <Table.Th>Loss - Daily</Table.Th>
+                <Table.Th>Loss - Total</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {homepageSummary.data.top_events.map((event) => (
+                <Table.Tr key={event.event_id}>
+                  <Table.Td>
+                    <Link
+                      to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
+                      style={{ color: 'inherit' }}
+                    >
+                      {event.device_name_full}
+                    </Link>
+                  </Table.Td>
+                  <Table.Td>
+                    {event.loss_daily_financial
+                      ? `$${event.loss_daily_financial.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
+                      : '-'}
+                  </Table.Td>
+                  <Table.Td>
+                    {event.loss_total_financial
+                      ? `$${event.loss_total_financial.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
+                      : '-'}
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        ) : (
+          <Table striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Device</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {homepageSummary.data.top_events.map((event) => (
+                <Table.Tr key={event.event_id}>
+                  <Table.Td>
+                    <Link
+                      to={`/projects/${projectId}/events/event?eventId=${event.event_id}`}
+                      style={{ color: 'inherit' }}
+                    >
+                      {event.device_name_full}
+                    </Link>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        )
       ) : homepageSummary.data &&
         homepageSummary.data.top_events &&
         homepageSummary.data.top_events.length === 0 ? (
@@ -2518,7 +2550,9 @@ const ProjectHome = () => {
           )}
         </Stack>
         <Stack h="100%" flex={1}>
-          {project.data.has_event_integration && <EventTable />}
+          {project.data.has_event_integration && (
+            <EventTable project={project.data as Project} />
+          )}
           {/* Contractual KPI Overview for PV_BESS and BESS projects */}
           {(project.data.project_type_id === ProjectTypeEnum.PVS ||
             project.data.project_type_id === ProjectTypeEnum.BESS) && (
