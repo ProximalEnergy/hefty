@@ -1,21 +1,23 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface CompanyProject {
-  company_id: string
-  project_id: string
-  vector_store_id: string
-}
+const _COMPONENT_NAME = 'CompanyProject'
+const URL = '/v1/admin/company-projects/projects/{project_id}/all-companies'
+
+type CompanyProject = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getPathParams = get['parameters']['path']
 
 export const useGetAllCompanyProjectsForProject = ({
   pathParams,
   queryOptions = {},
 }: {
-  pathParams: { project_id: string }
+  pathParams: getPathParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/admin/company-projects/projects/${pathParams.project_id}/all-companies`,
+    url: URL,
   }
 
   const defaultQueryOptions: Partial<UseQueryOptions> = {
