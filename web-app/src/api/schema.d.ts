@@ -5983,7 +5983,7 @@ export interface paths {
          *
          *     Args:
          *         device_type_ids: TODO: describe.
-         *         project_db: TODO: describe.
+         *         project_name_short: TODO: describe.
          *         include_ghost_tags: TODO: describe.
          */
         get: operations["get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get"];

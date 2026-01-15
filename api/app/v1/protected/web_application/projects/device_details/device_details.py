@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from core import model_list, models
+from core import models
 
 router = APIRouter(
     prefix="/device-details",
@@ -592,7 +592,10 @@ async def get_data_availability(
 @router.get("/data-availability-v2")
 async def get_data_availability_v2(
     device_type_ids: Annotated[list[int], Query()],
-    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
+    project_name_short: Annotated[
+        str,
+        Depends(dependencies.get_project_name_short),
+    ],
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
     """Calculates data availability and staleness for a given set of device types.
@@ -602,22 +605,15 @@ async def get_data_availability_v2(
 
     Args:
         device_type_ids: TODO: describe.
-        project_db: TODO: describe.
+        project_name_short: TODO: describe.
         include_ghost_tags: TODO: describe.
     """
 
-    query: model_list.ModelList = (
-        core.crud.project.data_timeseries_last.get_data_timeseries_last_v2(
-            project_db=project_db,
-            device_type_ids=device_type_ids,
-            include_ghost_tags=include_ghost_tags,
-            return_query=True,
-        )
+    query = core.crud.project.data_timeseries_last.get_data_timeseries_last_v2(
+        device_type_ids=device_type_ids,
+        include_ghost_tags=include_ghost_tags,
     )
-    # Execute the query and load the results into Polars
-    if query is None:
-        return []
-    df = await query.polars_dataframe_async()
+    df = await query.get_async(schema=project_name_short)
 
     if df.is_empty():
         return []

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Literal
 
 from sqlalchemy import extract, func, select
 from sqlalchemy.dialects.postgresql import array
@@ -135,15 +136,13 @@ def get_data_timeseries_last(
 
 def get_data_timeseries_last_v2(
     *,
-    project_db: Session,
     device_type_ids: list[int] | None = None,
     sensor_type_ids: list[int] | None = None,
     tag_ids: list[int] | None = None,
     device_ids: list[int] | None = None,
     deep: bool = False,
-    return_query: bool = True,
     include_ghost_tags: bool = False,
-) -> ModelList[models.DataTimeseriesLast]:
+) -> DbQuery[Any, Literal[False]]:
     """Fetches the latest timeseries data.
 
         If `load_only_columns` is provided, it builds an optimized query that joins
@@ -155,13 +154,11 @@ def get_data_timeseries_last_v2(
         ideal for general-purpose use.
 
     Args:
-        project_db: Project database session.
         device_type_ids: Device type ids to filter by.
         sensor_type_ids: Sensor type ids to filter by.
         tag_ids: Tag ids to filter by.
         device_ids: Device ids to filter by.
         deep: Whether to eager-load tag and device relationships.
-        return_query: Return the query without executing when True.
         include_ghost_tags: Include tags without sensor_type_id when True.
     """
     # 1. Define the age calculation once to reuse it.
@@ -205,32 +202,19 @@ def get_data_timeseries_last_v2(
     ]
 
     # 4. Construct the main query, joining the detailed data with our CTE.
-    query = (
-        project_db.query(*columns_to_load)
-        .join(models.DataTimeseriesLast.tag)
-        .join(models.Tag.device)
+    stmt = (
+        select(*columns_to_load)
+        .select_from(models.DataTimeseriesLast)
+        .join(models.Tag, models.DataTimeseriesLast.tag_id == models.Tag.tag_id)
+        .join(models.Device, models.Tag.device_id == models.Device.device_id)
         .join(
             median_cte,
             median_cte.c.sensor_type_id == models.Tag.sensor_type_id,
         )
-        # MODIFICATION: Use ANY() instead of IN() here as well
-        .where(models.Device.device_type_id == func.any(array(device_type_ids or [])))
-    )
-
-    # 4. Construct the main query, joining the detailed data with our CTE.
-    query = (
-        project_db.query(*columns_to_load)
-        .join(models.DataTimeseriesLast.tag)
-        .join(models.Tag.device)
-        .join(
-            median_cte,
-            median_cte.c.sensor_type_id == models.Tag.sensor_type_id,
-        )
-        # MODIFICATION: Use ANY() instead of IN() here as well
         .where(models.Device.device_type_id == func.any(array(device_type_ids or [])))
     )
 
     if not include_ghost_tags:
-        query = query.where(models.Tag.sensor_type_id > 0)
+        stmt = stmt.where(models.Tag.sensor_type_id > 0)
 
-    return ModelList(query=query, return_query=return_query)
+    return DbQuery(query=stmt, use_scalars=False)
