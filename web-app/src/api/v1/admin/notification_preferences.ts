@@ -33,9 +33,7 @@ export const useGetNotificationPreferences = ({
 
   const queryParams = projectIds ? { project_ids: projectIds } : {}
 
-  const defaultQueryOptions: Partial<
-    UseQueryOptions<NotificationPreference[]>
-  > = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     refetchOnMount: false, // Only refetch if explicitly requested
     refetchOnReconnect: false, // Don't refetch on reconnect

@@ -24,7 +24,7 @@ export const useGetWaterfall = ({
     url: `/v1/operational/projects/${pathParams.projectId}/waterfall`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
   }
 

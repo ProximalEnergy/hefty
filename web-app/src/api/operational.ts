@@ -18,7 +18,7 @@ export const useGetCompanyUsers = ({
     url: `/v1/operational/users`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

@@ -22,7 +22,7 @@ export const useGetPvExpected = ({
     url: `/v1/operational/projects/${pathParams.projectId}/pv-expected`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

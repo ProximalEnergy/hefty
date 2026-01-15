@@ -20,7 +20,7 @@ export const useGetPortfolioHome = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 1000 * 60 * 5,
     refetchInterval: queryParams.time === '24h' ? 1000 * 60 * 5 : undefined,
   }

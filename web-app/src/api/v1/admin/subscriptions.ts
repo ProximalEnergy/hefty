@@ -16,7 +16,7 @@ export const useGetSubscriptions = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<UserSubscription[]>({
     axiosConfig,

@@ -63,7 +63,7 @@ export const useGetEquipmentAnalysisPCSv2 = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/pcs`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<EquipmentAnalysisPCSv2>({
     axiosConfig,

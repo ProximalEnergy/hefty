@@ -27,7 +27,7 @@ export const useGetTrackingAngles = ({
     url: '/v1/trackers/tracking-angles',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

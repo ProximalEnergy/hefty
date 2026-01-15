@@ -26,7 +26,7 @@ export const useGetProximalPVRackManufacturers = ({
     url: `/v1/operational/pv-rackings/manufacturers`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
   }
@@ -51,7 +51,7 @@ export const useGetProximalPVRackModels = ({
     url: `/v1/operational/pv-rackings/models`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
     enabled: !!queryParams?.manufacturer,
@@ -83,7 +83,7 @@ export const useGetPVRackingIdsByManufacturerAndModel = ({
     url: `/v1/operational/pv-rackings/lookup-ids`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
     enabled: manufacturers.length > 0 && models.length > 0,
@@ -114,7 +114,7 @@ export const useGetProximalPVRackDetails = ({
     url: `/v1/operational/pv-rackings`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 10, // 10 seconds
     enabled: racking_ids.length > 0,

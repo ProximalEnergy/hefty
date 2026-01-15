@@ -33,7 +33,7 @@ export const useGetUtilityExpected = ({
   const axiosConfig = {
     url: `/v1/protected/${pathParams.projectId}/pv-expected-energy/plot`,
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
   }
 
@@ -61,7 +61,7 @@ export const useGetMeterPowerAndExpectedPower = ({
       '/meter-power-and-expected-power-v2',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     // Add appropriate defaults if needed, e.g., refetchOnWindowFocus
     refetchOnWindowFocus: false,
   }

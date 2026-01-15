@@ -52,7 +52,7 @@ export const useGetEventMessages = ({
     method: 'get',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     refetchInterval: 5000, // Refetch every 5 seconds
   }

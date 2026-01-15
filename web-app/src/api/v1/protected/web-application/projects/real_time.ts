@@ -57,7 +57,7 @@ export const useGetRealTimeByDeviceTypeID = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/real-time/${pathParams.deviceTypeId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60,
   }
@@ -89,7 +89,7 @@ export const useGetDataAvailabilityV2 = ({
     params: queryParams,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60,
   }
@@ -123,7 +123,7 @@ export const useGetDataTimeseriesLast = ({
     url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-last`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60,
   }
@@ -156,7 +156,7 @@ export const useGetExpectedPowerByDeviceTypeID = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/real-time/${pathParams.deviceTypeId}/expected-power`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 25 * 1000, // 25 seconds
   }

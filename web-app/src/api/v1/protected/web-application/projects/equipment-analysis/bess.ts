@@ -26,7 +26,7 @@ export const useGetEquipmentAnalysisBESS = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/bess`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<EquipmentAnalysisBESS>({
     axiosConfig,

@@ -13,7 +13,7 @@ export const useGetBlockDropdown = ({
     url: `/v1/ui/${pathParams.projectId}/block-dropdown`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

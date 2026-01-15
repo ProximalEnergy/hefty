@@ -21,7 +21,7 @@ export const useGetERCOTSettlementPoints = ({
     url: SETTLEMENT_POINTS_URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -53,7 +53,7 @@ export const useGetERCOTPrices = ({
     url: PRICES_URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

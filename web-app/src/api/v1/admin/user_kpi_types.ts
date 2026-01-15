@@ -27,7 +27,7 @@ export const useGetUserFavoriteKPITypes = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     enabled: queryParams.user_id !== '',
   }
 

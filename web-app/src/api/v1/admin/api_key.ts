@@ -23,7 +23,7 @@ export const useGetApiKey = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<APIKey>({
     axiosConfig,

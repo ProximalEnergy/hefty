@@ -122,7 +122,7 @@ export const useGetUserDashboards = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/user-dashboards`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -146,7 +146,7 @@ export const useGetSharedUserDashboards = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/shared-user-dashboards`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -283,7 +283,7 @@ export const useGetDashboard = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/${pathParams.dashboardId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -314,7 +314,7 @@ export const useGetBarData = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/bar`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -346,7 +346,7 @@ export const useGetGaugeData = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/gauge`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -381,7 +381,7 @@ export const useGetLineData = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/line`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -413,7 +413,7 @@ export const useGetScatterData = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/scatter`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -438,7 +438,7 @@ export const useGetDashboardSharedUsers = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/custom-dash/share/${pathParams.dashboardId}/users`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

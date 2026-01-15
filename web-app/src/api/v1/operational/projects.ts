@@ -218,7 +218,7 @@ export const useGetProjects = ({
     url: '/v1/operational/projects',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

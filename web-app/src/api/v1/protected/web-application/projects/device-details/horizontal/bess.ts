@@ -23,7 +23,7 @@ export const useGetDeviceDetailsHorizontalBESS = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/horizontal/bess`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   }

@@ -114,9 +114,7 @@ const useGetSPCForecastPolygons = ({
   queryKey: string
   queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
-  const defaultQueryOptions: Partial<
-    UseQueryOptions<GeoJsonFeatureCollection>
-  > = {
+  const defaultQueryOptions = {
     staleTime: 1000 * 60 * 5,
     refetchInterval: 1000 * 60 * 5,
   }

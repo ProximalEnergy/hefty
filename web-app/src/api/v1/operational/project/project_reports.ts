@@ -24,7 +24,7 @@ export const useGetPCSApparentVsVoltage = ({
     url: `/v1/operational/projects/${pathParams.projectId}/reports/pcs-apparent-vs-voltage`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

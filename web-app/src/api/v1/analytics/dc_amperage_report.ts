@@ -41,7 +41,7 @@ export const useGetDCAmperageReportV2 = ({
       '/reports/dc-amperage-report-v2',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<DCAmperageDataV2>({
     axiosConfig,

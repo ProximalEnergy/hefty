@@ -23,7 +23,7 @@ export const useGetTagsByRegex = ({
     url: `/v1/operational/projects/${pathParams.projectId}/tags/regex`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

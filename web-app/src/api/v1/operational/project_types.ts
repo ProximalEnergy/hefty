@@ -20,7 +20,7 @@ export const useGetProjectTypes = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

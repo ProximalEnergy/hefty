@@ -54,7 +54,7 @@ export const useGetEventsMetaAnalysis = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/events/meta`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60,
   }
@@ -83,7 +83,7 @@ export const useGetHomepageSummary = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/events/home-page-summary`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<HomepageSummary>({
     axiosConfig,

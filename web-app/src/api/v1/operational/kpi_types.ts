@@ -56,7 +56,7 @@ export const useGetKPITypes = ({
     url: '/v1/operational/kpi-types',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -80,7 +80,7 @@ export const useGetProjectKPITypes = ({
     url: `/v1/operational/kpi-types/by-project/${pathParams.projectId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   }

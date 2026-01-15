@@ -20,7 +20,7 @@ export const useGetKPIInstances = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

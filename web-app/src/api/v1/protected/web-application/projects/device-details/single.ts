@@ -23,7 +23,7 @@ export const useGetDeviceDetailsSingle = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/single/${pathParams.deviceId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   }

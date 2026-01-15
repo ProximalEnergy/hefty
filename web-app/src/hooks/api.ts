@@ -238,7 +238,7 @@ export const useGetDevice = ({
       `/devices/${pathParams.deviceId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -315,7 +315,7 @@ export const useGetTags = ({
     url: `/v1/operational/projects/${pathParams.projectId}/tags/`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -342,7 +342,7 @@ export const useGetKPIAlerts = ({
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/kpi-alerts/`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.KPIAlertProps[]>({
     axiosConfig,
@@ -370,7 +370,7 @@ export const useGetEvents = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.Event[]>({
     axiosConfig,
@@ -404,7 +404,7 @@ export const useGetPaginatedEvents = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/paginated-events`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.PaginatedEvent[]>({
     axiosConfig,
@@ -436,7 +436,7 @@ export const useGetUptimeTable = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/uptime`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.UptimeData[]>({
     axiosConfig,
@@ -549,7 +549,7 @@ export const useGetWeather = ({
     url: `/v1/gis/${pathParams.projectId}/project-weather`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 15 * 60 * 1000, // 15 minutes
   }
@@ -573,7 +573,7 @@ export const useGetForecast = ({
     url: `/v1/gis/${pathParams.projectId}/project-weather-forecast`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 15 * 60 * 1000, // 15 minutes
   }
@@ -601,7 +601,7 @@ export const useGetHeatmap = ({
       `/equipment-analysis/heatmap/${pathParams.sensorTypeName}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.DataHeatmap>({
     axiosConfig,
@@ -628,7 +628,7 @@ export const useGetGISPCS = ({
     url: `/v1/gis/${pathParams.projectId}/pcs`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.GISPCS>({
     axiosConfig,
@@ -650,7 +650,7 @@ export const useGetGISCombinerBlock = ({
     url: `/v1/gis/combiner/${pathParams.projectId}/${pathParams.blockId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 60 * 1000,
   }
 
@@ -678,7 +678,7 @@ export const useGetGISTrackerByBlock = ({
     url: `/v1/gis/${pathParams.projectId}/tracker-by-block/${pathParams.blockId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   }
@@ -703,7 +703,7 @@ export const useGetGISBessEnclosure = ({
     url: `/v1/gis/${pathParams.projectId}/bess-enclosure`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<FeatureCollection>({
     axiosConfig,
@@ -731,7 +731,7 @@ export const useGetEquipmentAnalysisCombiner = ({
       '/equipment-analysis/combiner',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.EquipmentAnalysisCombiner>({
     axiosConfig,
@@ -753,7 +753,7 @@ export const useGetResources = ({
     url: '/v1/development/ercot/resources',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -779,7 +779,7 @@ export const useGetResource = ({
     url: `/v1/development/ercot/resources/${pathParams.resourceId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -804,7 +804,7 @@ export const useGetResourceNetPower = ({
     url: `/v1/development/ercot/resources/${pathParams.resourceId}/net-power`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.DataTimeSeries[]>({
     axiosConfig,
@@ -962,7 +962,7 @@ export const useGetKPIType = ({
     url: `/v1/operational/kpi-types/${pathParams.kpiTypeId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -988,7 +988,7 @@ export const useGetSunburstData = ({
       '/equipment-analysis/sunburst-data',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
   }
 
@@ -1018,7 +1018,7 @@ export const useGetClearskyPOA = ({
       `/v1/protected/web-application/projects/` +
       `${pathParams.projectId}/reports/clearsky-poa`,
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
   }
 
@@ -1048,7 +1048,7 @@ export const useGetDegradationPOA = ({
       `/v1/protected/web-application/projects/` +
       `${pathParams.projectId}/reports/degradation-poa`,
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
   }
 
@@ -1129,7 +1129,7 @@ export const useValidateCombinerData = ({
     ].join('/'),
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     // Only enable the query if we have all required parameters

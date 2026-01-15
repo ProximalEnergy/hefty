@@ -28,7 +28,7 @@ export const useGetTrackerEquipmentAnalysis = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/tracker`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

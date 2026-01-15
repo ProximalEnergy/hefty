@@ -56,7 +56,7 @@ export const useGetCalendarEvents = ({
     url: `/v1/operational/projects/${pathParams.projectId}/calendar-events`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60, // 1 minute
   }
@@ -85,7 +85,7 @@ export const useGetCalendarEventCategories = ({
     url: `/v1/operational/projects/${pathParams.projectId}/calendar-item-categories`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes, categories are not expected to change often
   }

@@ -31,7 +31,7 @@ export const useGetTimeSeries = ({
     url: `/v1/operational/projects/${pathParams.projectId}/time-series`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -71,7 +71,7 @@ export const useGetDataTimeSeriesV3 = ({
     url: `/v1/operational/projects/${pathParams.projectId}/data-timeseries-v3`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

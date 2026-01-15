@@ -48,7 +48,7 @@ export const useGetPVBudgetedSeries = ({
     url: '/v1/operational/pv-budgeted-data/series',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -76,7 +76,7 @@ export const useGetPVBudgetedData = ({
     url: '/v1/operational/pv-budgeted-data',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -109,7 +109,7 @@ export const useGetPVBudgetedDataBySeries = ({
     url: `/v1/operational/pv-budgeted-data/series/${pathParams.pv_budgeted_series_id}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -144,7 +144,7 @@ export const useGetPVBudgetedSeriesDailyData = ({
     url: `/v1/operational/pv-budgeted-data/series/${pathParams.pv_budgeted_series_id}/daily-data`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
     gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days

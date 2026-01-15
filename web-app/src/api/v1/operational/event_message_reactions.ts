@@ -39,7 +39,7 @@ export const useGetEventMessageReactions = ({
     method: 'get',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     refetchInterval: 5000, // Refetch every 5 seconds (same as messages)
     staleTime: 30000, // Consider data fresh for 30 seconds

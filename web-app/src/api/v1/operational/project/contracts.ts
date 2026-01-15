@@ -55,7 +55,7 @@ export const useGetProjectContracts = ({
     url: `/v1/operational/projects/${pathParams.projectId}/contracts`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -177,7 +177,7 @@ export const useGetContractKPIs = ({
     url: `/v1/operational/projects/${pathParams.projectId}/contracts/${pathParams.contractId}/kpis`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 30_000,
   }
@@ -205,7 +205,7 @@ export const useGetContractCategories = ({
     url: `/v1/operational/contract-categories`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

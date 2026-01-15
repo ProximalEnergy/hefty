@@ -14,7 +14,7 @@ export const useGetCECPVModuleManufacturers = ({
     url: `/v1/operational/cec-pv-modules/manufacturers`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
   }
@@ -39,7 +39,7 @@ export const useGetCECPVModuleModels = ({
     url: `/v1/operational/cec-pv-modules/models`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
     enabled: !!queryParams?.manufacturer,
@@ -70,7 +70,7 @@ export const useGetCECPVModuleIdsByManufacturerAndModel = ({
     url: `/v1/operational/cec-pv-modules/lookup-ids`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
     enabled:
@@ -103,7 +103,7 @@ export const useGetCECPVModuleInProximalFormat = ({
     url: `/v1/operational/cec-pv-modules/proximal-format`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 1, // 10 seconds
     enabled: !!cec_pv_module_id,

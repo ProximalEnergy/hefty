@@ -49,7 +49,7 @@ export const useGetOperationalKPIData = ({
     url: `/v1/operational/kpi-data`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
@@ -86,7 +86,7 @@ export const useGetContractKPIs = ({
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/contract-kpis`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   }
@@ -117,7 +117,7 @@ export const useGetKPIExcel = ({
     url: `/v1/operational/kpi-data/${pathParams.projectId}/excel`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   }

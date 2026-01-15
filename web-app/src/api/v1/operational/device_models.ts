@@ -20,7 +20,7 @@ export const useGetDeviceModels = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   }

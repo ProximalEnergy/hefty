@@ -17,7 +17,7 @@ export const useGetPVBudgetedSeries = ({
     url: `/v1/operational/projects/${pathParams.projectId}/pv-budgeted/series`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 0, // always consider stale so invalidation refetches immediately
     refetchOnMount: 'always',

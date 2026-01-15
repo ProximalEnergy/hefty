@@ -31,7 +31,7 @@ export const useGetBatterySettlementDetails = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/battery-settlement`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }

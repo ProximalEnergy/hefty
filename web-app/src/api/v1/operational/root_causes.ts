@@ -20,7 +20,7 @@ export const useGetRootCauses = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<RootCause[]>({
     axiosConfig,

@@ -74,7 +74,7 @@ export const useGetUnreadNotificationCount = ({
     url: `/v1/admin/notifications/unread-count`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 30 * 1000, // 30 seconds - count doesn't need to be super fresh
     refetchInterval: 30 * 1000, // Refetch every 30 seconds to check for new notifications

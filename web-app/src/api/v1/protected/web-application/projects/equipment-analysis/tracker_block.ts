@@ -20,7 +20,7 @@ export const useGetEquipmentAnalysisTrackerBlock = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/tracker/${pathParams.deviceId}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

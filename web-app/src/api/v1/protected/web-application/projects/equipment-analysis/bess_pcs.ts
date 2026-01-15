@@ -20,7 +20,7 @@ export const useGetEquipmentAnalysisBESSPCS = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/bess-pcs`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<EquipmentAnalysisBESSPCS[]>({
     axiosConfig,

@@ -24,6 +24,16 @@ jobs:
         run: ./_pr_checks/deprecator.sh
         working-directory: web-app
 
+  default-query-options-no-explicit-type:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Run Semgrep default-query-options-no-explicit-type check
+        run: uvx semgrep --error --config _scripts/rules/default-query-options-no-explicit-type.yaml
+
   typescript_checker:
     runs-on: ubuntu-latest
     steps:

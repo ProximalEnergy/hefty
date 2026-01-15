@@ -81,7 +81,7 @@ export const useGetInverters = ({
     url: `/v1/operational/pv-inverters`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minute
     enabled: inverter_ids.length > 0 || device_model_ids.length > 0,
@@ -105,7 +105,7 @@ export const useGetInverterIdsByManufacturerAndModel = ({
     url: `/v1/operational/pv-inverters/lookup-ids`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minute
     enabled: manufacturers.length > 0 && models.length > 0,
@@ -132,7 +132,7 @@ export const useGetProximalInverterManufacturers = ({
     url: `/v1/operational/pv-inverters/manufacturers`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minute
     enabled: !!company_id,
@@ -165,7 +165,7 @@ export const useGetProximalInverterModels = ({
     url: `/v1/operational/pv-inverters/models`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minute
     enabled: !!manufacturer && !!company_id,

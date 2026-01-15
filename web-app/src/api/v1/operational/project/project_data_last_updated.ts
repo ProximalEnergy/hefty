@@ -13,7 +13,7 @@ export const useGetDataLastUpdated = ({
     url: `/v1/operational/projects/${pathParams.projectId}/data-last-updated`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     refetchInterval: 1000 * 30,
   }

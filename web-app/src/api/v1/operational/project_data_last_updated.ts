@@ -21,7 +21,7 @@ export const useGetProjectDataLastUpdated = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     refetchInterval: 1000 * 30,
   }

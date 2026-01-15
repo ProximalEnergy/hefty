@@ -32,7 +32,7 @@ export const useGetDeviceDetailsVertical = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/vertical`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   }
@@ -69,7 +69,7 @@ export const useGetDeviceDetailsVerticalController = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/device-details/vertical/controller/${pathParams.device_id}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   }

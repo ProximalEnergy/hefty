@@ -51,7 +51,7 @@ export const useGetDroneIntegrations = ({
   const axiosConfig = {
     url: '/v1/operational/drone-integrations',
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
@@ -71,7 +71,7 @@ export const useGetDroneProviders = ({
   const axiosConfig = {
     url: '/v1/operational/drone-providers',
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
@@ -161,7 +161,7 @@ export const useGetDronePermissions = ({
   const axiosConfig = {
     url: '/v1/operational/drone-permissions',
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
@@ -342,7 +342,7 @@ export const useGetDroneInspections = ({
   const axiosConfig = {
     url: `v1/operational/projects/${pathParams.projectId}/drone-inspections`,
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<DroneInspection[]>({
     axiosConfig,
@@ -396,7 +396,7 @@ export const useGetDroneAnomalies = ({
   const axiosConfig = {
     url: `v1/operational/projects/${pathParams.projectId}/drone-inspections/${pathParams.inspectionId}/anomalies`,
   }
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
   return useCustomQuery<DroneAnomaly[]>({
     axiosConfig,
     queryName: `getDroneAnomalies-${pathParams.projectId}-${pathParams.inspectionId}`,

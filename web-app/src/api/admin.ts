@@ -33,7 +33,7 @@ export const useGetUserType = ({
     url: '/v1/admin/user-type',
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -54,7 +54,7 @@ export const useGetAllPermissions = ({
     url: `/v1/admin/permissions`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -77,7 +77,7 @@ export const useGetCompanyPermissions = ({
     url: `/v1/admin/permissions/projects/${pathParams.projectId}/company`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -101,7 +101,7 @@ export const useGetCompanyUsersPermissions = ({
     url: `/v1/admin/permissions/projects/${pathParams.projectId}/company-users`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -125,7 +125,7 @@ export const useGetUserPermissions = ({
     url: `/v1/admin/permissions/projects/${pathParams.projectId}/user`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -236,7 +236,7 @@ export const useGetUsers = ({
     url: `/v1/admin/users`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -258,7 +258,7 @@ export const useGetUserSelf = ({
     url: `/v1/admin/users/self`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -281,7 +281,7 @@ export const useGetCompanies = ({
     url: `/v1/admin/companies`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -303,7 +303,7 @@ export const useGetCompanyTeams = ({
     url: `/v1/admin/teams/company`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -324,7 +324,7 @@ export const useGetCompanyTeamsWithMembers = ({
     url: `/v1/admin/teams/company/members`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -369,7 +369,7 @@ export const useGetTeamsWithMembers = ({
     url: `/v1/admin/teams/members`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

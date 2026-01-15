@@ -28,7 +28,7 @@ export const useGetPvModules = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -52,7 +52,7 @@ export const useGetProximalPVModuleManufacturers = ({
     url: `/v1/operational/pv-modules/manufacturers`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
   }
@@ -76,7 +76,7 @@ export const useGetProximalPVModuleModels = ({
     url: `/v1/operational/pv-modules/models`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
     enabled: !!queryParams?.manufacturer,
@@ -106,7 +106,7 @@ export const useGetPVModuleIdsByManufacturerAndModel = ({
     url: `/v1/operational/pv-modules/lookup-ids`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 1, // 1 minutes
     enabled: manufacturers.length > 0 && models.length > 0,
@@ -133,7 +133,7 @@ export const useGetPVModuleDetails = ({
     url: `/v1/operational/pv-modules`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 1, // 1 seconds
     enabled: queryParams.pv_module_ids.length > 0,

@@ -31,7 +31,7 @@ export const useGetSolarPosition = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 30000, // 30 seconds
   }

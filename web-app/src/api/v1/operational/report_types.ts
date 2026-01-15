@@ -43,7 +43,7 @@ export const useGetReportTypes = ({
     params: queryParams,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

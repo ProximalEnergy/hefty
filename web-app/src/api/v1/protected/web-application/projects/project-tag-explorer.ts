@@ -85,7 +85,7 @@ export const useGetTagsByPattern = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/project-tag-explorer/tag-pattern-tags/${encodeURIComponent(pathParams.tagPattern)}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 300000,
     enabled: false,
@@ -116,7 +116,7 @@ export const useGetUniqueTagTypes = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/project-tag-explorer/unique-tag-types`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 300000, // 5 minutes
   }
@@ -143,7 +143,7 @@ export const useGetTagPatternSamples = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/project-tag-explorer/tag-pattern-samples/${encodeURIComponent(pathParams.tagPattern)}`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     enabled: false,

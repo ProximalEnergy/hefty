@@ -37,7 +37,7 @@ export const useGetKPISummaryCards = ({
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/kpi-summary-cards`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
@@ -70,7 +70,7 @@ export const useGetRoundTripEfficiency = ({
     url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/rte`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }

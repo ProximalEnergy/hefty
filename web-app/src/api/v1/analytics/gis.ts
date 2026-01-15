@@ -60,7 +60,7 @@ export const useGetDevicesInViewport = ({
   }
 
   // Default options - adjust staleTime/refetch as needed for viewport data
-  const defaultQueryOptions: Partial<UseQueryOptions<DeviceWithPower[]>> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // Cache viewport data for 5 minutes?
   }

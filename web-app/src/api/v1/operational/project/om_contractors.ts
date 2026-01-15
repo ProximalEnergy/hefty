@@ -34,7 +34,7 @@ export const useGetOMContractorScopes = ({
     url: `/v1/operational/projects/${pathParams.projectId}/om-contractors`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5,
   }

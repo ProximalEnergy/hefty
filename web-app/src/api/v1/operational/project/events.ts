@@ -42,7 +42,7 @@ export const useGetEventsSummary = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/get-events-summary`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<EventSummary[]>({
     axiosConfig,
@@ -64,7 +64,7 @@ export const useGetEventDevices = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-devices`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<types.EventDeviceInfo>({
     axiosConfig,
@@ -89,7 +89,7 @@ export const useGetEventTraceTags = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-trace-tags`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<Tag[]>({
     axiosConfig,
@@ -111,7 +111,7 @@ export const useGetEventAnomalies = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/${pathParams.eventId}/anomalies`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<DroneAnomaly[]>({
     axiosConfig,
@@ -170,7 +170,7 @@ export const useGetEventLossesSummary = ({
     url: `/v1/operational/projects/${pathParams.projectId}/events/event-losses-summary`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {}
+  const defaultQueryOptions = {}
 
   return useCustomQuery<EventLossesSummary>({
     axiosConfig,

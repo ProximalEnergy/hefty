@@ -20,7 +20,7 @@ export const useGetPresignedUrl = ({
     url: `/v1/operational/aws/retrieve-presigned-url`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }
@@ -44,7 +44,7 @@ export const useGetBucketListdir = ({
     url: `/v1/operational/aws/listdir`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   }

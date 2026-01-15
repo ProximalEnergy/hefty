@@ -17,12 +17,11 @@ export const useGetDeviceTypePowerSummary = ({
     url: `/v1/protected/web-application/projects/${pathParams.projectId}/real-time/device-type-overview/power-summary`,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions<DeviceTypePowerSummary>> =
-    {
-      refetchOnWindowFocus: false,
-      staleTime: 30 * 1000, // Cache for 30 seconds since this is real-time data
-      refetchInterval: 30 * 1000, // Refetch every 30 seconds
-    }
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: 30 * 1000, // Cache for 30 seconds since this is real-time data
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds
+  }
 
   const combinedQueryOptions = { ...defaultQueryOptions, ...queryOptions }
 

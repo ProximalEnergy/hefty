@@ -25,7 +25,7 @@ export const useGetDeviceDetailsHorizontalPV = ({
     url: URL,
   }
 
-  const defaultQueryOptions: Partial<UseQueryOptions> = {
+  const defaultQueryOptions = {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   }
