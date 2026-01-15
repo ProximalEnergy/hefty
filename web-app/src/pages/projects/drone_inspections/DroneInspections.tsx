@@ -69,6 +69,7 @@ const DroneInspections: React.FC = () => {
 
   const timelineRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const syncedAnomalyInspections = useRef<Set<string>>(new Set())
 
   const currentIntegration = React.useMemo(() => {
     if (!integrations || !projectId) return null
@@ -240,6 +241,30 @@ const DroneInspections: React.FC = () => {
       refetchAnomalies()
     }
   }, [isSyncAnomaliesSuccess, refetchAnomalies])
+
+  // Auto-sync anomalies when no anomalies found for selected inspection
+  useEffect(() => {
+    const inspectionId = selectedInspection?.inspection_uuid
+    if (
+      hasPermission &&
+      !anomaliesLoading &&
+      anomalies &&
+      anomalies.length === 0 &&
+      !isSyncingAnomalies &&
+      inspectionId &&
+      !syncedAnomalyInspections.current.has(inspectionId)
+    ) {
+      syncedAnomalyInspections.current.add(inspectionId)
+      syncAnomalies()
+    }
+  }, [
+    hasPermission,
+    anomaliesLoading,
+    anomalies,
+    isSyncingAnomalies,
+    selectedInspection,
+    syncAnomalies,
+  ])
 
   // Create table instance
   const anomalyTable = useMantineReactTable({
