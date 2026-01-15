@@ -73,28 +73,6 @@ async def delete_clerk_user(*, user_id: str):
     return clerk_delete
 
 
-async def get_user_email_from_clerk(*, user_id: str, api_prod: bool) -> str | None:
-    """Get user email from Clerk.
-
-    Args:
-        user_id: TODO: describe.
-        api_prod: TODO: describe.
-    """
-    # Use the correct Clerk secret key based on environment
-    clerk_secret_key = (
-        settings.CLERK_SECRET_KEY if api_prod else settings.CLERK_SECRET_KEY_DEVELOPMENT
-    )
-
-    try:
-        with Clerk(bearer_auth=clerk_secret_key) as clerk:
-            clerk_user = clerk.users.get(user_id=user_id)
-            if clerk_user and clerk_user.email_addresses:
-                return str(clerk_user.email_addresses[0].email_address)
-    except models.ClerkErrors:
-        pass
-    return None
-
-
 async def send_onboarding_email(*, email: str, name: str, password: str) -> None:
     """Send an onboarding email to a user.
 

@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.28"
+version = "0.3.29"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -22,6 +22,9 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "httpx>=0.28.1",
     "shapely>=2.1.2",
+    "boto3 >=1.38,<2",
+    "clerk-backend-api>=3.3.1, <=4.0.0",
+    "botocore~=1.41.2",
 ]
 
 [project.scripts]

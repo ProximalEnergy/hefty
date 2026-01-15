@@ -12,6 +12,7 @@ from core.crud.admin.users import get_users
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
 from core.dependencies import with_db_async
+from core.utils.user_management import get_user_email_from_clerk
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -46,7 +47,6 @@ from app._crud.projects import (
 from app._crud.projects import (
     event_messages as crud_event_messages,
 )
-from app._utils.user_management import get_user_email_from_clerk
 from app.dependencies import (
     check_project_access_async,
     get_project_name_short_async,

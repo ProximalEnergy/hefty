@@ -5,6 +5,7 @@ from typing import Annotated
 from core.crud.admin.users import get_user
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
+from core.utils.user_management import get_user_email_from_clerk
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,10 +17,7 @@ from app._crud.operational.drone_integrations import (
     get_drone_integrations,
     update_drone_integration,
 )
-from app._utils.user_management import (
-    get_user_email_from_clerk,
-    send_drone_inspection_order_email,
-)
+from app._utils.user_management import send_drone_inspection_order_email
 from app.dependencies import (
     get_async_db,
     get_user_data_async,
