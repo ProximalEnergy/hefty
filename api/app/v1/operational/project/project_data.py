@@ -555,19 +555,19 @@ async def get_timeseries_v3(
         time_series = pd.to_datetime(df.index)
         # Apply ffill() then fillna(0) to all columns (time is in index)
         data_columns: list[str] = list(df.columns)
-        df[data_columns] = df[data_columns].ffill().fillna(0)
+        df[data_columns] = df[data_columns].ffill().fillna(0).infer_objects(copy=False)
     elif "time" in df.columns:
         time_col = "time"
         time_series = pd.to_datetime(df[time_col])
         # Apply ffill() then fillna(0) to all columns except time
         data_columns = [col for col in df.columns if col != time_col]
-        df[data_columns] = df[data_columns].ffill().fillna(0)
+        df[data_columns] = df[data_columns].ffill().fillna(0).infer_objects(copy=False)
     elif "time_bucket" in df.columns:
         time_col = "time_bucket"
         time_series = pd.to_datetime(df[time_col])
         # Apply ffill() then fillna(0) to all columns except time_bucket
         data_columns = [col for col in df.columns if col != time_col]
-        df[data_columns] = df[data_columns].ffill().fillna(0)
+        df[data_columns] = df[data_columns].ffill().fillna(0).infer_objects(copy=False)
     else:
         return []
 

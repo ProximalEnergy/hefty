@@ -2,8 +2,14 @@ import datetime
 import typing
 from typing import Annotated
 
+import core.crud.project.data_expected
+import core.crud.project.data_timeseries_last
+import core.crud.project.devices
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
+from core.crud.project.data_timeseries_last import (
+    get_data_timeseries_latest_by_device_type,
+)
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
@@ -16,9 +22,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
-from app._crud.projects.data_timeseries_latest import (
-    get_data_timeseries_latest_by_device_type,
-)
 from app.dependencies import get_project_db
 from app.logger import logger
 from core import models
@@ -54,6 +57,25 @@ def _extract_numeric_value(*, row) -> float | None:
     return None
 
 
+def _extract_numeric_value_from_row(*, row) -> float | None:
+    """Return the first non-NULL numeric column from a DataFrame row (named tuple)."""
+    # todo: unit_offset is not applied in this function however it should probably be
+    # applied in the get_data_timeseries_latest_by_device_type function instead
+    for attr in (
+        "value_integer",
+        "value_bigint",
+        "value_real",
+        "value_double",
+    ):
+        value = getattr(row, attr)
+        if value is not None and not pd.isna(value):
+            value = float(value)
+            if hasattr(row, "unit_scale") and row.unit_scale is not None:
+                value = value * row.unit_scale
+            return float(value)
+    return None
+
+
 # --- 2) optional: human names for each sensor_type_id you care about --------------
 SENSOR_TYPE_NAME = {
     2: "AC Power",
@@ -67,6 +89,7 @@ SENSOR_TYPE_NAME = {
     82: "Voltage",
     106: "AC Power",
     121: "AC Power",
+    130: "AC Power",
 }
 
 
@@ -201,14 +224,14 @@ async def get_by_device_type_id(
         sensor_type_ids: TODO: describe.
         project_db: TODO: describe.
     """
-    data_rows = get_data_timeseries_latest_by_device_type(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+
+    data_df = await get_data_timeseries_latest_by_device_type(
         device_type_id=device_type_id,
         sensor_type_ids=sensor_type_ids,
-        start=None,
-    )
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    if not data_rows:
+    if data_df.empty:
         return {  # empty stub so TS side stays happy
             "device_ids": [],
             "device_names": [],
@@ -218,16 +241,9 @@ async def get_by_device_type_id(
         }
 
     # ── build *unique* device list in deterministic order ───────────────────────
-    device_ids: list[int] = []
-    seen = set()
-    for row in data_rows:
-        did = row.tag.device_id
-        if did not in seen:
-            seen.add(did)
-            device_ids.append(did)
+    device_ids: list[int] = data_df["device_id"].unique().tolist()
 
     # ── device metadata (names) --------------------------------------------------
-    project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
         device_type_ids=[device_type_id],
@@ -244,24 +260,29 @@ async def get_by_device_type_id(
         )
     )
 
-    device_names: list[str | None] = [name_by_id[d] for d in device_ids]
+    device_names: list[str | None] = [name_by_id.get(d) for d in device_ids]
     # Sort device_ids and device_names together using natural sort on device_names
     sorted_pairs = natsorted(
         zip(device_names, device_ids), key=lambda x: x[0] if x[0] else ""
     )
     if sorted_pairs:
-        device_names, device_ids = map(list, zip(*sorted_pairs))
+        device_names, device_ids = map(list, zip(*sorted_pairs))  # type: ignore[assignment]
     device_names_y: list[str] = [".".join(str(n).split(".")[:-1]) for n in device_names]
     device_names_x: list[str] = [str(n).split(".")[-1] for n in device_names]
 
     # ── organize the data into {sensor_type_id: {device_id: value}} -------------
     values_by_sensor: dict[int, dict[int, float | None]] = {}
     times_by_sensor: dict[int, dict[int, datetime.datetime]] = {}
-    for row in data_rows:
-        sid = row.tag.sensor_type_id
-        did = row.tag.device_id
-        values_by_sensor.setdefault(sid, {})[did] = _extract_numeric_value(row=row)
-        times_by_sensor.setdefault(sid, {})[did] = row.time
+
+    for row in data_df.itertuples(index=False):
+        sid = typing.cast(int, row.sensor_type_id)
+        did = typing.cast(int, row.device_id)
+        values_by_sensor.setdefault(sid, {})[did] = _extract_numeric_value_from_row(
+            row=row
+        )
+        times_by_sensor.setdefault(sid, {})[did] = typing.cast(
+            datetime.datetime, row.time
+        )
 
     # ── fetch all sensor types at once for name_short lookup -------------------
     sensor_type_ids = list(values_by_sensor.keys())

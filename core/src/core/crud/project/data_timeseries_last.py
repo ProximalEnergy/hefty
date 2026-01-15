@@ -1,30 +1,27 @@
-from uuid import UUID
+from datetime import datetime
 
-from sqlalchemy import extract, func, select  # Make sure to import 'select'
+from sqlalchemy import extract, func, select
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session, joinedload
 
 from core import models
+from core.db_query import DbQuery
 from core.enumerations import DeviceType, SensorType
 from core.model_list import ModelList
 
 
 def get_data_timeseries_latest_by_device_type(
-    db: Session,
     *,
-    project_id: UUID,
     device_type_id: int,
     sensor_type_ids: list[int] | None = None,
-    return_query: bool = False,
-) -> ModelList[models.DataTimeseriesLast]:
+    start: datetime | None = None,
+) -> DbQuery:
     """Fetch the latest timeseries rows for a device type and sensors.
 
     Args:
-        db: Project database session.
-        project_id: Project id for scoping the query.
         device_type_id: Device type id used to infer default sensors.
         sensor_type_ids: Optional sensor type ids to filter by.
-        return_query: Return the query without executing when True.
+        start: Optional start time to filter by.
     """
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
@@ -42,11 +39,23 @@ def get_data_timeseries_latest_by_device_type(
         }
         sensor_type_ids = device_type_id_to_sensor_type_ids.get(device_type_id, [])
 
-    query = db.query(models.DataTimeseriesLast).options(
-        joinedload(models.DataTimeseriesLast.tag),
-    )
-    query = query.join(models.Tag).where(models.Tag.sensor_type_id.in_(sensor_type_ids))
-    return ModelList(query=query, return_query=return_query)
+    stmt = select(
+        models.DataTimeseriesLast.value_integer,
+        models.DataTimeseriesLast.value_bigint,
+        models.DataTimeseriesLast.value_real,
+        models.DataTimeseriesLast.value_double,
+        models.DataTimeseriesLast.time,
+        models.Tag.device_id,
+        models.Tag.sensor_type_id,
+        models.Tag.unit_scale,
+    ).join(models.Tag)
+
+    stmt = stmt.where(models.Tag.sensor_type_id.in_(sensor_type_ids))
+
+    if start:
+        stmt = stmt.where(models.DataTimeseriesLast.time >= start)
+
+    return DbQuery(query=stmt)
 
 
 def get_data_timeseries_last(
