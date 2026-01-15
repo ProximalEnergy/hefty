@@ -8,6 +8,7 @@ from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import ORJSONResponse
+from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy import Float, cast, func, select
 from sqlalchemy.dialects.postgresql import array
@@ -244,7 +245,12 @@ async def get_by_device_type_id(
     )
 
     device_names: list[str | None] = [name_by_id[d] for d in device_ids]
-    # device_names = natsorted(device_names)
+    # Sort device_ids and device_names together using natural sort on device_names
+    sorted_pairs = natsorted(
+        zip(device_names, device_ids), key=lambda x: x[0] if x[0] else ""
+    )
+    if sorted_pairs:
+        device_names, device_ids = map(list, zip(*sorted_pairs))
     device_names_y: list[str] = [".".join(str(n).split(".")[:-1]) for n in device_names]
     device_names_x: list[str] = [str(n).split(".")[-1] for n in device_names]
 
