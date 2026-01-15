@@ -519,7 +519,7 @@ const KPICards = () => {
   )
 
   const favoritedKPITypes = useGetUserFavoriteKPITypes({
-    userId: user?.user_id,
+    queryParams: { user_id: user?.user_id || '' },
   })
 
   const kpiTypeIds = favoritedKPITypes.data?.map(

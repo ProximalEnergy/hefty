@@ -434,7 +434,7 @@ const ProjectKPIHome = () => {
   const { data: user } = useGetUserSelf({})
   const project = useSelectProject(projectId!)
   const { data: favoriteKpis } = useGetUserFavoriteKPITypes({
-    userId: user?.user_id,
+    queryParams: { user_id: user?.user_id || '' },
   })
   const updateUserKPITypeFavorite = useUpdateUserKPITypeFavoriteMutation()
   const [searchParams, setSearchParams] = useSearchParams()

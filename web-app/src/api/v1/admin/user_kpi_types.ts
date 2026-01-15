@@ -1,3 +1,4 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -8,27 +9,33 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-interface UserKPIType {
-  user_id: string
-  kpi_type_id: number
-  is_favorited: boolean
-}
+const URL = '/v1/admin/user-kpi-types/favorite'
+const _COMPONENT_NAME = 'UserKPITypes'
+
+type UserKPIType = types.components['schemas'][typeof _COMPONENT_NAME]
+type get = types.paths[typeof URL]['get']
+type getQueryParams = get['parameters']['query']
 
 export const useGetUserFavoriteKPITypes = ({
-  userId,
+  queryParams,
   queryOptions = {},
 }: {
-  userId: string | undefined
-  queryOptions?: Partial<UseQueryOptions<UserKPIType[]>>
+  queryParams: getQueryParams
+  queryOptions?: Partial<UseQueryOptions>
 }) => {
+  const axiosConfig = {
+    url: URL,
+  }
+
+  const defaultQueryOptions: Partial<UseQueryOptions> = {
+    enabled: queryParams.user_id !== '',
+  }
+
   return useCustomQuery<UserKPIType[]>({
-    axiosConfig: { url: `/v1/admin/user-kpi-types/favorite` },
+    axiosConfig,
     queryName: 'getUserFavoriteKPITypes',
-    queryParams: { user_id: userId },
-    queryOptions: {
-      enabled: !!userId,
-      ...queryOptions,
-    },
+    queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 
