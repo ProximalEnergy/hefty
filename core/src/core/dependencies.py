@@ -62,7 +62,12 @@ async def with_db_async(
 
     db: AsyncSession | None = None
     try:
-        db = AsyncSession(autocommit=False, autoflush=False, bind=connectable)
+        db = AsyncSession(
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False,
+            bind=connectable,
+        )
         yield db
     finally:
         if db:

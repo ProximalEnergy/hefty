@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.33"
+version = "0.3.34"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -25,6 +25,7 @@ dependencies = [
     "boto3 >=1.38,<2",
     "clerk-backend-api>=3.3.1, <=4.0.0",
     "botocore~=1.41.2",
+    "jinja2>=3.1.6",
 ]
 
 [project.scripts]
