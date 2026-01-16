@@ -2534,15 +2534,15 @@ export interface paths {
         };
         /**
          * Get Data Timeseries Last
-         * @description todo
+         * @description Fetch the latest timeseries data with optional filters and unit scaling.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
+         *         project_db: Project database session.
+         *         tag_ids: Optional tag ids to filter by.
+         *         device_type_ids: Optional device type ids to filter by.
+         *         sensor_type_ids: Optional sensor type ids to filter by.
+         *         device_ids: Optional device ids to filter by.
+         *         include_ghost_tags: Include tags without sensor_type_id when True.
          */
         get: operations["get_data_timeseries_last_v1_operational_projects__project_id__data_timeseries_last_get"];
         put?: never;
@@ -5950,12 +5950,12 @@ export interface paths {
         };
         /**
          * Get Data Availability
-         * @description todo
+         * @description Calculate data availability and staleness for a given set of device types.
          *
          *     Args:
-         *         device_type_ids: TODO: describe.
-         *         project_db: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
+         *         device_type_ids: Device type ids to filter by.
+         *         project_db: Project database session.
+         *         include_ghost_tags: Include tags without sensor_type_id when True.
          */
         get: operations["get_data_availability_v1_protected_web_application_projects__project_id__device_details_data_availability_get"];
         put?: never;

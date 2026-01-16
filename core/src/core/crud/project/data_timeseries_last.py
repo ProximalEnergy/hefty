@@ -3,12 +3,11 @@ from typing import Any, Literal
 
 from sqlalchemy import extract, func, select
 from sqlalchemy.dialects.postgresql import array
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import joinedload
 
 from core import models
 from core.db_query import DbQuery
 from core.enumerations import DeviceType, SensorType
-from core.model_list import ModelList
 
 
 def get_data_timeseries_latest_by_device_type(
@@ -60,78 +59,70 @@ def get_data_timeseries_latest_by_device_type(
 
 
 def get_data_timeseries_last(
-    project_db: Session,
     *,
     device_type_ids: list[int] | None = None,
     sensor_type_ids: list[int] | None = None,
     tag_ids: list[int] | None = None,
     device_ids: list[int] | None = None,
     deep: bool = False,
-    return_query: bool = False,
     include_ghost_tags: bool = False,
-) -> ModelList[models.DataTimeseriesLast]:
+) -> DbQuery[models.DataTimeseriesLast, Literal[False]]:
     """Query the latest timeseries values with optional filters.
 
     Args:
-        project_db: Project database session.
         device_type_ids: Device type ids to filter tags by.
         sensor_type_ids: Sensor type ids to filter tags by.
         tag_ids: Tag ids to filter results by.
         device_ids: Device ids to filter tags by.
         deep: Whether to eager-load tag and device relationships.
-        return_query: Return the query without executing when True.
         include_ghost_tags: Include tags without sensor_type_id when True.
     """
-    query = project_db.query(models.DataTimeseriesLast)
-    tag_sets: list[set[int]] = []
-    if sensor_type_ids:
-        tags = project_db.query(models.Tag).where(
-            models.Tag.sensor_type_id.in_(sensor_type_ids)
+    stmt = select(models.DataTimeseriesLast)
+
+    if (
+        device_type_ids
+        or sensor_type_ids
+        or device_ids
+        or not include_ghost_tags
+        or deep
+    ):
+        stmt = stmt.join(
+            models.Tag, models.DataTimeseriesLast.tag_id == models.Tag.tag_id
         )
-        tag_items = tags.all()
-        tag_ids_filtered = {tag.tag_id for tag in tag_items}
-        tag_sets.append(tag_ids_filtered)
 
     if device_type_ids:
-        Device = models.Device
-        tags = (
-            project_db.query(models.Tag)
-            .join(Device, models.Tag.device)  # Explicit join via relationship
-            .where(Device.device_type_id.in_(device_type_ids))
+        stmt = stmt.join(models.Device, models.Tag.device_id == models.Device.device_id)
+        stmt = stmt.where(
+            models.Device.device_type_id == func.any(array(device_type_ids))
         )
-        tag_items = tags.all()
-        tag_ids_filtered = {tag.tag_id for tag in tag_items}
-        tag_sets.append(tag_ids_filtered)
+    elif deep:
+        stmt = stmt.join(models.Device, models.Tag.device_id == models.Device.device_id)
+
+    if sensor_type_ids:
+        stmt = stmt.where(models.Tag.sensor_type_id == func.any(array(sensor_type_ids)))
 
     if device_ids:
-        tags = project_db.query(models.Tag).where(models.Tag.device_id.in_(device_ids))
-        tag_items = tags.all()
-        tag_ids_filtered = {tag.tag_id for tag in tag_items}
-        tag_sets.append(tag_ids_filtered)
+        stmt = stmt.where(models.Tag.device_id == func.any(array(device_ids)))
 
     if tag_ids:
-        tag_sets.append(set(tag_ids))
-
-    if tag_sets:
-        final_tag_ids: list[int] = list(set.intersection(*tag_sets))
-        query = query.where(models.DataTimeseriesLast.tag_id.in_(final_tag_ids))
+        stmt = stmt.where(models.DataTimeseriesLast.tag_id == func.any(array(tag_ids)))
 
     if not include_ghost_tags:
-        # Join with Tag table to filter out tags with no sensor_type_id (i.e.,
-        # ghost tags)
-        subq = (
-            project_db.query(models.Tag.tag_id)
-            .where(models.Tag.sensor_type_id > 0)
-            .subquery()
-        )
-        query = query.where(models.DataTimeseriesLast.tag_id.in_(select(subq)))
+        stmt = stmt.where(models.Tag.sensor_type_id > 0)
 
     if deep:
-        query = query.options(
+        stmt = stmt.add_columns(
+            models.Tag.unit_scale,
+            models.Tag.unit_offset,
+            models.Tag.device_id,
+            models.Tag.sensor_type_id,
+            models.Device.device_type_id,
+            models.Device.name_long.label("device_name"),
+        ).options(
             joinedload(models.DataTimeseriesLast.tag).joinedload(models.Tag.device)
         )
 
-    return ModelList(query=query, return_query=return_query)
+    return DbQuery(query=stmt)
 
 
 def get_data_timeseries_last_v2(

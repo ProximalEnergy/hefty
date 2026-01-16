@@ -33,30 +33,6 @@ router = APIRouter(
 )
 
 
-# --- 1) helper to convert a DataTimeseriesLast row into a single float -------------
-def _extract_numeric_value(*, row) -> float | None:
-    """Return the first non-NULL numeric column from a DataTimeseriesLast row.
-
-    Args:
-        row: TODO: describe.
-    """
-    # todo: unit_offset is not applied in this function however it should probably be
-    # applied in the get_data_timeseries_latest_by_device_type function instead
-    for attr in (
-        "value_integer",
-        "value_bigint",
-        "value_real",
-        "value_double",
-    ):
-        value = getattr(row, attr)
-        if value is not None:
-            value = float(value)
-            if row.tag.unit_scale is not None:
-                value = value * row.tag.unit_scale
-            return float(value)
-    return None
-
-
 def _extract_numeric_value_from_row(*, row) -> float | None:
     """Return the first non-NULL numeric column from a DataFrame row (named tuple)."""
     # todo: unit_offset is not applied in this function however it should probably be
@@ -500,65 +476,62 @@ async def _calculate_dc_combiner_power_sum(
             )
 
     # Fetch latest currents at combiner level from timeseries_last
-    rows_current = core.crud.project.data_timeseries_last.get_data_timeseries_last(
-        project_db,
+    df_current = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
         device_ids=device_ids,
         sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         deep=True,
         include_ghost_tags=False,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    if not rows_current:
+    if df_current.empty:
         return None
 
     # Fetch latest voltages (prefer module voltage 38; fallback to PCS voltage 144)
-    rows_voltage_modules = []
+    df_voltage_modules = pd.DataFrame()
     if module_ids:
-        rows_voltage_modules = (
-            core.crud.project.data_timeseries_last.get_data_timeseries_last(
-                project_db,
+        df_voltage_modules = (
+            await core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=module_ids,
                 sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
                 deep=True,
                 include_ghost_tags=False,
-            ).models()
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         )
 
     using_pcs_level_voltage = False
-    rows_voltage_pcs = []
-    if not rows_voltage_modules:
-        rows_voltage_pcs = (
-            core.crud.project.data_timeseries_last.get_data_timeseries_last(
-                project_db,
+    df_voltage_pcs = pd.DataFrame()
+    if df_voltage_modules.empty:
+        df_voltage_pcs = (
+            await core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=[pid for pid in parent_pcs_ids if pid is not None],
                 sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
                 deep=True,
                 include_ghost_tags=False,
-            ).models()
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         )
         using_pcs_level_voltage = True
 
-    if not rows_voltage_modules and not rows_voltage_pcs:
+    if df_voltage_modules.empty and df_voltage_pcs.empty:
         return None
 
     # Build value maps (extract numeric with unit_scale)
     current_by_combiner: dict[int, float] = {}
-    for row in rows_current:
-        value = _extract_numeric_value(row=row)
+    for row in df_current.itertuples(index=False):
+        value = _extract_numeric_value_from_row(row=row)
         if value is not None:
-            current_by_combiner[row.tag.device_id] = value
+            current_by_combiner[typing.cast(int, row.device_id)] = value
 
     voltage_by_module: dict[int, float] = {}
-    for row in rows_voltage_modules:
-        value = _extract_numeric_value(row=row)
+    for row in df_voltage_modules.itertuples(index=False):
+        value = _extract_numeric_value_from_row(row=row)
         if value is not None:
-            voltage_by_module[row.tag.device_id] = value
+            voltage_by_module[typing.cast(int, row.device_id)] = value
 
     voltage_by_pcs: dict[int, float] = {}
-    for row in rows_voltage_pcs:
-        value = _extract_numeric_value(row=row)
+    for row in df_voltage_pcs.itertuples(index=False):
+        value = _extract_numeric_value_from_row(row=row)
         if value is not None:
-            voltage_by_pcs[row.tag.device_id] = value
+            voltage_by_pcs[typing.cast(int, row.device_id)] = value
 
     # Calculate power for each combiner using last values
     total_power_MW = 0.0

@@ -547,35 +547,36 @@ async def get_data_availability(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
-    """todo
+    """Calculate data availability and staleness for a given set of device types.
 
     Args:
-        device_type_ids: TODO: describe.
-        project_db: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        device_type_ids: Device type ids to filter by.
+        project_db: Project database session.
+        include_ghost_tags: Include tags without sensor_type_id when True.
     """
-    data = core.crud.project.data_timeseries_last.get_data_timeseries_last(
-        project_db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    df = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
         device_type_ids=device_type_ids,
         deep=True,
         include_ghost_tags=include_ghost_tags,
-    )
-    df = data.pandas_dataframe()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+
     if df.empty:
         return []
-    df = df[["tag_id", "time"]]
-    df["age"] = (
-        pd.Timestamp.now(tz="UTC") - pd.to_datetime(df["time"])
-    ).dt.total_seconds()
-    tags_to_types = {d.tag.tag_id: d.tag.sensor_type_id for d in data}
-    tags_to_devices = {d.tag.tag_id: d.tag.device_id for d in data}
-    tags_to_device_types = {d.tag.tag_id: d.tag.device.device_type_id for d in data}
-    tags_to_device_names = {d.tag.tag_id: d.tag.device.name_long for d in data}
 
-    df["sensor_type_id"] = df["tag_id"].map(tags_to_types)
-    df["device_id"] = df["tag_id"].map(tags_to_devices)
-    df["device_type_id"] = df["tag_id"].map(tags_to_device_types)
-    df["device_name"] = df["tag_id"].map(tags_to_device_names)
+    df = df[
+        [
+            "tag_id",
+            "time",
+            "sensor_type_id",
+            "device_id",
+            "device_type_id",
+            "device_name",
+        ]
+    ]
+    df["age"] = (
+        pd.Timestamp.now(tz="UTC") - pd.to_datetime(df["time"], utc=True)
+    ).dt.total_seconds()
 
     max_ages = df.groupby("sensor_type_id")["age"].median() * 2
     max_ages = max_ages.apply(lambda x: max(x, 3600))

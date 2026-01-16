@@ -1,9 +1,11 @@
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 import core
+from app import utils
 from app.dependencies import get_project_db
 
 router = APIRouter(
@@ -13,7 +15,7 @@ router = APIRouter(
 
 
 @router.get("")
-def get_data_timeseries_last(
+async def get_data_timeseries_last(
     project_db: Annotated[Session, Depends(get_project_db)],
     tag_ids: Annotated[list[int] | None, Query()] = None,
     device_type_ids: Annotated[list[int] | None, Query()] = None,
@@ -21,51 +23,49 @@ def get_data_timeseries_last(
     device_ids: Annotated[list[int] | None, Query()] = None,
     include_ghost_tags: Annotated[bool, Query()] = False,
 ):
-    """todo
+    """Fetch the latest timeseries data with optional filters and unit scaling.
 
     Args:
-        project_db: TODO: describe.
-        tag_ids: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        device_ids: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        project_db: Project database session.
+        tag_ids: Optional tag ids to filter by.
+        device_type_ids: Optional device type ids to filter by.
+        sensor_type_ids: Optional sensor type ids to filter by.
+        device_ids: Optional device ids to filter by.
+        include_ghost_tags: Include tags without sensor_type_id when True.
     """
-    data = core.crud.project.data_timeseries_last.get_data_timeseries_last(
-        project_db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    df = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
         tag_ids=tag_ids,
         device_type_ids=device_type_ids,
         sensor_type_ids=sensor_type_ids,
         device_ids=device_ids,
         include_ghost_tags=include_ghost_tags,
         deep=True,
-    )
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    # Only call .models() once so we don’t re-hit the DB
-    models_ = data.models()
+    if df.empty:
+        return []
 
-    for d in models_:
-        tag = d.tag
-        if tag is None:
-            continue
+    # Perform unit scale and offset transformations
+    scale = df["unit_scale"].fillna(1.0)
+    offset = df["unit_offset"].fillna(0.0)
 
-        # Pull scale/offset once, with cheap defaults
-        scale = tag.unit_scale if tag.unit_scale is not None else 1
-        offset = tag.unit_offset if tag.unit_offset is not None else 0
+    for col in ["value_integer", "value_bigint", "value_real", "value_double"]:
+        if col in df.columns:
+            df[col] = df[col] * scale + offset
 
-        # Skip work if no transform
-        if scale != 1 or offset != 0:
-            # Use `is not None` so zero values are correctly transformed
-            if d.value_bigint is not None:
-                d.value_bigint = d.value_bigint * scale + offset
-            if d.value_double is not None:
-                d.value_double = d.value_double * scale + offset
-            if d.value_real is not None:
-                d.value_real = d.value_real * scale + offset
-            if d.value_integer is not None:
-                d.value_integer = d.value_integer * scale + offset
+    # Return only the DataTimeseriesLast columns
+    cols_to_return = [
+        "tag_id",
+        "time",
+        "value_integer",
+        "value_bigint",
+        "value_real",
+        "value_double",
+        "value_boolean",
+        "value_text",
+    ]
+    # Filter only columns that actually exist in the dataframe
+    cols_to_return = [c for c in cols_to_return if c in df.columns]
 
-        # Drop relationship so it doesn’t go into the JSON
-        d.tag = None
-
-    return models_
+    return df[cols_to_return].to_dict(orient="records")
