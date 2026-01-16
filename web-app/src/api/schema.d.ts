@@ -1723,13 +1723,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Device Models
+         * Get Device Models Route
          * @description Get device models.
          *
          *     Args:
          *         device_model_ids: Optional list of device model IDs to filter by.
          *         device_type_ids: Optional list of device type IDs to filter by.
-         *         db: Database session.
          */
         get: operations["get_device_models"];
         put?: never;
@@ -13658,7 +13657,6 @@ export interface operations {
             query?: {
                 device_model_ids?: number[];
                 device_type_ids?: number[];
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
