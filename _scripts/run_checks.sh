@@ -40,6 +40,27 @@ echo -e "${BOLD}${BLUE}Running relevant quality checks...${NC}\n"
 declare -a PASSED_CHECKS=()
 declare -a FAILED_CHECKS=()
 
+# Arrays to store checks to be run
+declare -a CHECKS_NAME=()
+declare -a CHECKS_CMD=()
+declare -a CHECKS_IS_PARALLEL=()
+
+# Function to add a check to the list
+add_check() {
+    local name="$1"
+    local cmd="$2"
+    local is_parallel="true"
+
+    # Ruff checks and Formatting should run sequentially at the end
+    if [[ "$name" == *"Ruff"* ]] || [[ "$name" == *"Formatting"* ]] || [[ "$name" == *"Format"* ]]; then
+        is_parallel="false"
+    fi
+
+    CHECKS_NAME+=("$name")
+    CHECKS_CMD+=("$cmd")
+    CHECKS_IS_PARALLEL+=("$is_parallel")
+}
+
 # Function to run a check and track its result
 run_check() {
     local check_name="$1"
@@ -58,6 +79,85 @@ run_check() {
         echo -e "${RED}✗ ${check_name} failed${NC}\n"
         return 1
     fi
+}
+
+# Function to run all registered checks
+run_all_checks() {
+    local LOG_DIR
+    LOG_DIR=$(mktemp -d)
+    if [[ -z "$LOG_DIR" || ! -d "$LOG_DIR" ]]; then
+        echo -e "${RED}Failed to create temporary directory.${NC}"
+        return 1
+    fi
+    trap 'rm -rf "$LOG_DIR"' EXIT
+
+    local pids=()
+    local parallel_indices=()
+
+    # Start parallel checks
+    for i in "${!CHECKS_NAME[@]}"; do
+        if [ "${CHECKS_IS_PARALLEL[$i]}" = "true" ]; then
+            local name="${CHECKS_NAME[$i]}"
+            local cmd="${CHECKS_CMD[$i]}"
+            local log_file="$LOG_DIR/check_$i.log"
+            local status_file="$LOG_DIR/check_$i.status"
+
+            parallel_indices+=("$i")
+            (
+                # Run the check and capture output
+                if eval "$cmd" > "$log_file" 2>&1; then
+                    echo 0 > "$status_file"
+                else
+                    echo $? > "$status_file"
+                fi
+            ) &
+            pids+=($!)
+        fi
+    done
+
+    # If we have parallel checks, notify the user
+    if [ ${#parallel_indices[@]} -gt 0 ]; then
+        echo -e "${BLUE}Starting ${#parallel_indices[@]} checks in parallel...${NC}\n"
+    fi
+
+    # Wait for parallel checks and print results as they finish
+    # To maintain a stable output, we'll wait for them in order
+    for idx in "${!parallel_indices[@]}"; do
+        local i="${parallel_indices[$idx]}"
+        local name="${CHECKS_NAME[$i]}"
+        local cmd="${CHECKS_CMD[$i]}"
+        local log_file="$LOG_DIR/check_$i.log"
+        local status_file="$LOG_DIR/check_$i.status"
+
+        wait "${pids[$idx]}"
+        local status
+        if [ -f "$status_file" ]; then
+            status=$(cat "$status_file")
+        else
+            status=1 # Indicate failure
+            echo -e "${RED}Error: Could not determine status of '${name}'. Status file not found.${NC}" >> "$log_file"
+        fi
+
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BOLD}Finished: ${name}${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        cat "$log_file"
+
+        if [ "$status" -eq 0 ]; then
+            PASSED_CHECKS+=("$name")
+            echo -e "${GREEN}✓ ${name} passed${NC}\n"
+        else
+            FAILED_CHECKS+=("$name:$cmd")
+            echo -e "${RED}✗ ${name} failed${NC}\n"
+        fi
+    done
+
+    # Run sequential checks (Ruff, Formatting)
+    for i in "${!CHECKS_NAME[@]}"; do
+        if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
+            run_check "${CHECKS_NAME[$i]}" "${CHECKS_CMD[$i]}"
+        fi
+    done
 }
 
 # Function to check for package.json or package-lock.json in the root
@@ -219,71 +319,68 @@ if [ "${RUN_ALL}" = "true" ]; then
 fi
 
 
-# Run all checks
+# Register all checks
 if [ "${RUN_CORE}" = "true" ]; then
     if [ "${OFFLINE}" = "true" ]; then
         echo -e "${YELLOW}Skipping Core: Version (offline mode)${NC}"
     else
-        run_check "Core: Version" "check_core_version"
+        add_check "Core: Version" "check_core_version"
     fi
-    run_check "Core: Type Checking (mypy)" "mise run core:types"
-    run_check "Core: Ruff Linting" "mise run core:ruff_check"
-    run_check "Core: Ruff Formatting" "mise run core:ruff_format"
-    run_check "Core: Star Syntax Check" "mise run core:star_syntax"
-    run_check "Core: SQLAlchemy Query/Filter Check" "mise run core:sqlalchemy"
-    run_check "Core: Enum Validation" "mise run core:enum"
-    run_check "Core: Unused Import Check" "mise run core:deptry"
-    run_check "Core: Dead Code Check" "mise run core:vulture"
-    run_check "Core: Docstring Args Check" "mise run core:docstring_args"
+    add_check "Core: Type Checking (mypy)" "mise run core:types"
+    add_check "Core: Enum Validation" "mise run core:enum"
+    add_check "Core: Unused Import Check" "mise run core:deptry"
+    add_check "Core: Dead Code Check" "mise run core:vulture"
+    add_check "Core: Docstring Args Check" "mise run core:docstring_args"
 fi
 
 if [ "${RUN_MICRO}" = "true" ]; then
-    run_check "Micro: Type Checking (mypy)" "mise run micro:types"
-    run_check "Micro: Ruff Linting" "mise run micro:ruff_check"
-    run_check "Micro: Ruff Formatting" "mise run micro:ruff_format"
-    run_check "Micro: Star Syntax Check" "mise run micro:star_syntax"
-    run_check "Micro: SQLAlchemy Query/Filter Check" "mise run micro:sqlalchemy"
-    run_check "Micro: Docstring Args Check" "mise run micro:docstring_args"
+    add_check "Micro: Type Checking (mypy)" "mise run micro:types"
+    add_check "Micro: Docstring Args Check" "mise run micro:docstring_args"
 fi
 
 if [ "${RUN_SQL_ADMIN}" = "true" ]; then
-    run_check "SQL-Admin: Ruff Linting" "mise run sql-admin:ruff_check"
+    # We'll handle SQL-Admin linting in the global Ruff check
+    :
 fi
 
 if [ "${RUN_API}" = "true" ]; then
-    run_check "API: Type Checking (mypy)" "mise run api:types"
-    run_check "API: Star Syntax Check" "mise run api:star_syntax"
-    run_check "API: SQLAlchemy Query/Filter Check" "mise run api:sqlalchemy"
-    run_check "API: Ruff Linting" "mise run api:ruff"
-    run_check "API: Ruff Formatting" "mise run api:format"
-    run_check "API: Unused Import Check" "mise run api:deptry"
-    run_check "API: Dead Code Check" "mise run api:vulture"
-    run_check "API: DbQuery.get Check" "mise run api:db_query_get"
-    run_check "API: _with_async_db Usage Check" "mise run api:with_async_db"
-    run_check "API: Pytest" "mise run api:pytest"
-    run_check "API: Docstring Args Check" "mise run api:docstring_args"
-    run_check "API: Unused Routes Check" \
+    add_check "API: Type Checking (mypy)" "mise run api:types"
+    add_check "API: Unused Import Check" "mise run api:deptry"
+    add_check "API: Dead Code Check" "mise run api:vulture"
+    add_check "API: DbQuery.get Check" "mise run api:db_query_get"
+    add_check "API: Pytest" "mise run api:pytest"
+    add_check "API: Docstring Args Check" "mise run api:docstring_args"
+    add_check "API: Unused Routes Check" \
         "mise run api:unused_routes_detailed"
-    run_check "API: Docstring Args Check" "mise run api:docstring_args"
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
-    run_check "Root: No package.json" "check_root_for_package_json"
-    run_check "Root: Ruff Formatting (monorepo)" "mise run ruff:format"
-    run_check "Root: Ruff Linting (_tools)" "mise run tools:ruff"
-    run_check "Root: Ruff Formatting (_tools)" "mise run tools:format"
-    run_check "Root: Hardcoded Type ID Check" \
+    add_check "Root: No package.json" "check_root_for_package_json"
+    add_check "Root: Hardcoded Type ID Check" \
         "mise run hardcoded_type_id_check"
-    run_check "Root: Hardcoded Name Shorts Check" \
+    add_check "Root: Hardcoded Name Shorts Check" \
         "mise run hardcoded_name_shorts_check"
-    run_check "Root: Codegen" "mise run codegen"
+    add_check "Root: Codegen" "mise run codegen"
+fi
+
+# Global Checks (Run if any project changed)
+if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
+    add_check "Global: Semgrep" "mise run semgrep:check"
+    add_check "Global: Ruff Linting" "mise run ruff:check"
+    add_check "Global: Ruff Formatting" "mise run ruff:format"
+    add_check "Tools: Ruff Linting" "mise run tools:ruff"
+    add_check "Tools: Ruff Formatting" "mise run tools:format"
 fi
 
 if [ "${RUN_WEB}" = "true" ]; then
-    run_check "Web-App: TypeScript & Format Check" "mise run web:check"
-    run_check "Web-App: Console Log Check" \
+    add_check "Web-App: Type Check" "cd web-app && npm run check"
+    add_check "Web-App: Linting" "cd web-app && npm run lint"
+    add_check "Web-App: Console Log Check" \
         "mise run web:console_log_check"
 fi
+
+# Run all registered checks
+run_all_checks
 
 # Print summary
 echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

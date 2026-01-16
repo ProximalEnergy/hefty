@@ -21,7 +21,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,7 +46,7 @@ def run_git_command(cmd: list[str]) -> str:
 
 
 def get_merge_commits_since(
-    since: Optional[str] = None, since_commit: Optional[str] = None
+    since: str | None = None, since_commit: str | None = None
 ) -> list[dict]:
     """Get merge commits from main branch since a date or commit.
 
@@ -129,7 +128,7 @@ def get_merge_commits_since(
     return commits
 
 
-def get_pr_number_from_commit(commit_hash: str) -> Optional[str]:
+def get_pr_number_from_commit(commit_hash: str) -> str | None:
     """Try to extract PR number from commit message or merge commit."""
     try:
         # Get the full commit message

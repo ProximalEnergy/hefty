@@ -125,12 +125,12 @@ run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-}"
 [tasks."ruff:check"]
 description = "Run ruff linter on entire monorepo"
 dir = "."
-run = "uv run --dev ruff check core/ api/ sql-admin/ _scripts/"
+run = "uv run --dev ruff check core/ api/ microservices/ sql-admin/"
 
 [tasks."ruff:format"]
 description = "Run ruff formatter on entire monorepo"
 dir = "."
-run = "uv run --dev ruff format core/ api/ sql-admin/ _scripts/"
+run = "uv run --dev ruff format core/ api/ microservices/ sql-admin/"
 
 [tasks."tools:ruff"]
 description = "Run ruff linter on _tools"
@@ -151,6 +151,11 @@ run = "./_scripts/hardcoded_type_id_check.sh"
 description = "Run hardcoded name shorts check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_name_shorts_check.sh"
+
+[tasks."semgrep:check"]
+description = "Run all semgrep quality checks on the monorepo"
+dir = "."
+run = "uv run semgrep --error --config _scripts/rules/ core/src api/app microservices web-app/src --exclude api/app/dependencies.py"
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)

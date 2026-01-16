@@ -16,10 +16,18 @@ rules:
       # Match generic case
       - pattern: $OBJ.filter(...)
 
-      # Exclude variables starting with 'df' (e.g. df, df_day_behind, df2)
+      # Exclude variables starting with 'df' or 'lf' (DataFrames/LazyFrames)
       - pattern-not:
           patterns:
             - pattern: $DF.filter(...)
             - metavariable-regex:
                 metavariable: $DF
-                regex: ^df.*
+                regex: ^(df|lf).*
+
+      # Exclude Polars expressions (anything containing 'pl.')
+      - pattern-not:
+          patterns:
+            - pattern: $OBJ.filter(..., $ARG, ...)
+            - metavariable-regex:
+                metavariable: $ARG
+                regex: .*pl\..*
