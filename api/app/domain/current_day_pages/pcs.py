@@ -372,7 +372,9 @@ async def get_equipment_analysis_pcs_data(
     return_data: dict[str, Any] = dict()
 
     # Block
-    df_block = df_block.reindex(columns=sorted_block_device_ids_by_name_long)
+    df_block = df_block.reindex(
+        columns=sorted_block_device_ids_by_name_long, fill_value=0
+    )
     generating_power_block = (df_block.T > 0).sum().values.tolist()
     max_capacity_block = (
         devices_block["capacity_ac"].max() / 1_000
