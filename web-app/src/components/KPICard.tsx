@@ -79,11 +79,13 @@ const KPICard: React.FC<KPISummaryCard> = ({
                 </Text>
               )}
             </Group>
-            {prefix && (
-              <Text c="dimmed" fz={TEXT_SIZE_TERTIARY}>
-                {prefix}
-              </Text>
-            )}
+            <Text
+              c="dimmed"
+              fz={TEXT_SIZE_TERTIARY}
+              style={{ visibility: prefix ? 'visible' : 'hidden' }}
+            >
+              {prefix || '\u00A0'}
+            </Text>
           </Stack>
           <Stack justify="flex-end" gap={0} align="flex-start">
             {(change || change === 0) && (
