@@ -9,17 +9,16 @@ from core.settings import get_clerk_secret_key
 logger = logging.getLogger(__name__)
 
 
-async def get_user_email_from_clerk(*, user_id: str, api_prod: bool) -> str | None:
+async def get_user_email_from_clerk(*, user_id: str) -> str | None:
     """Get user email from Clerk.
 
     Args:
         user_id: User ID.
-        api_prod: Whether running in production.
 
     Returns:
         User email or None if not found.
     """
-    clerk_secret_key = get_clerk_secret_key(api_prod=api_prod)
+    clerk_secret_key = get_clerk_secret_key()
     if not clerk_secret_key:
         logger.warning("Clerk secret key not set")
         return None

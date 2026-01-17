@@ -1,12 +1,11 @@
 import datetime
 from collections.abc import Sequence
 from typing import Annotated
-from uuid import UUID
 
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
 from core.db_query import OutputType
-from core.dependencies import get_db, get_db_async
+from core.dependencies import get_db_async
 from core.enumerations import TimeInterval
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
@@ -31,7 +30,6 @@ async def get_project_dataframe(
     sensor_type_name_shorts: list[str],
     start: datetime.datetime | None,
     end: datetime.datetime | None,
-    db: Session,
     project_db: Session,
     project: models.Project,
     device_ids: list[int] = [],
@@ -52,7 +50,6 @@ async def get_project_dataframe(
         sensor_type_name_shorts: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
         device_ids: TODO: describe.
@@ -154,8 +151,6 @@ async def get_project_dataframe(
 
 @router.get("/llm-time-series")
 async def get_llm_time_series(
-    project_id: UUID,
-    db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime | None = None,
@@ -167,8 +162,6 @@ async def get_llm_time_series(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
         start: TODO: describe.
@@ -200,11 +193,9 @@ async def get_llm_time_series(
     )
 
     tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
-        db=project_db,
         tags=tags,
     )
     tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(
-        db=project_db,
         tags=tags,
     )
     tag_id_to_tag_name_scada = {tag.tag_id: tag.name_scada for tag in tags}
@@ -241,7 +232,6 @@ async def get_project_dataframe_endpoint(
     device_ids: Annotated[list[int], Query()] = [],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(get_db),
     project_db: Session = Depends(get_project_db),
     project=Depends(get_project_api),
     fillna_zero: bool = True,
@@ -260,7 +250,6 @@ async def get_project_dataframe_endpoint(
         device_ids: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
         fillna_zero: TODO: describe.
@@ -278,7 +267,6 @@ async def get_project_dataframe_endpoint(
         device_ids=device_ids,
         start=start,
         end=end,
-        db=db,
         project_db=project_db,
         project=project,
         fillna_zero=fillna_zero,
@@ -295,7 +283,6 @@ async def get_project_dataframe_endpoint(
 
 @router.get("/time-series", response_class=ORJSONResponse)
 async def get_time_series(
-    project_id: UUID,
     tag_ids: Annotated[list[int], Query()] = [],
     device_ids: Annotated[list[int], Query()] = [],
     parent_device_id: int | None = None,
@@ -303,7 +290,6 @@ async def get_time_series(
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    db: Session = Depends(get_db),
     project_db: Session = Depends(get_project_db),
     project: models.Project = Depends(get_project_api),
     include_ghost_tags: Annotated[bool, Query()] = False,
@@ -312,7 +298,6 @@ async def get_time_series(
     """todo
 
     Args:
-        project_id: TODO: describe.
         tag_ids: TODO: describe.
         device_ids: TODO: describe.
         parent_device_id: TODO: describe.
@@ -320,7 +305,6 @@ async def get_time_series(
         sensor_type_name_shorts: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
         include_ghost_tags: TODO: describe.
@@ -365,11 +349,9 @@ async def get_time_series(
     )
 
     tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
-        db=project_db,
         tags=tags,
     )
     tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(
-        db=project_db,
         tags=tags,
     )
     tag_id_to_device_name_long = await utils.get_tag_id_to_device_name_long(
@@ -527,12 +509,7 @@ async def get_timeseries_v3(
         ).models()
 
     # Build metadata mappings
-    tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
-        db=project_db,
-        tags=tags,
-    )
     tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(
-        db=project_db,
         tags=tags,
     )
     tag_id_to_device_name_long = await utils.get_tag_id_to_device_name_long(
@@ -605,7 +582,6 @@ async def get_timeseries_v3(
             continue
 
         # Get tag metadata
-        tag_name = tag_id_to_tag_name.get(tag_id, "")
         sensor_type_name = tag_id_to_sensor_type_name.get(tag_id, "")
         device_name_long = tag_id_to_device_name_long.get(tag_id, "")
         tag_name_scada = tag_id_to_tag_name_scada.get(tag_id, "")

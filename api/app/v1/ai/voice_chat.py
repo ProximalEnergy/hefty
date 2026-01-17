@@ -3,12 +3,9 @@ import traceback
 from datetime import datetime
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from openai import OpenAI
 from pydantic import BaseModel
-
-from app.dependencies import get_user_data_async
-from app.interfaces import UserData
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 _VECTOR_STORE_CACHE: dict[str, str] = {}
@@ -28,16 +25,13 @@ class VoiceChatSessionResponse(BaseModel):
 
 
 @router.post("/voice-chat/session", response_model=VoiceChatSessionResponse)
-async def create_voice_chat_session(
-    request: VoiceChatSessionRequest, user_data: UserData = Depends(get_user_data_async)
-):
+async def create_voice_chat_session(request: VoiceChatSessionRequest):
     """Create a new voice chat session by generating a client ephemeral token.
         This token allows the frontend to securely connect to OpenAI's Realtime
         GPT API.
 
     Args:
         request: TODO: describe.
-        user_data: TODO: describe.
     """
     try:
         # Get OpenAI API key from environment
@@ -130,14 +124,12 @@ class EnsureVectorStoreResponse(BaseModel):
 @router.post("/vector-store/ensure", response_model=EnsureVectorStoreResponse)
 async def ensure_vector_store(
     request: EnsureVectorStoreRequest,
-    user_data: UserData = Depends(get_user_data_async),
 ):
     """Ensure an OpenAI vector store exists for the provided file id. If
         needed, create it. Returns the vector_store_id.
 
     Args:
         request: TODO: describe.
-        user_data: TODO: describe.
     """
     try:
         openai_api_key = os.getenv("OPENAI_API_KEY")

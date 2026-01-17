@@ -607,14 +607,12 @@ def data_latest_df(
 
 async def get_tag_id_to_tag_name(
     *,
-    db: Session,
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
     """Get tag id to tag name.
 
     Args:
-        db: TODO: describe.
         tags: TODO: describe.
     """
     sensor_type_ids = list(
@@ -651,14 +649,12 @@ async def get_tag_id_to_tag_name(
 
 async def get_tag_id_to_sensor_type_name(
     *,
-    db: Session,
     tags: list[models.Tag],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
     """Get tag id to sensor type name.
 
     Args:
-        db: TODO: describe.
         tags: TODO: describe.
     """
     sensor_type_ids = list(

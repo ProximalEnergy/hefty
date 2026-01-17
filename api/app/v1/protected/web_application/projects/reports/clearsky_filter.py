@@ -1,6 +1,5 @@
 import datetime
 from typing import Annotated
-from uuid import UUID
 
 import pandas as pd
 from core.db_query import OutputType
@@ -24,7 +23,6 @@ router = APIRouter(
 @router.get("/clearsky-poa", response_class=ORJSONResponse)
 async def get_clearsky_poa(
     *,
-    project_id: UUID,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,

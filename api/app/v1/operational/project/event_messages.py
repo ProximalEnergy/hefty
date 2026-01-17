@@ -29,7 +29,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import dependencies
-from app._crud.admin.companies import get_companies as crud_get_companies
 from app._crud.admin.user_subscriptions import (
     get_event_chat_notification_statuses_batch,
     update_event_chat_notification_statuses_batch,
@@ -227,7 +226,6 @@ async def send_event_chat_email(
     recipient_user_id: str,
     recipient_email: str,
     recipient_name: str,
-    sender_user_id: str,
     sender_name: str,
     event_id: int,
     message_body: str,
@@ -244,7 +242,6 @@ async def send_event_chat_email(
         recipient_user_id: The user ID of the recipient (for logging/tracking)
         recipient_email: The email address of the recipient
         recipient_name: The name of the recipient
-        sender_user_id: The user ID of the sender
         sender_name: The name of the sender
         event_id: The event ID
         message_body: The message body
@@ -413,7 +410,6 @@ async def send_notifications_for_message(
     sender_company_id: UUID,
     message_body: str,
     is_first_message: bool,
-    api_prod: bool,
 ) -> None:
     """Send email notifications for event chat messages.
 
@@ -436,7 +432,6 @@ async def send_notifications_for_message(
         sender_company_id: TODO: describe.
         message_body: TODO: describe.
         is_first_message: TODO: describe.
-        api_prod: TODO: describe.
     """
 
     # Get users who have posted to this event
@@ -487,13 +482,6 @@ async def send_notifications_for_message(
         output_type=OutputType.SQLALCHEMY
     )
     sender_name = sender_users[0][0].name_long if sender_users else "Unknown User"
-
-    # Get company info for theme colors
-    companies = await crud_get_companies(db=db, company_ids=[sender_company_id])
-    company_name_short = companies[0].name_short if companies else None
-    company_theme_color = _get_company_theme_color(
-        company_name_short=company_name_short
-    )
 
     # Get recipient user details
     recipient_users = await get_users(user_ids=list(recipient_user_ids)).get_async(
@@ -549,9 +537,7 @@ async def send_notifications_for_message(
 
     # Send emails to each recipient
     for _, user_row in recipient_users.iterrows():
-        recipient_email = await get_user_email_from_clerk(
-            user_id=user_row["user_id"], api_prod=api_prod
-        )
+        recipient_email = await get_user_email_from_clerk(user_id=user_row["user_id"])
 
         if not recipient_email:
             logger.warning(
@@ -564,7 +550,6 @@ async def send_notifications_for_message(
             recipient_user_id=user_row["user_id"],
             recipient_email=recipient_email,
             recipient_name=user_row["name_long"],
-            sender_user_id=sender_user_id,
             sender_name=sender_name,
             event_id=event_id,
             message_body=message_body,
@@ -582,9 +567,6 @@ async def get_event_messages(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: Annotated[int, Query(...)],
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
 ) -> list[EventMessage]:
     """Get all non-deleted messages for a specific event.
 
@@ -597,7 +579,6 @@ async def get_event_messages(
     Args:
         project_db: TODO: describe.
         event_id: TODO: describe.
-        user_data: TODO: describe.
     """
     message_models = await crud_event_messages.get_event_messages(
         db=project_db, event_id=event_id
@@ -613,7 +594,6 @@ async def create_event_message(
     project_id: Annotated[UUID, Path(...)],
     message: EventMessageCreate,
     background_tasks: BackgroundTasks,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -639,7 +619,6 @@ async def create_event_message(
         project_id: TODO: describe.
         message: TODO: describe.
         background_tasks: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
         api_prod: TODO: describe.
     """
@@ -894,7 +873,6 @@ async def update_event_message(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
     message: EventMessageUpdate,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -915,7 +893,6 @@ async def update_event_message(
         project_db: TODO: describe.
         event_message_id: TODO: describe.
         message: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
     """
     # Extract mentions from body
@@ -1014,7 +991,6 @@ async def delete_event_message(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_message_id: int,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -1031,7 +1007,6 @@ async def delete_event_message(
     Args:
         project_db: TODO: describe.
         event_message_id: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
     """
     # Delete message (soft delete)
@@ -1202,9 +1177,6 @@ async def upload_event_message_image(
     event_id: int,
     event_message_id: int,
     file: UploadFile = File(...),
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
 ) -> dict:
     """Upload an image for an event message.
 
@@ -1228,7 +1200,6 @@ async def upload_event_message_image(
         event_id: TODO: describe.
         event_message_id: TODO: describe.
         file: TODO: describe.
-        user_data: TODO: describe.
     """
     # Validate file type
     _validate_image_file(file=file)
@@ -1327,9 +1298,6 @@ async def get_event_message_image_url(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     image_id: UUID,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
 ) -> dict:
     """Get a presigned URL for an event message image.
 
@@ -1342,7 +1310,6 @@ async def get_event_message_image_url(
         project_db: TODO: describe.
         event_id: TODO: describe.
         image_id: TODO: describe.
-        user_data: TODO: describe.
     """
     # Find image record
     image = await crud_event_message_images.get_event_message_image_by_id(
@@ -1373,9 +1340,6 @@ async def get_event_message_images(
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     event_message_id: int,
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
 ) -> list[dict]:
     """Get all images for an event message with presigned URLs.
 
@@ -1386,7 +1350,6 @@ async def get_event_message_images(
         project_db: TODO: describe.
         event_id: TODO: describe.
         event_message_id: TODO: describe.
-        user_data: TODO: describe.
     """
     # Verify message exists and belongs to this event
     message = await crud_event_messages.get_event_message_by_id(

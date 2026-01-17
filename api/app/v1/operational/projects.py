@@ -43,9 +43,7 @@ async def get_projects(
     has_pv_pcs_modules: bool | None = None,
     kpi_instance_kpi_type_ids: Annotated[list[int] | None, Query()] = None,
     report_instance_report_type_ids: Annotated[list[int] | None, Query()] = None,
-    deep: custom_types.AnnotatedDeep = False,
     db: Session = Depends(get_db),
-    db_async: AsyncSession = Depends(dependencies.get_async_db),
     user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     # Get project IDs permitted for the user
@@ -62,9 +60,7 @@ async def get_projects(
         has_pv_pcs_modules: TODO: describe.
         kpi_instance_kpi_type_ids: TODO: describe.
         report_instance_report_type_ids: TODO: describe.
-        deep: TODO: describe.
         db: TODO: describe.
-        db_async: TODO: describe.
         user_data: TODO: describe.
     """
     project_ids_permitted = user_data.operational_project_ids

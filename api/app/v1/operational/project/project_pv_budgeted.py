@@ -122,9 +122,6 @@ def get_pv_budgeted_data(
 def delete_pv_budgeted_series(
     pv_budgeted_series_id: int,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
 ):
     # Check if series exists
     """todo
@@ -132,7 +129,6 @@ def delete_pv_budgeted_series(
     Args:
         pv_budgeted_series_id: TODO: describe.
         project_db: TODO: describe.
-        user_data: TODO: describe.
     """
     if (
         crud.get_series(

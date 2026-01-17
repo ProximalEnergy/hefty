@@ -775,7 +775,7 @@ async def dc_amperage_report_v2(
                 ExpiresIn=3600,
             )
             return presigned_url
-        except Exception as exc:
+        except Exception:
             logger.exception("Error uploading %s to S3", filename)
             return None
 

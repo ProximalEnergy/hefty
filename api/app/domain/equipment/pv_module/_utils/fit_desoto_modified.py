@@ -11,7 +11,6 @@ def fit_desoto(
     i_sc,
     alpha_sc,
     beta_voc,
-    cells_in_series,
     EgRef=1.121,
     dEgdT=-0.0002677,
     temp_ref=25,
@@ -30,7 +29,6 @@ def fit_desoto(
         i_sc: TODO: describe.
         alpha_sc: TODO: describe.
         beta_voc: TODO: describe.
-        cells_in_series: TODO: describe.
         EgRef: TODO: describe.
         dEgdT: TODO: describe.
         temp_ref: TODO: describe.

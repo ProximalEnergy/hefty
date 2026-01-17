@@ -47,14 +47,12 @@ async def bulk_create_drone_anomalies_incremental(
     *,
     db: AsyncSession,
     anomalies_data: list[DroneAnomalyCreate],
-    inspection_uuid: uuid.UUID,
 ):
     """Bulk insert new anomalies without deleting existing ones.
 
     Args:
         db: TODO: describe.
         anomalies_data: TODO: describe.
-        inspection_uuid: TODO: describe.
     """
     db_anomalies = [DroneAnomaly(**data.model_dump()) for data in anomalies_data]
     db.add_all(db_anomalies)

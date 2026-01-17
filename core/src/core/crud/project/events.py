@@ -516,13 +516,12 @@ def get_events_summary(
 
 
 def get_homepage_summary(
-    db: Session, *, project_name: str, sort_by: Literal["daily", "total"] = "daily"
+    db: Session, *, sort_by: Literal["daily", "total"] = "daily"
 ) -> dict[str, Any]:
     """Summarize open events and losses for the homepage.
 
     Args:
         db: SQLAlchemy session for querying events.
-        project_name: Project schema name for loss calculations.
         sort_by: Sort top events by daily or total loss.
     """
     base_stmt = (
@@ -574,9 +573,7 @@ def get_homepage_summary(
         }
         enriched_top_events.append(event_dict)
 
-    total_daily_loss = get_total_daily_type2_loss_open_events(
-        db, project_name=project_name
-    )
+    total_daily_loss = get_total_daily_type2_loss_open_events(db)
     return {
         "top_events": enriched_top_events,
         "total_daily_loss": total_daily_loss,

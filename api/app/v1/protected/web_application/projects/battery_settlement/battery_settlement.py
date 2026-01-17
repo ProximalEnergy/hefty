@@ -161,7 +161,6 @@ async def get_battery_settlement_details(
     }
 
     name = fields_df["name_long"].to_dict()
-    unit_map_raw = fields_df["unit"].to_dict()
 
     # Long names used below (match renamed df columns)
     RT_GEN = name.get("RT_Generation_Qty", "RT_Generation_Qty")
@@ -178,9 +177,6 @@ async def get_battery_settlement_details(
         "RT_Reliability_Deployment_Imbalance_Amt",
         "RT_Reliability_Deployment_Imbalance_Amt",
     )
-
-    # Work on a numeric casted copy; keep df intact for qse_data
-    df_num = df.copy()
 
     # Make a zero-aligned Series helper
     def zero_series() -> pd.Series[float]:

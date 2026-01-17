@@ -550,7 +550,7 @@ async def _send_weather_alert_email_to_user(
         summary: Summary dictionary to update.
     """
     logger.info(f"Getting email for user {user_id} (api_prod={api_prod})")
-    user_email = await get_user_email_from_clerk(user_id=user_id, api_prod=api_prod)
+    user_email = await get_user_email_from_clerk(user_id=user_id)
     if not user_email:
         logger.warning(
             f"Could not get email for user {user_id} from Clerk - no email returned"
@@ -636,9 +636,7 @@ async def _send_weather_alert_email_to_user(
             db=db,
             user_id=user_id,
             recipient_email=user_email,
-            user_name=user_name,
             notification_id=notification_id,
-            api_prod=api_prod,
             email_kwargs=email_kwargs,
             summary=cast(dict, summary),
         )

@@ -67,9 +67,6 @@ async def get_event_message_reactions(
     ],
     event_message_id: int | None = Query(default=None),
     event_id: int | None = Query(default=None),
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
 ) -> list[EventMessageReaction]:
     """Get all reactions for a specific event message or all reactions for an event.
 
@@ -86,7 +83,6 @@ async def get_event_message_reactions(
         project_db: TODO: describe.
         event_message_id: TODO: describe.
         event_id: TODO: describe.
-        user_data: TODO: describe.
     """
 
     if event_id is not None:

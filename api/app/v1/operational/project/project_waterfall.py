@@ -1,7 +1,6 @@
 import datetime
 from operator import attrgetter
 from typing import Annotated
-from uuid import UUID
 
 import pandas as pd
 from core.crud.operational.device_types import (
@@ -49,7 +48,6 @@ def df_from_objects(  # nosemgrep: python-enforce-keyword-only-args
 
 @router.get("")
 async def get_project_waterfall(
-    project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -60,7 +58,6 @@ async def get_project_waterfall(
     """todo
 
     Args:
-        project_id: TODO: describe.
         db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.

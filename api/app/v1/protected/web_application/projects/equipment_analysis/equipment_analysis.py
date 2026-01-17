@@ -35,7 +35,6 @@ router = APIRouter(
     response_class=ORJSONResponse,
 )
 def get_bess(
-    project_id,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
@@ -63,7 +62,6 @@ def get_bess(
     response_class=ORJSONResponse,
 )
 def get_bess_pcs(
-    project_id,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
@@ -72,7 +70,6 @@ def get_bess_pcs(
     """todo
 
     Args:
-        project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         project: TODO: describe.
@@ -122,7 +119,6 @@ async def get_tracker(
     end: datetime.date,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
-    project_id,
 ):
     """todo
 
@@ -131,7 +127,6 @@ async def get_tracker(
         end: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
-        project_id: TODO: describe.
     """
     return await get_tracker_data(
         start=start,
@@ -147,7 +142,6 @@ async def get_tracker(
 )
 async def get_tracker_by_pv_block_id(
     pv_block_id: int,
-    project_id,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
@@ -157,7 +151,6 @@ async def get_tracker_by_pv_block_id(
 
     Args:
         pv_block_id: TODO: describe.
-        project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         project: TODO: describe.

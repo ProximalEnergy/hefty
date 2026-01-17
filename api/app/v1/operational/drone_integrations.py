@@ -21,7 +21,6 @@ from app._utils.user_management import send_drone_inspection_order_email
 from app.dependencies import (
     get_async_db,
     get_user_data_async,
-    is_prod_origin,
     requires_superadmin_async,
 )
 from app.domain.drones.zeitview_parser import ZeitviewAPI
@@ -138,7 +137,6 @@ async def order_drone_inspection(
     request: DroneInspectionOrderRequest,
     user_data: Annotated[UserData, Depends(get_user_data_async)],
     db: AsyncSession = Depends(get_async_db),
-    api_prod: bool = Depends(is_prod_origin),
 ):
     """Send a drone inspection order email to the provider.
 
@@ -146,7 +144,6 @@ async def order_drone_inspection(
         request: TODO: describe.
         user_data: TODO: describe.
         db: TODO: describe.
-        api_prod: TODO: describe.
     """
     try:
         # Get project information
@@ -170,9 +167,7 @@ async def order_drone_inspection(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get user email from Clerk
-        user_email = await get_user_email_from_clerk(
-            user_id=user_data.user_id, api_prod=api_prod
-        )
+        user_email = await get_user_email_from_clerk(user_id=user_data.user_id)
         if not user_email:
             raise HTTPException(status_code=404, detail="User email not found")
 

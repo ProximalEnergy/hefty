@@ -4,7 +4,6 @@ from typing import Any
 
 import pandas as pd
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
@@ -27,7 +26,6 @@ async def get_meter_power_and_expected_power_v2(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
     project: models.Project = Depends(dependencies.get_project_api),
-    db: Session = Depends(get_db),
     project_db: Session = Depends(dependencies.get_project_db),
     include_storage: bool = False,
     include_setpoint: bool = False,
@@ -41,7 +39,6 @@ async def get_meter_power_and_expected_power_v2(
         start: Optional start datetime for the time window (project timezone).
         end: Optional end datetime for the time window (project timezone).
         project: Project model provided by dependency injection.
-        db: Shared application database session for fetching tag metadata.
         project_db: Project database session used for time-series queries.
         include_storage: Whether to include PV/BESS circuit power in results.
         include_setpoint: Whether to include PPC active power setpoint values.
@@ -146,7 +143,6 @@ async def get_meter_power_and_expected_power_v2(
         sensor_type_name_shorts=[],
         start=start,
         end=end,
-        db=db,
         project_db=project_db,
         project=project,
         get_last=True,

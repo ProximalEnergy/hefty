@@ -1,12 +1,9 @@
 import json
 import os
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.dependencies import get_user_data_async
-from app.interfaces import UserData
 from app.logger import logger
 
 try:
@@ -75,7 +72,6 @@ class DailyPerformanceSummaryResponse(BaseModel):
 async def generate_daily_performance_summary(
     *,
     request: DailyPerformanceSummaryRequest,
-    user_data: Annotated[UserData, Depends(get_user_data_async)],
 ):
     """Generate an AI-written summary of daily project performance.
 
@@ -84,7 +80,6 @@ async def generate_daily_performance_summary(
 
     Args:
         request: TODO: describe.
-        user_data: TODO: describe.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

@@ -369,7 +369,6 @@ async def get_meta_analysis(
 @router.get("/home-page-summary", response_class=ORJSONResponse)
 def get_events_home_page_summary(
     project_db: Session = Depends(get_project_db),
-    project: models.Project = Depends(get_project_api),
     sort_by: Literal["daily", "total"] = "daily",
 ):
     """todo
@@ -379,7 +378,5 @@ def get_events_home_page_summary(
         project: TODO: describe.
         sort_by: TODO: describe.
     """
-    data = core.crud.project.events.get_homepage_summary(
-        project_db, project_name=project.name_short, sort_by=sort_by
-    )
+    data = core.crud.project.events.get_homepage_summary(project_db, sort_by=sort_by)
     return data

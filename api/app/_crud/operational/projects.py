@@ -43,7 +43,6 @@ async def _create_schema_and_tables(
     *,
     db: AsyncSession,
     name_short: str,
-    do_commit: bool = True,
 ) -> None:
     """
     Create project schema and tables for a new project.
@@ -53,8 +52,6 @@ async def _create_schema_and_tables(
         name_short: The short name of the project (used as schema name).
         data_timeseries_chunk_interval: The chunk interval for data_timeseries
         hypertable.
-        do_commit: Whether to commit the transaction. Defaults to True.
-                  Set to False for atomic operations where commit is handled externally.
     """
     schema = name_short
 
@@ -212,13 +209,12 @@ async def _get_elevation(
             return None
 
 
-def _get_timezone(*, latitude: float, longitude: float, **kwargs) -> str | None:
+def _get_timezone(*, latitude: float, longitude: float) -> str | None:
     """Get timezone from latitude and longitude using timezonefinder.
 
     Args:
         latitude: TODO: describe.
         longitude: TODO: describe.
-        **kwargs: TODO: describe.
     """
     tf = TimezoneFinder()
     return tf.timezone_at(lng=longitude, lat=latitude)
@@ -318,7 +314,6 @@ async def create_project(
         await _create_schema_and_tables(
             db=db,
             name_short=db_project.name_short,
-            do_commit=False,
         )
 
         # Commit all operations together

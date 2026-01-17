@@ -1,5 +1,4 @@
 import datetime
-from uuid import UUID
 
 import numpy as np
 import pandas as pd
@@ -17,20 +16,16 @@ from core import models
 
 async def get_expected_power(
     *,
-    project_id: UUID,
     start: datetime.datetime | None,
     end: datetime.datetime | None,
-    db: Session,
     project_db: Session,
     project: models.Project,
 ):
     """todo
 
     Args:
-        project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
     """
@@ -53,7 +48,6 @@ async def get_expected_power(
         sensor_type_name_shorts=[],
         start=start,
         end=end,
-        db=db,
         project_db=project_db,
         project=project,
     )
@@ -181,7 +175,6 @@ async def get_expected_power(
 async def get_project_expected_power(
     *,
     project: models.Project,
-    db: Session,
     project_db: Session,
     start: datetime.datetime,
     end: datetime.datetime,
@@ -190,7 +183,6 @@ async def get_project_expected_power(
 
     Args:
         project: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
@@ -214,7 +206,6 @@ async def get_project_expected_power(
         sensor_type_name_shorts=[],
         start=start,
         end=end,
-        db=db,
         project_db=project_db,
         project=project,
     )

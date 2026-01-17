@@ -58,8 +58,6 @@ async def get_cmms_tickets(
         Depends(dependencies.get_project_db_async),
     ],  # will be needed when incorperating device data
     user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
-    start: str | None = None,
-    end: str | None = None,
     device_ids: Annotated[list[int] | None, Query()] = None,
     device_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
@@ -75,10 +73,6 @@ async def get_cmms_tickets(
             Project database session
         user : interfaces.UserData
             To get the company id
-        start : Optional[str]
-            The start date of the tickets
-        end : Optional[str]
-            The end date of the tickets
         device_ids : Optional[List[int]]
             The list of device ids to filter the tickets by
         device_type_ids : Optional[List[int]]

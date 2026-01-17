@@ -44,22 +44,18 @@ class DemoModeUpdateRequest(BaseModel):
     response_model=list[interfaces.UserWithProjects],
 )
 async def get_users(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_ids: list[uuid.UUID] | None = Query(default=None),
     user_ids: list[str] | None = Query(default=None),
     include_image_urls: bool = Query(
         default=False, description="Include user profile image URLs from Clerk"
     ),
-    api_prod: Annotated[bool, Depends(dependencies.is_prod_api)] = False,
 ):
     """List users along with their operational project assignments.
 
     Args:
-        db: Async session for the admin database.
         company_ids: Optional list of companies to scope returned users.
         user_ids: Optional list of Clerk user IDs to filter by.
         include_image_urls: Whether to request profile images from Clerk.
-        api_prod: Flag indicating if requests should target the prod Clerk API.
     """
     users = await get_users_core(company_ids=company_ids, user_ids=user_ids).get_async(
         output_type=OutputType.PANDAS
@@ -83,9 +79,7 @@ async def get_users(
         # Only fetch profile picture URL from Clerk if explicitly requested
         # This avoids unnecessary API calls for users that may not exist in Clerk
         if include_image_urls:
-            image_url = await get_clerk_user_image_url(
-                user_id=user_dict["user_id"], api_prod=api_prod
-            )
+            image_url = await get_clerk_user_image_url(user_id=user_dict["user_id"])
             if image_url:
                 user_dict["image_url"] = image_url
         users_with_project_ids.append(user_dict)

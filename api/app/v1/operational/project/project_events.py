@@ -58,7 +58,6 @@ def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-o
 @router.get("", response_model=list[interfaces.Event])
 async def get_events(
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    project_db: Annotated[Session, Depends(get_project_db)],
     project_id: uuid.UUID,
     device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
@@ -71,7 +70,6 @@ async def get_events(
 
     Args:
         db: TODO: describe.
-        project_db: TODO: describe.
         project_id: TODO: describe.
         device_id: TODO: describe.
         time_end_gte: TODO: describe.
@@ -1025,7 +1023,6 @@ async def get_event_trace_tags(
 @router.get("/llm-event-losses")
 async def get_llm_event_losses(
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    project_db: Annotated[Session, Depends(get_project_db)],
     project_id: uuid.UUID,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
@@ -1034,7 +1031,6 @@ async def get_llm_event_losses(
 
     Args:
         db: Operational database
-        project_db: TODO: describe.
         project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.

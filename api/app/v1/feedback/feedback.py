@@ -5,7 +5,6 @@ from typing import Annotated
 from core.crud.admin.users import get_user
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, File, Form, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies
 from app.domain.internal_comms.comms import (
@@ -32,7 +31,6 @@ async def create_feedback(
     url: Annotated[str, Form(...)],
     comment: Annotated[str, Form(...)],
     screenshot: Annotated[UploadFile | None, File()] = None,
-    db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """todo
 
@@ -43,7 +41,6 @@ async def create_feedback(
         url: TODO: describe.
         comment: TODO: describe.
         screenshot: TODO: describe.
-        db: TODO: describe.
     """
     screenshot_content = None
     screenshot_data_uri = None

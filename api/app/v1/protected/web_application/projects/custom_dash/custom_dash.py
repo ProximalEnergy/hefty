@@ -8,7 +8,6 @@ from typing import Annotated, Any
 import numpy as np
 import pandas as pd
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.enumerations import DeviceType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsorted
@@ -101,7 +100,6 @@ class ShareDashboardRequest(BaseModel):
 @router.get("/bar")
 async def get_bar(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     sensor_type_id: int,
@@ -113,7 +111,6 @@ async def get_bar(
 
     Args:
         project_db: TODO: describe.
-        db: TODO: describe.
         operational_db: TODO: describe.
         project: TODO: describe.
         sensor_type_id: TODO: describe.
@@ -206,7 +203,6 @@ async def get_bar(
 @router.get("/gauge")
 async def get_gauge(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     measured_variable: str,
@@ -218,7 +214,6 @@ async def get_gauge(
 
     Args:
         project_db: TODO: describe.
-        db: TODO: describe.
         operational_db: TODO: describe.
         project: TODO: describe.
         measured_variable: TODO: describe.
@@ -317,7 +312,6 @@ async def get_gauge(
 @router.get("/line")
 async def get_line(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     sensor_type_ids: Annotated[list[int], Query()],
@@ -332,7 +326,6 @@ async def get_line(
 
     Args:
         project_db: TODO: describe.
-        db: TODO: describe.
         operational_db: TODO: describe.
         project: TODO: describe.
         sensor_type_ids: TODO: describe.
@@ -672,7 +665,6 @@ async def get_line(
 @router.get("/scatter")
 async def get_scatter(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    db: Annotated[Session, Depends(get_db)],
     operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     x_axis_sensor_type_id: int,

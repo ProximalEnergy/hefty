@@ -1,6 +1,5 @@
 import datetime
 from typing import Annotated
-from uuid import UUID
 
 import pandas as pd
 from core.db_query import OutputType
@@ -25,7 +24,6 @@ router = APIRouter(
 @router.get("/degradation-poa", response_class=ORJSONResponse)
 async def get_degradation_poa(
     *,
-    project_id: UUID,
     start: datetime.datetime,
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -34,7 +32,6 @@ async def get_degradation_poa(
     """todo
 
     Args:
-        project_id: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         project: TODO: describe.

@@ -275,7 +275,6 @@ async def search_contract_content(
     query: str,
     vector_store_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
 ) -> interfaces.ContractSearchResponse:
     """Search for relevant contract content using OpenAI's Responses API.
 
@@ -288,7 +287,6 @@ async def search_contract_content(
         query: TODO: describe.
         vector_store_id: TODO: describe.
         db: TODO: describe.
-        user: TODO: describe.
     """
     logger.info(
         "Starting contract search for document_id=%s query=%s vector_store_id=%s",

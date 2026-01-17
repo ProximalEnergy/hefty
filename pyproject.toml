@@ -28,6 +28,8 @@ fix = true
 [tool.ruff.lint]
 select = [
     "ANN002",  # checks that *args are typed
+    "ARG001",  # checks that args are used in functions
+    "ARG002",  # checks that args are used in methods
     "ASYNC",   # async python checks
     "COM",     # Ending commas
     "D101",    # Missing docstring in public class
@@ -38,6 +40,8 @@ select = [
     "FA",      # Future Annotations
     "F401",    # Remove unused imports
     "F541",    # f-string missing placeholders
+    "F841",    # Unused variables in function scopes
+    "F842",    # Unused variable annotations
     "FAST001", # FastAPI
     "FAST003", # FastAPI
     "FURB",    # Code modernization
@@ -112,6 +116,7 @@ external =[]
     "D",  # Utility scripts do not require docstrings
 ]
 "core/_alembic_migrations/**/*.py" = [
+    "ARG001",
     "D",  # Alembic migrations do not need docstrings
 ]
 "core/src/core/**/*.py" = [

@@ -194,11 +194,8 @@ def get_event_losses_summary_in_sql(
     return result.fetchall()
 
 
-def get_total_daily_type2_loss_open_events(
-    db: Session,
-    *,
-    project_name: str,
-) -> float:
+# nosemgrep
+def get_total_daily_type2_loss_open_events(db: Session) -> float:
     """Return the total daily loss (type 2 only) across all OPEN events
     (time_end IS NULL).
 

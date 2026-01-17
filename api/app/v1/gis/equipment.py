@@ -90,10 +90,8 @@ async def get_pcs(
             try:
                 df_pcs_ep = (
                     await funcs.get_expected_power(
-                        project_id=project_id,
                         start=start,
                         end=end,
-                        db=db,
                         project_db=project_db,
                         project=project,
                     )

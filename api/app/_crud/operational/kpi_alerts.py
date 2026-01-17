@@ -107,8 +107,6 @@ async def add_kpi_alert(
 async def update_kpi_alert(
     db: AsyncSession,
     *,
-    user_id: str,
-    project_id: UUID,
     kpi_type_id: int,
     config: dict,
 ):
@@ -116,8 +114,6 @@ async def update_kpi_alert(
 
     Args:
         db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
         kpi_type_id: TODO: describe.
         config: TODO: describe.
     """

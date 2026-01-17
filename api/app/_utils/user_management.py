@@ -144,17 +144,17 @@ async def send_drone_inspection_order_email(
     <html>
     <body>
         <p>Hello,</p>
-        
+
         <p>I would like to request a new drone inspection for our site.</p>
-        
+
         <p><strong>Customer:</strong> {company_name}</p>
         <p><strong>Site:</strong> {project_name}</p>
         <p><strong>Scope:</strong> Full site inspection</p>
         <p><strong>Inspection Type:</strong> Module Advanced</p>
         <p><strong>Timing:</strong> {timing}</p>
-        
+
         <p>Please let me know your availability and next steps.</p>
-        
+
         <p>Best regards,<br>
         {user_name}<br>
         {user_email}</p>
@@ -200,7 +200,7 @@ async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dic
         return {"error": f"Failed to get user metadata: {e.data.errors[0].message}"}
 
 
-async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | None:
+async def get_clerk_user_image_url(*, user_id: str) -> str | None:
     """Get a user's profile picture URL from Clerk.
 
     Tries the primary Clerk instance first (based on ENVIRONMENT setting), then
@@ -209,8 +209,6 @@ async def get_clerk_user_image_url(*, user_id: str, api_prod: bool) -> str | Non
 
     Args:
         user_id (str): The ID of the user to get the image URL for.
-        api_prod (bool): Deprecated - kept for backward compatibility. Now
-            uses settings.ENVIRONMENT instead.
 
     Returns:
         str | None: The user's profile picture URL, or None if not available.

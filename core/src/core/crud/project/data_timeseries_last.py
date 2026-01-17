@@ -128,10 +128,6 @@ def get_data_timeseries_last(
 def get_data_timeseries_last_v2(
     *,
     device_type_ids: list[int] | None = None,
-    sensor_type_ids: list[int] | None = None,
-    tag_ids: list[int] | None = None,
-    device_ids: list[int] | None = None,
-    deep: bool = False,
     include_ghost_tags: bool = False,
 ) -> DbQuery[Any, Literal[False]]:
     """Fetches the latest timeseries data.
@@ -146,10 +142,6 @@ def get_data_timeseries_last_v2(
 
     Args:
         device_type_ids: Device type ids to filter by.
-        sensor_type_ids: Sensor type ids to filter by.
-        tag_ids: Tag ids to filter by.
-        device_ids: Device ids to filter by.
-        deep: Whether to eager-load tag and device relationships.
         include_ghost_tags: Include tags without sensor_type_id when True.
     """
     # 1. Define the age calculation once to reuse it.

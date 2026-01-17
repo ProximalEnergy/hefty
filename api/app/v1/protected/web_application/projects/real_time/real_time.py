@@ -394,7 +394,7 @@ async def get_device_type_power_summary(
             device_ids = combiner_devices_df["device_id"].astype(int).tolist()
             if device_ids:
                 power_sum = await _calculate_dc_combiner_power_sum(
-                    project_db=project_db, project=project, device_ids=device_ids
+                    project_db=project_db, device_ids=device_ids
                 )
                 if power_sum is not None:
                     device_type_power[9] = power_sum
@@ -408,7 +408,7 @@ async def get_device_type_power_summary(
 
 
 async def _calculate_dc_combiner_power_sum(
-    *, project_db: Session, project: models.Project, device_ids: list[int]
+    *, project_db: Session, device_ids: list[int]
 ) -> float | None:
     """Calculate total power for DC combiners using the proven utility_expected logic.
 

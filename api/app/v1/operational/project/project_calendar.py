@@ -30,22 +30,18 @@ router = APIRouter(dependencies=[Depends(dependencies.check_project_access_async
 
 
 @router.get(
-    "/projects/{project_id}/calendar-item-categories",
+    "/projects/{project_id}/calendar-item-categories",  # noqa: FAST003
     response_model=list[CalendarItemCategory],
 )
 async def read_calendar_item_categories(
-    project_id: uuid.UUID,  # path consistency, not used for filtering global categories
     db: AsyncSession = Depends(dependencies.get_async_db),
     skip: int = 0,
     limit: int = 100,
-    # current_user: models.User = Depends(dependencies.get_current_active_user)
-    # Add if auth is needed
 ):
     """Retrieve all calendar item categories.
         Even though project_id is in the path, categories are currently global.
 
     Args:
-        project_id: TODO: describe.
         db: TODO: describe.
         skip: TODO: describe.
         limit: TODO: describe.
@@ -161,11 +157,10 @@ async def get_calendar_items(
 
 
 @router.put(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}",
+    "/projects/{project_id}/calendar-events/{calendar_item_id}",  # noqa: FAST003
     response_model=CalendarItem,
 )
 async def update_calendar_item_endpoint(
-    project_id: uuid.UUID,
     calendar_item_id: uuid.UUID,
     item: CalendarItemCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
@@ -174,7 +169,6 @@ async def update_calendar_item_endpoint(
     """Update a calendar item.
 
     Args:
-        project_id: TODO: describe.
         calendar_item_id: TODO: describe.
         item: TODO: describe.
         db: TODO: describe.
@@ -201,23 +195,18 @@ async def update_calendar_item_endpoint(
 
 
 @router.delete(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}",
+    "/projects/{project_id}/calendar-events/{calendar_item_id}",  # noqa: FAST003
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_calendar_item_endpoint(
-    # Included for path consistency, not used for delete by item_id.
-    project_id: uuid.UUID,
     calendar_item_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     """Delete a calendar item by its ID.
 
     Args:
-        project_id: TODO: describe.
         calendar_item_id: TODO: describe.
         db: TODO: describe.
-        user_data: TODO: describe.
     """
     # Optional: Add ownership/permission check here using project_id and
     # user_data if necessary before allowing deletion. For now, we assume
@@ -248,7 +237,6 @@ async def post_calendar_item_exception(
     exception_date_str: str,
     exception_payload: interfaces.CalendarItemExceptionUpdate,
     db: AsyncSession = Depends(dependencies.get_async_db),
-    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
 ):
     """Create or update an exception for a specific occurrence of a recurring
     calendar item.
@@ -261,7 +249,6 @@ async def post_calendar_item_exception(
         exception_date_str: TODO: describe.
         exception_payload: TODO: describe.
         db: TODO: describe.
-        user_data: TODO: describe.
     """
     try:
         exception_date_obj = datetime.date.fromisoformat(exception_date_str)

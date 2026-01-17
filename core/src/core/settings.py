@@ -33,12 +33,8 @@ def get_environment() -> str | None:
     return os.getenv("ENVIRONMENT")
 
 
-def get_clerk_secret_key(*, api_prod: bool) -> str | None:
+def get_clerk_secret_key() -> str | None:
     """Get the Clerk secret key from environment variables.
-
-    Args:
-        api_prod: Whether running in production (unused for now but kept
-        for consistency).
 
     Returns:
         str | None: The Clerk secret key, or None if not set

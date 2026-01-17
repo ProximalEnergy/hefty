@@ -164,7 +164,6 @@ class ZeitviewAPI:
         sites_data = sites_response.get("data", [])
         enriched_sites = []
         for site in sites_data:
-            site_id = site.get("site_id")
             # Try to get site_uuid from the response first
             # If not available, we'll need to handle it differently
             # For now, assume the API might return it even if not in fields

@@ -312,7 +312,6 @@ async def sync_zeitview_anomalies(
                 await bulk_create_drone_anomalies_incremental(
                     db=project_db,
                     anomalies_data=anomalies_to_create,
-                    inspection_uuid=inspection_uuid,
                 )
                 total_synced += len(anomalies_to_create)
                 logger.info(

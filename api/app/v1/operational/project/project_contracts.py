@@ -67,7 +67,6 @@ async def create_contract(
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
-    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Create contract data
     """todo
@@ -77,7 +76,6 @@ async def create_contract(
         contract: TODO: describe.
         db: TODO: describe.
         user_data: TODO: describe.
-        project: TODO: describe.
     """
     contract_data = contract.model_dump()
     contract_data["project_id"] = project_id
@@ -165,14 +163,12 @@ async def get_project_contracts(
 
 @router.get("/{contract_id}/kpis")
 async def get_contract_kpis(
-    project_id: UUID,
     contract_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
     """todo
 
     Args:
-        project_id: TODO: describe.
         contract_id: TODO: describe.
         db: TODO: describe.
     """
@@ -637,10 +633,6 @@ async def delete_contract(
     project_id: UUID,
     contract_id: int,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
-    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     """Delete a contract if it has no associated Contractual KPIs.
 
@@ -651,8 +643,6 @@ async def delete_contract(
         project_id: TODO: describe.
         contract_id: TODO: describe.
         db: TODO: describe.
-        user_data: TODO: describe.
-        project: TODO: describe.
     """
     try:
         deleted = await crud_delete_contract(

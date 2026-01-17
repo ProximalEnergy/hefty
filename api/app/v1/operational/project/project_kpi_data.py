@@ -37,7 +37,6 @@ from app.dependencies import (
     get_async_db,
     get_is_superadmin_async,
     get_project_api,
-    get_project_db,
     get_user_data_async,
 )
 from app.v1.operational.kpi_instances import get_kpi_instances_helper
@@ -213,7 +212,6 @@ def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
 def get_project_kpi_summary(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
-    project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
@@ -227,7 +225,6 @@ def get_project_kpi_summary(
     Args:
         project_id: TODO: describe.
         db: TODO: describe.
-        project_db: TODO: describe.
         project: TODO: describe.
         is_superadmin: TODO: describe.
         kpi_type_ids: TODO: describe.
@@ -486,25 +483,19 @@ async def get_project_kpi_alerts(
 
 @router.put("/update-kpi-alert")
 async def update_kpi_alert(
-    project_id: uuid.UUID,
     data: interfaces.KPIAlertUpdate,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
 ):
     """todo
 
     Args:
-        project_id: TODO: describe.
         data: TODO: describe.
         db: TODO: describe.
-        user_data: TODO: describe.
     """
     kpi_type_id = int(data.kpi_type_id)
     config = data.__dict__
     return await crud_update_kpi_alert(
         db=db,
-        user_id=user_data.user_id,
-        project_id=project_id,
         kpi_type_id=kpi_type_id,
         config=config,
     )

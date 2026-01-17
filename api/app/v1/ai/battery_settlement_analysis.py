@@ -2,13 +2,10 @@ import json
 import logging
 import os
 import statistics
-from typing import Annotated, Any, TypedDict
+from typing import Any, TypedDict
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-
-from app.dependencies import get_user_data_async
-from app.interfaces import UserData
 
 try:
     from openai import OpenAI
@@ -227,13 +224,11 @@ def _prepare_data_for_llm(
 async def analyze_battery_settlement(
     *,
     request: BatterySettlementAnalysisRequest,
-    user_data: Annotated[UserData, Depends(get_user_data_async)],
 ):
     """Analyze battery settlement data using AI and return a single formatted text.
 
     Args:
         request: TODO: describe.
-        user_data: TODO: describe.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

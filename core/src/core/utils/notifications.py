@@ -410,9 +410,7 @@ async def send_notification_email(
     db: AsyncSession,
     user_id: str,
     recipient_email: str,
-    user_name: str,
     notification_id: int,
-    api_prod: bool,
     email_kwargs: dict,
     summary: dict | None = None,
 ) -> None:
@@ -422,9 +420,7 @@ async def send_notification_email(
         db: Database session.
         user_id: User ID.
         recipient_email: Recipient email address.
-        user_name: User's name.
         notification_id: Notification ID.
-        api_prod: Whether running in production.
         email_kwargs: Pre-built email kwargs dict for SES send_email.
         summary: Optional summary dictionary to update with email count and errors.
     """
@@ -503,7 +499,6 @@ async def send_notification_emails_with_rate_limit(
     user_ids: list[str],
     get_email_kwargs_func: Callable[..., dict],
     notification_id: int,
-    api_prod: bool,
     summary: dict,
 ) -> None:
     """Send notification emails to multiple users with rate limiting.
@@ -514,7 +509,6 @@ async def send_notification_emails_with_rate_limit(
         get_email_kwargs_func: Function that takes (user_id, user_email, user_name)
             and returns email_kwargs dict.
         notification_id: Notification ID.
-        api_prod: Whether running in production.
         summary: Summary dictionary to update with email counts and errors.
     """
     if not user_ids:
@@ -531,9 +525,7 @@ async def send_notification_emails_with_rate_limit(
         async with _email_send_semaphore:
             try:
                 # Get user email
-                user_email = await get_user_email_from_clerk(
-                    user_id=user_id, api_prod=api_prod
-                )
+                user_email = await get_user_email_from_clerk(user_id=user_id)
                 if not user_email:
                     logger.warning(
                         f"Could not get email for user {user_id} from Clerk - "
@@ -561,9 +553,7 @@ async def send_notification_emails_with_rate_limit(
                     db=db,
                     user_id=user_id,
                     recipient_email=user_email,
-                    user_name=user_name,
                     notification_id=notification_id,
-                    api_prod=api_prod,
                     email_kwargs=email_kwargs,
                     summary=summary,
                 )
