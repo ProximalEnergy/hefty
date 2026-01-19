@@ -42,6 +42,18 @@ def get_clerk_secret_key() -> str | None:
     return os.getenv("CLERK_SECRET_KEY")
 
 
+def get_clickhouse_credentials() -> tuple[str | None, str | None, str | None]:
+    host = os.getenv("CLICKHOUSE_HOST")
+    username = os.getenv("CLICKHOUSE_USER")
+    password = os.getenv("CLICKHOUSE_PASSWORD")
+
+    return (host, username, password)
+
+
 # Pre-compute commonly used settings
 DATABASE_URL = get_database_url()
 ENVIRONMENT = get_environment()
+
+# ClickHouse
+CLICKHOUSE_HOST, CLICKHOUSE_USERNAME, CLICKHOUSE_PASSWORD = get_clickhouse_credentials()
+CLICKHOUSE_PORT = 8443

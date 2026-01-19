@@ -4,6 +4,7 @@ from typing import Annotated
 
 import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.dependencies import get_db_async
 from core.enumerations import TimeInterval
@@ -470,18 +471,29 @@ async def get_timeseries_v3(
                 ),
             ) from exc
 
-    data_timeseries = await core.crud.project.data_timeseries.DataTimeseries.get(
-        project_db=project_db,
-        operational_db=operational_db,
+    # Determine filter method based on which parameter is provided
+    filter_method: FilterMethod
+    filter_values: list[int]
+    if tag_ids:
+        filter_method = FilterMethod.TAG_IDS
+        filter_values = tag_ids
+    else:
+        filter_method = FilterMethod.SENSOR_TYPE_IDS
+        filter_values = sensor_type_ids
+
+    data_timeseries_instance = DataTimeseries(  # type: ignore[call-overload]
         project_name_short=project.name_short,
-        tag_ids=tag_ids,
-        sensor_type_ids=sensor_type_ids,
+        filter_method=filter_method,
+        filter_values=filter_values,
         query_start=start,
         query_end=end,
+        project_db=project_db,
+        operational_db=operational_db,
+        freq=agg_interval,
         return_arrow=False,
-        agg_interval=agg_interval,
         ensure_full_range=ensure_full_range,
     )
+    data_timeseries = await data_timeseries_instance.get()
 
     # Convert polars DataFrame to pandas
     df = data_timeseries.df.to_pandas()
@@ -497,9 +509,7 @@ async def get_timeseries_v3(
     # Get tags for metadata
     if tag_ids:
         tags = core.crud.project.tags.get_project_tags(
-            project_db,
-            tag_ids=tag_ids,
-            deep=True,
+            project_db, tag_ids=tag_ids, deep=True, include_ghost_tags=True
         ).models()
     else:
         tags = core.crud.project.tags.get_project_tags(

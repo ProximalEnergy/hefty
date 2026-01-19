@@ -2,7 +2,6 @@ from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.orm.strategy_options import _AbstractLoad
 
@@ -86,34 +85,3 @@ def get_project(
         .where(models.Project.project_id == project_id)
     )
     return DbQuery(query=stmt, is_scalar=True)
-
-
-async def get_project_timezone_and_data_cagg_interval_by_name_short_async(
-    *, db: AsyncSession, name_short: str
-) -> dict[str, str | None] | None:
-    """
-    Get timezone and data_cagg_interval for a project by name_short.
-
-    Args:
-        db (AsyncSession): The database session to use for the query.
-        name_short (str): The project name_short to look up.
-
-    Returns:
-        dict[str, str | None] | None: A dictionary containing timezone and
-            data_cagg_interval, or None if project not found.
-    """
-    stmt = select(
-        models.Project.time_zone,
-        models.Project.data_cagg_interval,
-    ).where(models.Project.name_short == name_short)
-
-    result = await db.execute(stmt)
-    row = result.first()
-
-    if row is None:
-        return None
-
-    return {
-        "timezone": row.time_zone,
-        "data_cagg_interval": row.data_cagg_interval,
-    }

@@ -1,8 +1,8 @@
 // Auto-generated. Do not edit by hand.
 // Generated with generate_ts_enums.py
 
-export const AggregationTypeEnum = {
-  LAST: "last",
+export const AggregationMethodEnum = {
+  FIRST: "first",
   AVERAGE: "avg",
 } as const;
 

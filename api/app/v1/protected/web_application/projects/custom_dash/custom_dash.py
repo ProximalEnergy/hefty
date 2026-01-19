@@ -7,6 +7,7 @@ from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -140,16 +141,18 @@ async def get_bar(
         db=project_db,
         sensor_type_ids=[sensor_type_id],
     )
-    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries.get(
+    data_timeseries_v3_instance = DataTimeseries(
         project_name_short=project.name_short,
-        tag_ids=[t.tag_id for t in tags],
-        query_start=project_start,
-        query_end=project_end,
-        agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=project_start.to_pydatetime(),
+        query_end=project_end.to_pydatetime(),
+        freq=core.enumerations.TimeInterval.FIVE_MINUTES,
         project_db=project_db,
         operational_db=operational_db,
         return_arrow=False,
     )
+    data_timeseries_v3 = await data_timeseries_v3_instance.get()
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
     df = (
@@ -237,16 +240,18 @@ async def get_gauge(
                 db=project_db,
                 sensor_type_ids=[measured_sensor_type_id],
             )
-            data_real = await core.crud.project.data_timeseries.DataTimeseries.get(
+            data_real_instance = DataTimeseries(
                 project_name_short=project.name_short,
-                tag_ids=[t.tag_id for t in tags],
-                query_start=project_start,
-                query_end=project_end,
-                agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+                filter_method=FilterMethod.TAG_IDS,
+                filter_values=[t.tag_id for t in tags],
+                query_start=project_start.to_pydatetime(),
+                query_end=project_end.to_pydatetime(),
+                freq=core.enumerations.TimeInterval.FIVE_MINUTES,
                 project_db=project_db,
                 operational_db=operational_db,
                 return_arrow=False,
             )
+            data_real = await data_real_instance.get()
             df_real = data_real.df.to_pandas().set_index("time", drop=True)
             df_real.columns = df_real.columns.astype(int)
             series_real = df_real.sum(axis=1)
@@ -526,16 +531,17 @@ async def get_line(
     # ------------------------------------------------------------------
     tag_ids_for_timeseries = [int(t.tag_id) for t in tags]
 
-    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries.get(
+    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries(
         project_name_short=project.name_short,
-        tag_ids=tag_ids_for_timeseries,
-        query_start=project_start,
-        query_end=project_end,
-        agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=tag_ids_for_timeseries,
+        query_start=project_start.to_pydatetime(),
+        query_end=project_end.to_pydatetime(),
+        freq=core.enumerations.TimeInterval.FIVE_MINUTES,
         project_db=project_db,
         operational_db=operational_db,
         return_arrow=False,
-    )
+    ).get()
 
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
@@ -718,16 +724,18 @@ async def get_scatter(
     y_axis_tag_ids = [t.tag_id for t in y_axis_tags]
     tags = tags.find(tag_id__in=x_axis_tag_ids + y_axis_tag_ids)
 
-    data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries.get(
+    data_timeseries_v3_instance = DataTimeseries(
         project_name_short=project.name_short,
-        tag_ids=[t.tag_id for t in tags],
-        query_start=project_start,
-        query_end=project_end,
-        agg_interval=core.enumerations.TimeInterval.FIVE_MINUTES,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=project_start.to_pydatetime(),
+        query_end=project_end.to_pydatetime(),
         project_db=project_db,
         operational_db=operational_db,
+        freq=core.enumerations.TimeInterval.FIVE_MINUTES,
         return_arrow=False,
     )
+    data_timeseries_v3 = await data_timeseries_v3_instance.get()
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
     x_axis_df = df[

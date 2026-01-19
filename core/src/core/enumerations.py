@@ -574,8 +574,8 @@ class ComponentType(IntEnum):
     TEXT = 8
 
 
-class AggregationType(StrEnum):
-    LAST = "last"
+class AggregationMethod(StrEnum):
+    FIRST = "first"
     AVERAGE = "avg"
 
 

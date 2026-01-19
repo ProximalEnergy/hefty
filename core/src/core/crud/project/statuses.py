@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 import core
 from core import models
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import DbQuery, OutputType
 from core.enumerations import SensorType, TimeInterval, TimeOffset
 from core.model_list import ModelList
@@ -691,18 +692,20 @@ async def get_status_timeseries_python(
         empty_df = pd.DataFrame({"time": time_index})
         return empty_df.to_dict(orient="records")
 
-    data = await core.crud.project.data_timeseries.DataTimeseries.get(
+    data_timeseries = DataTimeseries(
         project_name_short=project.name_short,
-        tag_ids=tags.index.tolist(),
-        query_start=pd.Timestamp(start),
-        query_end=pd.Timestamp(end),
-        agg_interval=TimeInterval.FIVE_MINUTES,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=tags.index.tolist(),
+        query_start=pd.Timestamp(start).to_pydatetime(),
+        query_end=pd.Timestamp(end).to_pydatetime(),
+        freq=TimeInterval.FIVE_MINUTES,
         max_lookback_period=TimeOffset.NONE,
         ensure_full_range=True,
         project_db=project_db,
         operational_db=db,
         return_arrow=False,
     )
+    data = await data_timeseries.get()
     data_to_df = data.df.to_pandas()
 
     if data_to_df.empty:

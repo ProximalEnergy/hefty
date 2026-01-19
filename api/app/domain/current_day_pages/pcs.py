@@ -2,6 +2,7 @@ import datetime
 from typing import Any
 
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.dependencies import get_db_session_async
 from core.enumerations import DeviceType, SensorType, TimeInterval, TimeOffset
@@ -65,18 +66,20 @@ async def _fetch_timeseries_dataframe(
     if len(tags) == 0:
         return pd.DataFrame()
 
-    data_timeseries = await core.crud.project.data_timeseries.DataTimeseries.get(
+    data_timeseries_instance = DataTimeseries(
         project_name_short=project.name_short,
-        tag_ids=[tag.tag_id for tag in tags],
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[tag.tag_id for tag in tags],
         query_start=start,
         query_end=end,
-        agg_interval=TimeInterval.FIVE_MINUTES,
+        freq=TimeInterval.FIVE_MINUTES,
         max_lookback_period=TimeOffset.FIVE_MINUTES,
         ensure_full_range=True,
         project_db=project_db,
         operational_db=operational_db,
         return_arrow=False,
     )
+    data_timeseries = await data_timeseries_instance.get()
 
     df_polars = data_timeseries.df
     if df_polars.height == 0:
