@@ -270,3 +270,6 @@ uv.lock
 
 # dont track sandbox files
 */_sandbox/
+
+# Route Tree
+.route-tree.html

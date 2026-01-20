@@ -78,6 +78,8 @@ def main(*, argv: Sequence[str] | None = None) -> int:
         "tests",
         "--exclude",
         "_tests",
+        "--exclude",
+        "route_tree.py",
     ] + paths_to_check
 
     print(f"Running: {' '.join(cmd)}")

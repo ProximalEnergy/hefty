@@ -510,6 +510,11 @@ description = "Insert KPI instances data"
 dir = "api"
 run = "python3 -m _data_insert.operational.11_kpi_instances"
 
+[tasks."api:route_tree"]
+description = "Generate route tree HTML report"
+dir = "api"
+run = "uv run python _scripts/route_tree.py"
+
 # =============================================================================
 # WEB-APP TASKS (runs in ./web-app directory)
 # =============================================================================
