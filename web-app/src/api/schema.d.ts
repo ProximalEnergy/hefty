@@ -3406,6 +3406,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/status/last-known-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Last Known Statuses
+         * @description Returns the human-readable interpretation of
+         *     last known status values for the project.
+         *     Returns data in the form:
+         *     [
+         *         {
+         *             "device_id": ...,
+         *             "statuses": [
+         *                 {"time": "...", "status": "...", "status_type": "..."},
+         *                 {"time": "...", "status": "...", "status_type": "..."},
+         *                 ...
+         *             ],
+         *         },
+         *         {
+         *             "device_id": ...,
+         *             "statuses": [
+         *                 {"time": "...", "status": "...", "status_type": "..."},
+         *                 {"time": "...", "status": "...", "status_type": "..."},
+         *                 ...
+         *             ],
+         *         },
+         *     ]
+         *
+         *     Args:
+         *         project: The project to get statuses for.
+         *         device_type_ids: List of device type IDs to filter statuses by.
+         *         If None, all device types will be included.
+         *         sensor_type_ids: List of sensor type IDs to filter statuses by.
+         *         If None, all sensor types will be included.
+         *         tag_ids: List of individual tag IDs to filter statuses by.
+         *         If None, all tags will be included.
+         *         device_ids: List of individual device IDs to filter statuses by.
+         *         If None, all devices will be included.
+         *         alert_only: If True, only return statuses that are in alert (non-nominal) state.
+         *         If False, return all statuses. WARNING: False may return a lot of data.
+         */
+        get: operations["get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/pv-budgeted/series": {
         parameters: {
             query?: never;
@@ -8242,6 +8295,16 @@ export interface components {
             model: string;
         };
         /**
+         * DeviceStatus
+         * @description A device and its statuses.
+         */
+        DeviceStatus: {
+            /** Device Id */
+            device_id: number | null;
+            /** Statuses */
+            statuses: components["schemas"]["StatusEntry"][];
+        };
+        /**
          * DeviceTotals
          * @description todo
          */
@@ -10356,6 +10419,24 @@ export interface components {
             is_daytime: boolean;
             /** Next Sunrise */
             next_sunrise: string | null;
+        };
+        /**
+         * StatusEntry
+         * @description A single status entry for a device.
+         */
+        StatusEntry: {
+            /**
+             * Time
+             * Format: date-time
+             */
+            time: string;
+            /** Status */
+            status: string;
+            /**
+             * Status Type
+             * @enum {string}
+             */
+            status_type: "nominal" | "warning" | "alert";
         };
         /**
          * StatusTimeSeries
@@ -15961,6 +16042,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get: {
+        parameters: {
+            query?: {
+                device_type_ids?: number[] | null;
+                sensor_type_ids?: number[] | null;
+                tag_ids?: number[] | null;
+                device_ids?: number[] | null;
+                alert_only?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceStatus"][];
                 };
             };
             /** @description Validation Error */

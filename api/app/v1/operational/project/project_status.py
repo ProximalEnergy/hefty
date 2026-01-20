@@ -1,9 +1,10 @@
 import datetime
 import string
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import numpy as np
 import pandas as pd
+from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -33,6 +34,21 @@ class StatusTimeSeries(BaseModel):
     tag_id: int
 
 
+class StatusEntry(BaseModel):
+    """A single status entry for a device."""
+
+    time: datetime.datetime
+    status: str
+    status_type: Literal["nominal", "warning", "alert"]
+
+
+class DeviceStatus(BaseModel):
+    """A device and its statuses."""
+
+    device_id: int | None
+    statuses: list[StatusEntry]
+
+
 # -- unchanged interpret wrapper --
 @router.get("/interpret")
 def interpret(
@@ -60,7 +76,7 @@ def interpret(
 
 # -- optimized /time-series endpoint for JS --
 @router.get("/time-series", response_model=list[StatusTimeSeries])
-def get_status_time_series(
+async def get_status_time_series(
     db: Annotated[Session, Depends(get_project_db)],
     *,
     project: Annotated[models.Project, Depends(get_project_api)],
@@ -214,19 +230,17 @@ def get_status_time_series(
         lookup[key] = status
 
     # Get status_lookup before processing to determine types
-    status_lookup = core.crud.project.statuses.get_status_lookup(
-        db=db,
+    status_lookup = await core.crud.project.statuses.get_status_lookup(
         status_lookup_ids=tags["status_lookup_id"].values.tolist(),
-    )
+    ).get_async(output_type=OutputType.PANDAS)
 
     # Create mapping from tag_id to status_lookup_id
     tag_to_status_lookup_id = tags["status_lookup_id"].to_dict()
 
     # Create mapping from status_lookup_id to is_string_lookup
-    status_lookup_id_to_is_string = {
-        sl.status_lookup_id: sl.status_string_id is not None
-        for sl in status_lookup.models()
-    }
+    status_lookup_id_to_is_string = status_lookup.set_index("status_lookup_id")[
+        "status_string_id"
+    ].to_dict()
 
     # Convert string lookup columns: float -> Int64Dtype -> string
     # Note: string values must be normalized (translate + lower) to match lookup keys
@@ -287,20 +301,93 @@ def get_status_time_series(
         alert_series[~mask] = False
         alert_df[col] = alert_series
 
+    # 1) Extract device names from the old SQLAlchemy tag models
+    #    (This is the missing "devices_df" information you need.)
+    tag_device_df = pd.DataFrame(
+        [
+            {
+                "tag_id": int(tag.tag_id),
+                "device_name_long": getattr(
+                    getattr(tag, "device", None), "name_long", None
+                ),
+                "status_lookup_id_model": getattr(tag, "status_lookup_id", None),
+            }
+            for tag in tags_model_list
+            if getattr(tag, "tag_id", None) is not None
+        ]
+    ).drop_duplicates(subset=["tag_id"], keep="first")
+
+    # 2) Enrich tags dataframe with device name
+    tags_enriched = tags.copy()
+
+    # If tag_id is an index in tags, normalize it to a column first
+    if "tag_id" not in tags_enriched.columns:
+        if tags_enriched.index.name == "tag_id":
+            tags_enriched = tags_enriched.reset_index()
+        else:
+            raise KeyError(
+                "tags dataframe must have tag_id column or index named 'tag_id'"
+            )
+
+    tags_enriched["tag_id"] = tags_enriched["tag_id"].astype(int, errors="ignore")
+
+    tags_enriched = tags_enriched.merge(
+        tag_device_df,
+        on="tag_id",
+        how="left",
+        validate="many_to_one",
+    )
+
+    # Optional: if tags df is missing status_lookup_id for some rows, fill from model
+    if "status_lookup_id" in tags_enriched.columns:
+        tags_enriched["status_lookup_id"] = tags_enriched["status_lookup_id"].where(
+            tags_enriched["status_lookup_id"].notna(),
+            tags_enriched["status_lookup_id_model"],
+        )
+    else:
+        # if tags df doesn't have it at all, use the model-derived one
+        tags_enriched["status_lookup_id"] = tags_enriched["status_lookup_id_model"]
+
+    # 3) Build a status_lookup_id -> status_name_long dict from status_lookup dataframe
+    status_lookup_df = (
+        status_lookup  # rename for clarity if your variable is named differently
+    )
+    status_name_by_id = (
+        status_lookup_df.dropna(subset=["status_lookup_id"])
+        .set_index("status_lookup_id")["name_long"]
+        .astype(str)
+        .to_dict()
+    )
+
+    # 4) Build tag_id -> (status_lookup_id, device_name_long) lookup
+    tag_row_by_id = tags_enriched.drop_duplicates(
+        subset=["tag_id"], keep="first"
+    ).set_index("tag_id")[["status_lookup_id", "device_name_long"]]
+
+    def make_series_name(tag_id) -> str:  # nosemgrep: python-enforce-keyword-only-args
+        try:
+            row = tag_row_by_id.loc[int(tag_id)]
+        except Exception:
+            return str(tag_id)
+
+        status_id = row.get("status_lookup_id", None)
+        device_name = row.get("device_name_long", None)
+        status_name = status_name_by_id.get(status_id, None)
+
+        parts = []
+        if status_name and status_name != "nan":
+            parts.append(str(status_name))
+        if device_name and device_name != "nan":
+            parts.append(str(device_name))
+
+        return " ".join(parts) if parts else str(tag_id)
+
+    # 5) Use it in your output
     data_out = [
         {
-            "x": status_strings_df.index.tz_convert(project.time_zone).tolist(),  # good
-            "y": status_strings_df[col].replace(np.nan, None).tolist(),  # good
-            "name": next(
-                (
-                    s.name_long + " " + tag.device.name_long
-                    for tag in tags_model_list
-                    if tag.tag_id == col
-                    for s in status_lookup
-                    if s.status_lookup_id == tag.status_lookup_id
-                ),
-                str(col),
-            ),
+            "x": status_strings_df.index.tz_convert(project.time_zone).tolist(),
+            "y": status_strings_df[col].replace(np.nan, None).tolist(),
+            "name": make_series_name(col),
             "alert": alert_df[col].tolist(),
             "tag_id": col,
         }
@@ -352,3 +439,60 @@ async def get_status_time_series_python(
         return data
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/last-known-statuses", response_model=list[DeviceStatus])
+async def get_last_known_statuses(
+    *,
+    project: Annotated[models.Project, Depends(get_project_api)],
+    device_type_ids: list[int] | None = Query(None),
+    sensor_type_ids: list[int] | None = Query(None),
+    tag_ids: list[int] | None = Query(None),
+    device_ids: list[int] | None = Query(None),
+    alert_only: bool = Query(True),
+):
+    """
+    Returns the human-readable interpretation of
+    last known status values for the project.
+    Returns data in the form:
+    [
+        {
+            "device_id": ...,
+            "statuses": [
+                {"time": "...", "status": "...", "status_type": "..."},
+                {"time": "...", "status": "...", "status_type": "..."},
+                ...
+            ],
+        },
+        {
+            "device_id": ...,
+            "statuses": [
+                {"time": "...", "status": "...", "status_type": "..."},
+                {"time": "...", "status": "...", "status_type": "..."},
+                ...
+            ],
+        },
+    ]
+
+    Args:
+        project: The project to get statuses for.
+        device_type_ids: List of device type IDs to filter statuses by.
+        If None, all device types will be included.
+        sensor_type_ids: List of sensor type IDs to filter statuses by.
+        If None, all sensor types will be included.
+        tag_ids: List of individual tag IDs to filter statuses by.
+        If None, all tags will be included.
+        device_ids: List of individual device IDs to filter statuses by.
+        If None, all devices will be included.
+        alert_only: If True, only return statuses that are in alert (non-nominal) state.
+        If False, return all statuses. WARNING: False may return a lot of data.
+    """
+    data = await core.crud.project.statuses.get_last_known_statuses(
+        project=project,
+        device_type_ids=device_type_ids,
+        sensor_type_ids=sensor_type_ids,
+        tag_ids=tag_ids,
+        device_ids=device_ids,
+        alert_only=alert_only,
+    )
+    return data

@@ -36,3 +36,42 @@ export const useGetStatusTimeSeries = ({
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
+
+// Leaving this here for the interfaces - we'll need this soon enough but it's out of scope for now.
+// interface DeviceStatusEntry {
+//   time: string
+//   status: string
+//   status_type: string
+// }
+
+// interface DeviceStatuses {
+//   device_id?: number
+//   statuses: DeviceStatusEntry[]
+// }
+
+// export const useGetLastKnownStatuses = ({
+//   pathParams,
+//   queryParams,
+//   queryOptions = {},
+// }: {
+//   pathParams: getPathParams
+//   queryParams?: getQueryParams
+//   queryOptions?: Partial<UseQueryOptions>
+// }) => {
+//   const axiosConfig = {
+//     url: `/v1/operational/projects/${pathParams.project_id}/status/last-known-statuses`,
+//   }
+
+//   const defaultQueryOptions: Partial<UseQueryOptions> = {
+//     refetchOnWindowFocus: false,
+//     staleTime: 30000, // 30 seconds
+//   }
+
+//   return useCustomQuery<DeviceStatuses[]>({
+//     axiosConfig,
+//     queryName: 'getLastKnownStatuses',
+//     pathParams,
+//     queryParams,
+//     queryOptions: { ...defaultQueryOptions, ...queryOptions },
+//   })
+// }
