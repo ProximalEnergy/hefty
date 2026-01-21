@@ -4,20 +4,14 @@ from typing import Annotated
 import pandas as pd
 from core.db_query import OutputType
 from core.enumerations import SensorType
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
+from app.v1.protected.web_application.projects.reports.reports import router
 from core import models
-
-router = APIRouter(
-    prefix="/reports",
-    tags=["reports"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
-    include_in_schema=utils.get_include_in_schema(),
-)
 
 
 @router.get("/clearsky-poa", response_class=ORJSONResponse)

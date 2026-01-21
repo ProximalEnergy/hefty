@@ -258,6 +258,7 @@ export const ReportTypeEnum = {
   PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE: 8,
   PV_PERFORMANCE_DAILY: 9,
   BESS_MONTHLY_REPORT: 10,
+  SCADA_TELEMETRY_LAST_REPORTED: 11,
 } as const;
 
 export const SensorTypeEnum = {

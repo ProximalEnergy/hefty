@@ -6711,6 +6711,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/reports/scada-telemetry-last-reported": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Scada Telemetry Last Reported
+         * @description Generate Excel report with tag reporting status.
+         *
+         *     Returns Excel binary with:
+         *     - Summary sheet: aggregates (total, reporting, never reported, ghost count)
+         *     - Data sheet: all tags with last reported time, status, ghost indicator
+         *
+         *     Args:
+         *         project: The project model.
+         */
+        get: operations["get_scada_telemetry_last_reported_v1_protected_web_application_projects__project_id__reports_scada_telemetry_last_reported_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/system/{project_id}/meter-power-and-expected-power-v2": {
         parameters: {
             query?: never;
@@ -21053,6 +21080,40 @@ export interface operations {
                 start: string;
                 end: string;
             };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_scada_telemetry_last_reported_v1_protected_web_application_projects__project_id__reports_scada_telemetry_last_reported_get: {
+        parameters: {
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;

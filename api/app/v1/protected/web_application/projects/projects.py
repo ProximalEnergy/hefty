@@ -15,10 +15,7 @@ from app.v1.protected.web_application.projects.equipment_analysis import (
 )
 from app.v1.protected.web_application.projects.events import events
 from app.v1.protected.web_application.projects.real_time import real_time
-from app.v1.protected.web_application.projects.reports import (
-    clearsky_filter,
-    module_degradation,
-)
+from app.v1.protected.web_application.projects.reports import reports
 
 router = APIRouter(
     prefix="/projects/{project_id}",
@@ -34,5 +31,4 @@ router.include_router(events.router)
 router.include_router(custom_dash.router)
 router.include_router(battery_settlement.router)
 router.include_router(combiner_correlation_analysis.router)
-router.include_router(clearsky_filter.router)
-router.include_router(module_degradation.router)
+router.include_router(reports.router)

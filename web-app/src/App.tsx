@@ -142,6 +142,7 @@ import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceRep
 import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
 import ModuleDegradation from './pages/projects/reports/ModuleDegradation'
 import PCSApparentVsVoltage from './pages/projects/reports/PCSApparentVsVoltageReport'
+import SCADATelemetryLastReported from './pages/projects/reports/SCADATelemetryLastReported'
 import TrackerAvailabilityReport from './pages/projects/reports/TrackerAvailabilityReport'
 // Utility
 import Backfill from './pages/projects/utility/Backfill'
@@ -451,6 +452,10 @@ const ClerkProviderWithRoutes = () => {
               <Route
                 path="reports/daily-performance"
                 element={<DailyPerformanceReport />}
+              />
+              <Route
+                path="reports/scada-telemetry-last-reported"
+                element={<SCADATelemetryLastReported />}
               />
 
               {/* Contracts */}
