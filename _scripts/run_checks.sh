@@ -264,7 +264,13 @@ fi
 
 DIFF_FILES=""
 if [ "${RUN_ALL}" = "false" ]; then
-    DIFF_FILES=$(git diff --name-only "${DIFF_BASE}...HEAD")
+    # Include committed, staged, and unstaged changes vs base.
+    DIFF_FILES=$(
+        {
+            git diff --name-only "${DIFF_BASE}...HEAD"
+            git diff --name-only HEAD
+        } | sort -u
+    )
 fi
 
 if [ "${RUN_ALL}" = "false" ] && [ -z "${DIFF_FILES}" ]; then

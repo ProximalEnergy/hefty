@@ -3,6 +3,11 @@ name: Hardcoded Type ID Check
 on:
   pull_request:
     branches: [dev, staging, main]
+    paths:
+      - "api/**"
+      - "core/**"
+      - "web-app/**"
+      - ".github/workflows/hardcoded-type-id-check.yml"
 
 jobs:
   hardcoded-type-id-check:

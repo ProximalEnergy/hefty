@@ -13,6 +13,11 @@ name: Hardcoded Name Shorts Check
 on:
   pull_request:
     branches: [dev, staging, main]
+    paths:
+      - "api/**"
+      - "core/**"
+      - "web-app/**"
+      - ".github/workflows/hardcoded-name-shorts-check.yml"
 
 jobs:
   hardcoded-name-shorts-check:
