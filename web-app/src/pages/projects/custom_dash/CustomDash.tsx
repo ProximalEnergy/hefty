@@ -98,13 +98,13 @@ const defaultKPITimeRanges = {
 // Helper function to calculate time ranges based on selected values
 const calculateTimeRange = (timeRangeValue: number) => {
   switch (timeRangeValue) {
-    case 1: // Past 2 Days
+    case defaultTimeRanges['Past 2 Days']:
       return 'past-2-days'
-    case 2: // Past 3 Days
+    case defaultTimeRanges['Past 3 Days']:
       return 'past-3-days'
-    case 3: // Today
+    case defaultTimeRanges['Today']:
       return 'today'
-    case 4: // Yesterday
+    case defaultTimeRanges['Yesterday']:
       return 'yesterday'
     default:
       return 'today'
@@ -121,22 +121,22 @@ const calculateKPITimeRange = (timeRangeValue: number, timeZone: string) => {
     .millisecond(0)
 
   switch (timeRangeValue) {
-    case 1: // 1 Month
+    case defaultKPITimeRanges['1 Month']:
       return {
         start: now.subtract(1, 'month').format('YYYY-MM-DD'),
         end: now.format('YYYY-MM-DD'),
       }
-    case 2: // Year to Date
+    case defaultKPITimeRanges['Year to Date']:
       return {
         start: now.startOf('year').format('YYYY-MM-DD'),
         end: now.format('YYYY-MM-DD'),
       }
-    case 3: // Beginning of Life
+    case defaultKPITimeRanges['Beginning of Life']:
       return {
         start: now.startOf('year').subtract(10, 'year').format('YYYY-MM-DD'), // Assuming 10 years for "beginning of life"
         end: now.format('YYYY-MM-DD'),
       }
-    case 4: // Month to Date
+    case defaultKPITimeRanges['Month to Date']:
       return {
         start: now.startOf('month').format('YYYY-MM-DD'),
         end: now.format('YYYY-MM-DD'),

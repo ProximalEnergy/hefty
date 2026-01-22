@@ -6,12 +6,10 @@ import pandas as pd
 from core.crud.operational.sensor_types import get_sensor_types
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.dependencies import get_db_async
 from core.enumerations import TimeInterval
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
 from natsort import natsorted
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import app.utils as utils
@@ -421,7 +419,6 @@ async def get_time_series(
 @router.get("/data-timeseries-v3", response_model=list[interfaces.DataTimeSeries])
 async def get_timeseries_v3(
     project_db: Annotated[Session, Depends(get_project_db)],
-    operational_db: Annotated[AsyncSession, Depends(get_db_async)],
     project: Annotated[models.Project, Depends(get_project_api)],
     tag_ids: Annotated[list[int], Query()] = [],
     sensor_type_ids: Annotated[list[int], Query()] = [],
@@ -472,27 +469,30 @@ async def get_timeseries_v3(
             ) from exc
 
     # Determine filter method based on which parameter is provided
-    filter_method: FilterMethod
-    filter_values: list[int]
     if tag_ids:
-        filter_method = FilterMethod.TAG_IDS
-        filter_values = tag_ids
-    else:
-        filter_method = FilterMethod.SENSOR_TYPE_IDS
-        filter_values = sensor_type_ids
+        data_timeseries_instance = DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=tag_ids,
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+            freq=agg_interval,
+            ensure_full_range=ensure_full_range,
+        )
 
-    data_timeseries_instance = DataTimeseries(  # type: ignore[call-overload]
-        project_name_short=project.name_short,
-        filter_method=filter_method,
-        filter_values=filter_values,
-        query_start=start,
-        query_end=end,
-        project_db=project_db,
-        operational_db=operational_db,
-        freq=agg_interval,
-        return_arrow=False,
-        ensure_full_range=ensure_full_range,
-    )
+    else:
+        data_timeseries_instance = DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.SENSOR_TYPE_IDS,
+            filter_values=sensor_type_ids,
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+            freq=agg_interval,
+            ensure_full_range=ensure_full_range,
+        )
+
     data_timeseries = await data_timeseries_instance.get()
 
     # Convert polars DataFrame to pandas

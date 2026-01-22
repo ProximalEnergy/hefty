@@ -3,7 +3,6 @@ import json
 from typing import Annotated
 
 import polars as pl
-import pyarrow as pa
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -16,6 +15,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import custom_types, interfaces, utils
+from app._utils.arrow import polars_to_arrow_response
 from app.dependencies import get_project_db, get_project_db_async
 from app.logger import logger
 
@@ -241,24 +241,7 @@ async def get_project_devices_v2(
         return devices_df.to_dicts()
 
     elif filters.format == "arrow":
-        # Create Arrow table directly from Polars DataFrame
-        table = devices_df.to_arrow()
-
-        # Create IPC buffer
-        buffer = io.BytesIO()
-        with pa.ipc.new_file(buffer, table.schema) as writer:
-            writer.write_table(table)
-
-        buffer.seek(0)
-
-        return Response(
-            content=buffer.getvalue(),
-            media_type="application/vnd.apache.arrow.file",
-            headers={
-                "Content-Disposition": "attachment; filename=devices.arrow",
-                "X-Total-Records": str(len(devices_df)),
-            },
-        )
+        return polars_to_arrow_response(df=devices_df, filename="devices.arrow")
 
     elif filters.format == "parquet":
         # Create Parquet buffer directly from Polars DataFrame

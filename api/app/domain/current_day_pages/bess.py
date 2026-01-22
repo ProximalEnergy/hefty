@@ -1,20 +1,20 @@
 import datetime
 from collections import defaultdict
 
-import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.enumerations import SensorType, TimeOffset
 from sqlalchemy.orm import Session
 
 import core
-from app import utils
 from core import models
 
 
-def get_bess_data(
+async def get_bess_data(
     *,
     project: models.Project,
     project_db: Session,
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+    start: datetime.datetime,
+    end: datetime.datetime,
 ):
     """
     Retrieves BESS data for a given project.
@@ -31,9 +31,9 @@ def get_bess_data(
     tags = core.crud.project.tags.get_project_tags(
         project_db,
         sensor_type_ids=[
-            43,  # bess_enclosure_soc_percent
-            44,  # bess_bank_soc_percent
-            45,  # bess_string_soc_percent
+            SensorType.BESS_ENCLOSURE_SOC_PERCENT,
+            SensorType.BESS_BANK_SOC_PERCENT,
+            SensorType.BESS_STRING_SOC_PERCENT,
         ],
         deep=True,
     ).models()
@@ -43,16 +43,18 @@ def get_bess_data(
     for t in tags:
         sensor_type_id_to_tag_ids[t.sensor_type_id].append(t.tag_id)
 
-    df = utils.data_df(
-        project_db,
-        project,
-        tags,
-        start=start,
-        end=end,
-        get_last=True,
-        fillna_zero=False,
-    )
-    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    data = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        max_lookback_period=TimeOffset.ONE_HOUR,
+    ).get()
+
+    df = data.df.to_pandas().set_index("time")
+    df.columns = df.columns.astype(int)
 
     return_data = {}
 

@@ -34,9 +34,9 @@ router = APIRouter(
     "/bess",
     response_class=ORJSONResponse,
 )
-def get_bess(
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+async def get_bess(
+    start: datetime.datetime,
+    end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
@@ -49,7 +49,7 @@ def get_bess(
         project: TODO: describe.
         project_db: TODO: describe.
     """
-    return get_bess_data(
+    return await get_bess_data(
         project=project,
         project_db=project_db,
         start=start,

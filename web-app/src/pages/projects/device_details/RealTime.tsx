@@ -441,19 +441,19 @@ const Page = ({
 
   const largeYAxisTitle = (() => {
     switch (deviceTypeId) {
-      case 3:
+      case DeviceTypeEnum.PV_PCS_MODULE:
         return 'PV PCS'
-      case 9:
+      case DeviceTypeEnum.PV_DC_COMBINER:
         return 'PV PCS'
-      case 27:
+      case DeviceTypeEnum.BESS_STRING:
         return 'BESS PCS'
-      case 29:
+      case DeviceTypeEnum.TRACKER_ROW:
         return 'Tracker Zone'
-      case 31:
+      case DeviceTypeEnum.BESS_CELL:
         return 'BESS Module'
-      case 32:
+      case DeviceTypeEnum.BESS_PCS_MODULE_GROUP:
         return 'BESS PCS'
-      case 33:
+      case DeviceTypeEnum.BESS_PCS_MODULE:
         return 'BESS PCS'
       default:
         return undefined
@@ -462,7 +462,7 @@ const Page = ({
 
   const getChartDescription = () => {
     switch (deviceTypeId) {
-      case 2: // PV PCS
+      case DeviceTypeEnum.PV_PCS:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding PV PCS Power Output</Text>
@@ -513,7 +513,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 3: // PV PCS Module
+      case DeviceTypeEnum.PV_PCS_MODULE:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding PV PCS Module Performance</Text>
@@ -540,7 +540,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 9: // PV DC Combiner
+      case DeviceTypeEnum.PV_DC_COMBINER:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding PV DC Combiner Current</Text>
@@ -601,7 +601,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 29: // Tracker
+      case DeviceTypeEnum.TRACKER_ROW:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding Tracker Angle Visualization</Text>
@@ -671,7 +671,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 13: // BESS PCS
+      case DeviceTypeEnum.BESS_PCS:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding BESS PCS Power Output</Text>
@@ -699,7 +699,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 32: // BESS PCS Module Group
+      case DeviceTypeEnum.BESS_PCS_MODULE_GROUP:
         return (
           <Stack gap="xs">
             <Text fw={600}>
@@ -729,7 +729,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 33: // BESS PCS Module
+      case DeviceTypeEnum.BESS_PCS_MODULE:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding BESS PCS Module Performance</Text>
@@ -756,7 +756,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 27: // BESS String
+      case DeviceTypeEnum.BESS_STRING:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding BESS String Performance</Text>
@@ -783,7 +783,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case 31: // BESS Cell
+      case DeviceTypeEnum.BESS_CELL:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding BESS Cell Performance</Text>

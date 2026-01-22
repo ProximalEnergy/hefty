@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.39"
+version = "0.3.40"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -14,7 +14,6 @@ dependencies = [
     "greenlet>=3.2.4",
     "numpy>=1.24.0",
     "pandas>=2.3.0",
-    "pyarrow>=18.1.0",
     # Added strict constraint to avoid breaking change in polars/polars#24027.
     "polars==1.35.2",
     "psycopg2-binary>=2.9.11",

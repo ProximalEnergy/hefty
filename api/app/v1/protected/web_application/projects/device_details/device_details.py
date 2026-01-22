@@ -1,18 +1,16 @@
 import datetime
-import io
 import logging
 from typing import Annotated, Literal, TypedDict
 
 import numpy as np
 import pandas as pd
 import polars as pl
-import pyarrow as pa
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.db_query import OutputType
 from core.enumerations import DeviceType
 from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import ORJSONResponse, Response
+from fastapi.responses import ORJSONResponse
 from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +18,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
+from app._utils.arrow import polars_to_arrow_response
 from core import models
 
 router = APIRouter(
@@ -643,18 +642,4 @@ async def get_data_availability_v2(
         ]
     )
 
-    # Convert Polars DataFrame to PyArrow Table
-    arrow_table = df.to_arrow()
-
-    # Serialize to Arrow IPC format (feather format)
-    buffer = io.BytesIO()
-    with pa.ipc.new_file(buffer, arrow_table.schema) as writer:
-        writer.write_table(arrow_table)
-
-    # Return as streaming response with appropriate media type
-    buffer.seek(0)
-    return Response(
-        content=buffer.getvalue(),
-        media_type="application/vnd.apache.arrow.file",
-        headers={"Content-Disposition": "attachment; filename=data_availability.arrow"},
-    )
+    return polars_to_arrow_response(df=df, filename="data_availability.arrow")

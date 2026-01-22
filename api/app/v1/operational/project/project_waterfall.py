@@ -11,7 +11,7 @@ from core.crud.project.event_losses import (
     get_event_losses_aggregated,
 )
 from core.db_query import OutputType
-from core.enumerations import EventLossType, SensorType
+from core.enumerations import EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -74,8 +74,7 @@ async def get_project_waterfall(
     if start_dt is None or end_dt is None:
         raise ValueError("start and end must not be None")
     match project.project_type_id:
-        ## PV only
-        case 1:
+        case ProjectType.PV:
             meter_tags = core.crud.project.tags.get_project_tags(
                 db=project_db,
                 sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
@@ -91,11 +90,9 @@ async def get_project_waterfall(
             )
             series_meter = df_meter.iloc[:, 0]
             series_meter.name = "Meter Active Power"
-        ## BESS only
-        case 2:
+        case ProjectType.BESS:
             return []
-        ## PV + BESS
-        case 3:
+        case ProjectType.PVS:
             meter_tags = core.crud.project.tags.get_project_tags(
                 db=project_db,
                 sensor_type_ids=[SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER],

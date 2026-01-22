@@ -3,26 +3,20 @@ import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import Any, Literal, overload
 from zoneinfo import ZoneInfo
 
 import clickhouse_connect
 import pandas as pd
 import polars as pl
 from polars.datatypes import Boolean, String
-from sqlalchemy import select
-from sqlalchemy.orm import load_only
-
-if TYPE_CHECKING:
-    from fastapi.responses import Response
-
-from sqlalchemy import MetaData, Table, TextClause, text
+from sqlalchemy import MetaData, Table, TextClause, select, text
 from sqlalchemy import exc as sa_exc
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from core import models, settings
 from core.crud.project.tags import get_project_tags
+from core.dependencies import get_db_session_async
 from core.enumerations import (
     AggregationMethod,
     ProjectDatabaseProvider,
@@ -30,7 +24,6 @@ from core.enumerations import (
     TimeOffset,
 )
 from core.model_list import ModelList
-from core.utils import arrow as arrow_utils
 
 warnings.filterwarnings(
     "ignore", message="Did not recognize type 'ltree'", category=sa_exc.SAWarning
@@ -62,7 +55,6 @@ class DataTimeseries:
     query_start: datetime
     query_end: datetime
     project_db: Session
-    operational_db: AsyncSession
 
     # Optional fields (with defaults)
     max_lookback_period: TimeOffset = TimeOffset.FIVE_MINUTES
@@ -73,7 +65,6 @@ class DataTimeseries:
     dangerous_pagination_override: bool = False
     ffill_limit: int | None = None
     ensure_full_range: bool = True
-    return_arrow: bool = True
 
     # Internal fields (set during execution, not in constructor)
     _tag_ids: list[int] = field(default_factory=list)
@@ -85,7 +76,6 @@ class DataTimeseries:
 
     # Public fields (set during execution)
     df: pl.DataFrame = field(default_factory=pl.DataFrame)
-    df_arrow: "Response | None" = None
     page_limit_reached: bool = False
 
     @overload
@@ -98,7 +88,6 @@ class DataTimeseries:
         query_start: datetime,
         query_end: datetime,
         project_db: Session,
-        operational_db: AsyncSession,
         max_lookback_period: TimeOffset = ...,
         freq: TimeInterval = ...,
         aggregation_method: AggregationMethod = ...,
@@ -107,7 +96,6 @@ class DataTimeseries:
         dangerous_pagination_override: bool = ...,
         ffill_limit: int | None = ...,
         ensure_full_range: bool = ...,
-        return_arrow: bool = ...,
     ) -> None: ...
 
     @overload
@@ -120,7 +108,6 @@ class DataTimeseries:
         query_start: datetime,
         query_end: datetime,
         project_db: Session,
-        operational_db: AsyncSession,
         max_lookback_period: TimeOffset = ...,
         freq: TimeInterval = ...,
         aggregation_method: AggregationMethod = ...,
@@ -129,7 +116,6 @@ class DataTimeseries:
         dangerous_pagination_override: bool = ...,
         ffill_limit: int | None = ...,
         ensure_full_range: bool = ...,
-        return_arrow: bool = ...,
     ) -> None: ...
 
     @overload
@@ -142,7 +128,6 @@ class DataTimeseries:
         query_start: datetime,
         query_end: datetime,
         project_db: Session,
-        operational_db: AsyncSession,
         max_lookback_period: TimeOffset = ...,
         freq: TimeInterval = ...,
         aggregation_method: AggregationMethod = ...,
@@ -151,7 +136,6 @@ class DataTimeseries:
         dangerous_pagination_override: bool = ...,
         ffill_limit: int | None = ...,
         ensure_full_range: bool = ...,
-        return_arrow: bool = ...,
     ) -> None: ...
 
     def __init__(
@@ -163,7 +147,6 @@ class DataTimeseries:
         query_start: datetime,
         query_end: datetime,
         project_db: Session,
-        operational_db: AsyncSession,
         max_lookback_period: TimeOffset = TimeOffset.FIVE_MINUTES,
         freq: TimeInterval = TimeInterval.FIVE_MINUTES,
         aggregation_method: AggregationMethod = AggregationMethod.FIRST,
@@ -172,7 +155,6 @@ class DataTimeseries:
         dangerous_pagination_override: bool = False,
         ffill_limit: int | None = None,
         ensure_full_range: bool = True,
-        return_arrow: bool = True,
     ) -> None:
         # Initialize all fields from parameters
         # (dataclass fields with defaults are initialized automatically)
@@ -182,7 +164,6 @@ class DataTimeseries:
         self.query_start = query_start
         self.query_end = query_end
         self.project_db = project_db
-        self.operational_db = operational_db
         self.max_lookback_period = max_lookback_period
         self.freq = freq
         self.aggregation_method = aggregation_method
@@ -191,7 +172,6 @@ class DataTimeseries:
         self.dangerous_pagination_override = dangerous_pagination_override
         self.ffill_limit = ffill_limit
         self.ensure_full_range = ensure_full_range
-        self.return_arrow = return_arrow
         # Internal and public fields with defaults are already set by
         # dataclass field definitions
 
@@ -199,7 +179,7 @@ class DataTimeseries:
         """Execute the timeseries query using constructor parameters.
 
         Returns:
-            Self with df, df_arrow, and page_limit_reached populated.
+            Self with df, and page_limit_reached populated.
         """
         # Step 1: Load project metadata from operational database
         # Result: Sets _time_zone, _data_cagg_interval, _project_id_int,
@@ -217,7 +197,6 @@ class DataTimeseries:
 
         # Step 4: Execute query based on database provider
         # Result: Populates self.df, self.page_limit_reached, and optionally
-        # self.df_arrow
         if self._database_provider is None:
             raise ValueError("database_provider must be set")
         match self._database_provider:
@@ -227,7 +206,7 @@ class DataTimeseries:
                 await self._get_clickhouse()
 
         # Step 5: Return self with all data populated
-        # Result: Instance ready for use with df, df_arrow, and page_limit_reached set
+        # Result: Instance ready for use with df, and page_limit_reached set
         return self
 
     async def _get_timescale(self) -> None:
@@ -278,15 +257,6 @@ class DataTimeseries:
         # Result: self.df and self.page_limit_reached are now populated
         self.df = df
         self.page_limit_reached = page_limit_reached
-
-        # Step 8: Optionally convert to Arrow format for efficient transfer
-        # Result: self.df_arrow contains FastAPI Response with Arrow binary data
-        #         This is more efficient than JSON for large datasets
-        if self.return_arrow:
-            self.df_arrow = arrow_utils.polars_to_arrow_response(
-                df=df,
-                filename="data_timeseries.arrow",
-            )
 
     async def _get_clickhouse(self) -> None:
         """Execute timeseries query for ClickHouse.
@@ -353,14 +323,6 @@ class DataTimeseries:
         # Result: self.df and self.page_limit_reached are now populated
         self.df = df
         self.page_limit_reached = page_limit_reached
-
-        # Step 10: Optionally convert to Arrow format for efficient transfer
-        # Result: self.df_arrow contains FastAPI Response with Arrow binary data
-        if self.return_arrow:
-            self.df_arrow = arrow_utils.polars_to_arrow_response(
-                df=df,
-                filename="data_timeseries.arrow",
-            )
 
     # -- DATABASE PROVIDER NAIVE HELPERS -- #
 
@@ -1006,8 +968,9 @@ class DataTimeseries:
 
         # Step 2: Execute query and get single result
         # Result: Project model instance or None if not found
-        result = await self.operational_db.execute(stmt)
-        project = result.scalar_one_or_none()
+        async with get_db_session_async(schema=None) as operational_db:
+            result = await operational_db.execute(stmt)
+            project = result.scalar_one_or_none()
 
         # Step 3: Validate project exists
         # Result: Raises error if project not found, otherwise continues

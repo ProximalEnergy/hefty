@@ -913,94 +913,93 @@ async def get_event_trace_tags(
     device_ids.extend(child_devices_df["device_id"].astype(int).tolist())
     device_ids.extend(ancestor_devices_df["device_id"].astype(int).tolist())
     match int(device["device_type_id"]):
-        case 2:  # PV PCS
+        case DeviceType.PV_PCS:
             sensor_type_ids = [
-                2,  # PV PCS AC Power
-                # 3,  # PV PCS Module AC Power
-                9,  # PV PCS AC Power Setpoint
-                34,  # PV PCS Module Internal Temperature
-                38,  # PV PCS Module DC Voltage
-                46,  # PV PCS Status
-                47,  # PV PCS Module Status
+                SensorType.PV_PCS_AC_POWER,
+                SensorType.PV_PCS_AC_POWER_SETPOINT,
+                SensorType.PV_PCS_MODULE_INTERNAL_TEMPERATURE,
+                SensorType.PV_PCS_MODULE_DC_VOLTAGE,
+                SensorType.PV_PCS_STATUS,
+                SensorType.PV_PCS_MODULE_STATUS,
             ]
-        case 3:  # PV PCS Module
+        case DeviceType.PV_PCS_MODULE:
             sensor_type_ids = [
-                2,  # PV PCS AC Power
-                3,  # PV PCS Module AC Power
-                9,  # PV PCS AC Power Setpoint
-                34,  # PV PCS Module Internal Temperature
-                38,  # PV PCS Module DC Voltage
-                46,  # PV PCS Status
-                47,  # PV PCS Module Status
+                SensorType.PV_PCS_AC_POWER,
+                SensorType.PV_PCS_MODULE_AC_POWER,
+                SensorType.PV_PCS_AC_POWER_SETPOINT,
+                SensorType.PV_PCS_MODULE_INTERNAL_TEMPERATURE,
+                SensorType.PV_PCS_MODULE_DC_VOLTAGE,
+                SensorType.PV_PCS_STATUS,
+                SensorType.PV_PCS_MODULE_STATUS,
             ]
-        case 5:  # Meter
+        case DeviceType.METER:
             sensor_type_ids = [
-                1,  # Meter Active Power
+                SensorType.METER_ACTIVE_POWER,
             ]
-        case 9:  # PV DC Combiner
+        case DeviceType.PV_DC_COMBINER:
             sensor_type_ids = [
-                2,  # PV PCS AC Power
-                3,  # PV PCS Module AC Power
-                27,  # PV DC Combiner Current
-                46,  # PV PCS Status
-                47,  # PV PCS Module Status
+                SensorType.PV_PCS_AC_POWER,
+                SensorType.PV_PCS_MODULE_AC_POWER,
+                SensorType.PV_DC_COMBINER_CURRENT,
+                SensorType.PV_PCS_STATUS,
+                SensorType.PV_PCS_MODULE_STATUS,
             ]
-        case 13:  # BESS PCS
+        case DeviceType.BESS_PCS:
             sensor_type_ids = [
-                80,  # BESS PCS Available Charge Power
-                81,  # BESS PCS Available Discharge Power
-                137,  # BESS PCS Module Status
-                140,  # BESS PCS Module Alarm
-                142,  # BESS PCS Status
-                143,  # BESS Bank Status
+                SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER,
+                SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+                SensorType.BESS_PCS_MODULE_STATUS,
+                SensorType.BESS_PCS_MODULE_ALARM,
+                SensorType.BESS_PCS_STATUS,
+                SensorType.BESS_BANK_STATUS,
             ]
-        case 26:  # BESS Bank
+        case DeviceType.BESS_BANK:
             sensor_type_ids = [
-                44,  # BESS Bank SOC
-                50,  # BESS Bank Current
-                51,  # BESS Bank Voltage
-                80,  # BESS PCS Available Charge Power
-                81,  # BESS PCS Available Discharge Power
-                137,  # BESS PCS Module Status
-                140,  # BESS PCS Module Alarm
-                142,  # BESS PCS Status
-                143,  # BESS Bank Status
+                SensorType.BESS_BANK_SOC_PERCENT,
+                SensorType.BESS_BANK_CURRENT,
+                SensorType.BESS_BANK_VOLTAGE,
+                SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER,
+                SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+                SensorType.BESS_PCS_MODULE_STATUS,
+                SensorType.BESS_PCS_MODULE_ALARM,
+                SensorType.BESS_PCS_STATUS,
+                SensorType.BESS_BANK_STATUS,
             ]
-        case 27:  # BESS String
+        case DeviceType.BESS_STRING:
             sensor_type_ids = [
-                45,  # BESS String SOC
-                57,  # BESS String Current
-                58,  # BESS String Voltage
-                80,  # BESS PCS Available Charge Power
-                81,  # BESS PCS Available Discharge Power
-                137,  # BESS PCS Module Status
-                140,  # BESS PCS Module Alarm
-                142,  # BESS PCS Status
-                143,  # BESS Bank Status
+                SensorType.BESS_STRING_SOC_PERCENT,
+                SensorType.BESS_STRING_CURRENT,
+                SensorType.BESS_STRING_VOLTAGE,
+                SensorType.BESS_PCS_AVAILABLE_CHARGE_POWER,
+                SensorType.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+                SensorType.BESS_PCS_MODULE_STATUS,
+                SensorType.BESS_PCS_MODULE_ALARM,
+                SensorType.BESS_PCS_STATUS,
+                SensorType.BESS_BANK_STATUS,
             ]
-        case 28:  # Tracker Zone
+        case DeviceType.TRACKER_ZONE:
             sensor_type_ids = [
-                24,  # Tracker Position
-                25,  # Tracker Setpoint
-                48,  # Tracker Zone Status
-                49,  # Tracker Row Status
+                SensorType.TRACKER_POSITION,
+                SensorType.TRACKER_SETPOINT,
+                SensorType.TRACKER_ZONE_STATUS,
+                SensorType.TRACKER_ROW_STATUS,
             ]
-        case 29:  # Tracker Row
+        case DeviceType.TRACKER_ROW:
             sensor_type_ids = [
-                24,  # Tracker Position
-                25,  # Tracker Setpoint
-                48,  # Tracker Zone Status
-                49,  # Tracker Row Status
+                SensorType.TRACKER_POSITION,
+                SensorType.TRACKER_SETPOINT,
+                SensorType.TRACKER_ZONE_STATUS,
+                SensorType.TRACKER_ROW_STATUS,
             ]
-        case 33:  # BESS PCS Module
+        case DeviceType.BESS_PCS_MODULE:
             sensor_type_ids = [
-                99,  # BESS PCS Module Available Charge Power
-                100,  # BESS PCS Module Available Discharge Power
-                106,  # BESS PCS Module AC Power
-                108,  # BESS PCS Module Cabinet Temperature
-                110,  # BESS PCS Module DC Voltage
-                137,  # BESS PCS Module Status
-                140,  # BESS PCS Module Alarm
+                SensorType.BESS_PCS_MODULE_AVAILABLE_CHARGE_POWER,
+                SensorType.BESS_PCS_MODULE_AVAILABLE_DISCHARGE_POWER,
+                SensorType.BESS_PCS_MODULE_AC_POWER,
+                SensorType.BESS_PCS_MODULE_CABINET_TEMPERATURE,
+                SensorType.BESS_PCS_MODULE_DC_VOLTAGE,
+                SensorType.BESS_PCS_MODULE_STATUS,
+                SensorType.BESS_PCS_MODULE_ALARM,
             ]
         case _:
             sentry_sdk.capture_exception(

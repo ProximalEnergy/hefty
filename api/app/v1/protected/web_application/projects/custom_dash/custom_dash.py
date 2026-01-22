@@ -101,7 +101,6 @@ class ShareDashboardRequest(BaseModel):
 @router.get("/bar")
 async def get_bar(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     sensor_type_id: int,
     aggregation_type: str,
@@ -149,8 +148,6 @@ async def get_bar(
         query_end=project_end.to_pydatetime(),
         freq=core.enumerations.TimeInterval.FIVE_MINUTES,
         project_db=project_db,
-        operational_db=operational_db,
-        return_arrow=False,
     )
     data_timeseries_v3 = await data_timeseries_v3_instance.get()
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
@@ -206,7 +203,6 @@ async def get_bar(
 @router.get("/gauge")
 async def get_gauge(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     measured_variable: str,
     maximum_value: str,
@@ -248,8 +244,6 @@ async def get_gauge(
                 query_end=project_end.to_pydatetime(),
                 freq=core.enumerations.TimeInterval.FIVE_MINUTES,
                 project_db=project_db,
-                operational_db=operational_db,
-                return_arrow=False,
             )
             data_real = await data_real_instance.get()
             df_real = data_real.df.to_pandas().set_index("time", drop=True)
@@ -317,7 +311,6 @@ async def get_gauge(
 @router.get("/line")
 async def get_line(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     sensor_type_ids: Annotated[list[int], Query()],
     aggregation_types: Annotated[list[str], Query()],
@@ -539,8 +532,6 @@ async def get_line(
         query_end=project_end.to_pydatetime(),
         freq=core.enumerations.TimeInterval.FIVE_MINUTES,
         project_db=project_db,
-        operational_db=operational_db,
-        return_arrow=False,
     ).get()
 
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
@@ -671,7 +662,6 @@ async def get_line(
 @router.get("/scatter")
 async def get_scatter(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
-    operational_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     x_axis_sensor_type_id: int,
     y_axis_sensor_type_id: int,
@@ -731,9 +721,7 @@ async def get_scatter(
         query_start=project_start.to_pydatetime(),
         query_end=project_end.to_pydatetime(),
         project_db=project_db,
-        operational_db=operational_db,
         freq=core.enumerations.TimeInterval.FIVE_MINUTES,
-        return_arrow=False,
     )
     data_timeseries_v3 = await data_timeseries_v3_instance.get()
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)

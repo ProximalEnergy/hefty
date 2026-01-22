@@ -693,8 +693,6 @@ async def get_status_timeseries_python(
         max_lookback_period=TimeOffset.NONE,
         ensure_full_range=True,
         project_db=project_db,
-        operational_db=db,
-        return_arrow=False,
     )
     data = await data_timeseries.get()
     data_to_df = data.df.to_pandas()

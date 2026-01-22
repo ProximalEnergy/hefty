@@ -90,6 +90,11 @@ load_patterns() {
         "^\\s*\\d+\\s*:\\s*\\[" \
         "Checks for dictionary mappings with hardcoded type IDs (e.g., 2: [2, 9] or 9: [27] inside type_id dictionaries)" \
         "_scripts"
+
+    add_pattern "Hardcoded Type ID Match Cases" \
+        "^\\s*case\\s+\\d+\\s*:" \
+        "Checks for hardcoded numeric match/case labels in Python (e.g., case 2:)" \
+        "_scripts"
 }
 
 # Load patterns
@@ -149,7 +154,11 @@ for i in "${!PATTERN_NAMES[@]}"; do
         done
         
         # Use ripgrep for faster searching
-        matches=$(rg -n --color=never "${local_exclude_args[@]}" "$pattern_regex" . 2>/dev/null || true)
+        if [ "$pattern_name" = "Hardcoded Type IDs Arrays (Python)" ]; then
+            matches=$(rg -n -U --color=never "${local_exclude_args[@]}" "$pattern_regex" . 2>/dev/null || true)
+        else
+            matches=$(rg -n --color=never "${local_exclude_args[@]}" "$pattern_regex" . 2>/dev/null || true)
+        fi
     else
         # Fallback to grep
         grep_exclude_args=()
@@ -170,7 +179,11 @@ for i in "${!PATTERN_NAMES[@]}"; do
             grep_exclude_args+=("--exclude=$file")
         done
         
-        matches=$(grep -rn --color=never "${grep_exclude_args[@]}" -E "$pattern_regex" . 2>/dev/null || true)
+        if [ "$pattern_name" = "Hardcoded Type IDs Arrays (Python)" ]; then
+            matches=$(grep -rzn --color=never "${grep_exclude_args[@]}" -E "$pattern_regex" . 2>/dev/null | tr '\0' '\n' || true)
+        else
+            matches=$(grep -rn --color=never "${grep_exclude_args[@]}" -E "$pattern_regex" . 2>/dev/null || true)
+        fi
     fi
     
     if [ -n "$matches" ]; then

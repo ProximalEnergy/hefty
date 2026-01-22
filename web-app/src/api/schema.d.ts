@@ -14726,7 +14726,6 @@ export interface operations {
                 interval?: string | null;
                 ensure_full_range?: boolean;
                 cutoff_now?: boolean;
-                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19634,9 +19633,9 @@ export interface operations {
     };
     get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get: {
         parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
+            query: {
+                start: string;
+                end: string;
             };
             header?: {
                 authorization?: string;

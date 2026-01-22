@@ -4,11 +4,9 @@ from typing import Any
 import pandas as pd
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.dependencies import get_db_session_async
 from core.enumerations import DeviceType, SensorType, TimeInterval, TimeOffset
 from fastapi import HTTPException
 from natsort import natsorted
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -51,7 +49,6 @@ async def _fetch_timeseries_dataframe(
     tags: list[models.Tag],
     start: datetime.datetime,
     end: datetime.datetime,
-    operational_db: AsyncSession,
 ) -> pd.DataFrame:
     """todo
 
@@ -76,8 +73,6 @@ async def _fetch_timeseries_dataframe(
         max_lookback_period=TimeOffset.FIVE_MINUTES,
         ensure_full_range=True,
         project_db=project_db,
-        operational_db=operational_db,
-        return_arrow=False,
     )
     data_timeseries = await data_timeseries_instance.get()
 
@@ -134,31 +129,27 @@ async def _get_equipment_analysis_frames_async(
         start: TODO: describe.
         end: TODO: describe.
     """
-    async with get_db_session_async(schema=None) as operational_db:
-        df_block = await _fetch_timeseries_dataframe(
-            project_db=project_db,
-            project=project,
-            tags=block_tags,
-            start=start,
-            end=end,
-            operational_db=operational_db,
-        )
-        df_pcs = await _fetch_timeseries_dataframe(
-            project_db=project_db,
-            project=project,
-            tags=pcs_tags,
-            start=start,
-            end=end,
-            operational_db=operational_db,
-        )
-        df_pcs_module = await _fetch_timeseries_dataframe(
-            project_db=project_db,
-            project=project,
-            tags=pcs_module_tags,
-            start=start,
-            end=end,
-            operational_db=operational_db,
-        )
+    df_block = await _fetch_timeseries_dataframe(
+        project_db=project_db,
+        project=project,
+        tags=block_tags,
+        start=start,
+        end=end,
+    )
+    df_pcs = await _fetch_timeseries_dataframe(
+        project_db=project_db,
+        project=project,
+        tags=pcs_tags,
+        start=start,
+        end=end,
+    )
+    df_pcs_module = await _fetch_timeseries_dataframe(
+        project_db=project_db,
+        project=project,
+        tags=pcs_module_tags,
+        start=start,
+        end=end,
+    )
 
     return df_block, df_pcs, df_pcs_module
 
