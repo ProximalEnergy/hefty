@@ -1,8 +1,6 @@
 import datetime
-import random
 import uuid
 from collections import defaultdict
-from collections.abc import Iterable
 from typing import Annotated, Any
 
 import numpy as np
@@ -124,26 +122,29 @@ async def get_bar(
     except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
-    sensor_types = (
-        await core.crud.operational.sensor_types.get_sensor_types(
-            sensor_type_ids=[sensor_type_id],
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
-    )
-    sensor_type_map = {
-        sensor_type.sensor_type_id: sensor_type for sensor_type in sensor_types
-    }
-    sensor_type = sensor_type_map.get(sensor_type_id)
-    if sensor_type is None:
-        raise HTTPException(status_code=404, detail="Sensor type not found")
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+
+    # Use get_project_tags_v2 with deep=True to get all required metadata in one query
+    tags_query = core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[sensor_type_id],
+        deep=True,
     )
+    tags_df = await tags_query.get_async(
+        output_type=OutputType.PANDAS, schema=project.name_short
+    )
+
+    if tags_df.empty:
+        raise HTTPException(
+            status_code=404, detail="No tags found for this sensor type"
+        )
+
+    # All tags have the same sensor type metadata in this query
+    sensor_type_name_long = tags_df["sensor_type_name_long"].iloc[0]
+    sensor_type_unit = tags_df["sensor_type_unit"].iloc[0]
+
     data_timeseries_v3_instance = DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags_df["tag_id"].tolist(),
         query_start=project_start.to_pydatetime(),
         query_end=project_end.to_pydatetime(),
         freq=core.enumerations.TimeInterval.FIVE_MINUTES,
@@ -157,45 +158,42 @@ async def get_bar(
         .ffill()
         .bfill()
     )
+
     match aggregation_type:
         case "avg" | "mean":
             out = df.mean(axis=0)
-            name = sensor_type.name_long + " Mean"
+            name = f"{sensor_type_name_long} Mean"
         case "max":
             out = df.max(axis=0)
-            name = sensor_type.name_long + " Maximum"
+            name = f"{sensor_type_name_long} Maximum"
         case "min":
             out = df.min(axis=0)
-            name = sensor_type.name_long + " Minimum"
+            name = f"{sensor_type_name_long} Minimum"
         case "sum":
             out = df.sum(axis=0)
-            name = sensor_type.name_long + " Sum"
+            name = f"{sensor_type_name_long} Sum"
         case "median":
             out = df.median(axis=0)
-            name = sensor_type.name_long + " Median"
+            name = f"{sensor_type_name_long} Median"
         case "std":
             out = df.std(axis=0)
-            name = sensor_type.name_long + " Standard Deviation"
-    project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await core.crud.project.devices.get_project_devices(
-        device_ids=list(set([t.device_id for t in tags])),
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-    devices_df = devices_df.copy()
-    devices_df["name_long"] = devices_df["name_long"].fillna("")
-    tag_to_name = (
-        tags.pandas_dataframe(index="tag_id")
-        .loc[out.index, "device_id"]
-        .map(devices_df.set_index("device_id")["name_long"])
-    )
+            name = f"{sensor_type_name_long} Standard Deviation"
+
+    # Map tag IDs to device names using the joined data
+    tags_df = tags_df.set_index("tag_id")
+    tags_df["device_name_long"] = tags_df["device_name_long"].fillna("")
+    tag_to_name = tags_df.loc[out.index, "device_name_long"]
+
     out = out.rename(index=tag_to_name.to_dict())
     # Sort by device name using natural sort for consistent ordering
     sorted_indices = natsorted(out.index, key=lambda x: str(x))
     out = out.loc[sorted_indices]
+
     return {
         "x": out.index.tolist(),
         "y": out.tolist(),
         "sensor_type_id": sensor_type_id,
-        "unit": sensor_type.unit,
+        "unit": sensor_type_unit,
         "name": name,
     }
 
@@ -232,14 +230,17 @@ async def get_gauge(
                 measured_sensor_type_id = SensorType.METER_ACTIVE_POWER
             else:
                 measured_sensor_type_id = SensorType.BESS_MV_CIRCUIT_METER_ACTIVE_POWER
-            tags = core.crud.project.tags.get_project_tags(
-                db=project_db,
+            tags_query = core.crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[measured_sensor_type_id],
+                deep=False,
+            )
+            tags_df = await tags_query.get_async(
+                output_type=OutputType.PANDAS, schema=project.name_short
             )
             data_real_instance = DataTimeseries(
                 project_name_short=project.name_short,
                 filter_method=FilterMethod.TAG_IDS,
-                filter_values=[t.tag_id for t in tags],
+                filter_values=tags_df["tag_id"].tolist(),
                 query_start=project_start.to_pydatetime(),
                 query_end=project_end.to_pydatetime(),
                 freq=core.enumerations.TimeInterval.FIVE_MINUTES,
@@ -334,7 +335,6 @@ async def get_line(
         maximum: TODO: describe.
         minimum: TODO: describe.
     """
-    project_schema = utils.get_project_schema(project_db=project_db)
     # --- Time handling (unchanged) ---
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
@@ -408,19 +408,6 @@ async def get_line(
                     ),
                 )
 
-    # --- Load sensor type metadata (unchanged) ---
-    sensor_types = await core.crud.operational.sensor_types.get_sensor_types(
-        sensor_type_ids=list(set(sensor_type_ids)),
-    ).get_async(output_type=OutputType.PANDAS)
-
-    if not sensor_types.empty:
-        sensor_types = sensor_types.set_index("sensor_type_id").sort_index()
-    else:
-        sensor_types = pd.DataFrame(
-            columns=["name_long", "unit"],
-            index=pd.Index([], name="sensor_type_id"),
-        )
-
     # ------------------------------------------------------------------
     # Decide which tags to pull:
     #   - For some sensor types we need *all* tags (aggregations or "no tag limit").
@@ -456,73 +443,55 @@ async def get_line(
     # ------------------------------------------------------------------
     # Pull tags from DB efficiently
     # ------------------------------------------------------------------
-    # Helper: merge tag collections into a simple list while deduplicating by tag_id
-    def merge_tag_lists(*tag_lists: Iterable[Any]) -> list[Any]:
-        seen_tag_ids: set[int] = set()
-        merged: list[Any] = []
-        for lst in tag_lists:
-            for t in lst:
-                tid = int(t.tag_id)
-                if tid not in seen_tag_ids:
-                    seen_tag_ids.add(tid)
-                    merged.append(t)
-        return merged
-
-    # 1) Tags for sensor types that require *all* tags
-    tags_all: list[Any] = []
+    # Tags for sensor types that require *all* tags
+    tags_all_df = pd.DataFrame()
     if sensor_type_ids_need_all:
-        tags_all = list(
-            core.crud.project.tags.get_project_tags(
-                db=project_db,
-                sensor_type_ids=list(sensor_type_ids_need_all),
-            )
+        tags_all_query = core.crud.project.tags.get_project_tags_v2(
+            sensor_type_ids=list(sensor_type_ids_need_all),
+            deep=True,
+        )
+        tags_all_df = await tags_all_query.get_async(
+            output_type=OutputType.PANDAS, schema=project.name_short
         )
 
-    # 2) Tags that are explicitly requested by id for other sensor types
-    tags_specific: list[Any] = []
+    # Tags that are explicitly requested by id for other sensor types
+    tags_specific_df = pd.DataFrame()
     if specific_tag_ids_by_sensor_type:
         flat_specific_tag_ids = sorted(
             {tid for tids in specific_tag_ids_by_sensor_type.values() for tid in tids}
         )
         if flat_specific_tag_ids:
-            tags_specific = list(
-                core.crud.project.tags.get_project_tags(
-                    db=project_db,
-                    tag_ids=flat_specific_tag_ids,
-                )
+            tags_specific_query = core.crud.project.tags.get_project_tags_v2(
+                tag_ids=flat_specific_tag_ids,
+                deep=True,
+            )
+            tags_specific_df = await tags_specific_query.get_async(
+                output_type=OutputType.PANDAS, schema=project.name_short
             )
 
-    # Combined list of all tags we actually need
-    tags: list[Any] = merge_tag_lists(tags_all, tags_specific)
+    # Combined DataFrame of all tags we actually need
+    tags_df = pd.concat([tags_all_df, tags_specific_df]).drop_duplicates(
+        subset=["tag_id"]
+    )
 
-    if not tags:
+    if tags_df.empty:
         # No tags resolved -> return empty response
         return []
 
-    # Small helpers for tag lookup since we no longer rely on tags.find()
-    def tags_for_sensor_type(*, st_id: int) -> list[Any]:
-        """Get all tags for a sensor type.
+    # Map for quick sensor type lookup from the joined data
+    sensor_type_meta = (
+        tags_df.groupby("sensor_type_id")[["sensor_type_name_long", "sensor_type_unit"]]
+        .first()
+        .to_dict("index")
+    )
 
-        Args:
-            st_id: TODO: describe.
-        """
-        return [t for t in tags if int(t.sensor_type_id) == int(st_id)]
-
-    def tag_by_id(*, tag_id: int) -> Any:
-        """Get a tag by its ID.
-
-        Args:
-            tag_id: TODO: describe.
-        """
-        for t in tags:
-            if int(t.tag_id) == int(tag_id):
-                return t
-        return None
+    # Dictionary for quick tag lookup
+    tags_dict = tags_df.set_index("tag_id").to_dict("index")
 
     # ------------------------------------------------------------------
     # Pull timeseries data for *only* the tags we fetched
     # ------------------------------------------------------------------
-    tag_ids_for_timeseries = [int(t.tag_id) for t in tags]
+    tag_ids_for_timeseries = tags_df["tag_id"].tolist()
 
     data_timeseries_v3 = await core.crud.project.data_timeseries.DataTimeseries(
         project_name_short=project.name_short,
@@ -556,41 +525,36 @@ async def get_line(
         zip(sensor_type_ids, aggregation_types)
     ):
         # Base tags for this sensor type
-        related_tags = tags_for_sensor_type(st_id=sensor_type_id)
+        related_tags_df = tags_df[tags_df["sensor_type_id"] == sensor_type_id]
 
         # If this trace has specific tag_ids, restrict to those
         if parsed_tag_ids is not None:
             trace_tag_ids = parsed_tag_ids[i]
             if trace_tag_ids:
-                trace_tag_id_set = set(trace_tag_ids)
-                related_tags = [
-                    t for t in related_tags if int(t.tag_id) in trace_tag_id_set
+                related_tags_df = related_tags_df[
+                    related_tags_df["tag_id"].isin(trace_tag_ids)
                 ]
 
-        if not related_tags:
+        if related_tags_df.empty:
             # Nothing to plot for this trace
             continue
 
         # Restrict the dataframe columns to the tags for this trace
-        trace_tag_ids_int = [int(t.tag_id) for t in related_tags]
+        trace_tag_ids_int = related_tags_df["tag_id"].tolist()
         # Filter columns to only include the tag IDs for this trace
-        # Use list comprehension to filter columns since intersection has type issues
         available_tag_ids = [col for col in df.columns if col in trace_tag_ids_int]
         temp_df = df[available_tag_ids]
 
-        sensor_name = str(sensor_types.loc[sensor_type_id, "name_long"])
+        meta = sensor_type_meta.get(sensor_type_id, {})
+        sensor_name = str(meta.get("sensor_type_name_long", ""))
+        sensor_unit = meta.get("sensor_type_unit")
         name = sensor_name  # default; may be overridden below
 
         # Aggregation behavior
         match aggregation_type:
             case "none":
-                # For "none", we keep one column per tag; need device names
-                devices_df = await core.crud.project.devices.get_project_devices(
-                    device_ids=list({int(t.device_id) for t in related_tags}),
-                ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-                devices_df = devices_df.copy()
-                devices_df["name_long"] = devices_df["name_long"].fillna("")
-                devices_df = devices_df.set_index("device_id")
+                # No aggregation needed, we use device names from the joined data
+                pass
             case "avg":
                 temp_df = pd.DataFrame(temp_df.mean(axis=1))
                 name = sensor_name + " Mean"
@@ -635,11 +599,11 @@ async def get_line(
         for j, col in enumerate(temp_df.columns):
             trace_name = name
             if aggregation_type == "none":
-                tag = tag_by_id(tag_id=int(col))
+                tag = tags_dict.get(int(col))
                 if not tag:
                     continue
-                device_name = str(devices_df.loc[int(tag.device_id), "name_long"])
-                if device_name != "None":
+                device_name = str(tag.get("device_name_long", ""))
+                if device_name and device_name != "None":
                     trace_name = f"{sensor_name} {device_name}"
                 else:
                     trace_name = sensor_name
@@ -652,7 +616,7 @@ async def get_line(
                     "minimum": trace_minimum,
                     "x": temp_df.index.tolist(),
                     "y": temp_df.iloc[:, j].replace(np.nan, None).tolist(),
-                    "unit": sensor_types.loc[sensor_type_id, "unit"],
+                    "unit": sensor_unit,
                 }
             )
 
@@ -687,37 +651,42 @@ async def get_scatter(
     except Exception:
         project_start = pd.Timestamp(start).tz_localize(project.time_zone)
         project_end = pd.Timestamp(end).tz_localize(project.time_zone)
-    sensor_types = (
-        await core.crud.operational.sensor_types.get_sensor_types(
-            sensor_type_ids=[x_axis_sensor_type_id, y_axis_sensor_type_id],
-        ).get_async(output_type=OutputType.SQLALCHEMY)
-        or []
-    )
-    sensor_type_map = {
-        sensor_type.sensor_type_id: sensor_type for sensor_type in sensor_types
-    }
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    # Use get_project_tags_v2 with deep=True to get all required metadata in one query
+    tags_query = core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[x_axis_sensor_type_id, y_axis_sensor_type_id],
+        deep=True,
     )
-    x_axis_tags = tags.find(sensor_type_id=x_axis_sensor_type_id)
-    y_axis_tags = tags.find(sensor_type_id=y_axis_sensor_type_id)
-    if len(x_axis_tags) > 100:
-        x_axis_tags = x_axis_tags.find(
-            tag_id__in=random.sample([t.tag_id for t in x_axis_tags], 100)
+    tags_df = await tags_query.get_async(
+        output_type=OutputType.PANDAS, schema=project.name_short
+    )
+
+    if tags_df.empty:
+        raise HTTPException(
+            status_code=404, detail="No tags found for selected sensor types"
         )
-    if len(y_axis_tags) > 100:
-        y_axis_tags = y_axis_tags.find(
-            tag_id__in=random.sample([t.tag_id for t in y_axis_tags], 100)
+
+    x_axis_tags_df = tags_df[tags_df["sensor_type_id"] == x_axis_sensor_type_id]
+    y_axis_tags_df = tags_df[tags_df["sensor_type_id"] == y_axis_sensor_type_id]
+
+    if x_axis_tags_df.empty or y_axis_tags_df.empty:
+        raise HTTPException(
+            status_code=404, detail="One or more sensor types not found in tags"
         )
-    x_axis_tag_ids = [t.tag_id for t in x_axis_tags]
-    y_axis_tag_ids = [t.tag_id for t in y_axis_tags]
-    tags = tags.find(tag_id__in=x_axis_tag_ids + y_axis_tag_ids)
+
+    # Limit to 100 random tags for each axis if more are present
+    if len(x_axis_tags_df) > 100:
+        x_axis_tags_df = x_axis_tags_df.sample(n=100)
+    if len(y_axis_tags_df) > 100:
+        y_axis_tags_df = y_axis_tags_df.sample(n=100)
+
+    x_axis_tag_ids = x_axis_tags_df["tag_id"].tolist()
+    y_axis_tag_ids = y_axis_tags_df["tag_id"].tolist()
+    all_tag_ids = list(set(x_axis_tag_ids + y_axis_tag_ids))
 
     data_timeseries_v3_instance = DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=all_tag_ids,
         query_start=project_start.to_pydatetime(),
         query_end=project_end.to_pydatetime(),
         project_db=project_db,
@@ -726,12 +695,9 @@ async def get_scatter(
     data_timeseries_v3 = await data_timeseries_v3_instance.get()
     df = data_timeseries_v3.df.to_pandas().set_index("time", drop=True)
     df.columns = df.columns.astype(int)
-    x_axis_df = df[
-        df.columns.astype(int).intersection([tag_id for tag_id in x_axis_tag_ids])
-    ]
-    y_axis_df = df[
-        df.columns.astype(int).intersection([tag_id for tag_id in y_axis_tag_ids])
-    ]
+
+    x_axis_df = df[df.columns.intersection(x_axis_tag_ids)]
+    y_axis_df = df[df.columns.intersection(y_axis_tag_ids)]
 
     # 1) Align indices (keep only timestamps present in both)
     idx = x_axis_df.index.intersection(y_axis_df.index)
@@ -760,25 +726,23 @@ async def get_scatter(
     )
 
     out = tmp[["x", "y"]].reset_index(drop=True)
-    x_sensor_type = sensor_type_map.get(x_axis_sensor_type_id)
-    y_sensor_type = sensor_type_map.get(y_axis_sensor_type_id)
 
-    if not x_sensor_type or not y_sensor_type:
-        raise HTTPException(
-            status_code=404,
-            detail="One or more sensor types not found",
-        )
+    # All tags for an axis have the same sensor type metadata
+    x_sensor_type_name = x_axis_tags_df["sensor_type_name_long"].iloc[0]
+    x_sensor_type_unit = x_axis_tags_df["sensor_type_unit"].iloc[0]
+    y_sensor_type_name = y_axis_tags_df["sensor_type_name_long"].iloc[0]
+    y_sensor_type_unit = y_axis_tags_df["sensor_type_unit"].iloc[0]
 
     return {
         "x": {
             "values": out["x"].tolist(),
-            "name": x_sensor_type.name_long,
-            "unit": x_sensor_type.unit,
+            "name": x_sensor_type_name,
+            "unit": x_sensor_type_unit,
         },
         "y": {
             "values": out["y"].tolist(),
-            "name": y_sensor_type.name_long,
-            "unit": y_sensor_type.unit,
+            "name": y_sensor_type_name,
+            "unit": y_sensor_type_unit,
         },
     }
 
