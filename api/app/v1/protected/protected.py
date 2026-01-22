@@ -28,7 +28,7 @@ router.include_router(pv_expected_energy.router)
 router.include_router(deletions.router)
 router.include_router(internal_comms.router)
 
-lambda_arn = os.getenv("LAMBDA_ARN_KPI_PIPELINE")
+step_function_arn = os.getenv("STEP_FUNCTION_ARN_KPI_PIPELINE")
 
 
 class KPIBackfillEvent(BaseModel):
@@ -36,7 +36,7 @@ class KPIBackfillEvent(BaseModel):
 
     start: date = Field(default_factory=date.today)
     end: date = Field(default_factory=date.today)
-    backfill_days: int = 1
+    backfill_days: int = 0
     project_name_short_list: list[str]
     kpi_type_ids: list[int] | None = None
 
@@ -55,25 +55,24 @@ def trigger_kpi_backfill_lambda(
     Args:
         event: TODO: describe.
     """
-    lambda_client = boto3.client("lambda", region_name="us-east-2")
-    payload = json.dumps(event.model_dump(mode="json")).encode("utf-8")
+    stepfunctions_client = boto3.client("stepfunctions", region_name="us-east-2")
+    input_payload = json.dumps(event.model_dump(mode="json"))
 
     try:
-        response = lambda_client.invoke(
-            FunctionName=lambda_arn,
-            InvocationType="Event",
-            Payload=payload,
+        response = stepfunctions_client.start_execution(
+            stateMachineArn=step_function_arn,
+            input=input_payload,
         )
     except (BotoCoreError, ClientError) as exc:
         raise HTTPException(
             status_code=502,
-            detail="Failed to invoke KPI backfill lambda",
+            detail="Failed to start KPI backfill step function",
         ) from exc
 
-    if response.get("StatusCode") != 202:
+    if not response.get("executionArn"):
         raise HTTPException(
             status_code=502,
-            detail="Lambda invocation returned unexpected status",
+            detail="Step function execution returned unexpected response",
         )
 
     return {"detail": "KPI backfill accepted"}

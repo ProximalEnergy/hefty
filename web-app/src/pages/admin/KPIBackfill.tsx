@@ -25,7 +25,7 @@ const KPIBackfill = () => {
   const { start, end } = useValidateDateRange({})
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
   const [selectedKpis, setSelectedKpis] = useState<string[]>([])
-  const [backfillDays, setBackfillDays] = useState(1)
+  const [backfillDays, setBackfillDays] = useState(0)
 
   const projectOptions = useMemo(
     () =>
@@ -62,7 +62,7 @@ const KPIBackfill = () => {
     !formattedEnd ||
     selectedProjects.length === 0 ||
     selectedKpis.length === 0 ||
-    backfillDays < 1
+    backfillDays < 0
 
   const handleSubmit = async () => {
     if (disableSubmit) {
@@ -162,18 +162,14 @@ const KPIBackfill = () => {
             <Group align="flex-end" gap="md">
               <NumberInput
                 label="Backfill days"
-                description="Number of days each backfill batch should cover."
+                description="Number of days before the start date to backfill."
                 value={backfillDays}
                 onChange={(value) => setBackfillDays(Number(value) || 0)}
-                min={1}
+                min={0}
                 step={1}
                 w="200px"
                 clampBehavior="strict"
               />
-              <Text size="sm" c="dimmed">
-                The lambda calculates exact runs. Keep this small to avoid very
-                large jobs.
-              </Text>
             </Group>
 
             <Button

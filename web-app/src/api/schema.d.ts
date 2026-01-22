@@ -9171,7 +9171,7 @@ export interface components {
             end?: string;
             /**
              * Backfill Days
-             * @default 1
+             * @default 0
              */
             backfill_days: number;
             /** Project Name Short List */
