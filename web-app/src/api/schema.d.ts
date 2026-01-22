@@ -2890,6 +2890,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/events/5min-event-losses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get 5Min Event Losses
+         * @description Get 5-minute event losses for a project.
+         */
+        get: operations["get_5min_event_losses_v1_operational_projects__project_id__events_5min_event_losses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/events/5min-event-losses-single": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get 5Min Event Losses Single
+         * @description Return 5-minute losses aggregated for a device and its descendants.
+         */
+        get: operations["get_5min_event_losses_single_v1_operational_projects__project_id__events_5min_event_losses_single_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
         parameters: {
             query?: never;
@@ -15283,6 +15323,85 @@ export interface operations {
                     "application/json": {
                         [key: string]: number | null;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_5min_event_losses_v1_operational_projects__project_id__events_5min_event_losses_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                event_loss_type_ids?: number[] | null;
+                device_ids?: number[] | null;
+                aggregation_column?: ("device_id" | "device_type_id" | "failure_mode_id" | "root_cause_id") | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_5min_event_losses_single_v1_operational_projects__project_id__events_5min_event_losses_single_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                device_id: number;
+                event_loss_type_ids?: number[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

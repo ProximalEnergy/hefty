@@ -4,14 +4,16 @@ import logging
 import traceback
 import uuid
 from collections.abc import Sequence
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
 
 import pandas as pd
-import sentry_sdk
+import sentry_sdk  # type: ignore
 from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
+from core.crud.project import event_losses as core_event_losses
 from core.crud.project import events as core_events
+from core.crud.project.devices import get_project_devices as crud_get_project_devices
 from core.db_query import OutputType
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
@@ -131,7 +133,7 @@ async def get_events(
         if device_id is not None
     ]
     if device_ids:
-        device_query = core.crud.project.devices.get_project_devices(
+        device_query = crud_get_project_devices(
             device_ids=device_ids,
             deep=True,
         )
@@ -272,9 +274,9 @@ async def get_paginated_events(
 
     # Devices and types
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await core.crud.project.devices.get_project_devices(
-        device_ids=device_ids_only
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = await crud_get_project_devices(device_ids=device_ids_only).get_async(
+        output_type=OutputType.PANDAS, schema=project_schema
+    )
     devices_df = devices_df.copy()
     devices_df["device_id"] = devices_df["device_id"].astype(int)
     devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
@@ -302,7 +304,7 @@ async def get_paginated_events(
                 device_name_full_by_event[e["event_id"]] = f"{dt.name_long} {name_long}"
 
     # Losses (pivot once, NaN -> None)
-    losses_df = await core.crud.project.event_losses.get_event_losses(
+    losses_df = await core_event_losses.get_event_losses(
         event_ids=event_ids,
     ).get_async(
         schema=project_name_short,
@@ -476,7 +478,7 @@ async def get_event_devices(
         return {"unique_types": [], "unique_devices": []}
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await core.crud.project.devices.get_project_devices(
+    devices_df = await crud_get_project_devices(
         device_ids=device_ids,
         deep=False,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -601,7 +603,7 @@ async def get_events_summary(
     root_causes_task = get_root_causes(db=db, root_cause_ids=root_cause_ids)
     # Run loss query in parallel with other async calls
     losses_task = asyncio.to_thread(
-        core.crud.project.event_losses.get_event_losses_summary_in_sql,
+        core_event_losses.get_event_losses_summary_in_sql,
         project_db,
         project_name=project_name_short,
         event_ids=event_ids,
@@ -839,9 +841,9 @@ async def get_uptime(
         return []
 
     project_schema = utils.get_project_schema(project_db=project_db)
-    devices_df = await core.crud.project.devices.get_project_devices(
-        device_ids=device_ids
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    devices_df = await crud_get_project_devices(device_ids=device_ids).get_async(
+        output_type=OutputType.PANDAS, schema=project_schema
+    )
     devices_df = devices_df.copy()
     devices_df["device_id"] = devices_df["device_id"].astype(int)
     devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
@@ -897,14 +899,14 @@ async def get_event_trace_tags(
         device_id: TODO: describe.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
-    device_df = await core.crud.project.devices.get_project_devices(
-        device_ids=[device_id]
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    device_df = await crud_get_project_devices(device_ids=[device_id]).get_async(
+        output_type=OutputType.PANDAS, schema=project_schema
+    )
     device = device_df.to_dict("records")[0]
-    child_devices_df = await core.crud.project.devices.get_project_devices(
+    child_devices_df = await crud_get_project_devices(
         device_id_descendent_of=int(device["device_id"]),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-    ancestor_devices_df = await core.crud.project.devices.get_project_devices(
+    ancestor_devices_df = await crud_get_project_devices(
         device_id_path_ancestor_of=device.get("device_id_path"),
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     device_ids = [device_id]
@@ -1059,7 +1061,7 @@ async def get_llm_event_losses(
         event_data = event_data_df.to_dicts()
 
         event_ids = [int(event["event_id"]) for event in event_data]
-        event_losses = await core.crud.project.event_losses.get_event_losses(
+        event_losses = await core_event_losses.get_event_losses(
             event_ids=event_ids,
             time_gte=start,
             time_lt=end,
@@ -1205,7 +1207,7 @@ async def bulk_create_events(
 
         # Get DC Field devices that are direct children of our combiners
         project_schema = await utils.get_project_schema_async(project_db=project_db)
-        dc_field_children_df = await core.crud.project.devices.get_project_devices(
+        dc_field_children_df = await crud_get_project_devices(
             device_type_ids=[DeviceType.DC_FIELD],
             parent_device_ids=[device_id for device_id in combiner_device_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -1409,7 +1411,7 @@ async def get_event_losses_summary(
         raise HTTPException(status_code=404, detail="Event not found")
     event = events[0]
 
-    losses_df = await core.crud.project.event_losses.get_event_losses(
+    losses_df = await core_event_losses.get_event_losses(
         event_ids=[event_id],
     ).get_async(
         schema=project_name_short,
@@ -1475,3 +1477,188 @@ async def get_event_losses_summary(
         pass
 
     return out
+
+
+@router.get("/5min-event-losses")
+async def get_5min_event_losses(
+    project: Annotated[models.Project, Depends(get_project_api)],
+    start: datetime.datetime,
+    end: datetime.datetime,
+    event_loss_type_ids: Annotated[list[int] | None, Query()] = None,
+    device_ids: Annotated[list[int] | None, Query()] = None,
+    aggregation_column: Annotated[
+        Literal["device_id", "device_type_id", "failure_mode_id", "root_cause_id"]
+        | None,
+        Query(),
+    ] = None,
+):
+    """Get 5-minute event losses for a project."""
+    losses_query = core_event_losses.get_5min_event_losses(
+        start=start,
+        end=end,
+        event_loss_type_ids=event_loss_type_ids,
+        aggregation_column=aggregation_column,
+        device_ids=device_ids,
+    )
+    losses_df = await losses_query.get_async(
+        schema=project.name_short,
+        output_type=OutputType.PANDAS,
+    )
+    if losses_df.empty:
+        return []
+    try:
+        losses_df["time"] = pd.to_datetime(losses_df["time"]).dt.tz_convert(
+            project.time_zone
+        )
+    except Exception:
+        losses_df["time"] = pd.to_datetime(losses_df["time"]).dt.tz_localize(
+            project.time_zone
+        )
+
+    if aggregation_column is None:
+        # Ungrouped response
+        data = [
+            {
+                "event_loss_type_id": int(loss_type_id),
+                "losses": {
+                    "time": group["time"].tolist(),
+                    "loss": group["total_loss"].tolist(),
+                },
+            }
+            for loss_type_id, group in losses_df.groupby("event_loss_type_id")
+        ]
+        return data
+
+    result = []
+    for group_key, group_df in losses_df.groupby(aggregation_column):
+        # The database query does not sort by time when aggregation is used,
+        # so we sort here.
+        group_df = group_df.sort_values("time")
+        data = [
+            {
+                "event_loss_type_id": int(loss_type_id),
+                "losses": {
+                    "time": loss_type_df["time"].tolist(),
+                    "loss": loss_type_df["total_loss"].tolist(),
+                },
+            }
+            for loss_type_id, loss_type_df in group_df.groupby("event_loss_type_id")
+        ]
+        result.append(
+            {
+                aggregation_column: group_key,
+                "data": data,
+            }
+        )
+
+    return result
+
+
+@router.get("/5min-event-losses-single")
+async def get_5min_event_losses_single(
+    project: Annotated[models.Project, Depends(get_project_api)],
+    start: datetime.datetime,
+    end: datetime.datetime,
+    device_id: int,
+    event_loss_type_ids: Annotated[list[int] | None, Query()] = None,
+):
+    """Return 5-minute losses aggregated for a device and its descendants."""
+
+    descendants_query = crud_get_project_devices(
+        device_id_descendent_of=device_id,
+        include_name_long=False,
+    )
+    descendants_df = await descendants_query.get_async(
+        schema=project.name_short,
+        output_type=OutputType.PANDAS,
+    )
+
+    if descendants_df is None or descendants_df.empty:
+        return []
+
+    descendants_df = descendants_df.copy()
+    descendants_df["device_id"] = descendants_df["device_id"].astype(int)
+    descendants_df["parent_device_id"] = descendants_df["parent_device_id"].astype(int)
+
+    direct_children = descendants_df[descendants_df["parent_device_id"] == device_id][
+        "device_id"
+    ].astype(int)
+
+    group_device_ids: dict[int, list[int]] = {
+        device_id: [device_id],
+    }
+    for child_id in direct_children:
+        pattern = rf"(?:^|\.){child_id}(?:\.|$)"
+        child_descendants = (
+            descendants_df[
+                descendants_df["device_id_path"]
+                .astype(str)
+                .str.contains(pattern, regex=True, na=False)
+            ]["device_id"]
+            .astype(int)
+            .drop_duplicates()
+            .tolist()
+        )
+        if child_id not in child_descendants:
+            child_descendants.insert(0, int(child_id))
+        group_device_ids[child_id] = child_descendants
+
+    results: list[dict[str, Any]] = []
+    for group_key, devices_in_group in group_device_ids.items():
+        losses_query = core_event_losses.get_5min_event_losses(
+            start=start,
+            end=end,
+            event_loss_type_ids=event_loss_type_ids,
+            device_ids=devices_in_group,
+            aggregation_column=None,
+        )
+        losses_df = await losses_query.get_async(
+            schema=project.name_short,
+            output_type=OutputType.PANDAS,
+        )
+        if losses_df.empty:
+            continue
+        try:
+            losses_df["time"] = pd.to_datetime(losses_df["time"]).dt.tz_convert(
+                project.time_zone
+            )
+        except Exception:
+            losses_df["time"] = pd.to_datetime(losses_df["time"]).dt.tz_localize(
+                project.time_zone
+            )
+
+        grouped: dict[int, dict[str, list[Any]]] = {}
+        for record in losses_df.to_dict("records"):
+            loss_type_id = int(record["event_loss_type_id"])
+            grouped.setdefault(loss_type_id, {"time": [], "loss": []})
+            grouped[loss_type_id]["time"].append(record["time"])
+            grouped[loss_type_id]["loss"].append(record["total_loss"])
+
+        results.append(
+            {
+                "device_id": group_key,
+                "data": [
+                    {
+                        "event_loss_type_id": loss_type_id,
+                        "losses": losses,
+                    }
+                    for loss_type_id, losses in grouped.items()
+                ],
+            }
+        )
+
+    # Order results by sum of losses
+    def _total_loss(
+        entry: dict[str, Any],
+    ) -> float:  # nosemgrep: python-enforce-keyword-only-args
+        total = 0.0
+        for series in entry.get("data", []):
+            losses = series.get("losses", {})
+            loss_values = losses.get("loss", [])
+            if loss_values:
+                total += float(sum(loss_values))
+        return total
+
+    results.sort(key=_total_loss, reverse=False)
+
+    return results

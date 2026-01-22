@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 from collections.abc import Sequence
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import sqlalchemy as sa
 from sqlalchemy import func
@@ -213,3 +213,86 @@ def get_total_daily_type2_loss_open_events(db: Session) -> float:
         )
         or 0.0
     )
+
+
+def get_5min_event_losses(
+    *,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    event_loss_type_ids: list[int] | None = None,
+    aggregation_column: Literal[
+        "device_id", "device_type_id", "failure_mode_id", "root_cause_id"
+    ]
+    | None = None,
+    device_ids: list[int] | None = None,
+):
+    """
+    Get 5-minute event losses for a project, aggregated by the field of choice.
+    Aggregation by "None" gives the total loss for the period.
+
+    Args:
+        project: Project model.
+        start: Start datetime.
+        end: End datetime.
+        aggregation_column: Column to aggregate by.
+    """
+    el = models.EventLoss
+    event_table = models.Event
+    join_event = False
+    join_device = False
+    selected_group: sa.ColumnElement[Any] | None = None
+
+    if device_ids is not None:
+        join_event = True
+
+    match aggregation_column:
+        case "device_id":
+            selected_group = cast(sa.ColumnElement[Any], event_table.device_id)
+            join_event = True
+        case "device_type_id":
+            selected_group = cast(sa.ColumnElement[Any], models.Device.device_type_id)
+            join_event = True
+            join_device = True
+        case "failure_mode_id":
+            selected_group = cast(sa.ColumnElement[Any], event_table.failure_mode_id)
+            join_event = True
+        case "root_cause_id":
+            # Default to unknown root cause if not set
+            selected_group = sa.func.coalesce(event_table.root_cause_id, 0)
+            join_event = True
+        case None:
+            selected_group = None
+        case _:
+            raise ValueError(f"Invalid aggregation column: {aggregation_column}")
+
+    stmt = sa.select(
+        el.time,
+        el.event_loss_type_id,
+        func.sum(el.loss).label("total_loss"),
+    ).where(el.time >= start, el.time < end)
+
+    if selected_group is not None:
+        stmt = stmt.add_columns(selected_group.label(aggregation_column))
+
+    if join_event:
+        stmt = stmt.join(event_table, el.event_id == event_table.event_id)
+    if join_device:
+        stmt = stmt.join(
+            models.Device,
+            event_table.device_id == models.Device.device_id,
+        )
+
+    if event_loss_type_ids is not None:
+        stmt = stmt.where(el.event_loss_type_id.in_(event_loss_type_ids))
+
+    if device_ids is not None:
+        stmt = stmt.where(event_table.device_id.in_(device_ids))
+
+    stmt = stmt.group_by(el.time, el.event_loss_type_id)
+    if selected_group is not None:
+        stmt = stmt.group_by(selected_group)
+        stmt = stmt.order_by(selected_group, el.event_loss_type_id, el.time)
+    else:
+        stmt = stmt.order_by(el.event_loss_type_id, el.time)
+
+    return DbQuery(query=stmt)

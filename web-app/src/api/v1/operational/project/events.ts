@@ -18,6 +18,24 @@ interface EventLossesSummary {
   loss_capacity: number | null
 }
 
+export interface EventLosses5MinSeries {
+  event_loss_type_id: number
+  losses: {
+    time: string[]
+    loss: number[]
+  }
+}
+
+export interface EventLosses5MinGroup {
+  device_id?: number
+  device_type_id?: number
+  failure_mode_id?: number
+  root_cause_id?: number
+  data: EventLosses5MinSeries[]
+}
+
+export type EventLosses5Min = EventLosses5MinGroup | EventLosses5MinSeries
+
 type BulkCreateEventsPayload = components['schemas']['BulkCreateEventsRequest']
 export type DroneAnomaly = components['schemas']['DroneAnomaly']
 type EventSummary = components['schemas']['EventSummary']
@@ -175,6 +193,69 @@ export const useGetEventLossesSummary = ({
   return useCustomQuery<EventLossesSummary>({
     axiosConfig,
     queryName: 'getEventLossesSummary',
+    pathParams,
+    queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useGetEventLosses5Min = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    start: string
+    end: string
+    event_loss_type_ids?: number[]
+    device_ids?: number[]
+    aggregation_column?:
+      | 'device_id'
+      | 'device_type_id'
+      | 'failure_mode_id'
+      | 'root_cause_id'
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/5min-event-losses`,
+  }
+
+  const defaultQueryOptions = {}
+
+  return useCustomQuery<EventLosses5Min[]>({
+    axiosConfig,
+    queryName: 'getEventLosses5Min',
+    pathParams,
+    queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useGetEventLosses5MinSingle = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryParams: {
+    start: string
+    end: string
+    event_loss_type_ids?: number[]
+    device_id: number
+  }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: `/v1/operational/projects/${pathParams.projectId}/events/5min-event-losses-single`,
+  }
+
+  const defaultQueryOptions = {}
+
+  return useCustomQuery<EventLosses5Min[]>({
+    axiosConfig,
+    queryName: 'getEventLosses5MinSingle',
     pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },

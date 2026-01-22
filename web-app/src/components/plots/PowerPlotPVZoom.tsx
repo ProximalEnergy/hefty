@@ -1,4 +1,10 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { EventLossTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
+import {
+  type EventLosses5Min,
+  type EventLosses5MinGroup,
+  type EventLosses5MinSeries,
+  useGetEventLosses5Min,
+} from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import CustomCard from '@/components/CustomCard'
@@ -31,12 +37,105 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import type * as Plotly from 'plotly.js'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)
 dayjs.extend(timezone)
+
+const parseIntervalMinutes = (value: string): number => {
+  const match = value.match(/(\d+)/)
+  if (!match) {
+    return 5
+  }
+  return Number(match[1])
+}
+
+const alignLossSeries = (
+  baseTimes: string[],
+  lossTimes: string[],
+  lossValues: number[],
+  targetMinutes: number,
+  timezone: string,
+): (number | null)[] => {
+  if (baseTimes.length === 0 || lossTimes.length === 0) {
+    return new Array(baseTimes.length).fill(null)
+  }
+
+  const baseMs = baseTimes.map((time) =>
+    dayjs(time).tz(timezone, true).valueOf(),
+  )
+  const losses = lossTimes
+    .map((time, idx) => ({
+      time: dayjs(time).tz(timezone, true).valueOf(),
+      value: lossValues[idx],
+    }))
+    .sort((a, b) => a.time - b.time)
+
+  const result: (number | null)[] = new Array(baseTimes.length).fill(null)
+
+  if (targetMinutes <= 1) {
+    let lossIdx = 0
+    let currentValue: number | null = losses[0]?.value ?? null
+
+    for (let i = 0; i < baseMs.length; i += 1) {
+      const time = baseMs[i]
+      while (lossIdx + 1 < losses.length && time >= losses[lossIdx + 1].time) {
+        lossIdx += 1
+        currentValue = losses[lossIdx].value
+      }
+
+      if (time < losses[0].time) {
+        result[i] = null
+      } else {
+        result[i] = currentValue
+      }
+    }
+
+    return result
+  }
+
+  let pointer = 0
+  let lastValue: number | null = null
+
+  for (let i = 0; i < baseMs.length; i += 1) {
+    const start = baseMs[i]
+    const end =
+      i < baseMs.length - 1 ? baseMs[i + 1] : start + targetMinutes * 60 * 1000
+
+    while (pointer < losses.length && losses[pointer].time < start) {
+      pointer += 1
+    }
+
+    let idx = pointer
+    let sum = 0
+    let count = 0
+
+    while (idx < losses.length && losses[idx].time < end) {
+      sum += losses[idx].value
+      count += 1
+      idx += 1
+    }
+
+    if (count > 0) {
+      const average = sum / count
+      result[i] = average
+      lastValue = average
+      pointer = idx
+    } else {
+      result[i] = lastValue
+    }
+  }
+
+  return result
+}
+
+const isLossSeries = (entry: EventLosses5Min): entry is EventLosses5MinSeries =>
+  'losses' in entry
+
+const isLossGroup = (entry: EventLosses5Min): entry is EventLosses5MinGroup =>
+  'data' in entry
 
 const PowerPlotPVZoom = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -162,6 +261,18 @@ const PowerPlotPVZoom = () => {
     },
   })
 
+  const eventLosses5Min = useGetEventLosses5Min({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      start: roundTime(startTime, interval, 'down'),
+      end: roundTime(endTime, interval, 'up'),
+      event_loss_type_ids: [EventLossTypeEnum.PROXIMAL_ENERGY],
+    },
+    queryOptions: {
+      enabled: !!project.data && !!startTime && !!endTime,
+    },
+  })
+
   // Calculate performance index from meter and expected power traces
   const performanceIndex = (() => {
     if (!data.data?.data) return undefined
@@ -280,7 +391,87 @@ const PowerPlotPVZoom = () => {
     setIsAutoUpdating(false) // Disable auto-update when user manually pans
   }
 
+  const firstLossEntry = eventLosses5Min.data?.[0]
+  const lossesSeries: EventLosses5MinSeries | undefined = useMemo(() => {
+    if (!firstLossEntry) {
+      return undefined
+    }
+    if (isLossSeries(firstLossEntry)) {
+      return firstLossEntry
+    }
+    if (isLossGroup(firstLossEntry) && Array.isArray(firstLossEntry.data)) {
+      return firstLossEntry.data[0]
+    }
+    return undefined
+  }, [firstLossEntry])
+
+  const lossesGroupLabel = useMemo(() => {
+    if (!firstLossEntry || !isLossGroup(firstLossEntry)) {
+      return null
+    }
+    return (
+      firstLossEntry.device_id ??
+      firstLossEntry.device_type_id ??
+      firstLossEntry.failure_mode_id ??
+      firstLossEntry.root_cause_id ??
+      null
+    )
+  }, [firstLossEntry])
+
   // Map data from the MeterPowerAndExpected type
+
+  const projectTimeZone = project.data?.time_zone ?? 'UTC'
+
+  const baseSeriesName = useMemo(() => {
+    switch (project.data?.project_type_id) {
+      case ProjectTypeEnum.PV:
+        return 'Meter Active Power'
+      case ProjectTypeEnum.PVS:
+        return 'PV Active Power'
+      default:
+        return null
+    }
+  }, [project.data?.project_type_id])
+
+  const baseSeries =
+    baseSeriesName && data.data?.data
+      ? data.data.data.find(
+          (trace: DataTimeSeries) => trace.name === baseSeriesName,
+        )
+      : undefined
+
+  const baseTimesNormalized =
+    baseSeries && Array.isArray(baseSeries.x)
+      ? (baseSeries.x as (string | number | Date)[]).map((value) => {
+          if (typeof value === 'string') {
+            return value
+          }
+          if (typeof value === 'number') {
+            return new Date(value).toISOString()
+          }
+          return value.toISOString()
+        })
+      : undefined
+
+  const alignedLossValues = useMemo<(number | null)[] | null>(() => {
+    if (!baseTimesNormalized || !lossesSeries) {
+      return null
+    }
+    const targetMinutes = parseIntervalMinutes(interval)
+    return alignLossSeries(
+      baseTimesNormalized,
+      lossesSeries.losses.time,
+      lossesSeries.losses.loss,
+      targetMinutes,
+      projectTimeZone,
+    )
+  }, [baseTimesNormalized, lossesSeries, interval, projectTimeZone])
+
+  const hasStackedLosses =
+    project.data?.project_type_id !== ProjectTypeEnum.BESS &&
+    alignedLossValues !== null &&
+    alignedLossValues.some((value) => value !== null)
+
   const plotData = data.data?.data.map((d: DataTimeSeries) => {
     const numericY = d.y.map((val: number | null) =>
       val === null ? null : parseFloat(String(val)),
@@ -294,9 +485,14 @@ const PowerPlotPVZoom = () => {
     const isMeterPower = displayName === 'Meter Active Power'
     const isSetpoint = displayName === 'PPC Active Power Setpoint'
     const isExpectedPower = displayName === 'Power Expected at Full Health' // Check for Expected Power
+    const isPvActivePower = displayName === 'PV Active Power'
+    const isStackBase =
+      (project.data?.project_type_id === ProjectTypeEnum.PV && isMeterPower) ||
+      (project.data?.project_type_id === ProjectTypeEnum.PVS && isPvActivePower)
     const mode =
       isMeterPower || isSetpoint || isExpectedPower ? 'lines' : 'lines+markers' // Set mode to lines for Meter, Setpoint, and Expected Power
-    const fill = isMeterPower ? 'tozeroy' : 'none' // Only fill for meter
+    const fill = isStackBase ? 'tozeroy' : 'none' // Only fill for meter
+    const stackgroup = isStackBase && hasStackedLosses ? 'power' : undefined
 
     return {
       x: d.x,
@@ -315,6 +511,7 @@ const PowerPlotPVZoom = () => {
           theme.colors.gray[7],
         width: 2,
       },
+      stackgroup,
       marker: {
         // Only show markers if mode includes them
         size: mode.includes('markers') ? 4 : 0,
@@ -348,6 +545,29 @@ const PowerPlotPVZoom = () => {
         namelength: -1,
       },
       visible: true,
+    })
+  }
+
+  if (
+    plotData &&
+    alignedLossValues !== null &&
+    baseTimesNormalized &&
+    hasStackedLosses
+  ) {
+    plotData.push({
+      x: baseTimesNormalized,
+      y: alignedLossValues,
+      name:
+        lossesGroupLabel != null
+          ? `Event Losses - Device ${lossesGroupLabel}`
+          : 'Event Losses',
+      type: 'scatter',
+      mode: 'lines',
+      line: { color: theme.colors.gray[5] },
+      fill: 'tonexty',
+      fillcolor: theme.colors.gray[2],
+      stackgroup: 'power',
+      hoverlabel: { namelength: -1 },
     })
   }
 
