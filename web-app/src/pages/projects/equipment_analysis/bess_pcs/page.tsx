@@ -47,10 +47,10 @@ const Page = () => {
   }
 
   const data = useGetEquipmentAnalysisBESSPCS({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
-      start: startRequest,
-      end: endRequest,
+      start: startRequest || '',
+      end: endRequest || '',
     },
     queryOptions: { enabled: !!projectId && !!startRequest && !!endRequest },
   })

@@ -1,20 +1,19 @@
 import datetime
 
-import pandas as pd
-from core.enumerations import SensorType
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.enumerations import SensorType, TimeOffset
 from sqlalchemy.orm import Session
 
 import core
-from app import utils
 from core import models
 
 
-def get_bess_pcs_data(
+async def get_bess_pcs_data(
     *,
     project: models.Project,
     project_db: Session,
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+    start: datetime.datetime,
+    end: datetime.datetime,
 ):
     """
     Retrieves BESS PCS data for a given project.
@@ -36,16 +35,19 @@ def get_bess_pcs_data(
 
     tag_id_to_device_name_long = {t.tag_id: t.device.name_long for t in tags}
 
-    df = utils.data_df(
-        project_db,
-        project,
-        tags,
-        start=start,
-        end=end,
-        get_last=True,
-        fillna_zero=False,
-    )
-    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    data = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        max_lookback_period=TimeOffset.ONE_HOUR,
+    ).get()
+
+    df = data.df.to_pandas()
+    df = df.set_index("time")
+    df.columns = df.columns.astype(int)
 
     return_data = [
         {

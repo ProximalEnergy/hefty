@@ -2,38 +2,35 @@ import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface Data {
-  times: string[]
-  positions: { [key: string]: number[] }
-  setpoints: { [key: string]: number[] }
+interface EquipmentAnalysisCombiner {
+  x: string[]
+  y: number[]
+  y_norm: number[]
 }
 
 const URL =
-  '/v1/protected/web-application/projects/{project_id}/equipment-analysis/tracker/{pv_block_id}'
+  '/v1/protected/web-application/projects/{project_id}/equipment-analysis/combiner'
 
 type get = types.paths[typeof URL]['get']
 type pathParams = get['parameters']['path']
 type getQueryParams = get['parameters']['query']
 
-export const useGetEquipmentAnalysisTrackerBlock = ({
+export const useGetEquipmentAnalysisCombiner = ({
   pathParams,
-  queryParams,
+  queryParams = {},
   queryOptions = {},
 }: {
   pathParams: pathParams
-  queryParams: getQueryParams
+  queryParams?: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = { url: URL }
 
-  const defaultQueryOptions = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
+  const defaultQueryOptions = {}
 
-  return useCustomQuery<Data>({
+  return useCustomQuery<EquipmentAnalysisCombiner>({
     axiosConfig,
-    queryName: 'getEquipmentAnalysisTrackerBlock',
+    queryName: 'getEquipmentAnalysisCombiner',
     pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },

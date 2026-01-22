@@ -337,12 +337,6 @@ export interface ForecastResponse {
   }
 }
 
-export interface EquipmentAnalysisCombiner {
-  x: string[]
-  y: number[]
-  y_norm: number[]
-}
-
 type QualityLevel = 'good' | 'warning' | 'bad'
 type QualityItem = {
   level: QualityLevel

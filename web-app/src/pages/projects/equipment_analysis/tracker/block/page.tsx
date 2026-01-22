@@ -53,10 +53,16 @@ const Page = () => {
   })
 
   const data = useGetEquipmentAnalysisTrackerBlock({
-    pathParams: { projectId: projectId || '-1', deviceId: deviceId || '-1' },
+    pathParams: {
+      project_id: projectId || '-1',
+      pv_block_id: Number(deviceId || '-1'),
+    },
     queryParams: {
-      start: startRequest,
-      end: endRequest,
+      start: startRequest || '',
+      end: endRequest || '',
+    },
+    queryOptions: {
+      enabled: !!projectId && !!deviceId && !!startRequest && !!endRequest,
     },
   })
 

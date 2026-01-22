@@ -6,13 +6,14 @@ import {
 } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetEquipmentAnalysisCombiner } from '@/api/v1/protected/web-application/projects/equipment-analysis/combiner'
 import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
 import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
-import { useGetDevicesV2, useGetEquipmentAnalysisCombiner } from '@/hooks/api'
+import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import { Device } from '@/hooks/types'
 import RealTime from '@/pages/projects/device_details/RealTime'
@@ -108,7 +109,7 @@ const Page = () => {
   }
 
   const data = useGetEquipmentAnalysisCombiner({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       start: startRequest ?? undefined,
       end: endRequest ?? undefined,

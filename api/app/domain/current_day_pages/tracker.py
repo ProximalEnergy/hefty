@@ -1,7 +1,7 @@
 import datetime
 from typing import Annotated
 
-import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, KPIType, SensorType
 from fastapi import Depends, HTTPException
@@ -140,8 +140,8 @@ async def get_tracker_by_pv_block_id_data(
     pv_block_id: int,
     project: models.Project,
     project_db: Session,
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+    start: datetime.datetime,
+    end: datetime.datetime,
 ):
     """
     Retrieves tracker data for a given PV block.
@@ -174,16 +174,18 @@ async def get_tracker_by_pv_block_id_data(
     ).models()
 
     # Query tracker position and setpoint data
-    df = utils.data_df(
+    data = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
         project_db=project_db,
-        project=project,
-        tags=tags,
-        start=start,
-        end=end,
-        fillna_zero=False,
-    )
+    ).get()
 
-    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df = data.df.to_pandas()
+    df = df.set_index("time")
+    df.columns = df.columns.astype(int)
 
     device_id_to_name_short = dict(
         zip(

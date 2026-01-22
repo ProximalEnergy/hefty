@@ -2,9 +2,10 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from natsort import natsorted
 from sqlalchemy.orm import Session
 
@@ -43,6 +44,11 @@ async def get_equipment_analysis_combiner_data(
         end = (
             pd.Timestamp(end).tz_convert(project.time_zone).replace(hour=12, minute=30)
         )
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Either both start and end must be provided or neither.",
+        )
 
     # Get combiner devices
     project_schema = utils.get_project_schema(project_db=project_db)
@@ -77,14 +83,18 @@ async def get_equipment_analysis_combiner_data(
     }
 
     # Get combiner current data
-    df = utils.data_df(
-        project_db,
-        project,
-        tags=tags_combiner_current,
-        start=start,
-        end=end,
-        fillna_zero=False,
-    )
+    data = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags_combiner_current],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
+
+    df = data.df.to_pandas()
+    df = df.set_index("time")
+    df.columns = df.columns.astype(int)
 
     # Drop rows that have all NaN
     df = df.dropna(how="all")

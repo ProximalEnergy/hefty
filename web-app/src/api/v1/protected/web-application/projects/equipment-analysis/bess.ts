@@ -30,9 +30,7 @@ export const useGetEquipmentAnalysisBESS = ({
   queryParams: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
-  const axiosConfig = {
-    url: URL,
-  }
+  const axiosConfig = { url: URL }
 
   const defaultQueryOptions = {}
 

@@ -19670,9 +19670,9 @@ export interface operations {
     };
     get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get: {
         parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
+            query: {
+                start: string;
+                end: string;
             };
             header?: {
                 authorization?: string;
@@ -19781,9 +19781,9 @@ export interface operations {
     };
     get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get: {
         parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
+            query: {
+                start: string;
+                end: string;
             };
             header?: {
                 authorization?: string;

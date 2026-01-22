@@ -61,9 +61,9 @@ async def get_bess(
     "/bess-pcs",
     response_class=ORJSONResponse,
 )
-def get_bess_pcs(
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+async def get_bess_pcs(
+    start: datetime.datetime,
+    end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):
@@ -75,7 +75,7 @@ def get_bess_pcs(
         project: TODO: describe.
         project_db: TODO: describe.
     """
-    return get_bess_pcs_data(
+    return await get_bess_pcs_data(
         project=project,
         project_db=project_db,
         start=start,
@@ -142,8 +142,8 @@ async def get_tracker(
 )
 async def get_tracker_by_pv_block_id(
     pv_block_id: int,
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+    start: datetime.datetime,
+    end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
 ):

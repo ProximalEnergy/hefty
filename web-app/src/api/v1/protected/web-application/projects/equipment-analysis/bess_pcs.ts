@@ -1,3 +1,4 @@
+import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
@@ -7,17 +8,24 @@ interface EquipmentAnalysisBESSPCS {
   name: string
 }
 
+const URL =
+  '/v1/protected/web-application/projects/{project_id}/equipment-analysis/bess-pcs'
+
+type get = types.paths[typeof URL]['get']
+type pathParams = get['parameters']['path']
+type getQueryParams = get['parameters']['query']
+
 export const useGetEquipmentAnalysisBESSPCS = ({
   pathParams,
-  queryParams = {},
+  queryParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: string }
-  queryParams?: object
+  pathParams: pathParams
+  queryParams: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/equipment-analysis/bess-pcs`,
+    url: URL,
   }
 
   const defaultQueryOptions = {}
