@@ -80,8 +80,7 @@ jobs:
           ERROR_OUTPUT=$(gh pr create -B staging -H dev \
             --title '[Automated] Merge changes from dev into staging' \
             --body "Created by Github action for application changes (${{ steps.check_changes.outputs.changed_apps }}). Please review and merge manually." \
-            --reviewer marcus-maro \
-            --reviewer hunter-proximal 2>&1)
+            --reviewer marcus-maro 2>&1)
           EXIT_CODE=$?
 
           set -e
