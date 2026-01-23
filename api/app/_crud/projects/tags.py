@@ -116,14 +116,13 @@ def update_tags_sensor_type_by_pattern_bulk(
     unit_scale: float | None = None,
     unit_offset: float | None = None,
     unit_scada: str | None = None,
-    unit_scada_provided: bool = False,
 ):
     """Bulk update sensor_type_id and optionally unit_scale/unit_offset/unit_scada
     for tags matching a pattern. Uses SQLAlchemy bulk update for better
     performance with large tag sets.
 
-    If unit_scada_provided is True, unit_scada will be updated even if it's
-    None (to clear the value).
+    unit_scale, unit_offset, and unit_scada are always applied, including None
+    to clear values.
 
     Args:
         project_db: TODO: describe.
@@ -132,20 +131,15 @@ def update_tags_sensor_type_by_pattern_bulk(
         unit_scale: TODO: describe.
         unit_offset: TODO: describe.
         unit_scada: TODO: describe.
-        unit_scada_provided: TODO: describe.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
-    # Build update dict - include unit_scada if explicitly provided (even if None)
+    # Build update dict - always include unit fields (including None).
     update_dict: dict[str, Any] = {"sensor_type_id": sensor_type_id}
 
-    if unit_scale is not None:
-        update_dict["unit_scale"] = unit_scale
-    if unit_offset is not None:
-        update_dict["unit_offset"] = unit_offset
-    if unit_scada_provided:
-        # Explicitly set unit_scada (even if None to clear it)
-        update_dict["unit_scada"] = unit_scada
+    update_dict["unit_scale"] = unit_scale
+    update_dict["unit_offset"] = unit_offset
+    update_dict["unit_scada"] = unit_scada
 
     update_query = (
         update(models.Tag)

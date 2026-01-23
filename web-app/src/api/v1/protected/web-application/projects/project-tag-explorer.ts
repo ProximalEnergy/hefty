@@ -172,9 +172,9 @@ export const useAssignPatternSensorTypeMutation = () => {
       projectId: string
       tagPattern: string
       sensorTypeId: number
-      unitScale?: number | null
-      unitOffset?: number | null
-      unitScada?: string | null
+      unitScale: number | null
+      unitOffset: number | null
+      unitScada: string | null
     }) => {
       const token = await getToken({ template: 'default' })
       const response = await axios({
@@ -190,8 +190,7 @@ export const useAssignPatternSensorTypeMutation = () => {
           sensor_type_id: sensorTypeId,
           unit_scale: unitScale,
           unit_offset: unitOffset,
-          // Only include unit_scada if it was explicitly set (including null to clear)
-          ...(unitScada !== undefined && { unit_scada: unitScada }),
+          unit_scada: unitScada,
         },
       })
       return response.data

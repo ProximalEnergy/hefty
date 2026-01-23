@@ -7127,11 +7127,11 @@ export interface components {
             /** Sensor Type Id */
             sensor_type_id: number;
             /** Unit Scale */
-            unit_scale?: number | null;
+            unit_scale: number | null;
             /** Unit Offset */
-            unit_offset?: number | null;
+            unit_offset: number | null;
             /** Unit Scada */
-            unit_scada?: string | null;
+            unit_scada: string | null;
         };
         /**
          * BackfillRequest

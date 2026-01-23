@@ -292,8 +292,8 @@ const ProjectTagExplorer = () => {
       if (patternData) {
         setPatternSensorTypeId(patternData.sensor_type_id?.toString() || null)
 
-        setPatternUnitScale(patternData.unit_scale || null)
-        setPatternUnitOffset(patternData.unit_offset || null)
+        setPatternUnitScale(patternData.unit_scale ?? null)
+        setPatternUnitOffset(patternData.unit_offset ?? null)
         setPatternUnitScada(patternData.unit_scada || null)
 
         // Reset the unit first, then set it from the sensor type if available
@@ -1216,7 +1216,7 @@ const ProjectTagExplorer = () => {
                         </Text>
                         <NumberInput
                           placeholder="1 (default)"
-                          value={patternUnitScale || undefined}
+                          value={patternUnitScale ?? undefined}
                           onChange={(value) =>
                             setPatternUnitScale(
                               typeof value === 'number' ? value : null,
@@ -1255,7 +1255,7 @@ const ProjectTagExplorer = () => {
                     </Group>
                     <NumberInput
                       placeholder="0 (default)"
-                      value={patternUnitOffset || undefined}
+                      value={patternUnitOffset ?? undefined}
                       onChange={(value) =>
                         setPatternUnitOffset(
                           typeof value === 'number' ? value : null,
@@ -1373,12 +1373,12 @@ const ProjectTagExplorer = () => {
                                                 typeof value === 'string'
                                                   ? Number.parseFloat(value)
                                                   : value
-                                              if (patternUnitScale) {
+                                              if (patternUnitScale !== null) {
                                                 transformedValue =
                                                   transformedValue *
                                                   patternUnitScale
                                               }
-                                              if (patternUnitOffset) {
+                                              if (patternUnitOffset !== null) {
                                                 transformedValue =
                                                   transformedValue +
                                                   patternUnitOffset
@@ -1427,12 +1427,12 @@ const ProjectTagExplorer = () => {
                                                 typeof value === 'string'
                                                   ? Number.parseFloat(value)
                                                   : value
-                                              if (patternUnitScale) {
+                                              if (patternUnitScale !== null) {
                                                 transformedValue =
                                                   transformedValue *
                                                   patternUnitScale
                                               }
-                                              if (patternUnitOffset) {
+                                              if (patternUnitOffset !== null) {
                                                 transformedValue =
                                                   transformedValue +
                                                   patternUnitOffset
@@ -1604,13 +1604,13 @@ const ProjectTagExplorer = () => {
             &quot; to all tags matching the pattern &quot;{selectedTagPattern}
             &quot;?
           </Text>
-          {patternUnitScale && (
+          {patternUnitScale !== null && (
             <Text size="sm" c="dimmed">
               This will also set the unit scale multiplier to {patternUnitScale}
               .
             </Text>
           )}
-          {patternUnitOffset && (
+          {patternUnitOffset !== null && (
             <Text size="sm" c="dimmed">
               This will also set the unit offset to {patternUnitOffset}.
             </Text>
