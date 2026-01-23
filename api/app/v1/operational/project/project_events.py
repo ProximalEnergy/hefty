@@ -887,7 +887,7 @@ async def get_uptime(
     return result
 
 
-@router.get("/event-trace-tags", response_model=list[interfaces.Tag])
+@router.get("/event-trace-tags", response_model=list[interfaces.TagV1])
 async def get_event_trace_tags(
     project_db: Annotated[Session, Depends(get_project_db)],
     device_id: int,

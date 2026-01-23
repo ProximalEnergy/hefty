@@ -1,3 +1,4 @@
+import type { operations } from '@/api/schema'
 import { KPIType } from '@/api/v1/operational/kpi_types'
 import * as types from '@/hooks/types'
 import { StatisticType } from '@/hooks/types'
@@ -308,7 +309,7 @@ export const useGetTags = ({
   queryOptions = {},
 }: {
   pathParams: { projectId: string }
-  queryParams?: object
+  queryParams?: operations['get_project_tags_v1_operational_projects__project_id__tags__get']['parameters']['query']
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {

@@ -7,7 +7,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import { useGetTags, useGetUptimeTable } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import { Tag } from '@/hooks/types'
+import { Tag } from '@/hooks/projectTags'
 import { Button, Group, Stack, Tabs, Text, Title } from '@mantine/core'
 import { IconArrowRight } from '@tabler/icons-react'
 import { MantineReactTable } from 'mantine-react-table'

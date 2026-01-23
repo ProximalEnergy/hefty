@@ -1,7 +1,10 @@
-import { DeviceType } from '@/api/v1/operational/device_types'
-import { KPIType } from '@/api/v1/operational/kpi_types'
-import { SensorType } from '@/api/v1/operational/sensor_types'
-import { ReactNode } from 'react'
+import type { KPIType } from '@/api/v1/operational/kpi_types'
+import type { ReactNode } from 'react'
+
+import type { Device } from './devices'
+
+export * from './devices'
+export * from './projectTags'
 
 export const statisticOptions = [
   { value: 'sum', label: 'Sum' },
@@ -45,59 +48,6 @@ export interface FeedbackFormData {
   subject: string
   url: string
   comment: string
-}
-
-export interface Point {
-  type: string
-  coordinates: number[]
-}
-
-export interface MultiPolygon {
-  type: string
-  coordinates: number[][][][]
-}
-
-interface DataType {
-  data_type_id: number
-  name_short: string
-}
-
-export interface Device {
-  device_id: number
-  device_type_id: number
-  device_model_id: number | null
-  parent_device_id: number | null
-  logical: boolean
-  name_short: string | null
-  name_long: string | null
-  capacity_dc: number | null
-  capacity_ac: number | null
-  point: Point | null
-  polygon: MultiPolygon | null
-  device_type?: DeviceType
-  name_full?: string
-  cec_pv_module_id?: number
-  pv_module_id?: number
-  device_id_path?: string
-}
-
-export interface Tag {
-  tag_id: number
-  device: Device
-  device_id: number | null
-  sensor_type: SensorType | null
-  data_type: DataType | null
-  name_short: string | null
-  name_long: string | null
-  name_scada: string
-  scada_id: number | null
-  scada_type: string | null
-  unit_scada: string | null
-  unit_offset: number | null
-  unit_scale: number | null
-  point: Point | null
-  polygon: MultiPolygon | null
-  sensor_type_id: number | null
 }
 
 export interface Event {

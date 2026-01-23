@@ -12,7 +12,8 @@ import {
 import type { DataTimeSeriesLast } from '@/api/v1/protected/web-application/projects/real_time'
 import RequiresUserType from '@/components/admin/RequiresUserType'
 import { useGetDevicesV2, useGetPaginatedEvents, useGetTags } from '@/hooks/api'
-import type { Device, Tag } from '@/hooks/types'
+import type { Tag } from '@/hooks/projectTags'
+import type { Device } from '@/hooks/types'
 import {
   Badge,
   Box,

@@ -3298,7 +3298,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/tags": {
+    "/v1/operational/projects/{project_id}/tags/": {
         parameters: {
             query?: never;
             header?: never;
@@ -3315,13 +3315,17 @@ export interface paths {
          *         device_ids: TODO: describe.
          *         sensor_type_ids: TODO: describe.
          *         device_type_ids: TODO: describe.
+         *         sensor_type_name_shorts: TODO: describe.
+         *         data_type_ids: TODO: describe.
          *         name_short: TODO: describe.
          *         name_long: TODO: describe.
+         *         name_scada: TODO: describe.
          *         deep: TODO: describe.
          *         include_ghost_tags: TODO: describe.
-         *         project_db: TODO: describe.
+         *         has_sensor_type_id: TODO: describe.
+         *         project_schema: TODO: describe.
          */
-        get: operations["get_project_tags_v1_operational_projects__project_id__tags_get"];
+        get: operations["get_project_tags_v1_operational_projects__project_id__tags__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10560,9 +10564,98 @@ export interface components {
         };
         /**
          * Tag
-         * @description Tag model.
+         * @description Flat Tag model returned by v2 endpoint.
+         *     Includes flattened fields from joined tables when deep=True.
          */
         Tag: {
+            /** Tag Id */
+            tag_id: number;
+            /** In Tsdb */
+            in_tsdb: boolean;
+            /** Device Id */
+            device_id: number;
+            /** Sensor Type Id */
+            sensor_type_id: number | null;
+            /** Pg Data Type Id */
+            pg_data_type_id: number;
+            /** Data Type Id */
+            data_type_id: number | null;
+            /** Name Short */
+            name_short: string | null;
+            /** Name Long */
+            name_long: string | null;
+            /** Name Scada */
+            name_scada: string;
+            /** Scada Id */
+            scada_id: number | null;
+            /** Scada Type */
+            scada_type: string | null;
+            /** Unit Scada */
+            unit_scada: string | null;
+            /** Unit Offset */
+            unit_offset: number | null;
+            /** Unit Scale */
+            unit_scale: number | null;
+            point: components["schemas"]["Point"] | null;
+            polygon: components["schemas"]["Polygon"] | null;
+            /** Status Lookup Id */
+            status_lookup_id?: number | null;
+            /** Device Device Id */
+            device_device_id?: number | null;
+            /** Device Device Id Path */
+            device_device_id_path?: string | null;
+            /** Device Device Type Id */
+            device_device_type_id?: number | null;
+            /** Device Device Model Id */
+            device_device_model_id?: number | null;
+            /** Device Parent Device Id */
+            device_parent_device_id?: number | null;
+            /** Device Logical */
+            device_logical?: boolean | null;
+            /** Device Name Short */
+            device_name_short?: string | null;
+            /** Device Name Long */
+            device_name_long?: string | null;
+            /** Device Capacity Dc */
+            device_capacity_dc?: number | null;
+            /** Device Capacity Ac */
+            device_capacity_ac?: number | null;
+            device_point?: components["schemas"]["Point"] | null;
+            device_polygon?: components["schemas"]["MultiPolygon"] | null;
+            /** Device Type Device Type Id */
+            device_type_device_type_id?: number | null;
+            /** Device Type Name Short */
+            device_type_name_short?: string | null;
+            /** Device Type Name Long */
+            device_type_name_long?: string | null;
+            /** Device Type Description */
+            device_type_description?: string | null;
+            /** Sensor Type Sensor Type Id */
+            sensor_type_sensor_type_id?: number | null;
+            /** Sensor Type Device Type Id */
+            sensor_type_device_type_id?: number | null;
+            /** Sensor Type Name Short */
+            sensor_type_name_short?: string | null;
+            /** Sensor Type Name Long */
+            sensor_type_name_long?: string | null;
+            /** Sensor Type Name Metric */
+            sensor_type_name_metric?: string | null;
+            /** Sensor Type Unit */
+            sensor_type_unit?: string | null;
+            /** Sensor Type Description */
+            sensor_type_description?: string | null;
+            /** Data Type Data Type Id */
+            data_type_data_type_id?: number | null;
+            /** Data Type Name Short */
+            data_type_name_short?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /**
+         * TagV1
+         * @description Tag model.
+         */
+        TagV1: {
             /** Tag Id */
             tag_id: number;
             /** In Tsdb */
@@ -15172,7 +15265,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"][];
+                    "application/json": components["schemas"]["TagV1"][];
                 };
             };
             /** @description Validation Error */
@@ -15990,7 +16083,7 @@ export interface operations {
             };
         };
     };
-    get_project_tags_v1_operational_projects__project_id__tags_get: {
+    get_project_tags_v1_operational_projects__project_id__tags__get: {
         parameters: {
             query?: {
                 tag_ids?: number[];
@@ -15998,11 +16091,15 @@ export interface operations {
                 device_ids?: number[];
                 sensor_type_ids?: number[];
                 device_type_ids?: number[];
+                sensor_type_name_shorts?: string[];
+                data_type_ids?: number[];
                 name_short?: string;
                 name_long?: string;
+                name_scada?: string;
                 /** @description Load all related objects. */
                 deep?: boolean;
                 include_ghost_tags?: boolean;
+                has_sensor_type_id?: boolean;
             };
             header?: {
                 authorization?: string;
@@ -16060,7 +16157,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"][];
+                    "application/json": components["schemas"]["TagV1"][];
                 };
             };
             /** @description Validation Error */

@@ -116,8 +116,9 @@ const PlotWithUnits = ({
       // Get unit from tag - handle unitless items (no sensor_type or no unit)
       // Unitless items should have an empty string unit
       let unit = ''
-      if (matchingTag?.sensor_type?.unit) {
-        unit = matchingTag.sensor_type.unit
+      if (matchingTag) {
+        unit =
+          matchingTag.sensor_type?.unit ?? matchingTag.sensor_type_unit ?? ''
       }
 
       // Find unit group index - unitless items (empty string) should be grouped together

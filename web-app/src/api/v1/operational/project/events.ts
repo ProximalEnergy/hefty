@@ -1,5 +1,6 @@
 import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
+import { Tag } from '@/hooks/projectTags'
 import * as types from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
@@ -38,8 +39,8 @@ export type EventLosses5Min = EventLosses5MinGroup | EventLosses5MinSeries
 
 type BulkCreateEventsPayload = components['schemas']['BulkCreateEventsRequest']
 export type DroneAnomaly = components['schemas']['DroneAnomaly']
+
 type EventSummary = components['schemas']['EventSummary']
-type Tag = components['schemas']['Tag']
 
 export const useGetEventsSummary = ({
   pathParams,

@@ -1,0 +1,33 @@
+meta {
+  name: project_tags_v1
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/v1/operational/projects/{{projectId}}/tags
+  body: none
+  auth: inherit
+}
+
+params:query {
+  deep: false
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an('array');
+  });
+
+  test("Response contains expected tag fields", function() {
+    const body = res.getBody();
+    if (body.length > 0) {
+      expect(body[0]).to.have.property('tag_id');
+      expect(body[0]).to.have.property('name_short');
+    }
+  });
+}

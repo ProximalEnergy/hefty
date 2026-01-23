@@ -13,7 +13,7 @@ import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import { useGetDevicesV2, useGetTags } from '@/hooks/api'
-import { Tag } from '@/hooks/types'
+import { Tag } from '@/hooks/projectTags'
 import {
   Box,
   Button,
@@ -243,11 +243,15 @@ const DataBrowsing = () => {
         },
         device_id: device.device_id,
         sensor_type: sensorType,
+        in_tsdb: false,
+        pg_data_type_id: 0,
+        data_type_id: null,
         data_type: null,
         name_short: null,
         name_long: null,
         name_scada: '',
         scada_id: null,
+
         scada_type: null,
         unit_scada: null,
         unit_offset: null,
@@ -266,15 +270,19 @@ const DataBrowsing = () => {
     const positiveTags = urlTagsQuery.data ?? []
     const expectedTags = urlExpectedPowerTags
     const allTags = [...positiveTags, ...expectedTags]
-    return allTags.map((tag) => ({
-      ...tag,
-      name_full:
-        (tag.device?.device_type?.name_long ?? '') +
-        ' ' +
-        (tag.device?.name_long ?? '') +
-        ' ' +
-        (tag.sensor_type?.name_metric ?? ''),
-    })) as EnrichedTag[]
+    return allTags.map((tag) => {
+      // Handle both nested and flat structures
+      const deviceTypeName =
+        tag.device?.device_type?.name_long ?? tag.device_type_name_long ?? ''
+      const deviceName = tag.device?.name_long ?? tag.device_name_long ?? ''
+      const sensorTypeName =
+        tag.sensor_type?.name_metric ?? tag.sensor_type_name_metric ?? ''
+
+      return {
+        ...tag,
+        name_full: `${deviceTypeName} ${deviceName} ${sensorTypeName}`,
+      }
+    }) as EnrichedTag[]
   }, [urlTagsQuery.data, urlExpectedPowerTags])
 
   // Load tags from URL into selectedTags (only once on initial load)
@@ -315,7 +323,7 @@ const DataBrowsing = () => {
   const tags = useGetTags({
     pathParams: { projectId: projectId! },
     queryParams: {
-      device_type_ids: [selectedDeviceType],
+      device_type_ids: [Number(selectedDeviceType)],
       deep: true,
     },
     queryOptions: { enabled: !!selectedDeviceType },
@@ -343,7 +351,7 @@ const DataBrowsing = () => {
     )
 
     // Get unique devices that have device_type_id in supportedEEMDeviceTypes
-    const deviceMap = new Map<number, Tag['device']>()
+    const deviceMap = new Map<number, NonNullable<Tag['device']>>()
     tags.data.forEach((tag) => {
       if (
         tag.device_id &&
@@ -358,7 +366,7 @@ const DataBrowsing = () => {
             tag.device?.device_type ||
             deviceTypeMap.get(tag.device?.device_type_id || -1),
         }
-        deviceMap.set(tag.device_id, device as Tag['device'])
+        deviceMap.set(tag.device_id, device as NonNullable<Tag['device']>)
       }
     })
 
@@ -400,18 +408,21 @@ const DataBrowsing = () => {
           },
           device_id: deviceId,
           sensor_type: sensorType,
-          data_type: null, // TODO: Fill in later
-          name_short: null, // TODO: Fill in later
-          name_long: null, // TODO: Fill in later
-          name_scada: '', // TODO: Fill in later
-          scada_id: null, // TODO: Fill in later
-          scada_type: null, // TODO: Fill in later
-          unit_scada: null, // TODO: Fill in later
-          unit_offset: null, // TODO: Fill in later
-          unit_scale: null, // TODO: Fill in later
-          point: null, // TODO: Fill in later
-          polygon: null, // TODO: Fill in later
-          sensor_type_id: null, // TODO: Fill in later
+          in_tsdb: false,
+          pg_data_type_id: 0,
+          data_type_id: null,
+          data_type: null,
+          name_short: null,
+          name_long: null,
+          name_scada: '',
+          scada_id: null,
+          scada_type: null,
+          unit_scada: null,
+          unit_offset: null,
+          unit_scale: null,
+          point: null,
+          polygon: null,
+          sensor_type_id: null,
         }
       },
     )
@@ -424,15 +435,19 @@ const DataBrowsing = () => {
     const tagsToEnrich = project.data.has_expected_energy_integration
       ? [...(tags.data ?? []), ...(expectedPowerTags ?? [])]
       : tags.data
-    return tagsToEnrich.map((tag) => ({
-      ...tag,
-      name_full:
-        (tag.device?.device_type?.name_long ?? '') +
-        ' ' +
-        (tag.device?.name_long ?? '') +
-        ' ' +
-        (tag.sensor_type?.name_metric ?? ''),
-    }))
+    return tagsToEnrich.map((tag) => {
+      // Handle both nested and flat structures
+      const deviceTypeName =
+        tag.device?.device_type?.name_long ?? tag.device_type_name_long ?? ''
+      const deviceName = tag.device?.name_long ?? tag.device_name_long ?? ''
+      const sensorTypeName =
+        tag.sensor_type?.name_metric ?? tag.sensor_type_name_metric ?? ''
+
+      return {
+        ...tag,
+        name_full: `${deviceTypeName} ${deviceName} ${sensorTypeName}`,
+      }
+    })
   }, [tags.data, project.data, expectedPowerTags])
 
   const enrichedUniqueSensorTypeIds = useMemo(() => {
@@ -531,15 +546,19 @@ const DataBrowsing = () => {
   const displayedTags = useMemo(() => {
     if (showTags === 'all_tags') {
       const tags = allTags.data ?? []
-      return tags.map((tag) => ({
-        ...tag,
-        name_full:
-          (tag.device?.device_type?.name_long ?? '') +
-          ' ' +
-          (tag.device?.name_long ?? '') +
-          ' ' +
-          (tag.sensor_type?.name_metric ?? ''),
-      })) as EnrichedTag[]
+      return tags.map((tag) => {
+        // Handle both nested and flat structures
+        const deviceTypeName =
+          tag.device?.device_type?.name_long ?? tag.device_type_name_long ?? ''
+        const deviceName = tag.device?.name_long ?? tag.device_name_long ?? ''
+        const sensorTypeName =
+          tag.sensor_type?.name_metric ?? tag.sensor_type_name_metric ?? ''
+
+        return {
+          ...tag,
+          name_full: `${deviceTypeName} ${deviceName} ${sensorTypeName}`,
+        }
+      }) as EnrichedTag[]
     }
     if (showTags === 'curated_tags' && enrichedTags) {
       const matchesSearch = (tag: EnrichedTag): boolean => {

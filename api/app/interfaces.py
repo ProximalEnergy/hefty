@@ -676,7 +676,7 @@ class KPIDelete(BaseModel):
     alert_id: int
 
 
-class Tag(BaseModel):
+class TagV1(BaseModel):
     """Tag model."""
 
     tag_id: int
@@ -700,6 +700,66 @@ class Tag(BaseModel):
     sensor_type: SensorType | None = None
     data_type: DataType | None = None
     status_lookup_id: int | None = None
+
+
+class Tag(BaseModel):
+    """
+    Flat Tag model returned by v2 endpoint.
+    Includes flattened fields from joined tables when deep=True.
+    """
+
+    tag_id: int
+    in_tsdb: bool
+    device_id: int
+    sensor_type_id: int | None
+    pg_data_type_id: int
+    data_type_id: int | None
+    name_short: str | None
+    name_long: str | None
+    name_scada: str
+    scada_id: int | None
+    scada_type: str | None
+    unit_scada: str | None
+    unit_offset: float | None
+    unit_scale: float | None
+    point: Point | None
+    polygon: Polygon | None
+    status_lookup_id: int | None = None
+
+    # Flattened Device fields
+    device_device_id: int | None = None
+    device_device_id_path: str | None = None
+    device_device_type_id: int | None = None
+    device_device_model_id: int | None = None
+    device_parent_device_id: int | None = None
+    device_logical: bool | None = None
+    device_name_short: str | None = None
+    device_name_long: str | None = None
+    device_capacity_dc: float | None = None
+    device_capacity_ac: float | None = None
+    device_point: Point | None = None
+    device_polygon: MultiPolygon | None = None
+
+    # Flattened DeviceType fields
+    device_type_device_type_id: int | None = None
+    device_type_name_short: str | None = None
+    device_type_name_long: str | None = None
+    device_type_description: str | None = None
+
+    # Flattened SensorType fields
+    sensor_type_sensor_type_id: int | None = None
+    sensor_type_device_type_id: int | None = None
+    sensor_type_name_short: str | None = None
+    sensor_type_name_long: str | None = None
+    sensor_type_name_metric: str | None = None
+    sensor_type_unit: str | None = None
+    sensor_type_description: str | None = None
+
+    # Flattened DataType fields
+    data_type_data_type_id: int | None = None
+    data_type_name_short: str | None = None
+
+    model_config = ConfigDict(from_attributes=True, extra="allow")
 
 
 class Data(BaseModel):

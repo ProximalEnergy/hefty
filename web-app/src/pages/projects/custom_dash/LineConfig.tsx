@@ -1,6 +1,7 @@
 import { SensorTypeEnum } from '@/api/enumerations'
 import { SensorType } from '@/api/v1/operational/sensor_types'
-import { Device, Tag } from '@/hooks/types'
+import { Tag } from '@/hooks/projectTags'
+import { Device } from '@/hooks/types'
 import {
   ActionIcon,
   Box,

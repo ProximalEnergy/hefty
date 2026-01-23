@@ -199,13 +199,17 @@ const BySensor = ({
 
             if (item.type === 'sensorType') {
               const sensorTypeId = item.sensorTypeId!
-              const sensorType = tags?.find(
+              const tagWithSensor = tags?.find(
                 (tag) => tag.sensor_type_id === sensorTypeId,
-              )?.sensor_type
+              )
+              const sensorType = tagWithSensor?.sensor_type
               const sensorTypeTags = tags?.filter(
                 (tag) => tag.sensor_type_id === sensorTypeId,
               )
-              const sensorTypeName = sensorType?.name_long ?? 'Unknown Sensor'
+              const sensorTypeName =
+                sensorType?.name_long ??
+                tagWithSensor?.sensor_type_name_long ??
+                'Unknown Sensor'
               const isExpanded = expandedSensorTypes.has(sensorTypeId)
               const sensorTypeCheckboxState = getSensorTypeCheckboxState(
                 sensorTypeId,

@@ -145,6 +145,7 @@ def _get_project_tag_options_v2(*, deep: bool) -> list[Any]:
         columns.extend(
             [
                 *_label_columns(model=models.Device, prefix="device"),
+                *_label_columns(model=models.DeviceType, prefix="device_type"),
                 *_label_columns(model=models.SensorType, prefix="sensor_type"),
                 *_label_columns(model=models.DataType, prefix="data_type"),
             ]
@@ -195,6 +196,10 @@ def get_project_tags_v2(
         stmt = (
             stmt.outerjoin(
                 models.Device, models.Tag.device_id == models.Device.device_id
+            )
+            .outerjoin(
+                models.DeviceType,
+                models.Device.device_type_id == models.DeviceType.device_type_id,
             )
             .outerjoin(
                 models.SensorType,

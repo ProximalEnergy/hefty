@@ -59,9 +59,7 @@ const ByDevice = ({
     let index = 0
 
     uniqueDeviceIds.forEach((deviceId) => {
-      const deviceTags = tags.filter(
-        (tag) => tag.device?.device_id === deviceId,
-      )
+      const deviceTags = tags.filter((tag) => tag.device_id === deviceId)
       const matchingDeviceTags = deviceTags.filter(matchesSearch)
 
       if (!matchingDeviceTags || matchingDeviceTags.length === 0) {
@@ -106,7 +104,7 @@ const ByDevice = ({
     }
     // Filter tags by device ID and search term
     const deviceTagObjects = deviceTags
-      .filter((tag) => tag.device?.device_id === deviceId)
+      .filter((tag) => tag.device_id === deviceId)
       .filter(matchesSearch)
     if (deviceTagObjects.length === 0) {
       return { checked: false, indeterminate: false }
@@ -140,7 +138,7 @@ const ByDevice = ({
     if (!deviceTags) return
     // Filter tags by device ID and search term
     const deviceTagObjects = deviceTags
-      .filter((tag) => tag.device?.device_id === deviceId)
+      .filter((tag) => tag.device_id === deviceId)
       .filter(matchesSearch)
     const deviceCheckboxState = getDeviceCheckboxState(deviceId, deviceTags)
     setSelectedTags((prev) => {
@@ -192,14 +190,26 @@ const ByDevice = ({
 
             if (item.type === 'device') {
               const deviceId = item.deviceId!
-              const device = tags?.find(
-                (tag) => tag.device?.device_id === deviceId,
-              )?.device
-              const deviceTags = tags?.filter(
-                (tag) => tag.device?.device_id === deviceId,
+              const tagWithDevice = tags?.find(
+                (tag) =>
+                  tag.device_id === deviceId ||
+                  tag.device?.device_id === deviceId,
               )
-              const deviceName =
-                device?.device_type?.name_long + ' ' + (device?.name_long ?? '')
+              const device = tagWithDevice?.device
+              const deviceTags = tags?.filter(
+                (tag) =>
+                  tag.device_id === deviceId ||
+                  tag.device?.device_id === deviceId,
+              )
+
+              const deviceTypeName =
+                device?.device_type?.name_long ??
+                tagWithDevice?.device_type_name_long ??
+                ''
+              const deviceNameShort =
+                device?.name_long ?? tagWithDevice?.device_name_long ?? ''
+              const deviceName = `${deviceTypeName} ${deviceNameShort}`.trim()
+
               const isExpanded = expandedDevices.has(deviceId)
               const deviceCheckboxState = getDeviceCheckboxState(
                 deviceId,
