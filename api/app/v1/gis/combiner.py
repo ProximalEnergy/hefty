@@ -2,6 +2,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
@@ -71,23 +72,25 @@ async def get_combiner_block_performance(
     ).models()
 
     # Get data for combiner current
-    try:
-        df = utils.data_df(
-            project_db,
-            project,
-            tags,
-            start=start,
-            end=end,
-            fillna_zero=False,
-        )
-        missing_data = False
+    missing_data = False
 
-        # Drop all rows that have all NaNs
-        df = df.dropna(how="all")
+    data = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
 
-        if len(df) == 0:
-            missing_data = True
-    except HTTPException:
+    df = data.df.to_pandas()
+    df = df.set_index("time")
+    df.columns = df.columns.astype(int)
+
+    # Drop all rows that have all NaNs
+    df = df.dropna(how="all")
+
+    if len(df) == 0:
         missing_data = True
 
     if not missing_data:

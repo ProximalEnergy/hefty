@@ -1,5 +1,6 @@
 import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetBlockDropdown } from '@/api/ui'
+import { useGetGISCombinerBlock } from '@/api/v1/gis/combiner'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import BlockDropdown from '@/components/BlockDropdown'
@@ -15,7 +16,6 @@ import { GISContext } from '@/contexts/GISContext'
 import {
   useAnalyzeCombinerSwaps,
   useGetDevicesV2,
-  useGetGISCombinerBlock,
   useGetTags,
   useValidateCombinerData,
 } from '@/hooks/api'
@@ -305,8 +305,8 @@ const Page = () => {
 
   const gisData = useGetGISCombinerBlock({
     pathParams: {
-      projectId: projectId || '-1',
-      blockId: blockDeviceId || '-1',
+      project_id: projectId || '-1',
+      block_device_id: Number(blockDeviceId || '-1'),
     },
     queryOptions: {
       enabled: !!projectId && !!blockDeviceId,

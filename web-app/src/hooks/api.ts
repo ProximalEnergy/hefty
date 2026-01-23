@@ -639,29 +639,6 @@ export const useGetGISPCS = ({
   })
 }
 
-export const useGetGISCombinerBlock = ({
-  pathParams,
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string; blockId: string }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/gis/combiner/${pathParams.projectId}/${pathParams.blockId}`,
-  }
-
-  const defaultQueryOptions = {
-    staleTime: 60 * 1000,
-  }
-
-  return useCustomQuery<FeatureCollection>({
-    axiosConfig,
-    queryName: 'getGISCombinerBlock',
-    pathParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetGISTrackerByBlock = ({
   pathParams,
   queryParams = {},

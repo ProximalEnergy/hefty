@@ -5,6 +5,7 @@ from uuid import UUID
 
 import numpy as np
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.dependencies import get_db
 from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
@@ -79,14 +80,19 @@ async def get_pcs(
         start = end - pd.Timedelta(minutes=30)
 
         try:
-            df_pcs = utils.data_df(
-                project_db,
-                project,
-                tags,
-                start=start,
-                end=end,
-                fillna_zero=False,
-            ).astype(float)
+            data_timeseries = await DataTimeseries(
+                project_name_short=project.name_short,
+                filter_method=FilterMethod.TAG_IDS,
+                filter_values=[t.tag_id for t in tags],
+                query_start=start,
+                query_end=end,
+                project_db=project_db,
+            ).get()
+
+            df_pcs = data_timeseries.df.to_pandas()
+            df_pcs = df_pcs.set_index("time")
+            df_pcs.columns = df_pcs.columns.astype(int)
+
             try:
                 df_pcs_ep = (
                     await funcs.get_expected_power(
@@ -100,7 +106,7 @@ async def get_pcs(
             except KeyError:
                 df_pcs_ep = pd.DataFrame(index=df_pcs.index)
             missing_data = False
-        except HTTPException:
+        except Exception:
             missing_data = True
             as_of = None
 
@@ -504,7 +510,7 @@ async def get_devices_in_viewport(
     ]
     if met_station_to_fetch_ids:
         try:
-            met_station_data_values = get_met_station_latest_values(
+            met_station_data_values = await get_met_station_latest_values(
                 device_ids=list(set(met_station_to_fetch_ids)),  # Ensure unique IDs
                 project_db=project_db,
                 project=project,
@@ -662,16 +668,21 @@ async def utility_expected(
             # Return empty dict if no tags found, endpoint will handle merging None
             return {}
 
-        # Fetch latest data point using data_latest_df
         try:
-            df_latest = utils.data_df(
-                project_db,
-                project,
-                tags=tags,
-                start=start - pd.Timedelta(hours=3),
-                end=end,
-            )
-        except HTTPException:
+            data = await DataTimeseries(
+                project_name_short=project.name_short,
+                filter_method=FilterMethod.TAG_IDS,
+                filter_values=[t.tag_id for t in tags],
+                query_start=start - pd.Timedelta(hours=3),
+                query_end=end,
+                project_db=project_db,
+            ).get()
+
+            df_latest = data.df.to_pandas()
+            df_latest = df_latest.set_index("time")
+            df_latest.columns = df_latest.columns.astype(int)
+
+        except Exception:
             # Handle cases where data_latest_df might fail (e.g., no data at all)
             return {}
 
@@ -881,13 +892,18 @@ async def utility_expected(
         )
 
         # DB Call 4: Fetch all timeseries data
-        df_data_raw = utils.data_df(
-            project_db,
-            project,
-            tags=tags_voltage + tags_current,
-            start=start,
-            end=end,
-        )  # Pass combined list of Tag objects
+        data = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags_voltage + tags_current],
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+        ).get()
+
+        df_data_raw = data.df.to_pandas()
+        df_data_raw = df_data_raw.set_index("time")
+        df_data_raw.columns = df_data_raw.columns.astype(int)
 
         if df_data_raw.empty:
             return {}
@@ -965,13 +981,18 @@ async def utility_expected(
 
         tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
 
-        df_actual_raw = utils.data_df(
-            project_db,
-            project,
-            tags=tags,
-            start=start,
-            end=end,
-        )
+        data = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags],
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+        ).get()
+
+        df_actual_raw = data.df.to_pandas()
+        df_actual_raw = df_actual_raw.set_index("time")
+        df_actual_raw.columns = df_actual_raw.columns.astype(int)
 
         if df_actual_raw.empty:
             # Return empty result or raise error? Returning empty for now.
@@ -1110,7 +1131,7 @@ async def utility_expected(
     return results
 
 
-def get_met_station_latest_values(
+async def get_met_station_latest_values(
     *,
     device_ids: list[int],
     project_db: Session,
@@ -1170,14 +1191,17 @@ def get_met_station_latest_values(
         end_time = pd.Timestamp.utcnow().floor("5min")
         start_time = end_time - pd.Timedelta(hours=3)
 
-        # Use data_df with time window
-        df_met_data_raw = utils.data_df(
-            project_db,
-            project,
-            tags=tags,
-            start=start_time,
-            end=end_time,
-        )
+        data = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags],
+            query_start=start_time,
+            query_end=end_time,
+            project_db=project_db,
+        ).get()
+
+        df_met_data_raw = data.df.to_pandas()
+        df_met_data_raw = df_met_data_raw.set_index("time")
 
         if df_met_data_raw.empty:
             logger.logger.info(
@@ -1195,7 +1219,7 @@ def get_met_station_latest_values(
                 tag_info = tag_map.get(tag_id)
                 if not tag_info:
                     logger.logger.warning(
-                        f"Tag ID {tag_id} from data_df not found in tag_map. Skipping."
+                        f"Tag ID {tag_id} not found in tag_map. Skipping."
                     )
                     continue
 

@@ -7,6 +7,7 @@ from typing import Any, Literal, overload
 from zoneinfo import ZoneInfo
 
 import clickhouse_connect
+import numpy as np
 import pandas as pd
 import polars as pl
 from polars.datatypes import Boolean, String
@@ -1351,7 +1352,7 @@ class DataTimeseries:
         # Result: DataFrame with all requested tags as columns (some may be all null)
         if missing_tag_ids:
             for tag_id in sorted(missing_tag_ids):
-                wide = wide.with_columns(pl.lit(None).alias(str(tag_id)))
+                wide = wide.with_columns(pl.lit(np.nan).alias(str(tag_id)))
 
         return wide
 
