@@ -16,7 +16,8 @@ from sqlalchemy import exc as sa_exc
 from sqlalchemy.orm import Session, load_only
 
 from core import models, settings
-from core.crud.project.tags import get_project_tags
+from core.crud.project.tags import get_project_tags_v2
+from core.db_query import OutputType
 from core.dependencies import get_db_session_async
 from core.enumerations import (
     AggregationMethod,
@@ -924,13 +925,15 @@ class DataTimeseries:
         # Step 4: Query tags table if we need to resolve tag_ids or sensor_type_ids
         # Result: Polars DataFrame with metadata (tag_id, unit_scale, unit_offset, etc.)
         # This only runs for TAG_IDS and SENSOR_TYPE_IDS cases
-        tags: pl.DataFrame = await get_project_tags(
-            db=self.project_db,
+        tags_query = get_project_tags_v2(
             tag_ids=tag_ids,
             sensor_type_ids=sensor_type_ids,
-            return_query=True,
             include_ghost_tags=True,
-        ).polars_dataframe_async()
+        )
+        tags: pl.DataFrame = await tags_query.get_async(
+            output_type=OutputType.POLARS,
+            schema=self.project_name_short,
+        )
 
         # Step 5: Validate that we found tags
         # Result: Raises error if no tags were found
