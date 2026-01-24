@@ -3,13 +3,14 @@ from typing import Annotated, Any, cast
 
 import pandas as pd
 from core.crud.project import tags as crud_project_tags
-from core.crud.project.tags import get_project_tags
+from core.db_query import OutputType
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
+import app.interfaces
 from app import dependencies, utils
 from app._crud.projects import tags as crud_tags
 from app.logger import logger
@@ -254,24 +255,31 @@ async def assign_sensor_type_to_pattern(
     status_code=201,
 )
 async def put_unique_tag_patterns(
-    project_db: Session = Depends(dependencies.get_project_db),
+    project_db: Annotated[Session, Depends(dependencies.get_project_db)],
+    project: Annotated[app.interfaces.Project, Depends(dependencies.get_project_api)],
 ):
     """todo
 
     Args:
         project_db: TODO: describe.
+        project: TODO: describe.
     """
     try:
-        # Query all tags, including ghost tags
-        tags = get_project_tags(
-            db=project_db,
+        tags_query = crud_project_tags.get_project_tags_v2(
             include_ghost_tags=True,
-        ).models()
+        )
+        tags_df = await tags_query.get_async(
+            output_type=OutputType.PANDAS,
+            schema=project.name_short,
+        )
 
         # Group by tag pattern
         patterns: dict[str, dict] = {}
-        for tag in tags:
-            pattern = create_tag_pattern(name_scada=tag.name_scada)
+        for _, tag in tags_df.iterrows():
+            name_scada = tag["name_scada"]
+            if not name_scada:
+                continue
+            pattern = create_tag_pattern(name_scada=str(name_scada))
 
             # If pattern is not in patterns, initialize it
             if pattern not in patterns:
@@ -285,7 +293,7 @@ async def put_unique_tag_patterns(
             patterns[pattern]["count"] += 1
 
             # Add the tag_id to the example_tag_ids list
-            patterns[pattern]["example_tag_ids"].append(tag.tag_id)
+            patterns[pattern]["example_tag_ids"].append(int(tag["tag_id"]))
 
         # Convert to list and sort by count
         unique_patterns = list(patterns.values())

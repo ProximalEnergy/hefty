@@ -6105,6 +6105,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project: TODO: describe.
          */
         put: operations["put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put"];
         post?: never;
