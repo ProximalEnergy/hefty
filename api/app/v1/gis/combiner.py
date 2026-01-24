@@ -65,11 +65,10 @@ async def get_combiner_block_performance(
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get tags for combiner current
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         device_ids=devices_combiner_df["device_id"].astype(int).tolist(),
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get data for combiner current
     missing_data = False
@@ -77,7 +76,7 @@ async def get_combiner_block_performance(
     data = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags_df["tag_id"].astype(int).tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -96,7 +95,13 @@ async def get_combiner_block_performance(
     if not missing_data:
         # Rename columns from tags to device ids
         # NOTE: These device ids are combiner device ids
-        tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
+        tag_id_to_device_id = dict(
+            zip(
+                tags_df["tag_id"].astype(int),
+                tags_df["device_id"].astype(int),
+                strict=True,
+            ),
+        )
         df.columns = pd.Index(
             [tag_id_to_device_id[tag_id] for tag_id in df.columns.astype(int)],
         )

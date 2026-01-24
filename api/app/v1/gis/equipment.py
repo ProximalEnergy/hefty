@@ -66,12 +66,17 @@ async def get_pcs(
         descendents=devices_pcs,
     )
 
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    tag_id_to_tag = {tag.tag_id: tag for tag in tags}
+    tag_id_to_device_id = dict(
+        zip(
+            tags_df["tag_id"].astype(int),
+            tags_df["device_id"].astype(int),
+            strict=True,
+        ),
+    )
 
     live = start is None or end is None
 
@@ -83,7 +88,7 @@ async def get_pcs(
             data_timeseries = await DataTimeseries(
                 project_name_short=project.name_short,
                 filter_method=FilterMethod.TAG_IDS,
-                filter_values=[t.tag_id for t in tags],
+                filter_values=tags_df["tag_id"].astype(int).tolist(),
                 query_start=start,
                 query_end=end,
                 project_db=project_db,
@@ -124,7 +129,7 @@ async def get_pcs(
 
                 df_pcs.columns = pd.Index(
                     [
-                        tag_id_to_tag[tag_id].device_id
+                        tag_id_to_device_id[tag_id]
                         for tag_id in df_pcs.columns.astype(int)
                     ],
                 )
@@ -659,12 +664,11 @@ async def utility_expected(
     # --- Handle Tracker Row Case ---
     if first_device_type_id == DeviceType.TRACKER_ROW:
         sensor_type_ids = [SensorType.TRACKER_POSITION]
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_df = await core.crud.project.tags.get_project_tags_v2(
             device_ids=device_ids,
             sensor_type_ids=sensor_type_ids,
-        ).models()
-        if not tags:
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        if tags_df.empty:
             # Return empty dict if no tags found, endpoint will handle merging None
             return {}
 
@@ -672,7 +676,7 @@ async def utility_expected(
             data = await DataTimeseries(
                 project_name_short=project.name_short,
                 filter_method=FilterMethod.TAG_IDS,
-                filter_values=[t.tag_id for t in tags],
+                filter_values=tags_df["tag_id"].astype(int).tolist(),
                 query_start=start - pd.Timedelta(hours=3),
                 query_end=end,
                 project_db=project_db,
@@ -691,7 +695,13 @@ async def utility_expected(
 
         # Structure the result
         results = {}
-        tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
+        tag_id_to_device_id = dict(
+            zip(
+                tags_df["tag_id"].astype(int),
+                tags_df["device_id"].astype(int),
+                strict=False,
+            ),
+        )
         # data_latest_df returns a Series with tag_id as index
         latest_values = df_latest.iloc[-1]  # Get the row of latest values
 
@@ -854,37 +864,46 @@ async def utility_expected(
             )
 
         # DB Call for current tags (combiners)
-        tags_current = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_current_df = await core.crud.project.tags.get_project_tags_v2(
             device_ids=device_ids,
             sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-        if not tags_current:
+        if tags_current_df.empty:
             return {}
 
         # DB Call for voltage tags (primary: module-level, fallback: PCS-level)
         using_pcs_level_voltage = False
-        tags_voltage = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_voltage_df = await core.crud.project.tags.get_project_tags_v2(
             device_ids=module_ids,
             sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-        if not tags_voltage:
-            tags_voltage = core.crud.project.tags.get_project_tags(
-                project_db,
+        if tags_voltage_df.empty:
+            tags_voltage_df = await core.crud.project.tags.get_project_tags_v2(
                 device_ids=parent_pcs_ids,  # Use PCS device IDs for fallback
                 sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
-            ).models()
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
             using_pcs_level_voltage = True
 
-        if not tags_voltage:
+        if tags_voltage_df.empty:
             return {}
 
         # Create maps directly from the specific tag lists
-        voltage_tag_map = {tag.device_id: tag.tag_id for tag in tags_voltage}
-        current_tag_map = {tag.device_id: tag.tag_id for tag in tags_current}
+        voltage_tag_map = dict(
+            zip(
+                tags_voltage_df["device_id"].astype(int),
+                tags_voltage_df["tag_id"].astype(int),
+                strict=False,
+            ),
+        )
+        current_tag_map = dict(
+            zip(
+                tags_current_df["device_id"].astype(int),
+                tags_current_df["tag_id"].astype(int),
+                strict=False,
+            ),
+        )
 
         # Combine tag IDs for the data query
         list(voltage_tag_map.values()) + list(
@@ -895,7 +914,10 @@ async def utility_expected(
         data = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags_voltage + tags_current],
+            filter_values=(
+                tags_voltage_df["tag_id"].astype(int).tolist()
+                + tags_current_df["tag_id"].astype(int).tolist()
+            ),
             query_start=start,
             query_end=end,
             project_db=project_db,
@@ -958,12 +980,11 @@ async def utility_expected(
 
     else:
         # --- Standard Actual Power Fetching (Meter, PCS) ---
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_df = await core.crud.project.tags.get_project_tags_v2(
             device_ids=device_ids,
             sensor_type_ids=sensor_type_ids,
-        ).models()
-        if not tags:
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        if tags_df.empty:
             if project.project_status_type_id == ProjectStatusType.ONBOARDING.value:
                 logger.logger.warning(
                     f"No suitable power tags found for device IDs {device_ids} "
@@ -979,12 +1000,18 @@ async def utility_expected(
                     f"{device_ids} with sensor types {sensor_type_ids}.",
                 )
 
-        tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
+        tag_id_to_device_id = dict(
+            zip(
+                tags_df["tag_id"].astype(int),
+                tags_df["device_id"].astype(int),
+                strict=False,
+            ),
+        )
 
         data = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags],
+            filter_values=tags_df["tag_id"].astype(int).tolist(),
             query_start=start,
             query_end=end,
             project_db=project_db,
@@ -1154,39 +1181,19 @@ async def get_met_station_latest_values(
         "met_station_ambient_temperature",
         "met_station_wind_speed",
     ]
+    project_schema = utils.get_project_schema(project_db=project_db)
 
     try:
-        # Assuming core.crud.project.tags.get_project_tags is synchronous
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_df = await core.crud.project.tags.get_project_tags_v2(
             device_ids=device_ids,
             sensor_type_name_shorts=met_sensor_type_names,  # Use names to find IDs
-        ).models()
-        if not tags:
+            deep=True,
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        if tags_df.empty:
             logger.logger.info(
                 f"No relevant Met Station tags found for devices: {device_ids}"
             )
             return {}
-
-        # --- Manually load the sensor_type relationship ---
-        sensor_type_ids = list(
-            set(tag.sensor_type_id for tag in tags if tag.sensor_type_id)
-        )
-
-        if sensor_type_ids:
-            sensor_type_query = select(models.SensorType).where(
-                models.SensorType.sensor_type_id.in_(sensor_type_ids)
-            )
-            sensor_types = project_db.execute(sensor_type_query).scalars().all()
-            logger.logger.info(f"Loaded {len(sensor_types)} sensor types")
-            sensor_type_map = {st.sensor_type_id: st for st in sensor_types}
-            # Associate the loaded SensorType objects back to the Tag objects
-            for tag in tags:
-                tag.sensor_type = (
-                    sensor_type_map.get(tag.sensor_type_id)
-                    if tag.sensor_type_id
-                    else None
-                )
 
         end_time = pd.Timestamp.utcnow().floor("5min")
         start_time = end_time - pd.Timedelta(hours=3)
@@ -1194,7 +1201,7 @@ async def get_met_station_latest_values(
         data = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags],
+            filter_values=tags_df["tag_id"].astype(int).tolist(),
             query_start=start_time,
             query_end=end_time,
             project_db=project_db,
@@ -1210,7 +1217,12 @@ async def get_met_station_latest_values(
             return {}
 
         latest_values: dict[int, dict[str, float]] = {}
-        tag_map = {tag.tag_id: tag for tag in tags}
+        tags_df = tags_df.copy()
+        tags_df["tag_id"] = tags_df["tag_id"].astype(int)
+        tags_df["device_id"] = tags_df["device_id"].astype(int)
+        tag_map = tags_df.set_index("tag_id")[
+            ["device_id", "sensor_type_name_short"]
+        ].to_dict("index")
 
         for tag_id_str in df_met_data_raw.columns:
             tag_id = int(tag_id_str)
@@ -1223,10 +1235,8 @@ async def get_met_station_latest_values(
                     )
                     continue
 
-                device_id = tag_info.device_id
-                sensor_short_name = (
-                    tag_info.sensor_type.name_short if tag_info.sensor_type else None
-                )
+                device_id = tag_info["device_id"]
+                sensor_short_name = tag_info.get("sensor_type_name_short")
                 value = float(series.iloc[-1])  # Convert numpy float to Python float
 
                 if device_id not in latest_values:
