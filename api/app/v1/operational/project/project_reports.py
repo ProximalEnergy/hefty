@@ -2,7 +2,7 @@ import datetime
 import mimetypes
 import time
 from io import BytesIO
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 import boto3
 import numpy as np
@@ -50,24 +50,27 @@ async def get_pcs_apparent_vs_voltage(
         start: TODO: describe.
         end: TODO: describe.
     """
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[
             SensorType.PV_PCS_AC_APPARENT_POWER,
             SensorType.PV_PCS_VOLTAGE_LL_AB,
             SensorType.PV_PCS_VOLTAGE_LL_BC,
             SensorType.PV_PCS_VOLTAGE_LL_CA,
         ],
-    ).models()
-    if len(tags) == 0:
+    ).get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    if tags_df.empty:
         raise HTTPException(
             status_code=404, detail="No tags found for requested sensor types."
         )
-    tags_df = pd.DataFrame.from_records([tag.__dict__ for tag in tags]).set_index(
-        "tag_id"
-    )
-    if "_sa_instance_state" in tags_df.columns:
-        tags_df = tags_df.drop(columns=["_sa_instance_state"])
+    tags = [
+        models.Tag(**cast(dict[str, Any], record))
+        for record in tags_df.to_dict("records")
+    ]
+    tags_df = tags_df.set_index("tag_id")
     df = data_df(project_db, project, tags=tags, start=start, end=end)
     df.index = pd.to_datetime(df.index).tz_convert(None).tz_localize(project.time_zone)
 
@@ -90,10 +93,12 @@ async def get_pcs_apparent_vs_voltage(
     for device_id, tag_ids in voltage_items.items():
         df_voltage.loc[:, device_id] = df.loc[:, tag_ids].mean(axis=1)
 
-    project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=df_voltage.columns.astype(int).tolist()
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    ).get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
     device_id_to_name = dict(
         zip(
             devices_df["device_id"].astype(int),
@@ -157,10 +162,17 @@ async def dc_amperage_report_v2(
     end_date = start_date + pd.Timedelta(days=1)
 
     logger.info("POA tags")
-    poa_tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    poa_tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.MET_STATION_POA],
-    ).models()
+    ).get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    poa_tags = [
+        models.Tag(**cast(dict[str, Any], record))
+        for record in poa_tags_df.to_dict("records")
+    ]
 
     logger.info("POA data")
     df_poa = data_df(
@@ -193,19 +205,22 @@ async def dc_amperage_report_v2(
     ]
 
     logger.info("CB tags")
-    tags_cb = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_cb_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
-    ).models()
-    if len(tags_cb) == 0:
+    ).get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    if tags_cb_df.empty:
         raise HTTPException(
             status_code=404,
             detail="No combiner boxes configured for this project",
         )
-    df_tags_cb = pd.DataFrame([x.__dict__ for x in tags_cb]).set_index(
-        "tag_id",
-        drop=True,
-    )
+    tags_cb = [
+        models.Tag(**cast(dict[str, Any], record))
+        for record in tags_cb_df.to_dict("records")
+    ]
+    df_tags_cb = tags_cb_df.set_index("tag_id", drop=True)
 
     logger.info("CB data")
     df_cb = data_df(
@@ -217,7 +232,6 @@ async def dc_amperage_report_v2(
     )
 
     logger.info("CB data processing")
-    project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[
             DeviceType.PV_PCS,
@@ -225,7 +239,10 @@ async def dc_amperage_report_v2(
             DeviceType.PV_DC_COMBINER,
         ],
         deep=False,
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    ).get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
     devices_df = devices_df.copy()
     devices_df["name_long"] = devices_df["name_long"].fillna("")
     devices_df["name_short"] = devices_df["name_short"].fillna("")
