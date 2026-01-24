@@ -60,33 +60,34 @@ async def get_equipment_analysis_combiner_data(
     devices_combiner_df["capacity_dc"] = devices_combiner_df["capacity_dc"].fillna(1)
 
     # Get combiner current tags
-    tags_combiner_current = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_combiner_current = await core.crud.project.tags.get_project_tags_v2(
         in_tsdb=True,
         sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     device_id_to_device = {
         int(device["device_id"]): device
         for device in devices_combiner_df.to_dict("records")
     }
 
-    tag_id_to_combiner_name_long: dict[int, str] = {
-        tag.tag_id: (
-            device_id_to_device[tag.device_id].get("name_long") or "NO NAME LONG"
+    tag_id_to_combiner_name_long: dict[int, str] = {}
+    tag_id_to_combiner_capacity_dc: dict[int, float] = {}
+    for tag_id, device_id in zip(
+        tags_combiner_current["tag_id"],
+        tags_combiner_current["device_id"],
+    ):
+        tag_id_int = int(tag_id)
+        device = device_id_to_device[int(device_id)]
+        tag_id_to_combiner_name_long[tag_id_int] = (
+            device.get("name_long") or "NO NAME LONG"
         )
-        for tag in tags_combiner_current
-    }
-    tag_id_to_combiner_capacity_dc: dict[int, float] = {
-        tag.tag_id: device_id_to_device[tag.device_id].get("capacity_dc") or 1
-        for tag in tags_combiner_current
-    }
+        tag_id_to_combiner_capacity_dc[tag_id_int] = device.get("capacity_dc") or 1
 
     # Get combiner current data
     data = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags_combiner_current],
+        filter_values=tags_combiner_current["tag_id"].astype(int).tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,

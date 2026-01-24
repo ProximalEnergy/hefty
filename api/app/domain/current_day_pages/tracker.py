@@ -164,20 +164,19 @@ async def get_tracker_by_pv_block_id_data(
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Get all position and setpoint tags for the tracker rows
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    tags = await core.crud.project.tags.get_project_tags_v2(
         device_ids=devices_df["device_id"].astype(int).tolist(),
         sensor_type_ids=[
             SensorType.TRACKER_POSITION,
             SensorType.TRACKER_SETPOINT,
         ],
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     # Query tracker position and setpoint data
     data = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags["tag_id"].astype(int).tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -194,14 +193,25 @@ async def get_tracker_by_pv_block_id_data(
         )
     )
     tag_id_to_device_name_short = {
-        t.tag_id: device_id_to_name_short[t.device_id] for t in tags
+        int(tag_id): device_id_to_name_short[int(device_id)]
+        for tag_id, device_id in zip(tags["tag_id"], tags["device_id"])
     }
 
     tags_ids_position = natsorted(
-        [t.tag_id for t in tags if t.sensor_type_id == SensorType.TRACKER_POSITION]
+        tags.loc[
+            tags["sensor_type_id"] == SensorType.TRACKER_POSITION,
+            "tag_id",
+        ]
+        .astype(int)
+        .tolist()
     )
     tags_ids_setpoint = natsorted(
-        [t.tag_id for t in tags if t.sensor_type_id == SensorType.TRACKER_SETPOINT]
+        tags.loc[
+            tags["sensor_type_id"] == SensorType.TRACKER_SETPOINT,
+            "tag_id",
+        ]
+        .astype(int)
+        .tolist()
     )
 
     df_position = df[tags_ids_position]

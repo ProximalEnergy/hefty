@@ -46,7 +46,7 @@ async def _fetch_timeseries_dataframe(
     *,
     project_db: Session,
     project: models.Project,
-    tags: list[models.Tag],
+    tag_ids: list[int],
     start: datetime.datetime,
     end: datetime.datetime,
 ) -> pd.DataFrame:
@@ -55,18 +55,18 @@ async def _fetch_timeseries_dataframe(
     Args:
         project_db: TODO: describe.
         project: TODO: describe.
-        tags: TODO: describe.
+        tag_ids: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
         operational_db: TODO: describe.
     """
-    if len(tags) == 0:
+    if len(tag_ids) == 0:
         return pd.DataFrame()
 
     data_timeseries_instance = DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[tag.tag_id for tag in tags],
+        filter_values=tag_ids,
         query_start=start,
         query_end=end,
         freq=TimeInterval.FIVE_MINUTES,
@@ -112,9 +112,9 @@ async def _get_equipment_analysis_frames_async(
     *,
     project_db: Session,
     project: models.Project,
-    block_tags: list[models.Tag],
-    pcs_tags: list[models.Tag],
-    pcs_module_tags: list[models.Tag],
+    block_tag_ids: list[int],
+    pcs_tag_ids: list[int],
+    pcs_module_tag_ids: list[int],
     start: datetime.datetime,
     end: datetime.datetime,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -123,30 +123,30 @@ async def _get_equipment_analysis_frames_async(
     Args:
         project_db: TODO: describe.
         project: TODO: describe.
-        block_tags: TODO: describe.
-        pcs_tags: TODO: describe.
-        pcs_module_tags: TODO: describe.
+        block_tag_ids: TODO: describe.
+        pcs_tag_ids: TODO: describe.
+        pcs_module_tag_ids: TODO: describe.
         start: TODO: describe.
         end: TODO: describe.
     """
     df_block = await _fetch_timeseries_dataframe(
         project_db=project_db,
         project=project,
-        tags=block_tags,
+        tag_ids=block_tag_ids,
         start=start,
         end=end,
     )
     df_pcs = await _fetch_timeseries_dataframe(
         project_db=project_db,
         project=project,
-        tags=pcs_tags,
+        tag_ids=pcs_tag_ids,
         start=start,
         end=end,
     )
     df_pcs_module = await _fetch_timeseries_dataframe(
         project_db=project_db,
         project=project,
-        tags=pcs_module_tags,
+        tag_ids=pcs_module_tag_ids,
         start=start,
         end=end,
     )
@@ -211,14 +211,18 @@ async def get_equipment_analysis_pcs_data(
     )
 
     # Get block tags
-    tags_block = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_block = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.BLOCK_AC_POWER],
-    ).models()
-    tags_block_tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags_block}
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    tags_block_tag_id_to_device_id = dict(
+        zip(
+            tags_block["tag_id"].astype(int),
+            tags_block["device_id"].astype(int),
+        )
+    )
 
     # Check if there are any block tags
-    has_block_tags = len(tags_block) > 0
+    has_block_tags = not tags_block.empty
 
     # PCSs
     # Get PCS devices
@@ -237,14 +241,18 @@ async def get_equipment_analysis_pcs_data(
     )
 
     # Get PCS tags
-    tags_pcs = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_pcs = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
-    ).models()
-    tags_pcs_tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags_pcs}
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    tags_pcs_tag_id_to_device_id = dict(
+        zip(
+            tags_pcs["tag_id"].astype(int),
+            tags_pcs["device_id"].astype(int),
+        )
+    )
 
     # Check if there are any PCS tags
-    has_pcs_tags = len(tags_pcs) > 0
+    has_pcs_tags = not tags_pcs.empty
 
     # PCS MODULEs
     # Get PCS module devices
@@ -259,16 +267,18 @@ async def get_equipment_analysis_pcs_data(
     )
 
     # Get PCS module tags
-    tags_pcs_module = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_pcs_module = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
-    ).models()
-    tags_pcs_module_tag_id_to_device_id = {
-        tag.tag_id: tag.device_id for tag in tags_pcs_module
-    }
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    tags_pcs_module_tag_id_to_device_id = dict(
+        zip(
+            tags_pcs_module["tag_id"].astype(int),
+            tags_pcs_module["device_id"].astype(int),
+        )
+    )
 
     # Check if there are any PCS module tags
-    has_pcs_module_tags = len(tags_pcs_module) > 0
+    has_pcs_module_tags = not tags_pcs_module.empty
 
     (
         df_block,
@@ -277,9 +287,15 @@ async def get_equipment_analysis_pcs_data(
     ) = await _get_equipment_analysis_frames_async(
         project_db=project_db,
         project=project,
-        block_tags=tags_block if has_block_tags else [],
-        pcs_tags=tags_pcs if has_pcs_tags else [],
-        pcs_module_tags=tags_pcs_module if has_pcs_module_tags else [],
+        block_tag_ids=(
+            tags_block["tag_id"].astype(int).tolist() if has_block_tags else []
+        ),
+        pcs_tag_ids=(tags_pcs["tag_id"].astype(int).tolist() if has_pcs_tags else []),
+        pcs_module_tag_ids=(
+            tags_pcs_module["tag_id"].astype(int).tolist()
+            if has_pcs_module_tags
+            else []
+        ),
         start=start_ts.to_pydatetime(),
         end=end_ts.to_pydatetime(),
     )
