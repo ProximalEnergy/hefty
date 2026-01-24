@@ -1,10 +1,12 @@
 import datetime
 
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.db_query import OutputType
 from core.enumerations import SensorType, TimeOffset
 from sqlalchemy.orm import Session
 
 import core
+from app import utils
 from core import models
 
 
@@ -27,18 +29,25 @@ async def get_bess_pcs_data(
     Returns:
         A list of dictionaries containing BESS PCS data.
     """
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.BESS_PCS_AC_POWER],
         deep=True,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
-    tag_id_to_device_name_long = {t.tag_id: t.device.name_long for t in tags}
+    if tags_df.empty:
+        return []
+
+    tags_df = tags_df.astype({"tag_id": int})
+
+    tag_id_to_device_name_long = (
+        tags_df.set_index("tag_id")["device_name_long"].fillna("").to_dict()
+    )
 
     data = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags_df["tag_id"].tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,

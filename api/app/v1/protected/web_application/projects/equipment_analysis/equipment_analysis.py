@@ -311,6 +311,8 @@ async def get_sunburst_data(
     # Reassign children of ignored devices
     for device in devices:
         current_parent_id = device.get("parent_device_id")
+        if pd.isna(current_parent_id):
+            current_parent_id = None
         while current_parent_id:
             parent_device = device_map.get(int(current_parent_id))
             if (
@@ -319,6 +321,8 @@ async def get_sunburst_data(
             ):
                 break
             current_parent_id = parent_device.get("parent_device_id")
+            if pd.isna(current_parent_id):
+                current_parent_id = None
         device["parent_device_id"] = current_parent_id
 
     # Filter devices again to remove ignored devices after re-parenting
@@ -335,8 +339,11 @@ async def get_sunburst_data(
     # Build hierarchy
     hierarchy: dict[int, list[int]] = {}
     for device in devices:
-        if device.get("parent_device_id") is not None:
-            parent = int(device["parent_device_id"])
+        parent_device_id = device.get("parent_device_id")
+        if pd.isna(parent_device_id):
+            parent_device_id = None
+        if parent_device_id is not None:
+            parent = int(parent_device_id)
             if parent in hierarchy:
                 hierarchy[parent].append(device["device_id"])
             else:
