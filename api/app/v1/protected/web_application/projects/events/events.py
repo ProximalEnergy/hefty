@@ -5,7 +5,6 @@ import core.models as models
 import pandas as pd
 from core.db_query import OutputType
 from core.enumerations import DeviceType
-from core.model_list import ModelList
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
@@ -322,8 +321,15 @@ async def get_meta_analysis(
         db=project_db_async,
         device_type_ids=agg_types["device_type_id"].unique().tolist(),
     )
-    device_types_model_list = ModelList.from_items(list(device_types_result))
-    device_types = device_types_model_list.pandas_dataframe(index="device_type_id")
+    device_types = pd.DataFrame(
+        [
+            {
+                "device_type_id": device_type.device_type_id,
+                "name_long": device_type.name_long,
+            }
+            for device_type in device_types_result
+        ]
+    ).set_index("device_type_id")
 
     # -----------------------
     # Build response
@@ -335,7 +341,7 @@ async def get_meta_analysis(
             EventMetrics(
                 device_type_id=dt_id,
                 device_type_name=(
-                    device_types.loc[dt_id, "name_long"] if dt_id != 5 else "Project"  # type: ignore
+                    device_types.loc[dt_id, "name_long"] if dt_id != 5 else "Project"
                 ),
                 MTBF_hours=(
                     round(float(row["MTBF_hours"]), 2)
