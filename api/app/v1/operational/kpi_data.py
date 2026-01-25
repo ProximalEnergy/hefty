@@ -26,8 +26,8 @@ from app._crud.operational.kpi_alerts import (
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import (
-    get_async_db,
     check_project_access_async,
+    get_async_db,
     get_project_api,
     get_project_db,
     get_user_data_async,

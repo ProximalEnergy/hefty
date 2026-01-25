@@ -6,8 +6,9 @@ import numpy as np
 import pandas as pd
 import polars as pl
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import DeviceType
+from core.enumerations import DeviceType, TimeOffset
 from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse
@@ -32,7 +33,7 @@ router = APIRouter(
     "/horizontal/bess",
     response_class=ORJSONResponse,
 )
-def get_horizontal_bess(
+async def get_horizontal_bess(
     start: datetime.datetime,
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -87,16 +88,20 @@ def get_horizontal_bess(
     }
     tag_id_to_device_id = {t.tag_id: t.device_id for t in tags}
 
-    df = utils.data_df(
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
         project_db=project_db,
-        project=project,
-        tags=tags,
-        start=start,
-        end=end,
-        get_last=True,
-        fillna_zero=False,
-    )
+        max_lookback_period=TimeOffset.FIVE_MINUTES,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     def _get_data(*, category: str):
         """todo
@@ -154,7 +159,7 @@ class DeviceDetailsHorizontalPV(BaseModel):
     response_class=ORJSONResponse,
     response_model=DeviceDetailsHorizontalPV,
 )
-def get_horizontal_pv(
+async def get_horizontal_pv(
     start: datetime.datetime,
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -192,16 +197,20 @@ def get_horizontal_pv(
     }
     tag_id_to_device_id = {t.tag_id: t.device_id for t in tags}
 
-    df = utils.data_df(
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
         project_db=project_db,
-        project=project,
-        tags=tags,
-        start=start,
-        end=end,
-        get_last=True,
-        fillna_zero=False,
-    )
+        max_lookback_period=TimeOffset.FIVE_MINUTES,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     def _get_data(*, category: str):
         """todo
@@ -239,7 +248,7 @@ def get_horizontal_pv(
     "/single/{device_id}",
     response_class=ORJSONResponse,
 )
-def get_single_by_device_id(
+async def get_single_by_device_id(
     device_id: int,
     start: datetime.datetime,
     end: datetime.datetime,
@@ -270,16 +279,20 @@ def get_single_by_device_id(
     tag_id_to_name_scada = {t.tag_id: t.name_scada for t in tags}
     tag_id_to_sensor_type_unit = {t.tag_id: t.sensor_type.unit for t in tags}
 
-    df = utils.data_df(
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
         project_db=project_db,
-        project=project,
-        tags=tags,
-        start=start,
-        end=end,
-        get_last=True,
-        fillna_zero=False,
-    )
+        max_lookback_period=TimeOffset.FIVE_MINUTES,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     return {
         "time": df.index.tolist(),
@@ -458,7 +471,7 @@ async def get_vertical_controller(
     "/vertical",
     response_class=ORJSONResponse,
 )
-def get_vertical(
+async def get_vertical(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     device_ids: Annotated[list[int], Query()],
@@ -513,14 +526,19 @@ def get_vertical(
         )
 
     # Get the data for the desired tags
-    df: pd.DataFrame = utils.data_df(
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
         project_db=project_db,
-        project=project,
-        tags=tags,
-        start=start,
-        end=end,
-    )
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     return {
         "times": df.index.tolist(),
