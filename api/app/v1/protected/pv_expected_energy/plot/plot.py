@@ -4,8 +4,8 @@ from typing import Annotated
 import pandas as pd
 from app import dependencies, interfaces, utils
 from app._utils.recursive_parents import get_recursive_parents
-from app.utils import data_df
 from core.crud.operational.device_types import get_device_types
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
@@ -170,22 +170,38 @@ async def utility_expected(
             sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
         ).models()
 
-        df_pv_pcs_module_voltage = data_df(
-            project_db,
-            project,
-            tags=tags_pv_pcs_module_voltage,
-            start=start,
-            end=end,
-            fillna_zero=False,
-        )
+        data_timeseries_instance = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags_pv_pcs_module_voltage],
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+        ).get()
 
-        df_pv_dc_combiner_current = data_df(
-            project_db,
-            project,
-            tags=tags_pv_dc_combiner_current,
-            start=start,
-            end=end,
-            fillna_zero=False,
+        df_pv_pcs_module_voltage = data_timeseries_instance.df.to_pandas()
+        df_pv_pcs_module_voltage = df_pv_pcs_module_voltage.set_index("time")
+        df_pv_pcs_module_voltage.index = pd.to_datetime(
+            df_pv_pcs_module_voltage.index
+        ).tz_convert(project.time_zone)
+        df_pv_pcs_module_voltage.columns = df_pv_pcs_module_voltage.columns.astype(int)
+
+        data_timeseries_instance = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags_pv_dc_combiner_current],
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+        ).get()
+
+        df_pv_dc_combiner_current = data_timeseries_instance.df.to_pandas()
+        df_pv_dc_combiner_current = df_pv_dc_combiner_current.set_index("time")
+        df_pv_dc_combiner_current.index = pd.to_datetime(
+            df_pv_dc_combiner_current.index
+        ).tz_convert(project.time_zone)
+        df_pv_dc_combiner_current.columns = df_pv_dc_combiner_current.columns.astype(
+            int
         )
 
         s_actual = df_pv_pcs_module_voltage.mean(axis=1).mul(
@@ -200,14 +216,21 @@ async def utility_expected(
             sensor_type_ids=sensor_type_ids,
         ).models()
 
-        s_actual = data_df(
-            project_db,
-            project,
-            tags=tags,
-            start=start,
-            end=end,
-            fillna_zero=False,
-        ).iloc[:, 0]
+        data_timeseries_instance = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags],
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+        ).get()
+
+        df_actual = data_timeseries_instance.df.to_pandas()
+        df_actual = df_actual.set_index("time")
+        df_actual.index = pd.to_datetime(df_actual.index).tz_convert(project.time_zone)
+        df_actual.columns = df_actual.columns.astype(int)
+
+        s_actual = df_actual.iloc[:, 0]
 
     # Convert to project timezone and ensure power is in kW
     s_actual.index = pd.to_datetime(s_actual.index).tz_convert(project.time_zone)
@@ -248,32 +271,36 @@ async def utility_expected(
     df_expected_clean = parse_df(expected_metric_id=expected_metric_id_clean)
     df_expected_soiled = parse_df(expected_metric_id=expected_metric_id_soiled)
 
-    df_poa = data_df(
-        project_db,
-        project,
-        tags=core.crud.project.tags.get_project_tags(
-            project_db,
-            sensor_type_ids=[SensorType.MET_STATION_POA],
-        ).models(),
-        start=start,
-        end=end,
-        fillna_zero=False,
-    )
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.SENSOR_TYPE_IDS,
+        filter_values=[SensorType.MET_STATION_POA],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
 
-    try:
-        df_soiling = data_df(
-            project_db,
-            project,
-            tags=core.crud.project.tags.get_project_tags(
-                project_db,
-                sensor_type_ids=[SensorType.MET_STATION_SOIL_PERCENT],
-            ).models(),
-            start=start,
-            end=end,
-            fillna_zero=False,
-        )
-    except HTTPException:
-        df_soiling = pd.DataFrame(index=s_actual.index)
+    df_poa = data_timeseries_instance.df.to_pandas()
+    df_poa = df_poa.set_index("time")
+    df_poa.index = pd.to_datetime(df_poa.index).tz_convert(project.time_zone)
+    df_poa.columns = df_poa.columns.astype(int)
+
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.SENSOR_TYPE_IDS,
+        filter_values=[SensorType.MET_STATION_SOIL_PERCENT],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
+
+    df_soiling = data_timeseries_instance.df.to_pandas()
+    df_soiling = df_soiling.set_index("time")
+    df_soiling.index = pd.to_datetime(df_soiling.index).tz_convert(project.time_zone)
+    df_soiling.columns = df_soiling.columns.astype(int)
+
+    if df_soiling.empty:
+        df_soiling = pd.DataFrame(index=s_actual.index, columns=df_soiling.columns)
 
     out = {}
 
