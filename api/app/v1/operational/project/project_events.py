@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
 
+import numpy as np
 import pandas as pd
 import sentry_sdk  # type: ignore
 from core.crud.operational.device_types import get_device_types
@@ -887,7 +888,7 @@ async def get_uptime(
     return result
 
 
-@router.get("/event-trace-tags", response_model=list[interfaces.TagV1])
+@router.get("/event-trace-tags", response_model=list[interfaces.Tag])
 async def get_event_trace_tags(
     project_db: Annotated[Session, Depends(get_project_db)],
     device_id: int,
@@ -1012,13 +1013,17 @@ async def get_event_trace_tags(
                     "has been notified."
                 ),
             )
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
         deep=True,
-    ).models()
-    return tags
+    ).get_async(
+        schema=project_schema,
+        output_type=OutputType.PANDAS,
+    )
+    if tags_df is None:
+        return []
+    return tags_df.replace(np.nan, None).to_dict("records")
 
 
 @router.get("/llm-event-losses")

@@ -15266,7 +15266,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TagV1"][];
+                    "application/json": components["schemas"]["Tag"][];
                 };
             };
             /** @description Validation Error */
