@@ -129,7 +129,11 @@ async def get_report_emails(
         raise HTTPException(status_code=400, detail="Failed to get report emails")
 
 
-@router.put("/reports/{project_id}", response_model=interfaces.UserSubscription)
+@router.put(
+    "/reports/{project_id}",
+    response_model=interfaces.UserSubscription,
+    dependencies=[Depends(dependencies.check_project_access_async)],
+)
 async def update_report_subscription(
     project_id: UUID,
     data: interfaces.UserSubscriptionUpdate,

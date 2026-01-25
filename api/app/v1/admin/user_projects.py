@@ -56,7 +56,10 @@ async def get_user_projects(
 
 
 # TODO:  Make this route more secure
-@router.patch("/{user_id}/projects/{project_id}/favorite")
+@router.patch(
+    "/{user_id}/projects/{project_id}/favorite",
+    dependencies=[Depends(dependencies.check_project_access_async)],
+)
 async def update_project_favorite(
     *,
     user_id: str,

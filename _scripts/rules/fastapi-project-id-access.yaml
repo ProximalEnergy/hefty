@@ -1,0 +1,22 @@
+rules:
+  - id: fastapi-project-id-requires-access
+    message: >-
+      FastAPI routes with a project_id path parameter must include
+      check_project_access_async.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern-regex: >-
+          @\w+(?:\.\w+)*\((?![^)]*check_project_access_async)
+          [^)]*\{project_id\}[^)]*\)
+
+  - id: fastapi-project-id-requires-access-prefix
+    message: >-
+      FastAPI routes with a project_id path parameter must include
+      check_project_access_async.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern-regex: >-
+          APIRouter\((?![^)]*check_project_access_async)
+          [^)]*prefix=.*\{project_id\}[^)]*\)

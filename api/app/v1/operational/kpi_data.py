@@ -27,6 +27,7 @@ from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import (
     get_async_db,
+    check_project_access_async,
     get_project_api,
     get_project_db,
     get_user_data_async,
@@ -254,7 +255,10 @@ async def trigger_alert(
     )
 
 
-@router.get("/{project_id}/excel")
+@router.get(
+    "/{project_id}/excel",
+    dependencies=[Depends(check_project_access_async)],
+)
 async def get_kpi_excel(
     project_id: uuid.UUID,
     kpi_type_id: int,
@@ -399,7 +403,10 @@ async def get_kpi_excel(
     return presigned_url
 
 
-@router.get("/{project_id}/kpi-email-alerts")
+@router.get(
+    "/{project_id}/kpi-email-alerts",
+    dependencies=[Depends(check_project_access_async)],
+)
 def get_kpi_email_alerts(
     start: datetime.datetime,
     end: datetime.datetime,
