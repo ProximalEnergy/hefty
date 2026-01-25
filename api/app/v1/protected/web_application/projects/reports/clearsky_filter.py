@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import Depends, HTTPException
@@ -18,8 +19,8 @@ from core import models
 async def get_clearsky_poa(
     *,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
-    start: datetime.datetime | None = None,
-    end: datetime.datetime | None = None,
+    start: datetime.datetime,
+    end: datetime.datetime,
     project_db: Session = Depends(dependencies.get_project_db),
     resample_rate: str | None = "5min",
 ):
@@ -42,14 +43,21 @@ async def get_clearsky_poa(
         sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
     ).models()
-    df = utils.data_df(
-        project_db,
-        project,
-        tags=tags,
-        start=start,
-        end=end,
-        get_last=False,
-    )
+
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
+    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
+
     if resample_rate is not None:
         df = df.resample(resample_rate).mean()
 

@@ -7,6 +7,7 @@ from typing import Annotated, Any, cast
 import boto3
 import numpy as np
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
@@ -26,7 +27,6 @@ from app.dependencies import (
     get_project_db_async,
 )
 from app.logger import logger
-from app.utils import data_df
 from core import models
 
 router = APIRouter(prefix="/projects/{project_id}/reports", tags=["project_reports"])
@@ -71,8 +71,20 @@ async def get_pcs_apparent_vs_voltage(
         for record in tags_df.to_dict("records")
     ]
     tags_df = tags_df.set_index("tag_id")
-    df = data_df(project_db, project, tags=tags, start=start, end=end)
-    df.index = pd.to_datetime(df.index).tz_convert(None).tz_localize(project.time_zone)
+
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
+    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     apparent_idx = tags_df[tags_df["sensor_type_id"] == 132].index.tolist()
     df_apparent = df.loc[:, apparent_idx]
@@ -175,13 +187,19 @@ async def dc_amperage_report_v2(
     ]
 
     logger.info("POA data")
-    df_poa = data_df(
-        project_db,
-        project,
-        poa_tags,
-        start=start_date,
-        end=end_date,
-    )
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in poa_tags],
+        query_start=start_date,
+        query_end=end_date,
+        project_db=project_db,
+    ).get()
+
+    df_poa = data_timeseries_instance.df.to_pandas()
+    df_poa = df_poa.set_index("time")
+    df_poa.index = pd.to_datetime(df_poa.index).tz_convert(project.time_zone)
+    df_poa.columns = df_poa.columns.astype(int)
 
     df_poa = df_poa.resample(resample_rate).mean()
 
@@ -223,13 +241,19 @@ async def dc_amperage_report_v2(
     df_tags_cb = tags_cb_df.set_index("tag_id", drop=True)
 
     logger.info("CB data")
-    df_cb = data_df(
-        project_db,
-        project,
-        tags_cb,
-        start=start_date,
-        end=end_date,
-    )
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags_cb],
+        query_start=start_date,
+        query_end=end_date,
+        project_db=project_db,
+    ).get()
+
+    df_cb = data_timeseries_instance.df.to_pandas()
+    df_cb = df_cb.set_index("time")
+    df_cb.index = pd.to_datetime(df_cb.index).tz_convert(project.time_zone)
+    df_cb.columns = df_cb.columns.astype(int)
 
     logger.info("CB data processing")
     devices_df = await core.crud.project.devices.get_project_devices(

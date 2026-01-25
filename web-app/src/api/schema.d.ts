@@ -21254,9 +21254,9 @@ export interface operations {
     };
     get_clearsky_poa_v1_protected_web_application_projects__project_id__reports_clearsky_poa_get: {
         parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
+            query: {
+                start: string;
+                end: string;
                 resample_rate?: string | null;
             };
             header?: {

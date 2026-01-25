@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import Depends
@@ -59,15 +60,21 @@ async def get_degradation_poa(
         sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
     ).models()
-    df_raw = utils.data_df(
-        project_db,
-        project,
-        tags=tags,
-        start=start,
-        end=end,
-        get_last=False,
-    )
+
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
+
+    df_raw = data_timeseries_instance.df.to_pandas()
+    df_raw = df_raw.set_index("time")
     df_raw.index = pd.to_datetime(df_raw.index).tz_convert(project.time_zone)
+    df_raw.columns = df_raw.columns.astype(int)
+
     df_raw = df_raw.resample("5min").ffill()
     df_raw = df_raw.reindex(
         pd.date_range(start=start, end=end - pd.Timedelta(minutes=5), freq="5min"),
