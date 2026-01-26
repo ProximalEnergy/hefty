@@ -38,16 +38,24 @@ async def get_clearsky_poa(
         rolling_window = int(60 / int(resample_rate.split("min")[0]))
     else:
         rolling_window = 12
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[SensorType.MET_STATION_POA],
         deep=True,
-    ).models()
+    ).get_async(
+        output_type=OutputType.PANDAS,
+        schema=project_schema,
+    )
+    if tags_df.empty:
+        raise HTTPException(
+            status_code=404,
+            detail="No clearsky tags found.",
+        )
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags_df["tag_id"].astype(int).tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -61,8 +69,7 @@ async def get_clearsky_poa(
     if resample_rate is not None:
         df = df.resample(resample_rate).mean()
 
-    device_ids = [tag.device_id for tag in tags]
-    project_schema = utils.get_project_schema(project_db=project_db)
+    device_ids = tags_df["device_id"].astype(int).tolist()
     devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -72,9 +79,15 @@ async def get_clearsky_poa(
             devices_df["name_long"].fillna(""),
         )
     )
-    tag_id_to_device_name_long = {
-        tag.tag_id: device_id_to_name_long[tag.device_id] for tag in tags
-    }
+    tags_df = tags_df.assign(
+        device_name_long=tags_df["device_id"]
+        .astype(int)
+        .map(device_id_to_name_long)
+        .fillna(""),
+    )
+    tag_id_to_device_name_long = dict(
+        zip(tags_df["tag_id"].astype(int), tags_df["device_name_long"])
+    )
     columns = [
         "POA " + tag_id_to_device_name_long.get(tag_id, tag_id)
         for tag_id in df.columns.astype(int)
