@@ -40,13 +40,13 @@ connect_args = {"ssl": True}
 
 async_engine = create_async_engine(
     async_database_url,
+    poolclass=NullPool,
     pool_pre_ping=True,
     connect_args=connect_args,
 )
 
 
 AsyncSessionLambda = async_sessionmaker(
-    poolclass=NullPool,
     autocommit=False,
     autoflush=False,
     expire_on_commit=False,
