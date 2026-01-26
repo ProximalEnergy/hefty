@@ -148,32 +148,31 @@ async def utility_expected(
             devices_pv_pcs_modules_df["device_id"].astype(int).tolist()
         )
 
-        tags_pv_pcs_module_voltage = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_pv_pcs_module_voltage = await core.crud.project.tags.get_project_tags_v2(
             device_ids=device_ids_pv_pcs_modules,
             sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
         ## Kind of a hacky workaround:
         ## If there are no tags for PV PCS Module Voltage,
         ## try using PV PCS DC Voltage instead.
-        if len(tags_pv_pcs_module_voltage) == 0:
-            tags_pv_pcs_module_voltage = core.crud.project.tags.get_project_tags(
-                project_db,
-                device_ids=[int(device_pv_pcs["device_id"])],
-                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
-            ).models()
+        if tags_pv_pcs_module_voltage.empty:
+            tags_pv_pcs_module_voltage = (
+                await core.crud.project.tags.get_project_tags_v2(
+                    device_ids=[int(device_pv_pcs["device_id"])],
+                    sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
+                ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+            )
 
-        tags_pv_dc_combiner_current = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_pv_dc_combiner_current = await core.crud.project.tags.get_project_tags_v2(
             device_ids=[device_id],
             sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags_pv_pcs_module_voltage],
+            filter_values=tags_pv_pcs_module_voltage["tag_id"].astype(int).tolist(),
             query_start=start,
             query_end=end,
             project_db=project_db,
@@ -189,7 +188,7 @@ async def utility_expected(
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags_pv_dc_combiner_current],
+            filter_values=tags_pv_dc_combiner_current["tag_id"].astype(int).tolist(),
             query_start=start,
             query_end=end,
             project_db=project_db,
@@ -210,16 +209,15 @@ async def utility_expected(
 
     # For non-combiner devices, can pull power directly
     else:
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags = await core.crud.project.tags.get_project_tags_v2(
             device_ids=[device_id],
             sensor_type_ids=sensor_type_ids,
-        ).models()
+        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags],
+            filter_values=tags["tag_id"].astype(int).tolist(),
             query_start=start,
             query_end=end,
             project_db=project_db,
