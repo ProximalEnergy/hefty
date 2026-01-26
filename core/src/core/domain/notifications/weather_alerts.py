@@ -1,13 +1,11 @@
 """Weather alert notification system for NWS forecast polygons."""
 
 import logging
-import os
 import traceback
 from collections.abc import Sequence
-from typing import Literal, TypedDict, cast
+from typing import cast
 
 from geoalchemy2.shape import to_shape
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from shapely.geometry import Point as ShapelyPoint
 from shapely.geometry import Polygon
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,51 +40,8 @@ SEVERITY_THRESHOLDS = {
     enumerations.NotificationSeverity.CRITICAL: 100.0,
 }
 
-# Setup Jinja2 environment for email templates
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
-jinja_env = Environment(
-    loader=FileSystemLoader(TEMPLATE_DIR),
-    autoescape=select_autoescape(["html", "xml"]),
-)
-
 # Valid weather types (used for validation)
 VALID_WEATHER_TYPES = {"hail", "tornado", "wind", "fire"}
-
-WeatherType = Literal["hail", "tornado", "wind", "fire"]
-
-
-class PolygonsRetrievedSummary(TypedDict):
-    hail: int
-    tornado: int
-    wind: int
-    fire: int
-
-
-class WeatherAlertsSummary(TypedDict):
-    projects_checked: int
-    notifications_created: int
-    emails_sent: int
-    in_app_notifications: int
-    polygons_retrieved: PolygonsRetrievedSummary
-    errors: list[str]
-
-
-# Fire alert codes
-FIRE_CODE_EXTREME = 10
-FIRE_CODE_CRITICAL = 8
-FIRE_CODE_ELEVATED = 5
-
-FIRE_CODE_SEVERITY_MAP = {
-    FIRE_CODE_EXTREME: enumerations.NotificationSeverity.CRITICAL,
-    FIRE_CODE_CRITICAL: enumerations.NotificationSeverity.WARNING,
-    FIRE_CODE_ELEVATED: enumerations.NotificationSeverity.INFO,
-}
-
-FIRE_CODE_DISPLAY_NAME_MAP = {
-    FIRE_CODE_EXTREME: "Extreme",
-    FIRE_CODE_CRITICAL: "Critical",
-    FIRE_CODE_ELEVATED: "Elevated",
-}
 
 
 def probability_to_severity(*, probability: float) -> enumerations.NotificationSeverity:
@@ -115,7 +70,15 @@ def fire_code_to_severity(*, code: int) -> enumerations.NotificationSeverity:
     Returns:
         Notification severity level.
     """
-    return FIRE_CODE_SEVERITY_MAP.get(code, enumerations.NotificationSeverity.INFO)
+    if code == 10:  # Extreme
+        return enumerations.NotificationSeverity.CRITICAL
+    elif code == 8:  # Critical
+        return enumerations.NotificationSeverity.WARNING
+    elif code == 5:  # Elevated
+        return enumerations.NotificationSeverity.INFO
+    else:
+        # Default to INFO for unknown codes
+        return enumerations.NotificationSeverity.INFO
 
 
 def fire_code_to_display_name(*, code: int) -> str:
@@ -127,10 +90,17 @@ def fire_code_to_display_name(*, code: int) -> str:
     Returns:
         Display name for the fire alert level.
     """
-    return FIRE_CODE_DISPLAY_NAME_MAP.get(code, f"Code {code}")
+    if code == 10:
+        return "Extreme"
+    elif code == 8:
+        return "Critical"
+    elif code == 5:
+        return "Elevated"
+    else:
+        return f"Code {code}"
 
 
-async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary:
+async def check_weather_alerts(*, api_prod: bool = True) -> dict:
     """Check NWS polygons and create notifications for affected projects.
 
     Args:
@@ -140,7 +110,7 @@ async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary
         Dictionary with summary of notifications created.
     """
     logger.info("Starting weather alert check function")
-    summary: WeatherAlertsSummary = {
+    summary = {
         "projects_checked": 0,
         "notifications_created": 0,
         "emails_sent": 0,
@@ -174,8 +144,8 @@ async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary
             nws_provider = NWSProvider()
 
             # Check each weather type
-            # Note: fire alerts return (polygon, category, day) while others return
-            # (polygon, probability, day)
+            # Note: fire alerts return (polygon, category, day) while others
+            # return (polygon, probability, day)
             weather_types = [
                 (
                     "hail",
@@ -193,20 +163,17 @@ async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary
 
             for weather_type, get_polygons_func, is_fire_alert in weather_types:
                 try:
-                    polygons_raw = get_polygons_func()
-                    polygons = cast(list, polygons_raw)
-                    summary["polygons_retrieved"][cast(WeatherType, weather_type)] = (
-                        len(polygons)
-                    )
+                    polygons = get_polygons_func()  # type: ignore[assignment]
+                    summary["polygons_retrieved"][weather_type] = len(polygons)  # type: ignore[index,arg-type]
                     logger.info(
-                        f"Retrieved {len(polygons)} {weather_type} polygons from NWS"
+                        f"Retrieved {len(polygons)} {weather_type} polygons from NWS"  # type: ignore[arg-type]
                     )
 
                     # Debug: Log polygon details for fire alerts
                     if is_fire_alert and polygons:
                         logger.info("Fire polygons details:")
                         for i, (polygon, value, day) in enumerate(
-                            polygons[:3]
+                            polygons[:3]  # type: ignore[index]
                         ):  # Log first 3 polygons
                             bounds = (
                                 polygon.bounds
@@ -214,8 +181,8 @@ async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary
                                 else "no bounds"
                             )
                             logger.info(
-                                f"  Polygon {i + 1}: code={value}, day={day}, "
-                                f"bounds={bounds}"
+                                f"  Polygon {i + 1}: code={value}, "
+                                f"day={day}, bounds={bounds}"
                             )
 
                     # Check each project against polygons
@@ -225,11 +192,10 @@ async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary
                                 db=db,
                                 project=project,
                                 weather_type=weather_type,
-                                polygons=polygons,
+                                polygons=polygons,  # type: ignore[arg-type]
                                 is_fire_alert=is_fire_alert,
                                 api_prod=api_prod,
-                                summary=summary,
-                                nws_provider=nws_provider,
+                                summary=summary,  # type: ignore[arg-type]
                             )
                         except Exception as e:
                             error_msg = (
@@ -237,17 +203,17 @@ async def check_weather_alerts(*, api_prod: bool = True) -> WeatherAlertsSummary
                                 f"for {weather_type}: {str(e)}"
                             )
                             logger.error(error_msg)
-                            summary["errors"].append(error_msg)
+                            summary["errors"].append(error_msg)  # type: ignore[attr-defined]  # type: ignore[attr-defined]  # type: ignore[attr-defined]
 
                 except Exception as e:
                     error_msg = f"Error fetching {weather_type} polygons: {str(e)}"
                     logger.error(error_msg)
-                    summary["errors"].append(error_msg)
+                    summary["errors"].append(error_msg)  # type: ignore[attr-defined]  # type: ignore[attr-defined]
 
         except Exception as e:
             error_msg = f"Error in check_weather_alerts: {str(e)}"
             logger.error(error_msg)
-            summary["errors"].append(error_msg)
+            summary["errors"].append(error_msg)  # type: ignore[attr-defined]
 
     # Ensure notification states exist for all created notifications
     # This is a safety net in case async errors prevented state creation
@@ -271,8 +237,7 @@ async def _check_project_against_polygons(
     polygons: list[tuple[Polygon, float | int, str]],
     is_fire_alert: bool,
     api_prod: bool,
-    summary: WeatherAlertsSummary,
-    nws_provider: NWSProvider,
+    summary: dict,
 ) -> None:
     """Check if a project is within any polygons and create notifications if needed.
 
@@ -280,13 +245,12 @@ async def _check_project_against_polygons(
         db: Database session.
         project: Project model.
         weather_type: Type of weather (tornado, wind, fire, hail).
-        polygons: List of tuples (polygon, value, day) where value is probability
-            or severity code.
-        is_fire_alert: Whether this is a fire alert (uses severity codes instead
-            of probabilities).
+        polygons: List of tuples (polygon, value, day) where value is
+            probability or severity code.
+        is_fire_alert: Whether this is a fire alert (uses severity codes
+            instead of probabilities).
         api_prod: Whether running in production.
         summary: Summary dictionary to update.
-        nws_provider: NWS provider instance.
     """
     # Extract project coordinates from point
     if not project.point:
@@ -314,6 +278,7 @@ async def _check_project_against_polygons(
     matching_value: float | int | None = (
         None  # Will be probability (float) or severity code (int)
     )
+    nws_provider = NWSProvider()
 
     for polygon, value, day in polygons:
         if nws_provider.point_in_polygon(point=project_point, polygon=polygon):
@@ -404,8 +369,7 @@ async def _check_project_against_polygons(
             logger.info(
                 f"Severity did not increase for project {project.project_id} "
                 f"(current: {current_severity_numeric} <= "
-                f"recent: {recent_severity_numeric}), "
-                f"skipping notification"
+                f"recent: {recent_severity_numeric}), skipping notification"
             )
             return
     else:
@@ -448,8 +412,9 @@ async def _check_project_against_polygons(
     notification = None
     if should_create_notification:
         logger.info(
-            f"Creating {weather_type} notification for project {project.project_id} "
-            f"(severity: {severity.value}) - {len(users_to_notify_in_app)} in-app, "
+            f"Creating {weather_type} notification for project "
+            f"{project.project_id} (severity: {severity.value}) - "
+            f"{len(users_to_notify_in_app)} in-app, "
             f"{len(users_to_notify_email)} email"
         )
         notification = await create_notification(
@@ -482,12 +447,12 @@ async def _check_project_against_polygons(
                 summary["in_app_notifications"] += 1
             except Exception as e:
                 logger.error(
-                    f"Exception during in-app notification state creation for user "
-                    f"{user_id}: {str(e)}"
+                    f"Exception during in-app notification state creation "
+                    f"for user {user_id}: {str(e)}"
                 )
                 summary["errors"].append(
-                    f"Exception creating in-app notification state for user {user_id}: "
-                    f"{str(e)}"
+                    f"Exception creating in-app notification state "
+                    f"for user {user_id}: {str(e)}"
                 )
 
         # Send email notifications to all qualifying users
@@ -532,8 +497,8 @@ async def _send_weather_alert_email_to_user(
     value: float | str,
     severity: enumerations.NotificationSeverity,
     is_fire_alert: bool,
-    api_prod: bool,
-    summary: WeatherAlertsSummary,
+    api_prod: bool,  # noqa: ARG001
+    summary: dict,
 ) -> None:
     """Send email notification to a specific user.
 
@@ -549,7 +514,7 @@ async def _send_weather_alert_email_to_user(
         api_prod: Whether running in production.
         summary: Summary dictionary to update.
     """
-    logger.info(f"Getting email for user {user_id} (api_prod={api_prod})")
+    logger.info(f"Getting email for user {user_id}")
     user_email = await get_user_email_from_clerk(user_id=user_id)
     if not user_email:
         logger.warning(
@@ -591,25 +556,48 @@ async def _send_weather_alert_email_to_user(
     else:
         value_str = f"{float(value):.1f}%"
 
-    # Build email content before calling email function to avoid any async/db issues
+    # Build email content before calling email function to avoid
+    # any async/db issues. Use .format() instead of f-strings to ensure
+    # all values are evaluated as plain types
     try:
         weather_type_display = str(weather_type.capitalize())
         label_text = "Category" if is_fire_alert else "Probability"
         subject = f"Weather Alert: {weather_type_display} Warning for {project_name}"
         project_url = f"https://app.proximal.energy/projects/{project_id_str}"
+        html_body = f"""<html>
+<body>
+    <p>Hi {user_name},</p>
 
-        # Render HTML body using Jinja2 template
-        template = jinja_env.get_template("weather_alert.html")
-        html_body = template.render(
-            user_name=user_name,
-            weather_type_display=weather_type_display,
-            severity_color=severity_color,
-            project_name=project_name,
-            label_text=label_text,
-            value_str=value_str,
-            severity_value=severity_value,
-            project_url=project_url,
-        )
+    <p>We detected a <strong>{weather_type_display}</strong> forecast that may
+    affect your project:</p>
+
+    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;
+    margin: 20px 0; border-left: 4px solid {severity_color};">
+        <p style="margin: 0; font-size: 16px;"><strong>Project:</strong>
+        {project_name}</p>
+        <p style="margin: 0; font-size: 16px;"><strong>Weather Type:</strong>
+        {weather_type_display}</p>
+        <p style="margin: 0; font-size: 16px;"><strong>{label_text}:</strong>
+        {value_str}</p>
+        <p style="margin: 0; font-size: 16px;"><strong>Severity:</strong>
+        <span style="color: {severity_color}; font-weight: bold;">
+        {severity_value}</span></p>
+    </div>
+
+    <p>
+        <a href="{project_url}" style="background-color: #21B8F1; color: white;
+        padding: 10px 20px; text-decoration: none; border-radius: 5px;
+        display: inline-block;">View Project</a>
+    </p>
+
+    <p style="color: #666; font-size: 12px; margin-top: 30px;">
+        You can manage your weather alert preferences in your
+        <a href="https://app.proximal.energy/application-settings"
+        style="color: #21B8F1; text-decoration: underline;">
+        Application Settings</a>.
+    </p>
+</body>
+</html>"""
 
         email_kwargs = {
             "FromEmailAddress": "alerts@proximal.energy",
@@ -638,7 +626,7 @@ async def _send_weather_alert_email_to_user(
             recipient_email=user_email,
             notification_id=notification_id,
             email_kwargs=email_kwargs,
-            summary=cast(dict, summary),
+            summary=summary,
         )
         logger.info(f"send_notification_email completed successfully for {user_email}")
     except Exception as e:

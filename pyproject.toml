@@ -152,6 +152,7 @@ exclude = [
     "^core/.*",           # Exclude installed package in api
     "^app\\.crud\\.py$",
     "^app\\.utils\\.py$",
+    ".*cdk\\.out.*",      # Exclude CDK output directory
 ]
 
 [[tool.mypy.overrides]]
@@ -169,6 +170,11 @@ module = [
     "jwt",
     "google.*",
     "googleapiclient.*",
+    "aws_cdk.*",
+    "constructs.*",
+    "boto3.*",
+    "core.*",
+    "stacks.*",
 ]
 ignore_missing_imports = true
 
