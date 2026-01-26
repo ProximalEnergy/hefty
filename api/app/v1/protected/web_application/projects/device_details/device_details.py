@@ -67,11 +67,11 @@ async def get_horizontal_bess(
     if bess_sensor_type_id is not None:
         sensor_type_ids.append(bess_sensor_type_id)
 
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=sensor_type_ids,
         deep=True,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     category_mapping: dict[int, str] = {
         SensorTypeEnum.BESS_PCS_AC_POWER: "pcs",
@@ -82,16 +82,20 @@ async def get_horizontal_bess(
         SensorTypeEnum.BESS_STRING_SOC_PERCENT: "battery",
     }
 
-    tag_id_to_device_name_long = {t.tag_id: t.device.name_long for t in tags}
-    tag_id_to_category = {
-        t.tag_id: category_mapping.get(t.sensor_type_id or -1) for t in tags
-    }
-    tag_id_to_device_id = {t.tag_id: t.device_id for t in tags}
+    tag_ids = tags["tag_id"].astype(int)
+    tag_sensor_type_ids = tags["sensor_type_id"].fillna(-1).astype(int)
+    tag_id_to_device_name_long = dict(
+        zip(tag_ids, tags["device_name_long"], strict=True)
+    )
+    tag_id_to_category = dict(
+        zip(tag_ids, tag_sensor_type_ids.map(category_mapping), strict=True)
+    )
+    tag_id_to_device_id = dict(zip(tag_ids, tags["device_id"].astype(int), strict=True))
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tag_ids.tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -179,11 +183,11 @@ async def get_horizontal_pv(
         SensorTypeEnum.PV_PCS_AC_POWER,
     ]
 
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=sensor_type_ids,
         deep=True,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     category_mapping: dict[int, str] = {
         SensorTypeEnum.METER_ACTIVE_POWER: "meter_power",
@@ -191,16 +195,20 @@ async def get_horizontal_pv(
         SensorTypeEnum.PV_PCS_AC_POWER: "pcs",
     }
 
-    tag_id_to_device_name_long = {t.tag_id: t.device.name_long for t in tags}
-    tag_id_to_category = {
-        t.tag_id: category_mapping.get(t.sensor_type_id or -1) for t in tags
-    }
-    tag_id_to_device_id = {t.tag_id: t.device_id for t in tags}
+    tag_ids = tags["tag_id"].astype(int)
+    tag_sensor_type_ids = tags["sensor_type_id"].fillna(-1).astype(int)
+    tag_id_to_device_name_long = dict(
+        zip(tag_ids, tags["device_name_long"], strict=True)
+    )
+    tag_id_to_category = dict(
+        zip(tag_ids, tag_sensor_type_ids.map(category_mapping), strict=True)
+    )
+    tag_id_to_device_id = dict(zip(tag_ids, tags["device_id"].astype(int), strict=True))
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tag_ids.tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -264,25 +272,33 @@ async def get_single_by_device_id(
         project: TODO: describe.
         project_db: TODO: describe.
     """
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags = await core.crud.project.tags.get_project_tags_v2(
         device_ids=[device_id],
         deep=True,
-    ).models()
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     # At the time of writing, the tags.sensor_type_id column is nullable.
     # This means there could be some tags that have a null sensor_type_id and
     # some tags that have a sensor_type_id of 0 (ghost). We want to remove
     # both.
-    tags = [t for t in tags if t.sensor_type_id not in [0, None]]
+    tags = tags[tags["sensor_type_id"].notna()]
+    tags = tags[tags["sensor_type_id"] != 0]
 
-    {t.tag_id: t.sensor_type.name_long for t in tags}
-    tag_id_to_name_scada = {t.tag_id: t.name_scada for t in tags}
-    tag_id_to_sensor_type_unit = {t.tag_id: t.sensor_type.unit for t in tags}
+    {
+        tag_id: name
+        for tag_id, name in zip(
+            tags["tag_id"], tags["sensor_type_name_long"], strict=True
+        )
+    }
+    tag_id_to_name_scada = dict(zip(tags["tag_id"], tags["name_scada"], strict=True))
+    tag_id_to_sensor_type_unit = dict(
+        zip(tags["tag_id"], tags["sensor_type_unit"], strict=True)
+    )
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags["tag_id"].astype(int).tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -404,7 +420,9 @@ async def get_vertical_controller(
     # (At the time of writing, we are manually parsing the returned db model
     # using Pydantic)
     try:
-        spec_used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore[attr-defined]
+        spec_used_sensor_type_ids = (
+            project.spec.used_sensor_type_ids  # type: ignore[attr-defined]
+        )
         if spec_used_sensor_type_ids is not None:
             # If we do not have PV PCS Module Power tags, remove the PV PCS
             # Module device type
@@ -502,21 +520,23 @@ async def get_vertical(
     }
 
     # Get the tags associated with the device IDs and sensor type IDs
-    tags: list[models.Tag] = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags = await core.crud.project.tags.get_project_tags_v2(
         device_ids=device_ids,
         sensor_type_ids=list(SENSOR_TYPE_IDS_TO_LABEL.keys()),
         deep=True,
-    ).models()
-    tag_id_to_device_name_long: dict[int, str] = {
-        t.tag_id: t.device.name_long for t in tags
-    }
-    tag_id_to_device_id: dict[int, int] = {t.tag_id: t.device_id for t in tags}
-    tag_id_to_sensor_type_id: dict[int, int] = {
-        t.tag_id: t.sensor_type_id or 0 for t in tags
-    }
+    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    tag_id_to_device_name_long: dict[int, str] = dict(
+        zip(tags["tag_id"], tags["device_name_long"], strict=True)
+    )
+    tag_id_to_device_id: dict[int, int] = dict(
+        zip(tags["tag_id"], tags["device_id"].astype(int), strict=True)
+    )
+    tag_id_to_sensor_type_id: dict[int, int] = dict(
+        zip(tags["tag_id"], tags["sensor_type_id"].fillna(0).astype(int), strict=True)
+    )
 
-    if len(tags) == 0:
+    if tags.empty:
         raise HTTPException(
             status_code=404,
             detail=(
@@ -529,7 +549,7 @@ async def get_vertical(
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_values=tags["tag_id"].astype(int).tolist(),
         query_start=start,
         query_end=end,
         project_db=project_db,
