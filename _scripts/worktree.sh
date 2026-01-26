@@ -21,6 +21,7 @@ NEW_WORKTREE="$PARENT_DIR/$FOLDER_NAME"
 # FILES TO COPY (edit this list as needed)
 # =============================================================================
 FILES_TO_COPY=(
+    ".vscode/launch.json"
     "api/.env"
     "core/.env"
     "web-app/.env"

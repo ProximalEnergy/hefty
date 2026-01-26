@@ -27,6 +27,13 @@ from core.enumerations import (
 )
 from core.model_list import ModelList
 
+try:
+    from fastapi import HTTPException
+
+    FASTAPI_INSTALLED = True
+except ImportError:
+    FASTAPI_INSTALLED = False
+
 warnings.filterwarnings(
     "ignore", message="Did not recognize type 'ltree'", category=sa_exc.SAWarning
 )
@@ -67,6 +74,7 @@ class DataTimeseries:
     dangerous_pagination_override: bool = False
     ffill_limit: int | None = None
     ensure_full_range: bool = True
+    apply_scale_and_offset: bool = True
 
     # Internal fields (set during execution, not in constructor)
     _tag_ids: list[int] = field(default_factory=list)
@@ -98,6 +106,7 @@ class DataTimeseries:
         dangerous_pagination_override: bool = ...,
         ffill_limit: int | None = ...,
         ensure_full_range: bool = ...,
+        apply_scale_and_offset: bool = ...,
     ) -> None: ...
 
     @overload
@@ -118,6 +127,7 @@ class DataTimeseries:
         dangerous_pagination_override: bool = ...,
         ffill_limit: int | None = ...,
         ensure_full_range: bool = ...,
+        apply_scale_and_offset: bool = ...,
     ) -> None: ...
 
     @overload
@@ -138,6 +148,7 @@ class DataTimeseries:
         dangerous_pagination_override: bool = ...,
         ffill_limit: int | None = ...,
         ensure_full_range: bool = ...,
+        apply_scale_and_offset: bool = ...,
     ) -> None: ...
 
     def __init__(
@@ -157,6 +168,7 @@ class DataTimeseries:
         dangerous_pagination_override: bool = False,
         ffill_limit: int | None = None,
         ensure_full_range: bool = True,
+        apply_scale_and_offset: bool = True,
     ) -> None:
         # Initialize all fields from parameters
         # (dataclass fields with defaults are initialized automatically)
@@ -174,6 +186,7 @@ class DataTimeseries:
         self.dangerous_pagination_override = dangerous_pagination_override
         self.ffill_limit = ffill_limit
         self.ensure_full_range = ensure_full_range
+        self.apply_scale_and_offset = apply_scale_and_offset
         # Internal and public fields with defaults are already set by
         # dataclass field definitions
 
@@ -197,7 +210,29 @@ class DataTimeseries:
         # Result: Sets self._tag_ids (list of tag IDs) and self._tags_lut (lookup table)
         await self._load_tags()
 
-        # Step 4: Execute query based on database provider
+        # Step 4: Early return if no tag_ids are provided
+        if not hasattr(self, "_tag_ids") or (
+            hasattr(self, "_tag_ids") and len(self._tag_ids) == 0
+        ):
+            warnings.warn("No tag_ids found, returning empty DataFrame")
+            # Construct an empty DataFrame with just a "time" column of correct type
+            self.df = pl.DataFrame(
+                {
+                    "time": pl.Series(
+                        name="time",
+                        values=[],
+                        dtype=pl.Datetime(
+                            "us",
+                            time_zone=self._time_zone
+                            if hasattr(self, "_time_zone")
+                            else None,
+                        ),
+                    )
+                }
+            )
+            return self
+
+        # Step 5: Execute query based on database provider
         # Result: Populates self.df, self.page_limit_reached, and optionally
         if self._database_provider is None:
             raise ValueError("database_provider must be set")
@@ -207,9 +242,15 @@ class DataTimeseries:
             case ProjectDatabaseProvider.CLICKHOUSE:
                 await self._get_clickhouse()
 
-        # Step 5: Return self with all data populated
+        # Step 6: Return self with all data populated
         # Result: Instance ready for use with df, and page_limit_reached set
         return self
+
+    def raise_on_empty_df(self):
+        if not FASTAPI_INSTALLED:
+            raise RuntimeError("fastapi not installed")
+        elif self.df.is_empty():
+            raise HTTPException(status_code=400, detail="No data found")
 
     async def _get_timescale(self) -> None:
         """Get timeseries data from Timescale."""
@@ -370,13 +411,14 @@ class DataTimeseries:
         if self.ensure_full_range and len(df) > 0:
             # Step 4a: Create complete time range using pandas date_range
             # Result: DatetimeIndex with all timestamps at the specified frequency
-            interval_td = pd.Timedelta(self.freq.value)
+            interval_td = pd.Timedelta(self.freq.value).to_pytimedelta()
 
-            full_range = pd.date_range(
+            full_range = pl.datetime_range(
                 start=self.query_start,
                 end=self.query_end,
-                freq=interval_td,
-                inclusive="left",
+                interval=interval_td,
+                closed="left",
+                eager=True,
             )
 
             # Step 4b: Convert to Polars DataFrame and normalize time unit
@@ -910,17 +952,14 @@ class DataTimeseries:
                         "filter_method is TAG_POLARS"
                     )
 
-                if len(self.filter_values) == 0:
-                    raise ValueError("filter_values must have at least one row")
-
                 self._tag_ids = self.filter_values["tag_id"].to_list()
                 self._tags_lut = self.filter_values
                 return
 
         # Step 3: Validate that we have either tag_ids or sensor_type_ids
-        # Result: Raises error if neither are provided
+        # Result: Early return if neither are provided
         if not tag_ids and not sensor_type_ids:
-            raise ValueError("No tag_ids or sensor_type_ids provided")
+            return
 
         # Step 4: Query tags table if we need to resolve tag_ids or sensor_type_ids
         # Result: Polars DataFrame with metadata (tag_id, unit_scale, unit_offset, etc.)
@@ -936,9 +975,9 @@ class DataTimeseries:
         )
 
         # Step 5: Validate that we found tags
-        # Result: Raises error if no tags were found
+        # Result: Early return if no tags were found
         if len(tags) == 0:
-            raise ValueError("No tags found")
+            return
 
         # Step 6: Extract tag IDs and store lookup table
         # Result:
@@ -1229,28 +1268,44 @@ class DataTimeseries:
                 pl.col("tag_id").cast(pl.Int64)
             )
 
-            # Step 10c: Join with tags_lut, apply unit scaling/offset, pivot to wide
-            # format
-            # Formula: val_adj = (val * unit_scale) + unit_offset
-            numeric_wide = (
-                numeric_filtered.with_columns(pl.col("tag_id").cast(pl.Int64))
-                .join(tags_lut_lf, on="tag_id", how="left")
-                .with_columns(
-                    (
-                        pl.col("val").cast(pl.Float64, strict=False)
-                        * pl.col("unit_scale").fill_null(1.0)
-                        + pl.col("unit_offset").fill_null(0.0)
-                    ).alias("val_adj")
+            # Step 10c: Join with tags_lut, optionally apply unit scaling/offset,
+            # pivot to wide format
+            if self.apply_scale_and_offset:
+                # Formula: val_adj = (val * unit_scale) + unit_offset
+                numeric_wide = (
+                    numeric_filtered.with_columns(pl.col("tag_id").cast(pl.Int64))
+                    .join(tags_lut_lf, on="tag_id", how="left")
+                    .with_columns(
+                        (
+                            pl.col("val").cast(pl.Float64, strict=False)
+                            * pl.col("unit_scale").fill_null(1.0)
+                            + pl.col("unit_offset").fill_null(0.0)
+                        ).alias("val_adj")
+                    )
+                    .select(["time", "tag_id", "val_adj"])
+                    .collect(engine="streaming")
+                    .pivot(
+                        index="time",
+                        on="tag_id",
+                        values="val_adj",
+                        aggregate_function="first",
+                    )
                 )
-                .select(["time", "tag_id", "val_adj"])
-                .collect(engine="streaming")
-                .pivot(
-                    index="time",
-                    on="tag_id",
-                    values="val_adj",
-                    aggregate_function="first",
+            else:
+                # No scaling/offset - use raw values
+                numeric_wide = (
+                    numeric_filtered.with_columns(
+                        pl.col("val").cast(pl.Float64, strict=False).alias("val_adj")
+                    )
+                    .select(["time", "tag_id", "val_adj"])
+                    .collect(engine="streaming")
+                    .pivot(
+                        index="time",
+                        on="tag_id",
+                        values="val_adj",
+                        aggregate_function="first",
+                    )
                 )
-            )
         else:
             numeric_wide = None
 

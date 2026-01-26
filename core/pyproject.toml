@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.44"
+version = "0.3.45"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -69,3 +69,6 @@ known_first_party = ["core"]
 
 [tool.deptry.per_rule_ignores]
 DEP002 = ["asyncpg", "greenlet", "psycopg2-binary"]
+DEP004 = [
+    "fastapi", # optional dependency used by api callers
+]

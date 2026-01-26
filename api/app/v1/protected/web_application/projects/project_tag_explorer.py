@@ -3,6 +3,7 @@ from typing import Annotated, Any, cast
 
 import pandas as pd
 from core.crud.project import tags as crud_project_tags
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,7 +12,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 import app.interfaces
-from app import dependencies, utils
+from app import dependencies
 from app._crud.projects import tags as crud_tags
 from app.logger import logger
 from core import models
@@ -369,17 +370,20 @@ async def get_tag_pattern_samples(
         tag_samples = []
         for tag in sample_tags:
             try:
-                df = utils.data_df(
+                data_timeseries_instance = await DataTimeseries(
+                    project_name_short=project.name_short,
+                    filter_method=FilterMethod.TAG_IDS,
+                    filter_values=[tag.tag_id],
+                    query_start=start_date,
+                    query_end=end_date,
                     project_db=project_db,
-                    project=project,
-                    tags=[tag],
-                    start=start_date,
-                    end=end_date,
-                    interval="5min",
-                    agg="instantaneous",
-                    fillna_zero=False,
-                    unit_scaled=False,
-                )
+                    apply_scale_and_offset=False,
+                ).get()
+
+                df = data_timeseries_instance.df.to_pandas()
+                df = df.set_index("time")
+                df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+                df.columns = df.columns.astype(int)
 
                 # Process the DataFrame data
                 values = []
