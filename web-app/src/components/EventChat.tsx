@@ -13,6 +13,7 @@ import {
   useUpdateEventMessage,
   useUploadEventMessageImage,
 } from '@/api/v1/operational/event_messages'
+import { formatRelativeTime } from '@/utils/relativeTime'
 import { useUser } from '@clerk/clerk-react'
 import {
   Badge,
@@ -26,14 +27,12 @@ import {
 import { FileWithPath } from '@mantine/dropzone'
 import { IconChevronDown } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { MessageInput, MessageList, MuteToggle } from './event-chat'
 
 dayjs.extend(utc)
-dayjs.extend(relativeTime)
 
 interface EventChatProps {
   eventId: number
@@ -276,18 +275,11 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
   const formatTimestamp = (date: string): string => {
     const now = dayjs()
     const messageDate = dayjs.utc(date).local()
-    const diffInMinutes = now.diff(messageDate, 'minute')
     const diffInDays = now.diff(messageDate, 'day')
 
-    // Less than 1 hour ago: "X minutes ago"
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`
-    }
-
-    // Less than 24 hours ago: "X hours ago"
+    // Less than 24 hours ago: relative format
     if (diffInDays < 1) {
-      const hours = Math.floor(diffInMinutes / 60)
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`
+      return formatRelativeTime(messageDate.toDate()).relative
     }
 
     // Less than 3 days ago: "Day, Time" format (e.g., "Thursday, 4:56pm")

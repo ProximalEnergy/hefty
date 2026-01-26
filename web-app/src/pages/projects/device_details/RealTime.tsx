@@ -11,6 +11,7 @@ import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
+import { formatRelativeTime } from '@/utils/relativeTime'
 import {
   Button,
   Group,
@@ -58,28 +59,6 @@ const isDataStale = (timeString: string, stalenessLimitMs: number): boolean => {
   const dataTime = new Date(timeString).getTime()
   const currentTime = Date.now()
   return currentTime - dataTime > stalenessLimitMs
-}
-
-// Helper function to format relative time
-const formatRelativeTime = (timeString: string): string => {
-  const dataTime = new Date(timeString).getTime()
-  const currentTime = Date.now()
-  const diffMs = currentTime - dataTime
-
-  const seconds = Math.floor(diffMs / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  if (days > 0) {
-    return `${days} day${days > 1 ? 's' : ''} ago`
-  } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`
-  } else if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
-  } else {
-    return `${seconds} second${seconds > 1 ? 's' : ''} ago`
-  }
 }
 
 interface RealTimeProps {
@@ -370,7 +349,9 @@ const Page = ({
         customdata: (realTimeData?.device_ids ?? []).map((id, idx) => [
           id as Plotly.Datum,
           deviceTypeName as Plotly.Datum,
-          formatRelativeTime(times[idx]) as Plotly.Datum,
+          (times[idx]
+            ? formatRelativeTime(times[idx]).relative
+            : 'N/A') as Plotly.Datum,
           staleIndices[idx] ? 'Stale' : ('Fresh' as Plotly.Datum),
         ]),
         xgap: xvals.length < 20_000 ? 1 : 0.2,
@@ -423,7 +404,9 @@ const Page = ({
           customdata: (realTimeData?.device_ids ?? []).map((id, idx) => [
             id as Plotly.Datum,
             deviceTypeName as Plotly.Datum,
-            formatRelativeTime(times[idx]) as Plotly.Datum,
+            (times[idx]
+              ? formatRelativeTime(times[idx]).relative
+              : 'N/A') as Plotly.Datum,
             staleIndices[idx] ? 'Stale' : ('Fresh' as Plotly.Datum),
           ]),
           hoverlabel: { namelength: -1 },

@@ -1,6 +1,7 @@
 import { useGetDataLastUpdated } from '@/api/v1/operational/project/project_data_last_updated'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { formatRelativeTime } from '@/utils/relativeTime'
 import { Box, Indicator, Tooltip } from '@mantine/core'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
@@ -49,7 +50,7 @@ const DataStatus = ({
     dateTimes.sort((a, b) => b[1].diff(a[1]))
 
     const [recentKey, recentTime] = dateTimes[0]
-    const fromNow = recentTime.fromNow()
+    const fromNow = formatRelativeTime(recentTime.toDate()).relative
     const recentTimeFormatted = recentTime.format('YYYY-MM-DD HH:mm:ss')
 
     if (recentKey === 'time_error') {
