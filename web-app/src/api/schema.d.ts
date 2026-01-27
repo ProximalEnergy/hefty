@@ -1507,6 +1507,8 @@ export interface paths {
          *     Args:
          *         bucket_name (str): The name of the S3 bucket.
          *         path (Optional[str]): The path to the directory in S3.
+         *         project_prefix (Optional[str]): The name_short of the project to filter the
+         *             contents of the directory.
          *
          *     Returns:
          *         List[Contents]: A list of the contents of the directory as dictionaries.
@@ -6783,6 +6785,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/reports/eec-bess-monthly-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Eec Bess Monthly Report
+         * @description Generate a BESS monthly report.
+         *
+         *     Args:
+         *         project: The project for which to generate the report.
+         *         db: Database session.
+         *         project_db: Project database session.
+         *         project_db_sync: Synchronous project database session.
+         *         request: BESS monthly report request data including month, strategies,
+         *             and commentary.
+         *         tps_token: TPS API authentication token.
+         */
+        post: operations["post_eec_bess_monthly_report_v1_protected_web_application_projects__project_id__reports_eec_bess_monthly_report_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/system/{project_id}/meter-power-and-expected-power-v2": {
         parameters: {
             query?: never;
@@ -7137,6 +7168,49 @@ export interface components {
             unit_offset: number | null;
             /** Unit Scada */
             unit_scada: string | null;
+        };
+        /**
+         * BESSMonthlyReportRequest
+         * @description BESS monthly report generation request.
+         */
+        BESSMonthlyReportRequest: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Strategies */
+            strategies: components["schemas"]["BESSMonthlyReportStrategy"][];
+            /** Operational Commentary */
+            operational_commentary?: string | null;
+            /** Smart Bidder Metrics */
+            smart_bidder_metrics?: {
+                [key: string]: components["schemas"]["BESSMonthlySmartBidderMetric"];
+            } | null;
+        };
+        /**
+         * BESSMonthlyReportStrategy
+         * @description BESS monthly report strategy data.
+         */
+        BESSMonthlyReportStrategy: {
+            /** Name */
+            name: string;
+            /** Month Value */
+            month_value?: number | null;
+            /** Ytd Value */
+            ytd_value?: number | null;
+            /** Vs Perfect */
+            vs_perfect?: number | null;
+        };
+        /**
+         * BESSMonthlySmartBidderMetric
+         * @description SmartBidder metric values for the BESS monthly report.
+         */
+        BESSMonthlySmartBidderMetric: {
+            /** Actual */
+            actual?: number | null;
+            /** Expected */
+            expected?: number | null;
         };
         /**
          * BackfillRequest
@@ -13520,6 +13594,7 @@ export interface operations {
             query: {
                 bucket_name: string;
                 path?: string | null;
+                project_prefix?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21340,6 +21415,44 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_eec_bess_monthly_report_v1_protected_web_application_projects__project_id__reports_eec_bess_monthly_report_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BESSMonthlyReportRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

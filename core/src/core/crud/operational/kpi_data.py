@@ -191,3 +191,42 @@ def get_project_kpi_data_agg(
     )
 
     return DbQuery(query=query, is_scalar=True)
+
+
+def get_kpi_data(
+    *,
+    kpi_type_ids: list[int],
+    start: datetime.date,
+    end: datetime.date,
+    project_ids: list[UUID] = [],
+    include_device_data: bool = True,
+) -> DbQuery[models.OperationalKPIData, Literal[False]]:
+    """
+    Get KPI data for a given project and date range.
+
+    Args:
+        kpi_type_ids: List of KPI type IDs to query.
+        start: Start date.
+        end: End date.
+        project_ids: List of project IDs to query.
+        include_device_data: Whether to include device data.
+    """
+    columns = list(models.OperationalKPIData.__table__.columns)
+    if not include_device_data:
+        columns = [
+            (
+                sa.literal(None).label(column.name)
+                if column.name == "device_data_json"
+                else column
+            )
+            for column in columns
+        ]
+    query = select(*columns)
+    if project_ids:
+        query = query.where(models.OperationalKPIData.project_id.in_(project_ids))
+    if kpi_type_ids:
+        query = query.where(models.OperationalKPIData.kpi_type_id.in_(kpi_type_ids))
+    query = query.where(models.OperationalKPIData.date >= start)
+    query = query.where(models.OperationalKPIData.date < end)
+
+    return DbQuery(query=query)

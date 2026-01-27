@@ -3,7 +3,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any, Literal, cast
 
 import sqlalchemy as sa
-from sqlalchemy import func, or_
+from sqlalchemy import and_, func, literal, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session, joinedload
@@ -579,3 +579,59 @@ def get_homepage_summary(
         "total_daily_loss": total_daily_loss,
         "total_number_of_open_events": total_number_of_open_events,
     }
+
+
+def get_windowed_capacity_loss_kwh_async(
+    *,
+    start: datetime.datetime,
+    end: datetime.datetime,
+) -> DbQuery[Any, Literal[False]]:
+    """Calculate kWh loss for events that were open at any time within the window.
+
+    Args:
+        db: The database session to use for the query.
+        start: Start of the time window.
+        end: End of the time window.
+
+    Returns:
+        List of tuples containing
+        (event_id, device_id, device_type_id, capacity_ac,
+            capacity_loss_kwh, failure_mode_id)
+        for each event.
+    """
+    filtered_events = (
+        select(
+            models.Event.event_id.label("event_id"),
+            models.Event.device_id.label("device_id"),
+            models.Event.failure_mode_id.label("failure_mode_id"),
+            models.Event.time_start.label("time_start"),
+            func.coalesce(models.Event.time_end, func.now()).label("time_end_filled"),
+        )
+        .where(
+            and_(
+                models.Event.time_start <= end,
+                or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
+            )
+        )
+        .cte("filtered_events")
+    )
+    duration_hours = sa.cast(
+        func.extract(
+            "epoch", filtered_events.c.time_end_filled - filtered_events.c.time_start
+        )
+        / literal(3600.0),
+        sa.Float,
+    )
+    stmt = select(
+        filtered_events.c.event_id,
+        models.Device.device_id,
+        models.Device.device_type_id,
+        models.Device.capacity_ac.label("capacity_ac"),
+        (models.Device.capacity_ac * duration_hours).label("capacity_loss_kwh"),
+        filtered_events.c.failure_mode_id,
+    ).select_from(
+        filtered_events.join(
+            models.Device, models.Device.device_id == filtered_events.c.device_id
+        )
+    )
+    return DbQuery(query=stmt)

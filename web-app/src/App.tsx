@@ -137,6 +137,7 @@ import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPIHome from './pages/projects/kpis/ProjectKPIHome'
 import ProjectKPITemplate from './pages/projects/kpis/ProjectKPITemplate'
 import SparePartsPage from './pages/projects/maintenance/SpareParts'
+import BESSMonthlyReport from './pages/projects/reports/BESSMonthlyReport'
 import DCAmperageReport from './pages/projects/reports/DCAmperageReport'
 import DailyPerformanceReport from './pages/projects/reports/DailyPerformanceReport'
 import InverterAvailabilityReport from './pages/projects/reports/InverterAvailabilityReport'
@@ -456,6 +457,10 @@ const ClerkProviderWithRoutes = () => {
               <Route
                 path="reports/scada-telemetry-last-reported"
                 element={<SCADATelemetryLastReported />}
+              />
+              <Route
+                path="reports/eec-bess-monthly-report"
+                element={<BESSMonthlyReport />}
               />
 
               {/* Contracts */}

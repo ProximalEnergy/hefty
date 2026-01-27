@@ -5,6 +5,7 @@ description = "Main API for the Proximal Platform"
 readme = "README.md"
 requires-python = ">=3.12.8,<3.13"
 dependencies = [
+    "aiohttp>=3.13.3",
     "boto3 >=1.38,<2",
     "clerk-backend-api>=3.3.1,<4",
     "core",
@@ -34,12 +35,15 @@ dependencies = [
     "numpy~=2.3.3",
     "scipy~=1.16.2",
     "botocore~=1.41.2",
+    "plotly>=6.3.1",
     "pydantic~=2.12.0",
     "pytz~=2025.2",
     "greenlet~=3.2.4",
     "orjson~=3.11.3",
     "xlsxwriter~=3.2.9",
     "openpyxl>=3.1.5",
+    "reportlab>=4.4.6",
+    "kaleido>=1.2.0",
     "jinja2>=3.1.6",
 ]
 
@@ -99,5 +103,6 @@ DEP002 = [
     "orjson",     # optional dependency used by fastapi
     "xlsxwriter", # optional dependency used by pandas
     "openpyxl",   # optional dependency used by pandas in data_insert scripts
+    "kaleido",    # optional dependency used by plotly
     "jinja2",     # optional dependency used by pandas for DataFrame rendering
 ]

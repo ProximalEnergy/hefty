@@ -59,6 +59,7 @@ const REPORT_CONFIG: {
     [ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE]:
       'pcs-apparent-vs-voltage',
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: 'daily-performance',
+    [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: 'eec-bess-monthly-report',
     [ReportTypeEnum.SCADA_TELEMETRY_LAST_REPORTED]:
       'scada-telemetry-last-reported',
   },
@@ -79,6 +80,8 @@ const REPORT_CONFIG: {
       'This report provides a comprehensive daily performance overview, including project generation, performance ratio, PCS mechanical availability, and event tracking. It features a 30-day trailing energy analysis and DC combiner field health visualization.',
     [ReportTypeEnum.SCADA_TELEMETRY_LAST_REPORTED]:
       'This report shows when each tag last reported data and identifies tags that have never reported.',
+    [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]:
+      'This report provides a comprehensive monthly summary of BESS performance, comparing strategies to Perfect Foresight and detailing revenue breakdowns, SmartBidder metrics, SOC trends, availability, and major capacity loss events.',
   },
   selectable_date: {
     [ReportTypeEnum.DC_AMPERAGE]: true,
@@ -90,6 +93,7 @@ const REPORT_CONFIG: {
   selectable_date_range: {
     [ReportTypeEnum.MODULE_DEGRADATION]: true,
     [ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE]: true,
+    [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: true,
   },
   downloadable_excel: {
     [ReportTypeEnum.DC_AMPERAGE]: true,
@@ -103,6 +107,7 @@ const REPORT_CONFIG: {
   },
   downloadable_pdf: {
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: true,
+    [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: true,
   },
 }
 

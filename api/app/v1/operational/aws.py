@@ -50,6 +50,7 @@ def listdir(
     *,
     bucket_name: str,
     path: str | None = None,
+    project_prefix: str | None = None,
 ):
     """
     List the contents of a directory in S3.
@@ -57,6 +58,8 @@ def listdir(
     Args:
         bucket_name (str): The name of the S3 bucket.
         path (Optional[str]): The path to the directory in S3.
+        project_prefix (Optional[str]): The name_short of the project to filter the
+            contents of the directory.
 
     Returns:
         List[Contents]: A list of the contents of the directory as dictionaries.
@@ -67,4 +70,17 @@ def listdir(
         path = ""
     s3_client = boto3.client("s3", region_name="us-east-2")
     data = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=path)
-    return [file for file in data["Contents"] if not file["Key"].endswith("/")]
+    contents = data.get("Contents", []) or []
+    if project_prefix is None:
+        return [file for file in contents if not file["Key"].endswith("/")]
+
+    normalized_path = path.rstrip("/") if path else ""
+    project_filter_prefix = (
+        f"{normalized_path}/" if normalized_path else ""
+    ) + project_prefix
+    return [
+        file
+        for file in contents
+        if not file["Key"].endswith("/")
+        and file["Key"].startswith(project_filter_prefix)
+    ]

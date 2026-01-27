@@ -1,5 +1,19 @@
+import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
-import { UseQueryOptions } from '@tanstack/react-query'
+import { baseURL } from '@/urlConfig'
+import { useAuth } from '@clerk/clerk-react'
+import {
+  UseQueryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
+import axios from 'axios'
+
+export type SmartBidderMetricPayload =
+  components['schemas']['BESSMonthlySmartBidderMetric']
+
+export type GenerateBESSMonthlyReportPayload =
+  components['schemas']['BESSMonthlyReportRequest']
 
 interface PCSApparentVsVoltage {
   device_id: number
@@ -35,5 +49,36 @@ export const useGetPCSApparentVsVoltage = ({
     pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+export const useGenerateEECBESSMonthlyReport = () => {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      data,
+    }: {
+      projectId: string
+      data: GenerateBESSMonthlyReportPayload
+    }) => {
+      const token = await getToken({ template: 'default' })
+      await axios({
+        method: 'post',
+        url: `${baseURL}/v1/protected/web-application/projects/${projectId}/reports/eec-bess-monthly-report`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data,
+      })
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the reports list query to refetch after generation
+      queryClient.invalidateQueries({
+        queryKey: ['getBESSMonthlyReports', { projectId: variables.projectId }],
+      })
+    },
   })
 }
