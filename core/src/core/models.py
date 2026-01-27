@@ -1407,6 +1407,7 @@ class ReportType(Base):
     name_short: Mapped[str] = mapped_column(unique=True)
     name_long: Mapped[str] = mapped_column(unique=True)
     doc_url: Mapped[str | None]
+    description: Mapped[str | None]
 
     __table_args__ = {"schema": "operational"}
 
