@@ -12,12 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app.dependencies import get_project_api, get_project_db
+from app.dependencies import check_project_access_async, get_project_api, get_project_db
 from core import models
 
 DESCRIPTION_404 = "Status not found"
 
-router = APIRouter(prefix="/projects/{project_id}/status", tags=["project_status"])
+router = APIRouter(
+    prefix="/projects/{project_id}/status",
+    tags=["project_status"],
+    dependencies=[Depends(check_project_access_async)],
+)
 
 # Cache translation table outside the endpoint
 delete_chars = string.punctuation + string.whitespace

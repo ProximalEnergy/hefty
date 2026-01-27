@@ -9,13 +9,15 @@ from sqlalchemy.orm import Session
 
 import core
 from app import utils
-from app.dependencies import get_project_api, get_project_db
+from app.dependencies import check_project_access_async, get_project_api, get_project_db
 from core import models
 
 DESCRIPTION_404 = "Tag not found"
 
 router = APIRouter(
-    prefix="/projects/{project_id}/pv-expected", tags=["project_pv_expected"]
+    prefix="/projects/{project_id}/pv-expected",
+    tags=["project_pv_expected"],
+    dependencies=[Depends(check_project_access_async)],
 )
 
 

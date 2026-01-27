@@ -18,6 +18,7 @@ router = APIRouter(
     prefix="/system/{project_id}",
     tags=["system"],
     include_in_schema=utils.get_include_in_schema(),
+    dependencies=[Depends(dependencies.check_project_access_async)],
 )
 
 

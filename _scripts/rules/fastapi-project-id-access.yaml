@@ -17,6 +17,17 @@ rules:
     languages: [python]
     severity: ERROR
     patterns:
-      - pattern-regex: >-
-          APIRouter\((?![^)]*check_project_access_async)
-          [^)]*prefix=.*\{project_id\}[^)]*\)
+      - pattern: |
+          APIRouter(..., prefix=$PREFIX, ...)
+      - metavariable-regex:
+          metavariable: $PREFIX
+          regex: '.*\{project_id\}.*'
+      - pattern-not: |
+          APIRouter(
+              ...,
+              dependencies=[..., Depends($ACCESS), ...],
+              ...
+          )
+      - metavariable-regex:
+          metavariable: $ACCESS
+          regex: '(^|.*\.)check_project_access_async$'

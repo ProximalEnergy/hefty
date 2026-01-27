@@ -30,6 +30,7 @@ from app._crud.operational.documents import (
 from app._crud.operational.documents import (
     get_project_documents as crud_get_project_documents,
 )
+from app.dependencies import check_project_access_async
 from core import models
 
 BUCKET_NAME = "proximal-am-documents"
@@ -39,6 +40,7 @@ REGION_NAME = "us-east-2"
 router = APIRouter(
     prefix="/projects/{project_id}/documents",
     tags=["project_documents"],
+    dependencies=[Depends(check_project_access_async)],
 )
 
 logger = logging.getLogger(__name__)

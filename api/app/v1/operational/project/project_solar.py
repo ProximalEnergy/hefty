@@ -7,10 +7,14 @@ from fastapi.responses import ORJSONResponse
 from pvlib import location
 from pydantic import BaseModel
 
-from app.dependencies import get_project_api
+from app.dependencies import check_project_access_async, get_project_api
 from core import models
 
-router = APIRouter(prefix="/projects/{project_id}/solar", tags=["project_solar"])
+router = APIRouter(
+    prefix="/projects/{project_id}/solar",
+    tags=["project_solar"],
+    dependencies=[Depends(check_project_access_async)],
+)
 
 
 class SolarPositionResponse(BaseModel):

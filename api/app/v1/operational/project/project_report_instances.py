@@ -11,6 +11,7 @@ from app._crud.operational.report_instances import (
     bulk_upsert_report_instances,
 )
 from app.dependencies import (
+    check_project_access_async,
     get_async_db,
     get_is_superadmin_async,
     requires_superadmin_async,
@@ -19,6 +20,7 @@ from app.dependencies import (
 router = APIRouter(
     prefix="/projects/{project_id}/report-instances",
     tags=["project_report_instances"],
+    dependencies=[Depends(check_project_access_async)],
 )
 
 

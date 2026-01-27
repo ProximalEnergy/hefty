@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app import utils
+from app.dependencies import check_project_access_async
 from app.v1.protected.web_application.projects import project_tag_explorer
 from app.v1.protected.web_application.projects.battery_settlement import (
     battery_settlement,
@@ -21,6 +22,7 @@ router = APIRouter(
     prefix="/projects/{project_id}",
     tags=["projects"],
     include_in_schema=utils.get_include_in_schema(),
+    dependencies=[Depends(check_project_access_async)],
 )
 
 router.include_router(equipment_analysis.router)

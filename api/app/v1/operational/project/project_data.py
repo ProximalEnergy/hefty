@@ -15,11 +15,15 @@ from sqlalchemy.orm import Session
 import app.utils as utils
 import core
 from app import interfaces
-from app.dependencies import get_project_api, get_project_db
+from app.dependencies import check_project_access_async, get_project_api, get_project_db
 from app.utils import data_df
 from core import models
 
-router = APIRouter(prefix="/projects/{project_id}", tags=["project_data"])
+router = APIRouter(
+    prefix="/projects/{project_id}",
+    tags=["project_data"],
+    dependencies=[Depends(check_project_access_async)],
+)
 
 
 async def get_project_dataframe(

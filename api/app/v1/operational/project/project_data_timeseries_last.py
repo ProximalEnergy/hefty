@@ -2,19 +2,21 @@ from typing import Annotated
 
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 
 import core
 from app import utils
-from app.dependencies import get_project_db
+from app.dependencies import check_project_access_async, get_project_db
 
 router = APIRouter(
     prefix="/projects/{project_id}/data-timeseries-last",
     tags=["project_data_timeseries_last"],
+    dependencies=[Depends(check_project_access_async)],
 )
 
 
-@router.get("")
+@router.get("", response_class=ORJSONResponse)
 async def get_data_timeseries_last(
     project_db: Annotated[Session, Depends(get_project_db)],
     tag_ids: Annotated[list[int] | None, Query()] = None,

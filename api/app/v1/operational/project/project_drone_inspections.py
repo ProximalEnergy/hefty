@@ -19,7 +19,11 @@ from app._crud.projects.drone_inspections import (
     get_drone_inspections,
 )
 from app._dependencies.authorization import require_jwt_or_api_superadmin
-from app.dependencies import get_async_db, get_project_db_async
+from app.dependencies import (
+    check_project_access_async,
+    get_async_db,
+    get_project_db_async,
+)
 from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
     DroneAnomaly,
@@ -33,7 +37,10 @@ from app.logger import logger
 router = APIRouter(
     prefix="/projects/{project_id}/drone-inspections",
     tags=["project_drone_inspections"],
-    dependencies=[Depends(require_jwt_or_api_superadmin)],
+    dependencies=[
+        Depends(require_jwt_or_api_superadmin),
+        Depends(check_project_access_async),
+    ],
 )
 
 
