@@ -995,7 +995,7 @@ const Page: React.FC = () => {
   // Don't block on metStationsQuery - use empty array if still loading
   // This allows other content to load while we wait for met stations
   const poaTimeseriesQuery = useGetTimeSeries({
-    pathParams: { projectId: projectId || '' },
+    pathParams: { project_id: projectId || '' },
     queryParams: {
       device_ids: metStationDeviceIds,
       sensor_type_ids: [SensorTypeEnum.MET_STATION_POA],

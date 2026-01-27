@@ -16,7 +16,6 @@ import app.utils as utils
 import core
 from app import interfaces
 from app.dependencies import check_project_access_async, get_project_api, get_project_db
-from app.utils import data_df
 from core import models
 
 router = APIRouter(
@@ -36,12 +35,12 @@ async def get_project_dataframe(
     project_db: Session,
     project: models.Project,
     device_ids: list[int] = [],
-    fillna_zero: bool = True,
-    get_last: bool = False,
-    start_offset: str = "5min",
-    last_offset: str = "1h",
-    ffill_limit: int | None = None,
-    interval: str | None = None,
+    fillna_zero: bool = True,  # noqa: ARG001
+    get_last: bool = False,  # noqa: ARG001
+    start_offset: str = "5min",  # noqa: ARG001
+    last_offset: str = "1h",  # noqa: ARG001
+    ffill_limit: int | None = None,  # noqa: ARG001
+    interval: str = "5min",
     include_ghost_tags: bool = False,
 ):
     # Either tag_ids or sensor_type_name_shorts must be provided
@@ -78,6 +77,30 @@ async def get_project_dataframe(
             ),
         )
 
+    # If start is None, set to beginning of day
+    if start is None:
+        start = pd.Timestamp.now(tz=project.time_zone).floor("D")
+    else:
+        start = pd.Timestamp(start)
+        # If start is naive, localize to project time zone
+        if start.tzinfo is None:
+            start = start.tz_localize(project.time_zone)
+        # If start is in different time zone, convert to project time zone
+        else:
+            start = start.tz_convert(project.time_zone)
+
+    # If end is None, set to end of day
+    if end is None:
+        end = pd.Timestamp.now(tz=project.time_zone).ceil(interval)
+    else:
+        end = pd.Timestamp(end)
+        # If end is naive, localize to project time zone
+        if end.tzinfo is None:
+            end = end.tz_localize(project.time_zone)
+        # If end is in different time zone, convert to project
+        else:
+            end = end.tz_convert(project.time_zone)
+
     tags = core.crud.project.tags.get_project_tags(
         db=project_db,
         tag_ids=tag_ids,
@@ -94,22 +117,20 @@ async def get_project_dataframe(
             detail="No tags found for given tag_ids and sensor_type_name_shorts",
         )
 
-    # Use default interval if none provided
-    effective_interval = interval if interval is not None else "5min"
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        freq=TimeInterval.FIVE_MINUTES,
+    ).get()
 
-    df = data_df(
-        project_db,
-        project,
-        tags=tags,
-        start=start,
-        end=end,
-        fillna_zero=fillna_zero,
-        get_last=get_last,
-        start_offset=start_offset,
-        last_offset=last_offset,
-        ffill_limit=ffill_limit,
-        interval=effective_interval,
-    )
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
+    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     sensor_type_ids = [
         tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None
@@ -158,7 +179,7 @@ async def get_llm_time_series(
     project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    interval: str = "base",
+    interval: str = "5min",
     tag_ids: Annotated[list[int] | None, Query()] = None,
     sensor_type_ids: Annotated[list[int] | None, Query()] = None,
 ):
@@ -186,14 +207,44 @@ async def get_llm_time_series(
             detail="No tags configured for this request",
         )
 
-    df = utils.data_df(
-        project_db,
-        project,
-        tags,
-        start=start,
-        end=end,
-        agg=interval,
-    )
+    # If start is None, set to beginning of day
+    if start is None:
+        start = pd.Timestamp.now(tz=project.time_zone).floor("D")
+    else:
+        start = pd.Timestamp(start)
+        # If start is naive, localize to project time zone
+        if start.tzinfo is None:
+            start = start.tz_localize(project.time_zone)
+        # If start is in different time zone, convert to project time zone
+        else:
+            start = start.tz_convert(project.time_zone)
+
+    # If end is None, set to end of day
+    if end is None:
+        end = pd.Timestamp.now(tz=project.time_zone).ceil(interval)
+    else:
+        end = pd.Timestamp(end)
+        # If end is naive, localize to project time zone
+        if end.tzinfo is None:
+            end = end.tz_localize(project.time_zone)
+        # If end is in different time zone, convert to project
+        else:
+            end = end.tz_convert(project.time_zone)
+
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        freq=TimeInterval.FIVE_MINUTES,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
+    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
         tags=tags,
@@ -242,7 +293,7 @@ async def get_project_dataframe_endpoint(
     start_offset: str = "5min",
     last_offset: str = "1h",
     ffill_limit: int | None = None,
-    interval: str | None = Query(default=None),
+    interval: str = "5min",
     include_ghost_tags: bool = False,
 ):
     """todo
@@ -341,15 +392,44 @@ async def get_time_series(
             detail="No tags configured for this request",
         )
 
-    df = utils.data_df(
-        project_db,
-        project,
-        tags,
-        start=start,
-        end=end,
-        fillna_zero=False,
-        interval=interval,
-    )
+    # If start is None, set to beginning of day
+    if start is None:
+        start = pd.Timestamp.now(tz=project.time_zone).floor("D")
+    else:
+        start = pd.Timestamp(start)
+        # If start is naive, localize to project time zone
+        if start.tzinfo is None:
+            start = start.tz_localize(project.time_zone)
+        # If start is in different time zone, convert to project time zone
+        else:
+            start = start.tz_convert(project.time_zone)
+
+    # If end is None, set to end of day
+    if end is None:
+        end = pd.Timestamp.now(tz=project.time_zone).ceil(interval)
+    else:
+        end = pd.Timestamp(end)
+        # If end is naive, localize to project time zone
+        if end.tzinfo is None:
+            end = end.tz_localize(project.time_zone)
+        # If end is in different time zone, convert to project
+        else:
+            end = end.tz_convert(project.time_zone)
+
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        freq=TimeInterval.FIVE_MINUTES,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
+    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     tag_id_to_tag_name = await utils.get_tag_id_to_tag_name(
         tags=tags,

@@ -14807,7 +14807,7 @@ export interface operations {
                 start_offset?: string;
                 last_offset?: string;
                 ffill_limit?: number | null;
-                interval?: string | null;
+                interval?: string;
                 include_ghost_tags?: boolean;
             };
             header?: {

@@ -134,7 +134,7 @@ const Page = () => {
     },
   })
   const scadaData = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       sensor_type_ids: selectedSensorTypeIds.map((id) => parseInt(id)),
       start: startRequest || '',

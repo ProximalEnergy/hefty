@@ -104,7 +104,7 @@ const TrackerRowDetail = React.memo(() => {
     isLoading: isTimeSeriesLoading,
     error: timeSeriesError,
   } = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       device_ids: deviceId ? [parseInt(deviceId)] : undefined,
       sensor_type_ids: [

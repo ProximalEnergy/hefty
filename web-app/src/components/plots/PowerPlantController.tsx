@@ -7,7 +7,7 @@ const PowerPlantController = () => {
   const { projectId } = useParams<{ projectId: string }>()
 
   const { data, isLoading, error } = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       sensor_type_name_shorts: [
         'ppc_active_power',

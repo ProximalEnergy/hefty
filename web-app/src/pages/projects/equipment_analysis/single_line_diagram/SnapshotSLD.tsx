@@ -1208,7 +1208,7 @@ function SnapshotSLDContent() {
 
   const { data: timeSeriesData, isFetching: isTimeSeriesFetching } =
     useGetTimeSeries({
-      pathParams: { projectId: projectId || '-1' },
+      pathParams: { project_id: projectId || '-1' },
       queryParams: {
         device_ids: devices?.map((d) => d.device_id),
         start: timestamp

@@ -40,7 +40,7 @@ const Page = () => {
   const project = useSelectProject(projectId!)
 
   const { data, isLoading, error } = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       sensor_type_name_shorts: [
         'met_station_poa',

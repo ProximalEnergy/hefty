@@ -139,7 +139,7 @@ const Page = () => {
 
   const combinerData = useGetTimeSeries({
     pathParams: {
-      projectId: projectId || '-1',
+      project_id: projectId || '-1',
     },
     queryParams: {
       device_ids: combinerDeviceIds,

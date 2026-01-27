@@ -331,7 +331,7 @@ const useEventTraces = (
   }
 
   const eventTraces = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       tag_ids: eventTraceTags?.map((tag) => tag.tag_id) || [],
       start: traceStart.toISOString(),

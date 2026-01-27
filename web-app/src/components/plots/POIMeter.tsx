@@ -30,7 +30,7 @@ const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
     : baseSensorTypeIds
 
   const { data, isLoading, error } = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       sensor_type_ids: sensorTypeIds,
     },

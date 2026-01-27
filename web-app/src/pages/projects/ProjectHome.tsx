@@ -224,7 +224,7 @@ const PowerPlotBESS = () => {
   }, [isAutoUpdating])
 
   const data = useGetTimeSeries({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       sensor_type_name_shorts: [
         'meter_active_power',
