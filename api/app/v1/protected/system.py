@@ -3,8 +3,9 @@ from collections import defaultdict
 from typing import Any
 
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
-from core.enumerations import SensorType
+from core.enumerations import SensorType, TimeOffset
 from fastapi import APIRouter, Depends
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
@@ -208,16 +209,20 @@ async def get_meter_power_and_expected_power_v2(
         deep=True,
     ).models()
 
-    df_quality = utils.data_df(
-        project_db,
-        project,
-        tags_met_station,
-        start=start,
-        end=end,
-        fillna_zero=False,
-        get_last=True,
-        last_offset="15hour",
-    )
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags_met_station],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        max_lookback_period=TimeOffset.TWELVE_HOURS,
+    ).get()
+
+    df_quality = data_timeseries_instance.df.to_pandas()
+    df_quality = df_quality.set_index("time")
+    df_quality.index = pd.to_datetime(df_quality.index).tz_convert(project.time_zone)
+    df_quality.columns = df_quality.columns.astype(int)
 
     # Create a dictionary mapping mapping sensor types name short to list of tag ids
     sensor_type_name_short_to_tag_ids = defaultdict(list)

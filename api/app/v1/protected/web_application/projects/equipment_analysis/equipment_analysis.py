@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.events import get_project_events
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
@@ -196,8 +197,6 @@ async def get_heatmap(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-    agg: str = "instantaneous",
-    fillna_zero: bool = True,
 ):
     """todo
 
@@ -230,15 +229,19 @@ async def get_heatmap(
     if end is None:
         end = pd.Timestamp.utcnow().floor("5min")
 
-    df = utils.data_df(
-        project_db,
-        project,
-        tags,
-        start=start,
-        end=end,
-        agg=agg,
-        fillna_zero=fillna_zero,
-    )
+    data_timeseries_instance = await DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_IDS,
+        filter_values=[t.tag_id for t in tags],
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+    ).get()
+
+    df = data_timeseries_instance.df.to_pandas()
+    df = df.set_index("time")
+    df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+    df.columns = df.columns.astype(int)
 
     device_ids = [tag.device_id for tag in tags]
     project_schema = utils.get_project_schema(project_db=project_db)

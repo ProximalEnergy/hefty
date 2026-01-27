@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.3.49"
+version = "0.3.50"
 description = "Shared library for Proximal services"
 readme = "README.md"
 authors = [
@@ -30,6 +30,7 @@ dependencies = [
     "clerk-backend-api>=3.3.1, <=4.0.0",
     "botocore~=1.41.2",
     "clickhouse-connect>=0.10.0",
+    "pyarrow>=23.0.0",
 ]
 
 [project.scripts]
@@ -72,7 +73,12 @@ extend_exclude = ["_alembic_migrations/**"]
 known_first_party = ["core"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["asyncpg", "greenlet", "psycopg2-binary"]
+DEP002 = [
+    "asyncpg",
+    "greenlet",
+    "psycopg2-binary",
+    "pyarrow", # Used by polars internally
+]
 DEP004 = [
     "fastapi", # optional dependency used by api callers
 ]

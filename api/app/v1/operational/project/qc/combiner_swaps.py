@@ -2,8 +2,9 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from app import dependencies, logger, utils
+from app import dependencies, logger
 from app.utils import get_include_in_schema
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -19,7 +20,7 @@ router = APIRouter(
 
 
 @router.get("/validate-combiner-data")
-def validate_combiner_data(
+async def validate_combiner_data(
     start: datetime.datetime,
     end: datetime.datetime,
     device_ids: Annotated[list[int] | None, Query()] = None,
@@ -67,7 +68,20 @@ def validate_combiner_data(
 
         # Get time series data
         try:
-            df = utils.data_df(project_db, project, tags, start=start, end=end)
+            data_timeseries_instance = await DataTimeseries(
+                project_name_short=project.name_short,
+                filter_method=FilterMethod.TAG_IDS,
+                filter_values=[t.tag_id for t in tags],
+                query_start=start,
+                query_end=end,
+                project_db=project_db,
+            ).get()
+
+            df = data_timeseries_instance.df.to_pandas()
+            df = df.set_index("time")
+            df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
+            df.columns = df.columns.astype(int)
+
         except Exception as e:
             return {
                 "isValid": False,

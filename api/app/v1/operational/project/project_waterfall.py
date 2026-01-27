@@ -7,6 +7,7 @@ from core.crud.operational.device_types import (
     get_device_types as crud_get_device_types,
 )
 from core.crud.operational.failure_modes import get_failure_modes
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.event_losses import (
     get_event_losses_aggregated,
 )
@@ -17,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
-from app import dependencies, utils
+from app import dependencies
 from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expected
 from core import models
 
@@ -80,14 +81,23 @@ async def get_project_waterfall(
                 sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
                 deep=True,
             ).models()
-            df_meter = utils.data_df(
-                project_db,
-                project,
-                tags=meter_tags,
-                start=start,
-                end=end,
-                get_last=False,
+
+            data_timeseries_instance = await DataTimeseries(
+                project_name_short=project.name_short,
+                filter_method=FilterMethod.TAG_IDS,
+                filter_values=[t.tag_id for t in meter_tags],
+                query_start=start,
+                query_end=end,
+                project_db=project_db,
+            ).get()
+
+            df_meter = data_timeseries_instance.df.to_pandas()
+            df_meter = df_meter.set_index("time")
+            df_meter.index = pd.to_datetime(df_meter.index).tz_convert(
+                project.time_zone
             )
+            df_meter.columns = df_meter.columns.astype(int)
+
             series_meter = df_meter.iloc[:, 0]
             series_meter.name = "Meter Active Power"
         case ProjectType.BESS:
@@ -98,14 +108,23 @@ async def get_project_waterfall(
                 sensor_type_ids=[SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER],
                 deep=True,
             ).models()
-            df_meter = utils.data_df(
-                project_db,
-                project,
-                tags=meter_tags,
-                start=start,
-                end=end,
-                get_last=False,
+
+            data_timeseries_instance = await DataTimeseries(
+                project_name_short=project.name_short,
+                filter_method=FilterMethod.TAG_IDS,
+                filter_values=[t.tag_id for t in meter_tags],
+                query_start=start,
+                query_end=end,
+                project_db=project_db,
+            ).get()
+
+            df_meter = data_timeseries_instance.df.to_pandas()
+            df_meter = df_meter.set_index("time")
+            df_meter.index = pd.to_datetime(df_meter.index).tz_convert(
+                project.time_zone
             )
+            df_meter.columns = df_meter.columns.astype(int)
+
             series_meter = df_meter.sum(axis=1)
             series_meter.name = "Meter Active Power"
 

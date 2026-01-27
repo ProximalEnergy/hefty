@@ -20032,8 +20032,6 @@ export interface operations {
             query?: {
                 start?: string | null;
                 end?: string | null;
-                agg?: string;
-                fillna_zero?: boolean;
             };
             header?: {
                 authorization?: string;

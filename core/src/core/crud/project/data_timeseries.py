@@ -927,6 +927,10 @@ class DataTimeseries:
             # Case 1: filter_values is already a list of tag IDs
             # Result: Use filter_values directly as tag_ids, no query needed
             case FilterMethod.TAG_IDS:
+                warnings.warn(
+                    "FilterMethod.TAG_IDS leads to an additional database query. "
+                    "Consider using FilterMethod.TAG_POLARS instead."
+                )
                 if not isinstance(self.filter_values, list):
                     raise TypeError(
                         "filter_values must be list[int] when filter_method is TAG_IDS"
@@ -936,6 +940,10 @@ class DataTimeseries:
             # Case 2: filter_values is a list of sensor type IDs
             # Result: Will query tags table to find all tags with these sensor types
             case FilterMethod.SENSOR_TYPE_IDS:
+                warnings.warn(
+                    "FilterMethod.TAG_IDS leads to an additional database query. "
+                    "Consider using FilterMethod.TAG_POLARS instead."
+                )
                 if not isinstance(self.filter_values, list):
                     raise TypeError(
                         "filter_values must be list[int] when "

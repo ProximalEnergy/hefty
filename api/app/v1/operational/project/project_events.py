@@ -14,6 +14,7 @@ from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.project import event_losses as core_event_losses
 from core.crud.project import events as core_events
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.devices import get_project_devices as crud_get_project_devices
 from core.db_query import OutputType
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
@@ -767,18 +768,24 @@ async def get_uptime(
 
     if project.project_type_id != ProjectType.BESS:
         # Get POA data efficiently for daylight hours calculation
-        poa_df = utils.data_df(
-            project_db,
-            project,
-            tags=core.crud.project.tags.get_project_tags(
-                db=project_db,
-                sensor_type_ids=[SensorType.MET_STATION_POA],
-            ).models(),
-            start=start,
-            end=end,
-            fillna_zero=False,
-            get_last=False,
-        )
+        tags = core.crud.project.tags.get_project_tags(
+            db=project_db,
+            sensor_type_ids=[SensorType.MET_STATION_POA],
+        ).models()
+
+        data_timeseries_instance = await DataTimeseries(
+            project_name_short=project.name_short,
+            filter_method=FilterMethod.TAG_IDS,
+            filter_values=[t.tag_id for t in tags],
+            query_start=start,
+            query_end=end,
+            project_db=project_db,
+        ).get()
+
+        poa_df = data_timeseries_instance.df.to_pandas()
+        poa_df = poa_df.set_index("time")
+        poa_df.index = pd.to_datetime(poa_df.index).tz_convert(project.time_zone)
+        poa_df.columns = poa_df.columns.astype(int)
 
         # Create a set of allowed downtime timestamps (more efficient than
         # DatetimeIndex)

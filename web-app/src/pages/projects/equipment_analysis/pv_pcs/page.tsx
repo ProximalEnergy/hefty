@@ -85,7 +85,6 @@ const PCSHeatmap = ({
       sensorTypeName: 'pv_pcs_ac_power',
     },
     queryParams: {
-      fillna_zero: false,
       start: startQuery,
       end: endQuery,
     },
