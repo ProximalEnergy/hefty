@@ -225,6 +225,8 @@ export function ProjectSpotlight() {
       store={projectStore}
       actions={actions}
       nothingFound="Nothing found..."
+      scrollable
+      maxHeight={700}
     />
   )
 }
