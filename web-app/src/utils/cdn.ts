@@ -58,3 +58,24 @@ export function getPublicAssetUrl(assetPath: string): string {
   // Fallback to relative path (current behavior)
   return normalizedPath
 }
+
+/**
+ * Generate a CDN URL for a company logo
+ * @param logoFilename - The logo filename (e.g., 'logo_acme.svg')
+ * @returns The full CDN URL or relative path if CDN is not configured
+ */
+export function getCompanyLogoUrl(logoFilename: string): string {
+  if (!logoFilename) {
+    return ''
+  }
+
+  const normalizedName = logoFilename.replace(/^\/+/, '')
+  const cdnBaseUrl = getCdnBaseUrl()
+
+  if (cdnBaseUrl) {
+    return `${cdnBaseUrl}/company-logos/${normalizedName}`
+  }
+
+  // Fallback to public folder (current behavior)
+  return `/${normalizedName}`
+}

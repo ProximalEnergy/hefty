@@ -15,6 +15,7 @@ import {
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateFeedbackMutation } from '@/hooks/api'
 import * as types from '@/hooks/types'
+import { getCompanyLogoUrl } from '@/utils/cdn'
 import { useUser } from '@clerk/clerk-react'
 import {
   ActionIcon,
@@ -571,6 +572,10 @@ export function NavbarNested({
 const PoweredBy = ({ collapsed }: { collapsed: boolean }) => {
   const { user } = useUser()
   const computedColorScheme = useComputedColorScheme()
+  const logoFilename =
+    computedColorScheme === 'dark'
+      ? 'logo_color_inverse_one_line.svg'
+      : 'logo_color_one_line.svg'
 
   if (user) {
     if (user.publicMetadata.parent_company) {
@@ -585,11 +590,7 @@ const PoweredBy = ({ collapsed }: { collapsed: boolean }) => {
               Powered by
             </Text>
             <Image
-              src={
-                computedColorScheme === 'dark'
-                  ? '/logo_color_inverse_one_line.svg'
-                  : '/logo_color_one_line.svg'
-              }
+              src={getCompanyLogoUrl(logoFilename)}
               alt="Proximal Energy"
               style={{ width: '60%' }} // Ensures the image respects the width
             />

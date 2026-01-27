@@ -17,6 +17,7 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { OrderDroneInspectionModal } from '@/components/modals/OrderDroneInspectionModal'
 import { StatsGrid } from '@/components/stats/StatsGrid'
+import { getCompanyLogoUrl } from '@/utils/cdn'
 import {
   ActionIcon,
   Badge,
@@ -90,9 +91,9 @@ const DroneInspections: React.FC = () => {
   const getProviderLogoUrl = (providerName: string): string | null => {
     const name = providerName.toLowerCase()
     if (name.includes('zeitview')) {
-      return colorScheme === 'dark'
-        ? '/logo_zeitview_white.png'
-        : '/logo_zeitview.png'
+      const logoFilename =
+        colorScheme === 'dark' ? 'logo_zeitview_white.png' : 'logo_zeitview.png'
+      return getCompanyLogoUrl(logoFilename)
     }
     // Add more providers as needed
     return null
