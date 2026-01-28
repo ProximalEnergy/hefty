@@ -23,6 +23,8 @@ import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
+import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
+import { useValidateDateRange } from '@/components/datepicker/utils'
 import Attribution from '@/components/gis/Attribution'
 import LossWaterfall from '@/components/plots/LossWaterfall'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
@@ -51,7 +53,6 @@ import {
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
-import { DatePickerInput } from '@mantine/dates'
 import {
   IconBolt,
   IconCash,
@@ -99,7 +100,7 @@ const DailyEnergyComparison = ({
   budgetedDataQuery,
   comparisonMode,
 }: {
-  selectedDate: Date | null
+  selectedDate: dayjs.Dayjs | null
   projectId: string | undefined
   degradationRate: number
   budgetedDataQuery: ReturnType<typeof useGetPVBudgetedData>
@@ -111,21 +112,13 @@ const DailyEnergyComparison = ({
   // Get project data
   const project = useSelectProject(projectId!)
 
-  // Calculate start and end times for the selected date in project timezone
-  const startTime =
-    selectedDate && project.data?.time_zone
-      ? dayjs(selectedDate)
-          .tz(project.data.time_zone)
-          .startOf('day')
-          .toISOString()
-      : null
-  const endTime =
-    selectedDate && project.data?.time_zone
-      ? dayjs(selectedDate)
-          .tz(project.data.time_zone)
-          .endOf('day')
-          .toISOString()
-      : null
+  // Calculate start and end times for the selected date (already in project timezone)
+  const startTime = selectedDate
+    ? selectedDate.startOf('day').toISOString()
+    : null
+  const endTime = selectedDate
+    ? selectedDate.startOf('day').endOf('day').toISOString()
+    : null
 
   // TODO: Remove this in favor of a new database table.
   const includeSoiling = !['sigurd'].includes(project.data?.name_short || '')
@@ -182,7 +175,7 @@ const DailyEnergyComparison = ({
     let filteredData = budgetedDataQuery.data
     if (comparisonMode === 'dayof') {
       // Only use data from the selected date (ignoring year)
-      const selectedMonthDay = dayjs(selectedDate).format('MM-DD')
+      const selectedMonthDay = selectedDate.format('MM-DD')
       filteredData = budgetedDataQuery.data.filter((dataPoint) => {
         const timestamp = dayjs.utc(dataPoint.time).tz(project.data?.time_zone)
         return timestamp.format('MM-DD') === selectedMonthDay
@@ -209,8 +202,7 @@ const DailyEnergyComparison = ({
       let degradedPower = dataPoint.poi_ac_power
       if (project.data?.cod && selectedDate) {
         const codDate = dayjs(project.data.cod)
-        const selectedDateDayjs = dayjs(selectedDate)
-        const yearsSinceCOD = selectedDateDayjs.diff(codDate, 'year', true) // true for decimal years
+        const yearsSinceCOD = selectedDate.diff(codDate, 'year', true) // true for decimal years
         const degradationFactor = 1 - (degradationRate / 100) * yearsSinceCOD
         degradedPower = dataPoint.poi_ac_power * Math.max(0, degradationFactor) // Ensure non-negative
       }
@@ -348,9 +340,12 @@ const DailyEnergyComparison = ({
 
       // Create hourly data points (one per hour) in project timezone
       // Budgeted data is hour ending, so shift by 30 minutes to center the data
+      if (!selectedDate) {
+        return finalData
+      }
+      const baseDate = selectedDate.startOf('day')
       for (let hour = 0; hour < 24; hour++) {
-        const timestamp = dayjs(selectedDate)
-          .tz(project.data?.time_zone || 'UTC')
+        const timestamp = baseDate
           .hour(hour)
           .minute(30)
           .second(0)
@@ -436,19 +431,12 @@ const DailyEnergyComparison = ({
           type: 'date',
           fixedrange: false,
           tickangle: 0,
-          range:
-            selectedDate && project.data?.time_zone
-              ? [
-                  dayjs
-                    .tz(selectedDate, project.data.time_zone)
-                    .startOf('day')
-                    .valueOf(),
-                  dayjs
-                    .tz(selectedDate, project.data.time_zone)
-                    .endOf('day')
-                    .valueOf(),
-                ]
-              : undefined,
+          range: selectedDate
+            ? [
+                selectedDate.startOf('day').valueOf(),
+                selectedDate.startOf('day').endOf('day').valueOf(),
+              ]
+            : undefined,
         },
         showlegend: true,
         legend: {
@@ -841,10 +829,10 @@ const Page: React.FC = () => {
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme('light')
 
-  // Single date selector
-  const [selectedDate, setSelectedDate] = useState<Date | null>(() => {
-    const projectTz = project.data?.time_zone || 'UTC'
-    return dayjs().tz(projectTz).subtract(1, 'day').toDate()
+  // Get date from URL params via AdvancedDatePicker (already in project timezone)
+  const { start: selectedDate } = useValidateDateRange({
+    maxDays: 1,
+    timeZone: project.data?.time_zone,
   })
 
   // Toggle for cumulative vs daily in the 30-day chart
@@ -901,18 +889,18 @@ const Page: React.FC = () => {
       (option) => parseFloat(option.value) === degradationRate,
     )?.value ?? 'custom'
 
+  // selectedDate is already a dayjs object in project timezone, so just use it directly
   const { startTime, endTime, selectedDateStr } = useMemo(() => {
-    if (!selectedDate || !project.data?.time_zone) {
+    if (!selectedDate) {
       return { startTime: null, endTime: null, selectedDateStr: null }
     }
-    const projectTz = project.data.time_zone
-    const startOfDay = dayjs(selectedDate).tz(projectTz).startOf('day')
+    const startOfDay = selectedDate.startOf('day')
     return {
       startTime: startOfDay.toISOString(),
       endTime: startOfDay.endOf('day').toISOString(),
       selectedDateStr: startOfDay.format('YYYY-MM-DD'),
     }
-  }, [selectedDate, project.data?.time_zone])
+  }, [selectedDate])
 
   // Fetch available budgeted series for the project (load once only)
   const budgetedSeriesQuery = useGetPVBudgetedSeries({
@@ -953,23 +941,27 @@ const Page: React.FC = () => {
     return selectedSeriesId
   }, [selectedSeriesId])
 
-  // Calculate trailing period range ending on selected date
-  const trailingStart = selectedDate
-    ? dayjs(selectedDate)
-        .subtract(trailingPeriod - 1, 'days')
-        .format('YYYY-MM-DD')
-    : null
-  const trailingEnd = selectedDate
-    ? dayjs(selectedDate).add(1, 'day').format('YYYY-MM-DD')
-    : null
+  // Calculate trailing period range ending on selected date (selectedDate is already in project timezone)
+  const trailingStart = useMemo(() => {
+    if (!selectedDate) return null
+    return selectedDate
+      .subtract(trailingPeriod - 1, 'days')
+      .format('YYYY-MM-DD')
+  }, [selectedDate, trailingPeriod])
+  const trailingEnd = useMemo(() => {
+    if (!selectedDate) return null
+    return selectedDate.add(1, 'day').format('YYYY-MM-DD')
+  }, [selectedDate])
 
-  // Calculate range for budgeted data (±1 day around selected date = 3 days total)
-  const budgetedStartDate = selectedDate
-    ? dayjs(selectedDate).subtract(15, 'days').format('YYYY-MM-DD')
-    : null
-  const budgetedEndDate = selectedDate
-    ? dayjs(selectedDate).add(15, 'days').format('YYYY-MM-DD')
-    : null
+  // Calculate range for budgeted data (±15 days around selected date)
+  const budgetedStartDate = useMemo(() => {
+    if (!selectedDate) return null
+    return selectedDate.subtract(15, 'days').format('YYYY-MM-DD')
+  }, [selectedDate])
+  const budgetedEndDate = useMemo(() => {
+    if (!selectedDate) return null
+    return selectedDate.add(15, 'days').format('YYYY-MM-DD')
+  }, [selectedDate])
 
   // Fetch Met Station devices
   const metStationsQuery = useGetDevicesV2({
@@ -1362,11 +1354,7 @@ const Page: React.FC = () => {
 
   // Calculate budgeted percentage for irradiance (POA)
   const irradianceBudgetInfo = useMemo(() => {
-    if (
-      !budgetedDataQuery.data ||
-      !selectedDateStr ||
-      !project.data?.time_zone
-    ) {
+    if (!budgetedDataQuery.data || !selectedDate || !project.data?.time_zone) {
       return null
     }
 
@@ -1375,8 +1363,6 @@ const Page: React.FC = () => {
     if (budgetedComparisonMode === '15days') {
       // Calculate average daily irradiation for +/- 15 days around selected date
       // Note: budgeted data may be from a different year, so we match by MM-DD
-      const selectedDate = dayjs(selectedDateStr)
-
       // Create array of MM-DD dates within +/- 15 days
       const targetMMDDs = new Set<string>()
       for (let i = -15; i <= 15; i++) {
@@ -1414,7 +1400,7 @@ const Page: React.FC = () => {
       const selectedDateData = budgetedDataQuery.data.filter(
         (item) =>
           dayjs.utc(item.time).tz(project.data?.time_zone).format('MM-DD') ===
-          dayjs(selectedDateStr).format('MM-DD'),
+          selectedDate.format('MM-DD'),
       )
 
       if (selectedDateData.length === 0) {
@@ -1443,7 +1429,7 @@ const Page: React.FC = () => {
     }
   }, [
     budgetedDataQuery.data,
-    selectedDateStr,
+    selectedDate,
     calculatedIrradiance,
     project.data?.time_zone,
     budgetedComparisonMode,
@@ -2286,7 +2272,7 @@ const Page: React.FC = () => {
     return {
       project_name:
         project.data.name_long || project.data.name_short || 'Unknown Project',
-      date: dayjs(selectedDate).format('YYYY-MM-DD'),
+      date: selectedDateStr || '',
       actual_energy_mwh: actualEnergyMWh,
       expected_energy_mwh: expectedMWh,
       budgeted_energy_mwh: budgetedEnergyMWh,
@@ -2311,6 +2297,7 @@ const Page: React.FC = () => {
     }
   }, [
     selectedDate,
+    selectedDateStr,
     project.data,
     dailyKpiData.data,
     trailingKpiData.data,
@@ -2516,11 +2503,11 @@ const Page: React.FC = () => {
               multiline
               w={300}
             >
-              <DatePickerInput
-                value={selectedDate}
-                onChange={setSelectedDate}
-                placeholder="Select date"
-                maxDate={dayjs().toDate()}
+              <AdvancedDatePicker
+                maxDays={1}
+                defaultRange="yesterday"
+                includeClearButton={false}
+                includeTodayInDateRange={false}
               />
             </Tooltip>
           </Group>
@@ -2682,7 +2669,7 @@ const Page: React.FC = () => {
 
             {/* Daily Energy Comparison Card */}
             <CustomCard
-              title={`Meter Power - ${selectedDate ? dayjs(selectedDate).format('MMM DD, YYYY') : 'Select Date'}`}
+              title={`Meter Power - ${selectedDateStr ? dayjs(selectedDateStr).format('MMM DD, YYYY') : 'Select Date'}`}
               style={{ minHeight: '300px' }}
               info={
                 <Stack gap="xs">
@@ -2855,7 +2842,7 @@ const Page: React.FC = () => {
                     y: 0.99,
                     xanchor: 'left',
                     yanchor: 'top',
-                    orientation: 'v',
+                    orientation: 'h',
                     bgcolor:
                       colorScheme === 'dark'
                         ? 'rgba(37,38,43,0.8)'
