@@ -36,6 +36,7 @@ DEFAULT_EXCLUDE_DIRS=(
 # Files to exclude from checks
 EXCLUDE_FILES=(
     "web-app/src/api/schema.d.ts"
+    "web-app/rollup-plugin-visualizer-stats.html"
 )
 
 # Arrays to store patterns
