@@ -30,7 +30,7 @@ jobs:
         with:
           args: format --check --diff ./api
 
-  star_syntax:
+  semgrep:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -39,6 +39,15 @@ jobs:
           enable-cache: true
       - name: Run Semgrep star-syntax check
         run: uvx semgrep --error --config _scripts/rules/star-syntax.yaml api/app
+      - name: Run Semgrep sqlalchemy query/filter check
+        run: >
+          uvx semgrep --error --config
+          _scripts/rules/sqlalchemy-query-filter.yaml api/app
+      - name: Run Semgrep with-async-db check
+        run: >
+          uvx semgrep --error --config
+          _scripts/rules/with-async-db.yaml api/app
+          --exclude api/app/dependencies.py
 
   mypy:
     runs-on: ubuntu-latest
@@ -129,19 +138,6 @@ jobs:
       - name: Check for DbQuery.get usage
         run: |
           ./_scripts/db_query_get_check.sh
-
-  with-async-db:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-      - name: Run Semgrep with-async-db check
-        run: >
-          uvx semgrep --error --config
-          _scripts/rules/with-async-db.yaml api/app
-          --exclude api/app/dependencies.py
 
   project-access:
     runs-on: ubuntu-latest
