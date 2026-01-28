@@ -199,49 +199,57 @@ async def get_meter_power_and_expected_power_v2(
     df = pd.concat(df_list, axis=1)
     df = df.where(pd.notna(df), None)
 
-    tags_met_station = core.crud.project.tags.get_project_tags(
-        project_db,
+    tags_met_station = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_name_shorts=[
             "met_station_poa",
             "met_station_ambient_temperature",
             "met_station_wind_speed",
         ],
         deep=True,
-    ).models()
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags_met_station],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_met_station,
         query_start=start,
         query_end=end,
         project_db=project_db,
         max_lookback_period=TimeOffset.TWELVE_HOURS,
     ).get()
 
-    df_quality = data_timeseries_instance.df.to_pandas()
-    df_quality = df_quality.set_index("time")
-    df_quality.index = pd.to_datetime(df_quality.index).tz_convert(project.time_zone)
-    df_quality.columns = df_quality.columns.astype(int)
+    df_quality = data_timeseries_instance.df
+    if "time" in df_quality.columns:
+        df_quality = df_quality.drop("time")
 
     # Create a dictionary mapping mapping sensor types name short to list of tag ids
     sensor_type_name_short_to_tag_ids = defaultdict(list)
-    for tag in tags_met_station:
-        sensor_type_name_short_to_tag_ids[tag.sensor_type.name_short].append(tag.tag_id)
-
-    sensor_type_name_short_to_name_long = {
-        tag.sensor_type.name_short: tag.sensor_type.name_long
-        for tag in tags_met_station
-    }
+    sensor_type_name_short_to_name_long: dict[str, str] = {}
+    tag_rows = tags_met_station.select(
+        ["tag_id", "sensor_type_name_short", "sensor_type_name_long"]
+    ).iter_rows(named=True)
+    for row in tag_rows:
+        name_short = row["sensor_type_name_short"]
+        if not name_short:
+            continue
+        tag_id = row["tag_id"]
+        sensor_type_name_short_to_tag_ids[name_short].append(tag_id)
+        if name_short not in sensor_type_name_short_to_name_long:
+            name_long = row["sensor_type_name_long"] or name_short
+            sensor_type_name_short_to_name_long[name_short] = name_long
 
     quality_raw = {}
 
     for sensor_type_name_short, tag_ids in sensor_type_name_short_to_tag_ids.items():
         quality_raw[sensor_type_name_short] = 0
         for tag_id in tag_ids:
-            if not (
-                df_quality[tag_id].sum() == 0 or df_quality[tag_id].isna().sum() > 0
-            ):
+            if tag_id not in df_quality.columns:
+                continue
+            series = df_quality[tag_id]
+            series_sum = series.sum()
+            has_nulls = series.null_count() > 0
+            is_zero = series_sum is None or series_sum == 0
+            if not (is_zero or has_nulls):
                 quality_raw[sensor_type_name_short] += 1
 
     quality: dict[str, Any] = {}
