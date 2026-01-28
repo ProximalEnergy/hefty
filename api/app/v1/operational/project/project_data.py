@@ -1,5 +1,6 @@
 import datetime
 from collections.abc import Sequence
+from types import SimpleNamespace
 from typing import Annotated
 
 import pandas as pd
@@ -101,21 +102,22 @@ async def get_project_dataframe(
         else:
             end = end.tz_convert(project.time_zone)
 
-    tags = core.crud.project.tags.get_project_tags(
-        db=project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         tag_ids=tag_ids,
         sensor_type_ids=sensor_type_ids,
         sensor_type_name_shorts=sensor_type_name_shorts,
         device_ids=device_ids,
         deep=False,
         include_ghost_tags=include_ghost_tags,
-    ).models()
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
-    if not tags:
+    if tags_df is None or tags_df.is_empty():
         raise HTTPException(
             status_code=404,
             detail="No tags found for given tag_ids and sensor_type_name_shorts",
         )
+    tags = [SimpleNamespace(**row) for row in tags_df.to_dicts()]
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
@@ -194,18 +196,19 @@ async def get_llm_time_series(
         tag_ids: TODO: describe.
         sensor_type_ids: TODO: describe.
     """
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         tag_ids=tag_ids or [],
         sensor_type_ids=sensor_type_ids or [],
         name_scada="",
-    ).models()
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
-    if not tags:
+    if tags_df is None or tags_df.is_empty():
         raise HTTPException(
             status_code=404,
             detail="No tags configured for this request",
         )
+    tags = [SimpleNamespace(**row) for row in tags_df.to_dicts()]
 
     # If start is None, set to beginning of day
     if start is None:
@@ -376,21 +379,22 @@ async def get_time_series(
 
     device_ids = list(set(device_ids + device_ids_from_parent))
 
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_df = await core.crud.project.tags.get_project_tags_v2(
         tag_ids=tag_ids,
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
         sensor_type_name_shorts=sensor_type_name_shorts,
         name_scada="",
         include_ghost_tags=include_ghost_tags,
-    ).models()
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
-    if len(tags) == 0:
+    if tags_df is None or tags_df.is_empty():
         raise HTTPException(
             status_code=404,
             detail="No tags configured for this request",
         )
+    tags = [SimpleNamespace(**row) for row in tags_df.to_dicts()]
 
     # If start is None, set to beginning of day
     if start is None:
@@ -591,16 +595,21 @@ async def get_timeseries_v3(
             raise ValueError("time or time_bucket column not found in dataframe")
 
     # Get tags for metadata
+    project_schema = utils.get_project_schema(project_db=project_db)
     if tag_ids:
-        tags = core.crud.project.tags.get_project_tags(
-            project_db, tag_ids=tag_ids, deep=True, include_ghost_tags=True
-        ).models()
+        tags_df = await core.crud.project.tags.get_project_tags_v2(
+            tag_ids=tag_ids,
+            deep=True,
+            include_ghost_tags=True,
+        ).get_async(output_type=OutputType.POLARS, schema=project_schema)
     else:
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags_df = await core.crud.project.tags.get_project_tags_v2(
             sensor_type_ids=sensor_type_ids,
             deep=True,
-        ).models()
+        ).get_async(output_type=OutputType.POLARS, schema=project_schema)
+    if tags_df is None or tags_df.is_empty():
+        return []
+    tags = [SimpleNamespace(**row) for row in tags_df.to_dicts()]
 
     # Build metadata mappings
     tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(

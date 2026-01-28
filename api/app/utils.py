@@ -2,7 +2,8 @@ import datetime
 import hashlib
 import random
 from collections import defaultdict
-from typing import Any
+from collections.abc import Sequence
+from typing import Any, Protocol
 
 import numpy as np
 import pandas as pd
@@ -23,6 +24,18 @@ from app._crud.projects.data_timeseries import (
     get_project_data_timeseries_latest,
 )
 from core import models
+
+
+class TagLike(Protocol):
+    """Tag-like structure used by metadata helpers."""
+
+    tag_id: int
+    sensor_type_id: int | None
+    device_id: int
+    name_scada: str
+    name_long: str | None
+    unit_scale: float | None
+
 
 PROJECT_NAME_ADJECTIVES = [
     "Green",
@@ -225,7 +238,7 @@ def parse_db_data_to_df(*, db_data):
 def data_latest_df(
     project_db: Session,
     project: models.Project,
-    tags: list[models.Tag],
+    tags: Sequence[TagLike],
     *,
     start: datetime.datetime | None = None,
 ) -> pd.DataFrame:
@@ -328,7 +341,7 @@ def data_latest_df(
 
 async def get_tag_id_to_tag_name(
     *,
-    tags: list[models.Tag],
+    tags: Sequence[TagLike],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
     """Get tag id to tag name.
@@ -370,7 +383,7 @@ async def get_tag_id_to_tag_name(
 
 async def get_tag_id_to_sensor_type_name(
     *,
-    tags: list[models.Tag],
+    tags: Sequence[TagLike],
 ) -> dict[int, str]:
     # Get list of unique sensor type ids
     """Get tag id to sensor type name.
@@ -413,7 +426,7 @@ async def get_tag_id_to_sensor_type_name(
 async def get_tag_id_to_device_name_long(
     db: Session,
     *,
-    tags: list[models.Tag],
+    tags: Sequence[TagLike],
 ) -> dict[int, str]:
     # Get list of unique device ids
     """Get tag id to device name long.
