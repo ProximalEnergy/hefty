@@ -1,16 +1,11 @@
 import datetime
-from operator import attrgetter
 from typing import Annotated
 
 import pandas as pd
-from core.crud.operational.device_types import (
-    get_device_types as crud_get_device_types,
-)
+from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
-from core.crud.project.event_losses import (
-    get_event_losses_aggregated,
-)
+from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
 from core.enumerations import EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,12 +20,17 @@ from core import models
 DESCRIPTION_404 = "Tag not found"
 
 router = APIRouter(
-    prefix="/projects/{project_id}/waterfall", tags=["project_waterfall"]
+    prefix="/projects/{project_id}/waterfall",
+    tags=["project_waterfall"],
+    dependencies=[Depends(dependencies.check_project_access_async)],
 )
 
 
-def df_from_objects(  # nosemgrep: python-enforce-keyword-only-args
-    objects: list, index_col: str, time_zone: str | None = None
+def df_from_objects(
+    *,
+    objects: list,
+    index_col: str,
+    time_zone: str | None = None,
 ) -> pd.DataFrame:
     """todo
 
@@ -39,7 +39,8 @@ def df_from_objects(  # nosemgrep: python-enforce-keyword-only-args
         index_col: TODO: describe.
         time_zone: TODO: describe.
     """
-    df = pd.DataFrame.from_records(obj.__dict__ for obj in objects).set_index(index_col)  # type: ignore[arg-type]
+    records = [obj.__dict__ for obj in objects]
+    df = pd.DataFrame.from_records(records).set_index(index_col)
     if "_sa_instance_state" in df.columns:
         df = df.drop(columns=["_sa_instance_state"])
     if time_zone is not None:
@@ -159,18 +160,20 @@ async def get_project_waterfall(
         )
     if len(data_expected) == 0:
         raise HTTPException(status_code=404, detail="No expected data found")
-    df_expected = df_from_objects(data_expected, "time", time_zone=project.time_zone)
-    events_query = core.crud.project.events.get_windowed_events(
-        start=start, end=end, deep=True
+    df_expected = df_from_objects(
+        objects=data_expected,
+        index_col="time",
+        time_zone=project.time_zone,
+    )
+    events_query = core.crud.project.events.get_windowed_event_summaries(
+        start=start,
+        end=end,
     )
     data_events = await events_query.get_async(
         schema=project.name_short,
-        output_type=OutputType.SQLALCHEMY,
+        output_type=OutputType.PANDAS,
     )
-    df_events = df_from_objects(data_events, "event_id")  # type: ignore
-    df_events = df_events.assign(
-        device_type_id=df_events["device"].map(attrgetter("device_type_id"))
-    )
+    df_events = data_events.set_index("event_id")
     # Use aggregated query - much faster than fetching all individual loss records
     event_losses_dict = get_event_losses_aggregated(
         db=project_db,
@@ -181,18 +184,26 @@ async def get_project_waterfall(
     )
     # Map aggregated losses to events DataFrame
     df_events["loss"] = df_events.index.map(
-        lambda event_id: event_losses_dict.get(event_id, 0.0)
+        lambda event_id: event_losses_dict.get(event_id, 0.0) / 12
     )
-    if level == "device_type":
+    if df_events.empty:
+        grouped_losses = pd.DataFrame(columns=["loss", "name"])
+    elif level == "device_type":
         data_device_types = await crud_get_device_types(
             db=db,
             device_type_ids=df_events["device_type_id"].unique().tolist(),
         )
-        df_device_types = df_from_objects(data_device_types, "device_type_id")
+        df_device_types = df_from_objects(
+            objects=data_device_types,
+            index_col="device_type_id",
+        )
         grouped_losses = (
             df_events[["device_type_id", "loss"]].groupby("device_type_id").sum()
         )
-        grouped_losses["name"] = df_device_types.loc[grouped_losses.index, "name_long"]
+        grouped_losses["name"] = df_device_types.loc[
+            grouped_losses.index,
+            "name_long",
+        ]
     elif level == "failure_mode":
         failure_modes_query = get_failure_modes(
             failure_mode_ids=df_events["failure_mode_id"].unique().tolist(),
@@ -200,11 +211,17 @@ async def get_project_waterfall(
         data_failure_modes = await failure_modes_query.get_async(
             output_type=OutputType.SQLALCHEMY,
         )
-        df_failure_modes = df_from_objects(data_failure_modes, "failure_mode_id")
+        df_failure_modes = df_from_objects(
+            objects=data_failure_modes,
+            index_col="failure_mode_id",
+        )
         grouped_losses = (
             df_events[["failure_mode_id", "loss"]].groupby("failure_mode_id").sum()
         )
-        grouped_losses["name"] = df_failure_modes.loc[grouped_losses.index, "name_long"]
+        grouped_losses["name"] = df_failure_modes.loc[
+            grouped_losses.index,
+            "name_long",
+        ]
 
     grouped_losses["measure"] = "relative"
     grouped_losses = grouped_losses.rename(columns={"loss": "value"})

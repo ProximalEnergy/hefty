@@ -47,6 +47,38 @@ def get_windowed_events(
     return DbQuery(query=stmt)
 
 
+def get_windowed_event_summaries(
+    *,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    include_underperformance: bool = True,
+) -> DbQuery[tuple[int, int, int], Literal[False]]:
+    """Query minimal event data for waterfall summaries.
+
+    Args:
+        start: Start time for the window.
+        end: End time for the window.
+        include_underperformance: Include underperformance events when True.
+    """
+    stmt = sa.select(
+        models.Event.event_id.label("event_id"),
+        models.Event.failure_mode_id.label("failure_mode_id"),
+        models.Device.device_type_id.label("device_type_id"),
+    )
+    stmt = stmt.join(
+        models.Device,
+        models.Device.device_id == models.Event.device_id,
+    )
+    stmt = stmt.where(models.Event.time_start <= end)
+    stmt = stmt.where(
+        or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
+    )
+    if not include_underperformance:
+        stmt = stmt.join(models.FailureMode, models.Event.failure_mode)
+        stmt = stmt.where(~models.FailureMode.name_long.contains("Underperforming"))
+    return DbQuery(query=stmt)
+
+
 def get_maximum_event_id(*, db: Session) -> int:
     """Return the maximum event_id in the events table.
 
