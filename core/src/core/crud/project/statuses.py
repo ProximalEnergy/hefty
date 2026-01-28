@@ -1,11 +1,13 @@
 import json
 import string
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 import pandas as pd
+import polars as pl
 from pandas._libs.missing import NAType
-from sqlalchemy import case, cast, func, select
+from sqlalchemy import case, func, select
+from sqlalchemy import cast as sa_cast
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.sqltypes import Text
 
@@ -201,18 +203,40 @@ def get_status_name_from_tag_id(*, tag_ids: list[int]):
 
 
 # -- vectorized status interpret --
-def get_status_interpret(
-    db: Session,
+def _resolve_project_schema(
     *,
+    db: Session | None,
+    schema: str | None,
+) -> str | None:
+    if schema:
+        return schema
+    if db is None:
+        return None
+    try:
+        conn = db.connection()
+    except Exception:
+        return None
+    options = conn.get_execution_options()
+    schema_translate_map = options.get("schema_translate_map")
+    if not schema_translate_map:
+        return None
+    return cast(str | None, schema_translate_map.get("project"))
+
+
+async def get_status_interpret(
+    *,
+    db: Session | None = None,
     status_tags: list[int] = [],
     status_values: list[Any] = [],
+    schema: str | None = None,
 ):
     """Interpret status values into human-readable status data.
 
     Args:
-        db: Sync session for operational status lookup tables.
+        db: Optional session used to infer the project schema.
         status_tags: Tag ids whose statuses should be interpreted.
         status_values: Raw status values for each tag.
+        schema: Explicit project schema to use for lookups.
     """
     validate_status_tags_and_values(
         status_tags=status_tags,
@@ -220,21 +244,27 @@ def get_status_interpret(
     )
 
     status_types = ["status_binary_id", "status_boolean_id", "status_string_id"]
-    tags = core.crud.project.tags.get_project_tags(db, tag_ids=status_tags).models()
-    status_lookup_ids = {
-        tag.tag_id: tag.status_lookup_id
-        for tag in tags
-        if tag.status_lookup_id is not None
-    }
+    project_schema = _resolve_project_schema(db=db, schema=schema)
+    if project_schema is None:
+        raise ValueError("project schema is required for status interpretation")
+    tags_query = core.crud.project.tags.get_project_tags_v2(tag_ids=status_tags)
+    tags_df: pl.DataFrame = await tags_query.get_async(
+        output_type=OutputType.POLARS,
+        schema=project_schema,
+    )
+    status_lookup_ids = dict(
+        tags_df.filter(pl.col("status_lookup_id").is_not_null())
+        .select("tag_id", "status_lookup_id")
+        .rows()
+    )
     if len(status_lookup_ids) == 0:
         raise ValueError("Status tags not configured for device.")
-    status_lookup_df = core.crud.project.statuses.get_status_lookup(
-        status_lookup_ids=[
-            sid for sid in status_lookup_ids.values() if sid is not None
-        ],
-    ).get(output_type=OutputType.PANDAS)
-    if status_lookup_df.empty:
+    status_lookup_pl: pl.DataFrame = await core.crud.project.statuses.get_status_lookup(
+        status_lookup_ids=list(status_lookup_ids.values()),
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
+    if status_lookup_pl.is_empty():
         raise ValueError("Status tables not found for project.")
+    status_lookup_df = status_lookup_pl.to_pandas()
 
     df = pd.DataFrame({"tag": status_tags, "value": status_values})
     df["status_lookup_id"] = df["tag"].map(status_lookup_ids)
@@ -253,9 +283,14 @@ def get_status_interpret(
 
         if status_type == "status_binary_id":
             status_df["value"] = status_df["value"].astype(int)
-            status_binary_df = core.crud.project.statuses.get_status_binary(
+            status_binary_query = core.crud.project.statuses.get_status_binary(
                 status_binary_ids=status_df[status_type].tolist(),
-            ).get(output_type=OutputType.PANDAS)
+            )
+            status_binary_pl: pl.DataFrame = await status_binary_query.get_async(
+                output_type=OutputType.POLARS,
+                schema=project_schema,
+            )
+            status_binary_df = status_binary_pl.to_pandas()
             grouped = status_binary_df.groupby("status_binary_id")
 
             def decode_binary(
@@ -307,13 +342,14 @@ def get_status_interpret(
             status_df["value"] = status_df["value"].map(
                 lambda x: bool(strtobool(str(int(float(x)))))
             )
-            status_boolean = core.crud.project.statuses.get_status_boolean(
+            status_boolean_query = core.crud.project.statuses.get_status_boolean(
                 status_boolean_ids=status_df[status_type].tolist(),
-            ).get(output_type=OutputType.SQLALCHEMY)
-            status_boolean_df = pd.DataFrame([obj.__dict__ for obj in status_boolean])
-            status_boolean_df = status_boolean_df.drop(
-                columns="_sa_instance_state", errors="ignore"
             )
+            status_boolean_pl: pl.DataFrame = await status_boolean_query.get_async(
+                output_type=OutputType.POLARS,
+                schema=project_schema,
+            )
+            status_boolean_df = status_boolean_pl.to_pandas()
             status_boolean_df = status_boolean_df.set_index(status_type)
 
             def resolve_bool(row):  # nosemgrep: python-enforce-keyword-only-args
@@ -336,15 +372,16 @@ def get_status_interpret(
 
         elif status_type == "status_string_id":
             status_df["value"] = (
-                status_df["value"].astype(str).str.translate(tbl).str.lower()  # type: ignore
-            )
-            status_string = core.crud.project.statuses.get_status_string(
+                status_df["value"].astype(str).str.translate(tbl).str.lower()
+            )  # type: ignore
+            status_string_query = core.crud.project.statuses.get_status_string(
                 status_string_ids=status_df[status_type].tolist(),
-            ).get(output_type=OutputType.SQLALCHEMY)
-            status_string_df = pd.DataFrame([obj.__dict__ for obj in status_string])
-            status_string_df = status_string_df.drop(
-                columns="_sa_instance_state", errors="ignore"
             )
+            status_string_pl: pl.DataFrame = await status_string_query.get_async(
+                output_type=OutputType.POLARS,
+                schema=project_schema,
+            )
+            status_string_df = status_string_pl.to_pandas()
             status_string_df = status_string_df.set_index("string_trigger")
 
             def resolve_string(row):  # nosemgrep: python-enforce-keyword-only-args
@@ -403,11 +440,11 @@ def get_last_known_statuses_query(
     # ---- value columns ----
 
     value = func.coalesce(
-        cast(dtl.value_integer, Text),
-        cast(dtl.value_bigint, Text),
-        cast(dtl.value_real, Text),
-        cast(dtl.value_boolean, Text),
-        cast(dtl.value_text, Text),
+        sa_cast(dtl.value_integer, Text),
+        sa_cast(dtl.value_bigint, Text),
+        sa_cast(dtl.value_real, Text),
+        sa_cast(dtl.value_boolean, Text),
+        sa_cast(dtl.value_text, Text),
     ).label("value")
 
     value_type = case(

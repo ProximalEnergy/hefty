@@ -55,7 +55,7 @@ class DeviceStatus(BaseModel):
 
 # -- unchanged interpret wrapper --
 @router.get("/interpret")
-def interpret(
+async def interpret(
     db: Annotated[Session, Depends(get_project_db)],
     *,
     status_tags: Annotated[list[int], Query()] = [],
@@ -69,7 +69,7 @@ def interpret(
         status_values: TODO: describe.
     """
     try:
-        return core.crud.project.statuses.get_status_interpret(
+        return await core.crud.project.statuses.get_status_interpret(
             db=db,
             status_tags=status_tags,
             status_values=status_values,
