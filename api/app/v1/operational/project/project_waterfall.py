@@ -77,16 +77,18 @@ async def get_project_waterfall(
         raise ValueError("start and end must not be None")
     match project.project_type_id:
         case ProjectType.PV:
-            meter_tags = core.crud.project.tags.get_project_tags(
-                db=project_db,
+            meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[SensorType.METER_ACTIVE_POWER],
                 deep=True,
-            ).models()
+            ).get_async(
+                output_type=OutputType.POLARS,
+                schema=project.name_short,
+            )
 
             data_timeseries_instance = await DataTimeseries(
                 project_name_short=project.name_short,
-                filter_method=FilterMethod.TAG_IDS,
-                filter_values=[t.tag_id for t in meter_tags],
+                filter_method=FilterMethod.TAG_POLARS,
+                filter_values=meter_tags_df,
                 query_start=start,
                 query_end=end,
                 project_db=project_db,
@@ -104,16 +106,18 @@ async def get_project_waterfall(
         case ProjectType.BESS:
             return []
         case ProjectType.PVS:
-            meter_tags = core.crud.project.tags.get_project_tags(
-                db=project_db,
+            meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
                 sensor_type_ids=[SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER],
                 deep=True,
-            ).models()
+            ).get_async(
+                output_type=OutputType.POLARS,
+                schema=project.name_short,
+            )
 
             data_timeseries_instance = await DataTimeseries(
                 project_name_short=project.name_short,
-                filter_method=FilterMethod.TAG_IDS,
-                filter_values=[t.tag_id for t in meter_tags],
+                filter_method=FilterMethod.TAG_POLARS,
+                filter_values=meter_tags_df,
                 query_start=start,
                 query_end=end,
                 project_db=project_db,
