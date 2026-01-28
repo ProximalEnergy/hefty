@@ -1,4 +1,3 @@
-import datetime
 import json
 import string
 from typing import Any, Literal
@@ -7,15 +6,12 @@ import numpy as np
 import pandas as pd
 from pandas._libs.missing import NAType
 from sqlalchemy import case, cast, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.sqltypes import Text
 
 import core
 from core import models
-from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import DbQuery, OutputType
-from core.enumerations import SensorType, TimeInterval, TimeOffset
 
 # Cache translation table outside the endpoint
 delete_chars = string.punctuation + string.whitespace
@@ -55,216 +51,153 @@ def validate_status_tags_and_values(
         )
 
 
-# -- vectorized status interpret --
-async def get_status_interpret_async(
-    db: AsyncSession,
+########################################################
+# RETRIEVE TABLES
+########################################################
+
+
+def get_status_lookup(
     *,
-    project_db: AsyncSession | Session,
-    status_tags: list[int] = [],
-    status_values: list[Any] = [],
-):
-    """Interpret status values into human-readable status data asynchronously.
+    status_lookup_ids: list[int] | None = None,
+    name_shorts: list[str] | None = None,
+    name_longs: list[str] | None = None,
+    status_binary_ids: list[int] | None = None,
+    status_string_ids: list[int] | None = None,
+    status_boolean_ids: list[int] | None = None,
+) -> DbQuery[models.StatusLookup, Literal[False]]:
+    """Get the status_lookup table.
 
     Args:
-        db: Async session for operational status lookup tables.
-        project_db: Project session for tag metadata.
-        status_tags: Tag ids whose statuses should be interpreted.
-        status_values: Raw status values for each tag.
+        status_lookup_ids: Filter to only included status_lookup_ids.
+        name_shorts: Filter to only included name_shorts.
+        name_longs: Filter to only included name_longs.
+        status_binary_ids: Filter to only included status_binary_ids.
+        status_string_ids: Filter to only included status_string_ids.
+        status_boolean_ids: Filter to only included status_boolean_ids.
     """
-    validate_status_tags_and_values(
-        status_tags=status_tags,
-        status_values=status_values,
+    model = models.StatusLookup
+    stmt = select(model)
+    if status_lookup_ids:
+        stmt = stmt.where(model.status_lookup_id.in_(status_lookup_ids))
+    if name_shorts:
+        stmt = stmt.where(model.name_short.in_(name_shorts))
+    if name_longs:
+        stmt = stmt.where(model.name_long.in_(name_longs))
+    if status_binary_ids:
+        stmt = stmt.where(model.status_binary_id.in_(status_binary_ids))
+    if status_string_ids:
+        stmt = stmt.where(model.status_string_id.in_(status_string_ids))
+    if status_boolean_ids:
+        stmt = stmt.where(model.status_boolean_id.in_(status_boolean_ids))
+    return DbQuery(query=stmt)
+
+
+def get_status_binary(
+    *,
+    status_binary_ids: list[int] = [],
+) -> DbQuery[models.StatusBinary, Literal[False]]:
+    """Get the status_binary table.
+
+    Args:
+        status_binary_ids: Filter to only included status_binary_ids.
+    """
+    stmt = select(models.StatusBinary)
+    if status_binary_ids:
+        stmt = stmt.where(
+            models.StatusBinary.status_binary_id.in_(status_binary_ids),
+        )
+    return DbQuery(query=stmt)
+
+
+def get_status_boolean(
+    *,
+    status_boolean_ids: list[int] = [],
+) -> DbQuery[models.StatusBoolean, Literal[False]]:
+    """Build a query for status boolean rows.
+
+    Args:
+        status_boolean_ids: Status boolean ids to filter by.
+    """
+    stmt = select(models.StatusBoolean)
+    if status_boolean_ids:
+        stmt = stmt.where(
+            models.StatusBoolean.status_boolean_id.in_(status_boolean_ids),
+        )
+    return DbQuery(query=stmt)
+
+
+def get_status_string(
+    *,
+    status_string_ids: list[int] = [],
+) -> DbQuery[models.StatusString, Literal[False]]:
+    """Build a query for status string rows.
+
+    Args:
+        status_string_ids: Status string ids to filter by.
+    """
+    stmt = select(models.StatusString)
+    if status_string_ids:
+        stmt = stmt.where(
+            models.StatusString.status_string_id.in_(status_string_ids),
+        )
+    return DbQuery(query=stmt)
+
+
+########################################################
+# HELPER FUNCTIONS
+########################################################
+
+
+def get_status_tags(
+    *,
+    tag_ids: list[int] | None = None,
+    sensor_type_ids: list[int] | None = None,
+    device_ids: list[int] | None = None,
+    device_type_ids: list[int] | None = None,
+):
+    """Get tags related to statuses.
+
+    Args:
+        sensor_type_ids: Filter to only included sensor_type_ids.
+        device_ids: Filter to only included device_ids.
+    """
+    model = models.Tag
+    stmt = select(model)
+    if tag_ids:
+        stmt = stmt.where(model.tag_id.in_(tag_ids))
+    if sensor_type_ids:
+        stmt = stmt.where(model.sensor_type_id.in_(sensor_type_ids))
+    if device_ids:
+        stmt = stmt.where(model.device_id.in_(device_ids))
+    if device_type_ids:
+        stmt = stmt.where(
+            model.device.has(model.device.device_type_id.in_(device_type_ids))
+        )
+    stmt = stmt.where(model.status_lookup_id.isnot(None))
+    return DbQuery(query=stmt)
+
+
+def get_status_name_from_tag_id(*, tag_ids: list[int]):
+    """Get status name(s) for a list of tag ids.
+
+    Returns rows: (tag_id, name_long)
+    """
+    t = models.Tag
+    d = models.Device
+    sl = models.StatusLookup
+
+    stmt = (
+        select(
+            t.tag_id,
+            func.concat_ws(" ", sl.name_long, d.name_long).label("name_long"),
+        )
+        .select_from(t)
+        .join(d, d.device_id == t.device_id)
+        .join(sl, sl.status_lookup_id == t.status_lookup_id)
+        .where(t.tag_id.in_(tag_ids))
     )
 
-    status_types = ["status_binary_id", "status_boolean_id", "status_string_id"]
-    # Get tags from project schema - handle both sync and async sessions
-    if isinstance(project_db, AsyncSession):
-        stmt = select(models.Tag).where(models.Tag.tag_id.in_(status_tags))
-        result = await project_db.execute(stmt)
-        tags = list(result.scalars().all())
-    else:
-        # Sync session - use sync query
-        tags = core.crud.project.tags.get_project_tags(
-            project_db, tag_ids=status_tags
-        ).models()
-    status_lookup_ids = {
-        tag.tag_id: tag.status_lookup_id
-        for tag in tags
-        if tag.status_lookup_id is not None
-    }
-    if len(status_lookup_ids) == 0:
-        raise ValueError("Status tags not configured for device.")
-    status_lookup_list = await core.crud.project.statuses.get_status_lookup_async(
-        db=db,
-        status_lookup_ids=[
-            sid for sid in status_lookup_ids.values() if sid is not None
-        ],
-    )
-    if len(status_lookup_list) == 0:
-        raise ValueError("Status tables not found for project.")
-    # Convert to pandas dataframe
-    status_lookup_df = pd.DataFrame([obj.__dict__ for obj in status_lookup_list])
-    status_lookup_df = status_lookup_df.drop(
-        columns="_sa_instance_state", errors="ignore"
-    )
-
-    df = pd.DataFrame({"tag": status_tags, "value": status_values})
-    df["status_lookup_id"] = df["tag"].map(status_lookup_ids)
-    df = df.merge(
-        status_lookup_df[["status_lookup_id", *status_types]],
-        on="status_lookup_id",
-        how="left",
-    )
-
-    result_list = []
-
-    for status_type in status_types:
-        status_df = df[df[status_type].notna()].copy()
-        if status_df.empty:
-            continue
-
-        if status_type == "status_binary_id":
-            status_df["value"] = status_df["value"].astype(int)
-            status_binary_list = (
-                await core.crud.project.statuses.get_status_binary_async(
-                    db=db,
-                    status_binary_ids=status_df[status_type].tolist(),
-                )
-            )
-            status_binary_df = pd.DataFrame(
-                [obj.__dict__ for obj in status_binary_list]
-            )
-            status_binary_df = status_binary_df.drop(
-                columns="_sa_instance_state", errors="ignore"
-            )
-            grouped = status_binary_df.groupby("status_binary_id")
-
-            def decode_binary(
-                *,
-                row,
-                grouped,
-            ):  # nosemgrep: python-enforce-keyword-only-args
-                """Decode a binary status value into a status payload.
-
-                Args:
-                    row: Row containing status lookup ids and value.
-                    grouped: Status binary table grouped by status_binary_id.
-                """
-                try:
-                    sub_df = grouped.get_group(row["status_binary_id"]).set_index(
-                        "bit_position"
-                    )
-                except KeyError:
-                    return pd.Series([None, None, False])
-                binary_value = bin(int(row.value))[2:][::-1].ljust(sub_df.shape[0], "0")  # noqa: FURB116
-                status_out, alert = {}, False
-                for i, bit_val in enumerate(binary_value):
-                    status_column = "state_true" if bit_val == "1" else "state_false"
-                    if status_column == "state_false":
-                        continue
-                    nominal_state = sub_df.loc[i, "nominal_state"]
-                    desc = sub_df.loc[i, "description"]
-                    status = sub_df.loc[i, status_column]
-                    if status is not None:
-                        status_out[desc] = status
-                        if (nominal_state is not None) and (
-                            bool(int(bit_val)) is not nominal_state
-                        ):
-                            alert = True
-                        elif nominal_state is None:
-                            pass
-                failure_mode = sub_df.loc[i, "failure_mode_id"] if alert else None
-                return pd.Series([json.dumps(status_out), failure_mode, alert])
-
-            status_df[["status", "failure_mode_id", "alert"]] = status_df.apply(
-                lambda row: decode_binary(row=row, grouped=grouped),
-                axis=1,
-            )
-            result_list.append(
-                status_df[["tag", "value", "status", "failure_mode_id", "alert"]]
-            )
-
-        elif status_type == "status_boolean_id":
-            status_df["value"] = status_df["value"].map(
-                lambda x: bool(strtobool(str(int(float(x)))))
-            )
-            status_boolean_list = (
-                await core.crud.project.statuses.get_status_boolean_async(
-                    db=db,
-                    status_boolean_ids=status_df[status_type].tolist(),
-                )
-            )
-            status_boolean_df = pd.DataFrame(
-                [obj.__dict__ for obj in status_boolean_list]
-            )
-            status_boolean_df = status_boolean_df.drop(
-                columns="_sa_instance_state", errors="ignore"
-            )
-            status_boolean_df = status_boolean_df.set_index(status_type)
-
-            def resolve_bool(
-                *,
-                row,
-            ):  # nosemgrep: python-enforce-keyword-only-args
-                """Resolve a boolean status into status text and failure mode.
-
-                Args:
-                    row: Row containing status lookup id and value.
-                """
-                entry = status_boolean_df.loc[row[status_type]]
-                if entry is None:
-                    return pd.Series(["Unknown", None])
-                status = entry["state_true"] if row["value"] else entry["state_false"]
-                failure_mode = entry["failure_mode_id"] if status is not None else None
-                return pd.Series([status, failure_mode])
-
-            status_df[["status", "failure_mode_id"]] = status_df.apply(
-                lambda row: resolve_bool(row=row),
-                axis=1,
-            )
-            result_list.append(status_df[["tag", "value", "status", "failure_mode_id"]])
-
-        elif status_type == "status_string_id":
-            status_df["value"] = (
-                status_df["value"].astype(str).str.translate(tbl).str.lower()  # type: ignore
-            )
-            status_string_list = (
-                await core.crud.project.statuses.get_status_string_async(
-                    db=db,
-                    status_string_ids=status_df[status_type].tolist(),
-                )
-            )
-            status_string_df = pd.DataFrame(
-                [obj.__dict__ for obj in status_string_list]
-            )
-            status_string_df = status_string_df.drop(
-                columns="_sa_instance_state", errors="ignore"
-            )
-            status_string_df = status_string_df.set_index("string_trigger")
-
-            def resolve_string(
-                *,
-                row,
-            ):  # nosemgrep: python-enforce-keyword-only-args
-                """Resolve a string status into status text and failure mode.
-
-                Args:
-                    row: Row containing status lookup id and value.
-                """
-                try:
-                    entry = status_string_df.loc[row.value]
-                    return pd.Series([entry["description"], entry["failure_mode_id"]])
-                except KeyError:
-                    return pd.Series(["Unknown", None])
-
-            status_df[["status", "failure_mode_id"]] = status_df.apply(
-                lambda row: resolve_string(row=row),
-                axis=1,
-            )
-            result_list.append(status_df[["tag", "value", "status", "failure_mode_id"]])
-
-    df_out = pd.concat(result_list, ignore_index=True)
-    return df_out.replace({np.nan: None}).to_dict(orient="records")
+    return DbQuery(query=stmt)
 
 
 # -- vectorized status interpret --
@@ -433,382 +366,6 @@ def get_status_interpret(
 
     df_out = pd.concat(result_list, ignore_index=True)
     return df_out.replace({np.nan: None}).to_dict(orient="records")
-
-
-def get_status_lookup(
-    *,
-    status_lookup_ids: list[int] = [],
-) -> DbQuery[models.StatusLookup, Literal[False]]:
-    """Get the status_lookup table.
-
-    Args:
-        status_lookup_ids: Filter to only included status_lookup_ids.
-    """
-    stmt = select(models.StatusLookup)
-    if status_lookup_ids:
-        stmt = stmt.where(
-            models.StatusLookup.status_lookup_id.in_(status_lookup_ids),
-        )
-    return DbQuery(query=stmt)
-
-
-def get_status_binary(
-    *,
-    status_binary_ids: list[int] = [],
-) -> DbQuery[models.StatusBinary, Literal[False]]:
-    """Get the status_binary table.
-
-    Args:
-        status_binary_ids: Filter to only included status_binary_ids.
-    """
-    stmt = select(models.StatusBinary)
-    if status_binary_ids:
-        stmt = stmt.where(
-            models.StatusBinary.status_binary_id.in_(status_binary_ids),
-        )
-    return DbQuery(query=stmt)
-
-
-def get_status_boolean(
-    *,
-    status_boolean_ids: list[int] = [],
-) -> DbQuery[models.StatusBoolean, Literal[False]]:
-    """Build a query for status boolean rows.
-
-    Args:
-        status_boolean_ids: Status boolean ids to filter by.
-    """
-    stmt = select(models.StatusBoolean)
-    if status_boolean_ids:
-        stmt = stmt.where(
-            models.StatusBoolean.status_boolean_id.in_(status_boolean_ids),
-        )
-    return DbQuery(query=stmt)
-
-
-def get_status_string(
-    *,
-    status_string_ids: list[int] = [],
-) -> DbQuery[models.StatusString, Literal[False]]:
-    """Build a query for status string rows.
-
-    Args:
-        status_string_ids: Status string ids to filter by.
-    """
-    stmt = select(models.StatusString)
-    if status_string_ids:
-        stmt = stmt.where(
-            models.StatusString.status_string_id.in_(status_string_ids),
-        )
-    return DbQuery(query=stmt)
-
-
-# --- ASYNC SECTION ---
-async def get_status_lookup_async(
-    db: AsyncSession,
-    *,
-    status_lookup_ids: list[int] = [],
-) -> list[models.StatusLookup]:
-    """Fetch status lookup rows asynchronously by id.
-
-    Args:
-        db: Async session for operational status tables.
-        status_lookup_ids: Status lookup ids to filter by.
-    """
-    stmt = select(models.StatusLookup)
-    if status_lookup_ids:
-        stmt = stmt.where(
-            models.StatusLookup.status_lookup_id.in_(status_lookup_ids),
-        )
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
-
-
-async def get_status_binary_async(
-    db: AsyncSession,
-    *,
-    status_binary_ids: list[int] = [],
-) -> list[models.StatusBinary]:
-    """Fetch status binary rows asynchronously by id.
-
-    Args:
-        db: Async session for operational status tables.
-        status_binary_ids: Status binary ids to filter by.
-    """
-    stmt = select(models.StatusBinary)
-    if status_binary_ids:
-        stmt = stmt.where(
-            models.StatusBinary.status_binary_id.in_(status_binary_ids),
-        )
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
-
-
-async def get_status_boolean_async(
-    db: AsyncSession,
-    *,
-    status_boolean_ids: list[int] = [],
-) -> list[models.StatusBoolean]:
-    """Fetch status boolean rows asynchronously by id.
-
-    Args:
-        db: Async session for operational status tables.
-        status_boolean_ids: Status boolean ids to filter by.
-    """
-    stmt = select(models.StatusBoolean)
-    if status_boolean_ids:
-        stmt = stmt.where(
-            models.StatusBoolean.status_boolean_id.in_(status_boolean_ids),
-        )
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
-
-
-async def get_status_string_async(
-    db: AsyncSession,
-    *,
-    status_string_ids: list[int] = [],
-) -> list[models.StatusString]:
-    """Fetch status string rows asynchronously by id.
-
-    Args:
-        db: Async session for operational status tables.
-        status_string_ids: Status string ids to filter by.
-    """
-    stmt = select(models.StatusString)
-    if status_string_ids:
-        stmt = stmt.where(
-            models.StatusString.status_string_id.in_(status_string_ids),
-        )
-    result = await db.execute(stmt)
-    return list(result.scalars().all())
-
-
-async def get_status_timeseries_python(
-    db: AsyncSession,
-    *,
-    project: models.Project,
-    project_db: Session,
-    start: datetime.datetime,
-    end: datetime.datetime,
-    device_ids: list[int] | None = None,
-    tag_ids: list[int] | None = None,
-    device_type_ids: list[int] | None = None,
-    sensor_types: list[SensorType] | None = None,
-):
-    """sensor_types: list[SensorType] | None = None
-        Only queries statuses for the provided sensor types.
-        However, the provided list must be a subset of the supported sensor types.
-        If not provided, all supported sensor types will be used.
-
-    Args:
-        db: Async session for operational metadata.
-        project: Project instance containing timezone information.
-        project_db: Project database session for tag lookups.
-        start: Query start time.
-        end: Query end time.
-        device_ids: Optional device ids to scope tags.
-        tag_ids: Optional tag ids to scope tags.
-        device_type_ids: Optional device type ids to scope tags.
-        sensor_types: Optional sensor types to include.
-    """
-    supported_sensor_types = [
-        SensorType.PV_PCS_STATUS,
-        SensorType.PV_PCS_MODULE_STATUS,
-        SensorType.TRACKER_ZONE_STATUS,
-        SensorType.TRACKER_ROW_STATUS,
-        SensorType.BESS_PCS_MODULE_STATUS,
-        SensorType.BESS_PCS_MODULE_ALARM,
-        SensorType.BESS_PCS_STATUS,
-        SensorType.BESS_BANK_STATUS,
-        SensorType.BESS_STRING_STATUS,
-    ]
-
-    if sensor_types is not None:
-        if not set(sensor_types).issubset(supported_sensor_types):
-            unsupported_sensor_types = set(sensor_types) - set(supported_sensor_types)
-            raise ValueError(f"Unsupported sensor types: {unsupported_sensor_types}")
-    else:
-        sensor_types = supported_sensor_types
-
-    status_sensor_type_ids = SensorType.extract_values(enum_list=sensor_types)
-
-    if device_ids is not None:
-        device_ids = list(set(device_ids))
-        tags_model_list = core.crud.project.tags.get_project_tags(
-            project_db,
-            device_ids=device_ids,
-            sensor_type_ids=status_sensor_type_ids,
-            deep=True,
-        )
-    elif tag_ids is not None:
-        tags_model_list = core.crud.project.tags.get_project_tags(
-            project_db,
-            tag_ids=tag_ids,
-            sensor_type_ids=status_sensor_type_ids,
-            deep=True,
-        )
-    elif device_type_ids is not None:
-        device_type_ids = list(set(device_type_ids))
-        tags_model_list = core.crud.project.tags.get_project_tags(
-            project_db,
-            device_type_ids=device_type_ids,
-            sensor_type_ids=status_sensor_type_ids,
-            deep=True,
-        )
-    else:
-        tags_model_list = core.crud.project.tags.get_project_tags(
-            project_db,
-            sensor_type_ids=status_sensor_type_ids,
-            deep=True,
-        )
-    tags = tags_model_list.pandas_dataframe(index="tag_id")
-    tags = tags[~pd.isna(tags["status_lookup_id"])]
-
-    # Early return if no tags with status_lookup_id
-    if tags.empty:
-        # Create empty DataFrame with time column matching successful format
-        try:
-            time_index = pd.date_range(
-                pd.Timestamp(start).tz_convert(project.time_zone),
-                pd.Timestamp(end).tz_convert(project.time_zone),
-                freq="5min",
-            )
-        except Exception:
-            time_index = pd.date_range(
-                pd.Timestamp(start).tz_localize(project.time_zone),
-                pd.Timestamp(end).tz_localize(project.time_zone),
-                freq="5min",
-            )
-        empty_df = pd.DataFrame({"time": time_index})
-        return empty_df.to_dict(orient="records")
-
-    data_timeseries = DataTimeseries(
-        project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=tags.index.tolist(),
-        query_start=pd.Timestamp(start).to_pydatetime(),
-        query_end=pd.Timestamp(end).to_pydatetime(),
-        freq=TimeInterval.FIVE_MINUTES,
-        max_lookback_period=TimeOffset.NONE,
-        ensure_full_range=True,
-        project_db=project_db,
-    )
-    data = await data_timeseries.get()
-    data_to_df = data.df.to_pandas()
-
-    if data_to_df.empty:
-        # Create empty DataFrame with time column matching successful format
-        time_index = pd.date_range(
-            pd.Timestamp(start).tz_convert(project.time_zone),
-            pd.Timestamp(end).tz_convert(project.time_zone),
-            freq="5min",
-        )
-        empty_df = pd.DataFrame({"time": time_index})
-        return empty_df.to_dict(orient="records")
-
-    data_to_df = data_to_df.set_index("time", drop=True)
-    data_to_df.columns = data_to_df.columns.astype(int)
-    # Forward fill, normalize hex string values, then convert to nullable Int32
-    data_to_df = data_to_df.ffill()
-
-    def _maybe_hex(value):  # nosemgrep: python-enforce-keyword-only-args
-        """Convert hex string values to integers when possible.
-
-        Args:
-            value: Raw value from the dataframe cell.
-        """
-        if isinstance(value, str):
-            trimmed = value.strip().lower()
-            if trimmed.startswith("0x"):
-                try:
-                    return int(trimmed, 16)
-                except ValueError:
-                    return value
-        return value
-
-    for column in data_to_df.columns:
-        data_to_df[column] = data_to_df[column].map(_maybe_hex)
-    data_to_df = data_to_df.astype("Int32")
-    df_timeseries = data_to_df.copy()
-
-    # Create full time range index for alignment
-    start = pd.Timestamp(start)
-    if start.tzinfo is None:
-        start = start.tz_localize(project.time_zone)
-    else:
-        start = start.tz_convert(project.time_zone)
-    end = pd.Timestamp(end)
-    if end.tzinfo is None:
-        end = end.tz_localize(project.time_zone)
-    else:
-        end = end.tz_convert(project.time_zone)
-    time_index = pd.date_range(
-        start,
-        end,
-        freq="5min",
-    )
-
-    # Reindex df_timeseries to full time range and forward-fill for MQTT
-    df_timeseries = df_timeseries.reindex(time_index).ffill()
-
-    # Handle empty df_timeseries or no columns
-    if df_timeseries.empty or len(df_timeseries.columns) == 0:
-        empty_df = pd.DataFrame({"time": time_index})
-        return empty_df.to_dict(orient="records")
-
-    keys, vals = [], []
-    for col in df_timeseries.columns:
-        v = df_timeseries[col].dropna().unique()
-        keys.extend([col] * len(v))
-        try:
-            vals.extend(v.astype(int).tolist())
-        except ValueError:
-            v = np.array([int(val, 16) for val in v])
-            vals.extend(v.astype(int).tolist())
-
-    # Handle case where no keys/vals found
-    if not keys or not vals:
-        empty_df = pd.DataFrame({"time": time_index})
-        return empty_df.to_dict(orient="records")
-
-    status_interpret = await get_status_interpret_async(
-        db=db,
-        project_db=project_db,
-        status_tags=[int(k) for k in keys],
-        status_values=vals,
-    )
-
-    lookup = {
-        (d["tag"], int(d["value"]) if isinstance(d["value"], float) else d["value"]): d[
-            "failure_mode_id"
-        ]
-        for d in status_interpret
-    }
-
-    def map_status(col):  # nosemgrep: python-enforce-keyword-only-args
-        """Map status values to failure mode ids for a column.
-
-        Args:
-            col: Series of status values for a tag.
-        """
-        tag = col.name
-        return col.map(
-            lambda x: lookup.get((tag, x), np.nan) if pd.notnull(x) else np.nan
-        )
-
-    status_failure_mode_df = df_timeseries.apply(map_status).astype("Int64")
-    status_failure_mode_df = status_failure_mode_df.reset_index(drop=False)
-    status_failure_mode_df = status_failure_mode_df.astype(object).where(
-        pd.notnull(status_failure_mode_df), None
-    )
-
-    # Final check - if DataFrame is empty, return empty structure with time column
-    if status_failure_mode_df.empty:
-        empty_df = pd.DataFrame({"time": time_index})
-        return empty_df.to_dict(orient="records")
-
-    return status_failure_mode_df.to_dict(orient="records")
 
 
 ########################################################

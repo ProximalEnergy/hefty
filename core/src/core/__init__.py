@@ -1,6 +1,6 @@
-from . import crud, dependencies, enumerations, utils
+from . import crud, dependencies, domain, enumerations, utils
 
-__all__ = ["crud", "dependencies", "enumerations", "utils"]
+__all__ = ["crud", "dependencies", "domain", "enumerations", "utils"]
 
 
 def main() -> str:

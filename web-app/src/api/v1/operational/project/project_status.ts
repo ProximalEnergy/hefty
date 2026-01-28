@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const _COMPONENT_NAME = 'StatusTimeSeries'
-const URL = '/v1/operational/projects/{project_id}/status/time-series'
+const URL = '/v1/operational/projects/{project_id}/status/time-series-js'
 
 type StatusTimeSeries = types.components['schemas'][typeof _COMPONENT_NAME]
 type get = types.paths[typeof URL]['get']

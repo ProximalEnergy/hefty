@@ -3388,40 +3388,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/status/time-series": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Status Time Series
-         * @description sensor_types: list[SensorType] | None = None
-         *         Only queries statuses for the provided sensor types.
-         *         However, the provided list must be a subset of the supported sensor types.
-         *         If not provided, all supported sensor types will be used.
-         *
-         *     Args:
-         *         db: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         sensor_types: TODO: describe.
-         */
-        get: operations["get_status_time_series_v1_operational_projects__project_id__status_time_series_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/status/time-series-python": {
         parameters: {
             query?: never;
@@ -3431,6 +3397,7 @@ export interface paths {
         };
         /**
          * Get Status Time Series Python
+         * @deprecated
          * @description todo
          *
          *     Args:
@@ -3498,6 +3465,43 @@ export interface paths {
          *         If False, return all statuses. WARNING: False may return a lot of data.
          */
         get: operations["get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/status/time-series-js": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Status Time Series Js
+         * @description Returns the time series of statuses for the project, optimized for frontend display.
+         *     Returns data in the form:
+         *     [
+         *         {
+         *             "x": ...,
+         *             "y": ...,
+         *             "name": ...,
+         *             "alert": ...,
+         *             "tag_id": ...,
+         *         },
+         *     ]
+         *
+         *     Args:
+         *         project_db: The project database session.
+         *         project: The project to get statuses for.
+         *         device_ids: List of device IDs to filter statuses by.
+         *         start: The start time to get statuses for.
+         *         end: The end time to get statuses for.
+         */
+        get: operations["get_status_time_series_js_v1_operational_projects__project_id__status_time_series_js_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -16288,50 +16292,6 @@ export interface operations {
             };
         };
     };
-    get_status_time_series_v1_operational_projects__project_id__status_time_series_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                device_ids?: number[] | null;
-                tag_ids?: number[] | null;
-                device_type_ids?: number[] | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["core__enumerations__SensorType"][] | null;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StatusTimeSeries"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get: {
         parameters: {
             query: {
@@ -16404,6 +16364,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeviceStatus"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_status_time_series_js_v1_operational_projects__project_id__status_time_series_js_get: {
+        parameters: {
+            query: {
+                device_ids: number[];
+                start: string;
+                end: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusTimeSeries"][];
                 };
             };
             /** @description Validation Error */

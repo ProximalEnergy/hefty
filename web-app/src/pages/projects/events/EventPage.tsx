@@ -75,6 +75,13 @@ interface RootCause {
   name_full?: string
 }
 
+interface StatusTimeSeriesTrace {
+  alert?: (boolean | null)[]
+  name?: string | null
+  x: string[]
+  y: (string | null)[]
+}
+
 // Utility function for string hashing
 function stringToInt(str: string) {
   let hash = 0
@@ -340,10 +347,13 @@ const useEventTraces = (
     queryOptions: { enabled: !!eventTraceTags?.length },
   })
 
+  const deviceIds = eventTraceTags?.map((tag) => tag.device_id ?? -1) ?? []
+  const uniqueDeviceIds = Array.from(new Set(deviceIds))
+
   const statusTimeSeries = useGetStatusTimeSeries({
     pathParams: { project_id: projectId || '-1' },
     queryParams: {
-      device_ids: eventTraceTags?.map((tag) => tag.device_id || -1) || [],
+      device_ids: uniqueDeviceIds,
       start: traceStart.toISOString(),
       end: traceEnd.toISOString(),
     },
@@ -700,7 +710,8 @@ const Page = () => {
   }
 
   // Filter out traces with all null or empty object values
-  const validTraces = (statusTimeSeries.data || [])
+  const statusTraces = (statusTimeSeries.data ?? []) as StatusTimeSeriesTrace[]
+  const validTraces = statusTraces
     .filter((trace) =>
       trace.y.some((value) => value !== null && value !== '{}'),
     )
@@ -710,7 +721,7 @@ const Page = () => {
   const uniqueY = Array.from(
     new Set(
       validTraces.flatMap((trace) =>
-        trace.y.filter((_, idx) => trace.alert?.[idx]),
+        trace.y.filter((_value, idx) => Boolean(trace.alert?.[idx])),
       ),
     ),
   )
@@ -723,10 +734,10 @@ const Page = () => {
   } = {
     uniqueY,
     x: validTraces[0]?.x || [],
-    y: validTraces.map((trace) => trace.name) || [],
+    y: validTraces.map((trace) => trace.name ?? 'Unknown') || [],
     z:
       validTraces.map((trace) =>
-        trace.alert.map((isAlert) => (isAlert ? 1 : 0)),
+        (trace.alert ?? []).map((isAlert) => (isAlert ? 1 : 0)),
       ) || [],
   }
   const hasStatus = validTraces.length > 0
@@ -755,7 +766,7 @@ const Page = () => {
     new Set(
       eventTraceTags.data
         ?.filter((tag) => !tag.name_scada.includes('status'))
-        .map((tag) => tag.sensor_type?.unit ?? '') || [],
+        .map((tag) => tag.sensor_type_unit ?? '') || [],
     ),
   ).sort((a, b) => {
     // Move empty string to the end
@@ -898,7 +909,7 @@ const Page = () => {
                       return acc
                     }
 
-                    const unit = tag?.sensor_type?.unit ?? ''
+                    const unit = tag?.sensor_type_unit ?? ''
                     const unitIndex = stringToInt(unit)
                     if (!acc[unitIndex]) {
                       acc[unitIndex] = []
@@ -912,12 +923,12 @@ const Page = () => {
                         event?.device?.device_type_id ===
                         DeviceTypeEnum.TRACKER_ZONE
                           ? 'Average ' +
-                            tag?.sensor_type?.name_long +
+                            tag?.sensor_type_name_long +
                             ' ' +
                             event?.device?.name_long
-                          : tag?.sensor_type?.name_long +
+                          : tag?.sensor_type_name_long +
                             ' ' +
-                            tag?.device?.name_long,
+                            tag?.device_name_long,
                       type: 'scatter' as const,
                       line: {
                         color: unitColorMap[unit] || traceColorsArray[0],
@@ -1030,7 +1041,7 @@ const Page = () => {
                             ?.filter(
                               (tag) => !tag.name_scada.includes('status'),
                             )
-                            .map((tag) => tag.sensor_type?.unit ?? '') || [],
+                            .map((tag) => tag.sensor_type_unit ?? '') || [],
                         ),
                       ).filter((unit) => unit !== '')
 
@@ -1055,7 +1066,7 @@ const Page = () => {
                       new Set(
                         eventTraceTags.data
                           ?.filter((tag) => !tag.name_scada.includes('status'))
-                          .map((tag) => tag.sensor_type?.unit ?? '') || [],
+                          .map((tag) => tag.sensor_type_unit ?? '') || [],
                       ),
                     ).filter((unit) => unit !== '')
 
@@ -1085,7 +1096,7 @@ const Page = () => {
                     new Set(
                       eventTraceTags.data
                         ?.filter((tag) => !tag.name_scada.includes('status'))
-                        .map((tag) => tag.sensor_type?.unit ?? '') || [],
+                        .map((tag) => tag.sensor_type_unit ?? '') || [],
                     ),
                   ).filter((unit) => unit !== '') // Filter out empty units
 
