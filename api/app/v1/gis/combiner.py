@@ -130,7 +130,7 @@ async def get_combiner_block_performance(
                 "block_name": device_block["name_long"],
                 "max_current": max_current,
             },
-            "geometry": device.get("polygon"),
+            "geometry": interfaces.convert(WKBElement=device.get("polygon")),
         }
         for device in devices_combiner_df.to_dict("records")
     ]

@@ -2,9 +2,10 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
-from app import dependencies, logger
+from app import dependencies, interfaces, logger
 from app.utils import get_include_in_schema
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -26,6 +27,8 @@ async def validate_combiner_data(
     device_ids: Annotated[list[int] | None, Query()] = None,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
+    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),  # noqa: ARG001
+    _access: None = Depends(dependencies.check_project_access_async),
 ):
     """This function is used in combiner swaps functionality to figure out
         if there is enough good combiner data.
@@ -36,6 +39,8 @@ async def validate_combiner_data(
         device_ids: TODO: describe.
         project: TODO: describe.
         project_db: TODO: describe.
+        user_data: TODO: describe.
+        _access: TODO: describe.
     """
     try:
         # Validate start and end times
@@ -54,24 +59,25 @@ async def validate_combiner_data(
         combiner_device_ids = [int(x) for x in device_ids]
 
         # Get combiner current tags
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+        tags = await core.crud.project.tags.get_project_tags_v2(
             sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
             device_ids=combiner_device_ids,
-        ).models()
+        ).get_async(
+            schema=project.name_short,
+            output_type=OutputType.POLARS,
+        )
 
-        if not tags:
+        if tags.is_empty():
             return {
                 "isValid": False,
                 "message": "No tags found for the specified device IDs",
             }
-
         # Get time series data
         try:
             data_timeseries_instance = await DataTimeseries(
                 project_name_short=project.name_short,
-                filter_method=FilterMethod.TAG_IDS,
-                filter_values=[t.tag_id for t in tags],
+                filter_method=FilterMethod.TAG_POLARS,
+                filter_values=tags,
                 query_start=start,
                 query_end=end,
                 project_db=project_db,

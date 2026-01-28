@@ -3802,6 +3802,8 @@ export interface paths {
          *         device_ids: TODO: describe.
          *         project: TODO: describe.
          *         project_db: TODO: describe.
+         *         user_data: TODO: describe.
+         *         _access: TODO: describe.
          */
         get: operations["validate_combiner_data_v1_operational_projects__project_id__qc_combiner_swaps_validate_combiner_data_get"];
         put?: never;
