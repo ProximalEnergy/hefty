@@ -768,15 +768,20 @@ async def get_uptime(
 
     if project.project_type_id != ProjectType.BESS:
         # Get POA data efficiently for daylight hours calculation
-        tags = core.crud.project.tags.get_project_tags(
-            db=project_db,
+        tags_df = await core.crud.project.tags.get_project_tags_v2(
             sensor_type_ids=[SensorType.MET_STATION_POA],
-        ).models()
+        ).get_async(
+            schema=project.name_short,
+            output_type=OutputType.POLARS,
+        )
+        if tags_df is None or tags_df.is_empty():
+            return []
+        tag_ids = tags_df.get_column("tag_id").to_list()
 
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=[t.tag_id for t in tags],
+            filter_values=tag_ids,
             query_start=start,
             query_end=end,
             project_db=project_db,
