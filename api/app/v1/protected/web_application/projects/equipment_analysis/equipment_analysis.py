@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+import polars as pl
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.events import get_project_events
 from core.db_query import OutputType
@@ -191,7 +192,6 @@ async def get_equipment_analysis_pcs(
 
 @router.get("/heatmap/{sensor_type_name_short}", response_class=ORJSONResponse)
 async def get_heatmap(
-    *,
     sensor_type_name_short: str,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -209,19 +209,27 @@ async def get_heatmap(
         agg: TODO: describe.
         fillna_zero: TODO: describe.
     """
-    tags = core.crud.project.tags.get_project_tags(
-        project_db,
+    project_schema = utils.get_project_schema(project_db=project_db)
+    tags_query = core.crud.project.tags.get_project_tags_v2(
         sensor_type_name_shorts=[sensor_type_name_short],
         deep=False,
-    ).models()
+    )
+    tags_df = await tags_query.get_async(
+        output_type=OutputType.POLARS,
+        schema=project_schema,
+    )
 
-    if len(tags) == 0:
-        tags = core.crud.project.tags.get_project_tags(
-            project_db,
+    if tags_df.is_empty():
+        fallback_query = core.crud.project.tags.get_project_tags_v2(
             sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
-        ).models()
+            deep=False,
+        )
+        tags_df = await fallback_query.get_async(
+            output_type=OutputType.POLARS,
+            schema=project_schema,
+        )
 
-    if len(tags) == 0:
+    if tags_df.is_empty():
         raise HTTPException(status_code=404, detail="No tags found")
 
     if start is None:
@@ -231,8 +239,8 @@ async def get_heatmap(
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_df,
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -243,20 +251,24 @@ async def get_heatmap(
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
     df.columns = df.columns.astype(int)
 
-    device_ids = [tag.device_id for tag in tags]
-    project_schema = utils.get_project_schema(project_db=project_db)
+    device_ids = [
+        int(device_id) for device_id in tags_df["device_id"].drop_nulls().to_list()
+    ]
     devices_df = await core.crud.project.devices.get_project_devices(
         device_ids=device_ids,
-    ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+    ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
     device_id_to_name_long = dict(
         zip(
-            devices_df["device_id"].astype(int),
-            devices_df["name_long"].fillna(""),
+            devices_df["device_id"].cast(pl.Int64).to_list(),
+            devices_df["name_long"].fill_null("").to_list(),
         )
     )
+    tag_ids = tags_df["tag_id"].to_list()
+    tag_device_ids = tags_df["device_id"].to_list()
     tag_id_to_device_name_long = {
-        tag.tag_id: device_id_to_name_long[tag.device_id] for tag in tags
+        tag_id: device_id_to_name_long.get(tag_device_id, "")
+        for tag_id, tag_device_id in zip(tag_ids, tag_device_ids, strict=True)
     }
 
     columns = df.columns.astype(int).tolist()
