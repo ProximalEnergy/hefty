@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 import numpy as np
 import pandas as pd
@@ -23,12 +24,13 @@ router = APIRouter(
 
 
 @router.get(
-    "/{project_id}/{block_device_id}",  # noqa: FAST003
+    "/{project_id}/{block_device_id}",
     response_model=interfaces.GeoJSON,
     response_class=ORJSONResponse,
 )
 async def get_combiner_block_performance(
     *,
+    project_id: UUID,
     block_device_id: int,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -37,10 +39,12 @@ async def get_combiner_block_performance(
     """todo
 
     Args:
+        project_id: TODO: describe.
         block_device_id: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
     """
+    _ = project_id
     end = pd.Timestamp.utcnow().floor("5min")
     start = end - pd.Timedelta(minutes=30)
 

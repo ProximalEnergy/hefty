@@ -1342,6 +1342,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
+         *         project_id: TODO: describe.
          *         block_device_id: TODO: describe.
          *         project_db: TODO: describe.
          *         project: TODO: describe.
@@ -3948,6 +3949,7 @@ export interface paths {
          *         Even though project_id is in the path, categories are currently global.
          *
          *     Args:
+         *         project_id: TODO: describe.
          *         db: TODO: describe.
          *         skip: TODO: describe.
          *         limit: TODO: describe.
@@ -4009,6 +4011,7 @@ export interface paths {
          * @description Update a calendar item.
          *
          *     Args:
+         *         project_id: The unique identifier of the project.
          *         calendar_item_id: TODO: describe.
          *         item: TODO: describe.
          *         db: TODO: describe.
@@ -4021,6 +4024,7 @@ export interface paths {
          * @description Delete a calendar item by its ID.
          *
          *     Args:
+         *         project_id: The unique identifier of the project.
          *         calendar_item_id: TODO: describe.
          *         db: TODO: describe.
          */
@@ -13376,8 +13380,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                block_device_id: number;
                 project_id: string;
+                block_device_id: number;
             };
             cookie?: never;
         };
@@ -17152,8 +17156,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                calendar_item_id: string;
                 project_id: string;
+                calendar_item_id: string;
             };
             cookie?: never;
         };
@@ -17191,8 +17195,8 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                calendar_item_id: string;
                 project_id: string;
+                calendar_item_id: string;
             };
             cookie?: never;
         };

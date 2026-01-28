@@ -30,10 +30,11 @@ router = APIRouter(dependencies=[Depends(dependencies.check_project_access_async
 
 
 @router.get(
-    "/projects/{project_id}/calendar-item-categories",  # noqa: FAST003
+    "/projects/{project_id}/calendar-item-categories",
     response_model=list[CalendarItemCategory],
 )
 async def read_calendar_item_categories(
+    project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
     skip: int = 0,
     limit: int = 100,
@@ -42,10 +43,12 @@ async def read_calendar_item_categories(
         Even though project_id is in the path, categories are currently global.
 
     Args:
+        project_id: TODO: describe.
         db: TODO: describe.
         skip: TODO: describe.
         limit: TODO: describe.
     """
+    _ = project_id
     categories = await get_calendar_item_categories(db=db, skip=skip, limit=limit)
     return categories
 
@@ -157,10 +160,11 @@ async def get_calendar_items(
 
 
 @router.put(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}",  # noqa: FAST003
+    "/projects/{project_id}/calendar-events/{calendar_item_id}",
     response_model=CalendarItem,
 )
 async def update_calendar_item_endpoint(
+    project_id: uuid.UUID,
     calendar_item_id: uuid.UUID,
     item: CalendarItemCreate,
     db: AsyncSession = Depends(dependencies.get_async_db),
@@ -169,11 +173,13 @@ async def update_calendar_item_endpoint(
     """Update a calendar item.
 
     Args:
+        project_id: The unique identifier of the project.
         calendar_item_id: TODO: describe.
         item: TODO: describe.
         db: TODO: describe.
         user_data: TODO: describe.
     """
+    _ = project_id
     # Verify the item exists and belongs to the user's company
     existing_query = select(models.CalendarItem).where(
         models.CalendarItem.calendar_item_id == calendar_item_id,
@@ -195,19 +201,22 @@ async def update_calendar_item_endpoint(
 
 
 @router.delete(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}",  # noqa: FAST003
+    "/projects/{project_id}/calendar-events/{calendar_item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_calendar_item_endpoint(
+    project_id: uuid.UUID,
     calendar_item_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
 ):
     """Delete a calendar item by its ID.
 
     Args:
+        project_id: The unique identifier of the project.
         calendar_item_id: TODO: describe.
         db: TODO: describe.
     """
+    _ = project_id
     # Optional: Add ownership/permission check here using project_id and
     # user_data if necessary before allowing deletion. For now, we assume
     # if they have access to delete, it's fine.
