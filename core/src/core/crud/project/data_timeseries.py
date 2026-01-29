@@ -7,7 +7,6 @@ from typing import Any, Literal, overload
 from zoneinfo import ZoneInfo
 
 import clickhouse_connect
-import numpy as np
 import pandas as pd
 import polars as pl
 from polars.datatypes import Boolean, String
@@ -54,6 +53,15 @@ PG_DATA_TYPE_ID_TO_VALUE_COL: dict[int, str] = {
     6: "value_text",
 }
 
+VALUE_COL_TO_DTYPE: dict[str, pl.DataType] = {
+    "value_integer": pl.Float64(),
+    "value_bigint": pl.Float64(),
+    "value_real": pl.Float64(),
+    "value_double": pl.Float64(),
+    "value_boolean": pl.Boolean(),
+    "value_text": pl.Utf8(),
+}
+
 
 @dataclass(slots=True, init=False)
 class DataTimeseries:
@@ -83,6 +91,7 @@ class DataTimeseries:
     _data_cagg_interval: str | None = None
     _project_id_int: int = 0
     _database_provider: ProjectDatabaseProvider | None = None
+    _tag_dtype_by_id: dict[int, pl.DataType] = field(default_factory=dict)
 
     # Public fields (set during execution)
     df: pl.DataFrame = field(default_factory=pl.DataFrame)
@@ -215,21 +224,10 @@ class DataTimeseries:
             hasattr(self, "_tag_ids") and len(self._tag_ids) == 0
         ):
             warnings.warn("No tag_ids found, returning empty DataFrame")
-            # Construct an empty DataFrame with just a "time" column of correct type
-            self.df = pl.DataFrame(
-                {
-                    "time": pl.Series(
-                        name="time",
-                        values=[],
-                        dtype=pl.Datetime(
-                            "us",
-                            time_zone=self._time_zone
-                            if hasattr(self, "_time_zone")
-                            else None,
-                        ),
-                    )
-                }
-            )
+            if self.ensure_full_range:
+                self.df = self._build_full_range_frame(time_col="time")
+            else:
+                self.df = self._empty_time_frame(time_col="time")
             return self
 
         # Step 5: Execute query based on database provider
@@ -404,32 +402,17 @@ class DataTimeseries:
 
         # Step 3: Identify time column name (handles both 'time' and 'time_bucket')
         # Result: String with column name to use for time operations
-        time_col = "time" if "time" in df.columns else "time_bucket"
+        time_col = self._get_time_column(df=df)
+        df = self._ensure_time_column(df=df, time_col=time_col)
 
         # Step 4: Ensure full time range coverage if requested
         # Result: DataFrame with rows for every timestamp in [query_start, query_end)
-        if self.ensure_full_range and len(df) > 0:
-            # Step 4a: Create complete time range using pandas date_range
-            # Result: DatetimeIndex with all timestamps at the specified frequency
-            interval_td = pd.Timedelta(self.freq.value).to_pytimedelta()
+        if self.ensure_full_range:
+            # Step 4a: Build complete time range DataFrame
+            full_range_df = self._build_full_range_frame(time_col=time_col)
 
-            full_range = pl.datetime_range(
-                start=self.query_start,
-                end=self.query_end,
-                interval=interval_td,
-                closed="left",
-                eager=True,
-            )
-
-            # Step 4b: Convert to Polars DataFrame and normalize time unit
-            # Result: DataFrame with time column in microseconds (matching df format)
-            full_range_df = pl.DataFrame({time_col: full_range}).with_columns(
-                pl.col(time_col).dt.cast_time_unit("us")
-            )
-
-            # Step 4c: Normalize df time column to microseconds for join compatibility
-            # Result: df time column now in microseconds
-            df = df.with_columns(pl.col(time_col).dt.cast_time_unit("us"))
+            # Step 4b: Normalize df time column for join compatibility
+            df = self._normalize_time_column(df=df, time_col=time_col)
 
             # Step 4d: Left join full_range with df to fill gaps
             # Result: DataFrame with all timestamps, null values where data is missing
@@ -489,6 +472,8 @@ class DataTimeseries:
         # Purpose: Fill missing values by carrying last known value forward
         # BUT don't fill future timestamps (beyond "now")
 
+        df = self._normalize_time_column(df=df, time_col=time_col)
+
         # Step 6a: Get current time in project timezone for comparison
         now = datetime.now(ZoneInfo(self._time_zone))
 
@@ -510,6 +495,7 @@ class DataTimeseries:
             ]
         )
 
+        df = self._ensure_tag_columns(df=df, time_col=time_col)
         return df, page_limit_reached
 
     # -- TIMESCALE HELPERS -- #
@@ -962,6 +948,7 @@ class DataTimeseries:
 
                 self._tag_ids = self.filter_values["tag_id"].to_list()
                 self._tags_lut = self.filter_values
+                self._tag_dtype_by_id = {}
                 return
 
         # Step 3: Validate that we have either tag_ids or sensor_type_ids
@@ -993,6 +980,7 @@ class DataTimeseries:
         # - self._tags_lut: Lookup table with tag metadata for unit scaling/offset
         self._tag_ids = tags["tag_id"].to_list()
         self._tags_lut = tags
+        self._tag_dtype_by_id = {}
 
     async def _load_project_details(self) -> None:
         """Load project details from database and store in instance.
@@ -1194,7 +1182,12 @@ class DataTimeseries:
         # Result: List of column names that contain actual data values
         value_cols = [c for c in df.columns if c.startswith("value_")]
         if not value_cols:
-            return df.select("time").unique().sort("time")
+            time_col = self._get_time_column(df=df)
+            if time_col in df.columns:
+                times = df.select(time_col).unique().sort(time_col)
+            else:
+                times = self._empty_time_frame(time_col=time_col)
+            return self._ensure_tag_columns(df=times, time_col=time_col)
 
         # Step 2: Create lookup table for value column ordering
         # Purpose: Maintains priority order when a tag could match multiple value
@@ -1365,7 +1358,7 @@ class DataTimeseries:
         # Step 13b: Handle edge case - empty dataframe or null time column
         # Result: Return early with just time column if no data exists
         if times.is_empty() or isinstance(times.schema["time"], pl.Null):
-            return times
+            return self._ensure_tag_columns(df=times, time_col="time")
 
         # Step 13c: Normalize time format of base times DataFrame
         # Result: times DataFrame with time column in canonical format
@@ -1396,31 +1389,132 @@ class DataTimeseries:
         # data
         # Purpose: Guarantees consistent output structure - all requested tags present
 
-        # Step 15a: Get all tag IDs that were requested
-        # Result: Set of all tag IDs from tags_lut
+        return self._ensure_tag_columns(df=wide, time_col="time")
+
+    def _ensure_tag_columns(
+        self,
+        *,
+        df: pl.DataFrame,
+        time_col: str,
+    ) -> pl.DataFrame:
+        """Ensure all requested tag_ids exist as columns.
+
+        Args:
+            df: DataFrame to update.
+            time_col: Name of the time column to exclude from tag checks.
+        """
         requested_tag_ids = set(self._tag_ids)
+        tag_dtype_by_id = self._get_tag_dtype_by_id()
 
-        # Step 15b: Extract existing tag column names (convert to integers)
-        # Result: Set of tag IDs that already exist as columns in wide DataFrame
         existing_tag_cols = set()
-        for col in wide.columns:
-            if col != "time":
-                try:
-                    existing_tag_cols.add(int(col))
-                except (ValueError, TypeError):
-                    pass
+        for col in df.columns:
+            if col == time_col:
+                continue
+            try:
+                tag_id = int(col)
+                existing_tag_cols.add(tag_id)
+            except (ValueError, TypeError):
+                continue
+            col_dtype = df.schema[col]
+            if isinstance(col_dtype, pl.Null):
+                dtype = tag_dtype_by_id.get(tag_id)
+                if dtype is not None:
+                    df = df.with_columns(pl.col(col).cast(dtype).alias(col))
 
-        # Step 15c: Find tags that are missing (requested but no data)
-        # Result: Set of tag IDs that need null columns added
         missing_tag_ids = requested_tag_ids - existing_tag_cols
+        for tag_id in sorted(missing_tag_ids):
+            dtype = tag_dtype_by_id.get(tag_id)
+            if dtype is None:
+                df = df.with_columns(pl.lit(None).alias(str(tag_id)))
+            else:
+                df = df.with_columns(pl.lit(None).cast(dtype).alias(str(tag_id)))
+        return df
 
-        # Step 15d: Add null columns for missing tags
-        # Result: DataFrame with all requested tags as columns (some may be all null)
-        if missing_tag_ids:
-            for tag_id in sorted(missing_tag_ids):
-                wide = wide.with_columns(pl.lit(np.nan).alias(str(tag_id)))
+    @staticmethod
+    def _get_time_column(*, df: pl.DataFrame) -> str:
+        """Get the time column name from a DataFrame.
 
-        return wide
+        Args:
+            df: DataFrame to inspect.
+        """
+        if "time" in df.columns:
+            return "time"
+        if "time_bucket" in df.columns:
+            return "time_bucket"
+        return "time"
+
+    def _ensure_time_column(self, *, df: pl.DataFrame, time_col: str) -> pl.DataFrame:
+        if time_col not in df.columns:
+            df = self._empty_time_frame(time_col=time_col)
+        return self._normalize_time_column(df=df, time_col=time_col)
+
+    def _normalize_time_column(
+        self,
+        *,
+        df: pl.DataFrame,
+        time_col: str,
+    ) -> pl.DataFrame:
+        time_dtype = df.schema[time_col]
+        if isinstance(time_dtype, pl.Null):
+            return df.with_columns(
+                pl.lit(None)
+                .cast(pl.Datetime(time_unit="us", time_zone=self._time_zone))
+                .alias(time_col)
+            )
+        if not isinstance(time_dtype, pl.Datetime):
+            return df
+        if time_dtype.time_unit != "us":
+            df = df.with_columns(pl.col(time_col).dt.cast_time_unit("us"))
+        if time_dtype.time_zone is None:
+            return df.with_columns(
+                pl.col(time_col).dt.replace_time_zone(self._time_zone)
+            )
+        if time_dtype.time_zone != self._time_zone:
+            return df.with_columns(
+                pl.col(time_col).dt.convert_time_zone(self._time_zone)
+            )
+        return df
+
+    def _build_full_range_frame(self, *, time_col: str) -> pl.DataFrame:
+        interval_td = pd.Timedelta(self.freq.value).to_pytimedelta()
+        full_range = pl.datetime_range(
+            start=self.query_start,
+            end=self.query_end,
+            interval=interval_td,
+            closed="left",
+            eager=True,
+        )
+        full_range_df = pl.DataFrame({time_col: full_range})
+        return self._normalize_time_column(
+            df=full_range_df,
+            time_col=time_col,
+        )
+
+    def _empty_time_frame(self, *, time_col: str) -> pl.DataFrame:
+        """Build an empty time-only DataFrame with the project timezone.
+
+        Args:
+            time_col: Name for the time column.
+        """
+        time_dtype = pl.Datetime(time_unit="us", time_zone=self._time_zone)
+        return pl.DataFrame({time_col: pl.Series(time_col, [], dtype=time_dtype)})
+
+    def _get_tag_dtype_by_id(self) -> dict[int, pl.DataType]:
+        if self._tag_dtype_by_id:
+            return self._tag_dtype_by_id
+        if "pg_data_type_id" not in self._tags_lut.columns:
+            return {}
+        tag_dtype_by_id: dict[int, pl.DataType] = {}
+        for row in self._tags_lut.select(["tag_id", "pg_data_type_id"]).to_dicts():
+            value_col = PG_DATA_TYPE_ID_TO_VALUE_COL.get(row["pg_data_type_id"])
+            if value_col is None:
+                continue
+            dtype = VALUE_COL_TO_DTYPE.get(value_col)
+            if dtype is None:
+                continue
+            tag_dtype_by_id[int(row["tag_id"])] = dtype
+        self._tag_dtype_by_id = tag_dtype_by_id
+        return tag_dtype_by_id
 
     def _canon_time(self, df_part: pl.DataFrame, *, like: pl.DataFrame) -> pl.DataFrame:
         """Make df_part['time'] exactly match like['time'] in unit and timezone.
