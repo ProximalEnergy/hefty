@@ -9,6 +9,13 @@ export const AggregationMethodEnum = {
 export const BaseIntEnumEnum = {
 } as const;
 
+export const ClaimSubmissionChannelEnum = {
+  EMAIL: "email",
+  PORTAL: "portal",
+  HYBRID: "hybrid",
+  UNKNOWN: "unknown",
+} as const;
+
 export const ComponentTypeEnum = {
   BAR: 1,
   GAUGE: 2,

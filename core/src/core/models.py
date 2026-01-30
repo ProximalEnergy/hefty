@@ -57,6 +57,13 @@ notification_state_enum = Enum(
     metadata=Base.metadata,
 )
 
+claim_submission_channel_enum = Enum(
+    enumerations.ClaimSubmissionChannel,
+    name="claimsubmissionchannel",
+    schema="operational",
+    metadata=Base.metadata,
+)
+
 
 ##### START ADMIN SCHEMA #####
 # NOTE: Every model in the admin schema must specify
@@ -622,6 +629,42 @@ class ContractKPI(Base):
     contract = relationship("Contract", back_populates="contract_kpis")
     # Add the relationship to KPIType
     kpi_type = relationship("KPIType")
+
+    __table_args__ = {"schema": "operational"}
+
+
+class ClaimConfig(Base):
+    __tablename__ = "claim_configs"
+
+    claim_config_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    submitter_company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        sa.ForeignKey("admin.companies.company_id"),
+    )
+    counterparty_company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        sa.ForeignKey("admin.companies.company_id"),
+    )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        sa.ForeignKey("operational.projects.project_id"),
+        nullable=True,
+    )
+    default_submission_channel: Mapped[enumerations.ClaimSubmissionChannel] = (
+        mapped_column(claim_submission_channel_enum)
+    )
+    default_contact: Mapped[str | None]
+    portal_url: Mapped[str | None]
+
+    submitter_company = relationship("Company", foreign_keys=[submitter_company_id])
+    counterparty_company = relationship(
+        "Company",
+        foreign_keys=[counterparty_company_id],
+    )
+    project = relationship("Project")
 
     __table_args__ = {"schema": "operational"}
 

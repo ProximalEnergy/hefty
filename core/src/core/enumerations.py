@@ -643,6 +643,13 @@ class NotificationState(StrEnum):
     DELETED = "deleted"
 
 
+class ClaimSubmissionChannel(StrEnum):
+    EMAIL = "email"
+    PORTAL = "portal"
+    HYBRID = "hybrid"
+    UNKNOWN = "unknown"
+
+
 class ProjectDatabaseProvider(StrEnum):
     TIMESCALE = "timescale"
     CLICKHOUSE = "clickhouse"
