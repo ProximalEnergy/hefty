@@ -3,7 +3,7 @@ import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Literal, overload
+from typing import Any, Literal, cast, overload
 from zoneinfo import ZoneInfo
 
 import clickhouse_connect
@@ -39,11 +39,14 @@ warnings.filterwarnings(
 
 
 class FilterMethod(Enum):
+    """Tag query filter methods."""
+
     TAG_IDS = "tag_ids"
     TAG_POLARS = "tag_polars"
     SENSOR_TYPE_IDS = "sensor_type_ids"
 
 
+# Mapping from pg_data_type_id to value column name
 PG_DATA_TYPE_ID_TO_VALUE_COL: dict[int, str] = {
     1: "value_integer",
     2: "value_bigint",
@@ -53,6 +56,7 @@ PG_DATA_TYPE_ID_TO_VALUE_COL: dict[int, str] = {
     6: "value_text",
 }
 
+# Mapping from value column name to Polars data type
 VALUE_COL_TO_DTYPE: dict[str, pl.DataType] = {
     "value_integer": pl.Float64(),
     "value_bigint": pl.Float64(),
@@ -77,7 +81,7 @@ class DataTimeseries:
     max_lookback_period: TimeOffset = TimeOffset.FIVE_MINUTES
     freq: TimeInterval = TimeInterval.FIVE_MINUTES
     aggregation_method: AggregationMethod = AggregationMethod.FIRST
-    pagination_limit: int = 100_000
+    pagination_limit: int = 1_000_000
     pagination_offset: int = 0
     dangerous_pagination_override: bool = False
     ffill_limit: int | None = None
@@ -92,6 +96,7 @@ class DataTimeseries:
     _project_id_int: int = 0
     _database_provider: ProjectDatabaseProvider | None = None
     _tag_dtype_by_id: dict[int, pl.DataType] = field(default_factory=dict)
+    _prepared: bool = False
 
     # Public fields (set during execution)
     df: pl.DataFrame = field(default_factory=pl.DataFrame)
@@ -172,7 +177,7 @@ class DataTimeseries:
         max_lookback_period: TimeOffset = TimeOffset.FIVE_MINUTES,
         freq: TimeInterval = TimeInterval.FIVE_MINUTES,
         aggregation_method: AggregationMethod = AggregationMethod.FIRST,
-        pagination_limit: int = 100_000,
+        pagination_limit: int = 1_000_000,
         pagination_offset: int = 0,
         dangerous_pagination_override: bool = False,
         ffill_limit: int | None = None,
@@ -196,8 +201,7 @@ class DataTimeseries:
         self.ffill_limit = ffill_limit
         self.ensure_full_range = ensure_full_range
         self.apply_scale_and_offset = apply_scale_and_offset
-        # Internal and public fields with defaults are already set by
-        # dataclass field definitions
+        self._prepared = False
 
     async def get(self) -> "DataTimeseries":
         """Execute the timeseries query using constructor parameters.
@@ -205,173 +209,321 @@ class DataTimeseries:
         Returns:
             Self with df, and page_limit_reached populated.
         """
-        # Step 1: Load project metadata from operational database
-        # Result: Sets _time_zone, _data_cagg_interval, _project_id_int,
-        # and _database_provider
-        await self._load_project_details()
-
-        # Step 2: Normalize query_start and query_end to project timezone
-        # Result: Updates self.query_start and self.query_end to be timezone-aware
-        # Ensures timestamps are in the correct timezone before querying
-        self._clean_query_range()
-
-        # Step 3: Resolve filter_values to actual tag_ids based on filter_method
-        # Result: Sets self._tag_ids (list of tag IDs) and self._tags_lut (lookup table)
-        await self._load_tags()
-
-        # Step 4: Early return if no tag_ids are provided
-        if not hasattr(self, "_tag_ids") or (
-            hasattr(self, "_tag_ids") and len(self._tag_ids) == 0
-        ):
-            warnings.warn("No tag_ids found, returning empty DataFrame")
-            if self.ensure_full_range:
-                self.df = self._build_full_range_frame(time_col="time")
-            else:
-                self.df = self._empty_time_frame(time_col="time")
+        # Prepare metadata and resolve tags
+        if not await self._prepare():
             return self
 
-        # Step 5: Execute query based on database provider
-        # Result: Populates self.df, self.page_limit_reached, and optionally
-        if self._database_provider is None:
-            raise ValueError("database_provider must be set")
-        match self._database_provider:
-            case ProjectDatabaseProvider.TIMESCALE:
-                await self._get_timescale()
-            case ProjectDatabaseProvider.CLICKHOUSE:
-                await self._get_clickhouse()
+        # Build provider context based on database provider
+        context = self._build_provider_context()
 
-        # Step 6: Return self with all data populated
-        # Result: Instance ready for use with df, and page_limit_reached set
+        # Fetch data from provider
+        lookback_df = await self._fetch_provider_lookback(context=context)
+        df = await self._fetch_provider_page(context=context)
+
+        # Post process data
+        df, page_limit_reached = await self._post_process_data_timeseries(
+            df=df,
+            lookback_df=lookback_df,
+        )
+
+        # Set public fields
+        self.df = df
+        self.page_limit_reached = page_limit_reached
+
+        return self
+
+    async def get_all(self) -> "DataTimeseries":
+        """Execute paginated queries until the full range is retrieved.
+
+        Returns:
+            Self with df populated across all pages.
+        """
+        # Prepare metadata and resolve tags
+        if not await self._prepare():
+            return self
+
+        # Cache initial values
+        initial_offset = self.pagination_offset
+        initial_ffill_limit = self.ffill_limit
+
+        # Initialize lookback and pages list
+        lookback_df = pl.DataFrame()
+        pages: list[pl.DataFrame] = []
+
+        try:
+            # Set ffill_limit to 0 to avoid premature forward filling
+            self.ffill_limit = 0
+
+            # Build provider context based on database provider
+            context = self._build_provider_context()
+
+            # Fetch lookback data from provider
+            lookback_df = await self._fetch_provider_lookback(context=context)
+
+            MAX_PAGE_GUARD = 100
+            page_guard = 0
+
+            # Keep fetching pages until the pagination limit is reached
+            while True:
+                # Fetch page data from provider
+                df = await self._fetch_provider_page(context=context)
+
+                # Add page to pages list
+                pages.append(df)
+
+                # If page height is less than the pagination limit, break
+                if df.height < self.pagination_limit:
+                    break
+
+                # Increment pagination offset
+                self.pagination_offset += self.pagination_limit
+
+                # Increment page guard
+                page_guard += 1
+
+                # If page guard is greater than the max page guard, break
+                if page_guard > MAX_PAGE_GUARD:
+                    warnings.warn("Max page guard reached, returning partial data")
+                    break
+        finally:
+            # Restore initial values
+            self.pagination_offset = initial_offset
+            self.ffill_limit = initial_ffill_limit
+
+        # Combine pages into a single DataFrame
+        combined = pl.concat(pages, how="vertical") if pages else pl.DataFrame()
+
+        # Post process data
+        df, _ = await self._post_process_data_timeseries(
+            df=combined,
+            lookback_df=lookback_df,
+            check_pagination_limit=False,
+        )
+
+        # Set public fields
+        self.df = df
+        self.page_limit_reached = False
+
         return self
 
     def raise_on_empty_df(self):
         if not FASTAPI_INSTALLED:
             raise RuntimeError("fastapi not installed")
-        elif self.df.is_empty():
+        if self.df.is_empty():
             raise HTTPException(status_code=400, detail="No data found")
 
-    async def _get_timescale(self) -> None:
-        """Get timeseries data from Timescale."""
+        time_col = self._get_time_column(df=self.df)
+        value_cols = [col for col in self.df.columns if col != time_col]
+        if not value_cols:
+            raise HTTPException(status_code=400, detail="No data found")
 
-        # Step 1: Validate required internal state
-        if not self._time_zone:
-            raise ValueError("time_zone must be set")
+        all_null = self.df.select(
+            [pl.col(col).is_null().all().alias(col) for col in value_cols]
+        ).row(0)
+        if all(all_null):
+            raise HTTPException(status_code=400, detail="No data found")
 
-        # Step 2: Determine which table to query and what SQL query interval to use
-        table, interval_sql = self._build_table_and_interval_sql_timescale()
+    async def _prepare(self) -> bool:
+        """Load project details, normalize query range, and resolve tags.
 
-        # Step 3: Build lookback query to get last known values before query_start
-        # Result: SQL TextClause query that fetches the most recent value per tag
-        # within max_lookback_period window before query_start
-        # Purpose: Used to fill NaN values at the start of the time range
-        lookback_query = self._build_lookback_query_timescale(
-            table_name=table,
-        )
-
-        # Step 4: Build main timeseries query
-        # Result: SQL TextClause query that fetches aggregated timeseries data
-        # with time bucketing, aggregation functions, and pagination
-        query = self._build_data_timeseries_query_timescale(
-            table_name=table,
-            interval_sql=interval_sql,
-        )
-
-        # Step 5: Execute both queries asynchronously
-        # Result: Two Polars DataFrames
-        # - df: Main timeseries data (time, tag_id, value_* columns)
-        # - lookback_df: Last known values before query_start (one row per tag)
-        lookback_model_list: ModelList = ModelList(query=lookback_query)
-        model_list: ModelList = ModelList(query=query)
-
-        df = await model_list.polars_dataframe_async()
-        lookback_df = await lookback_model_list.polars_dataframe_async()
-
-        # Step 6: Post-process the data (pivot, apply lookback, forward fill, etc.)
-        # Result: Processed DataFrame in wide format (time index, tag_id columns)
-        # and page_limit_reached boolean flag
-        df, page_limit_reached = await self._post_process_data_timeseries(
-            df=df,
-            lookback_df=lookback_df,
-        )
-
-        # Step 7: Store results in instance attributes
-        # Result: self.df and self.page_limit_reached are now populated
-        self.df = df
-        self.page_limit_reached = page_limit_reached
-
-    async def _get_clickhouse(self) -> None:
-        """Execute timeseries query for ClickHouse.
-
-        Uses instance attributes set by constructor and previous methods.
+        Returns:
+            True when tags are available to query, otherwise False.
         """
-        # Step 1: Validate required internal state
-        # Result: Ensures project_id_int and time_zone are set (runtime safety)
-        if not self._project_id_int:
-            raise ValueError("project_id_int must be set")
-        if not self._time_zone:
-            raise ValueError("time_zone must be set")
+        # If already prepared, return True if tags are available
+        if self._prepared:
+            return len(self._tag_ids) > 0
 
-        # Step 2: Determine SQL query interval to use
-        interval_sql = self._build_interval_sql_clickhouse()
+        # Fetch project details
+        await self._load_project_details()
 
-        # Step 3: Build lookback query to get last known values before query_start
-        # Result: Raw SQL string query for ClickHouse
-        # Purpose: Fetches most recent value per tag within max_lookback_period
-        lookback_query = self._build_lookback_query_clickhouse()
+        # Clean query range
+        self._clean_query_range()
 
-        # Step 4: Build main timeseries query
-        # Result: Raw SQL string query for ClickHouse with aggregation and time
-        # bucketing
-        query = self._build_data_timeseries_query_clickhouse(
+        # Fetch tags
+        await self._load_tags()
+
+        # If no tags are found, warn and return empty DataFrame
+        if not self._tag_ids:
+            warnings.warn("No tag_ids found, returning empty DataFrame")
+
+            # If ensure_full_range, build full time range
+            if self.ensure_full_range:
+                self.df = self._build_full_range_frame(time_col="time")
+
+            # Otherwise, build empty time range
+            else:
+                self.df = self._empty_time_frame(time_col="time")
+
+            # Set attributes
+            self.page_limit_reached = False
+            self._prepared = True
+
+            return False
+
+        # Set attributes
+        self._prepared = True
+
+        return True
+
+    @dataclass(frozen=True, slots=True)
+    class _ProviderContext:
+        """Provider context for lookback/page fetches."""
+
+        provider: ProjectDatabaseProvider
+        table_name: str | None
+        interval_sql: TimeInterval | None
+        client: Any | None
+
+    def _build_provider_context(self) -> _ProviderContext:
+        """Build provider-specific context for lookback/page fetches."""
+        if self._database_provider is None:
+            raise ValueError("database_provider must be set")
+
+        match self._database_provider:
+            case ProjectDatabaseProvider.TIMESCALE:
+                table, interval_sql = self._build_table_and_interval_sql_timescale()
+                return self._ProviderContext(
+                    provider=self._database_provider,
+                    table_name=table,
+                    interval_sql=interval_sql,
+                    client=None,
+                )
+            case ProjectDatabaseProvider.CLICKHOUSE:
+                if not self._project_id_int:
+                    raise ValueError("project_id_int must be set")
+                if not self._time_zone:
+                    raise ValueError("time_zone must be set")
+                interval_sql = self._build_interval_sql_clickhouse()
+                return self._ProviderContext(
+                    provider=self._database_provider,
+                    table_name=None,
+                    interval_sql=interval_sql,
+                    client=self._get_clickhouse_client(),
+                )
+
+    async def _fetch_provider_lookback(
+        self,
+        *,
+        context: _ProviderContext,
+    ) -> pl.DataFrame:
+        """Fetch lookback data for the configured provider."""
+        match context.provider:
+            case ProjectDatabaseProvider.TIMESCALE:
+                if context.table_name is None:
+                    raise ValueError("table_name must be set for Timescale")
+                return await self._fetch_timescale_lookback(
+                    table_name=context.table_name,
+                )
+            case ProjectDatabaseProvider.CLICKHOUSE:
+                if context.client is None:
+                    raise ValueError("client must be set for ClickHouse")
+                return self._fetch_clickhouse_lookback(client=context.client)
+
+    async def _fetch_provider_page(
+        self,
+        *,
+        context: _ProviderContext,
+    ) -> pl.DataFrame:
+        """Fetch a single page for the configured provider."""
+        match context.provider:
+            case ProjectDatabaseProvider.TIMESCALE:
+                if context.table_name is None:
+                    raise ValueError("table_name must be set for Timescale")
+                return await self._fetch_timescale_page(
+                    table_name=context.table_name,
+                    interval_sql=context.interval_sql,
+                )
+            case ProjectDatabaseProvider.CLICKHOUSE:
+                if context.client is None:
+                    raise ValueError("client must be set for ClickHouse")
+                return self._fetch_clickhouse_page(
+                    client=context.client,
+                    interval_sql=context.interval_sql,
+                )
+
+    async def _fetch_timescale_lookback(
+        self,
+        *,
+        table_name: str,
+    ) -> pl.DataFrame:
+        """Fetch lookback data for Timescale.
+
+        Args:
+            table_name: Timescale table name to query.
+        """
+        lookback_query = self._build_lookback_query_timescale(
+            table_name=table_name,
+        )
+        lookback_model_list: ModelList = ModelList(query=lookback_query)
+        return await lookback_model_list.polars_dataframe_async()
+
+    async def _fetch_timescale_page(
+        self,
+        *,
+        table_name: str,
+        interval_sql: TimeInterval | None,
+    ) -> pl.DataFrame:
+        """Fetch a single Timescale page (raw long format).
+
+        Args:
+            table_name: Timescale table name to query.
+            interval_sql: Optional aggregation interval.
+        """
+        query = self._build_data_timeseries_query_timescale(
+            table_name=table_name,
             interval_sql=interval_sql,
         )
+        model_list: ModelList = ModelList(query=query)
+        return await model_list.polars_dataframe_async()
 
-        # Step 5: Get ClickHouse client connection
-        # Result: Client instance configured with connection settings from core.settings
-        client = self._get_clickhouse_client()
+    def _fetch_clickhouse_lookback(self, *, client: Any) -> pl.DataFrame:
+        """Fetch lookback data for ClickHouse.
 
-        # Step 6: Execute both queries and get results as Polars DataFrames
-        # Result: Two Polars DataFrames
-        # - df: Main timeseries data (time_bucket, tag_id, value_* columns)
-        # - lookback_df: Last known values before query_start (one row per tag)
-        df = client.query_df_arrow(
-            query,
-            dataframe_library="polars",
-        )
-        lookback_df = client.query_df_arrow(
+        Args:
+            client: ClickHouse client instance.
+        """
+        lookback_query = self._build_lookback_query_clickhouse()
+        result = client.query_df_arrow(
             lookback_query,
             dataframe_library="polars",
         )
+        return cast(pl.DataFrame, result)
 
-        # Step 7: Normalize time column format
-        # Result: DataFrame with "time" column and converted to datetime if it was a
-        # Unix timestamp
+    def _fetch_clickhouse_page(
+        self,
+        *,
+        client: Any,
+        interval_sql: TimeInterval | None,
+    ) -> pl.DataFrame:
+        """Fetch a single ClickHouse page (raw long format).
+
+        Args:
+            client: ClickHouse client instance.
+            interval_sql: Optional aggregation interval.
+        """
+        query = self._build_data_timeseries_query_clickhouse(
+            interval_sql=interval_sql,
+        )
+        df = cast(
+            pl.DataFrame,
+            client.query_df_arrow(
+                query,
+                dataframe_library="polars",
+            ),
+        )
         df = df.rename({"time_bucket": "time"})
         if not isinstance(df["time"].dtype, pl.Datetime):
-            # ClickHouse returns Unix timestamps (seconds) - convert to datetime
             df = df.with_columns(
                 pl.from_epoch(pl.col("time"), time_unit="s").alias("time")
             )
-
-        # Step 8: Post-process the data (pivot, apply lookback, forward fill, etc.)
-        # Result: Processed DataFrame in wide format and page_limit_reached flag
-        df, page_limit_reached = await self._post_process_data_timeseries(
-            df=df,
-            lookback_df=lookback_df,
-        )
-
-        # Step 9: Store results in instance attributes
-        # Result: self.df and self.page_limit_reached are now populated
-        self.df = df
-        self.page_limit_reached = page_limit_reached
-
-    # -- DATABASE PROVIDER NAIVE HELPERS -- #
+        return df
 
     async def _post_process_data_timeseries(
         self,
         *,
         df: pl.DataFrame,
         lookback_df: pl.DataFrame,
+        check_pagination_limit: bool = True,
     ) -> tuple[pl.DataFrame, bool]:
         """Post-process timeseries data: pivot, apply lookback, forward fill,
                 and ensure full range.
@@ -383,11 +535,16 @@ class DataTimeseries:
         Args:
             df: Raw timeseries data from the main query.
             lookback_df: Last-known values prior to query_start.
+            check_pagination_limit: Whether to compute page_limit_reached.
         """
         # Step 1: Check if pagination limit was reached
-        # If result size equals limit AND override is enabled, we hit the limit, meaning
-        # there may be more data available
-        if len(df) == self.pagination_limit and not self.dangerous_pagination_override:
+        # If result size equals limit and override is not enabled, we hit the limit,
+        # meaning there may be more data available
+        if (
+            check_pagination_limit
+            and df.height == self.pagination_limit
+            and not self.dangerous_pagination_override
+        ):
             page_limit_reached = True
         else:
             page_limit_reached = False
@@ -468,21 +625,35 @@ class DataTimeseries:
                 ]
             )
 
-        # Step 6: Forward fill null values, but only up to current time
-        # Purpose: Fill missing values by carrying last known value forward
-        # BUT don't fill future timestamps (beyond "now")
-
         df = self._normalize_time_column(df=df, time_col=time_col)
+        df = self._apply_forward_fill(df=df, time_col=time_col)
 
-        # Step 6a: Get current time in project timezone for comparison
+        df = self._ensure_tag_columns(df=df, time_col=time_col)
+        return df, page_limit_reached
+
+    def _apply_forward_fill(
+        self,
+        *,
+        df: pl.DataFrame,
+        time_col: str,
+    ) -> pl.DataFrame:
+        """Forward fill null values up to current time.
+
+        Args:
+            df: DataFrame to forward fill.
+            time_col: Name of the time column.
+        """
+        if self.ffill_limit == 0:
+            return df
+
+        # Get current time in project timezone for comparison
         now = datetime.now(ZoneInfo(self._time_zone))
 
-        # Step 6b: Identify data columns (exclude time columns)
+        # Identify data columns (exclude time columns)
         data_cols = [c for c in df.columns if c not in [time_col, "time"]]
 
-        # Step 6c: Apply forward fill with time-based condition
-        # Result: DataFrame with forward-filled values up to current time
-        df = df.with_columns(
+        # Apply forward fill with time-based condition
+        return df.with_columns(
             [
                 pl.when(
                     pl.col(time_col).dt.convert_time_zone(self._time_zone)
@@ -494,11 +665,6 @@ class DataTimeseries:
                 for col in data_cols
             ]
         )
-
-        df = self._ensure_tag_columns(df=df, time_col=time_col)
-        return df, page_limit_reached
-
-    # -- TIMESCALE HELPERS -- #
 
     def _build_table_and_interval_sql_timescale(
         self,
@@ -714,8 +880,6 @@ class DataTimeseries:
         query: TextClause = text(statement).bindparams(**bind_params)
 
         return query
-
-    # -- CLICKHOUSE HELPERS -- #
 
     def _build_interval_sql_clickhouse(self) -> TimeInterval | None:
         # Identify interval_sql, return TimeInterval if freq > 1min, else None
