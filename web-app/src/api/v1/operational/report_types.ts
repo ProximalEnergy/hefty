@@ -1,29 +1,25 @@
-import type * as types from '@/api/schema'
+import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _COMPONENT_NAME = 'ReportType'
 const URL_REPORT_TYPE = '/v1/operational/report-types/{report_type_id}'
 const URL_REPORT_TYPES = '/v1/operational/report-types'
 
-type ReportType = types.components['schemas'][typeof _COMPONENT_NAME]
-type getReportType = types.paths[typeof URL_REPORT_TYPE]['get']
-type getReportTypePathParams = getReportType['parameters']['path']
-type getReportTypes = types.paths[typeof URL_REPORT_TYPES]['get']
-type getReportTypesQueryParams = getReportTypes['parameters']['query']
+type GetReportType = Endpoint<typeof URL_REPORT_TYPE, 'get'>
+type GetReportTypes = Endpoint<typeof URL_REPORT_TYPES, 'get'>
 
 export const useGetReportType = ({
   pathParams,
   queryOptions = {},
 }: {
-  pathParams: getReportTypePathParams
+  pathParams: GetReportType['PathParams']
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
     url: URL_REPORT_TYPE,
   }
 
-  return useCustomQuery<ReportType>({
+  return useCustomQuery<GetReportType['Response']>({
     axiosConfig,
     queryName: 'getReportType',
     pathParams,
@@ -32,15 +28,12 @@ export const useGetReportType = ({
 }
 
 export const useGetReportTypes = ({
-  queryParams,
   queryOptions = {},
 }: {
-  queryParams?: getReportTypesQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
     url: URL_REPORT_TYPES,
-    params: queryParams,
   }
 
   const defaultQueryOptions = {
@@ -48,10 +41,9 @@ export const useGetReportTypes = ({
     staleTime: Infinity,
   }
 
-  return useCustomQuery<ReportType[]>({
+  return useCustomQuery<GetReportTypes['Response']>({
     axiosConfig,
     queryName: 'getReportTypes',
-    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
