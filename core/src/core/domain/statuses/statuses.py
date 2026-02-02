@@ -147,17 +147,26 @@ async def get_status_timeseries_interpreted(
     boolean_table = pd.DataFrame()
     if not binary_df.empty:
         binary_table = await crud_statuses.get_status_binary(
-            status_binary_ids=status_tags["status_binary_id"].unique().tolist(),
+            status_binary_ids=status_tags["status_binary_id"]
+            .dropna()
+            .unique()
+            .tolist(),
         ).get_async(output_type=OutputType.PANDAS)
 
     if not string_df.empty:
         string_table = await crud_statuses.get_status_string(
-            status_string_ids=status_tags["status_string_id"].unique().tolist(),
+            status_string_ids=status_tags["status_string_id"]
+            .dropna()
+            .unique()
+            .tolist(),
         ).get_async(output_type=OutputType.PANDAS)
 
     if not boolean_df.empty:
         boolean_table = await crud_statuses.get_status_boolean(
-            status_boolean_ids=status_tags["status_boolean_id"].unique().tolist(),
+            status_boolean_ids=status_tags["status_boolean_id"]
+            .dropna()
+            .unique()
+            .tolist(),
         ).get_async(output_type=OutputType.PANDAS)
 
     # Interpret to sparse facts
@@ -238,6 +247,8 @@ async def get_status_time_series_failure_mode_ids(
         start=start,
         end=end,
     )
+    if len(data) == 0:
+        return []
     df = pd.DataFrame(data).loc[:, ["time", "tag_id", "failure_mode_id"]].copy()
     df = df.sort_values(by=["time", "tag_id"])
     wide = (
