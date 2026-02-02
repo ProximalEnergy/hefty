@@ -8,11 +8,19 @@ from typing import Annotated
 from uuid import UUID
 
 import boto3
+from core.crud.admin.notifications import (
+    create_notification,
+    create_notification_state,
+    get_notification_type_by_name,
+)
 from core.crud.admin.users import get_users
 from core.crud.operational.projects import get_projects
 from core.db_query import OutputType
 from core.dependencies import with_db_async
-from core.utils.user_management import get_user_email_from_clerk
+from core.utils.notifications import (
+    determine_notification_recipients,
+    send_notification_emails_with_rate_limit,
+)
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -29,14 +37,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import dependencies
-from app._crud.admin.user_subscriptions import (
-    get_event_chat_notification_statuses_batch,
-    update_event_chat_notification_statuses_batch,
-    update_user_event_chat_notification_subscription,
-)
-from app._crud.admin.user_subscriptions import (
-    is_event_chat_notification_enabled as crud_is_event_chat_notification_enabled,
-)
 from app._crud.projects import (
     event_chat_mutes as crud_event_chat_mutes,
 )
@@ -50,7 +50,7 @@ from app.dependencies import (
     check_project_access_async,
     get_project_name_short_async,
 )
-from core import models
+from core import enumerations, models
 
 logger = logging.getLogger(__name__)
 
@@ -400,6 +400,153 @@ async def send_event_chat_email(
         logger.error(f"Failed to send event chat email to {recipient_email}: {str(e)}")
 
 
+def _build_event_chat_email_kwargs(
+    *,
+    recipient_email: str,
+    recipient_name: str,
+    sender_name: str,
+    event_id: int,
+    message_body: str,
+    event_url: str,
+    is_first_message: bool,
+    project_name: str | None = None,
+    device_type_name: str | None = None,
+    failure_mode_name: str | None = None,
+    company_theme_color: str = "#21B8F1",
+) -> dict:
+    """Build SES email kwargs for an event chat notification.
+
+    Args:
+        recipient_email: Recipient email address.
+        recipient_name: Recipient display name.
+        sender_name: Sender display name.
+        event_id: Event ID.
+        message_body: Message body (may be truncated in output).
+        event_url: URL to the event chat.
+        is_first_message: Whether this is the first message in the thread.
+        project_name: Optional project name.
+        device_type_name: Optional device type name.
+        failure_mode_name: Optional failure mode name.
+        company_theme_color: Hex color for email styling.
+
+    Returns:
+        Dict suitable for boto3 sesv2 send_email.
+    """
+    message_preview = (
+        message_body[:200] + "..." if len(message_body) > 200 else message_body
+    )
+    subject_parts = []
+    if project_name:
+        subject_parts.append(project_name)
+    if failure_mode_name:
+        subject_parts.append(failure_mode_name)
+    if subject_parts:
+        subject = (
+            f"{': '.join(subject_parts)} - {sender_name} message on Event #{event_id}"
+        )
+    else:
+        subject = f"{sender_name} message on Event #{event_id}"
+    reason_text = (
+        "You're receiving this because a team member started a new "
+        "conversation on this event chat."
+        if is_first_message
+        else ("You're receiving this because you've posted to this event chat.")
+    )
+    event_details_parts = []
+    if project_name:
+        event_details_parts.append(f"<strong>Project:</strong> {project_name}")
+    if device_type_name:
+        event_details_parts.append(f"<strong>Device Type:</strong> {device_type_name}")
+    if failure_mode_name:
+        event_details_parts.append(
+            f"<strong>Failure Mode:</strong> {failure_mode_name}"
+        )
+    event_details_html = ""
+    if event_details_parts:
+        hex_color = company_theme_color.lstrip("#")
+        rgb = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+        bg_color = f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.1)"
+        event_details_html = f"""
+        <div
+            style="
+                background-color: {bg_color};
+                padding: 12px;
+                border-radius: 5px;
+                margin: 15px 0;
+                border-left: 4px solid {company_theme_color};
+            "
+        >
+            <p style="margin: 0; font-size: 14px; color: #333;">
+                {"<br>".join(event_details_parts)}
+            </p>
+        </div>
+        """
+    html_body = f"""
+    <html>
+    <body>
+        <p>Hi {recipient_name},</p>
+
+        <p><strong>{sender_name}</strong> posted a new message on Event #{event_id}:</p>
+
+        {event_details_html}
+
+        <div
+            style="
+                background-color: #f5f5f5;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+            "
+        >
+            <p style="margin: 0; white-space: pre-wrap;">{message_preview}</p>
+        </div>
+
+        <p>
+            <a
+                href="{event_url}"
+                style="
+                    background-color: {company_theme_color};
+                    color: white;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    display: inline-block;
+                "
+            >
+                View Event Chat
+            </a>
+        </p>
+
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+            {reason_text}
+            <a href="{event_url}&mute=true">Mute this conversation</a>
+        </p>
+
+        <p style="color: #666; font-size: 12px; margin-top: 15px;">
+            To control email notifications for first messages on event chats per
+            project, visit your
+            <a
+                href="https://app.proximal.energy/application-settings"
+                style="color: {company_theme_color}; text-decoration: underline;"
+            >
+                Application Settings
+            </a>.
+        </p>
+    </body>
+    </html>
+    """
+    return {
+        "FromEmailAddress": "proximal-chat@proximal.energy",
+        "Destination": {"ToAddresses": [recipient_email]},
+        "Content": {
+            "Simple": {
+                "Subject": {"Data": subject},
+                "Body": {"Html": {"Data": html_body}},
+            },
+        },
+    }
+
+
 async def send_notifications_for_message(
     *,
     db: AsyncSession,
@@ -410,102 +557,121 @@ async def send_notifications_for_message(
     sender_company_id: UUID,
     message_body: str,
     is_first_message: bool,
+    is_private: bool = False,
 ) -> None:
-    """Send email notifications for event chat messages.
+    """Create notifications for event chat messages using the notifications framework.
 
-        Rules:
-        - First message: notify all company users (unless they've disabled
-          notifications for this project)
-        - Subsequent messages: notify users who have posted (excluding muted
-          users)
-        - Never notify the sender
-        - Never notify muted users
-        - Never notify users who have disabled event chat notifications for
-          this project
-
-    Args:
-        db: TODO: describe.
-        project_db: database with project schema
-        project_id: the project id
-        event_id: TODO: describe.
-        sender_user_id: TODO: describe.
-        sender_company_id: TODO: describe.
-        message_body: TODO: describe.
-        is_first_message: TODO: describe.
+    Rules:
+    - First message: notify all users with project access (public) or company
+      users with project access (private), filtered by notification prefs
+    - Subsequent messages: notify users who have posted (NO preference filter)
+      - Public follow-up: notify all users who posted
+      - Private follow-up: notify only users from the same company who posted
+    - Never notify the sender or muted users
     """
-
-    # Get users who have posted to this event
     users_who_posted = await crud_event_messages.get_users_who_posted_to_event(
         db=project_db, event_id=event_id
     )
-
-    # Determine recipients
     if is_first_message:
-        # First message: notify all company users
-        company_users = await get_users(company_ids=[sender_company_id]).get_async(
-            output_type=OutputType.PANDAS
+        # Build base query for users with project access
+        stmt = (
+            select(models.User)
+            .join(
+                models.UserProject,
+                models.User.user_id == models.UserProject.user_id,
+            )
+            .where(models.UserProject.operational_project_id == project_id)
         )
-        recipient_user_ids = set(company_users["user_id"])
+        # Add company filter for private messages
+        if is_private:
+            stmt = stmt.where(models.User.company_id == sender_company_id)
+        result = await db.execute(stmt)
+        project_users_raw = result.scalars().all()
+        event_chat_recipient_ids = {user.user_id for user in project_users_raw}
     else:
-        # Subsequent messages: notify users who posted
-        recipient_user_ids = users_who_posted
+        # Follow-up messages: notify users who have posted
+        if not users_who_posted:
+            event_chat_recipient_ids = set()
+        else:
+            # Build base query filtering by users who posted
+            user_id_stmt = select(models.User.user_id).where(
+                models.User.user_id.in_(users_who_posted)
+            )
+            # Add company filter for private messages
+            if is_private:
+                user_id_stmt = user_id_stmt.where(
+                    models.User.company_id == sender_company_id
+                )
+            result = await db.execute(user_id_stmt)
+            user_ids = result.scalars().all()
+            event_chat_recipient_ids = {str(user_id) for user_id in user_ids}
 
-    # Remove sender and muted users
-    recipient_user_ids.discard(sender_user_id)
+    event_chat_recipient_ids.discard(sender_user_id)
     mutes = await crud_event_chat_mutes.get_event_chat_mutes(
         db=project_db, event_id=event_id
     )
     muted_user_ids = {
-        mute.user_id for mute in mutes if mute.user_id in recipient_user_ids
+        mute.user_id for mute in mutes if mute.user_id in event_chat_recipient_ids
     }
-    recipient_user_ids -= muted_user_ids
+    event_chat_recipient_ids -= muted_user_ids
 
-    # Remove users who have disabled event chat notifications for this project
-    # (only applies to first messages - subsequent messages only go to active
-    # participants)
+    notification_type_query = get_notification_type_by_name(
+        name_long="event_chat_message"
+    )
+    notification_type = await notification_type_query.get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
+    if not notification_type:
+        logger.warning(
+            "Notification type 'event_chat_message' not found, skipping "
+            "event chat notifications"
+        )
+        return
+
     if is_first_message:
-        disabled_user_ids = set()
-        for user_id in recipient_user_ids:
-            enabled = await crud_is_event_chat_notification_enabled(
-                db=db, user_id=user_id, operational_project_id=project_id
-            )
-            if not enabled:
-                disabled_user_ids.add(user_id)
-        recipient_user_ids -= disabled_user_ids
+        # First message: apply notification preferences
+        (
+            users_to_notify_in_app,
+            users_to_notify_email,
+        ) = await determine_notification_recipients(
+            db=db,
+            project_id=str(project_id),
+            notification_type_id=notification_type.notification_type_id,
+            severity=enumerations.NotificationSeverity.INFO,
+        )
 
-    if not recipient_user_ids:
+        recipients_in_app = [
+            u for u in users_to_notify_in_app if u in event_chat_recipient_ids
+        ]
+        recipients_email = [
+            u for u in users_to_notify_email if u in event_chat_recipient_ids
+        ]
+    else:
+        # Follow-up messages: notify all participants (no preference filter)
+        # All participants get both in-app and email notifications
+        recipients_in_app = list(event_chat_recipient_ids)
+        recipients_email = list(event_chat_recipient_ids)
+
+    if not recipients_in_app and not recipients_email:
         logger.info(f"No recipients for event {event_id} notifications")
         return
 
-    # Get sender info
     sender_users = await get_users(user_ids=[sender_user_id]).get_async(
         output_type=OutputType.SQLALCHEMY
     )
     sender_name = sender_users[0][0].name_long if sender_users else "Unknown User"
 
-    # Get recipient user details
-    recipient_users = await get_users(user_ids=list(recipient_user_ids)).get_async(
-        output_type=OutputType.PANDAS
-    )
-
-    # Get event details (project name, device type, failure mode)
     project_name = None
     device_type_name = None
     failure_mode_name = None
-
     try:
-        # Get project name
         db_query = get_projects(project_ids=[project_id])
         rows = await db_query.get_async(output_type=OutputType.SQLALCHEMY)
         if rows:
-            project = rows[0]
-            project_name = project.name_long
-
-        # Get event details from project schema
+            project_name = rows[0].name_long
         project_name_short = await get_project_name_short_async(project_id=project_id)
         if project_name_short:
-            # Query event with device and failure_mode relationships
-            stmt = (
+            event_stmt = (
                 select(models.Event)
                 .options(
                     selectinload(models.Event.device).selectinload(
@@ -515,49 +681,80 @@ async def send_notifications_for_message(
                 )
                 .where(models.Event.event_id == event_id)
             )
-            result = await project_db.execute(stmt)
-            event = result.scalar_one_or_none()
-
+            event_result = await project_db.execute(event_stmt)
+            event: models.Event | None = event_result.scalar_one_or_none()
             if event:
-                # Get device type name
                 if event.device and event.device.device_type:
                     device_type_name = event.device.device_type.name_long
-
-                # Get failure mode name
                 if event.failure_mode:
                     failure_mode_name = event.failure_mode.name_long
     except Exception as e:
-        logger.warning(f"Failed to fetch event details for event {event_id}: {str(e)}")
+        logger.warning(f"Failed to fetch event details for event {event_id}: {e}")
 
-    # Build event URL with project_id
     event_url = (
         "https://app.proximal.energy/projects/"
         f"{project_id}/events/event?eventId={event_id}"
     )
+    message_preview = (
+        message_body[:200] + "..." if len(message_body) > 200 else message_body
+    )
 
-    # Send emails to each recipient
-    for _, user_row in recipient_users.iterrows():
-        recipient_email = await get_user_email_from_clerk(user_id=user_row["user_id"])
+    notification = await create_notification(
+        db=db,
+        project_id=project_id,
+        notification_type_id=notification_type.notification_type_id,
+        data={
+            "notification_type": "event_chat_message",
+            "event_id": event_id,
+            "project_id": str(project_id),
+            "sender_name": sender_name,
+            "message_body": message_preview,
+            "is_first_message": is_first_message,
+            "device_type_name": device_type_name,
+            "failure_mode_name": failure_mode_name,
+        },
+        severity=enumerations.NotificationSeverity.INFO,
+    )
 
-        if not recipient_email:
-            logger.warning(
-                f"Could not get email for user {user_row['user_id']}, skipping "
-                "notification"
+    for user_id in recipients_in_app:
+        try:
+            await create_notification_state(
+                db=db,
+                notification_id=notification.notification_id,
+                user_id=user_id,
+                channel=enumerations.NotificationChannel.IN_APP,
             )
-            continue
+        except Exception as e:
+            logger.error(f"Failed to create in-app state for user {user_id}: {e}")
 
-        await send_event_chat_email(
-            recipient_user_id=user_row["user_id"],
-            recipient_email=recipient_email,
-            recipient_name=user_row["name_long"],
-            sender_name=sender_name,
-            event_id=event_id,
-            message_body=message_body,
-            event_url=event_url,
-            is_first_message=is_first_message,
-            project_name=project_name,
-            device_type_name=device_type_name,
-            failure_mode_name=failure_mode_name,
+    if recipients_email:
+        summary: dict = {"errors": []}
+
+        def get_email_kwargs_func(
+            *,
+            user_id: str,  # noqa: ARG001 (required by send_notification_emails_with_rate_limit)
+            user_email: str,
+            user_name: str,
+        ) -> dict:
+            return _build_event_chat_email_kwargs(
+                recipient_email=user_email,
+                recipient_name=user_name,
+                sender_name=sender_name,
+                event_id=event_id,
+                message_body=message_body,
+                event_url=event_url,
+                is_first_message=is_first_message,
+                project_name=project_name,
+                device_type_name=device_type_name,
+                failure_mode_name=failure_mode_name,
+            )
+
+        await send_notification_emails_with_rate_limit(
+            db=db,
+            user_ids=recipients_email,
+            get_email_kwargs_func=get_email_kwargs_func,
+            notification_id=notification.notification_id,
+            summary=summary,
         )
 
 
@@ -597,7 +794,6 @@ async def create_event_message(
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
-    api_prod: Annotated[bool, Depends(dependencies.is_prod_origin)],
 ) -> EventMessage:
     """Create a new event message.
 
@@ -669,10 +865,10 @@ async def create_event_message(
                     sender_company_id=user_data.company_id,
                     message_body=message.body,
                     is_first_message=is_first_message,
+                    is_private=message.private,
                     project_id=project_id,
                     db=db_session,
                     project_db=project_db_session,
-                    api_prod=api_prod,
                 )
 
     background_tasks.add_task(send_notifications_background)
@@ -687,184 +883,6 @@ class EventMessageUpdate(BaseModel):
     image_ids: list[UUID] | None = (
         None  # List of image IDs to keep, in order matching placeholders
     )
-
-
-# --- Event Chat Notification Settings Endpoints ---
-@router.get("/notifications/status")
-async def get_event_chat_notification_status(
-    *,
-    project_id: Annotated[UUID, Path(...)],
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
-) -> dict:
-    """Get event chat notification status for a project.
-
-        Path Parameters:
-            project_id: The project ID
-
-        Returns:
-            {"enabled": bool} - True if enabled, False if disabled
-
-    Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-    """
-    enabled = await crud_is_event_chat_notification_enabled(
-        db=db, user_id=user_data.user_id, operational_project_id=project_id
-    )
-    return {"enabled": enabled}
-
-
-@router.put("/notifications")
-async def update_event_chat_notification_setting(
-    *,
-    project_id: Annotated[UUID, Path(...)],
-    enabled: Annotated[bool, Query(...)],
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
-) -> dict:
-    """Update event chat notification setting for a project.
-
-        Query Parameters:
-            enabled: True to enable, False to disable
-
-        Returns:
-            {"enabled": bool} - The new enabled status
-
-    Args:
-        project_id: TODO: describe.
-        enabled: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-    """
-    await update_user_event_chat_notification_subscription(
-        db=db,
-        user_id=user_data.user_id,
-        operational_project_id=project_id,
-        event_chat_notifications=enabled,
-    )
-    return {"enabled": enabled}
-
-
-# --- Batch Endpoints ---
-class EventChatNotificationStatusesBatchRequest(BaseModel):
-    """todo"""
-
-    project_ids: list[UUID]
-
-
-class EventChatNotificationStatusesBatchResponse(BaseModel):
-    """todo"""
-
-    statuses: dict[str, bool]  # project_id (as string) -> enabled
-
-
-@batch_router.post("/notifications/status/batch")
-async def get_event_chat_notification_statuses_batch_route(
-    *,
-    request: EventChatNotificationStatusesBatchRequest,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
-) -> EventChatNotificationStatusesBatchResponse:
-    """Get event chat notification statuses for multiple projects in a single request.
-
-        Request Body:
-            project_ids: List of project IDs to get statuses for
-
-        Returns:
-            {
-                "statuses": {
-                    "project_id_1": true,
-                    "project_id_2": false,
-                    ...
-                }
-            }
-
-    Args:
-        request: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-    """
-    status_map = await get_event_chat_notification_statuses_batch(
-        db=db,
-        user_id=user_data.user_id,
-        operational_project_ids=request.project_ids,
-    )
-
-    # Convert UUID keys to strings for JSON serialization
-    statuses_dict = {
-        str(project_id): enabled for project_id, enabled in status_map.items()
-    }
-
-    return EventChatNotificationStatusesBatchResponse(statuses=statuses_dict)
-
-
-class EventChatNotificationStatusesBatchUpdateRequest(BaseModel):
-    """todo"""
-
-    statuses: dict[str, bool]  # project_id (as string) -> enabled
-
-
-class EventChatNotificationStatusesBatchUpdateResponse(BaseModel):
-    """todo"""
-
-    statuses: dict[str, bool]  # project_id (as string) -> enabled
-
-
-@batch_router.put("/notifications/batch")
-async def update_event_chat_notification_statuses_batch_route(
-    *,
-    request: EventChatNotificationStatusesBatchUpdateRequest,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-    user_data: Annotated[
-        dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
-    ],
-) -> EventChatNotificationStatusesBatchUpdateResponse:
-    """Update event chat notification statuses for multiple projects in a
-    single request.
-
-        Request Body:
-            statuses: Dictionary mapping project_id (string) -> enabled (bool)
-
-        Returns:
-            {
-                "statuses": {
-                    "project_id_1": true,
-                    "project_id_2": false,
-                    ...
-                }
-            }
-
-    Args:
-        request: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-    """
-    # Convert string keys to UUIDs
-    project_statuses: dict[UUID, bool] = {
-        UUID(project_id_str): enabled
-        for project_id_str, enabled in request.statuses.items()
-    }
-
-    updated_statuses = await update_event_chat_notification_statuses_batch(
-        db=db,
-        user_id=user_data.user_id,
-        project_statuses=project_statuses,
-    )
-
-    # Convert UUID keys back to strings for JSON serialization
-    statuses_dict = {
-        str(project_id): enabled for project_id, enabled in updated_statuses.items()
-    }
-
-    return EventChatNotificationStatusesBatchUpdateResponse(statuses=statuses_dict)
 
 
 @router.put("/{event_message_id}")

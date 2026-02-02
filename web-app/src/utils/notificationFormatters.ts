@@ -18,6 +18,7 @@ const formattersByName: Record<
   fire: formatFireAlert,
   tornado: formatTornadoAlert,
   wind: formatWindAlert,
+  event_chat_message: formatEventChatMessage,
 }
 
 /**
@@ -26,12 +27,14 @@ const formattersByName: Record<
  * the name_long value matching admin.notification_types.name_long.
  */
 function getNotificationTypeName(data: NotificationData): string | undefined {
+  if (typeof data !== 'object' || data === null) return undefined
   if (
-    typeof data === 'object' &&
-    data !== null &&
-    'weather_type' in data &&
-    typeof data.weather_type === 'string'
+    'notification_type' in data &&
+    typeof data.notification_type === 'string'
   ) {
+    return data.notification_type.toLowerCase()
+  }
+  if ('weather_type' in data && typeof data.weather_type === 'string') {
     return data.weather_type.toLowerCase()
   }
   return undefined
@@ -160,6 +163,34 @@ function formatTornadoAlert(
     body,
     link: '/portfolio/map',
   }
+}
+
+/**
+ * Formats an Event Chat Message notification.
+ * Data structure: { notification_type, event_id, project_id, sender_name,
+ *   message_body, is_first_message, ... }
+ */
+function formatEventChatMessage(
+  data: NotificationData,
+  _createdAt: string | Date,
+): FormattedNotification {
+  const senderName = String(data.sender_name ?? 'Someone')
+  const eventId = String(data.event_id ?? '')
+  const projectId = String(data.project_id ?? '')
+  const messagePreview =
+    typeof data.message_body === 'string'
+      ? data.message_body.slice(0, 80) +
+        (data.message_body.length > 80 ? '…' : '')
+      : ''
+  const title = `Event chat: ${senderName}`
+  const body = messagePreview
+    ? `${senderName} posted: ${messagePreview}`
+    : `${senderName} posted a message on event #${eventId}.`
+  const link =
+    projectId && eventId
+      ? `/projects/${projectId}/events/event?eventId=${eventId}`
+      : undefined
+  return { title, body, link }
 }
 
 /**

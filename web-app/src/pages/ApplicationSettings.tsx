@@ -10,11 +10,6 @@ import {
   useGetNotificationTypes,
 } from '@/api/v1/admin/notification_types'
 import { useGetSubscriptions } from '@/api/v1/admin/subscriptions'
-import {
-  useGetEventChatNotificationStatusesBatch,
-  useUpdateEventChatNotification,
-  useUpdateEventChatNotificationBatch,
-} from '@/api/v1/operational/event_messages'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { clearTips } from '@/components/Tips'
 import RequiresUserType from '@/components/admin/RequiresUserType'
@@ -29,14 +24,12 @@ import {
   Button,
   Checkbox,
   ColorInput,
-  Divider,
   Fieldset,
   Group,
   Loader,
   Paper,
   SegmentedControl,
   Stack,
-  Switch,
   Table,
   Text,
   Title,
@@ -57,8 +50,8 @@ import {
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useContext, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 const TeamsGate = ({ children }: { children: React.ReactNode }) => (
@@ -561,215 +554,204 @@ function EventChatNotificationsPanel({
 }: {
   projects: Array<{ project_id: string; name_long: string }>
 }) {
-  const updateBatchMutation = useUpdateEventChatNotificationBatch()
-  const queryClient = useQueryClient()
-  const [isTogglingAll, setIsTogglingAll] = useState(false)
+  const theme = useMantineTheme()
+  const colorScheme = useComputedColorScheme()
+  const notificationTypes = useGetNotificationTypes({})
+  const preferences = useGetNotificationPreferences({})
+  const updateMutation = useUpdateNotificationPreference()
 
-  // Fetch all notification statuses in a single batch request
-  const projectIds = projects.map((p) => p.project_id)
+  const eventChatType = useMemo(
+    () =>
+      notificationTypes.data?.find((t) => t.name_long === 'event_chat_message'),
+    [notificationTypes.data],
+  )
 
-  const { data: batchStatuses, isLoading: isLoadingBatch } =
-    useGetEventChatNotificationStatusesBatch({
-      projectIds,
+  const preferencesMap = useMemo(() => {
+    const map = new Map<string, NotificationPreference>()
+    preferences.data?.forEach((pref) => {
+      map.set(`${pref.project_id}-${pref.notification_type_id}`, pref)
     })
+    return map
+  }, [preferences.data])
 
-  // Populate cache when batch data is available (not just in onSuccess, in case onSuccess doesn't fire)
-  useEffect(() => {
-    if (batchStatuses) {
-      Object.entries(batchStatuses).forEach(([projectId, enabled]) => {
-        queryClient.setQueryData(
-          ['getEventChatNotificationStatus', { projectId }],
-          { enabled },
-        )
-      })
-    }
-  }, [batchStatuses, queryClient])
-
-  // Get statuses from query cache (populated by batch request or individual calls)
-  const projectStatuses = projects.map((project) => {
-    const queryData = queryClient.getQueryData<{ enabled: boolean }>([
-      'getEventChatNotificationStatus',
-      { projectId: project.project_id },
-    ])
-    // Fallback to batch data if query cache doesn't have it yet
-    const enabled =
-      queryData?.enabled ??
-      (batchStatuses as Record<string, boolean> | undefined)?.[
-        project.project_id
-      ] ??
-      true // Default to enabled
-    return {
-      projectId: project.project_id,
-      enabled,
-    }
-  })
-
-  // Determine toggle all state
-  const allEnabled = projectStatuses.every((p) => p.enabled)
-
-  const handleToggleAll = () => {
-    // If all are enabled, disable all; otherwise (mixed or all disabled) enable all
-    const targetState = !allEnabled
-
-    setIsTogglingAll(true)
-
-    // Build statuses map for batch update
-    const statuses: Record<string, boolean> = {}
-    projects.forEach((project) => {
-      statuses[project.project_id] = targetState
-    })
-
-    // Use batch update instead of individual updates
-    updateBatchMutation.mutate(statuses, {
-      onSettled: () => {
-        setIsTogglingAll(false)
-      },
-    })
+  const getPreference = (
+    projectId: string,
+    notificationTypeId: number,
+  ): NotificationPreference | null => {
+    const key = `${projectId}-${notificationTypeId}`
+    return preferencesMap.get(key) || null
   }
 
-  const sortedProjects = [...projects].sort((a, b) =>
-    a.name_long.localeCompare(b.name_long),
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.name_long.localeCompare(b.name_long)),
+    [projects],
   )
+
+  const getEventChatControlData = () => {
+    const isDark = colorScheme === 'dark'
+    const iconSize = 14
+
+    return [
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconX
+              size={iconSize}
+              color={isDark ? theme.colors.gray[5] : theme.colors.gray[7]}
+            />
+            <span>OFF</span>
+          </span>
+        ),
+        value: 'OFF',
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconInfoCircle
+              size={iconSize}
+              color={isDark ? theme.colors.blue[4] : theme.colors.blue[6]}
+            />
+            <span>ON</span>
+          </span>
+        ),
+        value: 'ON',
+      },
+    ]
+  }
+
+  if (notificationTypes.isLoading || preferences.isLoading) {
+    return <Loader />
+  }
+
+  if (!eventChatType) {
+    return (
+      <Text size="sm" c="dimmed">
+        Event chat notification type is not configured.
+      </Text>
+    )
+  }
 
   return (
     <Stack gap="md">
       <Text size="sm" c="dimmed">
-        Control whether you receive email notifications for the first message
-        posted on event chats for each project. When enabled, you&apos;ll be
-        notified when someone starts a new conversation on an event chat. When
-        disabled, you won&apos;t receive these initial notifications, but
-        you&apos;ll still receive notifications for messages in conversations
-        you&apos;ve already participated in (if you have not muted the
-        conversation).
+        Control event chat notifications per project. First message in a thread:
+        all company users with project access (filtered by your preferences
+        below). Follow-up messages: all users who have posted in that thread
+        (preferences do not apply - you will always receive notifications for
+        conversations you&apos;ve participated in). Users who have muted the
+        chat are never notified.
       </Text>
-      <Group justify="space-between">
-        <Group gap="xs">
-          <Switch
-            checked={allEnabled}
-            onChange={handleToggleAll}
-            disabled={isTogglingAll || sortedProjects.length === 0}
-            style={{ cursor: 'pointer' }}
-          />
-          <Text size="sm" fw={500}>
-            Toggle All
-          </Text>
-          {isTogglingAll && <Loader size="xs" />}
-        </Group>
-      </Group>
-      <Divider />
-      {isLoadingBatch ? (
-        <Loader />
-      ) : (
-        sortedProjects.map((project) => {
-          // Get status from batch data or cache - use actual database values, don't default
-          const queryData = queryClient.getQueryData<{ enabled: boolean }>([
-            'getEventChatNotificationStatus',
-            { projectId: project.project_id },
-          ])
-          // Only use batchStatuses if queryData is not available (shouldn't happen after batch loads)
-          const enabled =
-            queryData?.enabled ??
-            (batchStatuses as Record<string, boolean> | undefined)?.[
-              project.project_id
-            ]
+      <Table.ScrollContainer minWidth={600}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Project Name</Table.Th>
+              <Table.Th>
+                <Group gap={4}>
+                  Event Chat Messages
+                  <Tooltip label="Notifications for messages posted in event chat threads">
+                    <ActionIcon size="xs" variant="transparent" color="gray">
+                      <IconInfoCircle size={14} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+              </Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedProjects.map((project) => {
+              const preference = getPreference(
+                project.project_id,
+                eventChatType.notification_type_id,
+              )
+              const inAppEnabled =
+                preference?.in_app_enabled ??
+                eventChatType.in_app_enabled_default
+              const emailEnabled =
+                preference?.email_enabled ?? eventChatType.email_enabled_default
 
-          // Only render if we have actual data (don't show default)
-          if (enabled === undefined) {
-            return null
-          }
-
-          return (
-            <EventChatNotificationSetting
-              key={project.project_id}
-              projectId={project.project_id}
-              projectName={project.name_long}
-              initialEnabled={enabled}
-            />
-          )
-        })
-      )}
+              return (
+                <Table.Tr key={project.project_id}>
+                  <Table.Td>{project.name_long}</Table.Td>
+                  <Table.Td>
+                    <Stack gap="xs">
+                      <Group gap="xs" align="center">
+                        <Text size="xs" w={50}>
+                          in-app:
+                        </Text>
+                        <SegmentedControl
+                          size="xs"
+                          value={inAppEnabled ? 'ON' : 'OFF'}
+                          onChange={(value) => {
+                            if (value === 'OFF') {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  eventChatType.notification_type_id,
+                                in_app_enabled: false,
+                              })
+                            } else {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  eventChatType.notification_type_id,
+                                in_app_enabled: true,
+                                in_app_min_severity: 'info',
+                              })
+                            }
+                          }}
+                          data={getEventChatControlData()}
+                        />
+                      </Group>
+                      <Group gap="xs" align="center">
+                        <Text size="xs" w={50}>
+                          email:
+                        </Text>
+                        <SegmentedControl
+                          size="xs"
+                          value={emailEnabled ? 'ON' : 'OFF'}
+                          onChange={(value) => {
+                            if (value === 'OFF') {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  eventChatType.notification_type_id,
+                                email_enabled: false,
+                              })
+                            } else {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  eventChatType.notification_type_id,
+                                email_enabled: true,
+                                email_min_severity: 'info',
+                              })
+                            }
+                          }}
+                          data={getEventChatControlData()}
+                        />
+                      </Group>
+                    </Stack>
+                  </Table.Td>
+                </Table.Tr>
+              )
+            })}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
     </Stack>
-  )
-}
-
-function EventChatNotificationSetting({
-  projectId,
-  projectName,
-  initialEnabled,
-}: {
-  projectId: string
-  projectName: string
-  initialEnabled?: boolean
-}) {
-  const queryClient = useQueryClient()
-  const updateMutation = useUpdateEventChatNotification()
-
-  // Subscribe to cache changes using useQuery
-  const queryKey = ['getEventChatNotificationStatus', { projectId }]
-  const { data: status } = useQuery<{ enabled: boolean }>({
-    queryKey: ['getEventChatNotificationStatus', { projectId }],
-    queryFn: () =>
-      queryClient.getQueryData<{ enabled: boolean }>(queryKey) ?? {
-        enabled: initialEnabled ?? false,
-      },
-    enabled: false, // Don't make network request, just subscribe to cache
-    placeholderData:
-      initialEnabled !== undefined ? { enabled: initialEnabled } : undefined,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  })
-
-  // Derive the actual value from status or initialEnabled
-  const actualValue = status?.enabled ?? initialEnabled ?? false
-
-  // Use local state only for optimistic updates during mutations
-  const [optimisticValue, setOptimisticValue] = useState<boolean | undefined>(
-    undefined,
-  )
-
-  // Compute the displayed value: use optimistic value if mutation is pending, otherwise use actual value
-  // When mutation succeeds, the cache updates -> status updates -> actualValue updates
-  // which naturally overrides optimisticValue
-  const enabled =
-    updateMutation.isPending && optimisticValue !== undefined
-      ? optimisticValue
-      : actualValue
-
-  // Don't render if we don't have a value yet (shouldn't happen after batch loads)
-  if (enabled === undefined) {
-    return null
-  }
-
-  return (
-    <Group justify="space-between" wrap="nowrap">
-      <Switch
-        checked={enabled}
-        onChange={(event) => {
-          const newValue = event.currentTarget.checked
-          // Optimistically update local state immediately
-          setOptimisticValue(newValue)
-          updateMutation.mutate(
-            {
-              projectId,
-              enabled: newValue,
-            },
-            {
-              onSuccess: () => {
-                // Clear optimistic value when mutation succeeds
-                setOptimisticValue(undefined)
-              },
-              onError: () => {
-                // Clear optimistic value on error so UI shows actual state
-                setOptimisticValue(undefined)
-              },
-            },
-          )
-        }}
-        style={{ cursor: 'pointer' }}
-        disabled={updateMutation.isPending}
-      />
-      <Text style={{ flex: 1 }}>{projectName}</Text>
-    </Group>
   )
 }
 

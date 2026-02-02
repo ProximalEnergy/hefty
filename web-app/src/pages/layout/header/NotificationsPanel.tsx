@@ -32,6 +32,7 @@ import {
   IconDots,
   IconFlame,
   IconMail,
+  IconMessage,
   IconSettings,
   IconTornado,
   IconTrash,
@@ -270,11 +271,21 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
               const getNotificationTypeName = () => {
                 if (
                   typeof notification.data === 'object' &&
-                  notification.data !== null &&
-                  'weather_type' in notification.data &&
-                  typeof notification.data.weather_type === 'string'
+                  notification.data !== null
                 ) {
-                  return notification.data.weather_type.toLowerCase()
+                  const d = notification.data as Record<string, unknown>
+                  if (
+                    'notification_type' in d &&
+                    typeof d.notification_type === 'string'
+                  ) {
+                    return d.notification_type.toLowerCase()
+                  }
+                  if (
+                    'weather_type' in d &&
+                    typeof d.weather_type === 'string'
+                  ) {
+                    return d.weather_type.toLowerCase()
+                  }
                 }
                 return undefined
               }
@@ -284,6 +295,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
               const isFireAlert = typeName === 'fire'
               const isTornadoAlert = typeName === 'tornado'
               const isWindAlert = typeName === 'wind'
+              const isEventChatMessage = typeName === 'event_chat_message'
 
               const NotificationIcon = isFireAlert
                 ? IconFlame
@@ -293,7 +305,9 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
                     ? IconTornado
                     : isWindAlert
                       ? IconWind
-                      : IconBell
+                      : isEventChatMessage
+                        ? IconMessage
+                        : IconBell
 
               const primaryText = 'var(--mantine-primary-color-light-color)'
               const avatarBg = isDark
