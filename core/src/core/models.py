@@ -2802,6 +2802,7 @@ class QSEIntegration(Base):
         sa.ForeignKey("operational.qse_providers.qse_provider_id")
     )
     qse_project_identifier: Mapped[str]
+    provider_config: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     qse_provider = relationship("QSEProvider")
 

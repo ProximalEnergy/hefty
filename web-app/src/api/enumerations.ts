@@ -266,6 +266,7 @@ export const ReportTypeEnum = {
   PV_PERFORMANCE_DAILY: 9,
   EEC_BESS_MONTHLY_REPORT: 10,
   SCADA_TELEMETRY_LAST_REPORTED: 11,
+  WIND_STOW: 12,
 } as const;
 
 export const SensorTypeEnum = {
