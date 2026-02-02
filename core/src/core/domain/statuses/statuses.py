@@ -393,7 +393,7 @@ def normalize_truthy_falsy_df(df: pd.DataFrame) -> pd.DataFrame:
 
     # --- 3) Handle strings/objects: normalize case/whitespace ---
     # Convert to pandas string dtype (nullable), lowercase, strip.
-    s = sub.astype("string").str.strip().str.lower()
+    s = sub.astype("string").apply(lambda col: col.str.strip().str.lower())
 
     truthy_mask = s.isin(_TRUTHY)
     falsy_mask = s.isin(_FALSY)
