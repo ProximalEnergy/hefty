@@ -4,10 +4,12 @@ import warnings
 
 import sentry_sdk
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP
 from pydantic.json_schema import PydanticJsonSchemaWarning
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import settings
 from app.logger import logger
@@ -26,6 +28,10 @@ if settings.ENVIRONMENT in ["staging", "production"]:
             "traces_sample_rate": 0.1,
             "profiles_sample_rate": 0.2,
         },
+        "development": {
+            "traces_sample_rate": 1.0,
+            "profiles_sample_rate": 1.0,
+        },
     }
     sentry_sdk.init(
         dsn=(
@@ -37,9 +43,44 @@ if settings.ENVIRONMENT in ["staging", "production"]:
             "profiles_sample_rate"
         ],
         environment=settings.ENVIRONMENT,
+        default_integrations=True,
+        integrations=[
+            FastApiIntegration(transaction_style="endpoint"),
+        ],
+        max_breadcrumbs=50,
+        send_default_pii=False,
     )
 else:
     logger.warning("Sentry is not enabled for this environment")
+
+
+class SentryClientPageURLMiddleware(BaseHTTPMiddleware):
+    """Middleware to capture frontend page URL and add it to Sentry context."""
+
+    async def dispatch(  # nosemgrep: python-enforce-keyword-only-args
+        self, request: Request, call_next
+    ):
+        """Process request and add client page URL to Sentry context if present.
+
+        Args:
+            request: The incoming HTTP request.
+            call_next: The next middleware or route handler.
+
+        Returns:
+            The HTTP response.
+        """
+        # Get the frontend page URL from custom header
+        client_page_url = request.headers.get("X-Client-Page-URL")
+
+        if client_page_url:
+            sentry_sdk.set_context(
+                "client_page",
+                {"url": client_page_url},
+            )
+
+        response = await call_next(request)
+        return response
+
 
 with open("pyproject.toml", "rb") as f:  # Note: must open in binary mode
     api_meta_data = tomllib.load(f)
@@ -64,9 +105,13 @@ app.add_middleware(
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-Client-Page-URL"],
     expose_headers=["Content-Disposition"],
 )
+
+# Add Sentry middleware to capture client page URL
+# This should be added after CORS but before routes
+app.add_middleware(SentryClientPageURLMiddleware)
 
 app.include_router(v1.router)
 

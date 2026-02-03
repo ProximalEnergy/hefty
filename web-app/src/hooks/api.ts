@@ -11,9 +11,19 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import { Table, tableFromIPC } from 'apache-arrow'
-import axios, { AxiosRequestConfig } from 'axios'
+import axios, { AxiosHeaders, AxiosRequestConfig } from 'axios'
 import { FeatureCollection } from 'geojson'
 import qs from 'qs'
+
+// Add request interceptor to include current page URL
+axios.interceptors.request.use((config) => {
+  // Only add header if we're in a browser environment
+  if (typeof window !== 'undefined') {
+    config.headers = AxiosHeaders.from(config.headers)
+    config.headers.set('X-Client-Page-URL', window.location.href)
+  }
+  return config
+})
 
 type PathParams = Record<string, string | number | boolean | null | undefined>
 
