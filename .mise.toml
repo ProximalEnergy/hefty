@@ -37,6 +37,35 @@ cd .. && \
 mise run sql-admin:install
 """
 
+[tasks.sync-deps-if-lock-changed]
+description = "Run sync-deps when lockfiles have changed"
+run = """
+LOCKFILE_PATTERN='^(uv\\.lock|core/uv\\.lock|api/uv\\.lock|sql-admin/uv\\.lock|\
+web-app/package-lock\\.json)$'
+
+BASE_REF=""
+if git show-ref --verify --quiet refs/remotes/origin/dev; then
+  BASE_REF="$(git merge-base HEAD origin/dev)"
+elif git show-ref --verify --quiet refs/heads/dev; then
+  BASE_REF="$(git merge-base HEAD dev)"
+else
+  BASE_REF="HEAD~1"
+fi
+
+CHANGED_FILES="$(
+  {
+    git diff --name-only "${BASE_REF}...HEAD"
+    git diff --name-only HEAD
+  } | sort -u
+)"
+
+if echo "${CHANGED_FILES}" | grep -E -q "${LOCKFILE_PATTERN}"; then
+  mise run sync-deps
+else
+  echo "No lockfile changes detected; skipping sync-deps."
+fi
+"""
+
 [tasks.dev]
 description = "Run API and web-app development servers concurrently"
 usage = '''
@@ -45,12 +74,12 @@ usage = '''
 run = """
 if [ "${usage_no_sync:-false}" = "true" ]; then
   mise run api:switch-core && \
-  mise run sync-deps && \
+  mise run sync-deps-if-lock-changed && \
   ./_scripts/run_dev.sh
 else
   mise run sync && \
   mise run api:switch-core && \
-  mise run sync-deps && \
+  mise run sync-deps-if-lock-changed && \
   ./_scripts/run_dev.sh
 fi
 """
