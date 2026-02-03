@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +20,6 @@ from app.dependencies import get_async_db
 from app.domain.equipment.pv_module.parse_cec.c_calc_parameters import (
     adapt_cec_pv_module_to_proximal,
 )
-from core import models
 
 DESCRIPTION_404 = "CEC PV Module not found"
 
@@ -29,33 +29,32 @@ router = APIRouter(prefix="/cec-pv-modules", tags=["cec_pv_modules"])
 @router.get("", response_model=list[interfaces.CECPVModuleWithID])
 async def get_cec_pv_modules(
     cec_pv_module_ids: Annotated[list[int], Query()] = [],
-    db: AsyncSession = Depends(get_async_db),
 ):
     """todo
 
     Args:
         cec_pv_module_ids: TODO: describe.
-        db: TODO: describe.
     """
-    return await crud_get_cec_pv_modules(db, cec_pv_module_ids=cec_pv_module_ids)
+    cec_pv_modules = await crud_get_cec_pv_modules(
+        cec_pv_module_ids=cec_pv_module_ids,
+    ).get_async(output_type=OutputType.PANDAS)
+    return cec_pv_modules.to_dict("records")
 
 
 @router.get("/proximal-format", response_model=dict)
 async def get_cec_pv_modules_in_proximal_format(
     cec_pv_module_id: int,
-    db: AsyncSession = Depends(get_async_db),
 ):
     """todo
 
     Args:
         cec_pv_module_id: TODO: describe.
-        db: TODO: describe.
     """
-    cec_pv_modules = await crud_get_cec_pv_modules(
-        db,
+    cec_pv_module = await crud_get_cec_pv_modules(
         cec_pv_module_ids=[cec_pv_module_id],
-    )
-    cec_pv_module: models.CECPVModule = cec_pv_modules[0]
+    ).get_async(output_type=OutputType.SQLALCHEMY)
+    if cec_pv_module is None:
+        raise HTTPException(status_code=404, detail=DESCRIPTION_404)
     cec_pv_module_validated = interfaces.CECPVModule.model_validate(cec_pv_module)
     cec_pv_module_adapted = adapt_cec_pv_module_to_proximal(
         cec_pv_module=cec_pv_module_validated,

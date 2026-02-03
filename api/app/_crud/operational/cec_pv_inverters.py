@@ -1,3 +1,6 @@
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,15 +8,13 @@ from app import interfaces
 from core import models
 
 
-async def get_cec_pv_inverters(
-    db: AsyncSession,
+def get_cec_pv_inverters(
     *,
-    cec_pv_inverter_ids: list[int] = [],
-):
+    cec_pv_inverter_ids: list[int] | None = None,
+) -> DbQuery[models.CECPVInverter, Literal[False]]:
     """Retrieve CEC PV inverters, optionally filtered by inverter IDs.
 
     Args:
-        db: Database session used to run the query.
         cec_pv_inverter_ids: Optional inverter identifiers to narrow the result.
     """
     query = select(models.CECPVInverter)
@@ -23,8 +24,7 @@ async def get_cec_pv_inverters(
             models.CECPVInverter.cec_pv_inverter_id.in_(cec_pv_inverter_ids),
         )
 
-    result = await db.execute(query)
-    return list(result.scalars().all())
+    return DbQuery(query=query)
 
 
 async def upsert_cec_pv_inverters_bulk(

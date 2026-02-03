@@ -1,3 +1,6 @@
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,15 +40,13 @@ async def get_cec_pv_module_models_given_manufacturer(
     return [item[0] for item in result.all()]
 
 
-async def get_cec_pv_modules(
-    db: AsyncSession,
+def get_cec_pv_modules(
     *,
     cec_pv_module_ids: list[int] | None = None,
-):
+) -> DbQuery[models.CECPVModule, Literal[False]]:
     """todo
 
     Args:
-        db: TODO: describe.
         cec_pv_module_ids: TODO: describe.
     """
     query = select(models.CECPVModule)
@@ -53,8 +54,7 @@ async def get_cec_pv_modules(
     if cec_pv_module_ids:
         query = query.where(models.CECPVModule.cec_pv_module_id.in_(cec_pv_module_ids))
 
-    result = await db.execute(query)
-    return list(result.scalars().all())
+    return DbQuery(query=query)
 
 
 async def get_cec_pv_module_ids(

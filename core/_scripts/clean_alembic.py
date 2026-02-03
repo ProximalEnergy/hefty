@@ -136,11 +136,13 @@ class MigrationCleaner:
         content = re.sub(
             r"from _alembic_migrations\.tenant import "
             r"([^,\n]*,\s*)?for_each_project_schema(,\s*[^,\n]*)?",
-            lambda m: f"from _alembic_migrations.tenant import "
-            f"{m.group(1) or ''}{m.group(2) or ''}".replace("import ,", "import")
-            .replace(", ,", ",")
-            .strip()
-            .rstrip(","),
+            lambda m: (
+                f"from _alembic_migrations.tenant import "
+                f"{m.group(1) or ''}{m.group(2) or ''}".replace("import ,", "import")
+                .replace(", ,", ",")
+                .strip()
+                .rstrip(",")
+            ),
             content,
         )
 

@@ -1538,7 +1538,6 @@ export interface paths {
          *
          *     Args:
          *         cec_pv_module_ids: TODO: describe.
-         *         db: TODO: describe.
          */
         get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules_get"];
         put?: never;
@@ -1570,7 +1569,6 @@ export interface paths {
          *
          *     Args:
          *         cec_pv_module_id: TODO: describe.
-         *         db: TODO: describe.
          */
         get: operations["get_cec_pv_modules_in_proximal_format_v1_operational_cec_pv_modules_proximal_format_get"];
         put?: never;
@@ -3050,7 +3048,6 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
          *         project_db: TODO: describe.
          *         project: TODO: describe.
          *         start: TODO: describe.
@@ -3085,7 +3082,6 @@ export interface paths {
          *         use_poa_1d: TODO: describe.
          *         use_poa_std: TODO: describe.
          *         resample_rate: TODO: describe.
-         *         db: TODO: describe.
          *         project_db: TODO: describe.
          *         async_project_db: TODO: describe.
          *         project: TODO: describe.

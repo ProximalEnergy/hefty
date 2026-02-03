@@ -446,9 +446,7 @@ async def get_time_series(
         tags=tags,
     )
     tag_id_to_tag_name_scada = {tag.tag_id: tag.name_scada for tag in tags}
-    tag_id_to_tag_name_long = {
-        tag.tag_id: tag.name_long if tag.name_long else "" for tag in tags
-    }
+    tag_id_to_tag_name_long = {tag.tag_id: tag.name_long or "" for tag in tags}
     tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
     tag_id_to_sensor_type_id = {tag.tag_id: tag.sensor_type_id for tag in tags}
 
@@ -620,9 +618,7 @@ async def get_timeseries_v3(
         tags=tags,
     )
     tag_id_to_tag_name_scada = {tag.tag_id: tag.name_scada for tag in tags}
-    tag_id_to_tag_name_long = {
-        tag.tag_id: tag.name_long if tag.name_long else "" for tag in tags
-    }
+    tag_id_to_tag_name_long = {tag.tag_id: tag.name_long or "" for tag in tags}
     tag_id_to_device_id = {tag.tag_id: tag.device_id for tag in tags}
     tag_id_to_sensor_type_id = {tag.tag_id: tag.sensor_type_id for tag in tags}
 

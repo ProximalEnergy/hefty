@@ -182,9 +182,11 @@ async def get_cmms_tickets(
 
     # sort items by created_at
     tickets.sort(
-        key=lambda x: x.created_at.replace(tzinfo=pytz.UTC)
-        if x.created_at
-        else datetime.min.replace(tzinfo=pytz.UTC),
+        key=lambda x: (
+            x.created_at.replace(tzinfo=pytz.UTC)
+            if x.created_at
+            else datetime.min.replace(tzinfo=pytz.UTC)
+        ),
         reverse=True,
     )
 

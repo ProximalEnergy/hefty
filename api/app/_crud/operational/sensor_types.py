@@ -69,4 +69,4 @@ def get_next_sensor_type_id(*, db: Session) -> int:
         .limit(1)
     )
     max_id = db.execute(statement).scalar_one_or_none()
-    return (max_id if max_id else 0) + 1
+    return (max_id or 0) + 1

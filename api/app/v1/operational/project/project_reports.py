@@ -22,7 +22,6 @@ from app._crud.operational.cec_pv_modules import get_cec_pv_modules
 from app._crud.operational.pv_modules import get_pv_modules
 from app.dependencies import (
     check_project_access_async,
-    get_async_db,
     get_project_api,
     get_project_db,
     get_project_db_async,
@@ -40,7 +39,6 @@ router = APIRouter(
 @router.get("/pcs-apparent-vs-voltage")
 async def get_pcs_apparent_vs_voltage(
     *,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime,
@@ -49,7 +47,6 @@ async def get_pcs_apparent_vs_voltage(
     """todo
 
     Args:
-        db: TODO: describe.
         project_db: TODO: describe.
         project: TODO: describe.
         start: TODO: describe.
@@ -124,7 +121,9 @@ async def get_pcs_apparent_vs_voltage(
     )
     mask = (df_voltage > 10) & (df_apparent > 0.01)
     cec_pv_inverter_ids = list(set(devices_df["cec_pv_inverter_id"].dropna().tolist()))
-    await get_cec_pv_inverters(db, cec_pv_inverter_ids=cec_pv_inverter_ids)
+    await get_cec_pv_inverters(
+        cec_pv_inverter_ids=cec_pv_inverter_ids,
+    ).get_async(output_type=OutputType.PANDAS)
 
     out = []
     for col in df_voltage.columns.astype(int):
@@ -150,7 +149,6 @@ async def dc_amperage_report_v2(
     use_poa_1d: bool,
     use_poa_std: bool,
     resample_rate: str = "5min",
-    db: AsyncSession = Depends(get_async_db),
     project_db: Session = Depends(get_project_db),
     async_project_db: AsyncSession = Depends(get_project_db_async),
     project: models.Project = Depends(get_project_api),
@@ -166,7 +164,6 @@ async def dc_amperage_report_v2(
         use_poa_1d: TODO: describe.
         use_poa_std: TODO: describe.
         resample_rate: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
         async_project_db: TODO: describe.
         project: TODO: describe.
@@ -312,13 +309,9 @@ async def dc_amperage_report_v2(
         df_cb_report["pmax"] = df_cb_report["pv_module_id"].map(pv_modules_df["pmax"])
     else:
         pv_modules = await get_cec_pv_modules(
-            db,
             cec_pv_module_ids=df_cb_report["cec_pv_module_id"].unique().tolist(),
-        )
-        pv_modules_df = pd.DataFrame([x.__dict__ for x in pv_modules]).set_index(
-            "cec_pv_module_id",
-            drop=True,
-        )
+        ).get_async(output_type=OutputType.PANDAS)
+        pv_modules_df = pv_modules.set_index("cec_pv_module_id", drop=True)
         df_cb_report["Vmp"] = df_cb_report["cec_pv_module_id"].map(
             pv_modules_df["nameplate_vpmax"],
         )

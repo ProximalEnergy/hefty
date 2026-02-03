@@ -70,7 +70,7 @@ def normalize_path(*, path: str) -> str:
         normalized = "/" + normalized
 
     normalized = normalized.rstrip("/")
-    return normalized if normalized else "/"
+    return normalized or "/"
 
 
 def get_api_paths_with_definitions(*, app: Any) -> dict[str, str]:

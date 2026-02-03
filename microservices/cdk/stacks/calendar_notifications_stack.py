@@ -62,7 +62,7 @@ class CalendarNotificationsStack(Stack):
                 directory=str(repo_root),
                 file="microservices/calendar_notifications_lambda/Dockerfile",
                 platform=Platform.LINUX_ARM64,
-                build_args=build_args if build_args else None,
+                build_args=build_args or None,
             ),
             architecture=Architecture.ARM_64,
             timeout=Duration.minutes(5),

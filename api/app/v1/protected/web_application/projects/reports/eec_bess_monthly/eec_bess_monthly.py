@@ -5,6 +5,7 @@ import shutil
 import tempfile
 from collections.abc import Callable
 from html import escape
+from pathlib import Path
 from typing import cast
 from zoneinfo import ZoneInfo
 
@@ -2586,19 +2587,19 @@ async def upload_to_aws(
         s3_client = boto3.client("s3", region_name="us-east-2")
         s3_client.upload_file(local_filename, bucket_name, file_key)
 
-    temp_dir = os.path.dirname(local_filename)
+    local_path = Path(local_filename)
+    temp_dir_path = local_path.parent
+    temp_dir = str(temp_dir_path)
     try:
         await asyncio.to_thread(_upload)
     finally:
-        if os.path.exists(local_filename):
+        if await asyncio.to_thread(local_path.exists):
             try:
                 await asyncio.to_thread(os.remove, local_filename)
             except OSError:
                 pass
-        if (
-            temp_dir
-            and os.path.isdir(temp_dir)
-            and temp_dir.startswith(tempfile.gettempdir())
+        if await asyncio.to_thread(temp_dir_path.is_dir) and temp_dir.startswith(
+            tempfile.gettempdir()
         ):
             await asyncio.to_thread(shutil.rmtree, temp_dir, ignore_errors=True)
 

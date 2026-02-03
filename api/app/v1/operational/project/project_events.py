@@ -276,7 +276,7 @@ async def get_paginated_events(
 
     root_causes = await get_root_causes(
         db=db,
-        root_cause_ids=root_cause_ids if root_cause_ids else [],
+        root_cause_ids=root_cause_ids or [],
     )
 
     root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
@@ -295,7 +295,7 @@ async def get_paginated_events(
 
     device_types = await get_device_types(
         db=db,
-        device_type_ids=device_type_ids_only if device_type_ids_only else [],
+        device_type_ids=device_type_ids_only or [],
     )
 
     device_type_dict = {dt.device_type_id: dt for dt in device_types}
@@ -371,8 +371,8 @@ async def get_paginated_events(
 
         # 5) build losses_map in O(E)
         losses_map = {}
-        has = lambda frame, col: (frame is not None) and (
-            col in getattr(frame, "columns", [])
+        has = lambda frame, col: (
+            (frame is not None) and (col in getattr(frame, "columns", []))
         )
         for ev_id in set(g["event_id"]):
             losses_map[ev_id] = {
