@@ -492,7 +492,10 @@ uv export --frozen --no-emit-workspace --no-dev --no-editable \
 [tasks."api:run"]
 description = "Run the API server with hot reload"
 dir = "api"
-run = "uv run uvicorn app.main:app --reload --timeout-graceful-shutdown 0"
+run = """
+uv run uvicorn app.main:app --reload --reload-dir app --reload-dir ../core \
+  --timeout-graceful-shutdown 0
+"""
 
 [tasks."api:get_env"]
 description = "Generate .env file from AWS Systems Manager Parameter Store"
