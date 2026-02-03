@@ -45,8 +45,8 @@ import { HoverInfo } from './utils'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-// Import the non-comm color and opacity
-const COLOR_NON_COMM = '#1C7ED6' // From utils/GIS.ts
+// Import the non-comm opacity
+const COLOR_NEUTRAL = '#cccccc'
 const OPACITY_NON_COMM = 0.5 // Restore default non-comm opacity
 
 // --- Zoom Level Definitions ---
@@ -73,6 +73,7 @@ type AdaptiveGisFeatureProperties = {
   power_expected: NullableNumber
   device_type_id: number
   actual_vs_expected: NullableNumber
+  expected_zero_output: boolean
   ratio_label: string
   tracker_angle: NullableNumber
   effective_zoom: number
@@ -354,6 +355,8 @@ export function AdaptiveGisMap() {
         device.power_data?.actual?.power?.slice(-1)[0] ?? null
       const latestExpectedPower =
         device.power_data?.expected_soiled?.power?.slice(-1)[0] ?? null
+      const expectedZeroOutput =
+        latestActualPower === 0 && latestExpectedPower === 0
 
       // --- Calculate Actual vs Expected Ratio (or Actual vs Capacity if Expected is missing) ---
       let actual_vs_expected: number | null = null
@@ -418,7 +421,8 @@ export function AdaptiveGisMap() {
         power: latestActualPower,
         power_expected: latestExpectedPower,
         device_type_id: device.device_type_id,
-        actual_vs_expected: actual_vs_expected,
+        actual_vs_expected: expectedZeroOutput ? null : actual_vs_expected,
+        expected_zero_output: expectedZeroOutput,
         ratio_label: ratio_label,
         tracker_angle: device.tracker_data?.tracker_angle ?? null,
         effective_zoom: effectiveZoom,
@@ -867,17 +871,21 @@ export function AdaptiveGisMap() {
                           ],
                           // Sub-Case 1.2: Combiner (9) -> Gray
                           ['==', ['get', 'device_type_id'], 9],
-                          '#cccccc',
+                          COLOR_NEUTRAL,
                           // Sub-Case 1.3: Default for other polygons at VERY_HIGH_ZOOM -> Gray
-                          '#cccccc',
+                          COLOR_NEUTRAL,
                         ],
 
-                        // --- PRIORITY 2: General Non-Comm/Null Data (Blue) ---
+                        // --- PRIORITY 2: Expected 0 and Actual 0 -> Grey ---
+                        ['==', ['get', 'expected_zero_output'], true],
+                        COLOR_NEUTRAL,
+
+                        // --- PRIORITY 3: General Null Data (Grey) ---
                         // Applies if not handled by VERY_HIGH_ZOOM logic above
                         ['==', ['get', 'actual_vs_expected'], null],
-                        COLOR_NON_COMM, // Blue for non-communication/missing power data
+                        COLOR_NEUTRAL, // Grey for missing power data
 
-                        // --- PRIORITY 3: HIGH ZOOM (Combiners by Ratio) ---
+                        // --- PRIORITY 4: HIGH ZOOM (Combiners by Ratio) ---
                         // Implicitly zoom < VERY_HIGH_ZOOM because of ordering
                         [
                           'all',
@@ -898,7 +906,7 @@ export function AdaptiveGisMap() {
                           colorsGoodBad[2]?.value ?? '#40c057',
                         ],
 
-                        // --- PRIORITY 4: MEDIUM ZOOM (PCS by Ratio) ---
+                        // --- PRIORITY 5: MEDIUM ZOOM (PCS by Ratio) ---
                         // Implicitly zoom < HIGH_ZOOM
                         [
                           'all',
@@ -919,7 +927,7 @@ export function AdaptiveGisMap() {
                           colorsGoodBad[2]?.value ?? '#40c057',
                         ],
 
-                        // --- PRIORITY 5: LOW ZOOM (PCS by Ratio) ---
+                        // --- PRIORITY 6: LOW ZOOM (PCS by Ratio) ---
                         // Implicitly zoom < LOW_ZOOM
                         ['all', ['==', ['get', 'device_type_id'], 2]],
                         [
@@ -937,7 +945,7 @@ export function AdaptiveGisMap() {
                         ],
 
                         // --- Default Fallback ---
-                        '#cccccc',
+                        COLOR_NEUTRAL,
                       ],
                       'fill-opacity': [
                         'case',
@@ -990,7 +998,7 @@ export function AdaptiveGisMap() {
                         '#ff7f0e',
                         ['==', ['get', 'device_type_id'], 29], // Tracker Row
                         '#9467bd', // Purple for Trackers
-                        '#cccccc', // Default
+                        COLOR_NEUTRAL, // Default
                       ],
                       'circle-stroke-width': 1,
                       'circle-stroke-color': '#ffffff',
