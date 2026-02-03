@@ -1,5 +1,7 @@
+from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery, OutputType
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -147,31 +149,27 @@ async def update_user_report_subscription(
         return new_subscription
 
 
-async def get_user_event_chat_notification_subscription(
+def get_user_event_chat_notification_subscription(
     *,
-    db: AsyncSession,
     user_id: str,
     operational_project_id: UUID,
-) -> models.UserSubscription | None:
+) -> DbQuery[models.UserSubscription, Literal[True]]:
     """Get user's event chat notification subscription for a project.
         Returns None if subscription doesn't exist (defaults to True per model).
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        operational_project_id: TODO: describe.
+        user_id: The ID of the user.
+        operational_project_id: The ID of the operational project.
     """
     query = select(models.UserSubscription).where(
         models.UserSubscription.user_id == user_id,
         models.UserSubscription.operational_project_id == operational_project_id,
     )
-    result = await db.execute(query)
-    return result.scalar_one_or_none()
+    return DbQuery(query=query, is_scalar=True)
 
 
 async def is_event_chat_notification_enabled(
     *,
-    db: AsyncSession,
     user_id: str,
     operational_project_id: UUID,
 ) -> bool:
@@ -184,8 +182,9 @@ async def is_event_chat_notification_enabled(
         operational_project_id: TODO: describe.
     """
     subscription = await get_user_event_chat_notification_subscription(
-        db=db, user_id=user_id, operational_project_id=operational_project_id
-    )
+        user_id=user_id,
+        operational_project_id=operational_project_id,
+    ).get_async(output_type=OutputType.SQLALCHEMY)
     if subscription is None:
         return True  # Default to enabled per model
     return subscription.event_chat_notifications

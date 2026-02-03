@@ -1,5 +1,7 @@
+from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery, OutputType
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,17 +30,15 @@ async def get_user_notification_preferences(
     return list(result.scalars().all())
 
 
-async def get_user_notification_preference(
+def get_user_notification_preference(
     *,
-    db: AsyncSession,
     user_id: str,
     project_id: UUID,
     notification_type_id: int,
-) -> models.NotificationPreference | None:
+) -> DbQuery[models.NotificationPreference, Literal[True]]:
     """Get a specific notification preference.
 
     Args:
-        db: Database session.
         user_id: User ID.
         project_id: Project ID.
         notification_type_id: Notification type ID.
@@ -48,8 +48,7 @@ async def get_user_notification_preference(
         models.NotificationPreference.project_id == project_id,
         models.NotificationPreference.notification_type_id == notification_type_id,
     )
-    result = await db.execute(query)
-    return result.scalar_one_or_none()
+    return DbQuery(query=query, is_scalar=True)
 
 
 async def get_or_create_notification_preference(
@@ -69,11 +68,10 @@ async def get_or_create_notification_preference(
     """
     # Try to get existing preference
     preference = await get_user_notification_preference(
-        db=db,
         user_id=user_id,
         project_id=project_id,
         notification_type_id=notification_type_id,
-    )
+    ).get_async(output_type=OutputType.SQLALCHEMY)
 
     if preference is not None:
         return preference
