@@ -31,7 +31,6 @@ def get_table_columns(
 def model_list_to_pandas[T](*, model_list: list[T]) -> pd.DataFrame:
     """
     Quick and dirty conversion from list of SQLAlchemy models to pandas DataFrame.
-    No relation to ModelList or ModelItem.
 
     Args:
         model_list: List of SQLAlchemy model instances

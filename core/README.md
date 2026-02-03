@@ -99,35 +99,6 @@ db = core.dependencies.get_db_session()
 project_db = core.dependencies.get_project_db_session(project_name_short = project_name_short)
 ```
 
-### Return Types
-
-`core` utilizes two typical return types: `ModelList` and `ModelItem`. The constructors for these types can be found in [models.py](/src/core/models.py). A `core` function will typically return one of these two types of objects. When these objects are called, they will return either a list of models or a single model, as appropriate. They also have the `.dataframe` property, to allow ease of use for flexible application.
-
-```python
-import core
-db = core.dependencies.get_db_session()
-projects = core.crud.operational.projects.get_projects(db)
-print(projects)
-== <core.models.ModelList at 0x10cb94ad0> ==
-
-print(projects())
-== [<core.models.Project at 0x10f8eb7a0>, ==
-== <core.models.Project at 0x10f8eb7d0>,  ==
-== ...                                    ==
-== <core.models.Project at 0x10f8eb800>,  ==
-== <core.models.Project at 0x10f8eb830>]  ==
-
-projects.dataframe
-```
-
-|     | project_id | project_type_id | name_short      | name_long       | ... |
-| --- | ---------- | --------------- | --------------- | --------------- | --- |
-| 0   | 123abc     | 0               | golden_fields   | Golden Fields   | ... |
-| 1   | qwerty     | 1               | energy_town     | Energy Town     | ... |
-| ... | ...        | ...             | ...             | ...             | ... |
-| 19  | f5e6r4     | 0               | solar_sanctuary | Solar Sanctuary | ... |
-| 20  | asdfgh     | 0               | sun_valley      | Sun Valley      | ... |
-
 ## Development
 
 When adding functionality to `core`, ensure that all new files and folders are added to relevant `__init__.py` files. Otherwise, they will not be accessible via the module notation.

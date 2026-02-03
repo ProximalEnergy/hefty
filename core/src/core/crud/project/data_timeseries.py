@@ -10,13 +10,26 @@ import clickhouse_connect
 import pandas as pd
 import polars as pl
 from polars.datatypes import Boolean, String
-from sqlalchemy import MetaData, Table, TextClause, select, text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    DateTime,
+    Float,
+    Integer,
+    MetaData,
+    Table,
+    Text,
+    bindparam,
+    select,
+    text,
+)
+from sqlalchemy import Boolean as sa_Boolean
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.orm import Session, load_only
 
 from core import models, settings
 from core.crud.project.tags import get_project_tags_v2
-from core.db_query import OutputType
+from core.db_query import DbQuery, OutputType
 from core.dependencies import get_db_session_async
 from core.enumerations import (
     AggregationMethod,
@@ -24,7 +37,6 @@ from core.enumerations import (
     TimeInterval,
     TimeOffset,
 )
-from core.model_list import ModelList
 
 try:
     from fastapi import HTTPException
@@ -451,11 +463,13 @@ class DataTimeseries:
         Args:
             table_name: Timescale table name to query.
         """
-        lookback_query = self._build_lookback_query_timescale(
+        db_query = self._build_lookback_query_timescale(
             table_name=table_name,
         )
-        lookback_model_list: ModelList = ModelList(query=lookback_query)
-        return await lookback_model_list.polars_dataframe_async()
+        return await db_query.get_async(
+            output_type=OutputType.POLARS,
+            schema=self.project_name_short,
+        )
 
     async def _fetch_timescale_page(
         self,
@@ -469,12 +483,14 @@ class DataTimeseries:
             table_name: Timescale table name to query.
             interval_sql: Optional aggregation interval.
         """
-        query = self._build_data_timeseries_query_timescale(
+        db_query = self._build_data_timeseries_query_timescale(
             table_name=table_name,
             interval_sql=interval_sql,
         )
-        model_list: ModelList = ModelList(query=query)
-        return await model_list.polars_dataframe_async()
+        return await db_query.get_async(
+            output_type=OutputType.POLARS,
+            schema=self.project_name_short,
+        )
 
     def _fetch_clickhouse_lookback(self, *, client: Any) -> pl.DataFrame:
         """Fetch lookback data for ClickHouse.
@@ -703,7 +719,7 @@ class DataTimeseries:
         self,
         *,
         table_name: str,
-    ) -> TextClause:
+    ) -> DbQuery:
         """Build query to get the last value before query_start for each tag.
 
         Uses instance attributes: project_name_short, query_start,
@@ -712,13 +728,21 @@ class DataTimeseries:
         Args:
             table_name: Table name to query.
         """
-        # Step 1: Create SQLAlchemy Table object with proper schema
+        # Step 1: Create SQLAlchemy Table object using schema translation
         # Result: Table object representing the timeseries table in project schema
-        metadata = MetaData(schema=self.project_name_short)
+        metadata = MetaData(schema="project")
         table = Table(
             table_name,
             metadata,
-            schema=self.project_name_short,
+            Column("time", DateTime(timezone=True)),
+            Column("tag_id", Integer),
+            Column("value_integer", Integer),
+            Column("value_bigint", BigInteger),
+            Column("value_real", Float),
+            Column("value_double", Float),
+            Column("value_boolean", sa_Boolean),
+            Column("value_text", Text),
+            schema="project",
         )
 
         # Step 2: Calculate lookback time window
@@ -727,45 +751,43 @@ class DataTimeseries:
         lookback_start = self.query_start - max_lookback_td
 
         # Step 3: Build time constraint SQL and bind parameters
-        time_constraint = "dt.time < :query_start AND dt.time >= :lookback_start"
         bind_params = {
-            "query_start": self.query_start.isoformat(),
-            "lookback_start": lookback_start.isoformat(),
+            "query_start": self.query_start,
+            "lookback_start": lookback_start,
             "filter_ids": tuple(self._tag_ids),
         }
 
         # Step 4: Build SQL query using DISTINCT ON for efficiency
         # Purpose: Get the most recent value per tag within the lookback window
-        statement = f"""
-        SELECT DISTINCT ON (dt.tag_id)
-            dt.tag_id,
-            dt.value_integer,
-            dt.value_bigint,
-            dt.value_real,
-            dt.value_double,
-            dt.value_boolean,
-            dt.value_text
-        FROM
-            {table.schema}.{table.name} dt
-        WHERE
-            {time_constraint}
-            AND dt.tag_id IN :filter_ids
-        ORDER BY
-            dt.tag_id, dt.time DESC;
-        """  # noqa: S608
+        statement = (
+            select(
+                table.c.tag_id,
+                table.c.value_integer,
+                table.c.value_bigint,
+                table.c.value_real,
+                table.c.value_double,
+                table.c.value_boolean,
+                table.c.value_text,
+            )
+            .distinct(table.c.tag_id)
+            .where(
+                table.c.time < bindparam("query_start"),
+                table.c.time >= bindparam("lookback_start"),
+                table.c.tag_id.in_(bindparam("filter_ids", expanding=True)),
+            )
+            .order_by(table.c.tag_id, table.c.time.desc())
+        )
 
-        # Step 5: Create SQLAlchemy TextClause with bound parameters
-        # Result: Executable SQL query object ready for execution
-        query: TextClause = text(statement).bindparams(**bind_params)
-
-        return query
+        # Step 5: Create DbQuery with bound Select
+        # Result: Executable DbQuery object ready for execution
+        return DbQuery(query=statement.params(**bind_params))
 
     def _build_data_timeseries_query_timescale(
         self,
         *,
         table_name: str,
         interval_sql: TimeInterval | None,
-    ) -> TextClause:
+    ) -> DbQuery:
         """Build the SQL query for timeseries data retrieval.
 
         Uses instance attributes: project_name_short, aggregation_method, query_start,
@@ -779,8 +801,8 @@ class DataTimeseries:
 
         # Step 1: Convert datetime objects to ISO format strings for SQL binding
         # Result: String representations of query_start and query_end timestamps
-        query_start_str = self.query_start.isoformat()
-        query_end_str = self.query_end.isoformat()
+        query_start_ts = self.query_start
+        query_end_ts = self.query_end
 
         # Step 2: Create SQLAlchemy Table object with proper schema
         # Purpose: Ensures SQL injection safety by using Table metadata
@@ -863,8 +885,8 @@ class DataTimeseries:
         # Step 8: Build bind parameters dictionary
         # Result: Dict with all SQL parameter values for safe parameterized query
         bind_params = {
-            "query_start": query_start_str,
-            "query_end": query_end_str,
+            "query_start": query_start_ts,
+            "query_end": query_end_ts,
             "filter_ids": tuple(self._tag_ids),
         }
         # Add pagination params if not overridden
@@ -873,13 +895,16 @@ class DataTimeseries:
             bind_params["pagination_offset"] = self.pagination_offset
         # Add interval param if time bucketing is used
         if interval_sql:
-            bind_params["interval"] = interval_sql
+            bind_params["interval"] = pd.Timedelta(interval_sql.value).to_pytimedelta()
 
-        # Step 9: Create SQLAlchemy TextClause with bound parameters
-        # Result: Executable SQL query object ready for execution
-        query: TextClause = text(statement).bindparams(**bind_params)
-
-        return query
+        # Step 9: Create DbQuery with bound TextClause
+        # Result: Executable DbQuery object ready for execution
+        return DbQuery(
+            query=text(statement).bindparams(
+                bindparam("filter_ids", expanding=True),
+                **bind_params,
+            )
+        )
 
     def _build_interval_sql_clickhouse(self) -> TimeInterval | None:
         # Identify interval_sql, return TimeInterval if freq > 1min, else None
@@ -1334,12 +1359,6 @@ class DataTimeseries:
 
         Args:
             df: Timeseries data in long format
-            tags: Either an executed ModelList of Tag models or a polars DataFrame with
-                columns: tag_id, unit_scale, unit_offset, and optionally
-                pg_data_type_id. If pg_data_type_id is provided, it will be used to
-                determine the correct value column for each tag (avoiding issues with
-                default values in ClickHouse). Otherwise, the function infers the value
-                column from the data. Prefer Polars DataFrames for better performance.
         """
 
         # Step 1: Identify value columns (value_integer, value_real, etc.)
@@ -1757,76 +1776,3 @@ class DataTimeseries:
         # Step 10: Return normalized DataFrame
         # Result: DataFrame with time column matching reference format exactly
         return out
-
-
-# --- THIS FUNCTION IS DEPRECATED ---
-# Please use the v3 function instead
-def get_project_data_timeseries(
-    project_db: Session,
-    *,
-    project_name_short: str,
-    tag_ids: list[int],
-    start: pd.Timestamp,
-    end: pd.Timestamp,
-    interval: str,
-    cagg_interval: str | None = None,
-) -> ModelList[models.DataTimeseries]:
-    """Fetch timeseries data using the legacy SQL builder.
-
-    Args:
-        project_db: Sync session for the project schema.
-        project_name_short: Project schema name to query.
-        tag_ids: Tag ids to include.
-        start: Inclusive start time for the query.
-        end: Exclusive end time for the query.
-        interval: Aggregation interval string.
-        cagg_interval: Optional cagg interval string to query.
-    """
-    if cagg_interval:
-        table_name = f"data_timeseries_{cagg_interval}"
-    else:
-        table_name = "data_timeseries"
-
-    metadata = MetaData(schema=project_name_short)
-    table = Table(
-        table_name,
-        metadata,
-        schema=project_name_short,
-        autoload_with=project_db.bind,
-    )
-
-    # S608:  SQL Injection should be avoided by matching table name to schema above
-    #   Tested with: Non-valid table_names, instructions
-    #   and even partially valid table_names
-    #   This approach (using autoload_with) causes two round trips to the database
-    #   and is not recommended since using Table by itself should prevent SQL injection.
-    statement = f"""
-    SELECT
-        time_bucket(:interval, time) + interval :interval as time_bucket,
-        tag_id,
-        last(value_integer, time) as value_integer,
-        last(value_bigint, time) as value_bigint,
-        last(value_real, time) as value_real,
-        last(value_double, time) as value_double,
-        last(value_boolean, time) as value_boolean,
-        last(value_text, time) as value_text
-    FROM
-        {table.schema}.{table.name}
-    WHERE
-        time >= :start and time < :end and tag_id IN :tag_ids
-    GROUP BY
-        time_bucket, tag_id
-    ORDER BY
-        time_bucket, tag_id;
-    """  # noqa: S608
-
-    result = project_db.execute(
-        text(statement).bindparams(
-            interval=interval,
-            start=start.isoformat(),
-            end=end.isoformat(),
-            tag_ids=tuple(tag_ids),
-        ),
-    )
-
-    return ModelList(result=result, model_cls=models.DataTimeseries)
