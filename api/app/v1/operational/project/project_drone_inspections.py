@@ -3,6 +3,7 @@ import json
 import uuid
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +24,7 @@ from app.dependencies import (
     check_project_access_async,
     get_async_db,
     get_project_db_async,
+    get_project_name_short_async,
 )
 from app.domain.drones.zeitview_parser import ZeitviewAPI
 from app.interfaces import (
@@ -207,8 +209,15 @@ async def sync_zeitview_anomalies(
 
     try:
         # Check how many anomalies we already have
-        existing_count = await get_anomaly_count_by_inspection_uuid(
-            db=project_db, inspection_uuid=inspection_uuid
+        project_schema = await get_project_name_short_async(project_id=project_id)
+        existing_count = (
+            await get_anomaly_count_by_inspection_uuid(
+                inspection_uuid=inspection_uuid
+            ).get_async(
+                output_type=OutputType.SQLALCHEMY,
+                schema=project_schema,
+            )
+            or 0
         )
 
         # Calculate starting page and offset within that page

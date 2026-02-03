@@ -1,7 +1,9 @@
 import logging
 import uuid
 from collections.abc import Sequence
+from typing import Literal
 
+from core.db_query import DbQuery
 from core.models import DroneAnomaly
 from sqlalchemy import case, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,23 +26,21 @@ async def get_anomalies_by_inspection_uuid(
     return result.scalars().all()
 
 
-async def get_anomaly_count_by_inspection_uuid(
-    *, db: AsyncSession, inspection_uuid: uuid.UUID
-) -> int:
+def get_anomaly_count_by_inspection_uuid(
+    *, inspection_uuid: uuid.UUID
+) -> DbQuery[int, Literal[True]]:
     """Get the count of anomalies for a given inspection from the
     project-specific schema.
 
     Args:
-        db: TODO: describe.
-        inspection_uuid: TODO: describe.
+        inspection_uuid: The UUID of the inspection to count anomalies for.
     """
     stmt = (
         select(func.count())
         .select_from(DroneAnomaly)
         .where(DroneAnomaly.inspection_uuid == inspection_uuid)
     )
-    result = await db.execute(stmt)
-    return result.scalar_one()
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def bulk_create_drone_anomalies_incremental(
