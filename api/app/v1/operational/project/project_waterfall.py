@@ -231,19 +231,10 @@ async def get_project_waterfall(
     grouped_losses = grouped_losses.rename(columns={"loss": "value"})
     grouped_losses["value"] = -grouped_losses["value"]
     grouped_losses = grouped_losses.reset_index(drop=True)
-    # Calculate expected energy: expected values are power (W) at 5-minute intervals
-    # Need to integrate over time: Energy (MWh) = Power (W) × Time (hours) / 1,000,000
-    # Calculate time delta in hours from the DataFrame index
-    if len(df_expected) > 1:
-        # Calculate average time interval between data points
-        time_deltas = df_expected.index.to_series().diff().dropna()
-        mean_timedelta = time_deltas.mean()  # type: ignore[misc]
-        avg_time_delta_hours = pd.Timedelta(mean_timedelta).total_seconds() / 3600
-    else:
-        # Default to 5 minutes if only one data point
-        avg_time_delta_hours = 5 / 60
+
     # Convert power (W) to energy (MWh): sum of power × time interval / 1,000,000
     # For 5-minute intervals: 5/60 = 1/12 hours
+    avg_time_delta_hours = 5 / 60
     expected_energy_mwh = df_expected["value"].sum() * avg_time_delta_hours / 1_000_000
     new_row = pd.DataFrame(
         {
@@ -255,16 +246,7 @@ async def get_project_waterfall(
     grouped_losses = pd.concat([new_row, grouped_losses]).reset_index(drop=True)
     # Convert meter power to energy: multiply sum by time interval (5/60 hours
     # for 5-min data)
-    if len(series_meter) > 1:
-        # Calculate average time interval between data points
-        meter_time_deltas = series_meter.index.to_series().diff().dropna()
-        mean_meter_timedelta = meter_time_deltas.mean()  # type: ignore[misc]
-        avg_meter_time_delta_hours = (
-            pd.Timedelta(mean_meter_timedelta).total_seconds() / 3600
-        )
-    else:
-        # Default to 5 minutes if only one data point
-        avg_meter_time_delta_hours = 5 / 60
+    avg_meter_time_delta_hours = 5 / 60
     meter_energy_mwh = series_meter.sum() * avg_meter_time_delta_hours
     new_row = pd.DataFrame(
         {
