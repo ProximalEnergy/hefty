@@ -59,6 +59,13 @@ def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-o
         return None
 
 
+# device types dict -> DataFrame
+# device_type_dict values may be objects; handle either dict-like
+# or object with attributes
+def _dtype_name_long(v: Any) -> str | None:
+    return v.get("name_long") if isinstance(v, dict) else getattr(v, "name_long", None)
+
+
 @router.get("", response_model=list[interfaces.Event])
 async def get_events(
     db: Annotated[AsyncSession, Depends(get_async_db)],
@@ -745,25 +752,24 @@ async def get_uptime(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
 ):
-    # Query events from the database
-    """todo
+    """Calculate uptime metrics for a project based on
+    active Events within an analysis window.
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        db: TODO: describe.
-        project: TODO: describe.
+        start: The start of the analysis window.
+        end: The end of the analysis window.
+        project_db: The project database session.
+        db: The database session.
+        project: The project model.
     """
-    events_query = core_events.get_windowed_events(
+    events = await core_events.get_windowed_events(
         start=start, end=end, include_underperformance=False
-    )
-    events = await events_query.get_async(
+    ).get_async(
         schema=project.name_short,
-        output_type=OutputType.SQLALCHEMY,
+        output_type=OutputType.PANDAS,
     )
 
-    if not events:
+    if events.empty:
         return []
 
     if project.project_type_id != ProjectType.BESS:
@@ -776,12 +782,11 @@ async def get_uptime(
         )
         if tags_df is None or tags_df.is_empty():
             return []
-        tag_ids = tags_df.get_column("tag_id").to_list()
 
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
-            filter_method=FilterMethod.TAG_IDS,
-            filter_values=tag_ids,
+            filter_method=FilterMethod.TAG_POLARS,
+            filter_values=tags_df,
             query_start=start,
             query_end=end,
             project_db=project_db,
@@ -803,53 +808,80 @@ async def get_uptime(
     now = datetime.datetime.now(datetime.UTC)
     device_downtime = {}  # Dict to track downtime by device
 
-    # Get the standard UTC timezone object to ensure consistency
-    utc_tz = datetime.UTC
+    step_ns = pd.Timedelta("5min").value
+    # --- Normalize allowed_timestamps once ---
+    allowed = pd.DatetimeIndex(sorted(allowed_timestamps))
+    # pd.to_datetime(..., utc=True) converts tz-aware to UTC
+    # and localizes tz-naive as UTC.
+    allowed = pd.to_datetime(allowed, utc=True)
+    allowed = allowed.sort_values()
+    allowed_ns = allowed.asi8  # int64 ns since epoch (sorted)
 
-    for event in events:
-        # Get event boundaries, clipping to window
-        # Convert timestamps to use the same UTC timezone object to avoid
-        # pandas timezone comparison issues
-        event_start = max(event.time_start, start)
-        if event_start.tzinfo is not None:
-            event_start = event_start.replace(tzinfo=utc_tz)
+    # --- Vectorize event window clipping & tz normalization ---
+    ev = events.copy()
 
-        event_end_raw = event.time_end or now
-        event_end = min(event_end_raw, end)
-        if event_end.tzinfo is not None:
-            event_end = event_end.replace(tzinfo=utc_tz)
+    # Convert to UTC consistently (handles tz-aware & tz-naive)
+    ev["time_start"] = pd.to_datetime(ev["time_start"], utc=True)
+    ev["time_end"] = pd.to_datetime(ev["time_end"], utc=True)
 
-        if event_start >= event_end:
-            continue
+    start_utc = pd.to_datetime(start, utc=True)
+    end_utc = pd.to_datetime(end, utc=True)
+    now_utc = pd.to_datetime(now, utc=True)
 
-        # Get all valid timestamps within the event (only those in allowed_timestamps)
-        try:
-            event_timestamps = pd.date_range(event_start, event_end, freq="5min")
+    # Fill open-ended events with "now", then clip to [start, end]
+    ev_end_raw = ev["time_end"].fillna(now_utc)
+    ev_start = ev["time_start"].where(ev["time_start"] > start_utc, start_utc)
+    ev_end = ev_end_raw.where(ev_end_raw < end_utc, end_utc)
 
-            # Count valid downtime
-            valid_timestamps = [
-                ts for ts in event_timestamps if ts in allowed_timestamps
-            ]
-            valid_hours = len(valid_timestamps) * 5 / 60  # Convert to hours
+    # Drop invalid/empty windows
+    valid_window = ev_start < ev_end
+    ev = ev.loc[valid_window].copy()
+    ev_start = ev_start.loc[valid_window]
+    ev_end = ev_end.loc[valid_window]
 
-            # Skip events with less than 10 minutes of downtime
-            if valid_hours <= 1 / 6:
-                continue
+    # --- Match date_range(freq="5min") semantics (inclusive endpoints if aligned) ---
+    # date_range(start, end, freq="5min") produces timestamps on the 5-min grid:
+    # >= start and <= end (when end aligns).
+    start_ns = ev_start.view("i8")
+    end_ns = ev_end.view("i8")
 
-            # Update device downtime data
-            device_id = event.device_id
-            if device_id not in device_downtime:
-                device_downtime[device_id] = {"hours": 0.0, "count": 0}
+    # Ceil start to next 5-min tick (unless already aligned)
+    start_aligned = ((start_ns + (step_ns - 1)) // step_ns) * step_ns
+    # Floor end to prior 5-min tick (unless already aligned)
+    end_aligned = (end_ns // step_ns) * step_ns
 
-            device_downtime[device_id]["hours"] += valid_hours
-            device_downtime[device_id]["count"] += 1
-        except TypeError as e:
-            # Log or handle timezone errors
-            logging.error(f"Timezone error processing event {event.event_id}: {e}")
-            continue
+    non_empty = start_aligned <= end_aligned
+    ev = ev.loc[non_empty].copy()
+    start_aligned = start_aligned[non_empty]
+    end_aligned = end_aligned[non_empty]
+
+    # --- Count allowed timestamps in [start_aligned, end_aligned] per event ---
+    left = np.searchsorted(allowed_ns, start_aligned, side="left")
+    right = np.searchsorted(allowed_ns, end_aligned, side="right")  # inclusive
+    n_valid = (right - left).astype(np.int64)
+
+    valid_hours = n_valid * (5.0 / 60.0)
+
+    # Skip events with <= 10 minutes (<= 1/6 hour)
+    keep = valid_hours > (1.0 / 6.0)
+    ev = ev.loc[keep].copy()
+    valid_hours = valid_hours[keep]
+
+    # --- Aggregate per device ---
+    ev["valid_hours"] = valid_hours
+    agg = ev.groupby("device_id", sort=False).agg(
+        hours=("valid_hours", "sum"),
+        count=("valid_hours", "size"),
+    )
+
+    # Convert to your original dict structure
+    device_downtime = {
+        device_id: {"hours": float(row["hours"]), "count": int(row["count"])}
+        for device_id, row in agg.iterrows()
+    }
 
     # Fetch device and device type data in batches
-    device_ids = list(device_downtime.keys())
+    device_ids = [int(device_id) for device_id in device_downtime.keys()]  # type: ignore
     if not device_ids:
         return []
 
@@ -867,37 +899,75 @@ async def get_uptime(
     device_type_dict = {dt.device_type_id: dt for dt in device_types}
 
     # Prepare result
-    result = []
-    for device_id, data in device_downtime.items():
-        device = device_dict.get(device_id)
-        if not device:
-            continue
+    # 1) downtime dict -> DataFrame
+    dt = (
+        pd.DataFrame.from_dict(device_downtime, orient="index")
+        .rename_axis("device_id")
+        .reset_index()
+        .rename(columns={"hours": "downtime_hours_raw", "count": "events"})
+    )
 
-        # Skip tracker_pv_pcs
-        if device["device_type_id"] == DeviceType.TRACKER_PV_PCS:
-            continue
+    if dt.empty:
+        return []
 
-        device_type = device_type_dict.get(device["device_type_id"])
-        if not device_type:
-            continue
+    # 2) devices dict -> DataFrame (must include device_id + device_type_id + name_long)
+    dev = pd.DataFrame.from_dict(device_dict, orient="index")
+    dev = dev.reset_index().rename(columns={"index": "device_id"})
+    # Ensure the key column name matches (sometimes it's already "device_id")
+    if "device_id" not in dev.columns:
+        dev = dev.rename(columns={dev.columns[0]: "device_id"})
 
-        device_name_long = device.get("name_long")
-        if pd.isna(device_name_long):
-            device_name_long = ""
-        device_type_name = device_type.name_long
+    dtypes = pd.DataFrame(
+        {
+            "device_type_id": list(device_type_dict.keys()),
+            "device_type_name_long": [
+                _dtype_name_long(v) for v in device_type_dict.values()
+            ],
+        }
+    )
 
-        result.append(
-            {
-                "device_id": device_id,
-                "device_type_id": device["device_type_id"],
-                "device_name_full": f"{device_type_name} {device_name_long}".strip(),
-                "downtime_hours": min(data["hours"], possible_uptime),
-                "downtime_percentage": min(data["hours"] / possible_uptime, 1),
-                "events": data["count"],
-            },
+    # 4) join everything
+    out = dt.merge(
+        dev[["device_id", "device_type_id", "name_long"]], on="device_id", how="left"
+    ).merge(dtypes, on="device_type_id", how="left")
+
+    # 5) drop missing device / missing device type
+    out = out.dropna(subset=["device_type_id", "device_type_name_long"])
+
+    # 6) skip tracker_pv_pcs
+    out = out[out["device_type_id"] != DeviceType.TRACKER_PV_PCS]
+
+    # 7) build strings + metrics
+    name_long = out["name_long"].fillna("")
+    # If name_long can be NaN floats / pd.NA, fillna handles it; also strip whitespace
+    out["device_name_full"] = (
+        out["device_type_name_long"].astype(str) + " " + name_long.astype(str)
+    ).str.strip()
+
+    # Cap hours at possible_uptime and percentage at 1.0
+    out["downtime_hours"] = np.minimum(
+        out["downtime_hours_raw"].to_numpy(dtype=float), float(possible_uptime)
+    )
+    if possible_uptime > 0:
+        out["downtime_percentage"] = np.minimum(
+            out["downtime_hours_raw"].to_numpy(dtype=float) / float(possible_uptime),
+            1.0,
         )
+    else:
+        out["downtime_percentage"] = 0.0
 
-    return result
+    # 8) final shape (list[dict])
+    out = out[
+        [
+            "device_id",
+            "device_type_id",
+            "device_name_full",
+            "downtime_hours",
+            "downtime_percentage",
+            "events",
+        ]
+    ]
+    return out.to_dict(orient="records")
 
 
 @router.get("/event-trace-tags", response_model=list[interfaces.Tag])

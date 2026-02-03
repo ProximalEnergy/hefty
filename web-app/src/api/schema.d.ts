@@ -2604,14 +2604,15 @@ export interface paths {
         };
         /**
          * Get Uptime
-         * @description todo
+         * @description Calculate uptime metrics for a project based on
+         *     active Events within an analysis window.
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         db: TODO: describe.
-         *         project: TODO: describe.
+         *         start: The start of the analysis window.
+         *         end: The end of the analysis window.
+         *         project_db: The project database session.
+         *         db: The database session.
+         *         project: The project model.
          */
         get: operations["get_uptime_v1_operational_projects__project_id__events_uptime_get"];
         put?: never;
