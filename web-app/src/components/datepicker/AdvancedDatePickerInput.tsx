@@ -72,6 +72,7 @@ const defaultLimits: Limits = {
 const INCREMENT_SMALL = 1
 const INCREMENT_LARGE = 3
 const PX = 0
+const POPOVER_Z_INDEX = 500
 const STROKE = 1.5
 const QUICK_ACTION_BUTTON_VARIANT = 'light'
 const EMPTY_STRING = ''
@@ -419,7 +420,11 @@ export function AdvancedDatePicker({
           </Tooltip>
         </>
       )}
-      <Popover opened={popoverOpened} onChange={setPopoverOpened}>
+      <Popover
+        opened={popoverOpened}
+        onChange={setPopoverOpened}
+        zIndex={POPOVER_Z_INDEX}
+      >
         <Popover.Target>
           <Button
             size={size}
