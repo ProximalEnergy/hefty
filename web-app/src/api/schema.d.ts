@@ -17688,9 +17688,9 @@ export interface operations {
     get_report_instances: {
         parameters: {
             query?: {
-                project_ids?: string[] | null;
                 report_type_ids?: number[] | null;
                 deep?: boolean;
+                project_ids?: string[] | null;
             };
             header?: {
                 authorization?: string;

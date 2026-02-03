@@ -1,4 +1,5 @@
 import { Project } from '@/api/v1/operational/projects'
+import { ReportInstance } from '@/api/v1/operational/report_instances'
 import {
   ProjectFilterCriteria,
   useProjectDropdown,
@@ -24,6 +25,7 @@ export function useProjectDropdownToggle() {
  */
 export function evaluateFilterCriteria(
   project: Project,
+  reportInstances: ReportInstance[],
   criteria: ProjectFilterCriteria,
 ): boolean {
   if (
@@ -43,6 +45,17 @@ export function evaluateFilterCriteria(
   if (
     criteria.hasRealTimeData !== undefined &&
     criteria.hasRealTimeData !== project.has_real_time_data
+  ) {
+    return false
+  }
+
+  if (
+    criteria.reportTypeId !== undefined &&
+    !reportInstances.some(
+      (reportInstance) =>
+        reportInstance.project_id === project.project_id &&
+        reportInstance.report_type_id === criteria.reportTypeId,
+    )
   ) {
     return false
   }

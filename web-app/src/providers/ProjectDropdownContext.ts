@@ -21,6 +21,7 @@ export interface ProjectFilterCriteria {
   projectTypes?: number[]
   hasEventIntegration?: boolean
   hasRealTimeData?: boolean
+  reportTypeId?: number
 }
 
 // Hook for easy use of the context

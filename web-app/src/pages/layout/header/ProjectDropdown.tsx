@@ -1,4 +1,5 @@
 import { useGetProjects } from '@/api/v1/operational/projects'
+import { useGetReportInstances } from '@/api/v1/operational/report_instances'
 import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import { Select, Tooltip } from '@mantine/core'
 import { useDidUpdate, useOs } from '@mantine/hooks'
@@ -19,6 +20,9 @@ const ProjectDropdown = () => {
       deep: true,
     },
   })
+
+  const reportInstances = useGetReportInstances({})
+
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
@@ -46,6 +50,10 @@ const ProjectDropdown = () => {
     navigate(`${updatedPath}${location.search}`)
   }
 
+  const selectDataLoaded = projects.data && reportInstances.data
+  const selectDisabled =
+    !isProjectDropdownEnabled || projects.isLoading || reportInstances.isLoading
+
   return (
     <Tooltip label={shortcutText} position="right" openDelay={1000}>
       <Select
@@ -53,14 +61,23 @@ const ProjectDropdown = () => {
         checkIconPosition="right"
         value={String(projectId)}
         onChange={handleSelectChange}
-        data={projects.data
-          ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
-          .map((project) => ({
-            value: String(project.project_id),
-            label: project.name_long,
-            disabled: isDisabled(projectId, filterCriteria, project),
-          }))}
-        disabled={!isProjectDropdownEnabled || projects.isLoading}
+        data={
+          selectDataLoaded
+            ? projects.data
+                .sort((a, b) => a.name_long.localeCompare(b.name_long))
+                .map((project) => ({
+                  value: String(project.project_id),
+                  label: project.name_long,
+                  disabled: isDisabled(
+                    projectId,
+                    filterCriteria,
+                    project,
+                    reportInstances.data,
+                  ),
+                }))
+            : []
+        }
+        disabled={selectDisabled}
         comboboxProps={{ zIndex: 500 }}
       />
     </Tooltip>

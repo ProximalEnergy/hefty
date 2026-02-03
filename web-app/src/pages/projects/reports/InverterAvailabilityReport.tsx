@@ -1,4 +1,4 @@
-import { ProjectTypeEnum, ReportTypeEnum } from '@/api/enumerations'
+import { ReportTypeEnum } from '@/api/enumerations'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
@@ -39,12 +39,13 @@ const handleDownload = async (
 }
 
 const Page: React.FC = () => {
+  const reportTypeId = ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY
+
   useProjectFilter({
-    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
+    reportTypeId: reportTypeId,
   })
 
   const { projectId } = useParams<{ projectId: string }>()
-  const reportTypeId = ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY
   const reportDocUrl = 'reports/inverter-availability.html'
 
   const { start, end } = useValidateDateRange()

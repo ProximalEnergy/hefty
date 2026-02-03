@@ -1,13 +1,46 @@
 import type * as types from '@/api/schema'
+import type { Endpoint } from '@/api/utils'
+import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  UseQueryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
 import axios from 'axios'
+
+const URL_GET_REPORT_INSTANCES = '/v1/operational/report-instances'
+type GetReportInstances = Endpoint<typeof URL_GET_REPORT_INSTANCES, 'get'>
+
+export const useGetReportInstances = ({
+  queryParams = {},
+  queryOptions = {},
+}: {
+  queryParams?: GetReportInstances['QueryParams']
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: URL_GET_REPORT_INSTANCES,
+  }
+
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  return useCustomQuery<GetReportInstances['Response']>({
+    axiosConfig,
+    queryName: 'getReportInstances',
+    queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
 
 const _COMPONENT_NAME_REPORT_INSTANCE = 'ReportInstance'
 const _COMPONENT_NAME_REPORT_INSTANCES_BULK_UPDATE = 'ReportInstancesBulkUpdate'
 
-type ReportInstance =
+export type ReportInstance =
   types.components['schemas'][typeof _COMPONENT_NAME_REPORT_INSTANCE]
 type ReportInstancesBulkUpdate =
   types.components['schemas'][typeof _COMPONENT_NAME_REPORT_INSTANCES_BULK_UPDATE]

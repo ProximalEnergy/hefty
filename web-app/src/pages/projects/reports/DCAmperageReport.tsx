@@ -1,4 +1,4 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { ReportTypeEnum } from '@/api/enumerations'
 import {
   CombinerHealth,
   DCAmperageDataV2,
@@ -41,7 +41,7 @@ interface HeatmapData {
 
 const DCAmperageReport: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
+    reportTypeId: ReportTypeEnum.DC_AMPERAGE,
   })
 
   const theme = useComputedColorScheme()

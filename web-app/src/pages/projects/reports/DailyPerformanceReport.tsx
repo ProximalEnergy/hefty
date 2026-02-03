@@ -2,6 +2,7 @@ import {
   DeviceTypeEnum,
   KPITypeEnum,
   ProjectTypeEnum,
+  ReportTypeEnum,
   SensorTypeEnum,
 } from '@/api/enumerations'
 import type { DailyPerformanceStats } from '@/api/v1/ai/daily_performance_summary'
@@ -787,7 +788,7 @@ function MapHoverCard({
 
 const Page: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
+    reportTypeId: ReportTypeEnum.PV_PERFORMANCE_DAILY,
   })
 
   const { projectId } = useParams<{ projectId: string }>()

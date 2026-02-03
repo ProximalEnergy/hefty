@@ -3,7 +3,7 @@ import {
   useGetKPIInstances,
 } from '@/api/v1/operational/kpi_instances'
 import { useGetProjects } from '@/api/v1/operational/projects'
-// import { useGetProjectReportInstances } from '@/hooks/api'
+import { useGetReportInstances } from '@/api/v1/operational/report_instances'
 import { isDisabled } from '@/pages/layout/header/ProjectDropdown.utils'
 import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import {
@@ -21,17 +21,6 @@ export function SpotlightSearch() {
   const navigate = useNavigate()
 
   const { projectId } = useParams<{ projectId: string }>()
-
-  // const { data: reports, isLoading: reportsLoading } =
-  //   useGetProjectReportInstances({
-  //     pathParams: { projectId: projectId || '' },
-  //     queryParams: {
-  //       deep: true,
-  //     },
-  //     queryOptions: {
-  //       enabled: !!projectId,
-  //     },
-  //   })
 
   const { data: kpis, isLoading: kpisLoading } = useGetKPIInstances({
     queryParams: {
@@ -115,6 +104,12 @@ export function SpotlightSearch() {
         onClick: () => navigate(`/projects/${projectId}/events`),
       },
       {
+        id: 'project-data-browsing',
+        label: 'Project Data Browsing',
+        description: 'View project data browsing',
+        onClick: () => navigate(`/projects/${projectId}/data-browsing`),
+      },
+      {
         id: 'project-settings',
         label: 'Project Settings',
         description: 'Manage project settings',
@@ -122,21 +117,6 @@ export function SpotlightSearch() {
       },
     )
   }
-
-  // const reportActions: SpotlightActionData[] =
-  //   !reportsLoading && reports
-  //     ? reports.map((report) => ({
-  //         id: `report-${report.report_instance_id || report.report_type_id}`,
-  //         label:
-  //           report.report_type?.name_long ||
-  //           `Report Type ${report.report_type_id}`,
-  //         description: `View the ${report.report_type?.name_long || 'report'}`,
-  //         onClick: () =>
-  //           navigate(
-  //             `/projects/${projectId}/reports?report_id=${report.report_instance_id || report.report_type_id}`,
-  //           ),
-  //       }))
-  //     : []
 
   const kpiActions: SpotlightActionData[] =
     !kpisLoading && kpis
@@ -154,10 +134,6 @@ export function SpotlightSearch() {
       group: 'Pages',
       actions: pages,
     },
-    // {
-    //   group: 'Reports',
-    //   actions: reportActions,
-    // },
     {
       group: 'KPIs',
       actions: kpiActions,
@@ -184,11 +160,13 @@ export function ProjectSpotlight() {
   const { projectId } = useParams<{ projectId: string }>()
   const { isProjectDropdownEnabled, filterCriteria } = useProjectDropdown()
 
-  const { data: projects, isLoading: projectsLoading } = useGetProjects({
+  const projects = useGetProjects({
     queryParams: {
       deep: true,
     },
   })
+
+  const reportInstances = useGetReportInstances({})
 
   const onClick = (newProjectId: string) => {
     if (!projectId) {
@@ -206,18 +184,25 @@ export function ProjectSpotlight() {
     return null
   }
 
-  const actions: SpotlightActionData[] =
-    !projectsLoading && projects
-      ? projects
-          .filter(
-            (project) => !isDisabled(projectId || '', filterCriteria, project),
-          )
-          .map((project) => ({
-            id: `project-${project.project_id}`,
-            label: project.name_long,
-            onClick: () => onClick(project.project_id),
-          }))
-      : []
+  const dataLoaded = projects.data && reportInstances.data
+
+  const actions: SpotlightActionData[] = dataLoaded
+    ? projects.data
+        .filter(
+          (project) =>
+            !isDisabled(
+              projectId || '',
+              filterCriteria,
+              project,
+              reportInstances.data,
+            ),
+        )
+        .map((project) => ({
+          id: `project-${project.project_id}`,
+          label: project.name_long,
+          onClick: () => onClick(project.project_id),
+        }))
+    : []
 
   return (
     <Spotlight
@@ -226,7 +211,6 @@ export function ProjectSpotlight() {
       actions={actions}
       nothingFound="Nothing found..."
       scrollable
-      maxHeight={700}
     />
   )
 }

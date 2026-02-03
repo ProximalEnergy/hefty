@@ -1,9 +1,11 @@
+import { ReportTypeEnum } from '@/api/enumerations'
 import { useGetPCSApparentVsVoltage } from '@/api/v1/operational/project/project_reports'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import CustomCard from '@/components/CustomCard'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { useProjectFilter } from '@/hooks/custom'
 import { Group, NumberInput, Stack, Title } from '@mantine/core'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
@@ -11,6 +13,10 @@ import { useParams } from 'react-router'
 const MAX_DAYS = 3
 
 const Page: React.FC = () => {
+  useProjectFilter({
+    reportTypeId: ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE,
+  })
+
   const { projectId } = useParams<{ projectId: string }>()
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,

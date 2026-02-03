@@ -1,4 +1,3 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
@@ -39,13 +38,14 @@ const handleDownload = async (
 }
 
 const Page: React.FC = () => {
+  const [searchParams] = useSearchParams()
+  const reportTypeId = searchParams.get('report_type_id')
+
   useProjectFilter({
-    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
+    reportTypeId: Number(reportTypeId) || 0,
   })
 
   const { projectId } = useParams<{ projectId: string }>()
-  const [searchParams] = useSearchParams()
-  const reportTypeId = searchParams.get('report_type_id')
   const reportDocUrl = 'kpi/trackers.html'
 
   const { start, end } = useValidateDateRange()

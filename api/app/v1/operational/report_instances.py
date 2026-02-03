@@ -8,6 +8,7 @@ from app import interfaces
 from app._crud.operational.report_instances import (
     get_report_instances as crud_get_report_instances,
 )
+from app._dependencies.filtering import filter_project_ids_to_user
 from app.dependencies import get_is_superadmin_async
 
 router = APIRouter(prefix="/report-instances", tags=["report_instances"])
@@ -20,7 +21,10 @@ router = APIRouter(prefix="/report-instances", tags=["report_instances"])
 )
 async def get_report_instances(
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
-    project_ids: Annotated[list[uuid.UUID] | None, Query()] = None,
+    project_ids: Annotated[
+        list[uuid.UUID] | None,
+        Depends(filter_project_ids_to_user),
+    ],
     report_type_ids: Annotated[list[int] | None, Query()] = None,
     deep: bool = False,
 ):

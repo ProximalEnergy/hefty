@@ -1,8 +1,4 @@
-import {
-  DeviceTypeEnum,
-  KPITypeEnum,
-  ProjectTypeEnum,
-} from '@/api/enumerations'
+import { DeviceTypeEnum, KPITypeEnum, ReportTypeEnum } from '@/api/enumerations'
 import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PVModule, useGetPvModules } from '@/api/v1/operational/pv_modules'
@@ -1404,7 +1400,7 @@ const MemoizedGraphsTab = memo(GraphsTab, (prevProps, nextProps) => {
 
 const ModuleDegradation: React.FC = () => {
   useProjectFilter({
-    projectTypes: [ProjectTypeEnum.PV, ProjectTypeEnum.PVS],
+    reportTypeId: ReportTypeEnum.MODULE_DEGRADATION,
   })
 
   // Variables and states

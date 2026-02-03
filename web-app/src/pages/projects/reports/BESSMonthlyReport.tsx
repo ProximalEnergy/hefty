@@ -1,3 +1,4 @@
+import { ReportTypeEnum } from '@/api/enumerations'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
@@ -9,6 +10,7 @@ import {
 } from '@/api/v1/operational/project/project_reports'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
+import { useProjectFilter } from '@/hooks/custom'
 import {
   ActionIcon,
   Button,
@@ -74,6 +76,10 @@ const handleDownload = async (
 }
 
 const BESSMonthlyReport = () => {
+  useProjectFilter({
+    reportTypeId: ReportTypeEnum.EEC_BESS_MONTHLY_REPORT,
+  })
+
   const { projectId } = useParams()
   const generateReport = useGenerateEECBESSMonthlyReport()
 

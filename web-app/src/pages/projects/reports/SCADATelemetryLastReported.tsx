@@ -1,11 +1,17 @@
+import { ReportTypeEnum } from '@/api/enumerations'
 import { useGetSCADATelemetryLastReported } from '@/api/v1/protected/web-application/projects/reports/scada-telemetry-last-reported'
 import { PageTitle } from '@/components/PageTitle'
+import { useProjectFilter } from '@/hooks/custom'
 import { Button, List, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconDownload } from '@tabler/icons-react'
 import { useParams } from 'react-router'
 
 const Page = () => {
+  useProjectFilter({
+    reportTypeId: ReportTypeEnum.SCADA_TELEMETRY_LAST_REPORTED,
+  })
+
   const { projectId } = useParams<{ projectId: string }>()
 
   const report = useGetSCADATelemetryLastReported({
