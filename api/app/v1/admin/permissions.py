@@ -26,6 +26,7 @@ from app._crud.admin.user_projects import (
     get_users_with_project_access as crud_get_users_with_project_access,
 )
 from core import models
+from core.db_query import OutputType
 
 router = APIRouter(prefix="/permissions", tags=["permissions"])
 
@@ -183,15 +184,17 @@ async def get_company_permissions(
         user_data: TODO: describe.
     """
 
-    # Get company_permission objects
-    company_permissions = await crud_get_company_permissions(
-        db=db,
+    # Get company permissions data
+    company_permissions_df = await crud_get_company_permissions(
         company_id=user_data.company_id,
         project_id=project_id,
-    )
+    ).get_async(output_type=OutputType.PANDAS)
 
-    # Identify permission IDs from company_permission objects
-    permission_ids = [c_p.permission_id for c_p in company_permissions]
+    # Identify permission IDs from company permissions data
+    if company_permissions_df.empty:
+        return []
+
+    permission_ids = company_permissions_df["permission_id"].tolist()
 
     # Get permission objects
     permissions = await crud_get_permissions(db=db, permission_ids=permission_ids)
