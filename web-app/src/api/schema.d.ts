@@ -55,7 +55,7 @@ export interface paths {
          * @description Get all available permissions in the system. Requires admin access.
          *
          *     Args:
-         *         db: TODO: describe.
+         *         None.
          */
         get: operations["get_all_permissions_v1_admin_permissions_get"];
         put?: never;
@@ -79,7 +79,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: TODO: describe.
-         *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
         get: operations["get_user_permissions_v1_admin_permissions_projects__project_id__user_get"];

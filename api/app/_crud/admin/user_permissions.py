@@ -1,5 +1,7 @@
+from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -43,18 +45,16 @@ async def delete_user_permission(
     await db.commit()
 
 
-async def get_user_permissions(
-    db: AsyncSession,
+def get_user_permissions(
     *,
     user_ids: list[str] | None = None,
     project_ids: list[UUID] | None = None,
-) -> list[models.UserPermission]:
+) -> DbQuery[models.UserPermission, Literal[False]]:
     """Query the user_permissions table
 
     Args:
-        db: TODO: describe.
-        user_ids: TODO: describe.
-        project_ids: TODO: describe.
+        user_ids: A list of user IDs to filter by.
+        project_ids: A list of project IDs to filter by.
     """
     query = select(models.UserPermission)
 
@@ -63,5 +63,4 @@ async def get_user_permissions(
     if project_ids:
         query = query.where(models.UserPermission.project_id.in_(project_ids))
 
-    result = await db.execute(query)
-    return list(result.scalars().all())
+    return DbQuery(query=query)

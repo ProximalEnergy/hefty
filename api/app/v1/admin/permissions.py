@@ -1,7 +1,7 @@
 import uuid
-from collections import defaultdict
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,16 +37,16 @@ router = APIRouter(prefix="/permissions", tags=["permissions"])
     dependencies=[Depends(dependencies.requires_admin_async)],
     summary="Get all permissions",
 )
-async def get_all_permissions(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
-):
+async def get_all_permissions():
     """Get all available permissions in the system. Requires admin access.
 
     Args:
-        db: TODO: describe.
+        None.
     """
-    permissions = await crud_get_permissions(db=db, permission_ids=None)
-    return permissions
+    permissions_df = await crud_get_permissions(
+        permission_ids=None,
+    ).get_async(output_type=OutputType.PANDAS)
+    return permissions_df.to_dict(orient="records")
 
 
 @router.get(
@@ -57,7 +57,6 @@ async def get_all_permissions(
 )
 async def get_user_permissions(
     project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -66,24 +65,27 @@ async def get_user_permissions(
 
     Args:
         project_id: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
     """
 
     # Get user_permission objects
-    user_permissions = await crud_get_user_permissions(
-        db=db,
+    user_permissions_df = await crud_get_user_permissions(
         user_ids=[user_data.user_id],
         project_ids=[project_id],
-    )
+    ).get_async(output_type=OutputType.PANDAS)
 
     # Identify permission IDs from user_permission objects
-    permission_ids = [u_p.permission_id for u_p in user_permissions]
+    permission_ids = user_permissions_df["permission_id"].tolist()
+
+    if not permission_ids:
+        return []
 
     # Get permission objects
-    permissions = await crud_get_permissions(db=db, permission_ids=permission_ids)
+    permissions_df = await crud_get_permissions(
+        permission_ids=permission_ids,
+    ).get_async(output_type=OutputType.PANDAS)
 
-    return permissions
+    return permissions_df.to_dict(orient="records")
 
 
 class UserPermissionRequest(BaseModel):
@@ -196,10 +198,15 @@ async def get_company_permissions(
 
     permission_ids = company_permissions_df["permission_id"].tolist()
 
-    # Get permission objects
-    permissions = await crud_get_permissions(db=db, permission_ids=permission_ids)
+    if not permission_ids:
+        return []
 
-    return permissions
+    # Get permission objects
+    permissions_df = await crud_get_permissions(
+        permission_ids=permission_ids,
+    ).get_async(output_type=OutputType.PANDAS)
+
+    return permissions_df.to_dict(orient="records")
 
 
 @router.get(
@@ -235,21 +242,25 @@ async def get_users_permissions(
     )
 
     # Get all user_permission objects for the users with access to the project
-    user_permissions = await crud_get_user_permissions(
-        db=db,
+    user_permissions_df = await crud_get_user_permissions(
         user_ids=[user.user_id for user in users],
         project_ids=[project_id],
-    )
+    ).get_async(output_type=OutputType.PANDAS)
 
     # Create a mapping of user IDs to their permission IDs
-    user_id_to_permission_ids: dict[str, list[int]] = defaultdict(list)
-    for user_permission in user_permissions:
-        user_id_to_permission_ids[user_permission.user_id].append(
-            user_permission.permission_id,
+    user_id_to_permission_ids: dict[str, list[int]] = {}
+    if not user_permissions_df.empty:
+        user_id_to_permission_ids = (
+            user_permissions_df.groupby("user_id")["permission_id"]
+            .apply(list)
+            .to_dict()
         )
 
     # Add permission IDs to each user object
     for user in users:
-        user.permission_ids = user_id_to_permission_ids.get(user.user_id, [])  # type: ignore
+        user.permission_ids = user_id_to_permission_ids.get(  # type: ignore
+            user.user_id,
+            [],
+        )
 
     return users

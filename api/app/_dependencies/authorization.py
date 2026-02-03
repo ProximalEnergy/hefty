@@ -1,12 +1,11 @@
 from uuid import UUID
 
+from core.db_query import OutputType
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, HTTPException, Path, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app._crud.admin.user_permissions import get_user_permissions
 from app._dependencies.authentication import get_user
-from app.dependencies import get_async_db
 from app.interfaces import UserAuthed
 
 
@@ -97,29 +96,22 @@ def require_user_permissions(*, permission_ids: list[int]):
 
     async def dependency(
         *,
-        db: AsyncSession = Depends(get_async_db),
         user: UserAuthed = Depends(get_user),
         project_id: UUID = Path(...),
     ) -> None:
         """todo
 
         Args:
-            db: TODO: describe.
             user: TODO: describe.
             project_id: TODO: describe.
         """
-        user_permissions = await get_user_permissions(
-            db=db,
+        user_permissions_df = await get_user_permissions(
             user_ids=[user.user_id],
             project_ids=[project_id],
-        )
+        ).get_async(output_type=OutputType.PANDAS)
 
-        if (
-            not all(
-                user_permission.permission_id in permission_ids
-                for user_permission in user_permissions
-            )
-            or not user_permissions
+        if user_permissions_df.empty or not set(permission_ids).issubset(
+            user_permissions_df["permission_id"]
         ):
             raise HTTPException(
                 status_code=403,
