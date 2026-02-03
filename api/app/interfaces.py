@@ -829,6 +829,8 @@ class ReportType(BaseModel):
     report_type_id: int
     name_short: str
     name_long: str
+    doc_url: str | None = None
+    description: str | None = None
 
 
 class ReportInstance(BaseModel):

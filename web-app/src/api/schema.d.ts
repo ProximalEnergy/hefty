@@ -10222,6 +10222,10 @@ export interface components {
             name_short: string;
             /** Name Long */
             name_long: string;
+            /** Doc Url */
+            doc_url?: string | null;
+            /** Description */
+            description?: string | null;
         };
         /**
          * Resource
