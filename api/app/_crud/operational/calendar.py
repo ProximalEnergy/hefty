@@ -120,7 +120,8 @@ async def update_calendar_item(
         return None
 
     # Update model instance with new data (excluding assignment fields)
-    update_data = item_in.model_dump(exclude_unset=True)
+    # Use exclude_none=False to ensure None values are included to clear fields
+    update_data = item_in.model_dump(exclude_unset=True, exclude_none=False)
     assignment_user_ids = update_data.pop("assignee_user_ids", None)
     assignment_team_ids = update_data.pop("assignee_team_ids", None)
     for key, value in update_data.items():
@@ -153,6 +154,9 @@ async def update_calendar_item(
                     assignment_table.c.calendar_item_id == calendar_item_id
                 )
             )
+
+        # Flush deletes before inserting new assignments to avoid duplicate key errors
+        await db.flush()
 
         # Insert new
         async def insert_assignment(*, values: dict) -> None:

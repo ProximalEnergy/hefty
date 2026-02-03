@@ -1,9 +1,21 @@
 """CDK app entry point for microservices infrastructure."""
 
 import aws_cdk as cdk
+from stacks.calendar_notifications_stack import CalendarNotificationsStack
 from stacks.weather_alerts_stack import WeatherAlertsStack
 
 app = cdk.App()
+
+# Calendar Notifications Lambda Stack
+CalendarNotificationsStack(
+    app,
+    "CalendarNotificationsLambdaStack",
+    env=cdk.Environment(
+        account="016997484973",
+        region="us-east-2",
+    ),
+    description="Lambda function for calendar reminder notifications",
+)
 
 # Weather Alerts Lambda Stack
 WeatherAlertsStack(

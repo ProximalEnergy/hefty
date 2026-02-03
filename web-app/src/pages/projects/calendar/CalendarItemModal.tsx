@@ -8,6 +8,7 @@ import {
   useGetCalendarEventCategories,
   useUpdateCalendarEvent,
 } from '@/api/v1/operational/calendar'
+import { useUser } from '@clerk/clerk-react'
 import {
   Button,
   Checkbox,
@@ -30,7 +31,7 @@ import { DateInput } from '@mantine/dates'
 import { UseFormReturnType, useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { IconUsers } from '@tabler/icons-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { ByWeekday, Frequency, Options, RRule, rrulestr } from 'rrule'
 
@@ -324,10 +325,13 @@ export const CalendarItemModal = ({
   projects,
 }: CalendarItemModalProps) => {
   const { projectId: projectIdFromUrl } = useParams<{ projectId: string }>()
+  const { user } = useUser()
 
   const [prevItemId, setPrevItemId] = useState<string | undefined | null>(
     undefined,
   )
+  const [hasAutoAddedUser, setHasAutoAddedUser] = useState(false)
+  const prevEnableNotificationsRef = useRef<boolean | undefined>(undefined)
 
   const createCalendarEvent = useCreateCalendarEvent()
   const updateCalendarEvent = useUpdateCalendarEvent()
@@ -344,26 +348,24 @@ export const CalendarItemModal = ({
     })
 
   const categoryOptionsForSelect = useMemo(() => {
-    if (
-      isLoadingCategories ||
-      !fetchedCategories ||
-      fetchedCategories.length === 0
-    ) {
-      return [
-        {
-          label: isLoadingCategories
-            ? 'Loading categories...'
-            : 'No categories available',
-          value: '',
-          color_code: 'transparent',
-        },
-      ]
+    // If we have categories, use them even if still loading (refetch scenario)
+    if (fetchedCategories && fetchedCategories.length > 0) {
+      return fetchedCategories.map((cat: CalendarEventCategory) => ({
+        label: cat.long_name,
+        value: cat.category_id,
+        color_code: cat.color_code,
+      }))
     }
-    return fetchedCategories.map((cat: CalendarEventCategory) => ({
-      label: cat.long_name,
-      value: cat.category_id,
-      color_code: cat.color_code,
-    }))
+    // Only show loading/empty message if we don't have categories yet
+    return [
+      {
+        label: isLoadingCategories
+          ? 'Loading categories...'
+          : 'No categories available',
+        value: '',
+        color_code: 'transparent',
+      },
+    ]
   }, [fetchedCategories, isLoadingCategories])
 
   // Fetch company users to assign, restricted to current user's company
@@ -565,6 +567,71 @@ export const CalendarItemModal = ({
     endDate,
     form.setValues,
     categoryOptionsForSelect,
+  ])
+
+  // Reset auto-add flag and previous value tracking when modal opens/closes or item changes
+  useEffect(() => {
+    if (!opened) {
+      setHasAutoAddedUser(false)
+      prevEnableNotificationsRef.current = undefined
+    } else {
+      // Initialize previous value when modal opens
+      prevEnableNotificationsRef.current = form.values.enable_notifications
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened, item?.calendar_item_id])
+
+  // Auto-add current user to assignees when notifications are first enabled
+  // (only on false→true transition, not when opening modal with notifications already enabled)
+  useEffect(() => {
+    if (!opened || !user?.id || hasAutoAddedUser) {
+      return
+    }
+
+    const currentEnableNotifications = form.values.enable_notifications
+    const prevEnableNotifications = prevEnableNotificationsRef.current
+
+    // Only auto-add on transition from false to true
+    if (
+      prevEnableNotifications === false &&
+      currentEnableNotifications === true
+    ) {
+      const currentUserValue = `user:${user.id}`
+      const currentAssignees = form.values.assignees_mixed || []
+
+      // Check if current user is already in assignees
+      if (currentAssignees.includes(currentUserValue)) {
+        setHasAutoAddedUser(true)
+        prevEnableNotificationsRef.current = currentEnableNotifications
+        return
+      }
+
+      // Add current user to assignees
+      const updatedAssignees = [...currentAssignees, currentUserValue]
+      form.setFieldValue('assignees_mixed', updatedAssignees)
+
+      // Also update assignee_user_ids to keep them in sync
+      const userIds = updatedAssignees
+        .filter((v) => v.startsWith('user:'))
+        .map((v) => v.split(':')[1])
+      const teamIds = updatedAssignees
+        .filter((v) => v.startsWith('team:'))
+        .map((v) => v.split(':')[1])
+      form.setFieldValue('assignee_user_ids', userIds)
+      form.setFieldValue('assignee_team_ids', teamIds)
+
+      // Mark that we've auto-added the user
+      setHasAutoAddedUser(true)
+    }
+
+    // Update previous value for next comparison
+    prevEnableNotificationsRef.current = currentEnableNotifications
+  }, [
+    form.values.enable_notifications,
+    opened,
+    user?.id,
+    hasAutoAddedUser,
+    form,
   ])
 
   useEffect(() => {
@@ -1017,7 +1084,7 @@ export const CalendarItemModal = ({
           )}
 
           <Checkbox
-            label="Send email reminder"
+            label="Send reminder"
             {...form.getInputProps('enable_notifications', {
               type: 'checkbox',
             })}
@@ -1025,7 +1092,7 @@ export const CalendarItemModal = ({
           />
           {form.values.enable_notifications && (
             <MultiSelect
-              label="Notify me before event"
+              label="Notify before event"
               placeholder="Select reminder times"
               data={notificationOffsetOptions}
               {...form.getInputProps('notify_offsets')}
@@ -1035,7 +1102,11 @@ export const CalendarItemModal = ({
           )}
 
           <MultiSelect
-            label="Assign to users or teams"
+            label={
+              form.values.enable_notifications
+                ? 'Assign and notify users or teams'
+                : 'Assign to users or teams'
+            }
             placeholder="Select assignees"
             data={combinedAssigneeOptions as ComboboxItem[]}
             searchable

@@ -28,6 +28,7 @@ import {
 import { useIntersection } from '@mantine/hooks'
 import {
   IconBell,
+  IconCalendar,
   IconCloudRain,
   IconDots,
   IconFlame,
@@ -39,7 +40,7 @@ import {
   IconWind,
 } from '@tabler/icons-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import classes from './NotificationsPanel.module.css'
 
@@ -65,6 +66,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
     getInitialValueInEffect: true,
   })
   const isDark = colorScheme === 'dark'
+  const navigate = useNavigate()
   const markAsReadMutation = useMarkNotificationAsRead()
   const markAsUnreadMutation = useMarkNotificationAsUnread()
   const markAllAsReadMutation = useMarkAllNotificationsAsRead()
@@ -273,18 +275,17 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
                   typeof notification.data === 'object' &&
                   notification.data !== null
                 ) {
-                  const d = notification.data as Record<string, unknown>
                   if (
-                    'notification_type' in d &&
-                    typeof d.notification_type === 'string'
+                    'weather_type' in notification.data &&
+                    typeof notification.data.weather_type === 'string'
                   ) {
-                    return d.notification_type.toLowerCase()
+                    return notification.data.weather_type.toLowerCase()
                   }
                   if (
-                    'weather_type' in d &&
-                    typeof d.weather_type === 'string'
+                    'notification_type' in notification.data &&
+                    typeof notification.data.notification_type === 'string'
                   ) {
-                    return d.weather_type.toLowerCase()
+                    return notification.data.notification_type.toLowerCase()
                   }
                 }
                 return undefined
@@ -295,6 +296,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
               const isFireAlert = typeName === 'fire'
               const isTornadoAlert = typeName === 'tornado'
               const isWindAlert = typeName === 'wind'
+              const isCalendarReminder = typeName === 'calendar reminder'
               const isEventChatMessage = typeName === 'event_chat_message'
 
               const NotificationIcon = isFireAlert
@@ -305,9 +307,11 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
                     ? IconTornado
                     : isWindAlert
                       ? IconWind
-                      : isEventChatMessage
-                        ? IconMessage
-                        : IconBell
+                      : isCalendarReminder
+                        ? IconCalendar
+                        : isEventChatMessage
+                          ? IconMessage
+                          : IconBell
 
               const primaryText = 'var(--mantine-primary-color-light-color)'
               const avatarBg = isDark
@@ -328,13 +332,39 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
                       ? classes.notificationItemUnread
                       : classes.notificationItemRead
                   }`}
-                  onClick={() => {
+                  onClick={async () => {
                     // Mark notification as read when clicked
                     if (isUnread) {
                       markAsReadMutation.mutate(notification.notification_id)
                     }
-                    // Navigate to link if available
-                    if (formatted.link) {
+
+                    // Handle calendar reminder notifications - navigate to calendar with item ID
+                    if (isCalendarReminder) {
+                      const calendarItemId =
+                        notification.data &&
+                        typeof notification.data === 'object' &&
+                        'calendar_item_id' in notification.data
+                          ? String(notification.data.calendar_item_id)
+                          : null
+
+                      if (calendarItemId) {
+                        // Navigate to portfolio calendar with calendar item ID as query parameter
+                        navigate(
+                          `/portfolio/calendar?calendarItemId=${calendarItemId}`,
+                        )
+                        onClose() // Close the notifications panel
+                      } else {
+                        // Fall back to navigation if we don't have the required data
+                        if (formatted.link) {
+                          window.location.href = formatted.link
+                        }
+                      }
+                    } else if (isEventChatMessage && formatted.link) {
+                      // Event chat: in-app navigation to event page
+                      navigate(formatted.link)
+                      onClose()
+                    } else if (formatted.link) {
+                      // Other notifications: full navigation
                       window.location.href = formatted.link
                     }
                   }}

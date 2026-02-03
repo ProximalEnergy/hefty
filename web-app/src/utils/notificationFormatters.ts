@@ -19,23 +19,30 @@ const formattersByName: Record<
   tornado: formatTornadoAlert,
   wind: formatWindAlert,
   event_chat_message: formatEventChatMessage,
+  'calendar reminder': formatCalendarReminder,
 }
 
 /**
  * Helper function to get notification type name_long from data structure.
- * Looks for 'weather_type' field (or other fields as needed) that contains
+ * Looks for 'weather_type' or 'notification_type' field (or other fields as needed) that contains
  * the name_long value matching admin.notification_types.name_long.
  */
 function getNotificationTypeName(data: NotificationData): string | undefined {
-  if (typeof data !== 'object' || data === null) return undefined
   if (
+    typeof data === 'object' &&
+    data !== null &&
+    'weather_type' in data &&
+    typeof data.weather_type === 'string'
+  ) {
+    return data.weather_type.toLowerCase()
+  }
+  if (
+    typeof data === 'object' &&
+    data !== null &&
     'notification_type' in data &&
     typeof data.notification_type === 'string'
   ) {
     return data.notification_type.toLowerCase()
-  }
-  if ('weather_type' in data && typeof data.weather_type === 'string') {
-    return data.weather_type.toLowerCase()
   }
   return undefined
 }
@@ -219,5 +226,50 @@ function formatWindAlert(
     title,
     body,
     link: '/portfolio/map',
+  }
+}
+
+/**
+ * Formats a Calendar Reminder notification.
+ * Data structure: {
+ *   "notification_type": "calendar reminder",
+ *   "calendar_item_id": "uuid",
+ *   "title": "Event Title",
+ *   "description": "Event description",
+ *   "start_time": "2025-01-30T10:00:00Z",
+ *   "end_time": "2025-01-30T11:00:00Z",
+ *   "all_day": false,
+ *   "offset": "1d"
+ * }
+ */
+function formatCalendarReminder(
+  data: NotificationData,
+  _createdAt: string | Date,
+): FormattedNotification {
+  const title = String(data.title || 'Calendar Event')
+  const description = String(data.description || '')
+  const startTime = String(data.start_time || '')
+
+  // Parse start time to format the date
+  let formattedDate = 'Unknown date'
+  try {
+    const startDate = new Date(startTime)
+    if (!isNaN(startDate.getTime())) {
+      formattedDate = dateFormatter.format(startDate)
+    }
+  } catch {
+    // Keep default formattedDate
+  }
+
+  // Build body
+  let body = `Reminder: ${title} is scheduled for ${formattedDate}.`
+  if (description) {
+    body += ` ${description}`
+  }
+
+  return {
+    title: `Calendar Reminder: ${title}`,
+    body,
+    link: '/portfolio/calendar',
   }
 }

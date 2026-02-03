@@ -1,0 +1,35 @@
+<html>
+<body>
+    <p>Hello {{ user_name }},</p>
+
+    <p>This is a reminder from the Proximal platform for the following event scheduled on your project calendar:</p>
+
+    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;
+    margin: 20px 0; border-left: 4px solid #FF9800;">
+        <p style="margin: 0; font-size: 16px;">
+            <strong>Title:</strong> {{ title }}
+        </p>
+        <p style="margin: 0; font-size: 16px;">
+            <strong>Date:</strong> {{ occurrence_date }}
+        </p>
+        {% if description %}
+        <p style="margin: 0; font-size: 16px; margin-top: 10px;">
+            <strong>Description:</strong> {{ description }}
+        </p>
+        {% endif %}
+    </div>
+
+    <p>
+        <a href="{{ project_url }}" style="background-color: #21B8F1; color: white;
+        padding: 10px 20px; text-decoration: none; border-radius: 5px;
+        display: inline-block;">
+            View Calendar
+        </a>
+    </p>
+
+    <p style="color: #666; font-size: 12px; margin-top: 30px;">
+        This is an automated notification.<br />
+        Proximal Energy, Inc.
+    </p>
+</body>
+</html>

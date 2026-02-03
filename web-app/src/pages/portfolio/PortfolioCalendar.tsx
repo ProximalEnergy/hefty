@@ -28,7 +28,8 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconUsers } from '@tabler/icons-react'
-import { useMemo, useRef, useState } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import { CalendarItemModal } from '../projects/calendar/CalendarItemModal'
 import { DetachAndEditOccurrenceModal } from '../projects/calendar/DetachAndEditOccurrenceModal'
@@ -36,6 +37,9 @@ import classes from '../projects/calendar/ProjectCalendar.module.css'
 import { ViewCalendarItemModal } from '../projects/calendar/ViewCalendarItemModal'
 
 export const PortfolioCalendar = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const calendarItemIdFromUrl = searchParams.get('calendarItemId')
+
   const { data: projects, isLoading: isLoadingProjects } = useGetProjects({
     queryParams: { deep: true },
   })
@@ -104,6 +108,46 @@ export const PortfolioCalendar = () => {
 
   const [viewModalOpened, { open: openViewModal, close: closeViewModal }] =
     useDisclosure(false)
+
+  // Auto-open modal when calendarItemId is in URL and calendar items are loaded
+  useEffect(() => {
+    if (
+      calendarItemIdFromUrl &&
+      calendarItems &&
+      !isLoadingCalendarItems &&
+      !viewModalOpened
+    ) {
+      const item = calendarItems.find(
+        (e) => e.calendar_item_id === calendarItemIdFromUrl,
+      )
+      if (item) {
+        const itemWithFullTitleAndAssignments = {
+          ...item,
+          assignee_user_ids: item.assignee_user_ids || [],
+          assignee_team_ids: item.assignee_team_ids || [],
+        }
+        startTransition(() => {
+          setSelectedItem(itemWithFullTitleAndAssignments)
+          if (item.start_time) {
+            setSelectedOccurrenceDate(new Date(item.start_time))
+          }
+          openViewModal()
+        })
+        // Remove the query parameter from URL
+        const nextParams = new URLSearchParams(searchParams)
+        nextParams.delete('calendarItemId')
+        setSearchParams(nextParams, { replace: true })
+      }
+    }
+  }, [
+    calendarItemIdFromUrl,
+    calendarItems,
+    isLoadingCalendarItems,
+    viewModalOpened,
+    openViewModal,
+    searchParams,
+    setSearchParams,
+  ])
 
   const [
     detachModalOpened,

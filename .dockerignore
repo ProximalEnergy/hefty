@@ -96,4 +96,5 @@ microservices/microservice_1/**/*
 # Keep only what we need:
 # - core/src/core/** (needed)
 # - microservices/weather_alerts_lambda/** (needed)
+# - microservices/calendar_notifications_lambda/** (needed)
 

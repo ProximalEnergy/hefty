@@ -78,7 +78,3 @@
     "@aws-cdk/aws-ecs:reduceEc2FargateCloudWatchPermissions": true
   }
 }
-
-
-
-
