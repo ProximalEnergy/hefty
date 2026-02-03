@@ -26,7 +26,6 @@ from app._crud.admin.user_projects import (
     get_users_with_project_access as crud_get_users_with_project_access,
 )
 from core import models
-from core.db_query import OutputType
 
 router = APIRouter(prefix="/permissions", tags=["permissions"])
 
@@ -173,7 +172,6 @@ async def delete_user_permission(
 )
 async def get_company_permissions(
     project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -182,7 +180,6 @@ async def get_company_permissions(
 
     Args:
         project_id: TODO: describe.
-        db: TODO: describe.
         user_data: TODO: describe.
     """
 

@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from typing import Annotated
 
@@ -61,28 +62,35 @@ async def get_users(
         output_type=OutputType.PANDAS
     )
 
-    # Process each user tuple and add operational_project_ids and optionally image URLs
-    users_with_project_ids = []
-    for _, user in users.iterrows():
-        user_dict = {
-            **{k: v for k, v in user.to_dict().items() if k != "api_key"},
-        }
+    project_ids_by_user = (
+        users.dropna(subset=["project_ids"])
+        .groupby("user_id")["project_ids"]
+        .unique()
+        .apply(list)
+    )
+    base_users = users.drop(columns=["project_ids"]).drop_duplicates("user_id")
+    if "api_key" in base_users.columns:
+        base_users = base_users.drop(columns=["api_key"])
+    base_users["operational_project_ids"] = base_users["user_id"].map(
+        project_ids_by_user
+    )
+    base_users["operational_project_ids"] = base_users["operational_project_ids"].apply(
+        lambda value: value if isinstance(value, list) else []
+    )
 
-        # Rename project_ids key to operational_project_ids
-        user_dict["operational_project_ids"] = user_dict.pop("project_ids")
+    users_with_project_ids = base_users.to_dict(orient="records")
 
-        # If user_dict["operational_project_ids"] is [None], set it to an empty list.
-        # NOTE: This is to comply with the UserWithProjects interface.
-        if user_dict["operational_project_ids"] == [None]:
-            user_dict["operational_project_ids"] = []
-
-        # Only fetch profile picture URL from Clerk if explicitly requested
-        # This avoids unnecessary API calls for users that may not exist in Clerk
-        if include_image_urls:
-            image_url = await get_clerk_user_image_url(user_id=user_dict["user_id"])
+    # Only fetch profile picture URL from Clerk if explicitly requested.
+    # This avoids unnecessary API calls for users that may not exist in Clerk.
+    if include_image_urls:
+        image_url_tasks = [
+            get_clerk_user_image_url(user_id=user_dict["user_id"])
+            for user_dict in users_with_project_ids
+        ]
+        image_urls = await asyncio.gather(*image_url_tasks)
+        for user_dict, image_url in zip(users_with_project_ids, image_urls):
             if image_url:
                 user_dict["image_url"] = image_url
-        users_with_project_ids.append(user_dict)
 
     return users_with_project_ids
 

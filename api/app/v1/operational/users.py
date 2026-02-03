@@ -42,26 +42,36 @@ async def get_users(
         # user_ids come from event messages in projects the user has access to,
         # so it's safe to return user information for these IDs
         filtered_users = await get_users_core(user_ids=user_ids).get_async(
-            output_type=OutputType.SQLALCHEMY
+            output_type=OutputType.PANDAS
         )
     else:
         filtered_users = await get_users_core(
             company_ids=[user_data.company_id]
-        ).get_async(output_type=OutputType.SQLALCHEMY)
+        ).get_async(output_type=OutputType.PANDAS)
 
-    # Process each user tuple and add operational_project_ids and optionally image URLs
-    users_with_project_ids = []
-    for user in filtered_users:
-        user_dict = {
-            **{k: v for k, v in user[0].__dict__.items() if k != "api_key"},
-            "operational_project_ids": user[1],
-        }
-        users_with_project_ids.append(user_dict)
+    project_ids_by_user = (
+        filtered_users.dropna(subset=["project_ids"])
+        .groupby("user_id")["project_ids"]
+        .unique()
+        .apply(list)
+    )
+    base_users = filtered_users.drop(columns=["project_ids"]).drop_duplicates("user_id")
+    if "api_key" in base_users.columns:
+        base_users = base_users.drop(columns=["api_key"])
+    base_users["operational_project_ids"] = base_users["user_id"].map(
+        project_ids_by_user
+    )
+    base_users["operational_project_ids"] = base_users["operational_project_ids"].apply(
+        lambda value: value if isinstance(value, list) else []
+    )
+
+    users_with_project_ids = base_users.to_dict(orient="records")
 
     # Fetch image URLs in parallel if requested
     if include_image_urls:
         image_url_tasks = [
-            get_clerk_user_image_url(user_id=user[0].user_id) for user in filtered_users
+            get_clerk_user_image_url(user_id=user_dict["user_id"])
+            for user_dict in users_with_project_ids
         ]
         image_urls = await asyncio.gather(*image_url_tasks)
         for user_dict, image_url in zip(users_with_project_ids, image_urls):

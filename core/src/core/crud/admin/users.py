@@ -1,7 +1,6 @@
 import uuid
 from typing import Any, Literal
 
-import sqlalchemy as sa
 from sqlalchemy import select
 
 from core import models
@@ -35,18 +34,12 @@ def get_users(
     Returns:
         DbQuery for users and their project IDs.
     """
-    query = (
-        select(
-            models.User,
-            sa.func.array_agg(models.UserProject.operational_project_id).label(
-                "project_ids",
-            ),
-        )
-        .outerjoin(
-            models.UserProject,
-            models.User.user_id == models.UserProject.user_id,
-        )
-        .group_by(models.User.user_id)
+    query = select(
+        models.User,
+        models.UserProject.operational_project_id.label("project_ids"),
+    ).outerjoin(
+        models.UserProject,
+        models.User.user_id == models.UserProject.user_id,
     )
 
     if company_ids:

@@ -139,7 +139,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: TODO: describe.
-         *         db: TODO: describe.
          *         user_data: TODO: describe.
          */
         get: operations["get_company_permissions_v1_admin_permissions_projects__project_id__company_get"];

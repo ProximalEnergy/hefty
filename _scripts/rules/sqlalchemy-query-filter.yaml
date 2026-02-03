@@ -31,3 +31,11 @@ rules:
             - metavariable-regex:
                 metavariable: $ARG
                 regex: .*pl\..*
+
+  - id: python-disallow-sqlalchemy-array-agg
+    message: >-
+      SQLAlchemy func.array_agg() is disallowed. Use joins instead.
+    languages: [python]
+    severity: ERROR
+    patterns:
+      - pattern: sa.func.array_agg(...)
