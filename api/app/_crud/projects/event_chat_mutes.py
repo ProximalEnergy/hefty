@@ -1,5 +1,7 @@
 import datetime
+from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,16 +32,14 @@ async def get_event_chat_mutes(
     return list(result.scalars().all())
 
 
-async def is_event_chat_muted(
+def is_event_chat_muted(
     *,
-    db: AsyncSession,
     event_id: int,
     user_id: str,
-) -> bool:
+) -> DbQuery[models.EventChatMute, Literal[True]]:
     """Check if a user has muted an event chat.
 
     Args:
-        db: TODO: describe.
         event_id: TODO: describe.
         user_id: TODO: describe.
     """
@@ -48,8 +48,7 @@ async def is_event_chat_muted(
         .where(models.EventChatMute.event_id == event_id)
         .where(models.EventChatMute.user_id == user_id)
     )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none() is not None
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def toggle_event_chat_mute(

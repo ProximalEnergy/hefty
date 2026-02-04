@@ -786,6 +786,7 @@ async def get_event_messages(
 async def create_event_message(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     project_id: Annotated[UUID, Path(...)],
     message: EventMessageCreate,
     background_tasks: BackgroundTasks,
@@ -810,6 +811,7 @@ async def create_event_message(
 
     Args:
         project_db: TODO: describe.
+        project_schema: TODO: describe.
         project_id: TODO: describe.
         message: TODO: describe.
         background_tasks: TODO: describe.
@@ -840,7 +842,10 @@ async def create_event_message(
     await project_db.commit()
     # Reload message with images relationship after commit
     reloaded_message_model = await crud_event_messages.get_event_message_by_id(
-        db=project_db, event_message_id=message_id
+        event_message_id=message_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not reloaded_message_model:
         raise HTTPException(
@@ -887,6 +892,7 @@ class EventMessageUpdate(BaseModel):
 async def update_event_message(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     event_message_id: int,
     message: EventMessageUpdate,
     user_data: Annotated[
@@ -907,6 +913,7 @@ async def update_event_message(
 
     Args:
         project_db: TODO: describe.
+        project_schema: TODO: describe.
         event_message_id: TODO: describe.
         message: TODO: describe.
         user_data: TODO: describe.
@@ -916,7 +923,10 @@ async def update_event_message(
 
     # Verify message exists and user owns it
     message_model = await crud_event_messages.get_event_message_by_id(
-        db=project_db, event_message_id=event_message_id
+        event_message_id=event_message_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not message_model:
         raise HTTPException(
@@ -958,6 +968,7 @@ async def update_event_message(
                 await crud_event_message_images.delete_event_message_image(
                     db=project_db,
                     event_message_image_id=img.event_message_image_id,
+                    project_schema=project_schema,
                 )
                 images_deleted = True
 
@@ -990,7 +1001,10 @@ async def update_event_message(
 
     # Reload message with images relationship after commit
     reloaded_message_model = await crud_event_messages.get_event_message_by_id(
-        db=project_db, event_message_id=event_message_id
+        event_message_id=event_message_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not reloaded_message_model:
         raise HTTPException(
@@ -1093,7 +1107,6 @@ async def toggle_event_chat_mute(
 @router.get("/{event_id}/mute-status")
 async def get_event_chat_mute_status(
     *,
-    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
     event_id: int,
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
@@ -1109,8 +1122,11 @@ async def get_event_chat_mute_status(
         event_id: TODO: describe.
         user_data: TODO: describe.
     """
-    is_muted = await crud_event_chat_mutes.is_event_chat_muted(
-        db=project_db, event_id=event_id, user_id=user_data.user_id
+    muted_query = crud_event_chat_mutes.is_event_chat_muted(
+        event_id=event_id, user_id=user_data.user_id
+    )
+    is_muted = (
+        await muted_query.get_async(output_type=OutputType.SQLALCHEMY) is not None
     )
 
     return {"muted": is_muted}
@@ -1190,6 +1206,7 @@ def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -
 async def upload_event_message_image(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     event_id: int,
     event_message_id: int,
     file: UploadFile = File(...),
@@ -1213,6 +1230,7 @@ async def upload_event_message_image(
 
     Args:
         project_db: TODO: describe.
+        project_schema: TODO: describe.
         event_id: TODO: describe.
         event_message_id: TODO: describe.
         file: TODO: describe.
@@ -1222,7 +1240,10 @@ async def upload_event_message_image(
 
     # Verify message exists and belongs to this event
     message = await crud_event_messages.get_event_message_by_id(
-        db=project_db, event_message_id=event_message_id
+        event_message_id=event_message_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not message or message.event_id != event_id:
         raise HTTPException(
@@ -1311,7 +1332,7 @@ async def upload_event_message_image(
 @router.get("/{event_id}/images/{image_id}/url")
 async def get_event_message_image_url(
     *,
-    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     event_id: int,
     image_id: UUID,
 ) -> dict:
@@ -1324,12 +1345,16 @@ async def get_event_message_image_url(
 
     Args:
         project_db: TODO: describe.
+        project_schema: TODO: describe.
         event_id: TODO: describe.
         image_id: TODO: describe.
     """
     # Find image record
     image = await crud_event_message_images.get_event_message_image_by_id(
-        db=project_db, event_message_image_id=image_id
+        event_message_image_id=image_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
 
     if not image:
@@ -1354,6 +1379,7 @@ async def get_event_message_image_url(
 async def get_event_message_images(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     event_id: int,
     event_message_id: int,
 ) -> list[dict]:
@@ -1364,12 +1390,16 @@ async def get_event_message_images(
 
     Args:
         project_db: TODO: describe.
+        project_schema: TODO: describe.
         event_id: TODO: describe.
         event_message_id: TODO: describe.
     """
     # Verify message exists and belongs to this event
     message = await crud_event_messages.get_event_message_by_id(
-        db=project_db, event_message_id=event_message_id
+        event_message_id=event_message_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not message or message.event_id != event_id:
         raise HTTPException(status_code=404, detail="Event message not found")

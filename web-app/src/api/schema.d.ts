@@ -2648,6 +2648,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_schema: TODO: describe.
          *         reaction: TODO: describe.
          *         user_data: TODO: describe.
          */
@@ -2700,6 +2701,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_schema: TODO: describe.
          *         project_id: TODO: describe.
          *         message: TODO: describe.
          *         background_tasks: TODO: describe.
@@ -2737,6 +2739,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_schema: TODO: describe.
          *         event_message_id: TODO: describe.
          *         message: TODO: describe.
          *         user_data: TODO: describe.
@@ -2851,6 +2854,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_schema: TODO: describe.
          *         event_id: TODO: describe.
          *         event_message_id: TODO: describe.
          *         file: TODO: describe.
@@ -2880,6 +2884,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_schema: TODO: describe.
          *         event_id: TODO: describe.
          *         image_id: TODO: describe.
          */
@@ -2908,6 +2913,7 @@ export interface paths {
          *
          *     Args:
          *         project_db: TODO: describe.
+         *         project_schema: TODO: describe.
          *         event_id: TODO: describe.
          *         event_message_id: TODO: describe.
          */

@@ -1,6 +1,8 @@
 import datetime
+from typing import Literal
 from uuid import UUID
 
+from core.db_query import DbQuery, OutputType
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,22 +35,19 @@ async def get_event_message_images(
     return list(result.scalars().all())
 
 
-async def get_event_message_image_by_id(
+def get_event_message_image_by_id(
     *,
-    db: AsyncSession,
     event_message_image_id: UUID,
-) -> models.EventMessageImage | None:
+) -> DbQuery[models.EventMessageImage, Literal[True]]:
     """Get a single event message image by ID.
 
     Args:
-        db: TODO: describe.
         event_message_image_id: TODO: describe.
     """
     stmt = select(models.EventMessageImage).where(
         models.EventMessageImage.event_message_image_id == event_message_image_id
     )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def create_event_message_image(
@@ -107,23 +106,28 @@ async def delete_event_message_image(
     *,
     db: AsyncSession,
     event_message_image_id: UUID,
+    project_schema: str | None = None,
 ) -> bool:
     """Delete an event message image from the database and S3.
 
     Args:
         db: TODO: describe.
         event_message_image_id: TODO: describe.
+        project_schema: TODO: describe.
     """
     image = await get_event_message_image_by_id(
-        db=db, event_message_image_id=event_message_image_id
+        event_message_image_id=event_message_image_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not image:
         return False
 
     # Delete from database (S3 deletion can be handled separately if needed)
-    stmt = delete(models.EventMessageImage).where(
+    delete_stmt = delete(models.EventMessageImage).where(
         models.EventMessageImage.event_message_image_id == event_message_image_id
     )
-    await db.execute(stmt)
+    await db.execute(delete_stmt)
     await db.flush()
     return True

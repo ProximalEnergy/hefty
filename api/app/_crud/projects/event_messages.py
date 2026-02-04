@@ -1,6 +1,7 @@
 import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, cast
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -37,16 +38,14 @@ async def get_event_messages(
     return list(result.scalars().all())
 
 
-async def get_event_message_by_id(
+def get_event_message_by_id(
     *,
-    db: AsyncSession,
     event_message_id: int,
-) -> models.EventMessage | None:
+) -> DbQuery[models.EventMessage, Literal[True]]:
     """Get a single event message by ID.
         Loads images relationship.
 
     Args:
-        db: TODO: describe.
         event_message_id: TODO: describe.
     """
     stmt = (
@@ -55,8 +54,7 @@ async def get_event_message_by_id(
         .where(models.EventMessage.event_message_id == event_message_id)
         .where(models.EventMessage.deleted_at.is_(None))
     )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def create_event_message(
@@ -111,9 +109,9 @@ async def update_event_message(
         body: TODO: describe.
         mentions: TODO: describe.
     """
-    event_message = await get_event_message_by_id(
-        db=db, event_message_id=event_message_id
-    )
+    db_query = get_event_message_by_id(event_message_id=event_message_id)
+    result = await db.execute(db_query.query)
+    event_message = cast(models.EventMessage | None, result.scalar_one_or_none())
     if not event_message:
         return None
 
@@ -138,9 +136,14 @@ async def update_event_message_image_s3_keys(
         event_message_id: TODO: describe.
         image_s3_keys: TODO: describe.
     """
-    event_message = await get_event_message_by_id(
-        db=db, event_message_id=event_message_id
+    stmt = (
+        select(models.EventMessage)
+        .options(selectinload(models.EventMessage.images))
+        .where(models.EventMessage.event_message_id == event_message_id)
+        .where(models.EventMessage.deleted_at.is_(None))
     )
+    result = await db.execute(stmt)
+    event_message = result.scalar_one_or_none()
     if not event_message:
         return None
 

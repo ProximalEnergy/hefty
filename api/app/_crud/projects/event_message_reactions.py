@@ -1,5 +1,7 @@
 import datetime
+from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,17 +55,15 @@ async def get_event_message_reactions_by_event_id(
     return list(result.scalars().all())
 
 
-async def get_event_message_reaction(
+def get_event_message_reaction(
     *,
-    db: AsyncSession,
     event_message_id: int,
     user_id: str,
     reaction_type: enumerations.ReactionType,
-) -> models.EventMessageReaction | None:
+) -> DbQuery[models.EventMessageReaction, Literal[True]]:
     """Get a specific reaction if it exists.
 
     Args:
-        db: Async database session connected to the operational store.
         event_message_id: Message identifier for the reaction being queried.
         user_id: Unique identifier of the reacting user.
         reaction_type: Specific reaction enum to match (e.g., like, dislike).
@@ -74,8 +74,7 @@ async def get_event_message_reaction(
         .where(models.EventMessageReaction.user_id == user_id)
         .where(models.EventMessageReaction.reaction_type == reaction_type)
     )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def create_event_message_reaction(

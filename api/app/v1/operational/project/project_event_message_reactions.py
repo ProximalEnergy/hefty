@@ -1,6 +1,7 @@
 import datetime
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +11,9 @@ from app._crud.projects import (
     event_message_reactions as crud_event_message_reactions,
 )
 from app._crud.projects import event_messages as crud_event_messages
+from app.dependencies import (
+    get_project_name_short_async,
+)
 from core import enumerations
 
 router = APIRouter(
@@ -117,6 +121,7 @@ async def get_event_message_reactions(
 async def toggle_event_message_reaction(
     *,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    project_schema: Annotated[str, Depends(get_project_name_short_async)] = "",
     reaction: EventMessageReactionCreate,
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
@@ -134,6 +139,7 @@ async def toggle_event_message_reaction(
 
     Args:
         project_db: TODO: describe.
+        project_schema: TODO: describe.
         reaction: TODO: describe.
         user_data: TODO: describe.
     """
@@ -144,7 +150,10 @@ async def toggle_event_message_reaction(
 
     # Verify message exists and is not deleted before allowing reaction
     message = await crud_event_messages.get_event_message_by_id(
-        db=project_db, event_message_id=reaction.event_message_id
+        event_message_id=reaction.event_message_id
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     if not message:
         raise HTTPException(
@@ -157,10 +166,12 @@ async def toggle_event_message_reaction(
 
     # Check if reaction already exists
     existing = await crud_event_message_reactions.get_event_message_reaction(
-        db=project_db,
         event_message_id=reaction.event_message_id,
         user_id=user_data.user_id,
         reaction_type=reaction_type_enum,
+    ).get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
 
     if existing:
