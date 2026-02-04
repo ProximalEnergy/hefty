@@ -114,7 +114,10 @@ async def get_equipment_analysis_combiner_data(
     ]
 
     # Sort both x and y by x
-    x, y, y_norm = zip(*natsorted(zip(x, y, y_norm)))  # type: ignore
+    if not x:  # If x is empty, y and y_norm will also be empty
+        x, y, y_norm = [], [], []
+    else:
+        x, y, y_norm = [list(t) for t in zip(*natsorted(zip(x, y, y_norm)))]
 
     return_data = {
         "x": x,
