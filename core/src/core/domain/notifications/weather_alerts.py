@@ -3,6 +3,7 @@
 import logging
 import traceback
 from collections.abc import Sequence
+from datetime import UTC, datetime, timedelta
 from typing import cast
 
 from geoalchemy2.shape import to_shape
@@ -42,6 +43,9 @@ SEVERITY_THRESHOLDS = {
 
 # Valid weather types (used for validation)
 VALID_WEATHER_TYPES = {"hail", "tornado", "wind", "fire"}
+
+# Treat as "same storm" only if last notification was within this many days
+SAME_EVENT_WINDOW_DAYS = 2
 
 
 def probability_to_severity(*, probability: float) -> enumerations.NotificationSeverity:
@@ -341,8 +345,9 @@ async def _check_project_against_polygons(
         logger.warning(f"Notification type '{weather_type}' not found in database")
         return
 
-    # Check if we should create a notification
-    # Only create if severity increased or no previous notification
+    # Check if we should create a notification.
+    # Create if: no previous notification, or last one is outside same-event
+    # window (new event), or severity increased within the window.
     recent_notification_query = get_recent_notification(
         project_id=project.project_id,
         notification_type_id=notification_type.notification_type_id,
@@ -352,7 +357,12 @@ async def _check_project_against_polygons(
     )
 
     if recent_notification:
-        # Only create if severity increased
+        cutoff = datetime.now(UTC) - timedelta(days=SAME_EVENT_WINDOW_DAYS)
+        created_at = recent_notification.created_at
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=UTC)
+        within_same_event_window = created_at >= cutoff
+
         recent_severity_numeric = severity_to_numeric(
             severity=recent_notification.severity
         )
@@ -361,14 +371,17 @@ async def _check_project_against_polygons(
         logger.info(
             f"Project {project.project_id} has recent {weather_type} notification "
             f"(severity: {recent_notification.severity.value} -> {severity.value}, "
-            f"numeric: {recent_severity_numeric} -> {current_severity_numeric})"
+            f"numeric: {recent_severity_numeric} -> {current_severity_numeric}, "
+            f"within_same_event_window: {within_same_event_window})"
         )
 
-        if current_severity_numeric <= recent_severity_numeric:
-            # Severity didn't increase, skip
+        if (
+            within_same_event_window
+            and current_severity_numeric <= recent_severity_numeric
+        ):
             logger.info(
-                f"Severity did not increase for project {project.project_id} "
-                f"(current: {current_severity_numeric} <= "
+                f"Same-event window and severity did not increase for project "
+                f"{project.project_id} (current: {current_severity_numeric} <= "
                 f"recent: {recent_severity_numeric}), skipping notification"
             )
             return
