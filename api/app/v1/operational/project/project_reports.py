@@ -97,8 +97,11 @@ async def get_pcs_apparent_vs_voltage(
     vab_idx = tags_df[tags_df["sensor_type_id"] == 133].index.tolist()
     vbc_idx = tags_df[tags_df["sensor_type_id"] == 134].index.tolist()
     vca_idx = tags_df[tags_df["sensor_type_id"] == 135].index.tolist()
+    rows_to_grab = vab_idx + vbc_idx + vca_idx
+    if not rows_to_grab:
+        return []
     voltage_items = (
-        tags_df.loc[vab_idx + vbc_idx + vca_idx]  # type: ignore
+        tags_df.loc[rows_to_grab]  # type: ignore
         .groupby("device_id", group_keys=False)  # type: ignore
         .apply(lambda x: x.index.tolist(), include_groups=False)  # type: ignore
         .to_dict()
