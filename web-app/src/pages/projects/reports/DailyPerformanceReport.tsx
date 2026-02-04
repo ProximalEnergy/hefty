@@ -11,6 +11,7 @@ import { useGetOperationalKPIData } from '@/api/v1/operational/kpi_data'
 import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
+import { useGetWaterfall } from '@/api/v1/operational/project/waterfall'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   useGetPVBudgetedData,
@@ -92,6 +93,10 @@ import { HoverInfo } from '../gis/utils'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+
+// Waterfall API bar names (must match backend project_waterfall.py)
+const WATERFALL_NAME_PV_ENERGY_OUTPUT = 'PV Energy Output'
+const WATERFALL_NAME_PV_EXPECTED = 'PV Expected'
 
 // Daily Energy Comparison Component - Power Plot Style
 const DailyEnergyComparison = ({
@@ -903,6 +908,37 @@ const Page: React.FC = () => {
     }
   }, [selectedDate])
 
+  // Waterfall uses same Actual/Expected as the loss chart (meter + pv_expected).
+  // Use for PI and Project Generation when available so they match the chart.
+  const waterfallQuery = useGetWaterfall({
+    pathParams: { projectId: projectId || '-1' },
+    queryParams: {
+      level: 'device_type',
+      start: startTime || '',
+      end: endTime || '',
+    },
+    queryOptions: {
+      enabled: !!projectId && !!startTime && !!endTime,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      staleTime: 24 * 60 * 60 * 1000,
+      gcTime: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+
+  const waterfallActualExpected = useMemo(() => {
+    const data = waterfallQuery.data
+    if (!data?.name?.length || !data?.value?.length) return null
+    const idxActual = data.name.indexOf(WATERFALL_NAME_PV_ENERGY_OUTPUT)
+    const idxExpected = data.name.indexOf(WATERFALL_NAME_PV_EXPECTED)
+    if (idxActual === -1 || idxExpected === -1) return null
+    const actual = data.value[idxActual]
+    const expected = data.value[idxExpected]
+    if (typeof actual !== 'number' || typeof expected !== 'number') return null
+    return { actualMWh: actual, expectedMWh: expected }
+  }, [waterfallQuery.data])
+
   // Fetch available budgeted series for the project (load once only)
   const budgetedSeriesQuery = useGetPVBudgetedSeries({
     queryParams: {
@@ -1033,13 +1069,16 @@ const Page: React.FC = () => {
     return totalkWh_m2
   }, [poaTimeseriesQuery.data])
 
-  // Fetch daily KPI data for stats (single day)
+  // Fetch daily KPI data for stats (single day).
+  // For PVS projects we also need PV-only generation (PV_PCS or PV_PCS_MODULE).
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
       kpi_type_ids: [
         KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
         KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
         KPITypeEnum.PERFORMANCE_RATIO,
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
         KPITypeEnum.PV_PROJECT_CURTAILMENT,
@@ -1059,12 +1098,15 @@ const Page: React.FC = () => {
     },
   })
 
-  // Fetch trailing period KPI data for chart (generation and expected generation)
+  // Fetch trailing period KPI data for chart (generation and expected generation).
+  // For PVS we need PV-only generation for the chart.
   const trailingKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
       kpi_type_ids: [
         KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
       ],
       start: trailingStart || '',
@@ -1436,11 +1478,22 @@ const Page: React.FC = () => {
     budgetedComparisonMode,
   ])
 
-  // Calculate stats for StatsGrid
-  const stats = useMemo(() => {
-    const generationKpi = dailyKpiData.data?.find(
+  // For PV+Storage projects use PV-only generation (circuit/inverters), not POI.
+  const isPvs = project.data?.project_type_id === ProjectTypeEnum.PVS
+
+  // Shared daily actual/expected (used by stats and aiStats).
+  const dailyActualExpected = useMemo(() => {
+    const poiKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
+    )
+    const pvPcsKpi = dailyKpiData.data?.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+    )
+    const pvPcsModuleKpi = dailyKpiData.data?.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
     )
     const expectedKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
@@ -1450,16 +1503,43 @@ const Page: React.FC = () => {
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_CURTAILMENT,
     )
+    const fromWaterfall = waterfallActualExpected
+    const actualMWh = fromWaterfall
+      ? fromWaterfall.actualMWh
+      : isPvs
+        ? (pvPcsKpi?.data?.project_data?.[0] ??
+          pvPcsModuleKpi?.data?.project_data?.[0] ??
+          0)
+        : poiKpi?.data?.project_data?.[0] || 0
+    const expectedMWh = fromWaterfall
+      ? fromWaterfall.expectedMWh
+      : expectedKpi?.data?.project_data?.[0] || 0
+    const curtailmentMWh = curtailmentKpi?.data?.project_data?.[0] || 0
+    const poiMWh = poiKpi?.data?.project_data?.[0] || 0
+    return {
+      actualMWh,
+      expectedMWh,
+      curtailmentMWh,
+      poiMWh,
+      fromWaterfall,
+    }
+  }, [dailyKpiData.data, isPvs, waterfallActualExpected])
+
+  // Calculate stats for StatsGrid
+  const stats = useMemo(() => {
     const availabilityKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
     )
-
-    const generationMWh = generationKpi?.data?.project_data?.[0] || 0
-    const expectedMWh = expectedKpi?.data?.project_data?.[0] || 0
-    const curtailmentMWh = curtailmentKpi?.data?.project_data?.[0] || 0
+    const {
+      actualMWh: generationMWh,
+      expectedMWh,
+      curtailmentMWh,
+      poiMWh,
+      fromWaterfall,
+    } = dailyActualExpected
     const ppaRate = project.data?.ppa?.rate || 0
-    const revenue = generationMWh * ppaRate
+    const revenue = poiMWh * ppaRate
 
     // Calculate MTD revenue
     const mtdGenerationKpi = mtdKpiData.data?.find(
@@ -1486,12 +1566,21 @@ const Page: React.FC = () => {
         ?.length || 0
     const closedEvents = totalEvents - openEvents
 
-    // Build Project Generation description with curtailment info if applicable
-    let generationDescription = 'Total project generation'
+    // Build Project Generation description (sensor type for waterfall source)
+    let generationDescription = fromWaterfall
+      ? isPvs
+        ? 'PV Energy Output (PV MV circuit meter)'
+        : 'PV Energy Output (POI)'
+      : isPvs
+        ? 'Cumulative PV circuit/inverter generation (PV-only, excludes storage)'
+        : 'Total project generation'
     if (curtailmentMWh !== 0) {
       generationDescription += `. Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
     }
 
+    const generationKpiTypeId = isPvs
+      ? undefined
+      : KPITypeEnum.PROJECT_ENERGY_PRODUCTION
     return [
       {
         title: 'Project Generation',
@@ -1501,8 +1590,10 @@ const Page: React.FC = () => {
           : undefined,
         icon: IconBolt,
         description: generationDescription,
-        kpiTypeId: KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
-        link: `/projects/${projectId}/kpis/type/6`,
+        ...(generationKpiTypeId != null && {
+          kpiTypeId: generationKpiTypeId,
+          link: `/projects/${projectId}/kpis/type/${generationKpiTypeId}`,
+        }),
       },
       {
         title: 'Resource (Insolation)',
@@ -1531,11 +1622,17 @@ const Page: React.FC = () => {
         value: `${performanceIndex.toFixed(2)}%${curtailmentMWh !== 0 ? '*' : ''}`,
         subtitle: 'Actual vs Expected',
         icon: IconChartBar,
-        description: `Performance Index: ratio of actual generation to expected generation for the selected day. Note: Expected energy does not take curtailment into account.${
-          curtailmentMWh !== 0
-            ? ` Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
-            : ''
-        }`,
+        description: fromWaterfall
+          ? `Actual: PV Energy Output${isPvs ? ' (PV MV circuit meter)' : ' (POI)'}. Expected: PV Expected.${
+              curtailmentMWh !== 0
+                ? ` Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
+                : ''
+            }`
+          : `Performance Index: ratio of actual generation to expected generation for the selected day. Note: Expected energy does not take curtailment into account.${
+              curtailmentMWh !== 0
+                ? ` Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh`
+                : ''
+            }`,
       },
       {
         title: 'Events',
@@ -1559,11 +1656,13 @@ const Page: React.FC = () => {
       },
     ]
   }, [
+    dailyActualExpected,
     dailyKpiData.data,
     eventsData.data,
     generationBudgetInfo,
     irradianceBudgetInfo,
     calculatedIrradiance,
+    isPvs,
     mtdKpiData.data,
     project.data?.ppa?.rate,
     projectId,
@@ -1577,10 +1676,22 @@ const Page: React.FC = () => {
       return []
     }
 
-    const generationKpi = trailingKpiData.data?.find(
+    const poiKpi = trailingKpiData.data?.find(
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
+    const pvPcsKpi = trailingKpiData.data?.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+    )
+    const pvPcsModuleKpi = trailingKpiData.data?.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+    )
+    // PV+Storage: prefer PV PCS energy; fall back to POI for chart only when no PV PCS data
+    const generationKpi = isPvs
+      ? (pvPcsKpi ?? pvPcsModuleKpi ?? poiKpi)
+      : poiKpi
 
     const expectedKpi = trailingKpiData.data?.find(
       (kpi: OperationalKPIData) =>
@@ -1913,6 +2024,7 @@ const Page: React.FC = () => {
 
     return traces
   }, [
+    isPvs,
     trailingKpiData.data,
     energyView,
     processedBudgetedData,
@@ -2152,23 +2264,12 @@ const Page: React.FC = () => {
       return null
     }
 
-    // Get daily generation data
-    const dailyGenerationKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
-    )
-    const expectedKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
-    )
-    const curtailmentKpi = dailyKpiData.data.find(
-      (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PROJECT_CURTAILMENT,
-    )
-
-    const actualEnergyMWh = dailyGenerationKpi?.data?.project_data?.[0] || 0
-    const expectedMWh = expectedKpi?.data?.project_data?.[0] || 0
-    const curtailmentMWh = curtailmentKpi?.data?.project_data?.[0] || 0
+    const {
+      actualMWh: actualEnergyMWh,
+      expectedMWh,
+      curtailmentMWh,
+      poiMWh,
+    } = dailyActualExpected
 
     // Calculate Performance Index = (actual / expected) * 100
     const performanceIndex =
@@ -2182,11 +2283,22 @@ const Page: React.FC = () => {
         ? (energyDifferenceMWh / budgetedEnergyMWh) * 100
         : 0
 
-    // Calculate 30-day trailing statistics
-    const trailingGenerationKpi = trailingKpiData.data.find(
+    // Calculate 30-day trailing statistics (PV-only for PVS)
+    const trailingPoiKpi = trailingKpiData.data.find(
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
     )
+    const trailingPvPcsKpi = trailingKpiData.data.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+    )
+    const trailingPvPcsModuleKpi = trailingKpiData.data.find(
+      (kpi: OperationalKPIData) =>
+        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+    )
+    const trailingGenerationKpi = isPvs
+      ? (trailingPvPcsKpi ?? trailingPvPcsModuleKpi)
+      : trailingPoiKpi
     const trailingActualMWh =
       trailingGenerationKpi?.data?.project_data?.reduce(
         (sum: number, value: number | null) => sum + (value || 0),
@@ -2206,9 +2318,9 @@ const Page: React.FC = () => {
         ? (trailingDifferenceMWh / trailingBudgetedMWh) * 100
         : 0
 
-    // Calculate revenue data
+    // Calculate revenue data (POI-based)
     const ppaRate = project.data?.ppa?.rate || 0
-    const dailyRevenue = actualEnergyMWh * ppaRate
+    const dailyRevenue = poiMWh * ppaRate
 
     // Calculate MTD revenue
     const mtdGenerationKpi = mtdKpiData.data?.find(
@@ -2306,6 +2418,8 @@ const Page: React.FC = () => {
     eventsData.data,
     generationBudgetInfo,
     processedBudgetedData,
+    dailyActualExpected,
+    isPvs,
   ])
 
   // Stats grid only needs these essential queries - budgeted data can load separately
@@ -2785,6 +2899,16 @@ const Page: React.FC = () => {
                   COD. The percentage delta shows how actual performance
                   compares to the degraded budgeted values.
                 </Text>
+                {isPvs && (
+                  <Text size="sm">
+                    <Text component="span" fw={500}>
+                      PV+Storage:
+                    </Text>{' '}
+                    Actual energy is PV PCS Energy (PV-only, excludes storage).
+                    If PV PCS data is not available, the chart falls back to POI
+                    energy so the Actual series still displays.
+                  </Text>
+                )}
               </Stack>
             }
           >
