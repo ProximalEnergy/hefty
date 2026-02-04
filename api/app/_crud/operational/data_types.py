@@ -1,7 +1,7 @@
-from sqlalchemy import select
 from typing import Literal
 
 from core.db_query import DbQuery
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models

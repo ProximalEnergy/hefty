@@ -120,8 +120,8 @@ async def get_project_dataframe(
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_df,
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -235,8 +235,8 @@ async def get_llm_time_series(
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_df,
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -421,8 +421,8 @@ async def get_time_series(
 
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=[t.tag_id for t in tags],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_df,
         query_start=start,
         query_end=end,
         project_db=project_db,
@@ -553,45 +553,6 @@ async def get_timeseries_v3(
                 ),
             ) from exc
 
-    # Determine filter method based on which parameter is provided
-    if tag_ids:
-        data_timeseries_instance = DataTimeseries(
-            project_name_short=project.name_short,
-            filter_method=FilterMethod.TAG_IDS,
-            filter_values=tag_ids,
-            query_start=start,
-            query_end=end,
-            project_db=project_db,
-            freq=agg_interval,
-            ensure_full_range=ensure_full_range,
-        )
-
-    else:
-        data_timeseries_instance = DataTimeseries(
-            project_name_short=project.name_short,
-            filter_method=FilterMethod.SENSOR_TYPE_IDS,
-            filter_values=sensor_type_ids,
-            query_start=start,
-            query_end=end,
-            project_db=project_db,
-            freq=agg_interval,
-            ensure_full_range=ensure_full_range,
-        )
-
-    data_timeseries = await data_timeseries_instance.get()
-
-    # Convert polars DataFrame to pandas
-    df = data_timeseries.df.to_pandas()
-
-    if cutoff_now:
-        if "time" in df.columns:
-            df = df[df["time"] <= pd.Timestamp.now(tz=project.time_zone)]
-        elif "time_bucket" in df.columns:
-            df = df[df["time_bucket"] <= pd.Timestamp.now(tz=project.time_zone)]
-        else:
-            raise ValueError("time or time_bucket column not found in dataframe")
-
-    # Get tags for metadata
     project_schema = utils.get_project_schema(project_db=project_db)
     if tag_ids:
         tags_df = await core.crud.project.tags.get_project_tags_v2(
@@ -607,6 +568,30 @@ async def get_timeseries_v3(
     if tags_df is None or tags_df.is_empty():
         return []
     tags = [SimpleNamespace(**row) for row in tags_df.to_dicts()]
+
+    data_timeseries_instance = DataTimeseries(
+        project_name_short=project.name_short,
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_df,
+        query_start=start,
+        query_end=end,
+        project_db=project_db,
+        freq=agg_interval,
+        ensure_full_range=ensure_full_range,
+    )
+
+    data_timeseries = await data_timeseries_instance.get()
+
+    # Convert polars DataFrame to pandas
+    df = data_timeseries.df.to_pandas()
+
+    if cutoff_now:
+        if "time" in df.columns:
+            df = df[df["time"] <= pd.Timestamp.now(tz=project.time_zone)]
+        elif "time_bucket" in df.columns:
+            df = df[df["time_bucket"] <= pd.Timestamp.now(tz=project.time_zone)]
+        else:
+            raise ValueError("time or time_bucket column not found in dataframe")
 
     # Build metadata mappings
     tag_id_to_sensor_type_name = await utils.get_tag_id_to_sensor_type_name(

@@ -73,14 +73,15 @@ async def get_status_timeseries_interpreted(
         sensor_type_ids=sensor_type_ids,
         device_ids=device_ids,
     )
-    status_tags = await get_status_tags_query.get_async(
-        schema=project.name_short, output_type=OutputType.PANDAS
+    status_tags_pl = await get_status_tags_query.get_async(
+        schema=project.name_short,
+        output_type=OutputType.POLARS,
     )
-    status_tags = status_tags.set_index("tag_id")
+    status_tags = status_tags_pl.to_pandas().set_index("tag_id")
     data_query = DataTimeseries(
         project_name_short=project.name_short,
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=status_tags.index.values.tolist(),
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=status_tags_pl,
         freq=TimeInterval.FIVE_MINUTES,
         query_start=start,
         query_end=end,

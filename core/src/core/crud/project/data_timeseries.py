@@ -1104,7 +1104,8 @@ class DataTimeseries:
             case FilterMethod.TAG_IDS:
                 warnings.warn(
                     "FilterMethod.TAG_IDS leads to an additional database query. "
-                    "Consider using FilterMethod.TAG_POLARS instead."
+                    "Consider using FilterMethod.TAG_POLARS instead.",
+                    stacklevel=5,
                 )
                 if not isinstance(self.filter_values, list):
                     raise TypeError(
@@ -1117,7 +1118,8 @@ class DataTimeseries:
             case FilterMethod.SENSOR_TYPE_IDS:
                 warnings.warn(
                     "FilterMethod.TAG_IDS leads to an additional database query. "
-                    "Consider using FilterMethod.TAG_POLARS instead."
+                    "Consider using FilterMethod.TAG_POLARS instead.",
+                    stacklevel=5,
                 )
                 if not isinstance(self.filter_values, list):
                     raise TypeError(
