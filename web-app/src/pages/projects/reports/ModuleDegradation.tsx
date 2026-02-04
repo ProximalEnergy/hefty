@@ -1466,7 +1466,7 @@ const ModuleDegradation: React.FC = () => {
         DeviceTypeEnum.PV_PCS,
         DeviceTypeEnum.BLOCK,
         DeviceTypeEnum.PV_DC_COMBINER,
-        DeviceTypeEnum.CIRCUIT,
+        DeviceTypeEnum.PV_CIRCUIT,
       ],
     },
     queryOptions: {

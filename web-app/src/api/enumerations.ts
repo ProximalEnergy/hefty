@@ -55,7 +55,6 @@ export const DeviceTypeEnum = {
   BESS_ENCLOSURE: 11,
   BESS_BLOCK: 12,
   BESS_PCS: 13,
-  CIRCUIT: 14,
   MVT: 15,
   PV_MV_CIRCUIT: 16,
   BESS_MV_CIRCUIT: 17,
