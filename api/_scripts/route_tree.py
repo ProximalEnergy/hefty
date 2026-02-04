@@ -582,6 +582,7 @@ class RouteEntry:
 
     path: str
     method_endpoints: dict[str, Any]
+    include_in_schema: bool = True
 
     @property
     def methods(self) -> list[str]:
@@ -1283,6 +1284,36 @@ def render_html(
         max-width: 420px;
         z-index: 10;
     }
+    .schema-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    .schema-visible {
+        color: #22c55e;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+    .schema-hidden {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    body.light .schema-visible {
+        color: #15803d;
+        background: rgba(34, 197, 94, 0.12);
+        border-color: rgba(34, 197, 94, 0.35);
+    }
+    body.light .schema-hidden {
+        color: #b91c1c;
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.35);
+    }
     """
     html_parts = [
         "<!doctype html>",
@@ -1424,6 +1455,11 @@ def render_html(
                     file_path = raw_path.split("api/", 1)[1]
                 else:
                     file_path = raw_path
+            schema_badge = (
+                "<span class='schema-badge schema-visible'>In Schema</span>"
+                if route.include_in_schema
+                else "<span class='schema-badge schema-hidden'>Hidden</span>"
+            )
             html_parts.append(
                 "<summary>"
                 "<span class='route'>"
@@ -1435,6 +1471,7 @@ def render_html(
                 "</span>"
                 f"<span class='route'>{route.path}</span> "
                 f"<span class='muted'>{file_path}</span>{link_html}"
+                f"{schema_badge}"
                 "</summary>"
             )
             inherited_all = collect_inherited_deps(
@@ -1580,7 +1617,12 @@ def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
     app_root = repo_root / "api" / "app"
 
-    os.environ.setdefault("ENVIRONMENT", "development")
+    from app import settings
+
+    # Set ENVIRONMENT to "production" so that get_include_in_schema() returns
+    # False for routes that use it dynamically. This allows the route tree to
+    # accurately show which routes would be hidden in the production API docs.
+    settings.ENVIRONMENT = "production"
 
     router_infos, include_edges, endpoints = build_router_graph(
         app_root=app_root,
@@ -1600,10 +1642,14 @@ def main() -> int:
             grouped[route.path] = RouteEntry(
                 path=route.path,
                 method_endpoints={method: route.endpoint for method in route.methods},
+                include_in_schema=route.include_in_schema,
             )
         else:
             for method in route.methods:
                 entry.method_endpoints.setdefault(method, route.endpoint)
+            # If any method is not in schema, mark the entry as not in schema
+            if not route.include_in_schema:
+                entry.include_in_schema = False
     grouped_routes = sorted(
         grouped.values(),
         key=lambda entry: (entry.path, entry.methods),
