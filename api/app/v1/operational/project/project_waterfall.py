@@ -20,9 +20,8 @@ from core import models
 DESCRIPTION_404 = "Tag not found"
 
 router = APIRouter(
-    prefix="/projects/{project_id}/waterfall",
+    prefix="/waterfall",
     tags=["project_waterfall"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
 )
 
 

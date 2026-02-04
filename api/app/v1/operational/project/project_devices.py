@@ -17,7 +17,6 @@ import core
 from app import custom_types, interfaces, utils
 from app._utils.arrow import polars_to_arrow_response
 from app.dependencies import (
-    check_project_access_async,
     get_project_db,
     get_project_db_async,
 )
@@ -26,9 +25,8 @@ from app.logger import logger
 DESCRIPTION_404 = "Device not found"
 
 router = APIRouter(
-    prefix="/projects/{project_id}/devices",
+    prefix="/devices",
     tags=["project_devices"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

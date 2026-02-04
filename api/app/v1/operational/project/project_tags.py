@@ -9,15 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import core
 from app import custom_types, interfaces
 from app.dependencies import (
-    check_project_access_async,
     get_project_db_async,
     get_project_name_short_async,
 )
 
 router = APIRouter(
-    prefix="/projects/{project_id}/tags",
+    prefix="/tags",
     tags=["project_tags"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

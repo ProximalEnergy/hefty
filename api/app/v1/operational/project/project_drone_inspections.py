@@ -21,7 +21,6 @@ from app._crud.projects.drone_inspections import (
 )
 from app._dependencies.authorization import require_jwt_or_api_superadmin
 from app.dependencies import (
-    check_project_access_async,
     get_async_db,
     get_project_db_async,
     get_project_name_short_async,
@@ -37,11 +36,10 @@ from app.interfaces import (
 from app.logger import logger
 
 router = APIRouter(
-    prefix="/projects/{project_id}/drone-inspections",
+    prefix="/drone-inspections",
     tags=["project_drone_inspections"],
     dependencies=[
         Depends(require_jwt_or_api_superadmin),
-        Depends(check_project_access_async),
     ],
 )
 

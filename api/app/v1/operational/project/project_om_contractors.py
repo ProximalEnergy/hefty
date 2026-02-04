@@ -9,13 +9,11 @@ from app import dependencies
 from app._crud.operational.om_contractor_scopes import (
     get_om_contractor_scopes_by_project,
 )
-from app.dependencies import check_project_access_async
 from core import models
 
 router = APIRouter(
-    prefix="/projects/{project_id}/om-contractors",
+    prefix="/om-contractors",
     tags=["project_om_contractors"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

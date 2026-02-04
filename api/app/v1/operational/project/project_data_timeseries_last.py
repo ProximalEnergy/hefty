@@ -7,12 +7,11 @@ from sqlalchemy.orm import Session
 
 import core
 from app import utils
-from app.dependencies import check_project_access_async, get_project_db
+from app.dependencies import get_project_db
 
 router = APIRouter(
-    prefix="/projects/{project_id}/data-timeseries-last",
+    prefix="/data-timeseries-last",
     tags=["project_data_timeseries_last"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

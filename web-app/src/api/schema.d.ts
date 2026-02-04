@@ -1778,7 +1778,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/event-message-reactions": {
+    "/v1/operational/projects/{project_id}/calendar-item-categories": {
         parameters: {
             query?: never;
             header?: never;
@@ -1786,204 +1786,17 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Event Message Reactions
-         * @description Get all reactions for a specific event message or all reactions for an event.
-         *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *         Query Parameters:
-         *             event_message_id: The ID of the message to get reactions for (optional)
-         *             event_id: The ID of the event to get all reactions for (optional)
-         *
-         *         Returns:
-         *             List of reactions for the message(s)
+         * Read Calendar Item Categories
+         * @description Retrieve all calendar item categories.
+         *         Even though project_id is in the path, categories are currently global.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         event_id: TODO: describe.
-         */
-        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
-        put?: never;
-        /**
-         * Toggle Event Message Reaction
-         * @description Toggle a reaction on a message (add if not exists, remove if exists).
-         *
-         *     Request Body:
-         *         event_message_id: The ID of the message
-         *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
-         *             'question_mark', etc.)
-         *
-         *     Returns:
-         *         The created reaction (if added) or the deleted reaction info (if removed)
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         reaction: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Messages
-         * @description Get all non-deleted messages for a specific event.
-         *
-         *         Query Parameters:
-         *             event_id: The ID of the event to get messages for
-         *
-         *         Returns:
-         *             List of event messages, ordered by created_at (ascending)
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         */
-        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
-        put?: never;
-        /**
-         * Create Event Message
-         * @description Create a new event message.
-         *
-         *         - Extracts @mentions from the message body
-         *         - Stores mentions as comma-separated usernames
-         *         - Sends email notifications in the background to:
-         *             - First message: all company users
-         *             - Subsequent messages: users who have posted (excluding muted users)
-         *
-         *         Request Body:
-         *             event_id: The ID of the event
-         *             body: The message content (may contain @mentions)
-         *
-         *         Returns:
-         *             The created event message
-         *
-         *     Args:
-         *         project_db: TODO: describe.
          *         project_id: TODO: describe.
-         *         message: TODO: describe.
-         *         background_tasks: TODO: describe.
-         *         user_data: TODO: describe.
-         *         api_prod: TODO: describe.
+         *         db: TODO: describe.
+         *         skip: TODO: describe.
+         *         limit: TODO: describe.
          */
-        post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_message_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Event Message
-         * @description Update an existing event message.
-         *
-         *         Validates:
-         *         - User owns the message
-         *         - Message exists and is not deleted
-         *
-         *         Request Body:
-         *             body: The updated message content (may contain @mentions)
-         *
-         *         Returns:
-         *             The updated event message
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         message: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
-        post?: never;
-        /**
-         * Delete Event Message
-         * @description Delete an existing event message (soft delete).
-         *
-         *         Validates:
-         *         - User owns the message
-         *         - Message exists
-         *
-         *         Returns:
-         *             The deleted event message (with deleted_at set)
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Toggle Event Chat Mute
-         * @description Toggle mute status for an event chat.
-         *
-         *         Returns:
-         *             {"muted": bool} - True if muted, False if unmuted
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Chat Mute Status
-         * @description Get mute status for an event chat.
-         *
-         *         Returns:
-         *             {"muted": bool} - True if muted, False if not muted
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
+        get: operations["read_calendar_item_categories_v1_operational_projects__project_id__calendar_item_categories_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1992,7 +1805,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{event_message_id}": {
+    "/v1/operational/projects/{project_id}/calendar-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Calendar Items
+         * @description Retrieve all calendar items for the specified project, including category color.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        get: operations["get_calendar_items_v1_operational_projects__project_id__calendar_events_get"];
+        put?: never;
+        /**
+         * Create Calendar Item Endpoint
+         * @description Create a new calendar item for a project.
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         item: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        post: operations["create_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/calendar-events/{calendar_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Calendar Item Endpoint
+         * @description Update a calendar item.
+         *
+         *     Args:
+         *         project_id: The unique identifier of the project.
+         *         calendar_item_id: TODO: describe.
+         *         item: TODO: describe.
+         *         db: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        put: operations["update_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__put"];
+        post?: never;
+        /**
+         * Delete Calendar Item Endpoint
+         * @description Delete a calendar item by its ID.
+         *
+         *     Args:
+         *         project_id: The unique identifier of the project.
+         *         calendar_item_id: TODO: describe.
+         *         db: TODO: describe.
+         */
+        delete: operations["delete_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/calendar-events/{calendar_item_id}/exceptions/{exception_date_str}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2002,89 +1886,20 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Upload Event Message Image
-         * @description Upload an image for an event message.
-         *
-         *         Validates:
-         *         - User has access to the event (via message ownership or event access)
-         *         - File is a valid image type (jpeg, png, gif, webp)
-         *         - File size is within limit (10MB)
-         *
-         *         Returns:
-         *             {
-         *                 "event_message_image_id": UUID,
-         *                 "s3_key": str,
-         *                 "filename": str,
-         *                 "content_type": str,
-         *                 "file_size": int,
-         *                 "presigned_url": str
-         *             }
+         * Post Calendar Item Exception
+         * @description Create or update an exception for a specific occurrence of a recurring
+         *     calendar item.
+         *         To "delete" an occurrence, pass `is_cancelled: true` in the payload.
+         *         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         file: TODO: describe.
+         *         project_id: TODO: describe.
+         *         calendar_item_id: TODO: describe.
+         *         exception_date_str: TODO: describe.
+         *         exception_payload: TODO: describe.
+         *         db: TODO: describe.
          */
-        post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{image_id}/url": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Message Image Url
-         * @description Get a presigned URL for an event message image.
-         *
-         *         Validates user has access to the event before generating URL.
-         *
-         *         Returns:
-         *             {"presigned_url": str, "s3_key": str}
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         image_id: TODO: describe.
-         */
-        get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/messages/{event_message_id}/images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Message Images
-         * @description Get all images for an event message with presigned URLs.
-         *
-         *         Returns:
-         *             List of image objects with presigned URLs
-         *
-         *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         event_message_id: TODO: describe.
-         */
-        get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
-        put?: never;
-        post?: never;
+        post: operations["post_calendar_item_exception_v1_operational_projects__project_id__calendar_events__calendar_item_id__exceptions__exception_date_str__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2792,6 +2607,319 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/event-message-reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Message Reactions
+         * @description Get all reactions for a specific event message or all reactions for an event.
+         *
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Query Parameters:
+         *             event_message_id: The ID of the message to get reactions for (optional)
+         *             event_id: The ID of the event to get all reactions for (optional)
+         *
+         *         Returns:
+         *             List of reactions for the message(s)
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         event_id: TODO: describe.
+         */
+        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
+        put?: never;
+        /**
+         * Toggle Event Message Reaction
+         * @description Toggle a reaction on a message (add if not exists, remove if exists).
+         *
+         *     Request Body:
+         *         event_message_id: The ID of the message
+         *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
+         *             'question_mark', etc.)
+         *
+         *     Returns:
+         *         The created reaction (if added) or the deleted reaction info (if removed)
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         reaction: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Messages
+         * @description Get all non-deleted messages for a specific event.
+         *
+         *         Query Parameters:
+         *             event_id: The ID of the event to get messages for
+         *
+         *         Returns:
+         *             List of event messages, ordered by created_at (ascending)
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         */
+        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
+        put?: never;
+        /**
+         * Create Event Message
+         * @description Create a new event message.
+         *
+         *         - Extracts @mentions from the message body
+         *         - Stores mentions as comma-separated usernames
+         *         - Sends email notifications in the background to:
+         *             - First message: all company users
+         *             - Subsequent messages: users who have posted (excluding muted users)
+         *
+         *         Request Body:
+         *             event_id: The ID of the event
+         *             body: The message content (may contain @mentions)
+         *
+         *         Returns:
+         *             The created event message
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         project_id: TODO: describe.
+         *         message: TODO: describe.
+         *         background_tasks: TODO: describe.
+         *         user_data: TODO: describe.
+         *         api_prod: TODO: describe.
+         */
+        post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_message_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Event Message
+         * @description Update an existing event message.
+         *
+         *         Validates:
+         *         - User owns the message
+         *         - Message exists and is not deleted
+         *
+         *         Request Body:
+         *             body: The updated message content (may contain @mentions)
+         *
+         *         Returns:
+         *             The updated event message
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         message: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
+        post?: never;
+        /**
+         * Delete Event Message
+         * @description Delete an existing event message (soft delete).
+         *
+         *         Validates:
+         *         - User owns the message
+         *         - Message exists
+         *
+         *         Returns:
+         *             The deleted event message (with deleted_at set)
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Toggle Event Chat Mute
+         * @description Toggle mute status for an event chat.
+         *
+         *         Returns:
+         *             {"muted": bool} - True if muted, False if unmuted
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Chat Mute Status
+         * @description Get mute status for an event chat.
+         *
+         *         Returns:
+         *             {"muted": bool} - True if muted, False if not muted
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         *         user_data: TODO: describe.
+         */
+        get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{event_message_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Event Message Image
+         * @description Upload an image for an event message.
+         *
+         *         Validates:
+         *         - User has access to the event (via message ownership or event access)
+         *         - File is a valid image type (jpeg, png, gif, webp)
+         *         - File size is within limit (10MB)
+         *
+         *         Returns:
+         *             {
+         *                 "event_message_image_id": UUID,
+         *                 "s3_key": str,
+         *                 "filename": str,
+         *                 "content_type": str,
+         *                 "file_size": int,
+         *                 "presigned_url": str
+         *             }
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         *         file: TODO: describe.
+         */
+        post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{image_id}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Message Image Url
+         * @description Get a presigned URL for an event message image.
+         *
+         *         Validates user has access to the event before generating URL.
+         *
+         *         Returns:
+         *             {"presigned_url": str, "s3_key": str}
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         *         image_id: TODO: describe.
+         */
+        get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/messages/{event_message_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Message Images
+         * @description Get all images for an event message with presigned URLs.
+         *
+         *         Returns:
+         *             List of image objects with presigned URLs
+         *
+         *     Args:
+         *         project_db: TODO: describe.
+         *         event_id: TODO: describe.
+         *         event_message_id: TODO: describe.
+         */
+        get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
         parameters: {
             query?: never;
@@ -3029,6 +3157,74 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/om-contractors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Om Contractor Scopes
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         db: TODO: describe.
+         */
+        get: operations["get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get"];
+        put?: never;
+        /**
+         * Create Project Om Contractor Scope
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         payload: TODO: describe.
+         *         db: TODO: describe.
+         */
+        post: operations["create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/om-contractors/{om_contractor_scope_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Project Om Contractor Scope
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         om_contractor_scope_id: TODO: describe.
+         *         payload: TODO: describe.
+         *         db: TODO: describe.
+         */
+        put: operations["update_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__put"];
+        post?: never;
+        /**
+         * Delete Project Om Contractor Scope
+         * @description todo
+         *
+         *     Args:
+         *         project_id: TODO: describe.
+         *         om_contractor_scope_id: TODO: describe.
+         *         db: TODO: describe.
+         */
+        delete: operations["delete_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3794,202 +3990,6 @@ export interface paths {
          */
         post: operations["sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/calendar-item-categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Calendar Item Categories
-         * @description Retrieve all calendar item categories.
-         *         Even though project_id is in the path, categories are currently global.
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         skip: TODO: describe.
-         *         limit: TODO: describe.
-         */
-        get: operations["read_calendar_item_categories_v1_operational_projects__project_id__calendar_item_categories_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/calendar-events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Calendar Items
-         * @description Retrieve all calendar items for the specified project, including category color.
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        get: operations["get_calendar_items_v1_operational_projects__project_id__calendar_events_get"];
-        put?: never;
-        /**
-         * Create Calendar Item Endpoint
-         * @description Create a new calendar item for a project.
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         item: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        post: operations["create_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/calendar-events/{calendar_item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Calendar Item Endpoint
-         * @description Update a calendar item.
-         *
-         *     Args:
-         *         project_id: The unique identifier of the project.
-         *         calendar_item_id: TODO: describe.
-         *         item: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         */
-        put: operations["update_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__put"];
-        post?: never;
-        /**
-         * Delete Calendar Item Endpoint
-         * @description Delete a calendar item by its ID.
-         *
-         *     Args:
-         *         project_id: The unique identifier of the project.
-         *         calendar_item_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        delete: operations["delete_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/calendar-events/{calendar_item_id}/exceptions/{exception_date_str}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Post Calendar Item Exception
-         * @description Create or update an exception for a specific occurrence of a recurring
-         *     calendar item.
-         *         To "delete" an occurrence, pass `is_cancelled: true` in the payload.
-         *         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         calendar_item_id: TODO: describe.
-         *         exception_date_str: TODO: describe.
-         *         exception_payload: TODO: describe.
-         *         db: TODO: describe.
-         */
-        post: operations["post_calendar_item_exception_v1_operational_projects__project_id__calendar_events__calendar_item_id__exceptions__exception_date_str__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/om-contractors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Om Contractor Scopes
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        get: operations["get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get"];
-        put?: never;
-        /**
-         * Create Project Om Contractor Scope
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         payload: TODO: describe.
-         *         db: TODO: describe.
-         */
-        post: operations["create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/om-contractors/{om_contractor_scope_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Project Om Contractor Scope
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         om_contractor_scope_id: TODO: describe.
-         *         payload: TODO: describe.
-         *         db: TODO: describe.
-         */
-        put: operations["update_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__put"];
-        post?: never;
-        /**
-         * Delete Project Om Contractor Scope
-         * @description todo
-         *
-         *     Args:
-         *         project_id: TODO: describe.
-         *         om_contractor_scope_id: TODO: describe.
-         *         db: TODO: describe.
-         */
-        delete: operations["delete_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -13849,11 +13849,11 @@ export interface operations {
             };
         };
     };
-    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
+    read_calendar_item_categories_v1_operational_projects__project_id__calendar_item_categories_get: {
         parameters: {
             query?: {
-                event_message_id?: number | null;
-                event_id?: number | null;
+                skip?: number;
+                limit?: number;
             };
             header?: {
                 authorization?: string;
@@ -13872,7 +13872,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessageReaction"][];
+                    "application/json": components["schemas"]["CalendarItemCategory"][];
                 };
             };
             /** @description Validation Error */
@@ -13886,7 +13886,41 @@ export interface operations {
             };
         };
     };
-    toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post: {
+    get_calendar_items_v1_operational_projects__project_id__calendar_events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events_post: {
         parameters: {
             query?: never;
             header?: {
@@ -13900,7 +13934,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EventMessageReactionCreate"];
+                "application/json": components["schemas"]["CalendarItemCreate"];
             };
         };
         responses: {
@@ -13910,7 +13944,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessageReaction"];
+                    "application/json": components["schemas"]["CalendarItem"];
                 };
             };
             /** @description Validation Error */
@@ -13924,43 +13958,7 @@ export interface operations {
             };
         };
     };
-    get_event_messages_v1_operational_projects__project_id__event_messages_get: {
-        parameters: {
-            query: {
-                event_id: number;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessage"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_event_message_v1_operational_projects__project_id__event_messages_post: {
+    update_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__put: {
         parameters: {
             query?: never;
             header?: {
@@ -13969,12 +13967,13 @@ export interface operations {
             };
             path: {
                 project_id: string;
+                calendar_item_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EventMessageCreate"];
+                "application/json": components["schemas"]["CalendarItemCreate"];
             };
         };
         responses: {
@@ -13984,7 +13983,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessage"];
+                    "application/json": components["schemas"]["CalendarItem"];
                 };
             };
             /** @description Validation Error */
@@ -13998,7 +13997,7 @@ export interface operations {
             };
         };
     };
-    update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put: {
+    delete_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -14006,14 +14005,48 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                event_message_id: number;
                 project_id: string;
+                calendar_item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_calendar_item_exception_v1_operational_projects__project_id__calendar_events__calendar_item_id__exceptions__exception_date_str__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+                calendar_item_id: string;
+                exception_date_str: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EventMessageUpdate"];
+                "application/json": components["schemas"]["CalendarItemExceptionUpdate"];
             };
         };
         responses: {
@@ -14023,234 +14056,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EventMessage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                image_id: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
+                    "application/json": components["schemas"]["CalendarItemException"];
                 };
             };
             /** @description Validation Error */
@@ -15270,6 +15076,421 @@ export interface operations {
             };
         };
     };
+    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
+        parameters: {
+            query?: {
+                event_message_id?: number | null;
+                event_id?: number | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessageReaction"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMessageReactionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessageReaction"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_messages_v1_operational_projects__project_id__event_messages_get: {
+        parameters: {
+            query: {
+                event_id: number;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_event_message_v1_operational_projects__project_id__event_messages_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMessageUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                image_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
         parameters: {
             query: {
@@ -15639,6 +15860,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RTEResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+                om_contractor_scope_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+                om_contractor_scope_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -16703,377 +17074,6 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_calendar_item_categories_v1_operational_projects__project_id__calendar_item_categories_get: {
-        parameters: {
-            query?: {
-                skip?: number;
-                limit?: number;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CalendarItemCategory"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_calendar_items_v1_operational_projects__project_id__calendar_events_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CalendarItem"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CalendarItemCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CalendarItem"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-                calendar_item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CalendarItemCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CalendarItem"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-                calendar_item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    post_calendar_item_exception_v1_operational_projects__project_id__calendar_events__calendar_item_id__exceptions__exception_date_str__post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-                calendar_item_id: string;
-                exception_date_str: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CalendarItemExceptionUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CalendarItemException"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-                om_contractor_scope_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-                om_contractor_scope_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -21,7 +21,6 @@ from app._crud.operational.cec_pv_inverters import get_cec_pv_inverters
 from app._crud.operational.cec_pv_modules import get_cec_pv_modules
 from app._crud.operational.pv_modules import get_pv_modules
 from app.dependencies import (
-    check_project_access_async,
     get_project_api,
     get_project_db,
     get_project_db_async,
@@ -30,9 +29,8 @@ from app.logger import logger
 from core import models
 
 router = APIRouter(
-    prefix="/projects/{project_id}/reports",
+    prefix="/reports",
     tags=["project_reports"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

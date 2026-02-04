@@ -20,7 +20,6 @@ from app._crud.operational.contracts import (
     get_project_contracts as crud_get_project_contracts,
 )
 from app._crud.operational.documents import get_project_documents
-from app.dependencies import check_project_access_async
 from core import models
 
 from .project_documents import generate_presigned_url
@@ -55,9 +54,8 @@ def validate_and_clean_date(*, date_string: str | None) -> str | None:
 
 
 router = APIRouter(
-    prefix="/projects/{project_id}/contracts",
+    prefix="/contracts",
     tags=["project_contracts"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

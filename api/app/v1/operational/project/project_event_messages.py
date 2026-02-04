@@ -47,7 +47,6 @@ from app._crud.projects import (
     event_messages as crud_event_messages,
 )
 from app.dependencies import (
-    check_project_access_async,
     get_project_name_short_async,
 )
 from core import enumerations, models
@@ -55,9 +54,8 @@ from core import enumerations, models
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/projects/{project_id}/event-messages",
+    prefix="/event-messages",
     tags=["event_messages"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 # Batch router for operations that don't require a specific project

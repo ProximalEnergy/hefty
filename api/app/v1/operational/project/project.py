@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.dependencies import check_project_access_async
 from app.v1.operational.project import (
+    project_calendar,
     project_cmms_tickets,
     project_contracts,
     project_data,
@@ -10,8 +11,11 @@ from app.v1.operational.project import (
     project_devices,
     project_documents,
     project_drone_inspections,
+    project_event_message_reactions,
+    project_event_messages,
     project_events,
     project_kpi_data,
+    project_om_contractors,
     project_pv_budgeted,
     project_pv_expected,
     project_qc,
@@ -23,14 +27,21 @@ from app.v1.operational.project import (
     project_waterfall,
 )
 
-router = APIRouter(dependencies=[Depends(check_project_access_async)])
+router = APIRouter(
+    prefix="/projects/{project_id}",
+    dependencies=[Depends(check_project_access_async)],
+)
+router.include_router(project_calendar.router)
 router.include_router(project_contracts.router)
 router.include_router(project_data.router)
 router.include_router(project_data_last_updated.router)
 router.include_router(project_data_timeseries_last.router)
 router.include_router(project_devices.router)
 router.include_router(project_events.router)
+router.include_router(project_event_message_reactions.router)
+router.include_router(project_event_messages.router)
 router.include_router(project_kpi_data.router)
+router.include_router(project_om_contractors.router)
 router.include_router(project_reports.router)
 router.include_router(project_report_instances.router)
 router.include_router(project_solar.router)

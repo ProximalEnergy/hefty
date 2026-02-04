@@ -26,11 +26,11 @@ from app.interfaces import (
 )
 from core import models
 
-router = APIRouter(dependencies=[Depends(dependencies.check_project_access_async)])
+router = APIRouter()
 
 
 @router.get(
-    "/projects/{project_id}/calendar-item-categories",
+    "/calendar-item-categories",
     response_model=list[CalendarItemCategory],
 )
 async def read_calendar_item_categories(
@@ -53,7 +53,7 @@ async def read_calendar_item_categories(
     return categories
 
 
-@router.post("/projects/{project_id}/calendar-events", response_model=CalendarItem)
+@router.post("/calendar-events", response_model=CalendarItem)
 async def create_calendar_item_endpoint(
     project_id: uuid.UUID,
     item: CalendarItemCreate,
@@ -74,7 +74,7 @@ async def create_calendar_item_endpoint(
     return CalendarItem.from_orm(db_item)
 
 
-@router.get("/projects/{project_id}/calendar-events", response_model=list[CalendarItem])
+@router.get("/calendar-events", response_model=list[CalendarItem])
 async def get_calendar_items(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(dependencies.get_async_db),
@@ -160,7 +160,7 @@ async def get_calendar_items(
 
 
 @router.put(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}",
+    "/calendar-events/{calendar_item_id}",
     response_model=CalendarItem,
 )
 async def update_calendar_item_endpoint(
@@ -201,7 +201,7 @@ async def update_calendar_item_endpoint(
 
 
 @router.delete(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}",
+    "/calendar-events/{calendar_item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_calendar_item_endpoint(
@@ -235,8 +235,7 @@ async def delete_calendar_item_endpoint(
 
 
 @router.post(
-    "/projects/{project_id}/calendar-events/{calendar_item_id}/exceptions/"
-    "{exception_date_str}",
+    "/calendar-events/{calendar_item_id}/exceptions/{exception_date_str}",
     response_model=interfaces.CalendarItemException,
     status_code=status.HTTP_200_OK,
 )

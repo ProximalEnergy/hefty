@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app import dependencies, utils
+from app import utils
 from app.dependencies import (
     get_async_db,
     get_project_api,
@@ -22,7 +22,6 @@ BESSMonthlyReportRequest = eec_bess_monthly_module.BESSMonthlyReportRequest
 router = APIRouter(
     prefix="/reports",
     tags=["reports"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
     include_in_schema=utils.get_include_in_schema(),
 )
 

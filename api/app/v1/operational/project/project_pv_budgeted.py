@@ -7,12 +7,10 @@ from sqlalchemy.orm import Session
 
 from app import dependencies, interfaces
 from app._crud.projects import pv_budgeted as crud
-from app.dependencies import check_project_access_async
 
 router = APIRouter(
-    prefix="/projects/{project_id}/pv-budgeted",
+    prefix="/pv-budgeted",
     tags=["project - pv budgeted"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

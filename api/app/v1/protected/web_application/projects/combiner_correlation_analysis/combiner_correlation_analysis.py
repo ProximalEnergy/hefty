@@ -14,7 +14,6 @@ from core import models
 router = APIRouter(
     prefix="/combiner-correlation-analysis",
     tags=["combiner-correlation-analysis"],
-    dependencies=[Depends(dependencies.check_project_access_async)],
     include_in_schema=utils.get_include_in_schema(),
 )
 

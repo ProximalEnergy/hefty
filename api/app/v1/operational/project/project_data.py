@@ -16,13 +16,12 @@ from sqlalchemy.orm import Session
 import app.utils as utils
 import core
 from app import interfaces
-from app.dependencies import check_project_access_async, get_project_api, get_project_db
+from app.dependencies import get_project_api, get_project_db
 from core import models
 
 router = APIRouter(
-    prefix="/projects/{project_id}",
+    prefix="",
     tags=["project_data"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

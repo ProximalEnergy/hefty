@@ -10,13 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces
 from app._crud.operational.cmms_permissions import get_cmms_permissions_by_project_id
-from app.dependencies import check_project_access_async
 from core import models
 
 router = APIRouter(
-    prefix="/projects/{project_id}/cmms-tickets",
+    prefix="/cmms-tickets",
     tags=["cmms-tickets"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

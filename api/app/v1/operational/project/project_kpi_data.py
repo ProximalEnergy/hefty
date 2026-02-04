@@ -34,7 +34,6 @@ from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
 )
 from app.dependencies import (
-    check_project_access_async,
     get_async_db,
     get_is_superadmin_async,
     get_project_api,
@@ -45,9 +44,8 @@ from app.v1.operational.project.project_documents import generate_presigned_url
 from core import models
 
 router = APIRouter(
-    prefix="/projects/{project_id}/kpi-data",
+    prefix="/kpi-data",
     tags=["project_kpi_data"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

@@ -42,7 +42,7 @@ from app.dependencies import (
 )
 from core import models
 
-router = APIRouter(prefix="/projects/{project_id}/events", tags=["project_events"])
+router = APIRouter(prefix="/events", tags=["project_events"])
 
 
 def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-only-args

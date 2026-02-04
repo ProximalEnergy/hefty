@@ -10,15 +10,11 @@ from app._crud.projects import (
     event_message_reactions as crud_event_message_reactions,
 )
 from app._crud.projects import event_messages as crud_event_messages
-from app.dependencies import (
-    check_project_access_async,
-)
 from core import enumerations
 
 router = APIRouter(
-    prefix="/projects/{project_id}/event-message-reactions",
+    prefix="/event-message-reactions",
     tags=["event_message_reactions"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 

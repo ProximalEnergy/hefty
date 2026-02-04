@@ -28,11 +28,7 @@ from app.v1.operational import (
     users,
 )
 from app.v1.operational.project import (
-    event_message_reactions,
-    event_messages,
     project,
-    project_calendar,
-    project_om_contractors,
 )
 
 get_user_data_async = [Depends(dependencies.get_user_data_async)]
@@ -48,12 +44,7 @@ router.include_router(device_types.router)
 router.include_router(device_models.router)
 router.include_router(failure_modes.router)
 router.include_router(project_types.router)
-router.include_router(event_message_reactions.router)
-router.include_router(event_messages.router)
-router.include_router(event_messages.batch_router)
 router.include_router(project.router)
-router.include_router(project_calendar.router)
-router.include_router(project_om_contractors.router)
 router.include_router(projects.router)
 router.include_router(kpi_data.router)
 router.include_router(kpi_instances.router)

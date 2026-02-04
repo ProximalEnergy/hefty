@@ -8,12 +8,11 @@ from app import interfaces
 from app._crud.operational.project_data_last_updated import (
     get_project_data_last_updated,
 )
-from app.dependencies import check_project_access_async, get_async_db
+from app.dependencies import get_async_db
 
 router = APIRouter(
-    prefix="/projects/{project_id}/data-last-updated",
+    prefix="/data-last-updated",
     tags=["project_data_last_updated"],
-    dependencies=[Depends(check_project_access_async)],
 )
 
 
