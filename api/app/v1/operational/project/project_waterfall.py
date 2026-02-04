@@ -186,15 +186,20 @@ async def get_project_waterfall(
         event_loss_type_id=EventLossType.PROXIMAL_ENERGY,
     )
     # Map aggregated losses to events DataFrame
+    # Event losses are stored as power (5-min intervals), divide by 12 to convert to MWh
+    # (5 minutes = 1/12 hour)
     df_events["loss"] = df_events.index.map(
         lambda event_id: event_losses_dict.get(event_id, 0.0) / 12
     )
     if df_events.empty:
         grouped_losses = pd.DataFrame(columns=["loss", "name"])
     elif level == "device_type":
+        device_type_ids = (
+            df_events["device_type_id"].dropna().unique().astype(int).tolist()
+        )
         data_device_types = await crud_get_device_types(
             db=db,
-            device_type_ids=df_events["device_type_id"].unique().tolist(),
+            device_type_ids=device_type_ids,
         )
         df_device_types = df_from_objects(
             objects=data_device_types,
@@ -208,8 +213,11 @@ async def get_project_waterfall(
             "name_long",
         ]
     elif level == "failure_mode":
+        failure_mode_ids = (
+            df_events["failure_mode_id"].dropna().unique().astype(int).tolist()
+        )
         failure_modes_query = get_failure_modes(
-            failure_mode_ids=df_events["failure_mode_id"].unique().tolist(),
+            failure_mode_ids=failure_mode_ids,
         )
         data_failure_modes = await failure_modes_query.get_async(
             output_type=OutputType.SQLALCHEMY,
