@@ -36,6 +36,9 @@ const RequestKPIModal = ({ opened, onClose }: RequestKPIModalProps) => {
     refetch,
   } = useGetProjectContracts({
     pathParams: { projectId: projectId || '-1' },
+    queryOptions: {
+      enabled: opened, // Only fetch when modal is open
+    },
   })
 
   const { data: project } = useSelectProject(projectId!)

@@ -1,4 +1,3 @@
-import { useGetUserSelf } from '@/api/admin'
 import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import {
@@ -502,8 +501,6 @@ const KPICards = () => {
   const [isHovered, setIsHovered] = useState(false)
   const [queryDate, setQueryDate] = useState(dayjs().format('YYYY-MM-DD'))
 
-  const { data: user } = useGetUserSelf({})
-
   const project = useSelectProject(projectId!)
   const projectKPIInstances = useGetKPIInstances({
     queryParams: {
@@ -518,9 +515,7 @@ const KPICards = () => {
     (kpiInstance) => kpiInstance.kpi_type_id,
   )
 
-  const favoritedKPITypes = useGetUserFavoriteKPITypes({
-    queryParams: { user_id: user?.user_id || '' },
-  })
+  const favoritedKPITypes = useGetUserFavoriteKPITypes({})
 
   const kpiTypeIds = favoritedKPITypes.data?.map(
     (kpiInstance) => kpiInstance.kpi_type_id,
@@ -1771,7 +1766,7 @@ const ContractualKPIOverview = ({
   const getStatusColor = (
     value: number | null | undefined,
     threshold: number | null | undefined,
-    unit?: string,
+    unit?: string | null,
   ) => {
     if (
       value === null ||
@@ -1800,7 +1795,7 @@ const ContractualKPIOverview = ({
   // Function to format value with unit
   const formatValue = (
     value: number | null | undefined,
-    unit?: string,
+    unit?: string | null,
     isThreshold: boolean = false,
   ) => {
     if (value === null || value === undefined) return 'N/A'

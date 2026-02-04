@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends
 
 from app import utils
 from app.dependencies import check_project_access_async
-from app.v1.protected.web_application.projects import project_tag_explorer
+from app.v1.protected.web_application.projects import (
+    project_kpi_summary_table,
+    project_tag_explorer,
+)
 from app.v1.protected.web_application.projects.battery_settlement import (
     battery_settlement,
 )
@@ -34,3 +37,4 @@ router.include_router(custom_dash.router)
 router.include_router(battery_settlement.router)
 router.include_router(combiner_correlation_analysis.router)
 router.include_router(reports.router)
+router.include_router(project_kpi_summary_table.router)

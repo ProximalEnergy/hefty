@@ -374,7 +374,7 @@ export interface KPITypeWithContracts extends KPIType {
   contracts: ContractWithCompany[]
   contract_kpis: ContractKPI[]
 }
-export interface ContractWithCompany {
+interface ContractWithCompany {
   contract_id: number
   project_id: string
   document_id: string

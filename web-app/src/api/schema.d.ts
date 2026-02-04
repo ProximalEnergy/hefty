@@ -772,11 +772,11 @@ export interface paths {
         };
         /**
          * Get User Favorited Kpi Types Route
-         * @description Get all favorited KPI types for a given user
+         * @description Get all favorited KPI types for the authenticated user
          *
          *     Args:
-         *         user_id: TODO: describe.
-         *         db: TODO: describe.
+         *         user_data: Authenticated user data.
+         *         db: Database session.
          */
         get: operations["get_user_favorited_kpi_types_route_v1_admin_user_kpi_types_favorite_get"];
         put?: never;
@@ -786,11 +786,12 @@ export interface paths {
         head?: never;
         /**
          * Update Kpi Type Favorite
-         * @description Update the is_favorited field for a user's kpi_type
+         * @description Update the is_favorited field for the authenticated user's kpi_type
          *
          *     Args:
-         *         favorite_update: TODO: describe.
-         *         db: TODO: describe.
+         *         favorite_update: Update data with kpi_type_id and is_favorited.
+         *         user_data: Authenticated user data.
+         *         db: Database session.
          */
         patch: operations["update_kpi_type_favorite_v1_admin_user_kpi_types_favorite_patch"];
         trace?: never;
@@ -6687,6 +6688,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/kpi-summary-table": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Kpi Summary Table
+         * @description API endpoint that returns aggregated KPI data for a project.
+         *
+         *     Calculates KPI values for multiple time horizons (yesterday, week, month,
+         *     ytd, year) and includes 365 days of trend data for sparkline visualization.
+         *     Performs authorization checks and calculates date intervals based on the
+         *     project's time zone.
+         */
+        get: operations["get_project_kpi_summary_table_v1_protected_web_application_projects__project_id__kpi_summary_table_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/system/{project_id}/meter-power-and-expected-power-v2": {
         parameters: {
             query?: never;
@@ -9154,6 +9180,78 @@ export interface components {
             aggregation_method?: string | null;
         };
         /**
+         * KPISummaryTable
+         * @description Response model for the KPI summary table endpoint.
+         *
+         *     Contains the reference date (yesterday), start dates for time horizons,
+         *     a common trend dates array (365 days), and the list of KPI rows with
+         *     aggregated values and metadata.
+         */
+        KPISummaryTable: {
+            /**
+             * Yesterday
+             * Format: date
+             */
+            yesterday: string;
+            start: components["schemas"]["TimeHorizonStart"];
+            /** Trend Dates */
+            trend_dates: string[];
+            /** Rows */
+            rows: components["schemas"]["KPISummaryTableRow"][];
+        };
+        /**
+         * KPISummaryTableRow
+         * @description Model representing a single row in the KPI summary table.
+         *
+         *     Contains KPI metadata, aggregated values for different time horizons
+         *     (yesterday, week, month, ytd, year), threshold values for status calculation,
+         *     and trend data for sparkline visualization.
+         */
+        KPISummaryTableRow: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Is Favorite */
+            is_favorite: boolean;
+            /** Is Contract Kpi */
+            is_contract_kpi: boolean;
+            /** Is Hidden */
+            is_hidden: boolean;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Device Type Name Long */
+            device_type_name_long: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Name Short */
+            name_short: string;
+            /** Description */
+            description: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Yesterday */
+            yesterday: number | null;
+            /** Week */
+            week: number | null;
+            /** Month */
+            month: number | null;
+            /** Ytd */
+            ytd: number | null;
+            /** Year */
+            year: number | null;
+            /** Critical Low */
+            critical_low: number | null;
+            /** Warning Low */
+            warning_low: number | null;
+            /** Warning High */
+            warning_high: number | null;
+            /** Critical High */
+            critical_high: number | null;
+            /** Trend Data */
+            trend_data: (number | null)[];
+        };
+        /**
          * KPITypeWithContractInfo
          * @description Kpitypewithcontractinfo model.
          */
@@ -10705,6 +10803,35 @@ export interface components {
          */
         TimeFrame: "24h" | "30d";
         /**
+         * TimeHorizonStart
+         * @description Model containing the start dates for different time horizon calculations.
+         *
+         *     Includes start dates for week (7 days), month (30 days),
+         *     year-to-date (YTD), and year (365 days) aggregations.
+         */
+        TimeHorizonStart: {
+            /**
+             * Week
+             * Format: date
+             */
+            week: string;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /**
+             * Ytd
+             * Format: date
+             */
+            ytd: string;
+            /**
+             * Year
+             * Format: date
+             */
+            year: string;
+        };
+        /**
          * TimeseriesData
          * @description Timeseries data structure matching the API response format.
          */
@@ -10787,6 +10914,16 @@ export interface components {
             /** Operational Project Ids */
             operational_project_ids: string[];
             user_type_id: components["schemas"]["UserTypeEnum"];
+        };
+        /**
+         * UserKPITypeFavoriteUpdate
+         * @description User KPI type favorite update model.
+         */
+        UserKPITypeFavoriteUpdate: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Is Favorited */
+            is_favorited: boolean;
         };
         /**
          * UserKPITypes
@@ -12345,9 +12482,7 @@ export interface operations {
     };
     get_user_favorited_kpi_types_route_v1_admin_user_kpi_types_favorite_get: {
         parameters: {
-            query: {
-                user_id: string;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -12389,7 +12524,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserKPITypes"];
+                "application/json": components["schemas"]["UserKPITypeFavoriteUpdate"];
             };
         };
         responses: {
@@ -21146,6 +21281,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_kpi_summary_table_v1_protected_web_application_projects__project_id__kpi_summary_table_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPISummaryTable"];
                 };
             };
             /** @description Validation Error */

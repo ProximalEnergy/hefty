@@ -248,7 +248,7 @@ const ContractCard = ({
   const getStatusColorFromValue = (
     value: number | null | undefined,
     threshold: number | null | undefined,
-    unit?: string,
+    unit?: string | null,
   ) => {
     if (
       value === null ||
@@ -277,7 +277,7 @@ const ContractCard = ({
   // Function to format value with unit
   const formatValue = (
     value: number | null | undefined,
-    unit?: string,
+    unit?: string | null,
     isThreshold: boolean = false,
   ) => {
     if (value === null || value === undefined) return 'N/A'

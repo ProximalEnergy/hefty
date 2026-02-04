@@ -13,29 +13,21 @@ const URL = '/v1/admin/user-kpi-types/favorite'
 const _COMPONENT_NAME = 'UserKPITypes'
 
 type UserKPIType = types.components['schemas'][typeof _COMPONENT_NAME]
-type get = types.paths[typeof URL]['get']
-type getQueryParams = get['parameters']['query']
 
 export const useGetUserFavoriteKPITypes = ({
-  queryParams,
   queryOptions = {},
 }: {
-  queryParams: getQueryParams
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
     url: URL,
   }
 
-  const defaultQueryOptions = {
-    enabled: queryParams.user_id !== '',
-  }
-
   return useCustomQuery<UserKPIType[]>({
     axiosConfig,
     queryName: 'getUserFavoriteKPITypes',
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+    queryParams: {},
+    queryOptions,
   })
 }
 
@@ -45,11 +37,9 @@ export const useUpdateUserKPITypeFavoriteMutation = () => {
 
   return useMutation({
     mutationFn: async ({
-      userId,
       kpiTypeId,
       isFavorited,
     }: {
-      userId: string
       kpiTypeId: number
       isFavorited: boolean
     }) => {
@@ -61,14 +51,13 @@ export const useUpdateUserKPITypeFavoriteMutation = () => {
           Authorization: `Bearer ${token}`,
         },
         data: {
-          user_id: userId,
           kpi_type_id: kpiTypeId,
           is_favorited: isFavorited,
         },
       })
     },
-    onMutate: async ({ userId, kpiTypeId, isFavorited }) => {
-      const queryKey = ['getUserFavoriteKPITypes', { user_id: userId }]
+    onMutate: async ({ kpiTypeId, isFavorited }) => {
+      const queryKey = ['getUserFavoriteKPITypes']
       await queryClient.cancelQueries({ queryKey })
 
       const previousFavorites =
@@ -77,11 +66,12 @@ export const useUpdateUserKPITypeFavoriteMutation = () => {
       queryClient.setQueryData(queryKey, (old?: UserKPIType[]) => {
         if (!old) {
           return isFavorited
-            ? [{ user_id: userId, kpi_type_id: kpiTypeId, is_favorited: true }]
+            ? [{ user_id: '', kpi_type_id: kpiTypeId, is_favorited: true }]
             : []
         }
 
         const existing = old.find((f) => f.kpi_type_id === kpiTypeId)
+        const userId = old[0]?.user_id || ''
 
         if (isFavorited) {
           if (existing) {
@@ -105,9 +95,9 @@ export const useUpdateUserKPITypeFavoriteMutation = () => {
         queryClient.setQueryData(context.queryKey, context.previousFavorites)
       }
     },
-    onSettled: (_data, _error, variables) => {
+    onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ['getUserFavoriteKPITypes', { user_id: variables.userId }],
+        queryKey: ['getUserFavoriteKPITypes'],
       })
     },
   })

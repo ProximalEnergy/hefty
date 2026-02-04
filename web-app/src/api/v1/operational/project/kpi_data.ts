@@ -1,22 +1,10 @@
+import type { components } from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export interface KPISummaryCard {
-  kpi_type_id: number
-  contract_id: number | null
-  link: string
-  is_visible: boolean
-  ytd_value?: number | null
-  title: string
-  info?: string
-  value?: number
-  prefix?: string
+export type KPISummaryCard = components['schemas']['KPISummary'] & {
   suffix?: string
-  unit?: string
-  change?: number
   icon?: React.ReactNode
-  valColor?: string
-  aggregation_method?: string
   onClick?: () => void
 }
 
@@ -50,10 +38,6 @@ export const useGetKPISummaryCards = ({
   })
 }
 
-interface RoundTripEfficiencyData {
-  rte: number | null
-}
-
 export const useGetRoundTripEfficiency = ({
   pathParams,
   queryParams,
@@ -74,7 +58,7 @@ export const useGetRoundTripEfficiency = ({
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 60 * 6, // 6 hours
   }
-  return useCustomQuery<RoundTripEfficiencyData>({
+  return useCustomQuery<components['schemas']['RTEResponse']>({
     axiosConfig,
     queryName: 'getRoundTripEfficiency',
     pathParams,

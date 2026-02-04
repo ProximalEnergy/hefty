@@ -6,6 +6,7 @@ from core.models import (
     DeviceModel,
     Event,
     KPIInstance,
+    KPIType,
     Project,
     ProjectType,
     SensorType,
@@ -212,6 +213,45 @@ class TagAdmin(ModelView, model=Tag):
     form_excluded_columns = [Tag.tag_id]  # Auto-generated
 
 
+class KPITypeAdmin(ModelView, model=KPIType):
+    """Admin view for KPIType model."""
+
+    name = "KPI Type"
+    name_plural = "KPI Types"
+
+    category = "Operational Schema"
+
+    can_create = True
+    can_edit = True
+    can_delete = True
+
+    column_list = [
+        KPIType.kpi_type_id,
+        KPIType.name_long,
+        KPIType.device_type_id,
+        KPIType.unit,
+        KPIType.aggregation_method,
+        KPIType.critical_low,
+        KPIType.warning_low,
+        KPIType.warning_high,
+        KPIType.critical_high,
+    ]
+    column_searchable_list = [
+        KPIType.name_short,
+        KPIType.name_long,
+        KPIType.name_metric,
+    ]
+    column_sortable_list = [
+        KPIType.kpi_type_id,
+        KPIType.name_short,
+        KPIType.name_long,
+        KPIType.device_type_id,
+    ]
+    column_default_sort = [(KPIType.name_short, False)]
+
+    form_excluded_columns = []  # Allow editing all fields including thresholds
+
+
 class KPIInstanceAdmin(ModelView, model=KPIInstance):
     """Admin view for KPIInstance model."""
 
@@ -284,6 +324,7 @@ def setup_admin_views(admin: Admin) -> None:
     admin.add_view(DeviceModelAdmin)
     admin.add_view(SensorTypeAdmin)
     admin.add_view(TagAdmin)
+    admin.add_view(KPITypeAdmin)
     admin.add_view(KPIInstanceAdmin)
 
     # Data models (with performance considerations)

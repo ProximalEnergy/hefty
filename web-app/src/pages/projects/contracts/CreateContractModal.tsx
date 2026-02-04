@@ -184,6 +184,9 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
 
   const { data: documents, isLoading } = useGetProjectDocuments({
     pathParams: { projectId: projectId || '-1' },
+    queryOptions: {
+      enabled: opened && !!projectId, // Only fetch when modal is open and projectId exists
+    },
   })
 
   const { data: project } = useSelectProject(projectId ?? '')
@@ -191,7 +194,11 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const { data: currentUser } = useGetUserSelf({})
 
   const { data: categories, isLoading: categoriesLoading } =
-    useGetContractCategories()
+    useGetContractCategories({
+      queryOptions: {
+        enabled: opened, // Only fetch when modal is open
+      },
+    })
   const categoryOptions = (categories || []).map((c) => ({
     value: c.name_short,
     label: c.name_long,
@@ -202,7 +209,7 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const { data: calendarCategories } = useGetCalendarEventCategories({
     pathParams: { projectId: projectId || '-1' },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && opened, // Only fetch when modal is open and projectId exists
     },
   })
 

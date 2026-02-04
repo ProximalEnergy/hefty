@@ -178,6 +178,13 @@ class UserKPITypes(BaseModel):
     is_favorited: bool
 
 
+class UserKPITypeFavoriteUpdate(BaseModel):
+    """User KPI type favorite update model."""
+
+    kpi_type_id: int
+    is_favorited: bool
+
+
 class Permission(BaseModel):
     """Permission model."""
 
