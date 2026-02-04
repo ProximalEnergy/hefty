@@ -1,28 +1,25 @@
 from sqlalchemy import select
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
 
 
-async def get_data_type(
-    db: AsyncSession,
-    *,
-    data_type_id: int,
-):
+def get_data_type(*, data_type_id: int) -> DbQuery[models.DataType, Literal[True]]:
     """todo
 
     Args:
-        db: TODO: describe.
         data_type_id: TODO: describe.
     """
     query = select(models.DataType).where(models.DataType.data_type_id == data_type_id)
-    result = await db.execute(query)
-    return result.scalar_one_or_none()
+    return DbQuery(query=query, is_scalar=True)
 
 
 async def get_data_types(
-    db: AsyncSession,
     *,
+    db: AsyncSession,
     data_type_ids: list[int] = [],
     name_short: str = "",
 ):

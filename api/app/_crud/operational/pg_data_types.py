@@ -1,20 +1,25 @@
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core import models
 
 
-def get_pg_data_type(*, db: Session, pg_data_type_id: int):
+def get_pg_data_type(
+    *,
+    pg_data_type_id: int,
+) -> DbQuery[models.PGDataType, Literal[True]]:
     """Fetch a single PG data type by its identifier.
 
     Args:
-        db: Synchronous database session bound to the operational schema.
         pg_data_type_id: Primary key of the PG data type to retrieve.
     """
     statement = select(models.PGDataType).where(
         models.PGDataType.pg_data_type_id == pg_data_type_id,
     )
-    return db.execute(statement).scalar_one_or_none()
+    return DbQuery(query=statement, is_scalar=True)
 
 
 def get_pg_data_types(
