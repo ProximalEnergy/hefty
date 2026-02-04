@@ -89,6 +89,19 @@ type AdaptiveGisBaseProperties = Omit<
 const isNullableNumber = (value: unknown): value is NullableNumber =>
   typeof value === 'number' || value === null
 
+const coerceNullableNumber = (value: unknown): NullableNumber => {
+  if (
+    value === null ||
+    value === undefined ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
+    return null
+  }
+
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
 const coerceMetStationValues = (
   value: unknown,
 ): MetStationValues | undefined => {
@@ -351,10 +364,12 @@ export function AdaptiveGisMap() {
 
     viewportDevices.data.forEach((device) => {
       // Common properties extraction
-      const latestActualPower =
+      const latestActualPowerRaw =
         device.power_data?.actual?.power?.slice(-1)[0] ?? null
-      const latestExpectedPower =
+      const latestExpectedPowerRaw =
         device.power_data?.expected_soiled?.power?.slice(-1)[0] ?? null
+      const latestActualPower = coerceNullableNumber(latestActualPowerRaw)
+      const latestExpectedPower = coerceNullableNumber(latestExpectedPowerRaw)
       const expectedZeroOutput =
         latestActualPower === 0 && latestExpectedPower === 0
 
