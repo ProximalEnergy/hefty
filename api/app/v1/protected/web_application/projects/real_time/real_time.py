@@ -370,7 +370,7 @@ async def get_device_type_power_summary(
                 models.DataTimeseriesLast.tag_id == models.Tag.tag_id,
             )
             .where(models.Device.device_type_id == func.any(array(ac_like_types)))
-            .where(models.Tag.sensor_type_id == SensorType.PV_PCS_AC_POWER)
+            .where(models.Tag.sensor_type_id == SensorType.PV_PCS_AC_POWER.value)
             .group_by(models.Device.device_type_id)
         )
 
@@ -476,7 +476,7 @@ async def _calculate_dc_combiner_power_sum(
     # Fetch latest currents at combiner level from timeseries_last
     df_current = await core.crud.project.data_timeseries_last.get_data_timeseries_last(
         device_ids=device_ids,
-        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT],
+        sensor_type_ids=[SensorType.PV_DC_COMBINER_CURRENT.value],
         deep=True,
         include_ghost_tags=False,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -490,7 +490,7 @@ async def _calculate_dc_combiner_power_sum(
         df_voltage_modules = (
             await core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=module_ids,
-                sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
+                sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE.value],
                 deep=True,
                 include_ghost_tags=False,
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -502,7 +502,7 @@ async def _calculate_dc_combiner_power_sum(
         df_voltage_pcs = (
             await core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=[pid for pid in parent_pcs_ids if pid is not None],
-                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
+                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE.value],
                 deep=True,
                 include_ghost_tags=False,
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
