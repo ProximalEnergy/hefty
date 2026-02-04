@@ -166,7 +166,6 @@ class DeviceType(BaseIntEnum):
     METER = 5
     BLOCK = 6
     PPC = 7
-    TRACKER = 8
     PV_DC_COMBINER = 9
     TRACKER_PV_PCS = 10
     BESS_ENCLOSURE = 11
