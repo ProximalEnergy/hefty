@@ -2165,7 +2165,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: TODO: describe.
-         *         db: TODO: describe.
          */
         get: operations["get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated_get"];
         put?: never;
