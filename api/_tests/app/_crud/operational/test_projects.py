@@ -145,7 +145,7 @@ EXPECTED_PROJECT_DATA = {
             DeviceType.PV_BLOCK,
             DeviceType.PPC,
             DeviceType.PV_DC_COMBINER,
-            DeviceType.MVT,
+            DeviceType.PV_MVT,
             DeviceType.PV_MV_CIRCUIT,
             DeviceType.BESS_MV_CIRCUIT,
             DeviceType.PV_MV_CIRCUIT_METER,
