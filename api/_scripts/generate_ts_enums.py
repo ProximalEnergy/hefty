@@ -12,7 +12,7 @@ def load_module_from_path(path: str) -> ModuleType:
     """Handle load module from path.
 
     Args:
-        path: TODO: describe.
+        path: Filesystem path to the Python module.
     """
     spec = importlib.util.spec_from_file_location("enum_module", path)
     if spec is None or spec.loader is None:
@@ -26,7 +26,7 @@ def is_enum_class(obj: Any) -> bool:
     """Return whether is enum class.
 
     Args:
-        obj: TODO: describe.
+        obj: Object to test.
     """
     return inspect.isclass(obj) and issubclass(obj, Enum) and obj is not Enum
 
@@ -38,7 +38,7 @@ def enum_members_in_order(enum_cls: type[Enum]) -> list[Enum]:
     """Handle enum members in order.
 
     Args:
-        enum_cls: TODO: describe.
+        enum_cls: Enum class to list members from.
     """
     members = list(enum_cls)  # iteration preserves definition order in CPython
     if issubclass(enum_cls, IntEnum):
@@ -50,7 +50,7 @@ def ts_literal(value: Any) -> str:
     """Handle ts literal.
 
     Args:
-        value: TODO: describe.
+        value: Value to encode as a TypeScript literal.
     """
     if isinstance(value, str):
         # Escape basic characters for TS string literal
@@ -66,7 +66,7 @@ def enum_to_ts_constant(enum_cls: type[Enum]) -> str:
     """Handle enum to ts constant.
 
     Args:
-        enum_cls: TODO: describe.
+        enum_cls: Enum class to convert.
     """
     name = enum_cls.__name__
     lines: list[str] = [f"export const {name}Enum = {{"]

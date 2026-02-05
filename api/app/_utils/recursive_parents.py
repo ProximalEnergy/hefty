@@ -5,11 +5,11 @@ from core import models
 
 
 def get_recursive_parents(*, db: Session, device_id: int):
-    """todo
+    """Return ancestor devices for a given device id.
 
     Args:
-        db: TODO: describe.
-        device_id: TODO: describe.
+        db: SQLAlchemy session for the operational database.
+        device_id: Device id to start the recursive lookup.
     """
     recursive_cte = (
         select(

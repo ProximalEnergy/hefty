@@ -109,7 +109,7 @@ def seed_from_project_name(*, name: str) -> None:
     """Handle seed from project name.
 
     Args:
-        name: TODO: describe.
+        name: Project name used to seed the random generator.
     """
     seed_value = int(hashlib.md5(name.encode()).hexdigest(), 16)
     random.seed(seed_value)
@@ -122,7 +122,7 @@ def anonymize_projects(
     """Handle anonymize projects.
 
     Args:
-        projects: TODO: describe.
+        projects: Projects or dicts to anonymize in place.
     """
     for project in projects:
         if isinstance(project, dict):
@@ -166,7 +166,7 @@ def timedelta_to_postgres_interval(*, timedelta: pd.Timedelta) -> str:
     """Handle timedelta to postgres interval.
 
     Args:
-        timedelta: TODO: describe.
+        timedelta: Pandas timedelta to convert into a PostgreSQL interval string.
     """
     days = timedelta.days
     seconds = timedelta.seconds
@@ -197,7 +197,7 @@ def parse_db_data_to_df(*, db_data):
     """Handle parse db data to df.
 
     Args:
-        db_data: TODO: describe.
+        db_data: Query results or dicts used to build the DataFrame.
     """
     if len(db_data) == 0:
         # Return an empty DataFrame with the expected columns so callers can
@@ -347,7 +347,7 @@ async def get_tag_id_to_tag_name(
     """Get tag id to tag name.
 
     Args:
-        tags: TODO: describe.
+        tags: Tag-like records to map to sensor type names.
     """
     sensor_type_ids = list(
         {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
@@ -389,7 +389,7 @@ async def get_tag_id_to_sensor_type_name(
     """Get tag id to sensor type name.
 
     Args:
-        tags: TODO: describe.
+        tags: Tag-like records to map to sensor type short names.
     """
     sensor_type_ids = list(
         {tag.sensor_type_id for tag in tags if tag.sensor_type_id is not None}
@@ -432,8 +432,8 @@ async def get_tag_id_to_device_name_long(
     """Get tag id to device name long.
 
     Args:
-        db: TODO: describe.
-        tags: TODO: describe.
+        db: SQLAlchemy session for the project database.
+        tags: Tag-like records to map to device names.
     """
     device_ids = list(set([tag.device_id for tag in tags]))
 
@@ -469,18 +469,18 @@ def get_tracking_angles(
     backtrack: bool = False,
     gcr: float = 0.5,
 ) -> pd.DataFrame:
-    """todo
+    """Compute tracking angles for a site and time range.
 
     Args:
-        site_location: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        freq: TODO: describe.
-        axis_tilt: TODO: describe.
-        axis_azimuth: TODO: describe.
-        max_angle: TODO: describe.
-        backtrack: TODO: describe.
-        gcr: TODO: describe.
+        site_location: PVLib location describing the site.
+        start: Range start (timezone-aware).
+        end: Range end (timezone-aware).
+        freq: Pandas frequency string for the output.
+        axis_tilt: Tracker axis tilt angle in degrees.
+        axis_azimuth: Tracker axis azimuth in degrees.
+        max_angle: Maximum tracker rotation angle in degrees.
+        backtrack: Whether to use backtracking.
+        gcr: Ground coverage ratio for backtracking.
     """
     # Create date range
     times = pd.date_range(
@@ -518,14 +518,14 @@ def get_truetracking_irradiance(
     tilt: pd.Series,
     surface_azimuth: pd.Series,
 ) -> pd.DataFrame:
-    """todo
+    """Compute clearsky and plane-of-array irradiance for tracking.
 
     Args:
-        site_location: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        tilt: TODO: describe.
-        surface_azimuth: TODO: describe.
+        site_location: PVLib location describing the site.
+        start: Range start (timezone-aware).
+        end: Range end (timezone-aware).
+        tilt: Surface tilt series used for irradiance.
+        surface_azimuth: Surface azimuth series used for irradiance.
     """
     # Create date range
     times = pd.date_range(
@@ -571,8 +571,8 @@ def map_ancestors_to_descendents(
     """Map ancestor device ids to a list of descendent device ids.
 
     Args:
-        ancestors: TODO: describe.
-        descendents: TODO: describe.
+        ancestors: Ancestor devices or DataFrame of ancestor ids.
+        descendents: Descendent devices or DataFrame with device paths.
     """
     if isinstance(ancestors, pd.DataFrame):
         ids_ancestors = set(ancestors["device_id"].dropna().astype(int).tolist())

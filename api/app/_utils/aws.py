@@ -48,12 +48,12 @@ def _iterate_parameter_pages(
     path: str,
     recursive: bool,
 ) -> Generator[dict[str, Any], None, None]:
-    """todo
+    """Yield paginated SSM parameter responses.
 
     Args:
-        client: TODO: describe.
-        path: TODO: describe.
-        recursive: TODO: describe.
+        client: Boto3 SSM client used for the request.
+        path: Parameter path prefix to search under.
+        recursive: Whether to include nested paths.
     """
     try:
         paginator = client.get_paginator("get_parameters_by_path")
@@ -76,9 +76,9 @@ def get_parameters_by_path(
     """Retrieve decrypted parameters stored under an SSM parameter path.
 
     Args:
-        path: TODO: describe.
-        region_name: TODO: describe.
-        recursive: TODO: describe.
+        path: Parameter path prefix to search under.
+        region_name: AWS region to use for the SSM client.
+        recursive: Whether to include nested paths.
     """
 
     session = boto3.session.Session()

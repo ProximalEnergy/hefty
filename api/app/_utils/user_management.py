@@ -182,11 +182,11 @@ async def send_drone_inspection_order_email(
 
 
 async def get_clerk_user_metadata(*, user_id: str, clerk_secret_key: str) -> dict:
-    """todo
+    """Fetch Clerk public metadata for a user.
 
     Args:
-        user_id: TODO: describe.
-        clerk_secret_key: TODO: describe.
+        user_id: Clerk user identifier to fetch.
+        clerk_secret_key: Clerk API secret key for authentication.
     """
     try:
         with Clerk(
