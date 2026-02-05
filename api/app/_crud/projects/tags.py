@@ -1,12 +1,12 @@
 import re
 from typing import Any, Literal, cast
 
+from core.db_query import DbQuery
 from sqlalchemy import func, select, update
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session
 
 from core import models
-from core.db_query import DbQuery
 
 
 def _convert_pattern_to_regex(*, pattern: str) -> str:
@@ -72,10 +72,14 @@ def get_tag_by_name_short(
     Args:
         name_short: TODO: describe.
     """
-    query = select(models.Tag).where(
-        models.Tag.name_short == name_short,
-        models.Tag.device_id != 0,
-    ).limit(1)
+    query = (
+        select(models.Tag)
+        .where(
+            models.Tag.name_short == name_short,
+            models.Tag.device_id != 0,
+        )
+        .limit(1)
+    )
     return DbQuery(query=query, is_scalar=True)
 
 
@@ -155,15 +159,14 @@ def update_tags_sensor_type_by_pattern_bulk(
     return rowcount
 
 
-def get_tag_by_id(*, project_db: Session, tag_id: int):
+def get_tag_by_id(*, tag_id: int) -> DbQuery[models.Tag, Literal[True]]:
     """Get a tag by its ID.
 
     Args:
-        project_db: TODO: describe.
         tag_id: TODO: describe.
     """
     query = select(models.Tag).where(models.Tag.tag_id == tag_id)
-    return project_db.execute(query).scalars().first()
+    return DbQuery(query=query, is_scalar=True)
 
 
 def get_sample_tags_by_pattern_digits_only(
