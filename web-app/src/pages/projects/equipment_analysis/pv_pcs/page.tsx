@@ -20,7 +20,11 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useGetDevicesV2, useGetHeatmap } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import * as types from '@/hooks/types'
-import { getDeviceModelImageUrl, getPublicAssetUrl } from '@/utils/cdn'
+import {
+  getDeviceModelImagePublicUrl,
+  getDeviceModelImageUrl,
+  getPublicAssetUrl,
+} from '@/utils/cdn'
 import {
   ActionIcon,
   Box,
@@ -51,7 +55,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import Plotly, { PlotType } from 'plotly.js/dist/plotly-custom.min.js'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import RealtimeTab from './RealtimeTab'
@@ -353,6 +357,45 @@ const PCSEquipmentAnalysis = () => {
     return mostCommonId
   }, [devices.data])
 
+  const deviceModelImageUrl = useMemo(
+    () => getDeviceModelImageUrl(mostCommonDeviceModelId),
+    [mostCommonDeviceModelId],
+  )
+  const deviceModelImageFallbackUrl = useMemo(
+    () => getDeviceModelImagePublicUrl(mostCommonDeviceModelId),
+    [mostCommonDeviceModelId],
+  )
+  const deviceModelIconUrl = useMemo(
+    () => getPublicAssetUrl('/icon_pv_pcs.svg'),
+    [],
+  )
+
+  const matchesAssetUrl = (currentUrl: string, expectedUrl: string) => {
+    if (!expectedUrl) {
+      return false
+    }
+    return currentUrl === expectedUrl || currentUrl.endsWith(expectedUrl)
+  }
+
+  const handleDeviceModelImageError = (
+    event: SyntheticEvent<HTMLImageElement>,
+  ) => {
+    const target = event.currentTarget
+    const shouldTryFallback =
+      deviceModelImageFallbackUrl &&
+      !matchesAssetUrl(target.src, deviceModelImageFallbackUrl) &&
+      !matchesAssetUrl(target.src, deviceModelIconUrl)
+
+    if (shouldTryFallback) {
+      target.src = deviceModelImageFallbackUrl
+      return
+    }
+
+    if (!matchesAssetUrl(target.src, deviceModelIconUrl)) {
+      target.src = deviceModelIconUrl
+    }
+  }
+
   // Get inverters for the most common device_model_id
   const inverters = useGetInverters({
     queryParams: {
@@ -631,26 +674,18 @@ const PCSEquipmentAnalysis = () => {
                   }}
                 >
                   <Image
-                    src={getDeviceModelImageUrl(mostCommonDeviceModelId)}
+                    src={deviceModelImageUrl}
                     alt={pcsBrandModel || 'Device Model'}
                     w="100%"
                     h="100%"
                     fit="contain"
                     radius="md"
-                    fallbackSrc={getPublicAssetUrl('/icon_pv_pcs.svg')}
                     style={{
                       objectFit: 'contain',
                       cursor: 'pointer',
                     }}
                     onClick={() => setImageModalOpened(true)}
-                    onError={(e) => {
-                      // Fallback to device type icon if image fails to load
-                      const target = e.target as HTMLImageElement
-                      const fallbackUrl = getPublicAssetUrl('/icon_pv_pcs.svg')
-                      if (target.src !== fallbackUrl) {
-                        target.src = fallbackUrl
-                      }
-                    }}
+                    onError={handleDeviceModelImageError}
                   />
                 </Box>
                 <Modal
@@ -684,13 +719,8 @@ const PCSEquipmentAnalysis = () => {
                         <Tabs.Panel value="overview" pt="md">
                           <Stack gap="md">
                             <Image
-                              src={getDeviceModelImageUrl(
-                                mostCommonDeviceModelId,
-                              )}
+                              src={deviceModelImageUrl}
                               alt={pcsBrandModel || 'Device Model'}
-                              fallbackSrc={getPublicAssetUrl(
-                                '/icon_pv_pcs.svg',
-                              )}
                               style={{
                                 filter:
                                   colorScheme === 'dark'
@@ -702,6 +732,7 @@ const PCSEquipmentAnalysis = () => {
                               fit="contain"
                               radius="md"
                               mx="auto"
+                              onError={handleDeviceModelImageError}
                             />
                             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                               <Text size="sm" c="dimmed">
@@ -1131,9 +1162,8 @@ const PCSEquipmentAnalysis = () => {
                     ) : (
                       <Stack gap="md">
                         <Image
-                          src={getDeviceModelImageUrl(mostCommonDeviceModelId)}
+                          src={deviceModelImageUrl}
                           alt={pcsBrandModel || 'Device Model'}
-                          fallbackSrc={getPublicAssetUrl('/icon_pv_pcs.svg')}
                           style={{
                             filter:
                               colorScheme === 'dark'
@@ -1145,6 +1175,7 @@ const PCSEquipmentAnalysis = () => {
                           fit="contain"
                           radius="md"
                           mx="auto"
+                          onError={handleDeviceModelImageError}
                         />
                         <Text
                           size="sm"

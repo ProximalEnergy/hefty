@@ -37,6 +37,22 @@ export function getDeviceModelImageUrl(deviceModelId: number | null): string {
 }
 
 /**
+ * Generate a public (non-CDN) URL for a device model image.
+ * Useful as a fallback when CDN images are unavailable.
+ * @param deviceModelId - The device model ID
+ * @returns The public URL or empty string if no ID
+ */
+export function getDeviceModelImagePublicUrl(
+  deviceModelId: number | null,
+): string {
+  if (deviceModelId === null) {
+    return ''
+  }
+
+  return `/device_models/${deviceModelId}.png`
+}
+
+/**
  * Generate a CDN URL for a public asset
  * @param assetPath - The asset path relative to public folder (e.g., '/icon_pv_pcs.svg')
  * @returns The full CDN URL or relative path if CDN is not configured
