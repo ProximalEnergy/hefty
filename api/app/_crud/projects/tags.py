@@ -1,11 +1,12 @@
 import re
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from sqlalchemy import func, select, update
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session
 
 from core import models
+from core.db_query import DbQuery
 
 
 def _convert_pattern_to_regex(*, pattern: str) -> str:
@@ -62,18 +63,20 @@ def get_sensor_type_assignments(*, project_db: Session):
     return assignments
 
 
-def get_tag_by_name_short(*, project_db: Session, name_short: str):
+def get_tag_by_name_short(
+    *,
+    name_short: str,
+) -> DbQuery[models.Tag, Literal[True]]:
     """Get a tag by its name_short.
 
     Args:
-        project_db: TODO: describe.
         name_short: TODO: describe.
     """
     query = select(models.Tag).where(
         models.Tag.name_short == name_short,
         models.Tag.device_id != 0,
     )
-    return project_db.execute(query).scalars().first()
+    return DbQuery(query=query, is_scalar=True)
 
 
 def update_tag_sensor_type(
