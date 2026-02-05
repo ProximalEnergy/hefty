@@ -21,7 +21,7 @@ from app._crud.projects.drone_inspections import (
 )
 from app._dependencies.authorization import require_jwt_or_api_superadmin
 from app.dependencies import (
-    get_async_db,
+    check_project_access_async,
     get_project_db_async,
     get_project_name_short_async,
 )
@@ -75,19 +75,18 @@ async def get_db_inspections(
 )
 async def get_zeitview_inspections(
     project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
+    _access: Annotated[None, Depends(check_project_access_async)],
 ):
     """Get a list of historical inspections from Zeitview for a given project.
 
     Args:
         project_id: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
     """
     integration = await get_drone_integration_by_project_id(
-        db=db, project_id=project_id
-    )
+        project_id=project_id
+    ).get_async(output_type=OutputType.SQLALCHEMY)
 
     if not integration:
         raise HTTPException(
@@ -184,8 +183,8 @@ async def get_db_anomalies(
 async def sync_zeitview_anomalies(
     project_id: uuid.UUID,
     inspection_uuid: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
+    _access: Annotated[None, Depends(check_project_access_async)],
 ):
     """Fetch anomalies from Zeitview and store them in the database
     incrementally. Can resume from where it left off if interrupted.
@@ -193,12 +192,11 @@ async def sync_zeitview_anomalies(
     Args:
         project_id: TODO: describe.
         inspection_uuid: TODO: describe.
-        db: TODO: describe.
         project_db: TODO: describe.
     """
     integration = await get_drone_integration_by_project_id(
-        db=db, project_id=project_id
-    )
+        project_id=project_id
+    ).get_async(output_type=OutputType.SQLALCHEMY)
     if not integration:
         raise HTTPException(
             status_code=404,

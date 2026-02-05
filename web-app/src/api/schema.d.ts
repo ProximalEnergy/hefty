@@ -3938,7 +3938,6 @@ export interface paths {
          *
          *     Args:
          *         project_id: TODO: describe.
-         *         db: TODO: describe.
          *         project_db: TODO: describe.
          */
         get: operations["get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get"];
@@ -3991,7 +3990,6 @@ export interface paths {
          *     Args:
          *         project_id: TODO: describe.
          *         inspection_uuid: TODO: describe.
-         *         db: TODO: describe.
          *         project_db: TODO: describe.
          */
         post: operations["sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post"];

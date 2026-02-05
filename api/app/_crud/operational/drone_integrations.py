@@ -1,7 +1,9 @@
 import uuid
 from collections.abc import Sequence
+from typing import Literal
 
 import sqlalchemy as sa
+from core.db_query import DbQuery
 from core.models import DroneIntegration
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,18 +21,20 @@ async def get_drone_integrations(*, db: AsyncSession) -> Sequence[DroneIntegrati
     return result.scalars().all()
 
 
-async def get_drone_integration_by_project_id(
-    *, db: AsyncSession, project_id: uuid.UUID
-) -> DroneIntegration | None:
+def get_drone_integration_by_project_id(
+    *, project_id: uuid.UUID
+) -> DbQuery[DroneIntegration, Literal[True]]:
     """Get the first drone integration for a given project.
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
+        project_id: The unique identifier of the project.
     """
-    stmt = sa.select(DroneIntegration).where(DroneIntegration.project_id == project_id)
-    result = await db.execute(stmt)
-    return result.scalars().first()
+    stmt = (
+        sa.select(DroneIntegration)
+        .where(DroneIntegration.project_id == project_id)
+        .limit(1)
+    )
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def create_drone_integration(
