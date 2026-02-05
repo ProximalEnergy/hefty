@@ -75,7 +75,7 @@ def get_tag_by_name_short(
     query = select(models.Tag).where(
         models.Tag.name_short == name_short,
         models.Tag.device_id != 0,
-    )
+    ).limit(1)
     return DbQuery(query=query, is_scalar=True)
 
 
