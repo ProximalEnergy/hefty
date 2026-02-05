@@ -130,7 +130,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   const pvCircuitEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      device_type_ids: [DeviceTypeEnum.PV_CIRCUIT],
+      device_type_ids: [DeviceTypeEnum.PV_FEEDER],
       open: true,
     },
     queryOptions: {

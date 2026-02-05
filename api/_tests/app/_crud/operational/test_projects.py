@@ -150,7 +150,7 @@ EXPECTED_PROJECT_DATA = {
             DeviceType.BESS_MV_CIRCUIT,
             DeviceType.PV_MV_CIRCUIT_METER,
             DeviceType.BESS_MV_CIRCUIT_METER,
-            DeviceType.PV_CIRCUIT,
+            DeviceType.PV_FEEDER,
             DeviceType.TRACKER_ZONE,
             DeviceType.TRACKER_ROW,
         ],

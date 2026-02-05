@@ -57,7 +57,7 @@ const DEVICE_TYPE_TO_TAB_MAP: Record<number, string> = {
   [DeviceTypeEnum.BESS_PCS]: 'bess-pcs',
   [DeviceTypeEnum.BESS_STRING]: 'bess',
   [DeviceTypeEnum.BESS_BLOCK]: 'bess', // BESS Block also maps to bess tab
-  [DeviceTypeEnum.PV_CIRCUIT]: 'circuit',
+  [DeviceTypeEnum.PV_FEEDER]: 'circuit',
 }
 
 // Priority order for device types when multiple map to the same tab (lower number = higher priority)
@@ -68,7 +68,7 @@ const DEVICE_TYPE_PRIORITY: Record<number, number> = {
 
 // Custom sort order for menu items (lower number = appears earlier)
 const DEVICE_TYPE_MENU_ORDER: Record<number, number> = {
-  [DeviceTypeEnum.PV_CIRCUIT]: 1,
+  [DeviceTypeEnum.PV_FEEDER]: 1,
   [DeviceTypeEnum.PV_PCS]: 2,
   [DeviceTypeEnum.PV_DC_COMBINER]: 3,
   [DeviceTypeEnum.TRACKER_ROW]: 4,
@@ -150,7 +150,7 @@ const generatePerformanceLinks = (
     if (tabValue) {
       // Filter PV Circuit for non-superadmins
       if (
-        deviceType.device_type_id === DeviceTypeEnum.PV_CIRCUIT &&
+        deviceType.device_type_id === DeviceTypeEnum.PV_FEEDER &&
         !isSuperadmin
       ) {
         return
@@ -162,7 +162,7 @@ const generatePerformanceLinks = (
       }
 
       // Add tooltip for PV Circuit
-      if (deviceType.device_type_id === DeviceTypeEnum.PV_CIRCUIT) {
+      if (deviceType.device_type_id === DeviceTypeEnum.PV_FEEDER) {
         link.tooltip =
           'This page (and tooltip) is currently only visible to superadmins'
       }
