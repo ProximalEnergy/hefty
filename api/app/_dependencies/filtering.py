@@ -15,8 +15,8 @@ async def filter_project_ids_to_user(
     """Filter project IDs to those the user is allowed to access.
 
     Args:
-        project_ids: TODO: describe.
-        user: TODO: describe.
+        project_ids: Optional list of project UUIDs requested by caller.
+        user: Authenticated user payload to filter against.
     """
     if user.user_type_id == UserTypeEnum.SUPERADMIN:
         return project_ids

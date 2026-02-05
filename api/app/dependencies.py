@@ -36,7 +36,7 @@ def get_project_db(*, project_id: UUID = Path(...)):
     """Get project db.
 
     Args:
-        project_id: TODO: describe.
+        project_id: Project UUID used to resolve the tenant schema.
     """
     project_name_short = get_project_name_short(project_id=project_id)
 
@@ -48,7 +48,7 @@ async def get_project_api(*, project_id: UUID):
     """Get project api.
 
     Args:
-        project_id: TODO: describe.
+        project_id: Project UUID to load from the operational database.
     """
     project_query = core.crud.operational.projects.get_project(
         project_id=project_id,
@@ -72,7 +72,7 @@ def is_prod_origin(*, request: Request):
     """Return whether is prod origin.
 
     Args:
-        request: TODO: describe.
+        request: Incoming request with headers to inspect for origin.
     """
     origin = request.headers.get("origin")
     if not origin:
@@ -85,7 +85,7 @@ def is_prod_api(*, request: Request):
     """Return whether is prod api.
 
     Args:
-        request: TODO: describe.
+        request: Incoming request with headers to inspect for host.
     """
     host = request.headers.get("host")
     return "api.proximal.energy" in str(host)
@@ -100,7 +100,7 @@ async def get_project_db_async(*, project_id: UUID = Path(...)):
     """Get project db async.
 
     Args:
-        project_id: TODO: describe.
+        project_id: Project UUID used to resolve the tenant schema.
     """
     project_name_short = await get_project_name_short_async(project_id=project_id)
 
@@ -114,12 +114,12 @@ async def create_user_data_from_user_async(
     user: models.User,
     public_metadata: dict,
 ) -> interfaces.UserData:
-    """todo
+    """Build a UserData payload from a user record.
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        public_metadata: TODO: describe.
+        db: Database session used to load user projects.
+        user: User model retrieved from the database.
+        public_metadata: Public metadata from the identity provider.
     """
     result = await db.execute(
         sa.select(models.UserProject).where(models.UserProject.user_id == user.user_id)
@@ -143,12 +143,12 @@ async def get_user_data_from_api_key_async(
     x_api_key: str,
     api_prod: bool,
 ) -> interfaces.UserData | None:
-    """todo
+    """Resolve user data from an API key.
 
     Args:
-        db: TODO: describe.
-        x_api_key: TODO: describe.
-        api_prod: TODO: describe.
+        db: Database session used to find the user.
+        x_api_key: API key provided in the request headers.
+        api_prod: Whether the API host is production.
     """
     if x_api_key:
         result = await db.execute(
@@ -206,12 +206,12 @@ async def get_user_data_from_jwt_async(
     authorization: str,
     origin_prod: bool,
 ) -> interfaces.UserData | None:
-    """todo
+    """Resolve user data from a JWT bearer token.
 
     Args:
-        db: TODO: describe.
-        authorization: TODO: describe.
-        origin_prod: TODO: describe.
+        db: Database session used to find the user.
+        authorization: Authorization header containing the bearer token.
+        origin_prod: Whether the request origin is production.
     """
     if authorization and authorization.startswith("Bearer"):
         token = authorization[7:]
@@ -248,12 +248,12 @@ async def get_jwt_user_data_async(
     authorization: str = Header(None),
     origin_prod: bool = Depends(is_prod_origin),
 ) -> interfaces.UserData:
-    """todo
+    """Get user data from a JWT-based authentication header.
 
     Args:
-        db: TODO: describe.
-        authorization: TODO: describe.
-        origin_prod: TODO: describe.
+        db: Database session used to find the user.
+        authorization: Authorization header containing the bearer token.
+        origin_prod: Whether the request origin is production.
     """
     user_data = await get_user_data_from_jwt_async(
         db=db,
@@ -273,12 +273,12 @@ async def get_api_user_data_async(
     x_api_key: str = Header(None),
     api_prod: bool = Depends(is_prod_api),
 ) -> interfaces.UserData:
-    """todo
+    """Get user data from an API key authentication header.
 
     Args:
-        db: TODO: describe.
-        x_api_key: TODO: describe.
-        api_prod: TODO: describe.
+        db: Database session used to find the user.
+        x_api_key: API key provided in the request headers.
+        api_prod: Whether the API host is production.
     """
     user_data = await get_user_data_from_api_key_async(
         db=db,
@@ -300,14 +300,14 @@ async def get_user_data_async(
     authorization: str = Header(None),
     x_api_key: str = Header(None),
 ) -> interfaces.UserData:
-    """todo
+    """Get user data by trying API key auth then JWT auth.
 
     Args:
-        db: TODO: describe.
-        api_prod: TODO: describe.
-        origin_prod: TODO: describe.
-        authorization: TODO: describe.
-        x_api_key: TODO: describe.
+        db: Database session used to find the user.
+        api_prod: Whether the API host is production.
+        origin_prod: Whether the request origin is production.
+        authorization: Authorization header containing the bearer token.
+        x_api_key: API key provided in the request headers.
     """
 
     user_data = await get_user_data_from_api_key_async(
@@ -343,8 +343,8 @@ def check_project_access_async(
     """Handle check project access async.
 
     Args:
-        user_data: TODO: describe.
-        project_id: TODO: describe.
+        user_data: Authenticated user data including project access.
+        project_id: Project UUID requested by the caller.
     """
     if project_id not in user_data.operational_project_ids:
         raise HTTPException(status_code=403, detail="Forbidden")
@@ -358,8 +358,8 @@ def check_project_access_from_query_async(
     """Handle check project access async from query param.
 
     Args:
-        user_data: TODO: describe.
-        project_id: TODO: describe.
+        user_data: Authenticated user data including project access.
+        project_id: Project UUID requested by the caller.
     """
     if project_id not in user_data.operational_project_ids:
         raise HTTPException(status_code=403, detail="Forbidden")

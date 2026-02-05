@@ -33,9 +33,9 @@ async def get_user(
     """Get the user from the database using the API key or JWT token.
 
     Args:
-        api_key: TODO: describe.
-        authorization: TODO: describe.
-        db: TODO: describe.
+        api_key: API key from the x-api-key header, if provided.
+        authorization: Authorization header that may contain a bearer token.
+        db: Database session used to look up the user.
     """
     jwt_token = _get_jwt_token(authorization=authorization)
 
@@ -75,11 +75,11 @@ async def get_user(
 
 async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
     # Query the database for a user with the given API key
-    """todo
+    """Look up and validate a user using an API key.
 
     Args:
-        db: TODO: describe.
-        api_key: TODO: describe.
+        db: Database session used to look up the user.
+        api_key: API key provided in the request headers.
     """
     query = select(User).where(User.api_key == api_key)
     result = await db.execute(query)
@@ -109,11 +109,11 @@ async def _get_api_user(*, db: AsyncSession, api_key: str) -> UserAuthed:
 
 
 async def _get_jwt_user(*, db: AsyncSession, jwt_token: str) -> UserAuthed:
-    """todo
+    """Look up and validate a user using a JWT bearer token.
 
     Args:
-        db: TODO: describe.
-        jwt_token: TODO: describe.
+        db: Database session used to look up the user.
+        jwt_token: Bearer token extracted from the Authorization header.
     """
     clerk_url_jwks = _get_clerk_url_jwks()
 
@@ -151,13 +151,13 @@ async def _generate_user_data(
     authentication_method: Literal["api-key", "jwt"],
 ) -> UserAuthed:
     # Get the user projects from the database
-    """todo
+    """Generate a UserAuthed payload for the authenticated user.
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        public_metadata: TODO: describe.
-        authentication_method: TODO: describe.
+        db: Database session used to load user projects.
+        user: User model retrieved from the database.
+        public_metadata: Public metadata from the identity provider.
+        authentication_method: Authentication source that was used.
     """
     query = select(UserProject).where(UserProject.user_id == user.user_id)
     result = await db.execute(query)
@@ -175,10 +175,10 @@ async def _generate_user_data(
 
 
 def _get_jwt_token(*, authorization: str) -> str | None:
-    """todo
+    """Extract a bearer token from the Authorization header.
 
     Args:
-        authorization: TODO: describe.
+        authorization: Authorization header value.
     """
     if authorization and authorization.startswith("Bearer "):
         return authorization.replace("Bearer ", "")
@@ -188,7 +188,7 @@ def _get_jwt_token(*, authorization: str) -> str | None:
 
 def _get_clerk_secret_key() -> str:
     # Get the Clerk application based on the environment
-    """todo"""
+    """Return the Clerk secret key for the active environment."""
     clerk_application = _get_clerk_application()
 
     # Get the Clerk secret key based on the application
@@ -207,7 +207,7 @@ def _get_clerk_secret_key() -> str:
 
 def _get_clerk_url_jwks() -> str:
     # Get the Clerk application based on the environment
-    """todo"""
+    """Return the Clerk JWKS URL for the active environment."""
     clerk_application = _get_clerk_application()
 
     # Get the Clerk URL JWKS based on the application
@@ -225,7 +225,7 @@ def _get_clerk_url_jwks() -> str:
 
 
 def _get_clerk_application() -> Literal["development", "production"]:
-    """todo"""
+    """Return the Clerk application name for the current environment."""
     environment = settings.ENVIRONMENT
     if environment == "production":
         return "production"

@@ -15,7 +15,7 @@ async def require_jwt_or_api_superadmin(*, user: UserAuthed = Depends(get_user))
         directly via the API.
 
     Args:
-        user: TODO: describe.
+        user: Authenticated user payload to validate.
     """
     if not (
         user.authentication_method == "jwt"
@@ -35,8 +35,8 @@ async def require_user_project(
     """Require the user to have access to the requested project.
 
     Args:
-        project_id: TODO: describe.
-        user: TODO: describe.
+        project_id: Project UUID being requested.
+        user: Authenticated user payload to validate.
     """
     if project_id not in user.operational_project_ids:
         raise HTTPException(
@@ -53,8 +53,8 @@ async def require_user_projects(
     """Require the user to have access to all of the requested projects.
 
     Args:
-        project_ids: TODO: describe.
-        user: TODO: describe.
+        project_ids: Project UUIDs being requested.
+        user: Authenticated user payload to validate.
     """
     if not all(
         project_id in user.operational_project_ids for project_id in project_ids
@@ -69,14 +69,14 @@ def require_user_type(*, user_type_id: UserTypeEnum):
     """Require the user to have at least the specified user type.
 
     Args:
-        user_type_id: TODO: describe.
+        user_type_id: Minimum user type required to access the resource.
     """
 
     async def dependency(*, user: UserAuthed = Depends(get_user)) -> None:
-        """todo
+        """Validate the authenticated user meets the minimum user type.
 
         Args:
-            user: TODO: describe.
+            user: Authenticated user payload to validate.
         """
         if user.user_type_id > user_type_id:
             raise HTTPException(
@@ -91,7 +91,7 @@ def require_user_permissions(*, permission_ids: list[int]):
     """Require the user to have the specified permissions on the requested project.
 
     Args:
-        permission_ids: TODO: describe.
+        permission_ids: Permission IDs required to access the resource.
     """
 
     async def dependency(
@@ -99,11 +99,11 @@ def require_user_permissions(*, permission_ids: list[int]):
         user: UserAuthed = Depends(get_user),
         project_id: UUID = Path(...),
     ) -> None:
-        """todo
+        """Validate the user has permission on the requested project.
 
         Args:
-            user: TODO: describe.
-            project_id: TODO: describe.
+            user: Authenticated user payload to validate.
+            project_id: Project UUID being requested.
         """
         user_permissions_df = await get_user_permissions(
             user_ids=[user.user_id],
@@ -136,8 +136,8 @@ async def require_user_company(
         (None means all companies for superusers).
 
     Args:
-        company_id: TODO: describe.
-        user: TODO: describe.
+        company_id: Company UUID to access, or None to indicate all.
+        user: Authenticated user payload to validate.
     """
 
     # For superusers
