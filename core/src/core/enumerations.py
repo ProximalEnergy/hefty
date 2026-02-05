@@ -174,7 +174,6 @@ class DeviceType(BaseIntEnum):
     MVT = 15
     PV_MV_CIRCUIT = 16
     BESS_MV_CIRCUIT = 17
-    STATION_METER = 18
     PV_MV_CIRCUIT_METER = 19
     BESS_MV_CIRCUIT_METER = 20
     BESS_MV_AUX_METER = 21
