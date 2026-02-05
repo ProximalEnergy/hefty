@@ -55,7 +55,7 @@ const EventGISCard = ({
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DeviceTypeEnum.BLOCK],
+      device_type_ids: [DeviceTypeEnum.PV_BLOCK],
     },
   })
 

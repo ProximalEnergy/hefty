@@ -159,7 +159,7 @@ export function PCSGISMap({
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DeviceTypeEnum.PV_PCS, DeviceTypeEnum.BLOCK],
+      device_type_ids: [DeviceTypeEnum.PV_PCS, DeviceTypeEnum.PV_BLOCK],
     },
   })
 
@@ -201,7 +201,7 @@ export function PCSGISMap({
 
   const filteredDevices = devices.data?.filter((device) =>
     block
-      ? device.device_type_id === DeviceTypeEnum.BLOCK
+      ? device.device_type_id === DeviceTypeEnum.PV_BLOCK
       : device.device_type_id === DeviceTypeEnum.PV_PCS,
   )
 
@@ -211,7 +211,7 @@ export function PCSGISMap({
         (device) => device.device_type_id === DeviceTypeEnum.PV_PCS,
       ).length >
       devices.data?.filter(
-        (device) => device.device_type_id === DeviceTypeEnum.BLOCK,
+        (device) => device.device_type_id === DeviceTypeEnum.PV_BLOCK,
       ).length
     : undefined
 

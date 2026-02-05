@@ -1464,7 +1464,7 @@ const ModuleDegradation: React.FC = () => {
     filters: {
       device_type_ids: [
         DeviceTypeEnum.PV_PCS,
-        DeviceTypeEnum.BLOCK,
+        DeviceTypeEnum.PV_BLOCK,
         DeviceTypeEnum.PV_DC_COMBINER,
         DeviceTypeEnum.PV_CIRCUIT,
       ],

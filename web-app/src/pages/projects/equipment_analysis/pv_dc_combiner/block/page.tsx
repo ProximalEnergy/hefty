@@ -112,7 +112,7 @@ const Page = () => {
     filters: {
       device_type_ids: [
         DeviceTypeEnum.PV_PCS,
-        DeviceTypeEnum.BLOCK,
+        DeviceTypeEnum.PV_BLOCK,
         DeviceTypeEnum.PV_DC_COMBINER,
       ],
       device_id_descendent_of: blockDeviceId ? Number(blockDeviceId) : null,

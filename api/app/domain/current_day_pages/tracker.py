@@ -37,7 +37,7 @@ async def get_tracker_data(
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[
-            DeviceType.BLOCK,
+            DeviceType.PV_BLOCK,
             DeviceType.TRACKER_ROW,
         ],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
@@ -52,7 +52,7 @@ async def get_tracker_data(
         )
     )
     block_device_id_to_tracker_row_ids = utils.map_ancestors_to_descendents(
-        ancestors=devices_df[devices_df["device_type_id"] == DeviceType.BLOCK],
+        ancestors=devices_df[devices_df["device_type_id"] == DeviceType.PV_BLOCK],
         descendents=devices_df[devices_df["device_type_id"] == DeviceType.TRACKER_ROW],
     )
 

@@ -197,7 +197,7 @@ async def get_equipment_analysis_pcs_data(
     # Get block devices
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_block = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.BLOCK],
+        device_type_ids=[DeviceType.PV_BLOCK],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_block_device_id_to_name_long = dict(
         zip(
@@ -212,7 +212,7 @@ async def get_equipment_analysis_pcs_data(
 
     # Get block tags
     tags_block = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.BLOCK_AC_POWER],
+        sensor_type_ids=[SensorType.PV_BLOCK_AC_POWER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     tags_block_tag_id_to_device_id = dict(
         zip(

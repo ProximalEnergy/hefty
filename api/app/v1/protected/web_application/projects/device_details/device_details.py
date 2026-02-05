@@ -388,7 +388,7 @@ async def get_vertical_controller(
     # Determine the block device type ID based on the technology.
     # The block device is the greatest common ancestor of the returned devices.
     if device_technology == "pv":
-        block_device_type_id = DeviceType.BLOCK
+        block_device_type_id = DeviceType.PV_BLOCK
     else:
         block_device_type_id = DeviceType.BESS_BLOCK
 

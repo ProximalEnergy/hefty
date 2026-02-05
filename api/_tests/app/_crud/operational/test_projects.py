@@ -142,7 +142,7 @@ EXPECTED_PROJECT_DATA = {
             DeviceType.PV_PCS_MODULE,
             DeviceType.MET_STATION,
             DeviceType.METER,
-            DeviceType.BLOCK,
+            DeviceType.PV_BLOCK,
             DeviceType.PPC,
             DeviceType.PV_DC_COMBINER,
             DeviceType.MVT,

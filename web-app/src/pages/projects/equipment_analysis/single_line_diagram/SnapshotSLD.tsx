@@ -1088,7 +1088,7 @@ function SnapshotSLDContent() {
       filters: {
         device_type_ids: [
           DeviceTypeEnum.PROJECT,
-          DeviceTypeEnum.BLOCK,
+          DeviceTypeEnum.PV_BLOCK,
           DeviceTypeEnum.BESS_BLOCK,
         ],
       },
@@ -1932,7 +1932,7 @@ function SnapshotSLDContent() {
     }
 
     if (
-      selectedDevice.device_type_id === DeviceTypeEnum.BLOCK ||
+      selectedDevice.device_type_id === DeviceTypeEnum.PV_BLOCK ||
       selectedDevice.device_type_id === DeviceTypeEnum.BESS_BLOCK
     ) {
       // It's a single block

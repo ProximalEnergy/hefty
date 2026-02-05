@@ -125,7 +125,7 @@ const RealtimeTab = () => {
   const pvBlockEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      device_type_ids: [DeviceTypeEnum.BLOCK],
+      device_type_ids: [DeviceTypeEnum.PV_BLOCK],
       open: true,
     },
     queryOptions: {

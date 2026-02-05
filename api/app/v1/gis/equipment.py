@@ -50,7 +50,7 @@ async def get_pcs(
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_block = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.BLOCK],
+        device_type_ids=[DeviceType.PV_BLOCK],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     devices_pcs = await core.crud.project.devices.get_project_devices(

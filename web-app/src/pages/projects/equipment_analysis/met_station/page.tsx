@@ -57,7 +57,7 @@ const Page = () => {
   const { data: devices } = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DeviceTypeEnum.MET_STATION, DeviceTypeEnum.BLOCK],
+      device_type_ids: [DeviceTypeEnum.MET_STATION, DeviceTypeEnum.PV_BLOCK],
     },
   })
 
@@ -136,7 +136,7 @@ const Page = () => {
     ) {
       const parentDevice = devices.find(
         (d) =>
-          d.device_type_id === DeviceTypeEnum.BLOCK &&
+          d.device_type_id === DeviceTypeEnum.PV_BLOCK &&
           d.device_id === device.parent_device_id,
       )
       if (parentDevice) {
