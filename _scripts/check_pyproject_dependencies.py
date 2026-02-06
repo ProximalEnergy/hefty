@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
 import re
 import sys
 import tomllib
+from pathlib import Path
 
 SKIP_DIRS = {
     ".git",
@@ -39,6 +39,7 @@ def check_list(
     dependencies: list[str],
     label: str,
     errors: list[str],
+    allow_unbounded: set[str],
 ) -> None:
     if not dependencies:
         return
@@ -61,6 +62,50 @@ def check_list(
         ordered = ", ".join(expected)
         errors.append(f"{label} is not sorted. Expected: {ordered}")
 
+    for requirement in dependencies:
+        if not has_upper_bound(
+            requirement=requirement,
+            allow_unbounded=allow_unbounded,
+        ):
+            errors.append(f"{label} has unbounded dependency: {requirement}")
+
+
+def has_upper_bound(
+    *,
+    requirement: str,
+    allow_unbounded: set[str],
+) -> bool:
+    base = requirement.split(";", 1)[0].strip()
+    if " @" in base:
+        return True
+
+    name = dependency_name(requirement=requirement)
+    if name in allow_unbounded:
+        return True
+
+    match = re.search(r"[<>=!~]", base)
+    if not match:
+        return False
+
+    specifiers = [
+        spec.strip() for spec in base[match.start() :].split(",") if spec.strip()
+    ]
+    if any(spec.startswith("~=") for spec in specifiers):
+        return True
+
+    if any(spec.startswith("<") for spec in specifiers):
+        return True
+
+    for spec in specifiers:
+        if spec.startswith("==="):
+            value = spec[3:].strip()
+            return "*" not in value
+        if spec.startswith("=="):
+            value = spec[2:].strip()
+            return "*" not in value
+
+    return False
+
 
 def check_pyproject(*, path: Path, errors: list[str]) -> None:
     try:
@@ -76,12 +121,19 @@ def check_pyproject(*, path: Path, errors: list[str]) -> None:
         return
 
     project = data.get("project", {})
+    tool = data.get("tool", {})
+    uv = tool.get("uv", {})
+    sources = uv.get("sources", {})
+    allow_unbounded = set()
+    if isinstance(sources, dict):
+        allow_unbounded.update(name.lower().replace("_", "-") for name in sources)
     dependencies = project.get("dependencies", [])
     if isinstance(dependencies, list):
         check_list(
             dependencies=dependencies,
             label=f"{path} [project.dependencies]",
             errors=errors,
+            allow_unbounded=allow_unbounded,
         )
     elif dependencies:
         errors.append(f"{path} [project.dependencies] must be a list")
@@ -96,6 +148,7 @@ def check_pyproject(*, path: Path, errors: list[str]) -> None:
                 dependencies=group_deps,
                 label=f"{path} [dependency-groups.{group_name}]",
                 errors=errors,
+                allow_unbounded=allow_unbounded,
             )
     elif groups:
         errors.append(f"{path} [dependency-groups] must be a table")

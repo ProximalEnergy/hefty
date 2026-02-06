@@ -57,7 +57,7 @@ def main(*, argv: Sequence[str] | None = None) -> int:
         mono_root = script_path.parent.parent
         target_path = mono_root / args.repository
 
-    paths_to_check = args.paths if args.paths else [str(target_path)]
+    paths_to_check = args.paths or [str(target_path)]
 
     # Locate the rule file
     rule_file = Path(__file__).parent / "rules" / "docstring-args.yaml"

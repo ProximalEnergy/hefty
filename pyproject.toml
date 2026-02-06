@@ -13,17 +13,18 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-    "mypy>=1.18.2",
-    "pyarrow-stubs>=20.0.0.20250928",
+    "mypy>=1.18.2,<2",
+    "pyarrow-stubs>=20.0.0.20250928,<21",
     "ruff==0.15.0",
-    "semgrep>=1.107.0",
-    "sqlalchemy>=2.0.45",
-    "vulture>=2.14",
+    "semgrep>=1.107.0,<2",
+    "sqlalchemy>=2.0.45,<3",
+    "vulture>=2.14,<3",
 ]
 
 [tool.ruff]
 line-length = 88
 fix = true
+extend-exclude = ["_scripts"]
 
 [tool.ruff.lint]
 select = [
@@ -75,6 +76,7 @@ ignore = [
     "COM819",
     "FAST002",
     "FURB162",
+    "ISC001",
 ]
 external =[]
 
