@@ -13,13 +13,13 @@ async def get_ercot_rtm_spp(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
-    """todo
+    """Fetch RTM settlement point prices with optional filters.
 
     Args:
-        db: TODO: describe.
-        settlement_point_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        settlement_point_ids: Settlement point IDs to filter by.
+        start: Inclusive start timestamp for filtering.
+        end: Exclusive end timestamp for filtering.
     """
     query = select(models.RTMSPP)
 

@@ -5,10 +5,10 @@ from core import models
 
 
 async def get_ercot_dmes(*, db: AsyncSession):
-    """todo
+    """Return all ERCOT DME records.
 
     Args:
-        db: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
     """
     query = select(models.DME)
     result = await db.execute(query)

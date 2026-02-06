@@ -5,11 +5,11 @@ from core import models
 
 
 async def get_ercot_settlement_point_types(*, db: AsyncSession, name_long: str = ""):
-    """todo
+    """Fetch ERCOT settlement point types.
 
     Args:
-        db: TODO: describe.
-        name_long: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        name_long: Optional long name filter.
     """
     query = select(models.SettlementPointType)
 

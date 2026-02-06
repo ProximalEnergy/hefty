@@ -5,10 +5,10 @@ from core import models
 
 
 async def get_ercot_settlement_point_markets(*, db: AsyncSession):
-    """todo
+    """Return all ERCOT settlement point markets.
 
     Args:
-        db: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
     """
     query = select(models.SettlementPointMarket)
     result = await db.execute(query)

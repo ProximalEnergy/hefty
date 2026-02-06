@@ -6,10 +6,10 @@ from core import models
 
 
 def get_ercot_settlement_point_options(*, deep: bool):
-    """todo
+    """Build SQLAlchemy loader options for settlement point queries.
 
     Args:
-        deep: TODO: describe.
+        deep: Whether to eager-load related objects.
     """
     if deep:
         options = (
@@ -28,11 +28,11 @@ def get_ercot_settlement_point_options(*, deep: bool):
 
 
 async def get_ercot_settlement_points(*, db: AsyncSession, deep: bool = False):
-    """todo
+    """Fetch ERCOT settlement points.
 
     Args:
-        db: TODO: describe.
-        deep: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        deep: Whether to eager-load related objects.
     """
     options = get_ercot_settlement_point_options(deep=deep)
     query = select(models.SettlementPoint).options(*options)

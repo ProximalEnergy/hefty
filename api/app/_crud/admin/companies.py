@@ -14,12 +14,12 @@ async def get_companies(
     company_ids: list[UUID] | None = None,
     name_shorts: list[str] | None = None,
 ):
-    """todo
+    """Return companies filtered by IDs or short names.
 
     Args:
-        db: TODO: describe.
-        company_ids: TODO: describe.
-        name_shorts: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        company_ids: Optional list of company IDs to filter by.
+        name_shorts: Optional list of company short names to filter by.
     """
     query = select(models.Company)
 
@@ -38,11 +38,11 @@ async def create_company(
     company: interfaces.CompanyCreate,
 ):
     # If a company with the same name_short already exists, return it
-    """todo
+    """Create a company or return the existing record.
 
     Args:
-        db: TODO: describe.
-        company: TODO: describe.
+        db: Async SQLAlchemy session used for the transaction.
+        company: Input payload for the new company.
     """
     existing_result = await db.execute(
         select(models.Company).where(models.Company.name_short == company.name_short)

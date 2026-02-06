@@ -11,11 +11,11 @@ from core import models
 
 async def create_contract(*, db: AsyncSession, contract: interfaces.ContractCreate):
     # Only include columns that exist on models.Contract
-    """todo
+    """Create a contract and return the persisted record.
 
     Args:
-        db: TODO: describe.
-        contract: TODO: describe.
+        db: Async SQLAlchemy session used for the transaction.
+        contract: Input payload for the new contract.
     """
     payload = contract.model_dump(exclude_none=True)
     # Remove helper field if present
@@ -47,10 +47,10 @@ async def create_contract(*, db: AsyncSession, contract: interfaces.ContractCrea
 async def get_contracts(  # nosemgrep: python-enforce-keyword-only-args
     db: AsyncSession,
 ):
-    """todo
+    """Return all contracts.
 
     Args:
-        db: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
     """
     result = await db.execute(select(models.Contract))
     return result.scalars().all()
@@ -61,11 +61,11 @@ async def get_project_contracts(
     *,
     project_id: UUID,
 ):
-    """todo
+    """Return contracts for a project with company and document data.
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        project_id: Project identifier to filter by.
     """
     query = (
         select(
@@ -114,11 +114,11 @@ async def get_contracts_by_document_id(
     *,
     document_id: UUID,
 ):
-    """todo
+    """Return contracts associated with a document.
 
     Args:
-        db: TODO: describe.
-        document_id: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        document_id: Document identifier to filter by.
     """
     result = await db.execute(
         select(models.Contract).where(models.Contract.document_id == document_id)
@@ -132,11 +132,11 @@ async def get_kpi_type_by_name_with_contracts(
     name_short: str,
 ) -> dict | None:
     # Get the KPI type with device_type relationship loaded
-    """todo
+    """Fetch a KPI type and its contracts by short name.
 
     Args:
-        db: TODO: describe.
-        name_short: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        name_short: KPI type short name to match.
     """
     kpi_type_result = await db.execute(
         select(models.KPIType)

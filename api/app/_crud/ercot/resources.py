@@ -9,10 +9,10 @@ from core import models
 
 
 def get_ercot_resources_options(*, deep: bool):
-    """todo
+    """Build SQLAlchemy loader options for resource queries.
 
     Args:
-        deep: TODO: describe.
+        deep: Whether to eager-load related objects.
     """
     if deep:
         options = (
@@ -37,11 +37,11 @@ def get_ercot_resources_options(*, deep: bool):
 
 
 async def get_ercot_resources(*, db: AsyncSession, deep: bool = False):
-    """todo
+    """Fetch ERCOT resources.
 
     Args:
-        db: TODO: describe.
-        deep: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
+        deep: Whether to eager-load related objects.
     """
     options = get_ercot_resources_options(deep=deep)
     query = select(models.Resource).options(*options)
@@ -54,11 +54,11 @@ def get_ercot_resource(
     resource_id: int,
     deep: bool = False,
 ) -> DbQuery[models.Resource, Literal[False]]:
-    """todo
+    """Build a query for a single ERCOT resource.
 
     Args:
-        resource_id: TODO: describe.
-        deep: TODO: describe.
+        resource_id: ERCOT resource identifier.
+        deep: Whether to eager-load related objects.
     """
     options = get_ercot_resources_options(deep=deep)
     query = (

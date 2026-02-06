@@ -5,10 +5,10 @@ from core import models
 
 
 async def get_ercot_qses(*, db: AsyncSession):
-    """todo
+    """Return all ERCOT QSE records.
 
     Args:
-        db: TODO: describe.
+        db: Async SQLAlchemy session used for the query.
     """
     query = select(models.QSE)
     result = await db.execute(query)
