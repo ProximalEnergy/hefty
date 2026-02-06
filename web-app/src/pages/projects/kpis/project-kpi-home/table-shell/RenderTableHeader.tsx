@@ -54,7 +54,10 @@ const RenderTableHeader = ({ table }: RenderTableHeaderProps) => {
                   style={{
                     textAlign: align,
                     whiteSpace: 'nowrap',
-                    backgroundColor: 'transparent',
+                    backgroundColor:
+                      computedColorScheme === 'light'
+                        ? 'var(--mantine-color-default)'
+                        : undefined,
                   }}
                 >
                   {header.isPlaceholder ? null : (
@@ -99,7 +102,10 @@ const RenderTableHeader = ({ table }: RenderTableHeaderProps) => {
                   style={{
                     paddingTop: 0,
                     paddingBottom: theme.spacing.xs,
-                    backgroundColor: 'transparent',
+                    backgroundColor:
+                      computedColorScheme === 'light'
+                        ? 'var(--mantine-color-default)'
+                        : undefined,
                   }}
                 >
                   <FilterWrapper column={header.column} />
