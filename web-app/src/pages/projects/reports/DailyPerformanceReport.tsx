@@ -53,6 +53,7 @@ import {
   Text,
   Tooltip,
   useComputedColorScheme,
+  useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core'
 import {
@@ -801,10 +802,18 @@ const Page: React.FC = () => {
   const [isPdfLoading, setIsPdfLoading] = useState(false)
   const [isMapIdle, setIsMapIdle] = useState(false)
   const [pdfExportRequested, setPdfExportRequested] = useState(false)
+  const [pendingThemeSwitch, setPendingThemeSwitch] = useState(false)
+  const { setColorScheme } = useMantineColorScheme()
 
   const handleExportPdf = () => {
     if (!reportRef.current) return
     setIsPdfLoading(true)
+    if (colorScheme === 'dark') {
+      setIsMapIdle(false)
+      setPendingThemeSwitch(true)
+      setColorScheme('light')
+      return
+    }
     setPdfExportRequested(true)
   }
 
@@ -834,6 +843,14 @@ const Page: React.FC = () => {
   const project = useSelectProject(projectId!)
   const theme = useMantineTheme()
   const colorScheme = useComputedColorScheme('light')
+
+  React.useEffect(() => {
+    if (!pendingThemeSwitch) return
+    if (colorScheme !== 'light') return
+
+    setPdfExportRequested(true)
+    setPendingThemeSwitch(false)
+  }, [pendingThemeSwitch, colorScheme])
 
   // Get date from URL params via AdvancedDatePicker (already in project timezone)
   const { start: selectedDate } = useValidateDateRange({
