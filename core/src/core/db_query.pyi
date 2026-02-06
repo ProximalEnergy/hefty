@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
 from typing import Generic, Literal, TypeVar, overload
 
 import pandas as pd
@@ -18,10 +17,7 @@ S = TypeVar(
 )
 _SQL_TO_MODEL_COL_MAP: Mapping[str, str]
 
-class OutputType(Enum):
-    PANDAS = "pandas"
-    POLARS = "polars"
-    SQLALCHEMY = "sqlalchemy"
+from core.enumerations import OutputType as OutputType
 
 class DbQuery(Generic[T, S]):
     query: TextClause | Select

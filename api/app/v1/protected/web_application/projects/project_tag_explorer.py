@@ -4,8 +4,8 @@ from typing import Annotated, Any, cast
 import pandas as pd
 from core.crud.project import tags as crud_project_tags
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.database import get_db
 from core.db_query import OutputType
-from core.dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import delete, select, update

@@ -82,7 +82,7 @@ async def interpret(
 async def get_status_time_series_python(
     db: Annotated[  # noqa: ARG001
         AsyncSession,
-        Depends(core.dependencies.get_db_async),
+        Depends(core.database.get_db_async),
     ],
     *,
     project: Annotated[models.Project, Depends(get_project_api)],

@@ -8,8 +8,8 @@ import boto3
 import numpy as np
 import pandas as pd
 from core.crud.operational.device_types import get_device_types
+from core.database import get_db
 from core.db_query import OutputType
-from core.dependencies import get_db
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession

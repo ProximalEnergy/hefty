@@ -650,3 +650,11 @@ class ClaimSubmissionChannel(StrEnum):
 class ProjectDatabaseProvider(StrEnum):
     TIMESCALE = "timescale"
     CLICKHOUSE = "clickhouse"
+
+
+class OutputType(StrEnum):
+    """Enum to select DbQuery fetch output type."""
+
+    PANDAS = "pandas"
+    POLARS = "polars"
+    SQLALCHEMY = "sqlalchemy"

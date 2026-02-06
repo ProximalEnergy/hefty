@@ -207,6 +207,12 @@ export const NotificationStateEnum = {
   DELETED: "deleted",
 } as const;
 
+export const OutputTypeEnum = {
+  PANDAS: "pandas",
+  POLARS: "polars",
+  SQLALCHEMY: "sqlalchemy",
+} as const;
+
 export const PVBudgetedSoilingModeEnum = {
   FIXED: "fixed",
   PER_TIMESTAMP: "per_timestamp",

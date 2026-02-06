@@ -3,8 +3,8 @@ from datetime import date
 from typing import Annotated, Any, cast
 from uuid import UUID
 
+from core.database import get_db
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.models import Project as DBProject
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select

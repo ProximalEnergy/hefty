@@ -15,8 +15,8 @@ from core.crud.admin.notifications import (
 )
 from core.crud.admin.users import get_users
 from core.crud.operational.projects import get_projects
+from core.database import with_db_async
 from core.db_query import OutputType
-from core.dependencies import with_db_async
 from core.utils.notifications import (
     determine_notification_recipients,
     send_notification_emails_with_rate_limit,

@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from core.dependencies import get_db
+from core.database import get_db
 from core.models import Company, Contract, ContractKPI, DeviceType, KPIInstance, KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, select

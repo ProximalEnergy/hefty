@@ -9,8 +9,8 @@ from core.crud.operational.kpi_data import (
     get_project_kpi_data_agg_freq,
 )
 from core.crud.operational.projects import get_projects
+from core.database import get_db
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse

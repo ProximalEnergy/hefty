@@ -95,7 +95,7 @@ An appropriate database Session is required to access data from any tables. Use 
 
 ```python
 import core
-db = core.dependencies.get_db_session()
+db = core.database.get_db_session()
 project_db = core.dependencies.get_project_db_session(project_name_short = project_name_short)
 ```
 

@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import polars as pl
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.database import get_db
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import ORJSONResponse

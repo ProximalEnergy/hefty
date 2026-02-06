@@ -29,8 +29,8 @@ from sqlalchemy.orm import Session, load_only
 
 from core import models, settings
 from core.crud.project.tags import get_project_tags_v2
+from core.database import with_db_async
 from core.db_query import DbQuery, OutputType
-from core.dependencies import get_db_session_async
 from core.enumerations import (
     AggregationMethod,
     ProjectDatabaseProvider,
@@ -1198,7 +1198,7 @@ class DataTimeseries:
 
         # Step 2: Execute query and get single result
         # Result: Project model instance or None if not found
-        async with get_db_session_async(schema=None) as operational_db:
+        async with with_db_async(schema=None) as operational_db:
             result = await operational_db.execute(stmt)
             project = result.scalar_one_or_none()
 

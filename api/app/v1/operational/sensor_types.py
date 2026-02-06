@@ -6,8 +6,8 @@ from core.crud.operational.sensor_types import (
 from core.crud.operational.sensor_types import (
     get_sensor_types as core_get_sensor_types,
 )
+from core.database import get_db
 from core.db_query import OutputType
-from core.dependencies import get_db
 from core.enumerations import SensorType, UserTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session

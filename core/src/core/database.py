@@ -1,7 +1,16 @@
+from collections.abc import AsyncGenerator, Generator
+from contextlib import asynccontextmanager, contextmanager
+
 import sqlalchemy as sa
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase, Session
 from sqlalchemy.pool import NullPool
 
 from core.settings import DATABASE_URL, ENVIRONMENT, get_database_url
@@ -58,6 +67,105 @@ metadata = sa.MetaData(
     # NOTE: Changing this value will have downstream effects
     schema="project",
 )
+
+
+@contextmanager
+def with_db(
+    *,
+    schema: str | None = "operational",
+) -> Generator[Session, None, None]:
+    """Get a database session with the specified schema.
+
+    Args:
+        schema: Schema name to bind for schema translation.
+    """
+    # Only set schema_translate_map when schema is provided.
+    # Passing schema_translate_map=None still enables translation mode
+    # and generates __[SCHEMA_x]__ placeholders that won't resolve.
+    connectable: Engine = (
+        engine.execution_options(schema_translate_map={"project": schema})
+        if schema
+        else engine
+    )
+
+    db: Session | None = None
+    try:
+        db = Session(autocommit=False, autoflush=False, bind=connectable)
+        yield db
+    finally:
+        if db:
+            db.close()
+
+
+@asynccontextmanager
+async def with_db_async(
+    *,
+    schema: str | None = "operational",
+) -> AsyncGenerator[AsyncSession, None]:
+    """Get an async database session with the specified schema.
+
+    Args:
+        schema: Schema name to bind for schema translation.
+    """
+    # Only set schema_translate_map when schema is provided.
+    # Passing schema_translate_map=None still enables translation mode
+    # and generates __[SCHEMA_x]__ placeholders that won't resolve.
+    connectable: AsyncEngine = (
+        async_engine.execution_options(schema_translate_map={"project": schema})
+        if schema
+        else async_engine
+    )
+
+    db: AsyncSession | None = None
+    try:
+        db = AsyncSession(
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False,
+            bind=connectable,
+        )
+        yield db
+    finally:
+        if db:
+            await db.close()
+
+
+def get_db(
+    *,
+    schema: str | None = "operational",
+) -> Generator[Session, None, None]:
+    """Yield a database session scoped to the requested schema.
+
+    Args:
+        schema: Schema name to bind for schema translation.
+    """
+    with with_db(schema=schema) as db:
+        yield db
+
+
+async def get_db_async(
+    *,
+    schema: str | None = "operational",
+) -> AsyncGenerator[AsyncSession, None]:
+    """Yield an async database session scoped to the requested schema.
+
+    Args:
+        schema: Schema name to bind for schema translation.
+    """
+    async with with_db_async(schema=schema) as db:
+        yield db
+
+
+def get_db_session(
+    *,
+    schema: str | None = "operational",
+) -> Session:
+    """Get a database session directly (not a generator).
+
+    Args:
+        schema: Schema name to bind for schema translation.
+    """
+    return next(get_db(schema=schema))
 
 
 # Create a Base class

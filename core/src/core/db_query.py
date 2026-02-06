@@ -3,7 +3,6 @@
 import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
-from enum import Enum
 from typing import Literal, TypeVar
 
 import pandas as pd
@@ -14,8 +13,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.orm.strategy_options import Load, _LoadElement
 
-from core.database import async_engine, engine
-from core.dependencies import with_db, with_db_async
+from core.database import async_engine, engine, with_db, with_db_async
 
 T = TypeVar("T")
 S = TypeVar(
@@ -34,12 +32,7 @@ def _raise_for_large_sqlalchemy_result(*, count: int) -> None:
         )
 
 
-class OutputType(Enum):
-    """Enum to select DbQuery fetch output type."""
-
-    PANDAS = "pandas"
-    POLARS = "polars"
-    SQLALCHEMY = "sqlalchemy"
+from core.enumerations import OutputType as OutputType
 
 
 @dataclass

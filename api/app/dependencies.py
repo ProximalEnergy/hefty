@@ -5,13 +5,13 @@ from uuid import UUID
 import httpx
 import jwt
 import sqlalchemy as sa
+from core.database import with_db as _with_db
+from core.database import with_db_async as _with_async_db
 from core.db_query import OutputType
 from core.dependencies import get_project_name_short as core_get_project_name_short
 from core.dependencies import (
     get_project_name_short_async as core_get_project_name_short_async,
 )
-from core.dependencies import with_db as _with_db
-from core.dependencies import with_db_async as _with_async_db
 from core.enumerations import UserTypeEnum
 from fastapi import Depends, Header, HTTPException, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession

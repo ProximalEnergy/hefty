@@ -14,7 +14,7 @@ from pathlib import Path
 src_dir = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_dir))
 
-from core.dependencies import get_db_session  # noqa: E402
+from core.database import get_db_session  # noqa: E402
 from core.enumerations import BaseIntEnum  # noqa: E402
 
 
