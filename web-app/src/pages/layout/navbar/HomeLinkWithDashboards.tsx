@@ -189,8 +189,9 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
         <Menu
           trigger="click-hover"
           position="right-start"
-          openDelay={100}
-          closeDelay={400}
+          openDelay={0}
+          closeDelay={0}
+          transitionProps={{ duration: 0 }}
           offset={0}
           zIndex={10000}
           opened={isMenuOpen}
@@ -217,8 +218,9 @@ export function HomeLinkWithDashboards({ collapsed }: { collapsed: boolean }) {
     <Menu
       trigger="hover"
       position="right-start"
-      openDelay={100}
-      closeDelay={400}
+      openDelay={0}
+      closeDelay={0}
+      transitionProps={{ duration: 0 }}
       offset={0}
       zIndex={10000}
       opened={isMenuOpen}

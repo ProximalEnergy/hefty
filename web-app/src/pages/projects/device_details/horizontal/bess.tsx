@@ -8,6 +8,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
+import { sortAndColorDevices } from '@/utils/colors'
 import { SegmentedControl, Stack } from '@mantine/core'
 import { PlotMouseEvent, PlotRelayoutEvent } from 'plotly.js'
 import { useCallback, useState } from 'react'
@@ -213,12 +214,15 @@ const Page = () => {
             if (!deviceDetails.data) return undefined
             switch (pcsChartType) {
               case 'line':
-                return deviceDetails.data.pcs.map((pcs) => ({
-                  x: deviceDetails.data.times,
-                  y: pcs.values,
-                  name: pcs.name,
-                  customdata: pcs.device_id,
-                }))
+                return sortAndColorDevices(deviceDetails.data.pcs).map(
+                  (pcs) => ({
+                    x: deviceDetails.data.times,
+                    y: pcs.values,
+                    name: pcs.name,
+                    customdata: pcs.device_id,
+                    line: { color: pcs.color },
+                  }),
+                )
               case 'heatmap':
                 return [
                   {
@@ -287,12 +291,15 @@ const Page = () => {
               if (!deviceDetails.data) return undefined
               switch (batteryChartType) {
                 case 'line':
-                  return deviceDetails.data.battery.map((battery) => ({
-                    x: deviceDetails.data.times,
-                    y: battery.values,
-                    name: battery.name,
-                    customdata: battery.device_id,
-                  }))
+                  return sortAndColorDevices(deviceDetails.data.battery).map(
+                    (battery) => ({
+                      x: deviceDetails.data.times,
+                      y: battery.values,
+                      name: battery.name,
+                      customdata: battery.device_id,
+                      line: { color: battery.color },
+                    }),
+                  )
                 case 'heatmap':
                   return [
                     {

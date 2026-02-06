@@ -126,8 +126,9 @@ export function LinksGroup({
           <Menu
             trigger="click-hover"
             position="right-start"
-            openDelay={100}
-            closeDelay={400}
+            openDelay={0}
+            closeDelay={0}
+            transitionProps={{ duration: 0 }}
             offset={0}
             zIndex={10000}
           >
@@ -149,8 +150,9 @@ export function LinksGroup({
       <Menu
         trigger="hover"
         position="right-start"
-        openDelay={100}
-        closeDelay={400}
+        openDelay={0}
+        closeDelay={0}
+        transitionProps={{ duration: 0 }}
         offset={0}
         zIndex={10000}
       >

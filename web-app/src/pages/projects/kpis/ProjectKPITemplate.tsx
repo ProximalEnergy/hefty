@@ -1,4 +1,4 @@
-import { DeviceTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, KPITypeEnum } from '@/api/enumerations'
 import {
   OperationalKPIData,
   useGetKPIExcel,
@@ -66,6 +66,21 @@ import { HoverInfo } from '../gis/utils'
 const ICON_SIZE = 14
 const MAX_DEVICES = 3000 // Do not render device visualizations for more than this many devices
 const KPI_TYPE_IDS_REVERSE = [13, 14, 18, 19, 21, 22]
+const ZERO_BASED_HOURS_KPI_IDS: Set<number> = new Set([
+  KPITypeEnum.BESS_PROJECT_HOURS_CHARGING,
+  KPITypeEnum.BESS_PROJECT_HOURS_DISCHARGING,
+  KPITypeEnum.BESS_PROJECT_HOURS_IDLING,
+])
+
+const getYAxisRangeConfig = (kpiType: KPIType) => {
+  if (kpiType.unit === '%') {
+    return { range: [0, 1.05] as [number, number] }
+  }
+  if (ZERO_BASED_HOURS_KPI_IDS.has(kpiType.kpi_type_id)) {
+    return { rangemode: 'tozero' as const }
+  }
+  return {}
+}
 
 const Page = () => {
   const { projectId, kpiTypeId } = useParams()
@@ -456,7 +471,7 @@ const SelectableChartCard = ({
                     },
                   },
                   yaxis: {
-                    range: kpiType.unit === '%' ? [0, 1.05] : [],
+                    ...getYAxisRangeConfig(kpiType),
                     tickformat: yAxisTickFormat,
                     title: {
                       text: yAxisTitle,
@@ -466,7 +481,7 @@ const SelectableChartCard = ({
               : plotType === 'line'
                 ? {
                     yaxis: {
-                      range: kpiType.unit === '%' ? [0, 1.05] : [],
+                      ...getYAxisRangeConfig(kpiType),
                       tickformat: yAxisTickFormat,
                       title: {
                         text: yAxisTitle,
@@ -485,7 +500,7 @@ const SelectableChartCard = ({
                         range: [-0.5, (dates?.length || 0) - 0.5],
                       },
                       yaxis: {
-                        range: kpiType.unit === '%' ? [0, 1.05] : [],
+                        ...getYAxisRangeConfig(kpiType),
                         tickformat: yAxisTickFormat,
                         title: {
                           text: yAxisTitle,
@@ -910,12 +925,6 @@ const ProjectPlotCard = ({
             mode: 'lines+markers',
             customdata: [data.project_id as Plotly.Datum],
             connectgaps: false,
-            hovertemplate:
-              kpiType.unit === null
-                ? `%{y:.2f}${selectedAggregationType ? ` (${formatAggregationLabel(selectedAggregationType)})` : ''}<extra></extra>`
-                : kpiType.unit === '%'
-                  ? `%{y:.2%}${selectedAggregationType ? ` (${formatAggregationLabel(selectedAggregationType)})` : ''}<extra></extra>`
-                  : `%{y:.2f} ${kpiType.unit}${selectedAggregationType ? ` (${formatAggregationLabel(selectedAggregationType)})` : ''}<extra></extra>`,
             name: portfolioProjects?.find(
               (project) => project.project_id === data.project_id,
             )?.name_long,
@@ -926,7 +935,7 @@ const ProjectPlotCard = ({
         ]}
         layout={{
           yaxis: {
-            range: kpiType.unit === '%' ? [0, 1.05] : [],
+            ...getYAxisRangeConfig(kpiType),
             title: {
               text: yAxisTitle,
             },

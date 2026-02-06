@@ -106,6 +106,21 @@ const formatTemperature = (
   return `${tempValue.toFixed(1)}°C`
 }
 
+const adaptiveDateTickSettings = {
+  tickmode: 'auto' as const,
+  tickformat: '%B %Y',
+  tickformatstops: [
+    {
+      dtickrange: [null, 2505600000] as [null, number],
+      value: '%b %d',
+    },
+    {
+      dtickrange: [2505600000, null] as [number, null],
+      value: '%B %Y',
+    },
+  ],
+}
+
 const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
@@ -405,7 +420,9 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
   const calculateKeyMetrics = () => {
     const sohData = getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_SOH)
     const cycleData = getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_CYCLE_COUNT)
-    const tempData = getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_TEMP)
+    const tempData =
+      getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_CELL_TEMP) ||
+      getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_TEMP)
 
     const sohValue =
       getLatestValue(sohData?.data || { dates: [], project_data: [] }) || 0.9915
@@ -434,7 +451,9 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
     const restSocData = getKpiDataByType(
       BATTERY_KPI_IDS.BESS_STRING_RESTING_SOC,
     )
-    const tempData = getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_TEMP)
+    const tempData =
+      getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_CELL_TEMP) ||
+      getKpiDataByType(BATTERY_KPI_IDS.BESS_STRING_AVG_TEMP)
 
     // Get project capacity for DC Energy calculations
     const nameplateCapacity = projectData?.capacity_bess_energy_bol_dc || 0
@@ -775,7 +794,14 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
       ) || 0
 
     // Calculate average cycles per day based on actual data days
-    const cycleDataDays = cycleData?.data?.dates?.length || 0
+    const cycleDataDates = cycleData?.data?.dates ?? []
+    const cycleDataValues = cycleData?.data?.project_data ?? []
+    const cycleDataDays = cycleDataDates.reduce((count, _, index) => {
+      const value = cycleDataValues[index]
+      return typeof value === 'number' && Number.isFinite(value)
+        ? count + 1
+        : count
+    }, 0)
     const daysInOperation = Math.max(1, cycleDataDays)
     const avgCyclesPerDay = totalCycles > 0 ? totalCycles / daysInOperation : 0
 
@@ -820,6 +846,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
     return {
       totalCycles,
       avgCyclesPerDay,
+      daysInOperation,
       daysWithMultipleCycles,
       maxCyclesInDay,
       cycleDepth,
@@ -828,6 +855,8 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
       cycleEfficiency,
     }
   }
+
+  const cyclingMetrics = calculateCyclingMetrics()
 
   // Operating Metrics Data
   const operatingMetrics = {
@@ -838,7 +867,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
     ...calculateTemperatureMetrics(),
 
     // Cycling Metrics - calculated from KPI data
-    ...calculateCyclingMetrics(),
+    ...cyclingMetrics,
 
     // Performance Metrics
     availability: 99.2, // %
@@ -853,7 +882,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
     thermalAging: 0.12, // % per year
 
     // Operational Metrics
-    daysInOperation: 692, // days
+    daysInOperation: cyclingMetrics.daysInOperation, // days
     maintenanceEvents: 3, // count
     lastMaintenance: 'Set Up Maintenance Schedule', // date
     nextMaintenance: 'Set Up Maintenance Schedule', // date
@@ -1467,13 +1496,19 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                       {(() => {
                         if (!kpiData || kpiData.length === 0) return 'No data'
 
-                        // Find the earliest date from all KPI data
+                        // Find the earliest date from all KPI data with a valid value
                         let earliestDate: string | null = null
                         kpiData.forEach((kpi: OperationalKPIData) => {
-                          if (kpi.data?.dates && kpi.data.dates.length > 0) {
-                            const firstDate = kpi.data.dates[0]
-                            if (!earliestDate || firstDate < earliestDate) {
-                              earliestDate = firstDate
+                          const dates = kpi.data?.dates ?? []
+                          const values = kpi.data?.project_data ?? []
+                          for (let i = 0; i < dates.length; i++) {
+                            const value = values[i]
+                            if (value !== null && value !== undefined) {
+                              const currentDate = dates[i]
+                              if (!earliestDate || currentDate < earliestDate) {
+                                earliestDate = currentDate
+                              }
+                              break
                             }
                           }
                         })
@@ -1593,9 +1628,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         type: 'date' as const,
                         domain: [0, 1],
                         range: [dateRange.start, dateRange.end],
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showgrid: true,
                         gridcolor: '#e0e0e0',
                         gridwidth: 1,
@@ -1606,9 +1639,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         domain: [0, 1],
                         range: [dateRange.start, dateRange.end],
                         matches: 'x' as const,
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showgrid: true,
                         gridcolor: '#e0e0e0',
                         gridwidth: 1,
@@ -1619,9 +1650,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         domain: [0, 1],
                         range: [dateRange.start, dateRange.end],
                         matches: 'x' as const,
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showgrid: true,
                         gridcolor: '#e0e0e0',
                         gridwidth: 1,
@@ -1632,9 +1661,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         domain: [0, 1],
                         range: [dateRange.start, dateRange.end],
                         matches: 'x' as const,
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showgrid: true,
                         gridcolor: '#e0e0e0',
                         gridwidth: 1,
@@ -1756,9 +1783,6 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                           })),
                         )}
                         layout={plotLayout}
-                        config={{
-                          displayModeBar: false,
-                        }}
                       />
                     )
                   })()}
@@ -1972,9 +1996,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                       xaxis: {
                         type: 'date' as const,
                         showticklabels: true,
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showline: true,
                         showgrid: true,
                         gridcolor: '#e0e0e0',
@@ -1994,9 +2016,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                         type: 'date' as const,
                         showticklabels: true,
                         matches: 'x' as const,
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showline: true,
                         showgrid: true,
                         gridcolor: '#e0e0e0',
@@ -2013,9 +2033,7 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                       xaxis3: {
                         type: 'date' as const,
                         matches: 'x' as const,
-                        tickformat: '%b %Y',
-                        tickmode: 'auto' as const,
-                        dtick: 'M1',
+                        ...adaptiveDateTickSettings,
                         showline: true,
                         showgrid: true,
                         gridcolor: '#e0e0e0',

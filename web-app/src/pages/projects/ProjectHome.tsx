@@ -1158,7 +1158,7 @@ const BatteryHealth = () => {
         x: expectedSohData.x,
         y: expectedSohData.y,
         name: 'Expected SOH',
-        line: { color: theme.colors.gray[4], dash: 'dash', width: 3 },
+        line: { color: theme.colors.gray[4], dash: 'dash', width: 2 },
         type: 'scatter',
         hovertemplate: '%{y:.2f}%<extra></extra>',
       } satisfies Data,
@@ -1198,7 +1198,7 @@ const BatteryHealth = () => {
           type: 'bar',
           yaxis: 'y2',
           hovertemplate: '%{y:.0f}<extra></extra>',
-          marker: { color: theme.colors.blue[6] },
+          marker: { color: theme.colors.gray[6] },
         } satisfies Data)
       }
     }
@@ -1386,7 +1386,7 @@ const BatteryHealth = () => {
                                   : 'String Rest SOC (%)',
                               font: {
                                 color: showCycleData
-                                  ? theme.colors.blue[6]
+                                  ? theme.colors.gray[6]
                                   : showSocData
                                     ? theme.colors.green[6]
                                     : theme.colors.violet[6],
@@ -1400,7 +1400,7 @@ const BatteryHealth = () => {
                             fixedrange: true,
                             tickfont: {
                               color: showCycleData
-                                ? theme.colors.blue[6]
+                                ? theme.colors.gray[6]
                                 : showSocData
                                   ? theme.colors.green[6]
                                   : theme.colors.violet[6],
@@ -1525,7 +1525,7 @@ const BatteryHealth = () => {
                 <Text
                   size="xl"
                   fw={700}
-                  c={theme.colors.blue[6]}
+                  c={theme.colors.gray[6]}
                   style={{ cursor: 'pointer' }}
                   onClick={() =>
                     navigate(`/projects/${projectId}/kpis/type/32`)
@@ -1564,7 +1564,7 @@ const BatteryHealth = () => {
               {avgDodData && (
                 <Badge
                   variant="light"
-                  color="blue"
+                  color="gray"
                   size="sm"
                   style={{ cursor: 'pointer' }}
                   onClick={() =>

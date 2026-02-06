@@ -15,6 +15,7 @@ import {
   Button,
   Group,
   Loader,
+  LoadingOverlay,
   Stack,
   Table,
   Tabs,
@@ -483,12 +484,11 @@ const Page = () => {
   const shouldShowLoader =
     project.isLoading ||
     deviceTypesInitial.isPending ||
-    devicesQuery.isLoading ||
+    // devicesQuery.isLoading ||
     sensorTypes.isLoading ||
     dataAvailabilityInitialQuery.isLoading ||
     (!isAllDataLoaded && !selectedDeviceType) || // NEW: don't render page while cycling empties
     dataAvailabilityInitialQuery.isLoading
-
   if (shouldShowLoader) {
     return <PageLoader />
   }
@@ -605,23 +605,26 @@ const Page = () => {
               }}
               pt="md"
             >
-              <MantineReactTable table={table} />
-              {hasMoreDevices &&
-                panelDevices.length > 0 &&
-                panelDevices.length % 1000 === 0 && (
-                  <Group justify="center" mt="md">
-                    <Button
-                      onClick={loadMoreDevices}
-                      loading={devicesQuery.isLoading}
-                      disabled={devicesQuery.isLoading}
-                      variant="light"
-                    >
-                      {devicesQuery.isLoading
-                        ? `Loading devices...`
-                        : `Load More Devices (${panelDevices.length} loaded)`}
-                    </Button>
-                  </Group>
-                )}
+              <div style={{ position: 'relative' }}>
+                <LoadingOverlay visible={devicesQuery.isLoading} />
+                <MantineReactTable table={table} />
+                {hasMoreDevices &&
+                  panelDevices.length > 0 &&
+                  panelDevices.length % 1000 === 0 && (
+                    <Group justify="center" mt="md">
+                      <Button
+                        onClick={loadMoreDevices}
+                        loading={devicesQuery.isLoading}
+                        disabled={devicesQuery.isLoading}
+                        variant="light"
+                      >
+                        {devicesQuery.isLoading
+                          ? `Loading devices...`
+                          : `Load More Devices (${panelDevices.length} loaded)`}
+                      </Button>
+                    </Group>
+                  )}
+              </div>
             </Tabs.Panel>
           ))}
       </Tabs>

@@ -103,7 +103,7 @@ export const projectLinks: DropdownLink[] = [
   {
     to: (projectId: string) => `/projects/${projectId}/contracts/`,
     label: 'Contracts',
-    icon: icons.IconFileText,
+    icon: icons.IconContract,
   },
   {
     to: (projectId: string) => `/projects/${projectId}/reports`,
@@ -168,12 +168,6 @@ export const projectLinks: DropdownLink[] = [
     links: [
       {
         to: (projectId: string) =>
-          `/projects/${projectId}/equipment-analysis/single-line-diagram`,
-        label: 'Snapshot',
-        requiresBESS: true,
-      },
-      {
-        to: (projectId: string) =>
           `/projects/${projectId}/events/meta-analysis`,
         label: 'Events Meta Analysis',
         requiresEventIntegration: true,
@@ -182,6 +176,7 @@ export const projectLinks: DropdownLink[] = [
         to: (projectId: string) => `/projects/${projectId}/events/uptime`,
         label: 'Uptime',
         requiresEventIntegration: true,
+        requiresPV: true,
       },
       {
         to: (projectId: string) =>
@@ -221,6 +216,12 @@ export const projectLinks: DropdownLink[] = [
       {
         to: (projectId: string) => `/projects/${projectId}/utility/expected`,
         label: 'Expected Plotting',
+      },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/equipment-analysis/single-line-diagram`,
+        label: 'Snapshot',
+        requiresBESS: true,
       },
       {
         to: (projectId: string) => `/projects/${projectId}/utility/backfill`,

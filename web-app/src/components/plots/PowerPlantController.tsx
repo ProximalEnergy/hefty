@@ -20,6 +20,25 @@ const PowerPlantController = () => {
     },
   })
 
+  const getTraceColor = (sensorTypeName: string) => {
+    switch (sensorTypeName) {
+      case 'ppc_active_power':
+        return '#69DB7C' // mantine-green-4
+      case 'ppc_active_power_setpoint':
+        return '#2B8A3E' // mantine-green-9
+      case 'ppc_reactive_power':
+        return '#4DABF7' // mantine-blue-4
+      case 'ppc_reactive_power_setpoint':
+        return '#1864AB' // mantine-blue-9
+      case 'ppc_power_factor':
+        return '#DA77F2' // mantine-grape-4
+      case 'ppc_power_factor_setpoint':
+        return '#862E9C' // mantine-grape-9
+      default:
+        return undefined
+    }
+  }
+
   return (
     <PlotlyPlot
       data={data?.map((d) => ({
@@ -28,6 +47,9 @@ const PowerPlantController = () => {
         name: d.name,
         hoverlabel: {
           namelength: -1,
+        },
+        line: {
+          color: getTraceColor(d.sensor_type_name),
         },
         yaxis: d.name.includes('Power Factor') ? 'y2' : 'y',
       }))}

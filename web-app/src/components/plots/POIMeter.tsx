@@ -134,10 +134,12 @@ const POIMeter = ({ showGridHzV = false }: POIMeterProps) => {
 
   // Define colors for specific traces
   const getTraceColor = (sensorTypeId: number): string | undefined => {
-    if (sensorTypeId === 1) return '#00C853' // green for active power
-    if (sensorTypeId === 12) return '#9C27B0' // purple for power factor
-    if (sensorTypeId === 11) return '#2196F3' // blue for frequency
-    if (sensorTypeId === 192) return '#FF5722' // orange/red for voltage
+    if (sensorTypeId === 1) return '#69DB7C' // active power (light green)
+    if (sensorTypeId === 8) return '#4DABF7' // reactive power (light blue)
+    if (sensorTypeId === 10) return '#FCC419' // apparent power (yellow)
+    if (sensorTypeId === 12) return '#DA77F2' // power factor (light purple)
+    if (sensorTypeId === 11) return '#22B8CF' // frequency (cyan)
+    if (sensorTypeId === 192) return '#FF922B' // voltage (orange)
     return undefined // use default colorway
   }
 

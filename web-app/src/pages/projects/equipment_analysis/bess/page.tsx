@@ -15,6 +15,7 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
 import RealTime from '@/pages/projects/device_details/RealTime'
+import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
 import Plotly from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useRef, useState } from 'react'
@@ -188,10 +189,11 @@ const Page = () => {
                 <PlotlyPlot
                   data={
                     data.data?.bess_enclosure &&
-                    data.data.bess_enclosure.map((d) => ({
+                    sortAndColorDevices(data.data.bess_enclosure).map((d) => ({
                       x: d.x,
                       y: d.y,
                       name: d.name,
+                      line: { color: d.color },
                     }))
                   }
                   layout={{
@@ -212,10 +214,11 @@ const Page = () => {
                 <PlotlyPlot
                   data={
                     data.data?.bess_bank &&
-                    data.data.bess_bank.map((d) => ({
+                    sortAndColorDevices(data.data.bess_bank).map((d) => ({
                       x: d.x,
                       y: d.y,
                       name: d.name,
+                      line: { color: d.color },
                     }))
                   }
                   layout={{
@@ -236,10 +239,11 @@ const Page = () => {
                 <PlotlyPlot
                   data={
                     data.data?.bess_string &&
-                    data.data.bess_string.map((d) => ({
+                    sortAndColorDevices(data.data.bess_string).map((d) => ({
                       x: d.x,
                       y: d.y,
                       name: d.name,
+                      line: { color: d.color },
                     }))
                   }
                   layout={{
