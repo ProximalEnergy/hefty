@@ -21,7 +21,7 @@ async def get_report_types(
     """todo
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     return await _crud.get_report_types(db=db)
 
@@ -37,7 +37,7 @@ async def get_report_type(
     """todo
 
     Args:
-        report_type_id: TODO: describe.
-        db: TODO: describe.
+        report_type_id: Description for report_type_id.
+        db: Description for db.
     """
     return await _crud.get_report_type(db=db, report_type_id=report_type_id)

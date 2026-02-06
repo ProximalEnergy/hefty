@@ -45,11 +45,11 @@ async def get_bess(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        project_id: Description for project_id.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     return await get_bess_data(
         project=project,
@@ -72,10 +72,10 @@ async def get_bess_pcs(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     return await get_bess_pcs_data(
         project=project,
@@ -99,10 +99,10 @@ async def get_equipment_analysis_combiner(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
+        start: Description for start.
+        end: Description for end.
     """
     return await get_equipment_analysis_combiner_data(
         project_db=project_db,
@@ -125,10 +125,10 @@ async def get_tracker(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     return await get_tracker_data(
         start=start,
@@ -152,11 +152,11 @@ async def get_tracker_by_pv_block_id(
     """todo
 
     Args:
-        pv_block_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        pv_block_id: Description for pv_block_id.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     return await get_tracker_by_pv_block_id_data(
         pv_block_id=pv_block_id,
@@ -177,10 +177,10 @@ async def get_equipment_analysis_pcs(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     return await get_equipment_analysis_pcs_data(
         start=start,
@@ -201,13 +201,13 @@ async def get_heatmap(
     """todo
 
     Args:
-        sensor_type_name_short: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        agg: TODO: describe.
-        fillna_zero: TODO: describe.
+        sensor_type_name_short: Description for sensor_type_name_short.
+        project_db: Description for project_db.
+        project: Description for project.
+        start: Description for start.
+        end: Description for end.
+        agg: Description for agg.
+        fillna_zero: Description for fillna_zero.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     tags_query = core.crud.project.tags.get_project_tags_v2(
@@ -298,11 +298,11 @@ async def get_sunburst_data(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project_id: TODO: describe.
-        mode: TODO: describe.
-        ignored_device_type_ids: TODO: describe.
+        db: Description for db.
+        project_db: Description for project_db.
+        project_id: Description for project_id.
+        mode: Description for mode.
+        ignored_device_type_ids: Description for ignored_device_type_ids.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_query = core.crud.project.devices.get_project_devices()
@@ -423,8 +423,8 @@ async def get_sunburst_data(
             """todo
 
             Args:
-                device: TODO: describe.
-                hierarchy: TODO: describe.
+                device: Description for device.
+                hierarchy: Description for hierarchy.
             """
             if device["parent_device_id"]:
                 parent_device = [

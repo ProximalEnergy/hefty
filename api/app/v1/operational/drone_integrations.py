@@ -68,7 +68,7 @@ async def get_drone_integrations_(
     """Get all drone integrations.
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     return await get_drone_integrations(db=db)
 
@@ -85,8 +85,8 @@ async def create_drone_integration_(
     """Create a new drone integration.
 
     Args:
-        drone_integration: TODO: describe.
-        db: TODO: describe.
+        drone_integration: Description for drone_integration.
+        db: Description for db.
     """
     return await create_drone_integration(db=db, drone_integration=drone_integration)
 
@@ -104,9 +104,9 @@ async def update_drone_integration_(
     """Update a drone integration.
 
     Args:
-        drone_integration_id: TODO: describe.
-        drone_integration: TODO: describe.
-        db: TODO: describe.
+        drone_integration_id: Description for drone_integration_id.
+        drone_integration: Description for drone_integration.
+        db: Description for db.
     """
     return await update_drone_integration(
         db=db,
@@ -125,8 +125,8 @@ async def delete_drone_integration_(
     """Delete a drone integration.
 
     Args:
-        drone_integration_id: TODO: describe.
-        db: TODO: describe.
+        drone_integration_id: Description for drone_integration_id.
+        db: Description for db.
     """
     await delete_drone_integration(db=db, drone_integration_id=drone_integration_id)
     return HTTPException(status_code=200, detail="Drone integration deleted")
@@ -141,9 +141,9 @@ async def order_drone_inspection(
     """Send a drone inspection order email to the provider.
 
     Args:
-        request: TODO: describe.
-        user_data: TODO: describe.
-        db: TODO: describe.
+        request: Description for request.
+        user_data: Description for user_data.
+        db: Description for db.
     """
     try:
         # Get project information
@@ -202,7 +202,7 @@ async def query_provider_sites(
         Currently supports Zeitview (provider_id = 0).
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     if request.provider_id == 0:
         client = ZeitviewAPI(api_key=request.api_key)

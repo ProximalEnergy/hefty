@@ -33,8 +33,8 @@ async def get_settlement_points(
     """todo
 
     Args:
-        deep: TODO: describe.
-        db: TODO: describe.
+        deep: Description for deep.
+        db: Description for db.
     """
     return await crud_get_ercot_settlement_points(db=db, deep=deep)
 
@@ -50,8 +50,8 @@ async def get_resources(
     """todo
 
     Args:
-        deep: TODO: describe.
-        db: TODO: describe.
+        deep: Description for deep.
+        db: Description for db.
     """
     return await crud_get_ercot_resources(db=db, deep=deep)
 
@@ -68,9 +68,9 @@ async def get_resource(
     """todo
 
     Args:
-        resource_id: TODO: describe.
-        deep: TODO: describe.
-        _db: TODO: describe.
+        resource_id: Description for resource_id.
+        deep: Description for deep.
+        _db: Description for _db.
     """
     resource_rows = await crud_get_ercot_resource(
         resource_id=resource_id,
@@ -94,8 +94,8 @@ async def get_resource_net_power(
     """todo
 
     Args:
-        resource_id: TODO: describe.
-        db: TODO: describe.
+        resource_id: Description for resource_id.
+        db: Description for db.
     """
     start = pd.Timestamp.now(tz="US/Central").floor("D") - DateOffset(days=60)
     end = start + DateOffset(days=1)
@@ -198,10 +198,10 @@ async def get_prices(
     """todo
 
     Args:
-        settlement_point_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        db: TODO: describe.
+        settlement_point_id: Description for settlement_point_id.
+        start: Description for start.
+        end: Description for end.
+        db: Description for db.
     """
     dam_spp = await crud_get_ercot_dam_spp(
         db,

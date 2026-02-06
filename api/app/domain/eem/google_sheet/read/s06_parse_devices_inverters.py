@@ -17,8 +17,8 @@ async def parse_devices_inverters(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        system: TODO: describe.
+        project_db: Description for project_db.
+        system: Description for system.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     inverters = await core.crud.project.devices.get_project_devices(

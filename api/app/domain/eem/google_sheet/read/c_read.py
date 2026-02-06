@@ -42,9 +42,9 @@ async def import_google_sheet(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        db: Description for db.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     project_name_short = project.name_short
     google_sheet_id: str | None = project.gsheet_id

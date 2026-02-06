@@ -79,7 +79,7 @@ async def generate_daily_performance_summary(
         summary of the project's performance for the selected day.
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

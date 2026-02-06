@@ -108,13 +108,13 @@ async def get_bar(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        operational_db: TODO: describe.
-        project: TODO: describe.
-        sensor_type_id: TODO: describe.
-        aggregation_type: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Description for project_db.
+        operational_db: Description for operational_db.
+        project: Description for project.
+        sensor_type_id: Description for sensor_type_id.
+        aggregation_type: Description for aggregation_type.
+        start: Description for start.
+        end: Description for end.
     """
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
@@ -210,13 +210,13 @@ async def get_gauge(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        operational_db: TODO: describe.
-        project: TODO: describe.
-        measured_variable: TODO: describe.
-        maximum_value: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Description for project_db.
+        operational_db: Description for operational_db.
+        project: Description for project.
+        measured_variable: Description for measured_variable.
+        maximum_value: Description for maximum_value.
+        start: Description for start.
+        end: Description for end.
     """
     try:
         project_start = pd.Timestamp(start).tz_convert(project.time_zone)
@@ -324,16 +324,16 @@ async def get_line(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        operational_db: TODO: describe.
-        project: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        aggregation_types: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        tag_ids: TODO: describe.
-        maximum: TODO: describe.
-        minimum: TODO: describe.
+        project_db: Description for project_db.
+        operational_db: Description for operational_db.
+        project: Description for project.
+        sensor_type_ids: Description for sensor_type_ids.
+        aggregation_types: Description for aggregation_types.
+        start: Description for start.
+        end: Description for end.
+        tag_ids: Description for tag_ids.
+        maximum: Description for maximum.
+        minimum: Description for minimum.
     """
     # --- Time handling (unchanged) ---
     try:
@@ -635,14 +635,14 @@ async def get_scatter(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        db: TODO: describe.
-        operational_db: TODO: describe.
-        project: TODO: describe.
-        x_axis_sensor_type_id: TODO: describe.
-        y_axis_sensor_type_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Description for project_db.
+        db: Description for db.
+        operational_db: Description for operational_db.
+        project: Description for project.
+        x_axis_sensor_type_id: Description for x_axis_sensor_type_id.
+        y_axis_sensor_type_id: Description for y_axis_sensor_type_id.
+        start: Description for start.
+        end: Description for end.
     """
     MAX_POINTS = 1_000
     try:
@@ -756,9 +756,9 @@ async def get_user_dashboards(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
     """
     user_dashboards = await crud_get_user_dashboards(
         db=db,
@@ -777,9 +777,9 @@ async def get_shared_user_dashboards(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
     """
     shared_user_dashboards = await crud_get_shared_user_dashboards(
         db=db,
@@ -800,10 +800,10 @@ async def create_user_dashboard(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        request: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        request: Description for request.
     """
     new_dashboard = await crud_create_user_dashboard(
         db=db,
@@ -829,11 +829,11 @@ async def duplicate_user_dashboard(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        dashboard_id: TODO: describe.
-        request: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        dashboard_id: Description for dashboard_id.
+        request: Description for request.
     """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
@@ -865,7 +865,7 @@ async def duplicate_user_dashboard(
         different project.
 
         Args:
-            target_project_id: TODO: describe.
+            target_project_id: Description for target_project_id.
         """
         processed_components = []
         is_different_project = target_project_id != project.project_id
@@ -962,10 +962,10 @@ async def update_user_dashboard(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        request: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        request: Description for request.
     """
     try:
         updated_dashboard = await crud_update_user_dashboard(
@@ -994,10 +994,10 @@ async def get_dashboard(
     """todo
 
     Args:
-        dashboard_id: TODO: describe.
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
+        dashboard_id: Description for dashboard_id.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
     """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
@@ -1027,10 +1027,10 @@ async def get_dashboard_shared_users_endpoint(
     """Get all users who have share access to a dashboard.
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        dashboard_id: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        dashboard_id: Description for dashboard_id.
     """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
@@ -1061,11 +1061,11 @@ async def share_dashboard(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        dashboard_id: TODO: describe.
-        request: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        dashboard_id: Description for dashboard_id.
+        request: Description for request.
     """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
@@ -1097,11 +1097,11 @@ async def unshare_dashboard(
     """Unshare a dashboard with a user.
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        dashboard_id: TODO: describe.
-        request: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        dashboard_id: Description for dashboard_id.
+        request: Description for request.
     """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)
@@ -1132,10 +1132,10 @@ async def delete_dashboard(
     """todo
 
     Args:
-        dashboard_id: TODO: describe.
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
+        dashboard_id: Description for dashboard_id.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
     """
     try:
         dashboard_uuid = uuid.UUID(dashboard_id)

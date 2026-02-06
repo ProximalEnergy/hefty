@@ -39,20 +39,20 @@ async def get_project_tags(
     """todo
 
     Args:
-        tag_ids: TODO: describe.
-        in_tsdb: TODO: describe.
-        device_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_type_name_shorts: TODO: describe.
-        data_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
-        name_scada: TODO: describe.
-        deep: TODO: describe.
-        include_ghost_tags: TODO: describe.
-        has_sensor_type_id: TODO: describe.
-        project_schema: TODO: describe.
+        tag_ids: Description for tag_ids.
+        in_tsdb: Description for in_tsdb.
+        device_ids: Description for device_ids.
+        sensor_type_ids: Description for sensor_type_ids.
+        device_type_ids: Description for device_type_ids.
+        sensor_type_name_shorts: Description for sensor_type_name_shorts.
+        data_type_ids: Description for data_type_ids.
+        name_short: Description for name_short.
+        name_long: Description for name_long.
+        name_scada: Description for name_scada.
+        deep: Description for deep.
+        include_ghost_tags: Description for include_ghost_tags.
+        has_sensor_type_id: Description for has_sensor_type_id.
+        project_schema: Description for project_schema.
     """
     tags_query = core.crud.project.tags.get_project_tags_v2(
         tag_ids=tag_ids,
@@ -97,10 +97,10 @@ async def get_tags_by_regex(
     """todo
 
     Args:
-        regex: TODO: describe.
-        limit: TODO: describe.
-        deep: TODO: describe.
-        project_db: TODO: describe.
+        regex: Description for regex.
+        limit: Description for limit.
+        deep: Description for deep.
+        project_db: Description for project_db.
     """
     try:
         re.compile(regex)

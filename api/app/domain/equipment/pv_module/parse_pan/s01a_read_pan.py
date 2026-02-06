@@ -9,7 +9,7 @@ def read_pan_txt(
     """todo
 
     Args:
-        file_content: TODO: describe.
+        file_content: Description for file_content.
     """
     with io.StringIO(file_content.decode("utf-8-sig")) as file:
         lines = [

@@ -32,11 +32,11 @@ def get_battery_settlement_details_dataframe(
     """todo
 
     Args:
-        identifier: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        token: TODO: describe.
+        identifier: Description for identifier.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        token: Description for token.
     """
     url = (
         "https://api.ptp.energy/v1/markets/ERCOTNodal/endpoints/"
@@ -107,12 +107,12 @@ async def get_battery_settlement_details(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        tps_token: TODO: describe.
-        user: TODO: describe.
-        db_async: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        tps_token: Description for tps_token.
+        user: Description for user.
+        db_async: Description for db_async.
     """
     qse_integration = (
         await core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
@@ -188,7 +188,7 @@ async def get_battery_settlement_details(
         """todo
 
         Args:
-            col_name: TODO: describe.
+            col_name: Description for col_name.
         """
         if col_name in df.columns:
             return pd.to_numeric(df[col_name], errors="coerce")

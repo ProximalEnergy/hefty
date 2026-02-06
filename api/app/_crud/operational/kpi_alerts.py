@@ -16,10 +16,10 @@ async def get_user_kpi_alerts(
     """todo
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
-        kpi_type_id: TODO: describe.
+        db: Description for db.
+        user_id: Description for user_id.
+        project_id: Description for project_id.
+        kpi_type_id: Description for kpi_type_id.
     """
     query = select(models.KPIAlert)
     query = query.where(models.KPIAlert.user_id == user_id)
@@ -38,8 +38,8 @@ async def get_user_triggered_alerts(
     """todo
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
+        db: Description for db.
+        user_id: Description for user_id.
     """
     query = select(models.KPIAlert)
     query = query.where(models.KPIAlert.user_id == user_id)
@@ -56,9 +56,9 @@ async def trigger_user_alert(
     """todo
 
     Args:
-        db: TODO: describe.
-        kpi_alert_id: TODO: describe.
-        triggered: TODO: describe.
+        db: Description for db.
+        kpi_alert_id: Description for kpi_alert_id.
+        triggered: Description for triggered.
     """
     query = select(models.KPIAlert)
     query = query.where(models.KPIAlert.kpi_alert_id == kpi_alert_id)
@@ -87,11 +87,11 @@ async def add_kpi_alert(
     """todo
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
-        kpi_type_id: TODO: describe.
-        config: TODO: describe.
+        db: Description for db.
+        user_id: Description for user_id.
+        project_id: Description for project_id.
+        kpi_type_id: Description for kpi_type_id.
+        config: Description for config.
     """
     db_alert = models.KPIAlert(
         user_id=str(user_id),
@@ -113,9 +113,9 @@ async def update_kpi_alert(
     """todo
 
     Args:
-        db: TODO: describe.
-        kpi_type_id: TODO: describe.
-        config: TODO: describe.
+        db: Description for db.
+        kpi_type_id: Description for kpi_type_id.
+        config: Description for config.
     """
     query = select(models.KPIAlert).where(
         models.KPIAlert.kpi_alert_id == config["kpi_alert_id"]
@@ -147,8 +147,8 @@ async def delete_kpi_alert(
     """todo
 
     Args:
-        db: TODO: describe.
-        alert_id: TODO: describe.
+        db: Description for db.
+        alert_id: Description for alert_id.
     """
     query = select(models.KPIAlert).where(models.KPIAlert.kpi_alert_id == alert_id)
     result = await db.execute(query)

@@ -22,11 +22,11 @@ def backfill_in_background(
     """todo
 
     Args:
-        energy_model_version: TODO: describe.
-        project_name_short: TODO: describe.
-        simulation_start: TODO: describe.
-        simulation_end: TODO: describe.
-        **kwargs: TODO: describe.
+        energy_model_version: Description for energy_model_version.
+        project_name_short: Description for project_name_short.
+        simulation_start: Description for simulation_start.
+        simulation_end: Description for simulation_end.
+        **kwargs: Description for kwargs.
     """
     lambda_client = boto3.client("lambda", region_name="us-east-2")
 

@@ -25,8 +25,8 @@ async def get_project_om_contractor_scopes(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
     """
     rows = await get_om_contractor_scopes_by_project(db=db, project_id=project_id)
     data = []
@@ -57,9 +57,9 @@ async def create_project_om_contractor_scope(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        payload: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        payload: Description for payload.
+        db: Description for db.
     """
     company_id = payload.get("company_id")
     scope_json = payload.get("scope_json") or {}
@@ -112,10 +112,10 @@ async def update_project_om_contractor_scope(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        om_contractor_scope_id: TODO: describe.
-        payload: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        om_contractor_scope_id: Description for om_contractor_scope_id.
+        payload: Description for payload.
+        db: Description for db.
     """
     scope_json = payload.get("scope_json") or {}
     contractor_addressee = payload.get("contractor_addressee")
@@ -168,9 +168,9 @@ async def delete_project_om_contractor_scope(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        om_contractor_scope_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        om_contractor_scope_id: Description for om_contractor_scope_id.
+        db: Description for db.
     """
     stmt = delete(models.OMContractorScope).where(
         models.OMContractorScope.om_contractor_scope_id == om_contractor_scope_id,

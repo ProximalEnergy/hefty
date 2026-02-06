@@ -43,12 +43,12 @@ def backfill_expected_energy_model(
             serrano: 2025-02-15
 
     Args:
-        background_tasks: TODO: describe.
-        request: TODO: describe.
-        energy_model_version: TODO: describe.
-        project_name_short: TODO: describe.
-        simulation_start: TODO: describe.
-        simulation_end: TODO: describe.
+        background_tasks: Description for background_tasks.
+        request: Description for request.
+        energy_model_version: Description for energy_model_version.
+        project_name_short: Description for project_name_short.
+        simulation_start: Description for simulation_start.
+        simulation_end: Description for simulation_end.
     """
     kwargs: dict[str, Any] = {}
     if request.single_diode_model is not None:

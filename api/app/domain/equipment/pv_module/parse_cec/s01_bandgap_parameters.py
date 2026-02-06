@@ -11,7 +11,7 @@ def assign_bandgap_parameters(
                     in units of [eV/K]
 
     Args:
-        cec_pv_module: TODO: describe.
+        cec_pv_module: Description for cec_pv_module.
     """
     BANDGAP_PARAMS = {
         "eg": 1.121,

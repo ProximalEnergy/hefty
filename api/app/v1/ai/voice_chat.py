@@ -31,7 +31,7 @@ async def create_voice_chat_session(request: VoiceChatSessionRequest):
         GPT API.
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     try:
         # Get OpenAI API key from environment
@@ -129,7 +129,7 @@ async def ensure_vector_store(
         needed, create it. Returns the vector_store_id.
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     try:
         openai_api_key = os.getenv("OPENAI_API_KEY")

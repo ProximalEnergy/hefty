@@ -11,7 +11,7 @@ async def get_event_loss_types(  # nosemgrep: python-enforce-keyword-only-args
     """todo
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     query = select(models.EventLossType)
     result = await db.execute(query)

@@ -40,10 +40,10 @@ async def get_cmms_permissions_by_project_id(
         List of CMMSPermission objects.
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
-        project_id: TODO: describe.
-        can_view: TODO: describe.
+        db: Description for db.
+        company_id: Description for company_id.
+        project_id: Description for project_id.
+        can_view: Description for can_view.
     """
 
     query = (

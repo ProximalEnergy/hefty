@@ -1043,7 +1043,7 @@ export interface paths {
          * @description Analyze battery settlement data using AI and return a single formatted text.
          *
          *     Args:
-         *         request: TODO: describe.
+         *         request: Description for request.
          */
         post: operations["analyze_battery_settlement_v1_ai_battery_settlement_analysis_post"];
         delete?: never;
@@ -1069,7 +1069,7 @@ export interface paths {
          *         summary of the project's performance for the selected day.
          *
          *     Args:
-         *         request: TODO: describe.
+         *         request: Description for request.
          */
         post: operations["generate_daily_performance_summary_v1_ai_daily_performance_summary_post"];
         delete?: never;
@@ -1094,7 +1094,7 @@ export interface paths {
          *         GPT API.
          *
          *     Args:
-         *         request: TODO: describe.
+         *         request: Description for request.
          */
         post: operations["create_voice_chat_session_v1_ai_voice_chat_session_post"];
         delete?: never;
@@ -1118,7 +1118,7 @@ export interface paths {
          *         needed, create it. Returns the vector_store_id.
          *
          *     Args:
-         *         request: TODO: describe.
+         *         request: Description for request.
          */
         post: operations["ensure_vector_store_v1_ai_vector_store_ensure_post"];
         delete?: never;
@@ -1144,7 +1144,7 @@ export interface paths {
          *         id from the provided list, based on IR/RGB signals.
          *
          *     Args:
-         *         request: TODO: describe.
+         *         request: Description for request.
          */
         post: operations["suggest_root_cause_v1_ai_root_cause_suggest_post"];
         delete?: never;
@@ -1165,8 +1165,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         deep: TODO: describe.
-         *         db: TODO: describe.
+         *         deep: Description for deep.
+         *         db: Description for db.
          */
         get: operations["get_settlement_points_v1_development_ercot_settlement_points_get"];
         put?: never;
@@ -1189,8 +1189,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         deep: TODO: describe.
-         *         db: TODO: describe.
+         *         deep: Description for deep.
+         *         db: Description for db.
          */
         get: operations["get_resources_v1_development_ercot_resources_get"];
         put?: never;
@@ -1213,9 +1213,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         resource_id: TODO: describe.
-         *         deep: TODO: describe.
-         *         _db: TODO: describe.
+         *         resource_id: Description for resource_id.
+         *         deep: Description for deep.
+         *         _db: Description for _db.
          */
         get: operations["get_resource_v1_development_ercot_resources__resource_id__get"];
         put?: never;
@@ -1238,8 +1238,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         resource_id: TODO: describe.
-         *         db: TODO: describe.
+         *         resource_id: Description for resource_id.
+         *         db: Description for db.
          */
         get: operations["get_resource_net_power_v1_development_ercot_resources__resource_id__net_power_get"];
         put?: never;
@@ -1262,10 +1262,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         settlement_point_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
+         *         settlement_point_id: Description for settlement_point_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         db: Description for db.
          */
         get: operations["get_prices_v1_development_ercot_prices_get"];
         put?: never;
@@ -1290,12 +1290,12 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         user_id: TODO: describe.
-         *         email: TODO: describe.
-         *         subject: TODO: describe.
-         *         url: TODO: describe.
-         *         comment: TODO: describe.
-         *         screenshot: TODO: describe.
+         *         user_id: Description for user_id.
+         *         email: Description for email.
+         *         subject: Description for subject.
+         *         url: Description for url.
+         *         comment: Description for comment.
+         *         screenshot: Description for screenshot.
          */
         post: operations["create_feedback_v1_feedback_post"];
         delete?: never;
@@ -1362,10 +1362,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         block_device_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         project_id: Description for project_id.
+         *         block_device_id: Description for block_device_id.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_combiner_block_performance_v1_gis_combiner__project_id___block_device_id__get"];
         put?: never;
@@ -1388,12 +1388,12 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         project_id: Description for project_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         db: Description for db.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_pcs_v1_gis__project_id__pcs_get"];
         put?: never;
@@ -1416,11 +1416,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         block_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         block_id: Description for block_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get"];
         put?: never;
@@ -1443,7 +1443,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
+         *         project_db: Description for project_db.
          */
         get: operations["get_bess_enclosure_v1_gis__project_id__bess_enclosure_get"];
         put?: never;
@@ -1469,14 +1469,14 @@ export interface paths {
          *     actual/expected power for devices matching that type within the viewport.
          *
          *     Args:
-         *         north: TODO: describe.
-         *         east: TODO: describe.
-         *         south: TODO: describe.
-         *         west: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         power_device_type_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         north: Description for north.
+         *         east: Description for east.
+         *         south: Description for south.
+         *         west: Description for west.
+         *         device_type_ids: Description for device_type_ids.
+         *         power_device_type_id: Description for power_device_type_id.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_devices_in_viewport_v1_gis__project_id__devices_in_viewport_get"];
         put?: never;
@@ -1557,7 +1557,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         cec_pv_module_ids: TODO: describe.
+         *         cec_pv_module_ids: Description for cec_pv_module_ids.
          */
         get: operations["get_cec_pv_modules_v1_operational_cec_pv_modules_get"];
         put?: never;
@@ -1566,8 +1566,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         modules: TODO: describe.
-         *         db: TODO: describe.
+         *         modules: Description for modules.
+         *         db: Description for db.
          */
         post: operations["upsert_cec_pv_modules_bulk_v1_operational_cec_pv_modules_post"];
         delete?: never;
@@ -1588,7 +1588,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         cec_pv_module_id: TODO: describe.
+         *         cec_pv_module_id: Description for cec_pv_module_id.
          */
         get: operations["get_cec_pv_modules_in_proximal_format_v1_operational_cec_pv_modules_proximal_format_get"];
         put?: never;
@@ -1616,9 +1616,9 @@ export interface paths {
          *     The input lists must have the same length.
          *
          *     Args:
-         *         manufacturers: TODO: describe.
-         *         models: TODO: describe.
-         *         db: TODO: describe.
+         *         manufacturers: Description for manufacturers.
+         *         models: Description for models.
+         *         db: Description for db.
          */
         get: operations["get_cec_pv_module_ids_by_manufacturer_and_model_v1_operational_cec_pv_modules_lookup_ids_get"];
         put?: never;
@@ -1641,7 +1641,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Description for db.
          */
         get: operations["get_proximal_cec_pv_module_manufacturers_v1_operational_cec_pv_modules_manufacturers_get"];
         put?: never;
@@ -1664,8 +1664,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         manufacturer: TODO: describe.
+         *         db: Description for db.
+         *         manufacturer: Description for manufacturer.
          */
         get: operations["get_proximal_cec_pv_module_models_v1_operational_cec_pv_modules_models_get"];
         put?: never;
@@ -1688,10 +1688,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         device_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         name_long: TODO: describe.
-         *         db: TODO: describe.
+         *         device_type_ids: Description for device_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         db: Description for db.
          */
         get: operations["get_device_types"];
         put?: never;
@@ -1714,7 +1714,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         device_type_id: TODO: describe.
+         *         device_type_id: Description for device_type_id.
          */
         get: operations["get_device_type_by_id"];
         put?: never;
@@ -1761,7 +1761,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         failure_mode_ids: TODO: describe.
+         *         failure_mode_ids: Description for failure_mode_ids.
          */
         get: operations["get_failure_modes"];
         put?: never;
@@ -1784,10 +1784,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         name_long: TODO: describe.
-         *         db: TODO: describe.
+         *         project_type_ids: Description for project_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         db: Description for db.
          */
         get: operations["get_project_types"];
         put?: never;
@@ -1811,10 +1811,10 @@ export interface paths {
          *         Even though project_id is in the path, categories are currently global.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         skip: TODO: describe.
-         *         limit: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         skip: Description for skip.
+         *         limit: Description for limit.
          */
         get: operations["read_calendar_item_categories_v1_operational_projects__project_id__calendar_item_categories_get"];
         put?: never;
@@ -1837,9 +1837,9 @@ export interface paths {
          * @description Retrieve all calendar items for the specified project, including category color.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         get: operations["get_calendar_items_v1_operational_projects__project_id__calendar_events_get"];
         put?: never;
@@ -1848,10 +1848,10 @@ export interface paths {
          * @description Create a new calendar item for a project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         item: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Description for project_id.
+         *         item: Description for item.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         post: operations["create_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events_post"];
         delete?: never;
@@ -1874,10 +1874,10 @@ export interface paths {
          *
          *     Args:
          *         project_id: The unique identifier of the project.
-         *         calendar_item_id: TODO: describe.
-         *         item: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         calendar_item_id: Description for calendar_item_id.
+         *         item: Description for item.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         put: operations["update_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__put"];
         post?: never;
@@ -1887,8 +1887,8 @@ export interface paths {
          *
          *     Args:
          *         project_id: The unique identifier of the project.
-         *         calendar_item_id: TODO: describe.
-         *         db: TODO: describe.
+         *         calendar_item_id: Description for calendar_item_id.
+         *         db: Description for db.
          */
         delete: operations["delete_calendar_item_endpoint_v1_operational_projects__project_id__calendar_events__calendar_item_id__delete"];
         options?: never;
@@ -1913,11 +1913,11 @@ export interface paths {
          *         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         calendar_item_id: TODO: describe.
-         *         exception_date_str: TODO: describe.
-         *         exception_payload: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         calendar_item_id: Description for calendar_item_id.
+         *         exception_date_str: Description for exception_date_str.
+         *         exception_payload: Description for exception_payload.
+         *         db: Description for db.
          */
         post: operations["post_calendar_item_exception_v1_operational_projects__project_id__calendar_events__calendar_item_id__exceptions__exception_date_str__post"];
         delete?: never;
@@ -1938,8 +1938,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         project_db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         project_db: Description for project_db.
          */
         get: operations["get_project_contracts_v1_operational_projects__project_id__contracts_get"];
         put?: never;
@@ -1948,10 +1948,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         contract: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Description for project_id.
+         *         contract: Description for contract.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         post: operations["create_contract_v1_operational_projects__project_id__contracts_post"];
         delete?: never;
@@ -1972,8 +1972,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         contract_id: TODO: describe.
-         *         db: TODO: describe.
+         *         contract_id: Description for contract_id.
+         *         db: Description for db.
          */
         get: operations["get_contract_kpis_v1_operational_projects__project_id__contracts__contract_id__kpis_get"];
         put?: never;
@@ -2001,10 +2001,10 @@ export interface paths {
          *     calling.
          *
          *     Args:
-         *         document_id: TODO: describe.
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user: TODO: describe.
+         *         document_id: Description for document_id.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         user: Description for user.
          */
         post: operations["analyze_contract_document_v1_operational_projects__project_id__contracts_analyze_document__document_id__post"];
         delete?: never;
@@ -2031,9 +2031,9 @@ export interface paths {
          *         KPIs associated with them, ensuring data integrity.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         contract_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         contract_id: Description for contract_id.
+         *         db: Description for db.
          */
         delete: operations["delete_contract_v1_operational_projects__project_id__contracts__contract_id__delete"];
         options?: never;
@@ -2053,13 +2053,13 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         interval: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         interval: Description for interval.
+         *         tag_ids: Description for tag_ids.
+         *         sensor_type_ids: Description for sensor_type_ids.
          */
         get: operations["get_llm_time_series_v1_operational_projects__project_id__llm_time_series_get"];
         put?: never;
@@ -2082,20 +2082,20 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         tag_ids: TODO: describe.
-         *         sensor_type_name_shorts: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         fillna_zero: TODO: describe.
-         *         get_last: TODO: describe.
-         *         start_offset: TODO: describe.
-         *         last_offset: TODO: describe.
-         *         ffill_limit: TODO: describe.
-         *         interval: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
+         *         tag_ids: Description for tag_ids.
+         *         sensor_type_name_shorts: Description for sensor_type_name_shorts.
+         *         device_ids: Description for device_ids.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         fillna_zero: Description for fillna_zero.
+         *         get_last: Description for get_last.
+         *         start_offset: Description for start_offset.
+         *         last_offset: Description for last_offset.
+         *         ffill_limit: Description for ffill_limit.
+         *         interval: Description for interval.
+         *         include_ghost_tags: Description for include_ghost_tags.
          */
         get: operations["get_project_dataframe_endpoint_v1_operational_projects__project_id__dataframe_get"];
         put?: never;
@@ -2118,17 +2118,17 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         tag_ids: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         parent_device_id: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
-         *         sensor_type_name_shorts: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
-         *         interval: TODO: describe.
+         *         tag_ids: Description for tag_ids.
+         *         device_ids: Description for device_ids.
+         *         parent_device_id: Description for parent_device_id.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         sensor_type_name_shorts: Description for sensor_type_name_shorts.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         include_ghost_tags: Description for include_ghost_tags.
+         *         interval: Description for interval.
          */
         get: operations["get_time_series_v1_operational_projects__project_id__time_series_get"];
         put?: never;
@@ -2151,16 +2151,16 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         operational_db: TODO: describe.
-         *         project: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         interval: TODO: describe.
-         *         ensure_full_range: TODO: describe.
-         *         cutoff_now: TODO: describe.
+         *         project_db: Description for project_db.
+         *         operational_db: Description for operational_db.
+         *         project: Description for project.
+         *         tag_ids: Description for tag_ids.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         interval: Description for interval.
+         *         ensure_full_range: Description for ensure_full_range.
+         *         cutoff_now: Description for cutoff_now.
          */
         get: operations["get_timeseries_v3_v1_operational_projects__project_id__data_timeseries_v3_get"];
         put?: never;
@@ -2183,7 +2183,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
+         *         project_id: Description for project_id.
          */
         get: operations["get_project_data_last_updated_endpoint_v1_operational_projects__project_id__data_last_updated_get"];
         put?: never;
@@ -2291,14 +2291,14 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         project_id: TODO: describe.
-         *         device_id: TODO: describe.
-         *         time_end_gte: TODO: describe.
-         *         time_end_lt: TODO: describe.
-         *         open: TODO: describe.
-         *         event_ids: TODO: describe.
-         *         open_at: TODO: describe.
+         *         db: Description for db.
+         *         project_id: Description for project_id.
+         *         device_id: Description for device_id.
+         *         time_end_gte: Description for time_end_gte.
+         *         time_end_lt: Description for time_end_lt.
+         *         open: Description for open.
+         *         event_ids: Description for event_ids.
+         *         open_at: Description for open_at.
          */
         get: operations["get_events_v1_operational_projects__project_id__events_get"];
         put?: never;
@@ -2321,18 +2321,18 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         page: TODO: describe.
-         *         page_size: TODO: describe.
-         *         sort_column: TODO: describe.
-         *         sort_direction: TODO: describe.
-         *         open: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         project_db: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         page: Description for page.
+         *         page_size: Description for page_size.
+         *         sort_column: Description for sort_column.
+         *         sort_direction: Description for sort_direction.
+         *         open: Description for open.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_type_ids: Description for device_type_ids.
+         *         device_ids: Description for device_ids.
+         *         project_db: Description for project_db.
+         *         db: Description for db.
          */
         get: operations["get_paginated_events_v1_operational_projects__project_id__events_paginated_events_get"];
         put?: never;
@@ -2356,9 +2356,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         root_cause: TODO: describe.
-         *         event_id: TODO: describe.
-         *         project_db: TODO: describe.
+         *         root_cause: Description for root_cause.
+         *         event_id: Description for event_id.
+         *         project_db: Description for project_db.
          */
         put: operations["update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put"];
         post?: never;
@@ -2380,9 +2380,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         db: TODO: describe.
-         *         project_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         db: Description for db.
+         *         project_id: Description for project_id.
          */
         get: operations["get_event_devices_v1_operational_projects__project_id__events_event_devices_get"];
         put?: never;
@@ -2406,15 +2406,15 @@ export interface paths {
          *     loss info.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         db: TODO: describe.
-         *         open: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         project_id: TODO: describe.
-         *         project: TODO: describe.
+         *         project_db: Description for project_db.
+         *         db: Description for db.
+         *         open: Description for open.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_type_ids: Description for device_type_ids.
+         *         device_ids: Description for device_ids.
+         *         project_id: Description for project_id.
+         *         project: Description for project.
          */
         get: operations["get_events_summary_v1_operational_projects__project_id__events_get_events_summary_get"];
         put?: never;
@@ -2465,8 +2465,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         device_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         device_id: Description for device_id.
          */
         get: operations["get_event_trace_tags_v1_operational_projects__project_id__events_event_trace_tags_get"];
         put?: never;
@@ -2490,9 +2490,9 @@ export interface paths {
          *
          *     Args:
          *         db: Operational database
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project_id: Description for project_id.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_llm_event_losses_v1_operational_projects__project_id__events_llm_event_losses_get"];
         put?: never;
@@ -2525,10 +2525,10 @@ export interface paths {
          *       'proximal_pv_dc_capacity'.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         db: TODO: describe.
-         *         project_id: TODO: describe.
-         *         payload: TODO: describe.
+         *         project_db: Description for project_db.
+         *         db: Description for db.
+         *         project_id: Description for project_id.
+         *         payload: Description for payload.
          */
         post: operations["bulk_create_events_v1_operational_projects__project_id__events_bulk_create_post"];
         delete?: never;
@@ -2550,8 +2550,8 @@ export interface paths {
          *         Anomalies are linked to events via the event_id column.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         event_id: Description for event_id.
          */
         get: operations["get_event_anomalies_v1_operational_projects__project_id__events__event_id__anomalies_get"];
         put?: never;
@@ -2575,7 +2575,7 @@ export interface paths {
          *
          *     Args:
          *         project_id: The UUID of the project
-         *         event_id: TODO: describe.
+         *         event_id: Description for event_id.
          */
         get: operations["get_event_losses_summary_v1_operational_projects__project_id__events_event_losses_summary_get"];
         put?: never;
@@ -2647,9 +2647,9 @@ export interface paths {
          *             List of reactions for the message(s)
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         event_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         event_message_id: Description for event_message_id.
+         *         event_id: Description for event_id.
          */
         get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
         put?: never;
@@ -2666,10 +2666,10 @@ export interface paths {
          *         The created reaction (if added) or the deleted reaction info (if removed)
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_schema: TODO: describe.
-         *         reaction: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         reaction: Description for reaction.
+         *         user_data: Description for user_data.
          */
         post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
         delete?: never;
@@ -2696,8 +2696,8 @@ export interface paths {
          *             List of event messages, ordered by created_at (ascending)
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         event_id: Description for event_id.
          */
         get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
         put?: never;
@@ -2719,13 +2719,13 @@ export interface paths {
          *             The created event message
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_schema: TODO: describe.
-         *         project_id: TODO: describe.
-         *         message: TODO: describe.
-         *         background_tasks: TODO: describe.
-         *         user_data: TODO: describe.
-         *         api_prod: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         project_id: Description for project_id.
+         *         message: Description for message.
+         *         background_tasks: Description for background_tasks.
+         *         user_data: Description for user_data.
+         *         api_prod: Description for api_prod.
          */
         post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
         delete?: never;
@@ -2757,11 +2757,11 @@ export interface paths {
          *             The updated event message
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_schema: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         message: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_message_id: Description for event_message_id.
+         *         message: Description for message.
+         *         user_data: Description for user_data.
          */
         put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
         post?: never;
@@ -2777,9 +2777,9 @@ export interface paths {
          *             The deleted event message (with deleted_at set)
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_db: Description for project_db.
+         *         event_message_id: Description for event_message_id.
+         *         user_data: Description for user_data.
          */
         delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
         options?: never;
@@ -2804,9 +2804,9 @@ export interface paths {
          *             {"muted": bool} - True if muted, False if unmuted
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_db: Description for project_db.
+         *         event_id: Description for event_id.
+         *         user_data: Description for user_data.
          */
         post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
         delete?: never;
@@ -2830,9 +2830,9 @@ export interface paths {
          *             {"muted": bool} - True if muted, False if not muted
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         event_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_db: Description for project_db.
+         *         event_id: Description for event_id.
+         *         user_data: Description for user_data.
          */
         get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
         put?: never;
@@ -2872,11 +2872,11 @@ export interface paths {
          *             }
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_schema: TODO: describe.
-         *         event_id: TODO: describe.
-         *         event_message_id: TODO: describe.
-         *         file: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_id: Description for event_id.
+         *         event_message_id: Description for event_message_id.
+         *         file: Description for file.
          */
         post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
         delete?: never;
@@ -2902,10 +2902,10 @@ export interface paths {
          *             {"presigned_url": str, "s3_key": str}
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_schema: TODO: describe.
-         *         event_id: TODO: describe.
-         *         image_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_id: Description for event_id.
+         *         image_id: Description for image_id.
          */
         get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
         put?: never;
@@ -2931,10 +2931,10 @@ export interface paths {
          *             List of image objects with presigned URLs
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_schema: TODO: describe.
-         *         event_id: TODO: describe.
-         *         event_message_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_id: Description for event_id.
+         *         event_message_id: Description for event_message_id.
          */
         get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
         put?: never;
@@ -3023,14 +3023,14 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         project: TODO: describe.
-         *         is_superadmin: TODO: describe.
-         *         kpi_type_ids: TODO: describe.
-         *         device_type_id: TODO: describe.
-         *         contract_id: TODO: describe.
-         *         start: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         project: Description for project.
+         *         is_superadmin: Description for is_superadmin.
+         *         kpi_type_ids: Description for kpi_type_ids.
+         *         device_type_id: Description for device_type_id.
+         *         contract_id: Description for contract_id.
+         *         start: Description for start.
          */
         get: operations["get_project_kpi_summary_v1_operational_projects__project_id__kpi_data_kpi_summary_cards_get"];
         put?: never;
@@ -3053,10 +3053,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         *         kpi_type_id: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
+         *         kpi_type_id: Description for kpi_type_id.
          */
         get: operations["get_user_kpi_alerts_v1_operational_projects__project_id__kpi_data_kpi_alerts_get"];
         put?: never;
@@ -3065,10 +3065,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         data: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Description for project_id.
+         *         data: Description for data.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         post: operations["get_project_kpi_alerts_v1_operational_projects__project_id__kpi_data_kpi_alerts_post"];
         /**
@@ -3076,8 +3076,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         data: TODO: describe.
-         *         db: TODO: describe.
+         *         data: Description for data.
+         *         db: Description for db.
          */
         delete: operations["delete_kpi_alert_v1_operational_projects__project_id__kpi_data_kpi_alerts_delete"];
         options?: never;
@@ -3098,8 +3098,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         data: TODO: describe.
-         *         db: TODO: describe.
+         *         data: Description for data.
+         *         db: Description for db.
          */
         put: operations["update_kpi_alert_v1_operational_projects__project_id__kpi_data_update_kpi_alert_put"];
         post?: never;
@@ -3121,8 +3121,8 @@ export interface paths {
          * @description Get all contract KPIs for a project with counterparty information
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
          */
         get: operations["get_project_contract_kpis"];
         put?: never;
@@ -3145,11 +3145,11 @@ export interface paths {
          * @description This endpoint is for the chat application to fetch KPI data.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         kpi_type_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         kpi_type_id: Description for kpi_type_id.
+         *         db: Description for db.
          */
         get: operations["get_llm_kpis_v1_operational_projects__project_id__kpi_data_llm_kpis_get"];
         put?: never;
@@ -3172,11 +3172,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         level: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         level: Description for level.
          */
         get: operations["get_rte_v1_operational_projects__project_id__kpi_data_rte_get"];
         put?: never;
@@ -3199,8 +3199,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
          */
         get: operations["get_project_om_contractor_scopes_v1_operational_projects__project_id__om_contractors_get"];
         put?: never;
@@ -3209,9 +3209,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         payload: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         payload: Description for payload.
+         *         db: Description for db.
          */
         post: operations["create_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors_post"];
         delete?: never;
@@ -3233,10 +3233,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         om_contractor_scope_id: TODO: describe.
-         *         payload: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         om_contractor_scope_id: Description for om_contractor_scope_id.
+         *         payload: Description for payload.
+         *         db: Description for db.
          */
         put: operations["update_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__put"];
         post?: never;
@@ -3245,9 +3245,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         om_contractor_scope_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         om_contractor_scope_id: Description for om_contractor_scope_id.
+         *         db: Description for db.
          */
         delete: operations["delete_project_om_contractor_scope_v1_operational_projects__project_id__om_contractors__om_contractor_scope_id__delete"];
         options?: never;
@@ -3267,10 +3267,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get"];
         put?: never;
@@ -3293,17 +3293,17 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         min_poa: TODO: describe.
-         *         max_poa_1d: TODO: describe.
-         *         max_poa_std: TODO: describe.
-         *         rolling_window: TODO: describe.
-         *         use_poa_1d: TODO: describe.
-         *         use_poa_std: TODO: describe.
-         *         resample_rate: TODO: describe.
-         *         project_db: TODO: describe.
-         *         async_project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         start: Description for start.
+         *         min_poa: Description for min_poa.
+         *         max_poa_1d: Description for max_poa_1d.
+         *         max_poa_std: Description for max_poa_std.
+         *         rolling_window: Description for rolling_window.
+         *         use_poa_1d: Description for use_poa_1d.
+         *         use_poa_std: Description for use_poa_std.
+         *         resample_rate: Description for resample_rate.
+         *         project_db: Description for project_db.
+         *         async_project_db: Description for async_project_db.
+         *         project: Description for project.
          */
         get: operations["dc_amperage_report_v2_v1_operational_projects__project_id__reports_dc_amperage_report_v2_get"];
         put?: never;
@@ -3326,10 +3326,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         is_superadmin: TODO: describe.
-         *         report_type_ids: TODO: describe.
-         *         deep: TODO: describe.
+         *         project_id: Description for project_id.
+         *         is_superadmin: Description for is_superadmin.
+         *         report_type_ids: Description for report_type_ids.
+         *         deep: Description for deep.
          */
         get: operations["get_project_reports_instances_v1_operational_projects__project_id__report_instances_get"];
         /**
@@ -3338,9 +3338,9 @@ export interface paths {
          *         Only accessible by superadmins.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         data: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         data: Description for data.
+         *         db: Description for db.
          */
         put: operations["bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put"];
         post?: never;
@@ -3391,20 +3391,20 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         tag_ids: TODO: describe.
-         *         in_tsdb: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         sensor_type_name_shorts: TODO: describe.
-         *         data_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         name_long: TODO: describe.
-         *         name_scada: TODO: describe.
-         *         deep: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
-         *         has_sensor_type_id: TODO: describe.
-         *         project_schema: TODO: describe.
+         *         tag_ids: Description for tag_ids.
+         *         in_tsdb: Description for in_tsdb.
+         *         device_ids: Description for device_ids.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         device_type_ids: Description for device_type_ids.
+         *         sensor_type_name_shorts: Description for sensor_type_name_shorts.
+         *         data_type_ids: Description for data_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         name_scada: Description for name_scada.
+         *         deep: Description for deep.
+         *         include_ghost_tags: Description for include_ghost_tags.
+         *         has_sensor_type_id: Description for has_sensor_type_id.
+         *         project_schema: Description for project_schema.
          */
         get: operations["get_project_tags_v1_operational_projects__project_id__tags__get"];
         put?: never;
@@ -3427,10 +3427,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         regex: TODO: describe.
-         *         limit: TODO: describe.
-         *         deep: TODO: describe.
-         *         project_db: TODO: describe.
+         *         regex: Description for regex.
+         *         limit: Description for limit.
+         *         deep: Description for deep.
+         *         project_db: Description for project_db.
          */
         get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
         put?: never;
@@ -3453,9 +3453,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         status_tags: TODO: describe.
-         *         status_values: TODO: describe.
+         *         db: Description for db.
+         *         status_tags: Description for status_tags.
+         *         status_values: Description for status_values.
          */
         get: operations["interpret_v1_operational_projects__project_id__status_interpret_get"];
         put?: never;
@@ -3479,15 +3479,15 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         device_type_ids: TODO: describe.
-         *         sensor_types: TODO: describe.
+         *         db: Description for db.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_ids: Description for device_ids.
+         *         tag_ids: Description for tag_ids.
+         *         device_type_ids: Description for device_type_ids.
+         *         sensor_types: Description for sensor_types.
          */
         get: operations["get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get"];
         put?: never;
@@ -3600,8 +3600,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project_id: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
          */
         get: operations["list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get"];
         put?: never;
@@ -3610,10 +3610,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         payload: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         payload: Description for payload.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         *         user_data: Description for user_data.
          */
         post: operations["create_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_post"];
         delete?: never;
@@ -3634,10 +3634,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         pv_budgeted_series_id: TODO: describe.
-         *         project_db: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         pv_budgeted_series_id: Description for pv_budgeted_series_id.
+         *         project_db: Description for project_db.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get"];
         put?: never;
@@ -3663,8 +3663,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         pv_budgeted_series_id: TODO: describe.
-         *         project_db: TODO: describe.
+         *         pv_budgeted_series_id: Description for pv_budgeted_series_id.
+         *         project_db: Description for project_db.
          */
         delete: operations["delete_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series__pv_budgeted_series_id__delete"];
         options?: never;
@@ -3686,10 +3686,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         payload: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         payload: Description for payload.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         *         user_data: Description for user_data.
          */
         post: operations["bulk_upsert_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_bulk_upsert_post"];
         delete?: never;
@@ -3710,14 +3710,14 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         expected_metric_ids: TODO: describe.
-         *         highest_priority_only: TODO: describe.
-         *         cutoff_now: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_ids: Description for device_ids.
+         *         expected_metric_ids: Description for expected_metric_ids.
+         *         highest_priority_only: Description for highest_priority_only.
+         *         cutoff_now: Description for cutoff_now.
          */
         get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected_get"];
         put?: never;
@@ -3740,9 +3740,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         user: Description for user.
          */
         get: operations["get_project_documents_v1_operational_projects__project_id__documents_get"];
         put?: never;
@@ -3751,10 +3751,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         file: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         file: Description for file.
          */
         post: operations["upload_project_document_v1_operational_projects__project_id__documents_post"];
         delete?: never;
@@ -3780,11 +3780,11 @@ export interface paths {
          *     Returns the most relevant chunks of text based on the query.
          *
          *     Args:
-         *         document_id: TODO: describe.
-         *         project_id: TODO: describe.
-         *         query: TODO: describe.
-         *         vector_store_id: TODO: describe.
-         *         db: TODO: describe.
+         *         document_id: Description for document_id.
+         *         project_id: Description for project_id.
+         *         query: Description for query.
+         *         vector_store_id: Description for vector_store_id.
+         *         db: Description for db.
          */
         post: operations["search_contract_content_v1_operational_projects__project_id__documents_search_contract__document_id__post"];
         delete?: never;
@@ -3808,8 +3808,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         document_id: TODO: describe.
-         *         db: TODO: describe.
+         *         document_id: Description for document_id.
+         *         db: Description for db.
          */
         delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
         options?: never;
@@ -3875,13 +3875,13 @@ export interface paths {
          *         if there is enough good combiner data.
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
-         *         user_data: TODO: describe.
-         *         _access: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_ids: Description for device_ids.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         *         user_data: Description for user_data.
+         *         _access: Description for _access.
          */
         get: operations["validate_combiner_data_v1_operational_projects__project_id__qc_combiner_swaps_validate_combiner_data_get"];
         put?: never;
@@ -3904,12 +3904,12 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         level: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         db: Description for db.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         level: Description for level.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_project_waterfall_v1_operational_projects__project_id__waterfall_get"];
         put?: never;
@@ -3932,8 +3932,8 @@ export interface paths {
          * @description Get a list of historical inspections from the database for a given project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
          */
         get: operations["get_db_inspections_v1_operational_projects__project_id__drone_inspections_get"];
         put?: never;
@@ -3956,8 +3956,8 @@ export interface paths {
          * @description Get a list of historical inspections from Zeitview for a given project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         project_db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         project_db: Description for project_db.
          */
         get: operations["get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get"];
         put?: never;
@@ -3980,8 +3980,8 @@ export interface paths {
          * @description Get a list of anomalies from the database for a given inspection.
          *
          *     Args:
-         *         inspection_uuid: TODO: describe.
-         *         db: TODO: describe.
+         *         inspection_uuid: Description for inspection_uuid.
+         *         db: Description for db.
          */
         get: operations["get_db_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_get"];
         put?: never;
@@ -4007,9 +4007,9 @@ export interface paths {
          *     incrementally. Can resume from where it left off if interrupted.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         inspection_uuid: TODO: describe.
-         *         project_db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         inspection_uuid: Description for inspection_uuid.
+         *         project_db: Description for project_db.
          */
         post: operations["sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post"];
         delete?: never;
@@ -4030,18 +4030,19 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_ids: TODO: describe.
-         *         project_ids_excluded: TODO: describe.
-         *         project_type_ids: TODO: describe.
-         *         project_status_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         name_shorts: TODO: describe.
-         *         name_long: TODO: describe.
-         *         has_pv_pcs_modules: TODO: describe.
-         *         kpi_instance_kpi_type_ids: TODO: describe.
-         *         report_instance_report_type_ids: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_ids: Description for project_ids.
+         *         project_ids_excluded: Description for project_ids_excluded.
+         *         project_type_ids: Description for project_type_ids.
+         *         project_status_type_ids: Description for project_status_type_ids.
+         *         name_short: Description for name_short.
+         *         name_shorts: Description for name_shorts.
+         *         name_long: Description for name_long.
+         *         has_pv_pcs_modules: Description for has_pv_pcs_modules.
+         *         kpi_instance_kpi_type_ids: Description for kpi_instance_kpi_type_ids.
+         *         report_instance_report_type_ids: Description for
+         *             report_instance_report_type_ids.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         get: operations["get_projects"];
         put?: never;
@@ -4050,9 +4051,9 @@ export interface paths {
          * @description Create a new project.
          *
          *     Args:
-         *         project_in: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_in: Description for project_in.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         post: operations["create_project_v1_operational_projects_post"];
         delete?: never;
@@ -4073,9 +4074,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         deep: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Description for project_id.
+         *         deep: Description for deep.
+         *         user_data: Description for user_data.
          */
         get: operations["get_project_by_id"];
         /**
@@ -4084,9 +4085,9 @@ export interface paths {
          *         Only company admins and super admins can update projects.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         project_update: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         project_update: Description for project_update.
+         *         db: Description for db.
          */
         put: operations["update_project"];
         post?: never;
@@ -4108,14 +4109,14 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_ids: TODO: describe.
-         *         kpi_type_ids: TODO: describe.
-         *         include_device_data: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         *         include_all_dates: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_ids: Description for project_ids.
+         *         kpi_type_ids: Description for kpi_type_ids.
+         *         include_device_data: Description for include_device_data.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
+         *         include_all_dates: Description for include_all_dates.
          */
         get: operations["get_kpi_data"];
         put?: never;
@@ -4138,8 +4139,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
          */
         get: operations["get_triggered_user_alerts_v1_operational_kpi_data_user_triggered_alerts_get"];
         put?: never;
@@ -4164,9 +4165,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         kpi_alert_id: TODO: describe.
-         *         triggered: TODO: describe.
-         *         db: TODO: describe.
+         *         kpi_alert_id: Description for kpi_alert_id.
+         *         triggered: Description for triggered.
+         *         db: Description for db.
          */
         post: operations["trigger_alert_v1_operational_kpi_data_trigger_user_alert_post"];
         delete?: never;
@@ -4187,14 +4188,14 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         kpi_type_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         db: TODO: describe.
-         *         sync_db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         project_id: Description for project_id.
+         *         kpi_type_id: Description for kpi_type_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         db: Description for db.
+         *         sync_db: Description for sync_db.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_kpi_excel_v1_operational_kpi_data__project_id__excel_get"];
         put?: never;
@@ -4217,11 +4218,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         kpi_type_id: TODO: describe.
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         kpi_type_id: Description for kpi_type_id.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
          */
         get: operations["get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get"];
         put?: never;
@@ -4244,11 +4245,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         is_superadmin: TODO: describe.
-         *         project_ids: TODO: describe.
-         *         kpi_type_ids: TODO: describe.
-         *         deep: TODO: describe.
+         *         db: Description for db.
+         *         is_superadmin: Description for is_superadmin.
+         *         project_ids: Description for project_ids.
+         *         kpi_type_ids: Description for kpi_type_ids.
+         *         deep: Description for deep.
          */
         get: operations["get_kpi_instances_v1_operational_kpi_instances_get"];
         put?: never;
@@ -4271,8 +4272,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         name_short: TODO: describe.
-         *         db: TODO: describe.
+         *         name_short: Description for name_short.
+         *         db: Description for db.
          */
         get: operations["get_kpi_type_by_name_v1_operational_kpi_types_by_name__name_short__get"];
         put?: never;
@@ -4295,8 +4296,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         kpi_type_ids: TODO: describe.
+         *         db: Description for db.
+         *         kpi_type_ids: Description for kpi_type_ids.
          */
         get: operations["get_kpi_types"];
         put?: never;
@@ -4319,8 +4320,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         kpi_type_id: TODO: describe.
-         *         db: TODO: describe.
+         *         kpi_type_id: Description for kpi_type_id.
+         *         db: Description for db.
          */
         get: operations["get_kpi_type_by_id"];
         put?: never;
@@ -4343,8 +4344,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
          */
         get: operations["get_kpi_types_by_project"];
         put?: never;
@@ -4367,7 +4368,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Description for db.
          */
         get: operations["get_report_types"];
         put?: never;
@@ -4390,8 +4391,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         report_type_id: TODO: describe.
-         *         db: TODO: describe.
+         *         report_type_id: Description for report_type_id.
+         *         db: Description for db.
          */
         get: operations["get_report_type_by_id"];
         put?: never;
@@ -4414,10 +4415,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         is_superadmin: TODO: describe.
-         *         project_ids: TODO: describe.
-         *         report_type_ids: TODO: describe.
-         *         deep: TODO: describe.
+         *         is_superadmin: Description for is_superadmin.
+         *         project_ids: Description for project_ids.
+         *         report_type_ids: Description for report_type_ids.
+         *         deep: Description for deep.
          */
         get: operations["get_report_instances"];
         put?: never;
@@ -4477,11 +4478,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         sensor_type_ids: TODO: describe.
-         *         name_short: TODO: describe.
-         *         name_long: TODO: describe.
-         *         name_metric: TODO: describe.
-         *         unit: TODO: describe.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         name_metric: Description for name_metric.
+         *         unit: Description for unit.
          */
         get: operations["get_sensor_types"];
         put?: never;
@@ -4490,9 +4491,9 @@ export interface paths {
          * @description Create a new sensor type. Only superadmins can create sensor types.
          *
          *     Args:
-         *         sensor_type: TODO: describe.
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
+         *         sensor_type: Description for sensor_type.
+         *         user_data: Description for user_data.
+         *         db: Description for db.
          */
         post: operations["create_sensor_type"];
         delete?: never;
@@ -4513,7 +4514,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         sensor_type_id: TODO: describe.
+         *         sensor_type_id: Description for sensor_type_id.
          */
         get: operations["get_sensor_type"];
         /**
@@ -4521,10 +4522,10 @@ export interface paths {
          * @description Update an existing sensor type. Only superadmins can update sensor types.
          *
          *     Args:
-         *         sensor_type_id: TODO: describe.
-         *         sensor_type: TODO: describe.
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
+         *         sensor_type_id: Description for sensor_type_id.
+         *         sensor_type: Description for sensor_type.
+         *         user_data: Description for user_data.
+         *         db: Description for db.
          */
         put: operations["update_sensor_type"];
         post?: never;
@@ -4546,8 +4547,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         pv_module_ids: TODO: describe.
-         *         db: TODO: describe.
+         *         pv_module_ids: Description for pv_module_ids.
+         *         db: Description for db.
          */
         get: operations["get_pv_modules"];
         put?: never;
@@ -4559,9 +4560,9 @@ export interface paths {
          *         If the PV module doesn't exist, a new one will be created.
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         pv_module: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         pv_module: Description for pv_module.
+         *         db: Description for db.
          */
         post: operations["create_pv_module_v1_operational_pv_modules_post"];
         delete?: never;
@@ -4582,10 +4583,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         pv_module_manufacturer: TODO: describe.
-         *         pv_module_model: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         pv_module_manufacturer: Description for pv_module_manufacturer.
+         *         pv_module_model: Description for pv_module_model.
+         *         db: Description for db.
          */
         get: operations["get_pv_module_ids"];
         put?: never;
@@ -4608,8 +4609,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         get: operations["get_proximal_pv_module_manufacturers"];
         put?: never;
@@ -4632,9 +4633,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         manufacturer: TODO: describe.
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         manufacturer: Description for manufacturer.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         get: operations["get_proximal_pv_module_models_given_manufacturer"];
         put?: never;
@@ -4662,10 +4663,10 @@ export interface paths {
          *     The input lists must have the same length.
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         manufacturers: TODO: describe.
-         *         models: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         manufacturers: Description for manufacturers.
+         *         models: Description for models.
+         *         db: Description for db.
          */
         get: operations["get_pv_module_ids_by_manufacturer_and_model_v1_operational_pv_modules_lookup_ids_get"];
         put?: never;
@@ -4725,8 +4726,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         racking_ids: TODO: describe.
-         *         db: TODO: describe.
+         *         racking_ids: Description for racking_ids.
+         *         db: Description for db.
          */
         get: operations["get_rackings"];
         put?: never;
@@ -4738,9 +4739,9 @@ export interface paths {
          *         If the racking doesn't exist, a new one will be created.
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         racking: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         racking: Description for racking.
+         *         db: Description for db.
          */
         post: operations["create_racking_v1_operational_pv_rackings_post"];
         delete?: never;
@@ -4761,8 +4762,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         get: operations["get_proximal_racking_manufacturers"];
         put?: never;
@@ -4785,9 +4786,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         manufacturer: TODO: describe.
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         manufacturer: Description for manufacturer.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         get: operations["get_proximal_racking_models_given_manufacturer"];
         put?: never;
@@ -4815,10 +4816,10 @@ export interface paths {
          *         The input lists must have the same length.
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         manufacturers: TODO: describe.
-         *         models: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         manufacturers: Description for manufacturers.
+         *         models: Description for models.
+         *         db: Description for db.
          */
         get: operations["get_racking_ids_by_manufacturer_and_model"];
         put?: never;
@@ -4841,9 +4842,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         inverter_ids: TODO: describe.
-         *         device_model_ids: TODO: describe.
-         *         db: TODO: describe.
+         *         inverter_ids: Description for inverter_ids.
+         *         device_model_ids: Description for device_model_ids.
+         *         db: Description for db.
          */
         get: operations["get_inverters"];
         put?: never;
@@ -4855,9 +4856,9 @@ export interface paths {
          *         If the inverter doesn't exist, a new one will be created.
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         inverter: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         inverter: Description for inverter.
+         *         db: Description for db.
          */
         post: operations["create_inverter_v1_operational_pv_inverters_post"];
         delete?: never;
@@ -4878,10 +4879,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         inverter_manufacturer: TODO: describe.
-         *         inverter_model: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         inverter_manufacturer: Description for inverter_manufacturer.
+         *         inverter_model: Description for inverter_model.
+         *         db: Description for db.
          */
         get: operations["get_inverter_ids"];
         put?: never;
@@ -4904,8 +4905,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         get: operations["get_proximal_inverter_manufacturers"];
         put?: never;
@@ -4928,9 +4929,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         manufacturer: TODO: describe.
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         manufacturer: Description for manufacturer.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         get: operations["get_proximal_inverter_models_given_manufacturer"];
         put?: never;
@@ -4958,10 +4959,10 @@ export interface paths {
          *         The input lists must have the same length.
          *
          *     Args:
-         *         authorized_company_id: TODO: describe.
-         *         manufacturers: TODO: describe.
-         *         models: TODO: describe.
-         *         db: TODO: describe.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         manufacturers: Description for manufacturers.
+         *         models: Description for models.
+         *         db: Description for db.
          */
         get: operations["get_inverter_ids_by_manufacturer_and_model"];
         put?: never;
@@ -5003,7 +5004,7 @@ export interface paths {
          *             - inverter_data: The complete inverter configuration with all parameters
          *
          *     Args:
-         *         file: TODO: describe.
+         *         file: Description for file.
          */
         post: operations["parse_ond_file_v1_operational_pv_inverters_parse_ond_post"];
         delete?: never;
@@ -5025,9 +5026,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         inverter_id: TODO: describe.
-         *         authorized_company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         inverter_id: Description for inverter_id.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
          */
         put: operations["calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put"];
         post?: never;
@@ -5049,8 +5050,8 @@ export interface paths {
          * @description Get all budgeted series for a project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         db: Description for db.
          */
         get: operations["get_pv_budgeted_series"];
         put?: never;
@@ -5155,7 +5156,7 @@ export interface paths {
          * @description Get all drone integrations.
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Description for db.
          */
         get: operations["get_drone_integrations__v1_operational_drone_integrations_get"];
         put?: never;
@@ -5164,8 +5165,8 @@ export interface paths {
          * @description Create a new drone integration.
          *
          *     Args:
-         *         drone_integration: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_integration: Description for drone_integration.
+         *         db: Description for db.
          */
         post: operations["create_drone_integration__v1_operational_drone_integrations_post"];
         delete?: never;
@@ -5187,9 +5188,9 @@ export interface paths {
          * @description Update a drone integration.
          *
          *     Args:
-         *         drone_integration_id: TODO: describe.
-         *         drone_integration: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_integration_id: Description for drone_integration_id.
+         *         drone_integration: Description for drone_integration.
+         *         db: Description for db.
          */
         put: operations["update_drone_integration__v1_operational_drone_integrations__drone_integration_id__put"];
         post?: never;
@@ -5198,8 +5199,8 @@ export interface paths {
          * @description Delete a drone integration.
          *
          *     Args:
-         *         drone_integration_id: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_integration_id: Description for drone_integration_id.
+         *         db: Description for db.
          */
         delete: operations["delete_drone_integration__v1_operational_drone_integrations__drone_integration_id__delete"];
         options?: never;
@@ -5221,9 +5222,9 @@ export interface paths {
          * @description Send a drone inspection order email to the provider.
          *
          *     Args:
-         *         request: TODO: describe.
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
+         *         request: Description for request.
+         *         user_data: Description for user_data.
+         *         db: Description for db.
          */
         post: operations["order_drone_inspection_v1_operational_drone_integrations_order_inspection_post"];
         delete?: never;
@@ -5247,7 +5248,7 @@ export interface paths {
          *         Currently supports Zeitview (provider_id = 0).
          *
          *     Args:
-         *         request: TODO: describe.
+         *         request: Description for request.
          */
         post: operations["query_provider_sites_v1_operational_drone_integrations_query_provider_sites_post"];
         delete?: never;
@@ -5332,7 +5333,7 @@ export interface paths {
          * @description Retrieve all drone permissions.
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Description for db.
          */
         get: operations["get_drone_permissions__v1_operational_drone_permissions_get"];
         put?: never;
@@ -5341,8 +5342,8 @@ export interface paths {
          * @description Create a new drone permission.
          *
          *     Args:
-         *         drone_permission: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_permission: Description for drone_permission.
+         *         db: Description for db.
          */
         post: operations["create_drone_permission__v1_operational_drone_permissions_post"];
         delete?: never;
@@ -5364,10 +5365,10 @@ export interface paths {
          * @description Update a drone permission.
          *
          *     Args:
-         *         drone_integration_id: TODO: describe.
-         *         company_id: TODO: describe.
-         *         drone_permission: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_integration_id: Description for drone_integration_id.
+         *         company_id: Description for company_id.
+         *         drone_permission: Description for drone_permission.
+         *         db: Description for db.
          */
         put: operations["update_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__put"];
         post?: never;
@@ -5376,9 +5377,9 @@ export interface paths {
          * @description Delete a drone permission.
          *
          *     Args:
-         *         drone_integration_id: TODO: describe.
-         *         company_id: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_integration_id: Description for drone_integration_id.
+         *         company_id: Description for company_id.
+         *         db: Description for db.
          */
         delete: operations["delete_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__delete"];
         options?: never;
@@ -5398,8 +5399,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         project_ids: TODO: describe.
+         *         db: Description for db.
+         *         project_ids: Description for project_ids.
          */
         get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
         put?: never;
@@ -5422,7 +5423,7 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Description for db.
          */
         get: operations["list_contract_categories_v1_operational_contract_categories_get"];
         put?: never;
@@ -5519,11 +5520,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         project_id: Description for project_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get"];
         put?: never;
@@ -5546,10 +5547,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get"];
         put?: never;
@@ -5573,10 +5574,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_equipment_analysis_combiner_v1_protected_web_application_projects__project_id__equipment_analysis_combiner_get"];
         put?: never;
@@ -5599,10 +5600,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_tracker_v1_protected_web_application_projects__project_id__equipment_analysis_tracker_get"];
         put?: never;
@@ -5625,11 +5626,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         pv_block_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         pv_block_id: Description for pv_block_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get"];
         put?: never;
@@ -5652,10 +5653,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get"];
         put?: never;
@@ -5678,13 +5679,13 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         sensor_type_name_short: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         agg: TODO: describe.
-         *         fillna_zero: TODO: describe.
+         *         sensor_type_name_short: Description for sensor_type_name_short.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         agg: Description for agg.
+         *         fillna_zero: Description for fillna_zero.
          */
         get: operations["get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get"];
         put?: never;
@@ -5707,11 +5708,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project_id: TODO: describe.
-         *         mode: TODO: describe.
-         *         ignored_device_type_ids: TODO: describe.
+         *         db: Description for db.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         *         mode: Description for mode.
+         *         ignored_device_type_ids: Description for ignored_device_type_ids.
          */
         get: operations["get_sunburst_data_v1_protected_web_application_projects__project_id__equipment_analysis_sunburst_data_get"];
         put?: never;
@@ -5734,10 +5735,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get"];
         put?: never;
@@ -5760,10 +5761,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_horizontal_pv_v1_protected_web_application_projects__project_id__device_details_horizontal_pv_get"];
         put?: never;
@@ -5786,11 +5787,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         device_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         device_id: Description for device_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get"];
         put?: never;
@@ -5813,10 +5814,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         device_id: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         device_id: Description for device_id.
+         *         db: Description for db.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get"];
         put?: never;
@@ -5839,11 +5840,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
-         *         device_ids: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         *         device_ids: Description for device_ids.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_vertical_v1_protected_web_application_projects__project_id__device_details_vertical_get"];
         put?: never;
@@ -5894,9 +5895,9 @@ export interface paths {
          *         avoiding the 32,767 parameter limit.
          *
          *     Args:
-         *         device_type_ids: TODO: describe.
-         *         project_name_short: TODO: describe.
-         *         include_ghost_tags: TODO: describe.
+         *         device_type_ids: Description for device_type_ids.
+         *         project_name_short: Description for project_name_short.
+         *         include_ghost_tags: Description for include_ghost_tags.
          */
         get: operations["get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get"];
         put?: never;
@@ -5920,8 +5921,8 @@ export interface paths {
          *         This endpoint is only accessible to superadmins.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get"];
         put?: never;
@@ -5946,10 +5947,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         request: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         db: TODO: describe.
+         *         request: Description for request.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         db: Description for db.
          */
         post: operations["assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post"];
         delete?: never;
@@ -5971,8 +5972,8 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         put: operations["put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put"];
         post?: never;
@@ -5995,11 +5996,11 @@ export interface paths {
          *         Returns up to 10 random tags from the pattern with their sample values.
          *
          *     Args:
-         *         tag_pattern: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         tag_pattern: Description for tag_pattern.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_tag_pattern_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_samples__tag_pattern__get"];
         put?: never;
@@ -6023,8 +6024,8 @@ export interface paths {
          *         Returns lightweight tag info for client-side processing.
          *
          *     Args:
-         *         tag_pattern: TODO: describe.
-         *         project_db: TODO: describe.
+         *         tag_pattern: Description for tag_pattern.
+         *         project_db: Description for project_db.
          */
         get: operations["get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get"];
         put?: never;
@@ -6075,9 +6076,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         device_type_id: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
-         *         project_db: TODO: describe.
+         *         device_type_id: Description for device_type_id.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         project_db: Description for project_db.
          */
         get: operations["get_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__get"];
         put?: never;
@@ -6103,8 +6104,8 @@ export interface paths {
          *         using the same proven logic as the GIS and plotting endpoints.
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get"];
         put?: never;
@@ -6127,11 +6128,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project_db_async: TODO: describe.
-         *         project: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project_db_async: Description for project_db_async.
+         *         project: Description for project.
          */
         get: operations["get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get"];
         put?: never;
@@ -6154,9 +6155,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
-         *         sort_by: TODO: describe.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         sort_by: Description for sort_by.
          */
         get: operations["get_events_home_page_summary_v1_protected_web_application_projects__project_id__events_home_page_summary_get"];
         put?: never;
@@ -6179,13 +6180,13 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         operational_db: TODO: describe.
-         *         project: TODO: describe.
-         *         sensor_type_id: TODO: describe.
-         *         aggregation_type: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project_db: Description for project_db.
+         *         operational_db: Description for operational_db.
+         *         project: Description for project.
+         *         sensor_type_id: Description for sensor_type_id.
+         *         aggregation_type: Description for aggregation_type.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_bar_v1_protected_web_application_projects__project_id__custom_dash_bar_get"];
         put?: never;
@@ -6208,13 +6209,13 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         operational_db: TODO: describe.
-         *         project: TODO: describe.
-         *         measured_variable: TODO: describe.
-         *         maximum_value: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project_db: Description for project_db.
+         *         operational_db: Description for operational_db.
+         *         project: Description for project.
+         *         measured_variable: Description for measured_variable.
+         *         maximum_value: Description for maximum_value.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_gauge_v1_protected_web_application_projects__project_id__custom_dash_gauge_get"];
         put?: never;
@@ -6237,16 +6238,16 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         operational_db: TODO: describe.
-         *         project: TODO: describe.
-         *         sensor_type_ids: TODO: describe.
-         *         aggregation_types: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         tag_ids: TODO: describe.
-         *         maximum: TODO: describe.
-         *         minimum: TODO: describe.
+         *         project_db: Description for project_db.
+         *         operational_db: Description for operational_db.
+         *         project: Description for project.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         aggregation_types: Description for aggregation_types.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         tag_ids: Description for tag_ids.
+         *         maximum: Description for maximum.
+         *         minimum: Description for minimum.
          */
         get: operations["get_line_v1_protected_web_application_projects__project_id__custom_dash_line_get"];
         put?: never;
@@ -6269,14 +6270,14 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_db: TODO: describe.
-         *         db: TODO: describe.
-         *         operational_db: TODO: describe.
-         *         project: TODO: describe.
-         *         x_axis_sensor_type_id: TODO: describe.
-         *         y_axis_sensor_type_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
+         *         project_db: Description for project_db.
+         *         db: Description for db.
+         *         operational_db: Description for operational_db.
+         *         project: Description for project.
+         *         x_axis_sensor_type_id: Description for x_axis_sensor_type_id.
+         *         y_axis_sensor_type_id: Description for y_axis_sensor_type_id.
+         *         start: Description for start.
+         *         end: Description for end.
          */
         get: operations["get_scatter_v1_protected_web_application_projects__project_id__custom_dash_scatter_get"];
         put?: never;
@@ -6299,9 +6300,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
          */
         get: operations["get_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_user_dashboards_get"];
         put?: never;
@@ -6324,9 +6325,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
          */
         get: operations["get_shared_user_dashboards_v1_protected_web_application_projects__project_id__custom_dash_shared_user_dashboards_get"];
         put?: never;
@@ -6351,10 +6352,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         request: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         request: Description for request.
          */
         post: operations["create_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_create_dashboard_post"];
         delete?: never;
@@ -6377,11 +6378,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         dashboard_id: TODO: describe.
-         *         request: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         dashboard_id: Description for dashboard_id.
+         *         request: Description for request.
          */
         post: operations["duplicate_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_duplicate__dashboard_id__post"];
         delete?: never;
@@ -6403,10 +6404,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         request: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         request: Description for request.
          */
         put: operations["update_user_dashboard_v1_protected_web_application_projects__project_id__custom_dash_update_dashboard_put"];
         post?: never;
@@ -6428,10 +6429,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         dashboard_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
+         *         dashboard_id: Description for dashboard_id.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
          */
         get: operations["get_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__get"];
         put?: never;
@@ -6441,10 +6442,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         dashboard_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
+         *         dashboard_id: Description for dashboard_id.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
          */
         delete: operations["delete_dashboard_v1_protected_web_application_projects__project_id__custom_dash__dashboard_id__delete"];
         options?: never;
@@ -6464,10 +6465,10 @@ export interface paths {
          * @description Get all users who have share access to a dashboard.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         dashboard_id: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         dashboard_id: Description for dashboard_id.
          */
         get: operations["get_dashboard_shared_users_endpoint_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__users_get"];
         put?: never;
@@ -6492,11 +6493,11 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         dashboard_id: TODO: describe.
-         *         request: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         dashboard_id: Description for dashboard_id.
+         *         request: Description for request.
          */
         post: operations["share_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__post"];
         /**
@@ -6504,11 +6505,11 @@ export interface paths {
          * @description Unshare a dashboard with a user.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user: TODO: describe.
-         *         project: TODO: describe.
-         *         dashboard_id: TODO: describe.
-         *         request: TODO: describe.
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         dashboard_id: Description for dashboard_id.
+         *         request: Description for request.
          */
         delete: operations["unshare_dashboard_v1_protected_web_application_projects__project_id__custom_dash_share__dashboard_id__delete"];
         options?: never;
@@ -6528,12 +6529,12 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         tps_token: TODO: describe.
-         *         user: TODO: describe.
-         *         db_async: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         tps_token: Description for tps_token.
+         *         user: Description for user.
+         *         db_async: Description for db_async.
          */
         get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
         put?: never;
@@ -6556,9 +6557,9 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         analysis_date: TODO: describe.
-         *         block_names: TODO: describe.
-         *         project: TODO: describe.
+         *         analysis_date: Description for analysis_date.
+         *         block_names: Description for block_names.
+         *         project: Description for project.
          */
         get: operations["combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get"];
         put?: never;
@@ -6581,12 +6582,12 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         project: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project_db: TODO: describe.
-         *         resample_rate: TODO: describe.
+         *         project_id: Description for project_id.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         resample_rate: Description for resample_rate.
          */
         get: operations["get_clearsky_poa_v1_protected_web_application_projects__project_id__reports_clearsky_poa_get"];
         put?: never;
@@ -6609,10 +6610,10 @@ export interface paths {
          * @description todo
          *
          *     Args:
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         project_db: TODO: describe.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
          */
         get: operations["get_degradation_poa_v1_protected_web_application_projects__project_id__reports_degradation_poa_get"];
         put?: never;
@@ -6752,12 +6753,12 @@ export interface paths {
          *             serrano: 2025-02-15
          *
          *     Args:
-         *         background_tasks: TODO: describe.
-         *         request: TODO: describe.
-         *         energy_model_version: TODO: describe.
-         *         project_name_short: TODO: describe.
-         *         simulation_start: TODO: describe.
-         *         simulation_end: TODO: describe.
+         *         background_tasks: Description for background_tasks.
+         *         request: Description for request.
+         *         energy_model_version: Description for energy_model_version.
+         *         project_name_short: Description for project_name_short.
+         *         simulation_start: Description for simulation_start.
+         *         simulation_end: Description for simulation_end.
          */
         post: operations["backfill_expected_energy_model_v1_protected__project_id__pv_expected_energy_backfill_post"];
         delete?: never;
@@ -6782,13 +6783,13 @@ export interface paths {
          *     to fit the use case of the page.
          *
          *     Args:
-         *         device_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         warranted_degradation: TODO: describe.
-         *         db: TODO: describe.
-         *         project_db: TODO: describe.
-         *         project: TODO: describe.
+         *         device_id: Description for device_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         warranted_degradation: Description for warranted_degradation.
+         *         db: Description for db.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
          */
         get: operations["utility_expected_v1_protected__project_id__pv_expected_energy_plot_get"];
         put?: never;

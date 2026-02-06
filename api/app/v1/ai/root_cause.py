@@ -69,7 +69,7 @@ async def suggest_root_cause(
         id from the provided list, based on IR/RGB signals.
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

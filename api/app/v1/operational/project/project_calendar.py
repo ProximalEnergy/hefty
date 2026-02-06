@@ -43,10 +43,10 @@ async def read_calendar_item_categories(
         Even though project_id is in the path, categories are currently global.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        skip: TODO: describe.
-        limit: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
+        skip: Description for skip.
+        limit: Description for limit.
     """
     _ = project_id
     categories = await get_calendar_item_categories(db=db, skip=skip, limit=limit)
@@ -63,10 +63,10 @@ async def create_calendar_item_endpoint(
     """Create a new calendar item for a project.
 
     Args:
-        project_id: TODO: describe.
-        item: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Description for project_id.
+        item: Description for item.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     db_item = await create_calendar_item(
         db=db, item=item, project_id=project_id, company_id=user_data.company_id
@@ -83,9 +83,9 @@ async def get_calendar_items(
     """Retrieve all calendar items for the specified project, including category color.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     # Query items and eagerly load the related category and exceptions
     query = (
@@ -174,10 +174,10 @@ async def update_calendar_item_endpoint(
 
     Args:
         project_id: The unique identifier of the project.
-        calendar_item_id: TODO: describe.
-        item: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        calendar_item_id: Description for calendar_item_id.
+        item: Description for item.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     _ = project_id
     # Verify the item exists and belongs to the user's company
@@ -213,8 +213,8 @@ async def delete_calendar_item_endpoint(
 
     Args:
         project_id: The unique identifier of the project.
-        calendar_item_id: TODO: describe.
-        db: TODO: describe.
+        calendar_item_id: Description for calendar_item_id.
+        db: Description for db.
     """
     _ = project_id
     # Optional: Add ownership/permission check here using project_id and
@@ -252,11 +252,11 @@ async def post_calendar_item_exception(
         The `exception_date_str` in the path should be in 'YYYY-MM-DD' format.
 
     Args:
-        project_id: TODO: describe.
-        calendar_item_id: TODO: describe.
-        exception_date_str: TODO: describe.
-        exception_payload: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        calendar_item_id: Description for calendar_item_id.
+        exception_date_str: Description for exception_date_str.
+        exception_payload: Description for exception_payload.
+        db: Description for db.
     """
     try:
         exception_date_obj = datetime.date.fromisoformat(exception_date_str)

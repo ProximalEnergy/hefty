@@ -27,12 +27,12 @@ async def get_clearsky_poa(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        resample_rate: TODO: describe.
+        project_id: Description for project_id.
+        project: Description for project.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        resample_rate: Description for resample_rate.
     """
     if resample_rate is not None:
         rolling_window = int(60 / int(resample_rate.split("min")[0]))

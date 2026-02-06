@@ -15,8 +15,8 @@ async def get_rackings(
     """todo
 
     Args:
-        db: TODO: describe.
-        racking_ids: TODO: describe.
+        db: Description for db.
+        racking_ids: Description for racking_ids.
     """
     query = select(models.Racking)
 
@@ -35,8 +35,8 @@ async def get_racking_manufacturers(
     """Returns a list of unique manufacturers of rackings.
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        company_id: Description for company_id.
     """
     query = select(models.Racking.manufacturer).distinct()
 
@@ -58,9 +58,9 @@ async def get_racking_models_given_manufacturer(
     """Returns a list of racking models given manufacturer
 
     Args:
-        db: TODO: describe.
-        manufacturer: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        manufacturer: Description for manufacturer.
+        company_id: Description for company_id.
     """
 
     query = select(models.Racking.model).distinct()
@@ -82,10 +82,10 @@ async def get_racking_ids(
     """todo
 
     Args:
-        db: TODO: describe.
-        racking_manufacturer: TODO: describe.
-        racking_model: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        racking_manufacturer: Description for racking_manufacturer.
+        racking_model: Description for racking_model.
+        company_id: Description for company_id.
     """
     query = select(models.Racking)
 

@@ -17,9 +17,9 @@ async def get_inverters(
     """todo
 
     Args:
-        db: TODO: describe.
-        inverter_ids: TODO: describe.
-        device_model_ids: TODO: describe.
+        db: Description for db.
+        inverter_ids: Description for inverter_ids.
+        device_model_ids: Description for device_model_ids.
     """
     query = select(models.Inverter)
 
@@ -67,8 +67,8 @@ async def get_inverter_manufacturers(
     """Returns a list of unique manufacturers of inverters.
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        company_id: Description for company_id.
     """
     logger.info(
         f"CRUD: get_inverter_manufacturers called with company_id: {company_id}"
@@ -104,9 +104,9 @@ async def get_inverter_models_given_manufacturer(
     """Returns a list of inverter models given manufacturer
 
     Args:
-        db: TODO: describe.
-        manufacturer: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        manufacturer: Description for manufacturer.
+        company_id: Description for company_id.
     """
 
     query = select(models.Inverter.model).distinct()
@@ -128,10 +128,10 @@ async def get_inverter_ids(
     """todo
 
     Args:
-        db: TODO: describe.
-        inverter_manufacturer: TODO: describe.
-        inverter_model: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        inverter_manufacturer: Description for inverter_manufacturer.
+        inverter_model: Description for inverter_model.
+        company_id: Description for company_id.
     """
     query = select(models.Inverter.inverter_id)
 

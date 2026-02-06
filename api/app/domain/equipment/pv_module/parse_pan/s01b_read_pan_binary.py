@@ -31,8 +31,8 @@ def _extract_iam_profile(
     """Extracts the IAM (Incidence Angle Modifier) profile.
 
     Args:
-        start_index: TODO: describe.
-        byte_array: TODO: describe.
+        start_index: Description for start_index.
+        byte_array: Description for byte_array.
     """
     iam_profile = []
 
@@ -64,7 +64,7 @@ def read_pan_binary(*, file_content: bytes) -> dict:
     """todo
 
     Args:
-        file_content: TODO: describe.
+        file_content: Description for file_content.
     """
     data: dict[str, Any] = {}
     byte_array = file_content

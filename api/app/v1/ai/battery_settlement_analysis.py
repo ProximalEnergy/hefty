@@ -82,7 +82,7 @@ def _aggregate_timeseries_stats(*, data: TimeseriesData) -> dict[str, ColumnStat
         Returns dict of {column_name: {stat_name: value}}
 
     Args:
-        data: TODO: describe.
+        data: Description for data.
     """
     stats: dict[str, ColumnStats] = {}
     for col_name, values in data.data.items():
@@ -122,7 +122,7 @@ def _estimate_token_count(*, data: Any) -> int:
     """Rough estimate of token count for data.
 
     Args:
-        data: TODO: describe.
+        data: Description for data.
     """
     json_str = json.dumps(data)
     # Rough estimate: ~4 characters per token
@@ -135,7 +135,7 @@ def _prepare_data_for_llm(
     """Prepare data for LLM, aggregating if necessary to stay under token limits.
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     prepared_data: dict[str, Any] = {
         "project_id": request.project_id,
@@ -228,7 +228,7 @@ async def analyze_battery_settlement(
     """Analyze battery settlement data using AI and return a single formatted text.
 
     Args:
-        request: TODO: describe.
+        request: Description for request.
     """
     if OpenAI is None:
         logger.error("OpenAI SDK import failed (OpenAI is None)")

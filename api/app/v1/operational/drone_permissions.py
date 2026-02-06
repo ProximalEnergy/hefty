@@ -22,7 +22,7 @@ async def get_drone_permissions_(
     """Retrieve all drone permissions.
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     return await get_drone_permissions(db=db)
 
@@ -39,8 +39,8 @@ async def create_drone_permission_(
     """Create a new drone permission.
 
     Args:
-        drone_permission: TODO: describe.
-        db: TODO: describe.
+        drone_permission: Description for drone_permission.
+        db: Description for db.
     """
     return await create_drone_permission(db=db, drone_permission=drone_permission)
 
@@ -59,10 +59,10 @@ async def update_drone_permission_(
     """Update a drone permission.
 
     Args:
-        drone_integration_id: TODO: describe.
-        company_id: TODO: describe.
-        drone_permission: TODO: describe.
-        db: TODO: describe.
+        drone_integration_id: Description for drone_integration_id.
+        company_id: Description for company_id.
+        drone_permission: Description for drone_permission.
+        db: Description for db.
     """
     return await update_drone_permission(
         db=db,
@@ -84,9 +84,9 @@ async def delete_drone_permission_(
     """Delete a drone permission.
 
     Args:
-        drone_integration_id: TODO: describe.
-        company_id: TODO: describe.
-        db: TODO: describe.
+        drone_integration_id: Description for drone_integration_id.
+        company_id: Description for company_id.
+        db: Description for db.
     """
     await delete_drone_permission(
         db=db,

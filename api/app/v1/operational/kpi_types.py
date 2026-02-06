@@ -28,8 +28,8 @@ async def get_kpi_type_by_name(
     """todo
 
     Args:
-        name_short: TODO: describe.
-        db: TODO: describe.
+        name_short: Description for name_short.
+        db: Description for db.
     """
     try:
         # Convert hyphens to underscores for database lookup
@@ -95,8 +95,8 @@ def get_kpi_types(
     """todo
 
     Args:
-        db: TODO: describe.
-        kpi_type_ids: TODO: describe.
+        db: Description for db.
+        kpi_type_ids: Description for kpi_type_ids.
     """
     return crud_get_kpi_types(db=db, kpi_type_ids=kpi_type_ids)
 
@@ -113,8 +113,8 @@ def get_kpi_type(
     """todo
 
     Args:
-        kpi_type_id: TODO: describe.
-        db: TODO: describe.
+        kpi_type_id: Description for kpi_type_id.
+        db: Description for db.
     """
     return crud_get_kpi_types(db=db, kpi_type_ids=[kpi_type_id])[0]
 
@@ -131,8 +131,8 @@ def get_kpi_types_by_project(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
     """
     try:
         # Create alias for the counter company

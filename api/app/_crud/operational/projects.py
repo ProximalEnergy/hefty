@@ -109,7 +109,7 @@ async def _create_schema_and_tables(
             """todo
 
             Args:
-                sync_session: TODO: describe.
+                sync_session: Description for sync_session.
             """
             conn = sync_session.connection()  # sync Connection bound to the same txn
             conn.execute(sa.schema.CreateSchema(schema, if_not_exists=True))
@@ -192,8 +192,8 @@ async def _get_elevation(
     """Get elevation from latitude and longitude using Open-Elevation API.
 
     Args:
-        latitude: TODO: describe.
-        longitude: TODO: describe.
+        latitude: Description for latitude.
+        longitude: Description for longitude.
     """
     async with httpx.AsyncClient() as client:
         try:
@@ -213,8 +213,8 @@ def _get_timezone(*, latitude: float, longitude: float) -> str | None:
     """Get timezone from latitude and longitude using timezonefinder.
 
     Args:
-        latitude: TODO: describe.
-        longitude: TODO: describe.
+        latitude: Description for latitude.
+        longitude: Description for longitude.
     """
     tf = TimezoneFinder()
     return tf.timezone_at(lng=longitude, lat=latitude)

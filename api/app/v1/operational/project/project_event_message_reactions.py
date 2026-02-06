@@ -44,7 +44,7 @@ def _string_to_reaction_type(*, reaction_type_str: str) -> enumerations.Reaction
     """Convert string reaction type to ReactionType enum.
 
     Args:
-        reaction_type_str: TODO: describe.
+        reaction_type_str: Description for reaction_type_str.
     """
     try:
         return enumerations.ReactionType(reaction_type_str)
@@ -80,9 +80,9 @@ async def get_event_message_reactions(
             List of reactions for the message(s)
 
     Args:
-        project_db: TODO: describe.
-        event_message_id: TODO: describe.
-        event_id: TODO: describe.
+        project_db: Description for project_db.
+        event_message_id: Description for event_message_id.
+        event_id: Description for event_id.
     """
 
     if event_id is not None:
@@ -138,10 +138,10 @@ async def toggle_event_message_reaction(
         The created reaction (if added) or the deleted reaction info (if removed)
 
     Args:
-        project_db: TODO: describe.
-        project_schema: TODO: describe.
-        reaction: TODO: describe.
-        user_data: TODO: describe.
+        project_db: Description for project_db.
+        project_schema: Description for project_schema.
+        reaction: Description for reaction.
+        user_data: Description for user_data.
     """
     # Convert string to enum
     reaction_type_enum = _string_to_reaction_type(

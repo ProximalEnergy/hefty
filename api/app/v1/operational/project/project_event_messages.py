@@ -106,7 +106,7 @@ def _get_company_theme_color(*, company_name_short: str | None) -> str:
     """Get the primary theme color for a company.
 
     Args:
-        company_name_short: TODO: describe.
+        company_name_short: Description for company_name_short.
     """
     if not company_name_short:
         return "#21B8F1"  # Default proximal-blue
@@ -184,7 +184,7 @@ def _model_to_pydantic_message(*, model: models.EventMessage) -> EventMessage:
     """Convert database model to Pydantic schema.
 
     Args:
-        model: TODO: describe.
+        model: Description for model.
     """
     # Get image_s3_keys from related images
     image_s3_keys = None
@@ -211,7 +211,7 @@ def extract_mentions(*, body: str) -> list[str]:
     """Extract @mentions from message body using regex.
 
     Args:
-        body: TODO: describe.
+        body: Description for body.
     """
     pattern = r"@(\w+)"
     mentions = re.findall(pattern, body)
@@ -772,8 +772,8 @@ async def get_event_messages(
             List of event messages, ordered by created_at (ascending)
 
     Args:
-        project_db: TODO: describe.
-        event_id: TODO: describe.
+        project_db: Description for project_db.
+        event_id: Description for event_id.
     """
     message_models = await crud_event_messages.get_event_messages(
         db=project_db, event_id=event_id
@@ -810,13 +810,13 @@ async def create_event_message(
             The created event message
 
     Args:
-        project_db: TODO: describe.
-        project_schema: TODO: describe.
-        project_id: TODO: describe.
-        message: TODO: describe.
-        background_tasks: TODO: describe.
-        user_data: TODO: describe.
-        api_prod: TODO: describe.
+        project_db: Description for project_db.
+        project_schema: Description for project_schema.
+        project_id: Description for project_id.
+        message: Description for message.
+        background_tasks: Description for background_tasks.
+        user_data: Description for user_data.
+        api_prod: Description for api_prod.
     """
     # Extract mentions from body
     mentioned_usernames = extract_mentions(body=message.body)
@@ -912,11 +912,11 @@ async def update_event_message(
             The updated event message
 
     Args:
-        project_db: TODO: describe.
-        project_schema: TODO: describe.
-        event_message_id: TODO: describe.
-        message: TODO: describe.
-        user_data: TODO: describe.
+        project_db: Description for project_db.
+        project_schema: Description for project_schema.
+        event_message_id: Description for event_message_id.
+        message: Description for message.
+        user_data: Description for user_data.
     """
     # Extract mentions from body
     mentioned_usernames = extract_mentions(body=message.body)
@@ -1035,9 +1035,9 @@ async def delete_event_message(
             The deleted event message (with deleted_at set)
 
     Args:
-        project_db: TODO: describe.
-        event_message_id: TODO: describe.
-        user_data: TODO: describe.
+        project_db: Description for project_db.
+        event_message_id: Description for event_message_id.
+        user_data: Description for user_data.
     """
     # Delete message (soft delete)
     deleted_message = await crud_event_messages.delete_event_message(
@@ -1092,9 +1092,9 @@ async def toggle_event_chat_mute(
             {"muted": bool} - True if muted, False if unmuted
 
     Args:
-        project_db: TODO: describe.
-        event_id: TODO: describe.
-        user_data: TODO: describe.
+        project_db: Description for project_db.
+        event_id: Description for event_id.
+        user_data: Description for user_data.
     """
     is_muted = await crud_event_chat_mutes.toggle_event_chat_mute(
         db=project_db, event_id=event_id, user_id=user_data.user_id
@@ -1118,9 +1118,9 @@ async def get_event_chat_mute_status(
             {"muted": bool} - True if muted, False if not muted
 
     Args:
-        project_db: TODO: describe.
-        event_id: TODO: describe.
-        user_data: TODO: describe.
+        project_db: Description for project_db.
+        event_id: Description for event_id.
+        user_data: Description for user_data.
     """
     muted_query = crud_event_chat_mutes.is_event_chat_muted(
         event_id=event_id, user_id=user_data.user_id
@@ -1137,7 +1137,7 @@ def _validate_image_file(*, file: UploadFile) -> None:
     """Validate image file type and size.
 
     Args:
-        file: TODO: describe.
+        file: Description for file.
     """
     # Check content type
     if file.content_type not in ALLOWED_IMAGE_TYPES:
@@ -1158,9 +1158,9 @@ def _generate_image_s3_key(
     """Generate S3 key for an image.
 
     Args:
-        event_id: TODO: describe.
-        event_message_id: TODO: describe.
-        filename: TODO: describe.
+        event_id: Description for event_id.
+        event_message_id: Description for event_message_id.
+        filename: Description for filename.
     """
     # Sanitize filename (remove path components, keep only basename)
     safe_filename = PathLib(filename).name
@@ -1177,8 +1177,8 @@ def _generate_image_presigned_url(*, s3_key: str, filename: str | None = None) -
         to force download instead of displaying in browser.
 
     Args:
-        s3_key: TODO: describe.
-        filename: TODO: describe.
+        s3_key: Description for s3_key.
+        filename: Description for filename.
     """
     s3_client = boto3.client("s3", region_name=EVENT_CHAT_IMAGES_REGION_NAME)
     params = {
@@ -1229,11 +1229,11 @@ async def upload_event_message_image(
             }
 
     Args:
-        project_db: TODO: describe.
-        project_schema: TODO: describe.
-        event_id: TODO: describe.
-        event_message_id: TODO: describe.
-        file: TODO: describe.
+        project_db: Description for project_db.
+        project_schema: Description for project_schema.
+        event_id: Description for event_id.
+        event_message_id: Description for event_message_id.
+        file: Description for file.
     """
     # Validate file type
     _validate_image_file(file=file)
@@ -1344,10 +1344,10 @@ async def get_event_message_image_url(
             {"presigned_url": str, "s3_key": str}
 
     Args:
-        project_db: TODO: describe.
-        project_schema: TODO: describe.
-        event_id: TODO: describe.
-        image_id: TODO: describe.
+        project_db: Description for project_db.
+        project_schema: Description for project_schema.
+        event_id: Description for event_id.
+        image_id: Description for image_id.
     """
     # Find image record
     image = await crud_event_message_images.get_event_message_image_by_id(
@@ -1389,10 +1389,10 @@ async def get_event_message_images(
             List of image objects with presigned URLs
 
     Args:
-        project_db: TODO: describe.
-        project_schema: TODO: describe.
-        event_id: TODO: describe.
-        event_message_id: TODO: describe.
+        project_db: Description for project_db.
+        project_schema: Description for project_schema.
+        event_id: Description for event_id.
+        event_message_id: Description for event_message_id.
     """
     # Verify message exists and belongs to this event
     message = await crud_event_messages.get_event_message_by_id(

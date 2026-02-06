@@ -12,8 +12,8 @@ async def get_spreadsheet_id(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_name_short: TODO: describe.
+        db: Description for db.
+        project_name_short: Description for project_name_short.
     """
     query = select(models.Project.gsheet_id).where(
         models.Project.name_short == project_name_short,

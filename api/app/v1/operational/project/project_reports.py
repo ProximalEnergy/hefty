@@ -45,10 +45,10 @@ async def get_pcs_apparent_vs_voltage(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
+        start: Description for start.
+        end: Description for end.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     tags_df = await core.crud.project.tags.get_project_tags_v2(
@@ -157,17 +157,17 @@ async def dc_amperage_report_v2(
     """todo
 
     Args:
-        start: TODO: describe.
-        min_poa: TODO: describe.
-        max_poa_1d: TODO: describe.
-        max_poa_std: TODO: describe.
-        rolling_window: TODO: describe.
-        use_poa_1d: TODO: describe.
-        use_poa_std: TODO: describe.
-        resample_rate: TODO: describe.
-        project_db: TODO: describe.
-        async_project_db: TODO: describe.
-        project: TODO: describe.
+        start: Description for start.
+        min_poa: Description for min_poa.
+        max_poa_1d: Description for max_poa_1d.
+        max_poa_std: Description for max_poa_std.
+        rolling_window: Description for rolling_window.
+        use_poa_1d: Description for use_poa_1d.
+        use_poa_std: Description for use_poa_std.
+        resample_rate: Description for resample_rate.
+        project_db: Description for project_db.
+        async_project_db: Description for async_project_db.
+        project: Description for project.
     """
     logger.info("DC Amperage Report V2 endpoint starting")
 
@@ -589,9 +589,9 @@ async def dc_amperage_report_v2(
         """todo
 
         Args:
-            val: TODO: describe.
-            col: TODO: describe.
-            subset: TODO: describe.
+            val: Description for val.
+            col: Description for col.
+            subset: Description for subset.
         """
         if subset:
             if col == "a_norm_proj":
@@ -709,9 +709,9 @@ async def dc_amperage_report_v2(
         """todo
 
         Args:
-            df_poa: TODO: describe.
-            poa_tags: TODO: describe.
-            met_devices: TODO: describe.
+            df_poa: Description for df_poa.
+            poa_tags: Description for poa_tags.
+            met_devices: Description for met_devices.
         """
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in poa_tags}
         device_id_to_name_short = {
@@ -736,8 +736,8 @@ async def dc_amperage_report_v2(
         """todo
 
         Args:
-            df_cb: TODO: describe.
-            cb_devices: TODO: describe.
+            df_cb: Description for df_cb.
+            cb_devices: Description for cb_devices.
         """
         tag_to_device_id = {tag.tag_id: tag.device_id for tag in tags_cb}
         device_id_to_name_long = {
@@ -778,12 +778,12 @@ async def dc_amperage_report_v2(
         """todo
 
         Args:
-            s3_client: TODO: describe.
-            buffer: TODO: describe.
-            bucket_name: TODO: describe.
-            prefix: TODO: describe.
-            filename: TODO: describe.
-            tags: TODO: describe.
+            s3_client: Description for s3_client.
+            buffer: Description for buffer.
+            bucket_name: Description for bucket_name.
+            prefix: Description for prefix.
+            filename: Description for filename.
+            tags: Description for tags.
         """
         buffer.seek(0)
         file_content = buffer.read()
@@ -832,13 +832,13 @@ async def dc_amperage_report_v2(
         """todo
 
         Args:
-            excel_buffer: TODO: describe.
-            poa_buffer: TODO: describe.
-            cb_buffer: TODO: describe.
-            df_poa: TODO: describe.
-            df_cb: TODO: describe.
-            project: TODO: describe.
-            start_date: TODO: describe.
+            excel_buffer: Description for excel_buffer.
+            poa_buffer: Description for poa_buffer.
+            cb_buffer: Description for cb_buffer.
+            df_poa: Description for df_poa.
+            df_cb: Description for df_cb.
+            project: Description for project.
+            start_date: Description for start_date.
         """
         df_poa.to_csv(poa_buffer)
         df_cb.loc[df_poa.index].to_csv(cb_buffer)

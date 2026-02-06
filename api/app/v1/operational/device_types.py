@@ -26,10 +26,10 @@ async def get_device_types(
     """todo
 
     Args:
-        device_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
-        db: TODO: describe.
+        device_type_ids: Description for device_type_ids.
+        name_short: Description for name_short.
+        name_long: Description for name_long.
+        db: Description for db.
     """
     return await crud_get_device_types(
         db=db,
@@ -49,7 +49,7 @@ async def get_device_type(device_type_id: int):
     """todo
 
     Args:
-        device_type_id: TODO: describe.
+        device_type_id: Description for device_type_id.
     """
     device_type = await crud_get_device_type(device_type_id=device_type_id).get_async(
         output_type=OutputType.SQLALCHEMY

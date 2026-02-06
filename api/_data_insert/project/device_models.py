@@ -25,7 +25,7 @@ def get_projects(conn: Any) -> list[dict[str, Any]]:
     """Get all projects from operational.projects.
 
     Args:
-        conn: TODO: describe.
+        conn: A psycopg2 database connection object.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
@@ -44,8 +44,8 @@ def get_device_types_in_project(
     """Get unique device types used in a project.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
@@ -64,8 +64,8 @@ def get_device_type_info(conn: Any, device_type_id: int) -> dict[str, Any] | Non
     """Get device type information by ID.
 
     Args:
-        conn: TODO: describe.
-        device_type_id: TODO: describe.
+        conn: Description for conn.
+        device_type_id: Description for device_type_id.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
@@ -86,8 +86,8 @@ def get_device_model_info(
     """Get device model information by ID.
 
     Args:
-        conn: TODO: describe.
-        device_model_id: TODO: describe.
+        conn: Description for conn.
+        device_model_id: Description for device_model_id.
     """
     if device_model_id is None:
         return None
@@ -108,8 +108,8 @@ def get_device_models_for_type(conn: Any, device_type_id: int) -> list[dict[str,
     """Get all device models for a specific device type.
 
     Args:
-        conn: TODO: describe.
-        device_type_id: TODO: describe.
+        conn: Description for conn.
+        device_type_id: Description for device_type_id.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
@@ -130,9 +130,9 @@ def get_device_count_by_type(
     """Get count of devices with a specific device_type_id.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
-        device_type_id: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
+        device_type_id: Description for device_type_id.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -152,9 +152,9 @@ def get_current_device_model_id(
     """Get count of devices by current device_model_id.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
-        device_type_id: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
+        device_type_id: Description for device_type_id.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(
@@ -179,10 +179,10 @@ def update_device_models(
     """Update device_model_id for all devices with matching device_type_id.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
-        device_type_id: TODO: describe.
-        device_model_id: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
+        device_type_id: Description for device_type_id.
+        device_model_id: Description for device_model_id.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -204,8 +204,8 @@ def get_device_model_distribution(
     """Get device model distribution by device type for a project.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         # First check if device_model_id column exists
@@ -256,8 +256,8 @@ def update_project_spec_device_models(conn: Any, project_name_short: str) -> boo
     """Update project spec with device_model_ids_by_device_type_id.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
     """
     with conn.cursor() as cursor:
         # Get current spec - preserve all existing data
@@ -334,7 +334,7 @@ def display_projects(projects: list[dict[str, Any]]) -> None:
     """Display list of projects.
 
     Args:
-        projects: TODO: describe.
+        projects: Description for projects.
     """
     print("\n" + "=" * 60)
     print("Available Projects:")
@@ -350,7 +350,7 @@ def display_device_types(device_types: list[dict[str, Any]]) -> None:
     """Display list of device types.
 
     Args:
-        device_types: TODO: describe.
+        device_types: Description for device_types.
     """
     print("\n" + "=" * 60)
     print("Device Types in Project:")
@@ -363,7 +363,7 @@ def display_device_models(device_models: list[dict[str, Any]]) -> None:
     """Display list of device models.
 
     Args:
-        device_models: TODO: describe.
+        device_models: Description for device_models.
     """
     print("\n" + "=" * 60)
     print("Available Device Models:")
@@ -380,7 +380,7 @@ class ProjectCompleter:
         """todo
 
         Args:
-            projects: TODO: describe.
+            projects: Description for projects.
         """
         self.projects = projects
         self.matches: list[str] = []
@@ -389,8 +389,8 @@ class ProjectCompleter:
         """Complete project name based on text input.
 
         Args:
-            text: TODO: describe.
-            state: TODO: describe.
+            text: Description for text.
+            state: Description for state.
         """
         if state == 0:
             # First call: build list of matches
@@ -430,8 +430,8 @@ def select_project(
             None: User cancelled/back
 
     Args:
-        projects: TODO: describe.
-        current_project: TODO: describe.
+        projects: Description for projects.
+        current_project: Description for current_project.
     """
     display_projects(projects)
     if current_project:
@@ -488,7 +488,7 @@ def select_device_type(
     """Interactive device type selection.
 
     Args:
-        device_types: TODO: describe.
+        device_types: Description for device_types.
     """
     display_device_types(device_types)
     print("\n0. Back")
@@ -512,7 +512,7 @@ def select_device_model(
     """Interactive device model selection.
 
     Args:
-        device_models: TODO: describe.
+        device_models: Description for device_models.
     """
     display_device_models(device_models)
     print("\nb. Back")
@@ -540,8 +540,8 @@ def get_existing_mappings(conn: Any, project_name_short: str) -> list[dict[str, 
     """Get existing device_type_id -> device_model_id mappings in a project.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         # First check if device_model_id column exists
@@ -592,7 +592,7 @@ def display_existing_mappings(mappings: list[dict[str, Any]]) -> None:
     """Display existing device_type_id -> device_model_id mappings.
 
     Args:
-        mappings: TODO: describe.
+        mappings: Description for mappings.
     """
     print("\n" + "=" * 60)
     print("Existing Device Model Mappings:")
@@ -629,10 +629,10 @@ def preview_update(
     """Show preview of what will be updated.
 
     Args:
-        conn: TODO: describe.
-        project_name_short: TODO: describe.
-        device_type_id: TODO: describe.
-        device_model_id: TODO: describe.
+        conn: Description for conn.
+        project_name_short: Description for project_name_short.
+        device_type_id: Description for device_type_id.
+        device_model_id: Description for device_model_id.
     """
     total_count = get_device_count_by_type(conn, project_name_short, device_type_id)
     current_distribution = get_current_device_model_id(

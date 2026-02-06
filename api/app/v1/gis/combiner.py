@@ -39,10 +39,10 @@ async def get_combiner_block_performance(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        block_device_id: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        project_id: Description for project_id.
+        block_device_id: Description for block_device_id.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     _ = project_id
     end = pd.Timestamp.utcnow().floor("5min")

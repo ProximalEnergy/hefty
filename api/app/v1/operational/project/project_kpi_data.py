@@ -197,8 +197,8 @@ def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
     """todo
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
+        db: Description for db.
+        project_id: Description for project_id.
     """
     contractual_kpis = db.execute(
         select(models.ContractKPI.kpi_type_id, models.ContractKPI.contract_id)
@@ -226,14 +226,14 @@ def get_project_kpi_summary(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        project: TODO: describe.
-        is_superadmin: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        device_type_id: TODO: describe.
-        contract_id: TODO: describe.
-        start: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
+        project: Description for project.
+        is_superadmin: Description for is_superadmin.
+        kpi_type_ids: Description for kpi_type_ids.
+        device_type_id: Description for device_type_id.
+        contract_id: Description for contract_id.
+        start: Description for start.
     """
     contractual_kpi_type_ids = get_contractual_kpi_type_ids(
         db=db, project_id=project_id
@@ -442,10 +442,10 @@ async def get_user_kpi_alerts(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-        kpi_type_id: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
+        user_data: Description for user_data.
+        kpi_type_id: Description for kpi_type_id.
     """
     user_id = user_data.user_id
     data = await crud_get_user_kpi_alerts(
@@ -468,10 +468,10 @@ async def get_project_kpi_alerts(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        data: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Description for project_id.
+        data: Description for data.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     kpi_type_id = int(data.kpi_type_id)
     config = data.__dict__
@@ -492,8 +492,8 @@ async def update_kpi_alert(
     """todo
 
     Args:
-        data: TODO: describe.
-        db: TODO: describe.
+        data: Description for data.
+        db: Description for db.
     """
     kpi_type_id = int(data.kpi_type_id)
     config = data.__dict__
@@ -512,8 +512,8 @@ async def delete_kpi_alert(
     """todo
 
     Args:
-        data: TODO: describe.
-        db: TODO: describe.
+        data: Description for data.
+        db: Description for db.
     """
     return await crud_delete_kpi_alert(
         db=db,
@@ -533,8 +533,8 @@ def get_contract_kpis(
     """Get all contract KPIs for a project with counterparty information
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
     """
     # Query contract KPIs with company information
 
@@ -608,11 +608,11 @@ def get_llm_kpis(
     """This endpoint is for the chat application to fetch KPI data.
 
     Args:
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        kpi_type_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        start: Description for start.
+        end: Description for end.
+        kpi_type_id: Description for kpi_type_id.
+        db: Description for db.
     """
     kpi_type_ids = [kpi_type_id] if kpi_type_id is not None else []
 
@@ -657,11 +657,11 @@ async def get_rte(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        level: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
+        start: Description for start.
+        end: Description for end.
+        level: Description for level.
     """
     STRING_ENERGY_CHARGED_KPI_ID = 37
     STRING_ENERGY_DISCHARGED_KPI_ID = 41

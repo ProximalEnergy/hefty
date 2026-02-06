@@ -23,7 +23,7 @@ def get_arcgis_token(
     """todo
 
     Args:
-        provider: TODO: describe.
+        provider: Description for provider.
     """
     secret_name = "map_integrations/arcgis/1"  # noqa: S105
     REGION_NAME = "us-east-2"

@@ -36,8 +36,8 @@ async def get_racking(
     """todo
 
     Args:
-        racking_ids: TODO: describe.
-        db: TODO: describe.
+        racking_ids: Description for racking_ids.
+        db: Description for db.
     """
     return await crud_get_racking(
         db=db,
@@ -57,8 +57,8 @@ async def get_proximal_racking_manufacturers(
     """todo
 
     Args:
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     manufacturers = await get_racking_manufacturers(
         db=db, company_id=authorized_company_id
@@ -82,9 +82,9 @@ async def get_proximal_racking_models(
     """todo
 
     Args:
-        manufacturer: TODO: describe.
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        manufacturer: Description for manufacturer.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     models = await get_racking_models_given_manufacturer(
         db=db, manufacturer=manufacturer, company_id=authorized_company_id
@@ -113,10 +113,10 @@ async def get_racking_ids_by_manufacturer_and_model(
         The input lists must have the same length.
 
     Args:
-        authorized_company_id: TODO: describe.
-        manufacturers: TODO: describe.
-        models: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        manufacturers: Description for manufacturers.
+        models: Description for models.
+        db: Description for db.
     """
     try:
         racking_ids = await get_racking_ids_by_manufacturer_model(
@@ -150,9 +150,9 @@ async def create_racking(
         If the racking doesn't exist, a new one will be created.
 
     Args:
-        authorized_company_id: TODO: describe.
-        racking: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        racking: Description for racking.
+        db: Description for db.
     """
     if authorized_company_id is None:
         raise HTTPException(

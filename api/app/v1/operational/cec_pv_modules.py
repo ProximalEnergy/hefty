@@ -33,7 +33,7 @@ async def get_cec_pv_modules(
     """todo
 
     Args:
-        cec_pv_module_ids: TODO: describe.
+        cec_pv_module_ids: Description for cec_pv_module_ids.
     """
     cec_pv_modules = await crud_get_cec_pv_modules(
         cec_pv_module_ids=cec_pv_module_ids,
@@ -48,7 +48,7 @@ async def get_cec_pv_modules_in_proximal_format(
     """todo
 
     Args:
-        cec_pv_module_id: TODO: describe.
+        cec_pv_module_id: Description for cec_pv_module_id.
     """
     cec_pv_module = await crud_get_cec_pv_modules(
         cec_pv_module_ids=[cec_pv_module_id],
@@ -81,9 +81,9 @@ async def get_cec_pv_module_ids_by_manufacturer_and_model(
     The input lists must have the same length.
 
     Args:
-        manufacturers: TODO: describe.
-        models: TODO: describe.
-        db: TODO: describe.
+        manufacturers: Description for manufacturers.
+        models: Description for models.
+        db: Description for db.
     """
     try:
         cec_pv_module_ids = await get_cec_pv_module_ids_by_manufacturer_model(
@@ -109,7 +109,7 @@ async def get_proximal_cec_pv_module_manufacturers(
     """todo
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     manufacturers = await get_cec_pv_module_manufacturers(db=db)
     return manufacturers
@@ -129,8 +129,8 @@ async def get_proximal_cec_pv_module_models(
     """todo
 
     Args:
-        db: TODO: describe.
-        manufacturer: TODO: describe.
+        db: Description for db.
+        manufacturer: Description for manufacturer.
     """
     models = await get_cec_pv_module_models_given_manufacturer(
         db=db,
@@ -147,7 +147,7 @@ async def upsert_cec_pv_modules_bulk(
     """todo
 
     Args:
-        modules: TODO: describe.
-        db: TODO: describe.
+        modules: Description for modules.
+        db: Description for db.
     """
     return await crud_upsert_cec_pv_modules_bulk(db, modules=modules.modules)

@@ -35,12 +35,12 @@ async def create_feedback(
     """todo
 
     Args:
-        user_id: TODO: describe.
-        email: TODO: describe.
-        subject: TODO: describe.
-        url: TODO: describe.
-        comment: TODO: describe.
-        screenshot: TODO: describe.
+        user_id: Description for user_id.
+        email: Description for email.
+        subject: Description for subject.
+        url: Description for url.
+        comment: Description for comment.
+        screenshot: Description for screenshot.
     """
     screenshot_content = None
     screenshot_data_uri = None

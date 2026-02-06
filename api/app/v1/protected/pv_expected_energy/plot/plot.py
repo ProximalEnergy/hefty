@@ -54,13 +54,13 @@ async def utility_expected(
     to fit the use case of the page.
 
     Args:
-        device_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        warranted_degradation: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        device_id: Description for device_id.
+        start: Description for start.
+        end: Description for end.
+        warranted_degradation: Description for warranted_degradation.
+        db: Description for db.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     # Get parentage up to root using recursive parents crud function
     parent_devices = get_recursive_parents(db=project_db, device_id=device_id)
@@ -256,7 +256,7 @@ async def utility_expected(
         """todo
 
         Args:
-            expected_metric_id: TODO: describe.
+            expected_metric_id: Description for expected_metric_id.
         """
         df = df_expected[df_expected["expected_metric_id"] == expected_metric_id]
         df = df.set_index("time")

@@ -22,8 +22,8 @@ def list_pv_budgeted_series(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        project_id: TODO: describe.
+        project_db: Description for project_db.
+        project_id: Description for project_id.
     """
     series = crud.list_series(project_db=project_db, project_id=project_id)
 
@@ -55,10 +55,10 @@ def create_pv_budgeted_series(
     """todo
 
     Args:
-        payload: TODO: describe.
-        project_db: TODO: describe.
-        project_id: TODO: describe.
-        user_data: TODO: describe.
+        payload: Description for payload.
+        project_db: Description for project_db.
+        project_id: Description for project_id.
+        user_data: Description for user_data.
     """
     series = crud.create_series(
         project_db=project_db,
@@ -88,10 +88,10 @@ def get_pv_budgeted_data(
     """todo
 
     Args:
-        pv_budgeted_series_id: TODO: describe.
-        project_db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        pv_budgeted_series_id: Description for pv_budgeted_series_id.
+        project_db: Description for project_db.
+        start: Description for start.
+        end: Description for end.
     """
     if (
         crud.get_series(
@@ -128,8 +128,8 @@ def delete_pv_budgeted_series(
     """todo
 
     Args:
-        pv_budgeted_series_id: TODO: describe.
-        project_db: TODO: describe.
+        pv_budgeted_series_id: Description for pv_budgeted_series_id.
+        project_db: Description for project_db.
     """
     if (
         crud.get_series(
@@ -163,10 +163,10 @@ def bulk_upsert_pv_budgeted_data(
     """todo
 
     Args:
-        payload: TODO: describe.
-        project_db: TODO: describe.
-        project_id: TODO: describe.
-        user_data: TODO: describe.
+        payload: Description for payload.
+        project_db: Description for project_db.
+        project_id: Description for project_id.
+        user_data: Description for user_data.
     """
     series_id = payload.pv_budgeted_series_id
     if series_id is None:

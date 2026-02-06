@@ -47,21 +47,21 @@ async def get_project_dataframe(
     """todo
 
     Args:
-        tag_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        sensor_type_name_shorts: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        device_ids: TODO: describe.
-        fillna_zero: TODO: describe.
-        get_last: TODO: describe.
-        start_offset: TODO: describe.
-        last_offset: TODO: describe.
-        ffill_limit: TODO: describe.
-        interval: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        tag_ids: Description for tag_ids.
+        sensor_type_ids: Description for sensor_type_ids.
+        sensor_type_name_shorts: Description for sensor_type_name_shorts.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
+        device_ids: Description for device_ids.
+        fillna_zero: Description for fillna_zero.
+        get_last: Description for get_last.
+        start_offset: Description for start_offset.
+        last_offset: Description for last_offset.
+        ffill_limit: Description for ffill_limit.
+        interval: Description for interval.
+        include_ghost_tags: Description for include_ghost_tags.
     """
     if (
         tag_ids == []
@@ -187,13 +187,13 @@ async def get_llm_time_series(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        interval: TODO: describe.
-        tag_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
+        start: Description for start.
+        end: Description for end.
+        interval: Description for interval.
+        tag_ids: Description for tag_ids.
+        sensor_type_ids: Description for sensor_type_ids.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     tags_df = await core.crud.project.tags.get_project_tags_v2(
@@ -301,20 +301,20 @@ async def get_project_dataframe_endpoint(
     """todo
 
     Args:
-        tag_ids: TODO: describe.
-        sensor_type_name_shorts: TODO: describe.
-        device_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        fillna_zero: TODO: describe.
-        get_last: TODO: describe.
-        start_offset: TODO: describe.
-        last_offset: TODO: describe.
-        ffill_limit: TODO: describe.
-        interval: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        tag_ids: Description for tag_ids.
+        sensor_type_name_shorts: Description for sensor_type_name_shorts.
+        device_ids: Description for device_ids.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
+        fillna_zero: Description for fillna_zero.
+        get_last: Description for get_last.
+        start_offset: Description for start_offset.
+        last_offset: Description for last_offset.
+        ffill_limit: Description for ffill_limit.
+        interval: Description for interval.
+        include_ghost_tags: Description for include_ghost_tags.
     """
     df = await get_project_dataframe(
         tag_ids=tag_ids,
@@ -354,17 +354,17 @@ async def get_time_series(
     """todo
 
     Args:
-        tag_ids: TODO: describe.
-        device_ids: TODO: describe.
-        parent_device_id: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        sensor_type_name_shorts: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        include_ghost_tags: TODO: describe.
-        interval: TODO: describe.
+        tag_ids: Description for tag_ids.
+        device_ids: Description for device_ids.
+        parent_device_id: Description for parent_device_id.
+        sensor_type_ids: Description for sensor_type_ids.
+        sensor_type_name_shorts: Description for sensor_type_name_shorts.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
+        include_ghost_tags: Description for include_ghost_tags.
+        interval: Description for interval.
     """
     if parent_device_id:
         project_schema = utils.get_project_schema(project_db=project_db)
@@ -516,16 +516,16 @@ async def get_timeseries_v3(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        operational_db: TODO: describe.
-        project: TODO: describe.
-        tag_ids: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        interval: TODO: describe.
-        ensure_full_range: TODO: describe.
-        cutoff_now: TODO: describe.
+        project_db: Description for project_db.
+        operational_db: Description for operational_db.
+        project: Description for project.
+        tag_ids: Description for tag_ids.
+        sensor_type_ids: Description for sensor_type_ids.
+        start: Description for start.
+        end: Description for end.
+        interval: Description for interval.
+        ensure_full_range: Description for ensure_full_range.
+        cutoff_now: Description for cutoff_now.
     """
     if tag_ids == [] and sensor_type_ids == []:
         return []

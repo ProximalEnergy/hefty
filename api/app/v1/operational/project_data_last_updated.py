@@ -29,8 +29,8 @@ async def get_project_data_last_updated_endpoint(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_ids: TODO: describe.
+        db: Description for db.
+        project_ids: Description for project_ids.
     """
     last_updated = await get_project_data_last_updateds(
         db=db,

@@ -11,7 +11,7 @@ def get_data_type(*, data_type_id: int) -> DbQuery[models.DataType, Literal[True
     """todo
 
     Args:
-        data_type_id: TODO: describe.
+        data_type_id: Description for data_type_id.
     """
     query = select(models.DataType).where(models.DataType.data_type_id == data_type_id)
     return DbQuery(query=query, is_scalar=True)
@@ -26,9 +26,9 @@ async def get_data_types(
     """todo
 
     Args:
-        db: TODO: describe.
-        data_type_ids: TODO: describe.
-        name_short: TODO: describe.
+        db: Description for db.
+        data_type_ids: Description for data_type_ids.
+        name_short: Description for name_short.
     """
     query = select(models.DataType)
 

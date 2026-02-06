@@ -41,12 +41,12 @@ async def get_pcs(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        project_id: Description for project_id.
+        start: Description for start.
+        end: Description for end.
+        db: Description for db.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_block = await core.crud.project.devices.get_project_devices(
@@ -270,11 +270,11 @@ async def get_tracker_by_block(
     """todo
 
     Args:
-        block_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        block_id: Description for block_id.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
@@ -352,7 +352,7 @@ async def get_bess_enclosure(
     """todo
 
     Args:
-        project_db: TODO: describe.
+        project_db: Description for project_db.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     devices_df = await core.crud.project.devices.get_project_devices(
@@ -396,14 +396,14 @@ async def get_devices_in_viewport(
     actual/expected power for devices matching that type within the viewport.
 
     Args:
-        north: TODO: describe.
-        east: TODO: describe.
-        south: TODO: describe.
-        west: TODO: describe.
-        device_type_ids: TODO: describe.
-        power_device_type_id: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        north: Description for north.
+        east: Description for east.
+        south: Description for south.
+        west: Description for west.
+        device_type_ids: Description for device_type_ids.
+        power_device_type_id: Description for power_device_type_id.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     query = select(models.Device)
 
@@ -621,11 +621,11 @@ async def utility_expected(
         If start/end are None for power types, fetches data for the latest hour.
 
     Args:
-        device_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        device_ids: Description for device_ids.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     # Handle optional start/end dates (only relevant for power types now)
     if start is None or end is None:
@@ -1176,9 +1176,9 @@ async def get_met_station_latest_values(
         for the given Met Station device IDs.
 
     Args:
-        device_ids: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        device_ids: Description for device_ids.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     if not device_ids:
         return {}

@@ -15,8 +15,8 @@ def _extract_eff_curve(
         Each point is a pair of P_in (DC power) and an efficiency-related value.
 
     Args:
-        start_idx: TODO: describe.
-        byte_data: TODO: describe.
+        start_idx: Description for start_idx.
+        byte_data: Description for byte_data.
     """
     curve: list[tuple[float, float]] = []
     if not start_idx or start_idx >= len(byte_data):
@@ -52,9 +52,9 @@ def _parse_efficiency_section(
         Returns the index of the last byte parsed.
 
     Args:
-        data: TODO: describe.
-        byte_array: TODO: describe.
-        real48_start_index: TODO: describe.
+        data: Description for data.
+        byte_array: Description for byte_array.
+        real48_start_index: Description for real48_start_index.
     """
     # This dictionary will hold all efficiency-related data
     eff_data: dict[str, list[tuple[float, float]]] = {
@@ -178,8 +178,8 @@ def _parse_remarks(*, byte_array: bytes, start_index: int) -> dict:
     """Parses the final part of the file for remarks and checks for 'Bipolar'.
 
     Args:
-        byte_array: TODO: describe.
-        start_index: TODO: describe.
+        byte_array: Description for byte_array.
+        start_index: Description for start_index.
     """
     remarks_data = {"IsBipolar": False, "RemarksHex": ""}
     if start_index > 0 and start_index < len(byte_array):

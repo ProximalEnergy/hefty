@@ -32,8 +32,8 @@ async def get_pv_budgeted_series(
     """Get all budgeted series for a project.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
     """
     return await crud_get_pv_budgeted_series(
         db=db,

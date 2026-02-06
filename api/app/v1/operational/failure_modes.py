@@ -14,7 +14,7 @@ async def get_failure_modes_route(
     """todo
 
     Args:
-        failure_mode_ids: TODO: describe.
+        failure_mode_ids: Description for failure_mode_ids.
     """
     failure_modes_query = get_failure_modes(
         failure_mode_ids=failure_mode_ids,

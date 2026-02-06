@@ -9,7 +9,7 @@ def calc_absolute_temp_coefficients(
         provided.
 
     Args:
-        cec_pv_module: TODO: describe.
+        cec_pv_module: Description for cec_pv_module.
     """
     # --- Quality Control of Current Temperature Coefficients ---
     if (cec_pv_module.get("alpha_isc") is None) & (

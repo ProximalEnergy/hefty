@@ -22,7 +22,7 @@ def create_tag_pattern(*, name_scada: str) -> str:
     """Crate a tag pattern from a name_scada string.
 
     Args:
-        name_scada: TODO: describe.
+        name_scada: Description for name_scada.
     """
     result = []
     i = 0
@@ -44,7 +44,7 @@ def _process_numeric_values(*, values: list) -> tuple[bool, str, int]:
         Returns (is_numeric, value_range, total_unique_values)
 
     Args:
-        values: TODO: describe.
+        values: Description for values.
     """
     total_unique_values = len(set(v for v in values if v is not None and pd.notna(v)))
 
@@ -86,8 +86,8 @@ async def get_unique_tag_types(
         This endpoint is only accessible to superadmins.
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
     """
 
     try:
@@ -187,10 +187,10 @@ async def assign_sensor_type_to_pattern(
     """todo
 
     Args:
-        request: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        db: TODO: describe.
+        request: Description for request.
+        project_db: Description for project_db.
+        project: Description for project.
+        db: Description for db.
     """
     try:
         # First, check if any tags match the pattern (for validation)
@@ -262,8 +262,8 @@ async def put_unique_tag_patterns(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     try:
         tags_query = crud_project_tags.get_project_tags_v2(
@@ -342,11 +342,11 @@ async def get_tag_pattern_samples(
         Returns up to 10 random tags from the pattern with their sample values.
 
     Args:
-        tag_pattern: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        tag_pattern: Description for tag_pattern.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     try:
         # URL decode the tag pattern
@@ -445,8 +445,8 @@ async def get_tag_pattern_tags(
         Returns lightweight tag info for client-side processing.
 
     Args:
-        tag_pattern: TODO: describe.
-        project_db: TODO: describe.
+        tag_pattern: Description for tag_pattern.
+        project_db: Description for project_db.
     """
     try:
         decoded_pattern = urllib.parse.unquote(tag_pattern)

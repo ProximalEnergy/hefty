@@ -50,18 +50,19 @@ async def get_projects(
     """todo
 
     Args:
-        project_ids: TODO: describe.
-        project_ids_excluded: TODO: describe.
-        project_type_ids: TODO: describe.
-        project_status_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_shorts: TODO: describe.
-        name_long: TODO: describe.
-        has_pv_pcs_modules: TODO: describe.
-        kpi_instance_kpi_type_ids: TODO: describe.
-        report_instance_report_type_ids: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_ids: Description for project_ids.
+        project_ids_excluded: Description for project_ids_excluded.
+        project_type_ids: Description for project_type_ids.
+        project_status_type_ids: Description for project_status_type_ids.
+        name_short: Description for name_short.
+        name_shorts: Description for name_shorts.
+        name_long: Description for name_long.
+        has_pv_pcs_modules: Description for has_pv_pcs_modules.
+        kpi_instance_kpi_type_ids: Description for kpi_instance_kpi_type_ids.
+        report_instance_report_type_ids: Description for
+            report_instance_report_type_ids.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     project_ids_permitted = user_data.operational_project_ids
 
@@ -180,9 +181,9 @@ async def get_project(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        deep: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Description for project_id.
+        deep: Description for deep.
+        user_data: Description for user_data.
     """
     project_query = core.crud.operational.projects.get_project(
         project_id=project_id,
@@ -217,9 +218,9 @@ async def create_project(
     """Create a new project.
 
     Args:
-        project_in: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_in: Description for project_in.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     db_project = await crud_create_project(
         db=db,
@@ -250,9 +251,9 @@ async def update_project(
         Only company admins and super admins can update projects.
 
     Args:
-        project_id: TODO: describe.
-        project_update: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        project_update: Description for project_update.
+        db: Description for db.
     """
     # Fetch the existing project using AsyncSession
     result = await db.execute(

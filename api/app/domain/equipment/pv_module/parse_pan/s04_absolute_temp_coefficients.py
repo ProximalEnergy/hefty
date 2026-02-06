@@ -14,7 +14,7 @@ def calc_absolute_temp_coefficients(
         by converting units to A and V
 
     Args:
-        pv_module: TODO: describe.
+        pv_module: Description for pv_module.
     """
 
     pv_module["alpha_isc"] = pv_module["alpha_isc"] * 1e-3

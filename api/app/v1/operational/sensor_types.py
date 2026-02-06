@@ -42,11 +42,11 @@ async def get_sensor_types(
     """todo
 
     Args:
-        sensor_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
-        name_metric: TODO: describe.
-        unit: TODO: describe.
+        sensor_type_ids: Description for sensor_type_ids.
+        name_short: Description for name_short.
+        name_long: Description for name_long.
+        name_metric: Description for name_metric.
+        unit: Description for unit.
     """
     df = await core_get_sensor_types(
         sensor_type_ids=sensor_type_ids,
@@ -69,7 +69,7 @@ async def get_sensor_type(sensor_type_id: int):
     """todo
 
     Args:
-        sensor_type_id: TODO: describe.
+        sensor_type_id: Description for sensor_type_id.
     """
     sensor_type = await core_get_sensor_type(
         sensor_type_id=sensor_type_id,
@@ -91,9 +91,9 @@ def create_sensor_type(
     """Create a new sensor type. Only superadmins can create sensor types.
 
     Args:
-        sensor_type: TODO: describe.
-        user_data: TODO: describe.
-        db: TODO: describe.
+        sensor_type: Description for sensor_type.
+        user_data: Description for user_data.
+        db: Description for db.
     """
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(
@@ -127,10 +127,10 @@ def update_sensor_type(
     """Update an existing sensor type. Only superadmins can update sensor types.
 
     Args:
-        sensor_type_id: TODO: describe.
-        sensor_type: TODO: describe.
-        user_data: TODO: describe.
-        db: TODO: describe.
+        sensor_type_id: Description for sensor_type_id.
+        sensor_type: Description for sensor_type.
+        user_data: Description for user_data.
+        db: Description for db.
     """
     if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
         raise HTTPException(

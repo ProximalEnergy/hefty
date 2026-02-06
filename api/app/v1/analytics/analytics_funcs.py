@@ -24,10 +24,10 @@ async def get_expected_power(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     project_name_short = project.name_short
 
@@ -182,10 +182,10 @@ async def get_project_expected_power(
     """todo
 
     Args:
-        project: TODO: describe.
-        project_db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project: Description for project.
+        project_db: Description for project_db.
+        start: Description for start.
+        end: Description for end.
     """
     project_name_short = project.name_short
 

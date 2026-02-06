@@ -52,8 +52,8 @@ async def get_db_inspections(
     """Get a list of historical inspections from the database for a given project.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
     """
     try:
         inspections = await get_drone_inspections(db=db)
@@ -81,8 +81,8 @@ async def get_zeitview_inspections(
     """Get a list of historical inspections from Zeitview for a given project.
 
     Args:
-        project_id: TODO: describe.
-        project_db: TODO: describe.
+        project_id: Description for project_id.
+        project_db: Description for project_db.
     """
     integration = await get_drone_integration_by_project_id(
         project_id=project_id
@@ -155,8 +155,8 @@ async def get_db_anomalies(
     """Get a list of anomalies from the database for a given inspection.
 
     Args:
-        inspection_uuid: TODO: describe.
-        db: TODO: describe.
+        inspection_uuid: Description for inspection_uuid.
+        db: Description for db.
     """
     try:
         anomalies = await get_anomalies_by_inspection_uuid(
@@ -190,9 +190,9 @@ async def sync_zeitview_anomalies(
     incrementally. Can resume from where it left off if interrupted.
 
     Args:
-        project_id: TODO: describe.
-        inspection_uuid: TODO: describe.
-        project_db: TODO: describe.
+        project_id: Description for project_id.
+        inspection_uuid: Description for inspection_uuid.
+        project_db: Description for project_db.
     """
     integration = await get_drone_integration_by_project_id(
         project_id=project_id
@@ -240,8 +240,8 @@ async def sync_zeitview_anomalies(
             """Process a single page of anomalies and insert them into the database
 
             Args:
-                anomalies: TODO: describe.
-                page: TODO: describe.
+                anomalies: Description for anomalies.
+                page: Description for page.
             """
             nonlocal total_synced, is_first_page
 
@@ -295,7 +295,7 @@ async def sync_zeitview_anomalies(
                         """todo
 
                         Args:
-                            url: TODO: describe.
+                            url: Description for url.
                         """
                         if not isinstance(url, str):
                             return url

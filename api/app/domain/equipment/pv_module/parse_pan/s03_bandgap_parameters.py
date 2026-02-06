@@ -11,7 +11,7 @@ def assign_bandgap_parameters(
                     in units of [eV/K]
 
     Args:
-        pv_module: TODO: describe.
+        pv_module: Description for pv_module.
     """
     # --- Switch Statement ---
     if "Si" in pv_module["technology"]:

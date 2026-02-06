@@ -44,9 +44,9 @@ async def get_inverters(
     """todo
 
     Args:
-        inverter_ids: TODO: describe.
-        device_model_ids: TODO: describe.
-        db: TODO: describe.
+        inverter_ids: Description for inverter_ids.
+        device_model_ids: Description for device_model_ids.
+        db: Description for db.
     """
     return await crud_get_inverters(
         db=db,
@@ -70,10 +70,10 @@ async def get_inverter_ids(
     """todo
 
     Args:
-        authorized_company_id: TODO: describe.
-        inverter_manufacturer: TODO: describe.
-        inverter_model: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        inverter_manufacturer: Description for inverter_manufacturer.
+        inverter_model: Description for inverter_model.
+        db: Description for db.
     """
     return await crud_get_inverter_ids(
         db=db,
@@ -95,8 +95,8 @@ async def get_proximal_inverter_manufacturers(
     """todo
 
     Args:
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     manufacturers = await get_inverter_manufacturers(
         db=db,
@@ -121,9 +121,9 @@ async def get_proximal_inverter_models(
     """todo
 
     Args:
-        manufacturer: TODO: describe.
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        manufacturer: Description for manufacturer.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     models = await get_inverter_models_given_manufacturer(
         db=db, manufacturer=manufacturer, company_id=authorized_company_id
@@ -152,10 +152,10 @@ async def get_inverter_ids_by_manufacturer_and_model(
         The input lists must have the same length.
 
     Args:
-        authorized_company_id: TODO: describe.
-        manufacturers: TODO: describe.
-        models: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        manufacturers: Description for manufacturers.
+        models: Description for models.
+        db: Description for db.
     """
     try:
         inverter_ids = await get_inverter_ids_by_manufacturer_model(
@@ -189,9 +189,9 @@ async def create_inverter(
         If the inverter doesn't exist, a new one will be created.
 
     Args:
-        authorized_company_id: TODO: describe.
-        inverter: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        inverter: Description for inverter.
+        db: Description for db.
     """
     if authorized_company_id is None:
         pass
@@ -240,7 +240,7 @@ async def parse_ond_file(
             - inverter_data: The complete inverter configuration with all parameters
 
     Args:
-        file: TODO: describe.
+        file: Description for file.
     """
     try:
         file_content = await file.read()
@@ -274,9 +274,9 @@ async def calculate_and_update_sandia_parameters(
     """todo
 
     Args:
-        inverter_id: TODO: describe.
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        inverter_id: Description for inverter_id.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     db_inverter = await crud_get_inverter_by_id(
         db=db,

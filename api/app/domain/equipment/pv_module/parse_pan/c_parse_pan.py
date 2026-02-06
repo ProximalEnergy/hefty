@@ -27,7 +27,7 @@ def parse_pan(*, file_content: bytes) -> dict[str, Any]:
               We should use them in our initial guess
 
     Args:
-        file_content: TODO: describe.
+        file_content: Description for file_content.
     """
     try:
         pan_format = PANformat.TEXT

@@ -25,11 +25,11 @@ def get_kpi_instances(
     """todo
 
     Args:
-        db: TODO: describe.
-        is_superadmin: TODO: describe.
-        project_ids: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        deep: TODO: describe.
+        db: Description for db.
+        is_superadmin: Description for is_superadmin.
+        project_ids: Description for project_ids.
+        kpi_type_ids: Description for kpi_type_ids.
+        deep: Description for deep.
     """
     if is_superadmin:
         is_visible = None
@@ -58,11 +58,11 @@ def get_kpi_instances_helper(
     """todo
 
     Args:
-        db: TODO: describe.
-        is_visible: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        project_ids: TODO: describe.
-        deep: TODO: describe.
+        db: Description for db.
+        is_visible: Description for is_visible.
+        kpi_type_ids: Description for kpi_type_ids.
+        project_ids: Description for project_ids.
+        deep: Description for deep.
     """
     project_ids = project_ids if project_ids and len(project_ids) > 0 else None
     kpi_type_ids = kpi_type_ids if kpi_type_ids and len(kpi_type_ids) > 0 else None

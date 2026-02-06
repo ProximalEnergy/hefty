@@ -9,8 +9,8 @@ def convert_ond_data(
     """Convert OND format data to proximal format data, including raw efficiency curves.
 
     Args:
-        inverter: TODO: describe.
-        ond_format: TODO: describe.
+        inverter: Description for inverter.
+        ond_format: Description for ond_format.
     """
     result = {}
     match ond_format:

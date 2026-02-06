@@ -34,9 +34,9 @@ def df_from_objects(
     """todo
 
     Args:
-        objects: TODO: describe.
-        index_col: TODO: describe.
-        time_zone: TODO: describe.
+        objects: Description for objects.
+        index_col: Description for index_col.
+        time_zone: Description for time_zone.
     """
     records = [obj.__dict__ for obj in objects]
     df = pd.DataFrame.from_records(records).set_index(index_col)
@@ -59,12 +59,12 @@ async def get_project_waterfall(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
-        level: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        db: Description for db.
+        project_db: Description for project_db.
+        project: Description for project.
+        level: Description for level.
+        start: Description for start.
+        end: Description for end.
     """
     if start is None or end is None:
         start = pd.Timestamp.now(tz=project.time_zone).floor("D") - pd.Timedelta(days=1)

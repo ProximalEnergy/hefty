@@ -58,8 +58,8 @@ def _ensure_tz_aware(*, ts: pd.Series, tz: str) -> pd.Series:
         Mirrors original try/except behavior but clearer and safer.
 
     Args:
-        ts: TODO: describe.
-        tz: TODO: describe.
+        ts: Description for ts.
+        tz: Description for tz.
     """
     s = pd.to_datetime(ts)
     if s.dt.tz is None:
@@ -77,9 +77,9 @@ def _clip_to_window(  # nosemgrep: python-enforce-keyword-only-args
     """todo
 
     Args:
-        s: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        s: Description for s.
+        start: Description for start.
+        end: Description for end.
     """
     return s.clip(lower=start, upper=end)  # type: ignore
 
@@ -98,11 +98,11 @@ async def get_meta_analysis(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_db: TODO: describe.
-        project_db_async: TODO: describe.
-        project: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project_db: Description for project_db.
+        project_db_async: Description for project_db_async.
+        project: Description for project.
     """
     if not start or not end:
         start = pd.Timestamp.now(tz=project.time_zone).normalize() - pd.Timedelta(
@@ -380,9 +380,9 @@ def get_events_home_page_summary(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        sort_by: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
+        sort_by: Description for sort_by.
     """
     data = core.crud.project.events.get_homepage_summary(project_db, sort_by=sort_by)
     return data

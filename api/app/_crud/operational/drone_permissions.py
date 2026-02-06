@@ -13,7 +13,7 @@ async def get_drone_permissions(*, db: AsyncSession) -> Sequence[DronePermission
     """Get all drone permissions.
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     stmt = sa.select(DronePermission)
     result = await db.execute(stmt)
@@ -26,8 +26,8 @@ async def create_drone_permission(
     """Create a new drone permission.
 
     Args:
-        db: TODO: describe.
-        drone_permission: TODO: describe.
+        db: Description for db.
+        drone_permission: Description for drone_permission.
     """
     db_drone_permission = DronePermission(**drone_permission.model_dump())
     db.add(db_drone_permission)
@@ -46,10 +46,10 @@ async def update_drone_permission(
     """Update a drone permission.
 
     Args:
-        db: TODO: describe.
-        drone_integration_id: TODO: describe.
-        company_id: TODO: describe.
-        drone_permission: TODO: describe.
+        db: Description for db.
+        drone_integration_id: Description for drone_integration_id.
+        company_id: Description for company_id.
+        drone_permission: Description for drone_permission.
     """
     db_drone_permission = await db.get(
         DronePermission,
@@ -68,9 +68,9 @@ async def delete_drone_permission(
     """Delete a drone permission.
 
     Args:
-        db: TODO: describe.
-        drone_integration_id: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        drone_integration_id: Description for drone_integration_id.
+        company_id: Description for company_id.
     """
     delete_stmt = delete(DronePermission).where(
         DronePermission.drone_integration_id == drone_integration_id,

@@ -196,9 +196,9 @@ async def get_by_device_type_id(
     """todo
 
     Args:
-        device_type_id: TODO: describe.
-        sensor_type_ids: TODO: describe.
-        project_db: TODO: describe.
+        device_type_id: Description for device_type_id.
+        sensor_type_ids: Description for sensor_type_ids.
+        project_db: Description for project_db.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
 
@@ -321,8 +321,8 @@ async def get_device_type_power_summary(
         using the same proven logic as the GIS and plotting endpoints.
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     # Get all device types used in this project
     used_device_type_ids = getattr(project.spec, "used_device_type_ids", [])
@@ -411,9 +411,9 @@ async def _calculate_dc_combiner_power_sum(
     """Calculate total power for DC combiners using the proven utility_expected logic.
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        device_ids: TODO: describe.
+        project_db: Description for project_db.
+        project: Description for project.
+        device_ids: Description for device_ids.
     """
     if not device_ids:
         return None

@@ -31,10 +31,10 @@ async def get_report_instances(
     """todo
 
     Args:
-        is_superadmin: TODO: describe.
-        project_ids: TODO: describe.
-        report_type_ids: TODO: describe.
-        deep: TODO: describe.
+        is_superadmin: Description for is_superadmin.
+        project_ids: Description for project_ids.
+        report_type_ids: Description for report_type_ids.
+        deep: Description for deep.
     """
     if is_superadmin:
         is_visible = None

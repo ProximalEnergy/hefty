@@ -32,10 +32,10 @@ async def get_project_reports_instances(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        is_superadmin: TODO: describe.
-        report_type_ids: TODO: describe.
-        deep: TODO: describe.
+        project_id: Description for project_id.
+        is_superadmin: Description for is_superadmin.
+        report_type_ids: Description for report_type_ids.
+        deep: Description for deep.
     """
     if is_superadmin:
         is_visible = None
@@ -65,9 +65,9 @@ async def bulk_update_project_report_instances(
         Only accessible by superadmins.
 
     Args:
-        project_id: TODO: describe.
-        data: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        data: Description for data.
+        db: Description for db.
     """
     try:
         report_instances_data = [

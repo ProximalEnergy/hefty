@@ -15,8 +15,8 @@ async def parse_equipment_modules(
     """todo
 
     Args:
-        db: TODO: describe.
-        system: TODO: describe.
+        db: Description for db.
+        system: Description for system.
     """
     system["gsheet_module_id"] = (
         pd.factorize(

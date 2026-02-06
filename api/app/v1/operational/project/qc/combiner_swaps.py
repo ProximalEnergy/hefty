@@ -34,13 +34,13 @@ async def validate_combiner_data(
         if there is enough good combiner data.
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        device_ids: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
-        user_data: TODO: describe.
-        _access: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        device_ids: Description for device_ids.
+        project: Description for project.
+        project_db: Description for project_db.
+        user_data: Description for user_data.
+        _access: Description for _access.
     """
     try:
         # Validate start and end times

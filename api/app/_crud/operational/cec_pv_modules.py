@@ -15,7 +15,7 @@ async def get_cec_pv_module_manufacturers(
     """Returns a list of unique manufacturers of CEC PV modules.
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     query = select(models.CECPVModule.manufacturer).distinct()
     result = await db.execute(query)
@@ -30,8 +30,8 @@ async def get_cec_pv_module_models_given_manufacturer(
     """Returns a list of CEC PV module models given manufacturer
 
     Args:
-        db: TODO: describe.
-        manufacturer: TODO: describe.
+        db: Description for db.
+        manufacturer: Description for manufacturer.
     """
     query = select(models.CECPVModule.model_number).distinct()
     if manufacturer is not None:
@@ -47,7 +47,7 @@ def get_cec_pv_modules(
     """todo
 
     Args:
-        cec_pv_module_ids: TODO: describe.
+        cec_pv_module_ids: Description for cec_pv_module_ids.
     """
     query = select(models.CECPVModule)
 
@@ -66,9 +66,9 @@ async def get_cec_pv_module_ids(
     """todo
 
     Args:
-        db: TODO: describe.
-        pv_module_manufacturers: TODO: describe.
-        pv_module_models: TODO: describe.
+        db: Description for db.
+        pv_module_manufacturers: Description for pv_module_manufacturers.
+        pv_module_models: Description for pv_module_models.
     """
     query = select(models.CECPVModule.cec_pv_module_id)
 
@@ -180,8 +180,8 @@ async def upsert_cec_pv_modules_bulk(
     """todo
 
     Args:
-        db: TODO: describe.
-        modules: TODO: describe.
+        db: Description for db.
+        modules: Description for modules.
     """
     for module_data in modules:
         module_dict = module_data.model_dump()

@@ -49,7 +49,7 @@ def generate_presigned_url(*, file_key: str) -> str:
     """todo
 
     Args:
-        file_key: TODO: describe.
+        file_key: Description for file_key.
     """
     s3_client = boto3.client("s3", region_name=REGION_NAME)
     presigned_url = s3_client.generate_presigned_url(
@@ -72,9 +72,9 @@ async def get_project_documents(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user: TODO: describe.
+        project_id: Description for project_id.
+        db: Description for db.
+        user: Description for user.
     """
     project_documents = await crud_get_project_documents(
         db=db,
@@ -115,10 +115,10 @@ async def upload_project_document(
     """todo
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
-        project: TODO: describe.
-        file: TODO: describe.
+        db: Description for db.
+        user: Description for user.
+        project: Description for project.
+        file: Description for file.
     """
     try:
         companies = await get_companies(
@@ -282,11 +282,11 @@ async def search_contract_content(
     Returns the most relevant chunks of text based on the query.
 
     Args:
-        document_id: TODO: describe.
-        project_id: TODO: describe.
-        query: TODO: describe.
-        vector_store_id: TODO: describe.
-        db: TODO: describe.
+        document_id: Description for document_id.
+        project_id: Description for project_id.
+        query: Description for query.
+        vector_store_id: Description for vector_store_id.
+        db: Description for db.
     """
     logger.info(
         "Starting contract search for document_id=%s query=%s vector_store_id=%s",
@@ -408,8 +408,8 @@ async def delete_project_document(
     """todo
 
     Args:
-        document_id: TODO: describe.
-        db: TODO: describe.
+        document_id: Description for document_id.
+        db: Description for db.
     """
     associated_contracts = await crud_get_contracts_by_document_id(
         db=db, document_id=document_id

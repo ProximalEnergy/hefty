@@ -41,7 +41,7 @@ def _column_index_to_letter(*, index: int) -> str:
         column letter (A, B, C, ..., Z, AA, AB, etc.)
 
     Args:
-        index: TODO: describe.
+        index: Description for index.
     """
     result = ""
     while index >= 0:
@@ -57,8 +57,8 @@ def read_google_sheet(
     """todo
 
     Args:
-        spreadsheet_id: TODO: describe.
-        end_column_name: TODO: describe.
+        spreadsheet_id: Description for spreadsheet_id.
+        end_column_name: Description for end_column_name.
     """
     credentials = None
     # Try to get credentials from environment variable

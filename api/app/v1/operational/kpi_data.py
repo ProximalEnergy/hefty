@@ -57,14 +57,14 @@ def get_kpi_data(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project_ids: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        include_device_data: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-        include_all_dates: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project_ids: Description for project_ids.
+        kpi_type_ids: Description for kpi_type_ids.
+        include_device_data: Description for include_device_data.
+        db: Description for db.
+        user_data: Description for user_data.
+        include_all_dates: Description for include_all_dates.
     """
     project_ids = list(set(project_ids) & set(user_data.operational_project_ids))
 
@@ -94,13 +94,13 @@ def get_kpi_data_helper(
     """todo
 
     Args:
-        db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project_ids: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        include_device_data: TODO: describe.
-        include_all_dates: TODO: describe.
+        db: Description for db.
+        start: Description for start.
+        end: Description for end.
+        project_ids: Description for project_ids.
+        kpi_type_ids: Description for kpi_type_ids.
+        include_device_data: Description for include_device_data.
+        include_all_dates: Description for include_all_dates.
     """
     date_range = pd.date_range(start=start, end=end, freq="D", inclusive="left")
 
@@ -227,8 +227,8 @@ async def get_triggered_user_alerts(
     """todo
 
     Args:
-        db: TODO: describe.
-        user_data: TODO: describe.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     user_alerts = await crud_get_user_triggered_alerts(db, user_id=user_data.user_id)
     data_triggered = [x for x in user_alerts if x.config and x.config["triggered"]]
@@ -244,9 +244,9 @@ async def trigger_alert(
     """todo
 
     Args:
-        kpi_alert_id: TODO: describe.
-        triggered: TODO: describe.
-        db: TODO: describe.
+        kpi_alert_id: Description for kpi_alert_id.
+        triggered: Description for triggered.
+        db: Description for db.
     """
     return await crud_trigger_user_alert(
         db=db,
@@ -272,14 +272,14 @@ async def get_kpi_excel(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        kpi_type_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        db: TODO: describe.
-        sync_db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        project_id: Description for project_id.
+        kpi_type_id: Description for kpi_type_id.
+        start: Description for start.
+        end: Description for end.
+        db: Description for db.
+        sync_db: Description for sync_db.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     kpi_data = get_kpi_data_helper(
         db=sync_db,
@@ -374,7 +374,7 @@ async def get_kpi_excel(
         """todo
 
         Args:
-            file_key: TODO: describe.
+            file_key: Description for file_key.
         """
         bucket_name = "proximal-am-documents"
         presigned_url = s3_client.generate_presigned_url(
@@ -417,11 +417,11 @@ def get_kpi_email_alerts(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        kpi_type_id: TODO: describe.
-        project_id: TODO: describe.
-        db: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        kpi_type_id: Description for kpi_type_id.
+        project_id: Description for project_id.
+        db: Description for db.
     """
     kpi_data = get_kpi_data_helper(
         db=db,

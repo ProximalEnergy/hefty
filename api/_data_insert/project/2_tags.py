@@ -72,7 +72,7 @@ def process_tag_chunk(tag_chunk):
     """todo
 
     Args:
-        tag_chunk: TODO: describe.
+        tag_chunk: Description for tag_chunk.
     """
     with psycopg2.connect(
         utils.CONNECTION_STRING,

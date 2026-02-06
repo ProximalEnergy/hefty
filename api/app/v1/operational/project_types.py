@@ -24,10 +24,10 @@ def get_project_types(
     """todo
 
     Args:
-        project_type_ids: TODO: describe.
-        name_short: TODO: describe.
-        name_long: TODO: describe.
-        db: TODO: describe.
+        project_type_ids: Description for project_type_ids.
+        name_short: Description for name_short.
+        name_long: Description for name_long.
+        db: Description for db.
     """
     return crud_get_project_types(
         db=db,

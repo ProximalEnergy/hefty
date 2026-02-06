@@ -43,10 +43,10 @@ async def get_horizontal_bess(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore
     if SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT in used_sensor_type_ids:
@@ -111,7 +111,7 @@ async def get_horizontal_bess(
         """todo
 
         Args:
-            category: TODO: describe.
+            category: Description for category.
         """
         data = [
             {
@@ -172,10 +172,10 @@ async def get_horizontal_pv(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     sensor_type_ids: list[int] = [
         SensorTypeEnum.METER_ACTIVE_POWER,
@@ -224,7 +224,7 @@ async def get_horizontal_pv(
         """todo
 
         Args:
-            category: TODO: describe.
+            category: Description for category.
         """
         data = [
             {
@@ -266,11 +266,11 @@ async def get_single_by_device_id(
     """todo
 
     Args:
-        device_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        device_id: Description for device_id.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     tags = await core.crud.project.tags.get_project_tags_v2(
@@ -339,10 +339,10 @@ async def get_vertical_controller(
     """todo
 
     Args:
-        device_id: TODO: describe.
-        db: TODO: describe.
-        project_db: TODO: describe.
-        project: TODO: describe.
+        device_id: Description for device_id.
+        db: Description for db.
+        project_db: Description for project_db.
+        project: Description for project.
     """
     SUPPORTED_DEVICE_TYPE_IDS_BY_TECHNOLOGY: dict[Literal["pv", "bess"], list[int]] = {
         "pv": [
@@ -500,11 +500,11 @@ async def get_vertical(
     """todo
 
     Args:
-        project: TODO: describe.
-        project_db: TODO: describe.
-        device_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project: Description for project.
+        project_db: Description for project_db.
+        device_ids: Description for device_ids.
+        start: Description for start.
+        end: Description for end.
     """
     SENSOR_TYPE_IDS_TO_LABEL: dict[int, str] = {
         2: "Power (MW)",  # pv_pcs_ac_power
@@ -642,9 +642,9 @@ async def get_data_availability_v2(
         avoiding the 32,767 parameter limit.
 
     Args:
-        device_type_ids: TODO: describe.
-        project_name_short: TODO: describe.
-        include_ghost_tags: TODO: describe.
+        device_type_ids: Description for device_type_ids.
+        project_name_short: Description for project_name_short.
+        include_ghost_tags: Description for include_ghost_tags.
     """
 
     query = core.crud.project.data_timeseries_last.get_data_timeseries_last_v2(

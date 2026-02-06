@@ -27,10 +27,10 @@ async def get_degradation_poa(
     """todo
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
+        start: Description for start.
+        end: Description for end.
+        project: Description for project.
+        project_db: Description for project_db.
     """
     min_poa = 250
     max_poa_1d = 20

@@ -30,7 +30,7 @@ def validate_and_clean_date(*, date_string: str | None) -> str | None:
         Returns None for invalid dates, ensuring frontend doesn't crash.
 
     Args:
-        date_string: TODO: describe.
+        date_string: Description for date_string.
     """
     if not date_string or not isinstance(date_string, str):
         return None
@@ -72,10 +72,10 @@ async def create_contract(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        contract: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Description for project_id.
+        contract: Description for contract.
+        db: Description for db.
+        user_data: Description for user_data.
     """
     contract_data = contract.model_dump()
     contract_data["project_id"] = project_id
@@ -118,8 +118,8 @@ async def get_project_contracts(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        project_db: TODO: describe.
+        project_id: Description for project_id.
+        project_db: Description for project_db.
     """
     project_contracts = await crud_get_project_contracts(
         project_db, project_id=project_id
@@ -169,8 +169,8 @@ async def get_contract_kpis(
     """todo
 
     Args:
-        contract_id: TODO: describe.
-        db: TODO: describe.
+        contract_id: Description for contract_id.
+        db: Description for db.
     """
     query = (
         sa.select(
@@ -200,8 +200,8 @@ def call_contract_analyzer(*, file_id: str, user_company_name: str | None = None
         This ensures reliable JSON output without syntax errors.
 
     Args:
-        file_id: TODO: describe.
-        user_company_name: TODO: describe.
+        file_id: Description for file_id.
+        user_company_name: Description for user_company_name.
     """
     client = OpenAI()
 
@@ -549,10 +549,10 @@ async def analyze_contract_document(
     calling.
 
     Args:
-        document_id: TODO: describe.
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user: TODO: describe.
+        document_id: Description for document_id.
+        project_id: Description for project_id.
+        db: Description for db.
+        user: Description for user.
     """
     try:
         # Get the document to access its OpenAI file_id
@@ -640,9 +640,9 @@ async def delete_contract(
         KPIs associated with them, ensuring data integrity.
 
     Args:
-        project_id: TODO: describe.
-        contract_id: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        contract_id: Description for contract_id.
+        db: Description for db.
     """
     try:
         deleted = await crud_delete_contract(

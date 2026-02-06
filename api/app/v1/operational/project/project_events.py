@@ -49,7 +49,7 @@ def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-o
     """todo
 
     Args:
-        x: TODO: describe.
+        x: Description for x.
     """
     if x is None:
         return None
@@ -80,14 +80,14 @@ async def get_events(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_id: TODO: describe.
-        device_id: TODO: describe.
-        time_end_gte: TODO: describe.
-        time_end_lt: TODO: describe.
-        open: TODO: describe.
-        event_ids: TODO: describe.
-        open_at: TODO: describe.
+        db: Description for db.
+        project_id: Description for project_id.
+        device_id: Description for device_id.
+        time_end_gte: Description for time_end_gte.
+        time_end_lt: Description for time_end_lt.
+        open: Description for open.
+        event_ids: Description for event_ids.
+        open_at: Description for open_at.
     """
     if device_id == -1:
         return None
@@ -225,18 +225,18 @@ async def get_paginated_events(
     """todo
 
     Args:
-        project_id: TODO: describe.
-        page: TODO: describe.
-        page_size: TODO: describe.
-        sort_column: TODO: describe.
-        sort_direction: TODO: describe.
-        open: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_type_ids: TODO: describe.
-        device_ids: TODO: describe.
-        project_db: TODO: describe.
-        db: TODO: describe.
+        project_id: Description for project_id.
+        page: Description for page.
+        page_size: Description for page_size.
+        sort_column: Description for sort_column.
+        sort_direction: Description for sort_direction.
+        open: Description for open.
+        start: Description for start.
+        end: Description for end.
+        device_type_ids: Description for device_type_ids.
+        device_ids: Description for device_ids.
+        project_db: Description for project_db.
+        db: Description for db.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
@@ -434,9 +434,9 @@ async def update_event_root_cause(
     """todo
 
     Args:
-        root_cause: TODO: describe.
-        event_id: TODO: describe.
-        project_db: TODO: describe.
+        root_cause: Description for root_cause.
+        event_id: Description for event_id.
+        project_db: Description for project_db.
     """
     if root_cause.root_cause_id != -1:
         return await crud_update_event_root_cause(
@@ -462,9 +462,9 @@ async def get_event_devices(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        db: TODO: describe.
-        project_id: TODO: describe.
+        project_db: Description for project_db.
+        db: Description for db.
+        project_id: Description for project_id.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
@@ -551,15 +551,15 @@ async def get_events_summary(
     loss info.
 
     Args:
-        project_db: TODO: describe.
-        db: TODO: describe.
-        open: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_type_ids: TODO: describe.
-        device_ids: TODO: describe.
-        project_id: TODO: describe.
-        project: TODO: describe.
+        project_db: Description for project_db.
+        db: Description for db.
+        open: Description for open.
+        start: Description for start.
+        end: Description for end.
+        device_type_ids: Description for device_type_ids.
+        device_ids: Description for device_ids.
+        project_id: Description for project_id.
+        project: Description for project.
     """
 
     # Time zone (same behavior: only use project's tz if project_id is provided)
@@ -635,8 +635,8 @@ async def get_events_summary(
         """todo
 
         Args:
-            losses_rows: TODO: describe.
-            events_list: TODO: describe.
+            losses_rows: Description for losses_rows.
+            events_list: Description for events_list.
         """
         try:
             losses_dicts = [dict(row._mapping) for row in losses_rows]
@@ -978,8 +978,8 @@ async def get_event_trace_tags(
     """todo
 
     Args:
-        project_db: TODO: describe.
-        device_id: TODO: describe.
+        project_db: Description for project_db.
+        device_id: Description for device_id.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     device_df = await crud_get_project_devices(device_ids=[device_id]).get_async(
@@ -1119,9 +1119,9 @@ async def get_llm_event_losses(
 
     Args:
         db: Operational database
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_id: Description for project_id.
+        start: Description for start.
+        end: Description for end.
     """
     try:
         if isinstance(start, str):
@@ -1230,10 +1230,10 @@ async def bulk_create_events(
       'proximal_pv_dc_capacity'.
 
     Args:
-        project_db: TODO: describe.
-        db: TODO: describe.
-        project_id: TODO: describe.
-        payload: TODO: describe.
+        project_db: Description for project_db.
+        db: Description for db.
+        project_id: Description for project_id.
+        payload: Description for payload.
     """
     # Ensure event_loss_type id exists (id 3 requested by frontend)
     loss_type_id = EventLossType.PROXIMAL_PV_DC_CAPACITY
@@ -1457,8 +1457,8 @@ async def get_event_anomalies(
         Anomalies are linked to events via the event_id column.
 
     Args:
-        project_db: TODO: describe.
-        event_id: TODO: describe.
+        project_db: Description for project_db.
+        event_id: Description for event_id.
     """
     try:
         anomalies = await crud_get_anomalies_by_event_id(
@@ -1481,7 +1481,7 @@ async def get_event_losses_summary(
 
     Args:
         project_id: The UUID of the project
-        event_id: TODO: describe.
+        event_id: Description for event_id.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:

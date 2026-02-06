@@ -63,9 +63,9 @@ async def interpret(
     """todo
 
     Args:
-        db: TODO: describe.
-        status_tags: TODO: describe.
-        status_values: TODO: describe.
+        db: Description for db.
+        status_tags: Description for status_tags.
+        status_values: Description for status_values.
     """
     try:
         return await core.crud.project.statuses.get_status_interpret(
@@ -97,15 +97,15 @@ async def get_status_time_series_python(
     """todo
 
     Args:
-        db: TODO: describe.
-        project: TODO: describe.
-        project_db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_ids: TODO: describe.
-        tag_ids: TODO: describe.
-        device_type_ids: TODO: describe.
-        sensor_types: TODO: describe.
+        db: Description for db.
+        project: Description for project.
+        project_db: Description for project_db.
+        start: Description for start.
+        end: Description for end.
+        device_ids: Description for device_ids.
+        tag_ids: Description for tag_ids.
+        device_type_ids: Description for device_type_ids.
+        sensor_types: Description for sensor_types.
     """
     logger.warning(
         "/projects/{project_id}/status/time-series-python is deprecated; "

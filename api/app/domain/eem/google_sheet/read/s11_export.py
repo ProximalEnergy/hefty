@@ -11,8 +11,8 @@ def export_system(
     """Export a system to S3
 
     Args:
-        system: TODO: describe.
-        project_name_short: TODO: describe.
+        system: Description for system.
+        project_name_short: Description for project_name_short.
     """
 
     # Environment Variables

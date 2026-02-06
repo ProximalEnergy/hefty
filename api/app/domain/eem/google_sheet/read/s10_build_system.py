@@ -9,7 +9,7 @@ def build_system(
     """todo
 
     Args:
-        system: TODO: describe.
+        system: Description for system.
     """
     system["string_id"] = range(len(system))
     system["racking_device_id"] = -999

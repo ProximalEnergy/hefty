@@ -7,7 +7,7 @@ def calc_power_dc_nominal(*, inverter: dict):
             * cec efficiency is not provided in OND files
 
     Args:
-        inverter: TODO: describe.
+        inverter: Description for inverter.
     """
     inverter["power_dc_nominal"] = (
         inverter["power_ac_nominal"] / inverter["max_efficiency"]

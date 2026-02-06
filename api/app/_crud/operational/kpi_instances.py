@@ -17,11 +17,11 @@ def get_kpi_instances(
     """todo
 
     Args:
-        db: TODO: describe.
-        project_ids: TODO: describe.
-        is_visible: TODO: describe.
-        kpi_type_ids: TODO: describe.
-        deep: TODO: describe.
+        db: Description for db.
+        project_ids: Description for project_ids.
+        is_visible: Description for is_visible.
+        kpi_type_ids: Description for kpi_type_ids.
+        deep: Description for deep.
     """
     statement = select(models.KPIInstance).options(
         _get_kpi_instances_options(deep=deep),
@@ -44,7 +44,7 @@ def _get_kpi_instances_options(*, deep: bool):
     """todo
 
     Args:
-        deep: TODO: describe.
+        deep: Description for deep.
     """
     if deep:
         options = selectinload(models.KPIInstance.kpi_type)

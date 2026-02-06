@@ -16,8 +16,8 @@ async def parse_equipment_rackings(
     """todo
 
     Args:
-        db: TODO: describe.
-        system: TODO: describe.
+        db: Description for db.
+        system: Description for system.
     """
     system["gsheet_racking_id"] = (
         pd.factorize(

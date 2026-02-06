@@ -40,8 +40,8 @@ async def get_pv_modules(
     """todo
 
     Args:
-        pv_module_ids: TODO: describe.
-        db: TODO: describe.
+        pv_module_ids: Description for pv_module_ids.
+        db: Description for db.
     """
     return await crud_get_pv_modules(
         db=db,
@@ -60,10 +60,10 @@ async def get_pv_module_ids(
     """todo
 
     Args:
-        authorized_company_id: TODO: describe.
-        pv_module_manufacturer: TODO: describe.
-        pv_module_model: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        pv_module_manufacturer: Description for pv_module_manufacturer.
+        pv_module_model: Description for pv_module_model.
+        db: Description for db.
     """
     return await crud_get_pv_module_ids(
         db=db,
@@ -85,8 +85,8 @@ async def get_proximal_pv_module_manufacturers(
     """todo
 
     Args:
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     manufacturers = await get_pv_module_manufacturers(
         db=db, company_id=authorized_company_id
@@ -110,9 +110,9 @@ async def get_proximal_pv_module_models(
     """todo
 
     Args:
-        manufacturer: TODO: describe.
-        authorized_company_id: TODO: describe.
-        db: TODO: describe.
+        manufacturer: Description for manufacturer.
+        authorized_company_id: Description for authorized_company_id.
+        db: Description for db.
     """
     models = await get_pv_module_models_given_manufacturer(
         db=db, manufacturer=manufacturer, company_id=authorized_company_id
@@ -140,10 +140,10 @@ async def get_pv_module_ids_by_manufacturer_and_model(
     The input lists must have the same length.
 
     Args:
-        authorized_company_id: TODO: describe.
-        manufacturers: TODO: describe.
-        models: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        manufacturers: Description for manufacturers.
+        models: Description for models.
+        db: Description for db.
     """
     try:
         pv_module_ids = await get_pv_module_ids_by_manufacturer_model(
@@ -177,9 +177,9 @@ async def create_pv_module(
         If the PV module doesn't exist, a new one will be created.
 
     Args:
-        authorized_company_id: TODO: describe.
-        pv_module: TODO: describe.
-        db: TODO: describe.
+        authorized_company_id: Description for authorized_company_id.
+        pv_module: Description for pv_module.
+        db: Description for db.
     """
     if authorized_company_id is None:
         pass

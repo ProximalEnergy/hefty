@@ -28,9 +28,9 @@ async def combiner_correlation_analysis(
     """todo
 
     Args:
-        analysis_date: TODO: describe.
-        block_names: TODO: describe.
-        project: TODO: describe.
+        analysis_date: Description for analysis_date.
+        block_names: Description for block_names.
+        project: Description for project.
     """
 
     lambda_client = boto3.client(

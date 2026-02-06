@@ -20,7 +20,7 @@ async def list_contract_categories(
     """todo
 
     Args:
-        db: TODO: describe.
+        db: Description for db.
     """
     query = sa.text(
         """

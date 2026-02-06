@@ -16,9 +16,9 @@ async def get_pv_modules(
     """todo
 
     Args:
-        db: TODO: describe.
-        pv_module_ids: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        pv_module_ids: Description for pv_module_ids.
+        company_id: Description for company_id.
     """
     query = select(models.PVModule)
 
@@ -66,8 +66,8 @@ async def get_pv_module_manufacturers(
     """Returns a list of unique manufacturers of PV modules.
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        company_id: Description for company_id.
     """
     query = select(models.PVModule.manufacturer).distinct()
 
@@ -88,9 +88,9 @@ async def get_pv_module_models_given_manufacturer(
     """Returns a list of modules given manufacturer
 
     Args:
-        db: TODO: describe.
-        manufacturer: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        manufacturer: Description for manufacturer.
+        company_id: Description for company_id.
     """
 
     query = select(models.PVModule.model).distinct()
@@ -112,10 +112,10 @@ async def get_pv_module_ids(
     """todo
 
     Args:
-        db: TODO: describe.
-        pv_module_manufacturers: TODO: describe.
-        pv_module_models: TODO: describe.
-        company_id: TODO: describe.
+        db: Description for db.
+        pv_module_manufacturers: Description for pv_module_manufacturers.
+        pv_module_models: Description for pv_module_models.
+        company_id: Description for company_id.
     """
     query = select(models.PVModule)
 
