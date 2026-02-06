@@ -1,5 +1,8 @@
 
 [tools]
+nvm = "latest"
+node = "latest"
+npm = "latest"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
@@ -23,6 +26,10 @@ cp web-app/.env.from_parameter_store web-app/.env && \
 cd .. && \
 mise run sql-admin:install
 """
+
+[tasks.upgrade-node-npm]
+description = "Upgrade Node.js and npm to the latest versions"
+run = "mise install node@latest npm@latest"
 
 [tasks.sync-deps]
 description = "Install and sync all dependencies across the monorepo"

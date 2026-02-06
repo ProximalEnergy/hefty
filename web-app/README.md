@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-1. Install Node.js version 22. Installation instructions can be found [here](https://nodejs.org/en/download). Make sure to select v22 for macOS using nvm with npm.
+1. Install Node.js via `nvm` with the latest version.
 2. Install dependencies using `npm install`.
 3. Fix non-breaking dependencies with `npm audit fix`
 4. `npx node build-plotly-custom.js` (see \_README_PLOTLY.md)
@@ -20,13 +20,18 @@ In order to see data, you will need to also run the API on your local machine. S
 
 ## Node.js Version
 
-Node.js version 22 is required to run the project. Run the following commands to ensure you are using version 22.
+Use the latest Node.js and npm versions for this project. Run the following
+commands to install and select the latest Node.js, then update npm.
 
 ```shell
-nvm install 22
-nvm use 22
+nvm install node --latest-npm
+nvm use node
 node --version
+npm --version
 ```
+
+If you use `mise`, run `mise run upgrade-node-npm` from the repo root to install
+the latest Node.js and npm versions.
 
 ## Check for package updates
 
