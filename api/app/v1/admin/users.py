@@ -239,27 +239,38 @@ async def enrich_users(
     Returns:
         List of users with operational project IDs and optionally image URLs.
     """
-    # Process each user tuple and add operational_project_ids and optionally image URLs
+    # Group users by user_id to handle multiple project assignments per user
+    if users.empty:
+        return []
+
     users_with_project_ids = []
-    for _, user in users.iterrows():
+    for user_id, group in users.groupby("user_id", sort=False):
+        # Take the first row to populate user-level metadata
+        first_row = group.iloc[0]
         user_dict = {
-            **{k: v for k, v in user.to_dict().items() if k != "api_key"},
+            **{
+                k: v
+                for k, v in first_row.to_dict().items()
+                if k not in ("api_key", "project_ids")
+            },
         }
 
-        # Rename project_ids key to operational_project_ids
-        user_dict["operational_project_ids"] = user_dict.pop("project_ids")
-
-        # If user_dict["operational_project_ids"] is [None], set it to an empty list.
-        # NOTE: This is to comply with the UserWithProjects interface.
-        if user_dict["operational_project_ids"] == [None]:
-            user_dict["operational_project_ids"] = []
+        # Collect all project IDs from the group, filtering out None/NaN
+        # NOTE: This ensures compliance with the UserWithProjects interface.
+        project_ids = [
+            p
+            for p in group["project_ids"].unique().tolist()
+            if p is not None and pd.notna(p)
+        ]
+        user_dict["operational_project_ids"] = project_ids
 
         # Only fetch profile picture URL from Clerk if explicitly requested
         # This avoids unnecessary API calls for users that may not exist in Clerk
         if include_image_urls:
-            image_url = await get_clerk_user_image_url(user_id=user_dict["user_id"])
+            image_url = await get_clerk_user_image_url(user_id=str(user_id))
             if image_url:
                 user_dict["image_url"] = image_url
+
         users_with_project_ids.append(user_dict)
 
     return users_with_project_ids
