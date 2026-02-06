@@ -1694,7 +1694,6 @@ export interface paths {
          *
          *     Args:
          *         device_type_id: TODO: describe.
-         *         db: TODO: describe.
          */
         get: operations["get_device_type_by_id"];
         put?: never;

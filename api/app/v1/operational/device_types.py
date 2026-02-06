@@ -2,6 +2,7 @@ from typing import Annotated
 
 from core.crud.operational.device_types import get_device_type as crud_get_device_type
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,15 +45,14 @@ async def get_device_types(
     responses={404: {"description": DESCRIPTION_404}},
     operation_id="get_device_type_by_id",
 )
-async def get_device_type(
-    device_type_id: int, db: Annotated[AsyncSession, Depends(get_async_db)]
-):
+async def get_device_type(device_type_id: int):
     """todo
 
     Args:
         device_type_id: TODO: describe.
-        db: TODO: describe.
     """
-    device_type = await crud_get_device_type(db=db, device_type_id=device_type_id)
+    device_type = await crud_get_device_type(device_type_id=device_type_id).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
     utils.check_404(value=device_type, detail=DESCRIPTION_404)
     return device_type

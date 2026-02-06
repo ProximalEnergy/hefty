@@ -1,25 +1,27 @@
+from typing import Literal
+
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
+from core.db_query import DbQuery
 
 
-async def get_device_type(
+def get_device_type(
     *,
-    db: AsyncSession,
     device_type_id: int,
-):
+) -> DbQuery[models.DeviceType, Literal[True]]:
     """Fetch a single device type by id.
 
     Args:
-        db: Async session for operational data.
         device_type_id: Device type id to fetch.
     """
-    stmt = sa.select(models.DeviceType).where(
-        models.DeviceType.device_type_id == device_type_id
+    stmt = (
+        sa.select(models.DeviceType)
+        .where(models.DeviceType.device_type_id == device_type_id)
+        .limit(1)
     )
-    result = await db.execute(stmt)
-    return result.scalars().first()
+    return DbQuery(query=stmt, is_scalar=True)
 
 
 async def get_device_types(
