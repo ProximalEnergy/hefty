@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 import pandas as pd
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from pandas.tseries.offsets import DateOffset
@@ -62,16 +63,25 @@ async def get_resources(
 async def get_resource(
     resource_id: int,
     deep: custom_types.AnnotatedDeep = False,
-    db: AsyncSession = Depends(dependencies.get_ercot_db_async),
+    _db: AsyncSession = Depends(dependencies.get_ercot_db_async),
 ):
     """todo
 
     Args:
         resource_id: TODO: describe.
         deep: TODO: describe.
-        db: TODO: describe.
+        _db: TODO: describe.
     """
-    return await crud_get_ercot_resource(db=db, resource_id=resource_id, deep=deep)
+    resource_rows = await crud_get_ercot_resource(
+        resource_id=resource_id,
+        deep=deep,
+    ).get_async(output_type=OutputType.SQLALCHEMY, schema="ercot")
+    if not resource_rows:
+        raise HTTPException(
+            status_code=404,
+            detail="Resource not found",
+        )
+    return resource_rows[0]
 
 
 @router.get(
@@ -90,7 +100,15 @@ async def get_resource_net_power(
     start = pd.Timestamp.now(tz="US/Central").floor("D") - DateOffset(days=60)
     end = start + DateOffset(days=1)
 
-    resource = await crud_get_ercot_resource(db=db, resource_id=resource_id)
+    resource_rows = await crud_get_ercot_resource(
+        resource_id=resource_id,
+    ).get_async(output_type=OutputType.SQLALCHEMY, schema="ercot")
+    if not resource_rows:
+        raise HTTPException(
+            status_code=404,
+            detail="Resource not found",
+        )
+    resource = resource_rows[0]
     sced_gen_data = await crud_get_ercot_sced_gen(
         db,
         resource_id=resource_id,

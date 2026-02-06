@@ -1218,7 +1218,7 @@ export interface paths {
          *     Args:
          *         resource_id: TODO: describe.
          *         deep: TODO: describe.
-         *         db: TODO: describe.
+         *         _db: TODO: describe.
          */
         get: operations["get_resource_v1_development_ercot_resources__resource_id__get"];
         put?: never;

@@ -1,3 +1,6 @@
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, selectinload
@@ -5,7 +8,7 @@ from sqlalchemy.orm import noload, selectinload
 from core import models
 
 
-async def get_ercot_resources_options(*, deep: bool):
+def get_ercot_resources_options(*, deep: bool):
     """todo
 
     Args:
@@ -40,25 +43,27 @@ async def get_ercot_resources(*, db: AsyncSession, deep: bool = False):
         db: TODO: describe.
         deep: TODO: describe.
     """
-    options = await get_ercot_resources_options(deep=deep)
+    options = get_ercot_resources_options(deep=deep)
     query = select(models.Resource).options(*options)
     result = await db.execute(query)
     return result.scalars().all()
 
 
-async def get_ercot_resource(*, db: AsyncSession, resource_id: int, deep: bool = False):
+def get_ercot_resource(
+    *,
+    resource_id: int,
+    deep: bool = False,
+) -> DbQuery[models.Resource, Literal[False]]:
     """todo
 
     Args:
-        db: TODO: describe.
         resource_id: TODO: describe.
         deep: TODO: describe.
     """
-    options = await get_ercot_resources_options(deep=deep)
+    options = get_ercot_resources_options(deep=deep)
     query = (
         select(models.Resource)
         .options(*options)
         .where(models.Resource.resource_id == resource_id)
     )
-    result = await db.execute(query)
-    return result.scalars().first()
+    return DbQuery(query=query, use_scalars=True)
