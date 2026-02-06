@@ -8,7 +8,7 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
 from core.enumerations import EventLossType, ProjectType, SensorType
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -134,35 +134,23 @@ async def get_project_waterfall(
 
     ## Add a series of sequential fallbacks if preferred metric is not available
     ## TODO: integrate this into a table instead
-    data_expected = crud_get_pv_expected(
-        db=project_db,
-        start=start_dt,
-        end=end_dt,
-        expected_metric_ids=[12],
-    )
-    if len(data_expected) == 0:
+    expected_metric_ids = [12, 11, 5, 6]
+    data_expected = []
+    for metric_id in expected_metric_ids:
         data_expected = crud_get_pv_expected(
             db=project_db,
             start=start_dt,
             end=end_dt,
-            expected_metric_ids=[11],
+            expected_metric_ids=[metric_id],
         )
+        if data_expected:
+            break
     if len(data_expected) == 0:
-        data_expected = crud_get_pv_expected(
-            db=project_db,
-            start=start_dt,
-            end=end_dt,
-            expected_metric_ids=[5],
-        )
-    if len(data_expected) == 0:
-        data_expected = crud_get_pv_expected(
-            db=project_db,
-            start=start_dt,
-            end=end_dt,
-            expected_metric_ids=[6],
-        )
-    if len(data_expected) == 0:
-        raise HTTPException(status_code=404, detail="No expected data found")
+        return {
+            "value": [],
+            "measure": [],
+            "name": [],
+        }
     df_expected = df_from_objects(
         objects=data_expected,
         index_col="time",
