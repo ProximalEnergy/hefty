@@ -155,11 +155,11 @@ async def delete_user(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_id: str,
 ):
-    """todo
+    """Delete a user from Clerk and the database.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
+        db: Async database session.
+        user_id: Clerk user ID to delete.
     """
     await delete_clerk_user(user_id=user_id)
     await delete_user_crud(db=db, user_id=user_id)
@@ -185,8 +185,8 @@ async def update_self_clerk_theme(
     """Update the current user's theme in Clerk.
 
     Args:
-        user_data: TODO: describe.
-        request: TODO: describe.
+        user_data: Authenticated user context.
+        request: Theme update payload.
     """
     user_id = user_data.user_id
     return await update_clerk_user_theme(
@@ -216,8 +216,8 @@ async def update_self_clerk_demo_mode(
     """Update the current user's demo mode in Clerk.
 
     Args:
-        user_data: TODO: describe.
-        request: TODO: describe.
+        user_data: Authenticated user context.
+        request: Demo mode update payload.
     """
     user_id = user_data.user_id
     return await update_clerk_user_demo_mode(

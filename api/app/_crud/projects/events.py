@@ -17,16 +17,16 @@ def get_project_events(
     event_ids: list[int] | None = None,
     open_at: datetime.datetime | None = None,
 ) -> DbQuery[models.Event, Literal[False]]:
-    """todo
+    """Get project events matching optional filters.
 
     Args:
-        device_id: TODO: describe.
-        time_end_gte: TODO: describe.
-        time_end_lt: TODO: describe.
-        open: TODO: describe.
-        device_ids: TODO: describe.
-        event_ids: TODO: describe.
-        open_at: TODO: describe.
+        device_id: Filter by a single device ID.
+        time_end_gte: Filter events ending at or after this time.
+        time_end_lt: Filter events ending before this time.
+        open: When true, include only events without an end time.
+        device_ids: Filter by a list of device IDs.
+        event_ids: Filter by a list of event IDs.
+        open_at: Match events open at the provided timestamp.
     """
     stmt = select(models.Event)
 
@@ -52,7 +52,7 @@ def get_project_events(
 
 
 def get_event_device_ids() -> DbQuery[Any, Literal[False]]:
-    """todo"""
+    """Get distinct device IDs that have events."""
     stmt = select(models.Event.device_id).distinct()
     return DbQuery(query=stmt)
 
@@ -69,18 +69,18 @@ def get_paginated_events(
     start: datetime.datetime | None,
     end: datetime.datetime | None,
 ) -> DbQuery[models.Event, Literal[False]]:
-    """todo
+    """Get paginated project events with sorting and filters.
 
     Args:
-        page: TODO: describe.
-        page_size: TODO: describe.
-        sort_column: TODO: describe.
-        sort_direction: TODO: describe.
-        open: TODO: describe.
-        device_type_id: TODO: describe.
-        device_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        page: Zero-based page index.
+        page_size: Number of records per page.
+        sort_column: Column name used for sorting.
+        sort_direction: Sort direction ("asc" or "desc").
+        open: When true, include only events without an end time.
+        device_type_id: Filter by one or more device type IDs.
+        device_ids: Filter by device IDs.
+        start: Filter for events active on or after this time.
+        end: Filter for events active on or before this time.
     """
     stmt = select(models.Event)
     if open:
@@ -149,16 +149,16 @@ def get_events_with_device_info(
         device and device type data in a single query using joins.
 
     Args:
-        device_id: TODO: describe.
-        time_end_gte: TODO: describe.
-        time_end_lt: TODO: describe.
-        open: TODO: describe.
-        device_ids: TODO: describe.
-        event_ids: TODO: describe.
-        open_at: TODO: describe.
-        device_type_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        device_id: Filter by a single device ID.
+        time_end_gte: Filter events ending at or after this time.
+        time_end_lt: Filter events ending before this time.
+        open: When true, include only events without an end time.
+        device_ids: Filter by a list of device IDs.
+        event_ids: Filter by a list of event IDs.
+        open_at: Match events open at the provided timestamp.
+        device_type_ids: Filter by device type IDs.
+        start: Filter for events active on or after this time.
+        end: Filter for events active on or before this time.
     """
     stmt = (
         select(

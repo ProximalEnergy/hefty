@@ -18,8 +18,8 @@ async def get_anomalies_by_inspection_uuid(
     schema.
 
     Args:
-        db: TODO: describe.
-        inspection_uuid: TODO: describe.
+        db: Async database session.
+        inspection_uuid: Inspection UUID to filter by.
     """
     stmt = select(DroneAnomaly).where(DroneAnomaly.inspection_uuid == inspection_uuid)
     result = await db.execute(stmt)
@@ -51,8 +51,8 @@ async def bulk_create_drone_anomalies_incremental(
     """Bulk insert new anomalies without deleting existing ones.
 
     Args:
-        db: TODO: describe.
-        anomalies_data: TODO: describe.
+        db: Async database session.
+        anomalies_data: Anomaly payloads to insert.
     """
     db_anomalies = [DroneAnomaly(**data.model_dump()) for data in anomalies_data]
     db.add_all(db_anomalies)
@@ -70,9 +70,9 @@ async def update_anomalies_with_event_id(
     within an existing transaction.
 
     Args:
-        db: TODO: describe.
-        anomaly_uuids: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session.
+        anomaly_uuids: Anomaly UUIDs to update.
+        event_id: Event ID to assign.
     """
     logging.info(
         "🔧 update_anomalies_with_event_id called: "
@@ -155,8 +155,8 @@ async def get_anomalies_by_event_id(
     """Get all anomalies for a given event from the project-specific schema.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session.
+        event_id: Event ID to filter by.
     """
     stmt = select(DroneAnomaly).where(DroneAnomaly.event_id == event_id)
     result = await db.execute(stmt)

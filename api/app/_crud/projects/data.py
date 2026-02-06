@@ -15,14 +15,14 @@ def get_project_data(
     end: datetime.datetime,
     raw: bool = False,
 ):
-    """todo
+    """Fetch project data for tags within a time range.
 
     Args:
-        db: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        raw: TODO: describe.
+        db: Database session.
+        tag_ids: Tag IDs to fetch.
+        start: Start timestamp (inclusive).
+        end: End timestamp (exclusive).
+        raw: When true, read from raw data table.
     """
     if raw:
         model = models.DataRaw
@@ -44,13 +44,13 @@ def get_project_data_latest(
     tag_ids: list[int],
     start: pd.Timestamp | datetime.datetime,
 ):
-    """todo
+    """Fetch the latest data point per tag after a start time.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
+        project_db: Project database session.
+        project_name_short: Schema name for the project.
+        tag_ids: Tag IDs to fetch.
+        start: Only return rows after this timestamp.
     """
     statement = f"""
     (

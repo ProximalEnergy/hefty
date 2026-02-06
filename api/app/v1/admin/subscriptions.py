@@ -22,11 +22,11 @@ router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 
 async def get_email_from_clerk(*, user_id: str, api_prod: bool):
-    """todo
+    """Fetch a user's primary email address from Clerk.
 
     Args:
-        user_id: TODO: describe.
-        api_prod: TODO: describe.
+        user_id: Clerk user ID.
+        api_prod: Whether to use production Clerk credentials.
     """
     if api_prod:
         clerk_secret = os.environ.get("CLERK_SECRET_KEY")
@@ -62,11 +62,11 @@ async def get_requesting_user_subscriptions(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """todo
+    """Get subscription settings for the requesting user.
 
     Args:
-        db: TODO: describe.
-        user_data: TODO: describe.
+        db: Async database session.
+        user_data: Authenticated user context.
     """
     project_ids = user_data.operational_project_ids
 
@@ -100,12 +100,12 @@ async def get_report_emails(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     is_prod_api: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
-    """todo
+    """Get report subscriber emails for a project.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        is_prod_api: TODO: describe.
+        project_id: Operational project UUID.
+        db: Async database session.
+        is_prod_api: Whether to use production Clerk credentials.
     """
     try:
         subscriptions = await crud_get_user_report_subscriptions(
@@ -142,13 +142,13 @@ async def update_report_subscription(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """todo
+    """Update report subscription for the requesting user.
 
     Args:
-        project_id: TODO: describe.
-        data: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Operational project UUID.
+        data: Subscription update payload.
+        db: Async database session.
+        user_data: Authenticated user context.
     """
     try:
         updated_subscription = await crud_update_user_report_subscription(

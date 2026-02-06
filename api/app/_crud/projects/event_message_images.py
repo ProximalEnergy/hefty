@@ -18,9 +18,9 @@ async def get_event_message_images(
     """Get event message images, optionally filtered.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session.
+        event_message_id: Filter by event message ID.
+        event_id: Filter by event ID.
     """
     stmt = select(models.EventMessageImage)
 
@@ -42,7 +42,7 @@ def get_event_message_image_by_id(
     """Get a single event message image by ID.
 
     Args:
-        event_message_image_id: TODO: describe.
+        event_message_image_id: Event message image UUID.
     """
     stmt = select(models.EventMessageImage).where(
         models.EventMessageImage.event_message_image_id == event_message_image_id
@@ -63,13 +63,13 @@ async def create_event_message_image(
     """Create a new event message image.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        event_id: TODO: describe.
-        s3_key: TODO: describe.
-        filename: TODO: describe.
-        content_type: TODO: describe.
-        file_size: TODO: describe.
+        db: Async database session.
+        event_message_id: Event message ID for the image.
+        event_id: Event ID associated with the message.
+        s3_key: S3 object key for the image.
+        filename: Original filename.
+        content_type: MIME type for the image.
+        file_size: File size in bytes.
     """
     now = datetime.datetime.now(datetime.UTC)
     image = models.EventMessageImage(
@@ -95,8 +95,8 @@ async def get_image_s3_keys_for_message(
     """Get all S3 keys for images attached to a message.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
+        db: Async database session.
+        event_message_id: Event message ID to filter by.
     """
     images = await get_event_message_images(db=db, event_message_id=event_message_id)
     return [image.s3_key for image in images]
@@ -111,9 +111,9 @@ async def delete_event_message_image(
     """Delete an event message image from the database and S3.
 
     Args:
-        db: TODO: describe.
-        event_message_image_id: TODO: describe.
-        project_schema: TODO: describe.
+        db: Async database session.
+        event_message_image_id: Event message image UUID.
+        project_schema: Optional schema name for lookup.
     """
     image = await get_event_message_image_by_id(
         event_message_image_id=event_message_image_id

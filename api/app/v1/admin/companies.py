@@ -19,11 +19,11 @@ async def create_company(
     company: interfaces.CompanyCreate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """todo
+    """Create a company.
 
     Args:
-        company: TODO: describe.
-        db: TODO: describe.
+        company: Company payload to create.
+        db: Async database session.
     """
     return await crud_create_company(db=db, company=company)
 
@@ -35,12 +35,12 @@ async def get_companies(
     company_ids: list[uuid.UUID] | None = Query(default=None),
     name_shorts: list[str] | None = Query(default=None),
 ):
-    """todo
+    """Get companies filtered by IDs or short names.
 
     Args:
-        db: TODO: describe.
-        company_ids: TODO: describe.
-        name_shorts: TODO: describe.
+        db: Async database session.
+        company_ids: Optional company UUID filters.
+        name_shorts: Optional short name filters.
     """
     companies = await crud_get_companies(
         db=db,

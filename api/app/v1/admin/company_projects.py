@@ -23,12 +23,11 @@ async def get_company_projects(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ) -> list[interfaces.CompanyProject]:
-    """todo
+    """Get company-project records for the requesting user's company.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Operational project UUID.
+        user_data: Authenticated user context.
     """
     df = await crud_get_company_projects(
         company_ids=[user_data.company_id],
@@ -51,9 +50,7 @@ async def get_all_company_projects_for_project(
         which companies can see messages posted to the project.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Operational project UUID.
     """
     # Don't filter by company - get all companies for this project
     df = await crud_get_company_projects(

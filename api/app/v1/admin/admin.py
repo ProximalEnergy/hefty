@@ -48,11 +48,11 @@ async def get_user_type(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """todo
+    """Get the requesting user's type.
 
     Args:
-        _db: TODO: describe.
-        user_data: TODO: describe.
+        _db: Async database session (unused).
+        user_data: Authenticated user context.
     """
     user_type_id = user_data.user_type_id
 
@@ -69,11 +69,11 @@ async def get_user_email(
     user_id: str,
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
 ):
-    """todo
+    """Fetch a user's primary email address from Clerk.
 
     Args:
-        user_id: TODO: describe.
-        api_prod: TODO: describe.
+        user_id: Clerk user ID.
+        api_prod: Whether to use production Clerk credentials.
     """
     try:
         if api_prod:
@@ -106,11 +106,11 @@ async def get_user_emails(
     api_prod: Annotated[bool, Depends(dependencies.is_prod_api)],
     user_ids: list[str] = Query(default=[]),
 ):
-    """todo
+    """Fetch primary email addresses for the provided user IDs.
 
     Args:
-        api_prod: TODO: describe.
-        user_ids: TODO: describe.
+        api_prod: Whether to use production Clerk credentials.
+        user_ids: Clerk user IDs to lookup.
     """
     try:
         if api_prod:

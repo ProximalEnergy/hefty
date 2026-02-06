@@ -210,7 +210,8 @@ def convert(*, WKBElement: Any) -> dict[str, Any] | None:
     """Handle convert.
 
     Args:
-        WKBElement: TODO: describe.
+        WKBElement: GeoAlchemy WKBElement, GeoJSON dict, WKB bytes, or
+            WKT string to convert.
     """
     if WKBElement is None:
         return None
@@ -241,7 +242,7 @@ class Point(BaseModel):
         """Handle convert point.
 
         Args:
-            point: TODO: describe.
+            point: GeoAlchemy WKBElement, GeoJSON dict, or WKT/WKB input.
         """
         return convert(WKBElement=point)
 
@@ -261,7 +262,7 @@ class Polygon(BaseModel):
         """Handle convert polygon.
 
         Args:
-            polygon: TODO: describe.
+            polygon: GeoAlchemy WKBElement, GeoJSON dict, or WKT/WKB input.
         """
         return convert(WKBElement=polygon)
 
@@ -280,7 +281,7 @@ class MultiPolygon(BaseModel):
         """Handle convert multipolygon.
 
         Args:
-            multipolygon: TODO: describe.
+            multipolygon: GeoAlchemy WKBElement, GeoJSON dict, or WKT/WKB input.
         """
         return convert(WKBElement=multipolygon)
 

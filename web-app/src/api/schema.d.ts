@@ -210,13 +210,13 @@ export interface paths {
         get: operations["get_report_emails_v1_admin_subscriptions_reports__project_id__get"];
         /**
          * Update Report Subscription
-         * @description todo
+         * @description Update report subscription for the requesting user.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         data: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Operational project UUID.
+         *         data: Subscription update payload.
+         *         db: Async database session.
+         *         user_data: Authenticated user context.
          */
         put: operations["update_report_subscription_v1_admin_subscriptions_reports__project_id__put"];
         post?: never;
@@ -279,12 +279,11 @@ export interface paths {
         };
         /**
          * Get Company Projects
-         * @description todo
+         * @description Get company-project records for the requesting user's company.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Operational project UUID.
+         *         user_data: Authenticated user context.
          */
         get: operations["get_company_projects_v1_admin_company_projects_projects__project_id__get"];
         put?: never;
@@ -310,9 +309,7 @@ export interface paths {
          *         which companies can see messages posted to the project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Operational project UUID.
          */
         get: operations["get_all_company_projects_for_project_v1_admin_company_projects_projects__project_id__all_companies_get"];
         put?: never;
@@ -332,22 +329,22 @@ export interface paths {
         };
         /**
          * Get Companies
-         * @description todo
+         * @description Get companies filtered by IDs or short names.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         company_ids: TODO: describe.
-         *         name_shorts: TODO: describe.
+         *         db: Async database session.
+         *         company_ids: Optional company UUID filters.
+         *         name_shorts: Optional short name filters.
          */
         get: operations["get_companies_v1_admin_companies_get"];
         put?: never;
         /**
          * Create Company
-         * @description todo
+         * @description Create a company.
          *
          *     Args:
-         *         company: TODO: describe.
-         *         db: TODO: describe.
+         *         company: Company payload to create.
+         *         db: Async database session.
          */
         post: operations["create_company_v1_admin_companies_post"];
         delete?: never;
@@ -652,11 +649,11 @@ export interface paths {
         post?: never;
         /**
          * Delete User
-         * @description todo
+         * @description Delete a user from Clerk and the database.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user_id: TODO: describe.
+         *         db: Async database session.
+         *         user_id: Clerk user ID to delete.
          */
         delete: operations["delete_user_v1_admin_users__user_id__delete"];
         options?: never;
@@ -677,8 +674,8 @@ export interface paths {
          * @description Update the current user's theme in Clerk.
          *
          *     Args:
-         *         user_data: TODO: describe.
-         *         request: TODO: describe.
+         *         user_data: Authenticated user context.
+         *         request: Theme update payload.
          */
         put: operations["update_self_clerk_theme_v1_admin_users_self_clerk_theme_put"];
         post?: never;
@@ -701,8 +698,8 @@ export interface paths {
          * @description Update the current user's demo mode in Clerk.
          *
          *     Args:
-         *         user_data: TODO: describe.
-         *         request: TODO: describe.
+         *         user_data: Authenticated user context.
+         *         request: Demo mode update payload.
          */
         put: operations["update_self_clerk_demo_mode_v1_admin_users_self_clerk_demo_mode_put"];
         post?: never;
@@ -969,11 +966,11 @@ export interface paths {
         };
         /**
          * Get User Type
-         * @description todo
+         * @description Get the requesting user's type.
          *
          *     Args:
-         *         _db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         _db: Async database session (unused).
+         *         user_data: Authenticated user context.
          */
         get: operations["get_user_type_v1_admin_user_type_get"];
         put?: never;
@@ -993,11 +990,11 @@ export interface paths {
         };
         /**
          * Get User Email
-         * @description todo
+         * @description Fetch a user's primary email address from Clerk.
          *
          *     Args:
-         *         user_id: TODO: describe.
-         *         api_prod: TODO: describe.
+         *         user_id: Clerk user ID.
+         *         api_prod: Whether to use production Clerk credentials.
          */
         get: operations["get_user_email_v1_admin_user_email_get"];
         put?: never;
@@ -1017,11 +1014,11 @@ export interface paths {
         };
         /**
          * Get User Emails
-         * @description todo
+         * @description Fetch primary email addresses for the provided user IDs.
          *
          *     Args:
-         *         api_prod: TODO: describe.
-         *         user_ids: TODO: describe.
+         *         api_prod: Whether to use production Clerk credentials.
+         *         user_ids: Clerk user IDs to lookup.
          */
         get: operations["get_user_emails_v1_admin_user_emails_get"];
         put?: never;
