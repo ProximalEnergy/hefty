@@ -23,8 +23,8 @@ async def get_event_messages(
         Loads images relationship.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session for the project schema.
+        event_id: Optional event ID to filter messages.
     """
     # Get all messages (including deleted ones)
     stmt = select(models.EventMessage).options(selectinload(models.EventMessage.images))
@@ -46,7 +46,7 @@ def get_event_message_by_id(
         Loads images relationship.
 
     Args:
-        event_message_id: TODO: describe.
+        event_message_id: Event message ID to fetch.
     """
     stmt = (
         select(models.EventMessage)
@@ -70,13 +70,13 @@ async def create_event_message(
     """Create a new event message.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
-        user_id: TODO: describe.
-        body: TODO: describe.
-        mentions: TODO: describe.
-        parent_message_id: TODO: describe.
-        private: TODO: describe.
+        db: Async database session for the project schema.
+        event_id: Event ID the message belongs to.
+        user_id: User ID of the message author.
+        body: Message content.
+        mentions: Optional comma-delimited list of mentioned usernames.
+        parent_message_id: Optional parent message ID for threading.
+        private: Whether the message should be private.
     """
     now = datetime.datetime.now(datetime.UTC)
     event_message = models.EventMessage(
@@ -104,10 +104,10 @@ async def update_event_message(
     """Update an event message body and mentions, set edited_at timestamp.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        body: TODO: describe.
-        mentions: TODO: describe.
+        db: Async database session for the project schema.
+        event_message_id: Event message ID to update.
+        body: Updated message content.
+        mentions: Optional updated mentions list.
     """
     db_query = get_event_message_by_id(event_message_id=event_message_id)
     result = await db.execute(db_query.query)
@@ -132,9 +132,9 @@ async def update_event_message_image_s3_keys(
     """Update the image_s3_keys field for an event message.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        image_s3_keys: TODO: describe.
+        db: Async database session for the project schema.
+        event_message_id: Event message ID to update.
+        image_s3_keys: Optional S3 key list string to store.
     """
     stmt = (
         select(models.EventMessage)
@@ -161,8 +161,8 @@ async def get_users_who_posted_to_event(
     """Get all user_ids who have posted messages to an event.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session for the project schema.
+        event_id: Event ID to search for message authors.
     """
     stmt = (
         select(models.EventMessage.user_id)
@@ -182,8 +182,8 @@ async def get_all_mentioned_users_for_event(
     """Get all unique usernames mentioned in messages for an event.
 
     Args:
-        db: TODO: describe.
-        event_id: TODO: describe.
+        db: Async database session for the project schema.
+        event_id: Event ID to search for mentions.
     """
     messages = await get_event_messages(db=db, event_id=event_id)
     mentioned_users = set()
@@ -206,9 +206,9 @@ async def delete_event_message(
         Validates that the user owns the message.
 
     Args:
-        db: TODO: describe.
-        event_message_id: TODO: describe.
-        user_id: TODO: describe.
+        db: Async database session for the project schema.
+        event_message_id: Event message ID to delete.
+        user_id: User ID requesting deletion for ownership check.
     """
     # Get message without deleted_at filter to allow checking ownership
     stmt = (

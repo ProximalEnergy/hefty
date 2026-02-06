@@ -13,13 +13,13 @@ async def get_ercot_sced_gen(
     start: datetime.datetime,
     end: datetime.datetime,
 ):
-    """todo
+    """Fetch SCED generation records for a resource within a time range.
 
     Args:
-        db: TODO: describe.
-        resource_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        db: Async database session for the operational schema.
+        resource_id: ERCOT resource ID to filter by.
+        start: Inclusive start timestamp for the query window.
+        end: Exclusive end timestamp for the query window.
     """
     query = (
         select(models.SCEDGen)

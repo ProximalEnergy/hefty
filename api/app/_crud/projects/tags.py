@@ -14,7 +14,7 @@ def _convert_pattern_to_regex(*, pattern: str) -> str:
         Preserves digit groups while escaping special regex characters.
 
     Args:
-        pattern: TODO: describe.
+        pattern: Tag naming pattern containing [INT] placeholders.
     """
     # Convert pattern to regex: replace [INT] with ([0-9]+) and escape the rest
     regex = pattern.replace("[INT]", "([0-9]+)")
@@ -33,7 +33,7 @@ def get_sensor_type_assignments(*, project_db: Session):
     """Get sensor types and their current assignments for a project.
 
     Args:
-        project_db: TODO: describe.
+        project_db: Database session for the project schema.
     """
     sensor_types = project_db.execute(select(models.SensorType)).scalars().all()
     assignments = []
@@ -70,7 +70,7 @@ def get_tag_by_name_short(
     """Get a tag by its name_short.
 
     Args:
-        name_short: TODO: describe.
+        name_short: Short tag identifier to look up.
     """
     query = (
         select(models.Tag)
@@ -92,9 +92,9 @@ def update_tag_sensor_type(
     """Update a tag's sensor_type_id.
 
     Args:
-        project_db: TODO: describe.
-        tag: TODO: describe.
-        sensor_type_id: TODO: describe.
+        project_db: Database session for the project schema.
+        tag: Tag model instance to update.
+        sensor_type_id: New sensor type ID to apply.
     """
     tag.sensor_type_id = sensor_type_id
     project_db.commit()
@@ -106,8 +106,8 @@ def get_tags_by_pattern_digits_only(*, project_db: Session, pattern: str):
         Uses Postgres regex (~) and escapes literal pieces.
 
     Args:
-        project_db: TODO: describe.
-        pattern: TODO: describe.
+        project_db: Database session for the project schema.
+        pattern: Tag naming pattern containing [INT] placeholders.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
@@ -132,12 +132,12 @@ def update_tags_sensor_type_by_pattern_bulk(
     to clear values.
 
     Args:
-        project_db: TODO: describe.
-        pattern: TODO: describe.
-        sensor_type_id: TODO: describe.
-        unit_scale: TODO: describe.
-        unit_offset: TODO: describe.
-        unit_scada: TODO: describe.
+        project_db: Database session for the project schema.
+        pattern: Tag naming pattern containing [INT] placeholders.
+        sensor_type_id: Sensor type ID to assign to matching tags.
+        unit_scale: Optional unit scaling factor to apply.
+        unit_offset: Optional unit offset to apply.
+        unit_scada: Optional unit string to apply.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 
@@ -163,7 +163,7 @@ def get_tag_by_id(*, tag_id: int) -> DbQuery[models.Tag, Literal[True]]:
     """Get a tag by its ID.
 
     Args:
-        tag_id: TODO: describe.
+        tag_id: Tag ID to look up.
     """
     query = select(models.Tag).where(models.Tag.tag_id == tag_id)
     return DbQuery(query=query, is_scalar=True)
@@ -179,9 +179,9 @@ def get_sample_tags_by_pattern_digits_only(
         Uses Postgres regex (~) and escapes literal pieces.
 
     Args:
-        project_db: TODO: describe.
-        pattern: TODO: describe.
-        limit: TODO: describe.
+        project_db: Database session for the project schema.
+        pattern: Tag naming pattern containing [INT] placeholders.
+        limit: Maximum number of tags to return.
     """
     regex = _convert_pattern_to_regex(pattern=pattern)
 

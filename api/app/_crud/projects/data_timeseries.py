@@ -15,16 +15,16 @@ def get_project_data_timeseries(
     *,
     cagg_interval: str | None = None,
 ):
-    """todo
+    """Fetch bucketed timeseries values over a time range.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        interval: TODO: describe.
-        cagg_interval: TODO: describe.
+        project_db: Database session for the project schema.
+        project_name_short: Short name of the project schema.
+        tag_ids: Tag IDs to include in the query.
+        start: Inclusive start timestamp for the query window.
+        end: Exclusive end timestamp for the query window.
+        interval: Time bucket interval for aggregation.
+        cagg_interval: Optional continuous aggregate interval suffix.
     """
     if cagg_interval:
         table_name = f"{project_name_short}.data_timeseries_{cagg_interval}"
@@ -72,15 +72,15 @@ def get_project_data_timeseries_last(
     *,
     cagg_interval: str | None = None,
 ):
-    """todo
+    """Fetch the last timeseries values within a time range.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        cagg_interval: TODO: describe.
+        project_db: Database session for the project schema.
+        project_name_short: Short name of the project schema.
+        tag_ids: Tag IDs to include in the query.
+        start: Exclusive start timestamp for the query window.
+        end: Inclusive end timestamp for the query window.
+        cagg_interval: Optional continuous aggregate interval suffix.
     """
     if cagg_interval:
         table_name = f"{project_name_short}.data_timeseries_{cagg_interval}"
@@ -126,14 +126,14 @@ def get_project_data_timeseries_latest(
     *,
     cagg_interval: str | None = None,
 ):
-    """todo
+    """Fetch the latest timeseries values after a given timestamp.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        cagg_interval: TODO: describe.
+        project_db: Database session for the project schema.
+        project_name_short: Short name of the project schema.
+        tag_ids: Tag IDs to include in the query.
+        start: Lower bound timestamp for selecting latest values.
+        cagg_interval: Optional continuous aggregate interval suffix.
     """
     if cagg_interval:
         table_name = f"{project_name_short}.data_timeseries_{cagg_interval}"

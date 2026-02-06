@@ -14,14 +14,14 @@ def get_pv_expected(
     device_ids: list[int] | None = [],
     expected_metric_ids: list[int] | None = [],
 ):
-    """todo
+    """Fetch expected PV data filtered by time, device, and metric.
 
     Args:
-        db: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_ids: TODO: describe.
-        expected_metric_ids: TODO: describe.
+        db: Database session for the project schema.
+        start: Inclusive start timestamp for the query window.
+        end: Inclusive end timestamp for the query window.
+        device_ids: Optional list of device IDs to filter.
+        expected_metric_ids: Optional list of expected metric IDs to filter.
     """
     stmt = select(models.DataExpected)
     if device_ids:

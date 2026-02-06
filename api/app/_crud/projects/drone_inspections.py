@@ -6,11 +6,11 @@ from app.interfaces import DroneInspectionCreate
 
 async def create_drone_inspection(*, db, inspection_data: DroneInspectionCreate):
     # Check if the inspection already exists in the project-specific schema
-    """todo
+    """Create or return an existing drone inspection record.
 
     Args:
-        db: TODO: describe.
-        inspection_data: TODO: describe.
+        db: Async database session for the project schema.
+        inspection_data: Incoming inspection payload to persist.
     """
     stmt = select(DroneInspection).where(
         DroneInspection.inspection_uuid == inspection_data.inspection_uuid
@@ -31,7 +31,7 @@ async def get_drone_inspections(*, db):
     """Get all drone inspections for a project from the project-specific schema.
 
     Args:
-        db: TODO: describe.
+        db: Async database session for the project schema.
     """
     stmt = select(DroneInspection).order_by(DroneInspection.inspection_time.desc())
     result = await db.execute(stmt)

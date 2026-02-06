@@ -14,15 +14,15 @@ def get_project_data_raw(
     end: pd.Timestamp,
     interval: str,
 ):
-    """todo
+    """Fetch bucketed raw tag values over a time range.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        interval: TODO: describe.
+        project_db: Database session for the project schema.
+        project_name_short: Short name of the project schema.
+        tag_ids: Tag IDs to include in the query.
+        start: Inclusive start timestamp for the query window.
+        end: Exclusive end timestamp for the query window.
+        interval: Time bucket interval for aggregation.
     """
     statement = f"""
     SELECT
@@ -63,14 +63,14 @@ def get_project_data_raw_last(
     start: pd.Timestamp,
     end: pd.Timestamp,
 ):
-    """todo
+    """Fetch the last raw tag values within a time range.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Database session for the project schema.
+        project_name_short: Short name of the project schema.
+        tag_ids: Tag IDs to include in the query.
+        start: Exclusive start timestamp for the query window.
+        end: Inclusive end timestamp for the query window.
     """
     statement = f"""
     (
@@ -109,13 +109,13 @@ def get_project_data_raw_latest(
     tag_ids: list[int],
     start: pd.Timestamp | datetime.datetime,
 ):
-    """todo
+    """Fetch the latest raw tag values after a given timestamp.
 
     Args:
-        project_db: TODO: describe.
-        project_name_short: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
+        project_db: Database session for the project schema.
+        project_name_short: Short name of the project schema.
+        tag_ids: Tag IDs to include in the query.
+        start: Lower bound timestamp for selecting latest values.
     """
     statement = f"""
     (
