@@ -1,5 +1,5 @@
 import { useGetCompanyTeams, useGetCompanyTeamsWithMembers } from '@/api/admin'
-import { useGetCompanyUsers } from '@/api/operational'
+import { useGetSelfCompanyUsers } from '@/api/v1/admin/users'
 import { CalendarEvent } from '@/api/v1/operational/calendar'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import {
@@ -55,7 +55,7 @@ export const PortfolioCalendar = () => {
 
   // Fetch company users and teams for assignment filter
   const { user } = useUser()
-  const { data: companyUsers } = useGetCompanyUsers({})
+  const { data: companyUsers } = useGetSelfCompanyUsers({})
   const { data: teams } = useGetCompanyTeams({})
   const { data: teamsWithMembers } = useGetCompanyTeamsWithMembers({})
 

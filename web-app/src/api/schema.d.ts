@@ -556,6 +556,7 @@ export interface paths {
          * @description List users along with their operational project assignments.
          *
          *     Args:
+         *         user_data: Context data injected from the authentication middleware.
          *         company_ids: Optional list of companies to scope returned users.
          *         user_ids: Optional list of Clerk user IDs to filter by.
          *         include_image_urls: Whether to request profile images from Clerk.
@@ -578,12 +579,35 @@ export interface paths {
         };
         /**
          * Get Self
-         * @description Return the authenticated user's session data.
+         * @description Return the authenticated user's data.
          *
          *     Args:
          *         user_data: Context data injected from the authentication middleware.
          */
         get: operations["get_self_v1_admin_users_self_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/self-company": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Self Company
+         * @description Return all users in the authenticated user's company.
+         *
+         *     Args:
+         *         user_data: Context data injected from the authentication middleware.
+         */
+        get: operations["get_self_company_v1_admin_users_self_company_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5381,31 +5405,6 @@ export interface paths {
          *         project_ids: TODO: describe.
          */
         get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Users
-         * @description todo
-         *
-         *     Args:
-         *         user_data: TODO: describe.
-         *         user_ids: TODO: describe.
-         *         include_image_urls: TODO: describe.
-         */
-        get: operations["get_users_v1_operational_users_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12213,6 +12212,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserData"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_self_company_v1_admin_users_self_company_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserWithProjects"][];
                 };
             };
             /** @description Validation Error */
@@ -19437,43 +19468,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectDataLastUpdated"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_users_v1_operational_users_get: {
-        parameters: {
-            query?: {
-                /** @description Filter by specific user IDs */
-                user_ids?: string[] | null;
-                /** @description Include user profile image URLs from Clerk */
-                include_image_urls?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

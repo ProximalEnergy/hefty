@@ -1,4 +1,4 @@
-import { useGetUsers } from '@/api/admin'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   Inverter,
   useCreateInverterMutation,
@@ -11,7 +11,6 @@ import {
 import EquipmentFilter from '@/components/EquipmentFilter'
 import { PageTitle } from '@/components/PageTitle'
 import ConfirmationModal from '@/components/modals/ConfirmationModal'
-import { useUser } from '@clerk/clerk-react'
 import {
   Alert,
   Button,
@@ -42,12 +41,8 @@ import { useEffect, useState } from 'react'
 
 const Page = () => {
   // --- User and Company Info ---
-  const { user } = useUser()
-  const currentUser = useGetUsers({
-    queryParams: { user_ids: [user?.id || ''] },
-    queryOptions: { enabled: !!user?.id },
-  })
-  const userCompanyId = currentUser.data?.[0]?.company_id
+  const self = useGetUserSelf({})
+  const userCompanyId = self.data?.company_id
 
   // --- Data Source ---
   const dataSourceOptions = [
@@ -551,7 +546,7 @@ const Page = () => {
             </>
           ) : dataSource === 'proximal' ? (
             <>
-              {currentUser.isLoading ? (
+              {self.isLoading ? (
                 <Center p="xl">
                   <Loader size="md" />
                   <Text ml="md">Loading user data...</Text>

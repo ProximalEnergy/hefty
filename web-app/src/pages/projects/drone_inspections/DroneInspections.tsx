@@ -1,4 +1,4 @@
-import { useGetUserSelf } from '@/api/admin'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   DroneAnomaly,
   DroneInspection,

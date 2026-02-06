@@ -2,13 +2,12 @@ import {
   useCreateUser,
   useDeleteUser,
   useGetCompanies,
-  useGetUsers,
   useUpdateUserProjects,
 } from '@/api/admin'
 import { UserTypeEnumEnum } from '@/api/enumerations'
+import { useGetUserSelf, useGetUsers } from '@/api/v1/admin/users'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
-import { useUser } from '@clerk/clerk-react'
 import {
   ActionIcon,
   Button,
@@ -154,20 +153,16 @@ const UserManagement = () => {
 
   const deleteUser = useDeleteUser()
   const updateUserProjects = useUpdateUserProjects()
-  const { user: clerkUser } = useUser()
-  const currentUser = useGetUsers({
-    queryParams: { user_ids: [clerkUser?.id || ''] },
-    queryOptions: { enabled: !!clerkUser?.id },
-  })
-  const user = currentUser.data?.[0]
+  const self = useGetUserSelf({})
   const users = useGetUsers({
     queryParams: {
+      // If the user is a superadmin, show all users. Otherwise, show only users from the same company.
       company_ids:
-        currentUser.data?.[0].user_type_id === UserTypeEnumEnum.SUPERADMIN
+        self.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
           ? undefined
-          : [user?.company_id || ''],
+          : [self.data?.company_id || ''],
     },
-    queryOptions: { enabled: !!user?.company_id },
+    queryOptions: { enabled: !!self.data?.company_id },
   })
   const uniqueCompanyIds = useMemo(
     () => [...new Set(users.data?.map((user) => user.company_id) || [])],
@@ -235,7 +230,7 @@ const UserManagement = () => {
   )
 
   const isLoading =
-    currentUser.isLoading ||
+    self.isLoading ||
     users.isLoading ||
     projects.isLoading ||
     companies.isLoading
@@ -387,7 +382,10 @@ const UserManagement = () => {
               <Table.Td>
                 <ActionIcon
                   color="red"
-                  disabled={user && tableUser.user_type_id <= user.user_type_id}
+                  disabled={
+                    self.data &&
+                    tableUser.user_type_id <= self.data.user_type_id
+                  }
                   onClick={() => openDeleteConfirmation(tableUser)}
                 >
                   <IconUserMinus />
@@ -437,7 +435,7 @@ const UserManagement = () => {
         opened={isModalOpen}
         onClose={close}
         companies={companies.data}
-        defaultCompanyId={user?.company_id}
+        defaultCompanyId={self.data?.company_id}
         onSuccess={() => {
           notifications.show({
             title: 'User created',

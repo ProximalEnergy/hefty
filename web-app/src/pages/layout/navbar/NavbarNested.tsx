@@ -1,9 +1,10 @@
-import { useGetUserSelf, useGetUserType } from '@/api/admin'
+import { useGetUserType } from '@/api/admin'
 import {
   DeviceTypeEnum,
   ProjectTypeEnum,
   UserTypeEnumEnum,
 } from '@/api/enumerations'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import type { DeviceType as DeviceTypeData } from '@/api/v1/operational/device_types'
 import { useGetDeviceTypes } from '@/api/v1/operational/device_types'
 import {

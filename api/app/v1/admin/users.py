@@ -1,7 +1,7 @@
-import asyncio
 import uuid
 from typing import Annotated
 
+import pandas as pd
 from core.crud.admin.users import get_users as get_users_core
 from core.db_query import OutputType
 from core.enumerations import UserTypeEnum
@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import dependencies, interfaces
 from app._crud.admin.users import create_user as create_user_crud
 from app._crud.admin.users import delete_user as delete_user_crud
+from app._dependencies import authorization
 from app._utils.user_management import (
     create_clerk_user,
     delete_clerk_user,
@@ -20,31 +21,18 @@ from app._utils.user_management import (
     update_clerk_user_demo_mode,
     update_clerk_user_theme,
 )
-from app.interfaces import User, UserCreate
+from app.interfaces import User, UserCreate, UserData
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-class ThemeUpdateRequest(BaseModel):
-    """Request body for updating the user's theme preferences in Clerk."""
-
-    theme: str
-    vite_environment: str
-
-
-class DemoModeUpdateRequest(BaseModel):
-    """Request body for toggling demo mode flags for a Clerk user."""
-
-    demo_mode: bool
-    vite_environment: str
-
-
 @router.get(
     "",
-    dependencies=[Depends(dependencies.requires_admin_async)],
+    dependencies=[Depends(authorization.require_jwt_or_api_superadmin)],
     response_model=list[interfaces.UserWithProjects],
 )
 async def get_users(
+    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
     company_ids: list[uuid.UUID] | None = Query(default=None),
     user_ids: list[str] | None = Query(default=None),
     include_image_urls: bool = Query(
@@ -54,43 +42,30 @@ async def get_users(
     """List users along with their operational project assignments.
 
     Args:
+        user_data: Context data injected from the authentication middleware.
         company_ids: Optional list of companies to scope returned users.
         user_ids: Optional list of Clerk user IDs to filter by.
         include_image_urls: Whether to request profile images from Clerk.
     """
+    # If the user is not a superadmin, they *have* to request explicit user_ids or users
+    # from their own company (company_ids).
+    # This is to prevent accidental access to all users or users from other companies.
+    if user_data.user_type_id != UserTypeEnum.SUPERADMIN:
+        if company_ids != [user_data.company_id] and not user_ids:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "You must specify user_ids or company_ids to access this resource",
+                ),
+            )
+
     users = await get_users_core(company_ids=company_ids, user_ids=user_ids).get_async(
         output_type=OutputType.PANDAS
     )
 
-    project_ids_by_user = (
-        users.dropna(subset=["project_ids"])
-        .groupby("user_id")["project_ids"]
-        .unique()
-        .apply(list)
+    users_with_project_ids = await enrich_users(
+        users=users, include_image_urls=include_image_urls
     )
-    base_users = users.drop(columns=["project_ids"]).drop_duplicates("user_id")
-    if "api_key" in base_users.columns:
-        base_users = base_users.drop(columns=["api_key"])
-    base_users["operational_project_ids"] = base_users["user_id"].map(
-        project_ids_by_user
-    )
-    base_users["operational_project_ids"] = base_users["operational_project_ids"].apply(
-        lambda value: value if isinstance(value, list) else []
-    )
-
-    users_with_project_ids = base_users.to_dict(orient="records")
-
-    # Only fetch profile picture URL from Clerk if explicitly requested.
-    # This avoids unnecessary API calls for users that may not exist in Clerk.
-    if include_image_urls:
-        image_url_tasks = [
-            get_clerk_user_image_url(user_id=user_dict["user_id"])
-            for user_dict in users_with_project_ids
-        ]
-        image_urls = await asyncio.gather(*image_url_tasks)
-        for user_dict, image_url in zip(users_with_project_ids, image_urls):
-            if image_url:
-                user_dict["image_url"] = image_url
 
     return users_with_project_ids
 
@@ -100,14 +75,35 @@ async def get_users(
     response_model=interfaces.UserData,
 )
 async def get_self(
-    user_data: Annotated[dict, Depends(dependencies.get_user_data_async)],
+    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
 ):
-    """Return the authenticated user's session data.
+    """Return the authenticated user's data.
 
     Args:
         user_data: Context data injected from the authentication middleware.
     """
     return user_data
+
+
+@router.get(
+    "/self-company",
+    response_model=list[interfaces.UserWithProjects],
+)
+async def get_self_company(
+    user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
+):
+    """Return all users in the authenticated user's company.
+
+    Args:
+        user_data: Context data injected from the authentication middleware.
+    """
+    users = await get_users_core(company_ids=[user_data.company_id]).get_async(
+        output_type=OutputType.PANDAS
+    )
+
+    users_with_project_ids = await enrich_users(users=users, include_image_urls=False)
+
+    return users_with_project_ids
 
 
 @router.post(
@@ -169,6 +165,13 @@ async def delete_user(
     await delete_user_crud(db=db, user_id=user_id)
 
 
+class ThemeUpdateRequest(BaseModel):
+    """Request body for updating the user's theme preferences in Clerk."""
+
+    theme: str
+    vite_environment: str
+
+
 @router.put(
     "/self/clerk-theme",
     dependencies=[Depends(dependencies.requires_superadmin_async)],
@@ -193,6 +196,13 @@ async def update_self_clerk_theme(
     )
 
 
+class DemoModeUpdateRequest(BaseModel):
+    """Request body for toggling demo mode flags for a Clerk user."""
+
+    demo_mode: bool
+    vite_environment: str
+
+
 @router.put(
     "/self/clerk-demo-mode",
     dependencies=[Depends(dependencies.requires_admin_async)],
@@ -215,3 +225,41 @@ async def update_self_clerk_demo_mode(
         demo_mode=request.demo_mode,
         vite_environment=request.vite_environment,
     )
+
+
+async def enrich_users(
+    *, users: pd.DataFrame, include_image_urls: bool = False
+) -> list:
+    """Enrich users with operational project IDs and optionally image URLs.
+
+    Args:
+        users: DataFrame of users.
+        include_image_urls: Whether to include image URLs from Clerk.
+
+    Returns:
+        List of users with operational project IDs and optionally image URLs.
+    """
+    # Process each user tuple and add operational_project_ids and optionally image URLs
+    users_with_project_ids = []
+    for _, user in users.iterrows():
+        user_dict = {
+            **{k: v for k, v in user.to_dict().items() if k != "api_key"},
+        }
+
+        # Rename project_ids key to operational_project_ids
+        user_dict["operational_project_ids"] = user_dict.pop("project_ids")
+
+        # If user_dict["operational_project_ids"] is [None], set it to an empty list.
+        # NOTE: This is to comply with the UserWithProjects interface.
+        if user_dict["operational_project_ids"] == [None]:
+            user_dict["operational_project_ids"] = []
+
+        # Only fetch profile picture URL from Clerk if explicitly requested
+        # This avoids unnecessary API calls for users that may not exist in Clerk
+        if include_image_urls:
+            image_url = await get_clerk_user_image_url(user_id=user_dict["user_id"])
+            if image_url:
+                user_dict["image_url"] = image_url
+        users_with_project_ids.append(user_dict)
+
+    return users_with_project_ids

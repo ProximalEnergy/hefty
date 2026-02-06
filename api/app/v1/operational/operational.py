@@ -25,7 +25,6 @@ from app.v1.operational import (
     report_types,
     root_causes,
     sensor_types,
-    users,
 )
 from app.v1.operational.project import (
     project,
@@ -61,5 +60,4 @@ router.include_router(drone_integrations.router)
 router.include_router(drone_providers.router)
 router.include_router(drone_permissions.router)
 router.include_router(project_data_last_updated.router)
-router.include_router(users.router)
 router.include_router(contract_categories.router)

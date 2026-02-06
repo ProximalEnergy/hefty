@@ -1,5 +1,5 @@
 import { useGetCompanyTeamsWithMembers } from '@/api/admin'
-import { useGetCompanyUsers } from '@/api/operational'
+import { useGetSelfCompanyUsers } from '@/api/v1/admin/users'
 import {
   CalendarEvent,
   CalendarEventCategory,
@@ -152,7 +152,7 @@ export const ViewCalendarItemModal = ({
   const occurrenceAction = useCalendarOccurrenceAction()
 
   // Resolve user names for assignees from company users endpoint
-  const { data: companyUsers } = useGetCompanyUsers({})
+  const { data: companyUsers } = useGetSelfCompanyUsers({})
   const userIdToName = useMemo(() => {
     const m = new Map<string, string>()
     ;(companyUsers || []).forEach((u) => m.set(u.user_id, u.name_long))

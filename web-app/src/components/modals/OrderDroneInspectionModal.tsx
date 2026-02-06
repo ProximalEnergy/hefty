@@ -1,4 +1,5 @@
-import { useGetCompanies, useGetUserSelf } from '@/api/admin'
+import { useGetCompanies } from '@/api/admin'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   DroneInspectionOrderRequest,
   DroneProvider,

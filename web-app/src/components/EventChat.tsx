@@ -1,4 +1,4 @@
-import { useGetCompanyUsers } from '@/api/operational'
+import { useGetUsers } from '@/api/v1/admin/users'
 import {
   useGetEventMessageReactions,
   useToggleEventMessageReaction,
@@ -216,9 +216,8 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
     return Array.from(new Set(messages.map((m) => m.user_id)))
   }, [messages])
 
-  // Fetch users from operational endpoint for message display
-  // Using operational endpoint instead of admin endpoint so non-admin users can fetch user names
-  const { data: users, isLoading: isLoadingUsers } = useGetCompanyUsers({
+  // Fetch users for message display
+  const { data: users, isLoading: isLoadingUsers } = useGetUsers({
     queryParams: { user_ids: userIds, include_image_urls: true },
     queryOptions: {
       enabled: userIds.length > 0,

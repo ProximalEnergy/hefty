@@ -1,4 +1,5 @@
-import { useGetUserPermissions, useGetUserSelf } from '@/api/admin'
+import { useGetUserPermissions } from '@/api/admin'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   useDeleteProjectDocument,
   useGetProjectDocuments,

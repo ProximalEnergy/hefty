@@ -1,5 +1,4 @@
-import { useGetUserSelf } from '@/api/admin'
-import { useGetCompanyUsers } from '@/api/operational'
+import { useGetSelfCompanyUsers, useGetUserSelf } from '@/api/v1/admin/users'
 import {
   useDeleteUserDashboard,
   useDuplicateUserDashboard,
@@ -91,7 +90,7 @@ const CustomDashMenu = () => {
       enabled: shareOpened,
     },
   })
-  const companyUsers = useGetCompanyUsers({
+  const companyUsers = useGetSelfCompanyUsers({
     queryOptions: {
       enabled: shareOpened,
     },

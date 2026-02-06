@@ -1,4 +1,4 @@
-import { useGetUserSelf } from '@/api/admin'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import type { PVBudgetedSeries } from '@/api/v1/operational/project/pv_budgeted_data'
 import {
   useDeletePVBudgetedSeries,

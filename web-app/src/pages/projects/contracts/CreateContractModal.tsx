@@ -1,5 +1,5 @@
-import { useGetUserSelf } from '@/api/admin'
 import { useCreateCompany } from '@/api/v1/admin/companies'
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   useCreateCalendarEvent,
   useGetCalendarEventCategories,

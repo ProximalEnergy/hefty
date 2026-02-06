@@ -3,11 +3,10 @@ import {
   useCreateTeam,
   useDeleteTeam,
   useGetTeamsWithMembers,
-  useGetUsers,
   useRemoveTeamMember,
   useRenameTeam,
 } from '@/api/admin'
-import { useUser } from '@clerk/clerk-react'
+import { useGetSelfCompanyUsers, useGetUserSelf } from '@/api/v1/admin/users'
 import {
   Badge,
   Button,
@@ -32,22 +31,15 @@ import type { AxiosResponse } from 'axios'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export function Teams() {
-  const { user: clerkUser } = useUser()
-  const currentUser = useGetUsers({
-    queryParams: { user_ids: [clerkUser?.id || ''] },
-    queryOptions: { enabled: !!clerkUser?.id },
-  })
-  const companyId = currentUser.data?.[0]?.company_id
+  const self = useGetUserSelf({})
+  const companyId = self.data?.company_id
 
   const teams = useGetTeamsWithMembers({
     queryParams: { company_id: companyId || '' },
     queryOptions: { enabled: !!companyId },
   })
   const createTeam = useCreateTeam()
-  const allUsers = useGetUsers({
-    queryParams: { company_ids: companyId ? [companyId] : [] },
-    queryOptions: { enabled: !!companyId },
-  })
+  const allUsers = useGetSelfCompanyUsers({})
   const addMember = useAddTeamMember()
   const removeMember = useRemoveTeamMember()
   const deleteTeam = useDeleteTeam()

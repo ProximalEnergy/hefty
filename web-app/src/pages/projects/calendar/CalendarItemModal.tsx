@@ -1,5 +1,5 @@
 import { useGetCompanyTeams } from '@/api/admin'
-import { useGetCompanyUsers } from '@/api/operational'
+import { useGetSelfCompanyUsers } from '@/api/v1/admin/users'
 import {
   CalendarEvent,
   CalendarEventCategory,
@@ -369,7 +369,7 @@ export const CalendarItemModal = ({
   }, [fetchedCategories, isLoadingCategories])
 
   // Fetch company users to assign, restricted to current user's company
-  const { data: companyUsers } = useGetCompanyUsers({})
+  const { data: companyUsers } = useGetSelfCompanyUsers({})
   // Maps omitted; names are rendered directly from option labels
 
   // Fetch company teams

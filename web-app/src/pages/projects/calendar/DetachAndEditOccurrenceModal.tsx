@@ -1,5 +1,5 @@
 import { useGetCompanyTeams } from '@/api/admin'
-import { useGetCompanyUsers } from '@/api/operational'
+import { useGetSelfCompanyUsers } from '@/api/v1/admin/users'
 import {
   CalendarEvent,
   CalendarEventCategory,
@@ -125,7 +125,7 @@ export const DetachAndEditOccurrenceModal = ({
     })
 
   // Company users for assignment
-  const { data: companyUsers } = useGetCompanyUsers({})
+  const { data: companyUsers } = useGetSelfCompanyUsers({})
 
   // Fetch company teams
   const { data: teams } = useGetCompanyTeams({})

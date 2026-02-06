@@ -12,10 +12,7 @@ import { baseURL } from '../urlConfig'
 
 type Permission = types.components['schemas']['Permission']
 type UserWithPermissions = types.components['schemas']['UserWithPermissions']
-type UserWithProjects = types.components['schemas']['UserWithProjects']
-type UserData = types.components['schemas']['UserData']
 type UserCreate = types.components['schemas']['UserCreate']
-
 type Company = types.components['schemas']['Company']
 type Team = types.components['schemas']['Team']
 type TeamWithMembers = types.components['schemas']['TeamWithMembers']
@@ -218,55 +215,6 @@ export const useUpdateUserPermissionMutation = () => {
         ],
       })
     },
-  })
-}
-
-export const useGetUsers = ({
-  queryParams = {},
-  queryOptions = {},
-}: {
-  queryParams?: {
-    user_ids?: string[]
-    company_ids?: string[]
-    include_image_urls?: boolean
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/admin/users`,
-  }
-
-  const defaultQueryOptions = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<UserWithProjects[]>({
-    axiosConfig,
-    queryName: 'getUsers',
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useGetUserSelf = ({
-  queryOptions = {},
-}: {
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/admin/users/self`,
-  }
-
-  const defaultQueryOptions = {
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-  }
-
-  return useCustomQuery<UserData>({
-    axiosConfig,
-    queryName: 'getUserSelf',
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }
 

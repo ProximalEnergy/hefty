@@ -1,6 +1,6 @@
-import { useGetCompanyUsers } from '@/api/operational'
 import { useGetCompanies } from '@/api/v1/admin/companies'
 import { useGetAllCompanyProjectsForProject } from '@/api/v1/admin/company_projects'
+import { useGetSelfCompanyUsers } from '@/api/v1/admin/users'
 import {
   ActionIcon,
   Avatar,
@@ -110,7 +110,7 @@ function MessageInput({
     : savedVisibilityPreference
 
   // Fetch all company users for mentions
-  const { data: companyUsers } = useGetCompanyUsers({})
+  const { data: companyUsers } = useGetSelfCompanyUsers({})
 
   // Get companies with access to this project (for event chat visibility dropdown)
   const { data: companyProjects } = useGetAllCompanyProjectsForProject({
