@@ -21,13 +21,13 @@ async def get_equipment_analysis_combiner_data(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
-    """todo
+    """Return combiner current data for the requested interval.
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Database session for the project's schema.
+        project: Project model from the request context.
+        start: Optional start datetime for the window.
+        end: Optional end datetime for the window.
     """
     mean = False
     if start is None and end is None:

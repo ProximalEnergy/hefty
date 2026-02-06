@@ -64,13 +64,13 @@ def send_feedback_notification(
     channel: CommunicationChannel,
     issue_id: str | None = None,
 ):
-    """todo
+    """Send a feedback notification to the configured channel.
 
     Args:
-        user_name_long: TODO: describe.
-        feedback: TODO: describe.
-        channel: TODO: describe.
-        issue_id: TODO: describe.
+        user_name_long: Full name of the feedback submitter.
+        feedback: Feedback model containing the message and metadata.
+        channel: Communication channel to use for delivery.
+        issue_id: Optional Linear issue ID to link in the message.
     """
     match channel:
         case CommunicationChannel.GOOGLE_CHAT:

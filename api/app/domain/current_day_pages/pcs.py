@@ -20,12 +20,12 @@ def _normalize_timestamp(
     value: datetime.datetime | pd.Timestamp | None,
     default_to_start_of_day: bool,
 ) -> pd.Timestamp:
-    """todo
+    """Normalize a timestamp to the project's timezone and rounding rules.
 
     Args:
-        project: TODO: describe.
-        value: TODO: describe.
-        default_to_start_of_day: TODO: describe.
+        project: Project providing the timezone context.
+        value: Optional timestamp to normalize.
+        default_to_start_of_day: Whether to default to start of day.
     """
     if value is None:
         if default_to_start_of_day:
@@ -50,15 +50,14 @@ async def _fetch_timeseries_dataframe(
     start: datetime.datetime,
     end: datetime.datetime,
 ) -> pd.DataFrame:
-    """todo
+    """Fetch timeseries data for a list of tag IDs.
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        operational_db: TODO: describe.
+        project_db: Database session for the project's schema.
+        project: Project providing schema and timezone data.
+        tag_ids: Tag IDs to query from the timeseries store.
+        start: Start datetime for the query.
+        end: End datetime for the query.
     """
     if len(tag_ids) == 0:
         return pd.DataFrame()
@@ -118,16 +117,16 @@ async def _get_equipment_analysis_frames_async(
     start: datetime.datetime,
     end: datetime.datetime,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """todo
+    """Return block, PCS, and PCS module frames for the time window.
 
     Args:
-        project_db: TODO: describe.
-        project: TODO: describe.
-        block_tag_ids: TODO: describe.
-        pcs_tag_ids: TODO: describe.
-        pcs_module_tag_ids: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Database session for the project's schema.
+        project: Project providing schema and timezone data.
+        block_tag_ids: Tag IDs for block power data.
+        pcs_tag_ids: Tag IDs for PCS power data.
+        pcs_module_tag_ids: Tag IDs for PCS module data.
+        start: Start datetime for the query.
+        end: End datetime for the query.
     """
     df_block = await _fetch_timeseries_dataframe(
         project_db=project_db,

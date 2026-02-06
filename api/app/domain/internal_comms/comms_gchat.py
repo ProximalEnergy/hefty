@@ -6,11 +6,11 @@ def send_google_chat_message(
     message: str,
     webhook_url: str,
 ) -> None:
-    """todo
+    """Send a message to Google Chat via webhook.
 
     Args:
-        message: TODO: describe.
-        webhook_url: TODO: describe.
+        message: Message text to send.
+        webhook_url: Google Chat incoming webhook URL.
     """
 
     payload = {"text": message}

@@ -28,7 +28,7 @@ def calc_reference_params(
             - https://www.osti.gov/pages/biblio/2550692
 
     Args:
-        pv_module: TODO: describe.
+        pv_module: Module dictionary containing PAN parameters.
     """
 
     # --- Constants ---

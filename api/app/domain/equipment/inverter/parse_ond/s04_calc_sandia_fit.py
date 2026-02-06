@@ -9,7 +9,7 @@ def calc_fit_sandia(
     """Calc parameters necessary for inverter model
 
     Args:
-        inverter: TODO: describe.
+        inverter: Inverter dictionary with efficiency and voltage data.
     """
 
     # Extract data from efficiency dictionaries

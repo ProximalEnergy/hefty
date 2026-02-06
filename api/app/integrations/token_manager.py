@@ -12,7 +12,7 @@ import app.integrations.providers.tenaska as tenaska
 
 
 class TokenResponse(TypedDict):
-    """todo"""
+    """Token response from an integration provider."""
 
     access_token: str
     expires_in: int  # seconds
@@ -31,12 +31,12 @@ class TokenManager:
         refresh_margin_s: int = 120,
         jitter_s: int = 30,
     ) -> None:
-        """todo
+        """Initialize a token manager with refresh thresholds.
 
         Args:
-            fetch_token: TODO: describe.
-            refresh_margin_s: TODO: describe.
-            jitter_s: TODO: describe.
+            fetch_token: Coroutine that retrieves a fresh token payload.
+            refresh_margin_s: Seconds before expiry to trigger refresh.
+            jitter_s: Random jitter window in seconds to stagger refreshes.
         """
         self._fetch_token_cb = fetch_token
         self._refresh_margin_s = refresh_margin_s
@@ -47,14 +47,14 @@ class TokenManager:
         self._lock = asyncio.Lock()
 
     def _now(self) -> int:
-        """todo"""
+        """Return current epoch time in seconds."""
         return int(time.time())
 
     def _needs_refresh(self, *, force: bool = False) -> bool:
-        """todo
+        """Return whether the cached token should be refreshed.
 
         Args:
-            force: TODO: describe.
+            force: Force refresh regardless of cached expiry.
         """
         if self._token is None or force:
             return True
@@ -62,7 +62,7 @@ class TokenManager:
         return self._now() + self._refresh_margin_s + jitter >= self._expiry
 
     async def _refresh_under_lock(self) -> str:
-        """todo"""
+        """Refresh the token while holding the lock."""
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
@@ -72,7 +72,7 @@ class TokenManager:
         return self._token
 
     async def get_token(self) -> str:
-        """todo"""
+        """Return a valid token, refreshing if needed."""
         if not self._needs_refresh():
             assert self._token is not None  # noqa: S101
             return self._token
@@ -83,7 +83,7 @@ class TokenManager:
             return await self._refresh_under_lock()
 
     async def force_refresh_and_get(self) -> str:
-        """todo"""
+        """Force a refresh and return the new token."""
         async with self._lock:
             return await self._refresh_under_lock()
 
@@ -92,5 +92,5 @@ class TokenManager:
 @lru_cache(maxsize=1)
 def get_tps_token_manager() -> TokenManager:
     # lru_cache returns the same instance within the process
-    """todo"""
+    """Return the cached TPS token manager."""
     return TokenManager(fetch_token=tenaska.fetch_tps_token)

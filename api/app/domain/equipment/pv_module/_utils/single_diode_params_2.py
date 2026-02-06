@@ -8,7 +8,7 @@ def calc_reference_params(*, pv_module: dict):
         bounded minimization approach.
 
     Args:
-        pv_module: TODO: describe.
+        pv_module: Module dictionary containing PAN parameters.
     """
     # --- Constants and Module Specs ---
     TEMP_REF_K = 25.0 + 273.15  # Reference temperature in Kelvin
@@ -75,11 +75,11 @@ def calc_reference_params(*, pv_module: dict):
     )
 
     def objective_func(params, specs):  # nosemgrep: python-enforce-keyword-only-args
-        """todo
+        """Return the residual sum of squares for the De Soto equations.
 
         Args:
-            params: TODO: describe.
-            specs: TODO: describe.
+            params: Candidate parameter vector for the model.
+            specs: Tuple of reference specs for the module.
         """
         residuals = _system_of_equations_desoto(params, specs)
         residuals = np.array(residuals)

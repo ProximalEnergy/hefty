@@ -11,11 +11,11 @@ CUSTOMER_FEEDBACK_LABEL_ID = "a853e6d3-085f-4069-872b-c48ada6b5485"
 
 
 async def get_company_id_by_email(*, client, email: str) -> str | None:
-    """todo
+    """Look up a Linear customer ID based on an email domain.
 
     Args:
-        client: TODO: describe.
-        email: TODO: describe.
+        client: GraphQL client to query Linear.
+        email: User email address used to extract the domain.
     """
     try:
         domain = email.split("@")[1]
@@ -55,14 +55,14 @@ async def create_linear_issue(
     url: str | None = None,
     screenshot_data_uri: str | None = None,
 ):
-    """todo
+    """Create a Linear issue from customer feedback details.
 
     Args:
-        title: TODO: describe.
-        description: TODO: describe.
-        user_email: TODO: describe.
-        url: TODO: describe.
-        screenshot_data_uri: TODO: describe.
+        title: Issue title for Linear.
+        description: Feedback summary or body content.
+        user_email: Email address of the reporting user.
+        url: Optional app URL to include in the issue body.
+        screenshot_data_uri: Optional data URI for an embedded screenshot.
     """
     transport = AIOHTTPTransport(
         url="https://api.linear.app/graphql",
