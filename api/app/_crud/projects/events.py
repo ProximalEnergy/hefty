@@ -219,11 +219,11 @@ def get_events_summary(
         This is specifically designed for generating event summaries with device info.
 
     Args:
-        open: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        device_type_ids: TODO: describe.
-        device_ids: TODO: describe.
+        open: Limit results to open events when True.
+        start: Optional start time for filtering.
+        end: Optional end time for filtering.
+        device_type_ids: Optional device type ids to filter by.
+        device_ids: Optional device ids to filter by.
     """
     stmt = (
         select(

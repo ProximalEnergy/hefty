@@ -22,12 +22,12 @@ async def update_user_projects(
     user_ids: list[str],
     operational_project_ids: list[list[uuid.UUID]],
 ):
-    """todo
+    """Update user-project associations in bulk.
 
     Args:
-        db: TODO: describe.
-        user_ids: TODO: describe.
-        operational_project_ids: TODO: describe.
+        db: Async database session.
+        user_ids: User ids to update.
+        operational_project_ids: Project id lists aligned with user ids.
     """
     await update_user_projects_crud(
         db=db,
@@ -43,11 +43,11 @@ async def get_user_projects(
     user_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """Get all user projects with favorited status for a user
+    """Get all user projects with favorited status for a user.
 
     Args:
-        user_id: TODO: describe.
-        db: TODO: describe.
+        user_id: User id to query.
+        db: Async database session.
     """
     query = select(models.UserProject).where(models.UserProject.user_id == user_id)
     result = await db.execute(query)
@@ -67,13 +67,13 @@ async def update_project_favorite(
     favorite_update: interfaces.UserProjectFavoriteUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """Update the is_favorited field for a user's project
+    """Update the favorite status for a user's project.
 
     Args:
-        user_id: TODO: describe.
-        project_id: TODO: describe.
-        favorite_update: TODO: describe.
-        db: TODO: describe.
+        user_id: User id to update.
+        project_id: Project id to update.
+        favorite_update: Favorite status payload.
+        db: Async database session.
     """
     return await update_user_project_favorite(
         db=db,

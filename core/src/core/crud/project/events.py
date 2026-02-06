@@ -23,10 +23,10 @@ def get_windowed_events(
     """Query events that start before `end` and end after `start` or are ongoing.
 
     Args:
-        start: TODO: describe.
-        end: TODO: describe.
-        deep: TODO: describe.
-        include_underperformance: TODO: describe.
+        start: Window start time.
+        end: Window end time.
+        deep: Whether to eager-load related device data.
+        include_underperformance: Include underperformance events when True.
     """
     stmt = sa.select(models.Event).where(models.Event.time_start <= end)
     stmt = stmt.where(

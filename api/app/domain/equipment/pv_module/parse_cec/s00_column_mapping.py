@@ -7,10 +7,10 @@ def map_columns_to_proximal_format(
     *,
     cec_pv_module: interfaces.CECPVModule,
 ) -> dict[str, Any]:
-    """todo
+    """Map CEC PV module fields to Proximal column names.
 
     Args:
-        cec_pv_module: TODO: describe.
+        cec_pv_module: Parsed CEC PV module record.
     """
     column_mapping = {
         "model_number": "model",

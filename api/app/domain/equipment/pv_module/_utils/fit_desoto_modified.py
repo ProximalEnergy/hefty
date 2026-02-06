@@ -23,18 +23,18 @@ def fit_desoto(
         function whether or not the solve is successful.
 
     Args:
-        v_mp: TODO: describe.
-        i_mp: TODO: describe.
-        v_oc: TODO: describe.
-        i_sc: TODO: describe.
-        alpha_sc: TODO: describe.
-        beta_voc: TODO: describe.
-        EgRef: TODO: describe.
-        dEgdT: TODO: describe.
-        temp_ref: TODO: describe.
-        irrad_ref: TODO: describe.
-        init_guess: TODO: describe.
-        root_kwargs: TODO: describe.
+        v_mp: Voltage at maximum power point.
+        i_mp: Current at maximum power point.
+        v_oc: Open-circuit voltage.
+        i_sc: Short-circuit current.
+        alpha_sc: Temperature coefficient for short-circuit current.
+        beta_voc: Temperature coefficient for open-circuit voltage.
+        EgRef: Bandgap energy at reference conditions.
+        dEgdT: Temperature dependence of bandgap energy.
+        temp_ref: Reference cell temperature in Celsius.
+        irrad_ref: Reference irradiance in W/m^2.
+        init_guess: Optional initial guesses for solver parameters.
+        root_kwargs: Additional kwargs passed to scipy.optimize.root.
     """
     # Constants
     k = constants.value("Boltzmann constant in eV/K")  # in eV/K

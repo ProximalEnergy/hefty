@@ -16,10 +16,10 @@ def get_api_key(
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
 ):
-    """todo
+    """Return the current user's API key.
 
     Args:
-        user_data: TODO: describe.
+        user_data: Requesting user context.
     """
     return {"api_key": user_data.api_key}
 
@@ -31,11 +31,11 @@ async def create_api_key(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """todo
+    """Create an API key for the requesting user.
 
     Args:
-        user_data: TODO: describe.
-        db: TODO: describe.
+        user_data: Requesting user context.
+        db: Async database session.
     """
     await crud_create_api_key(db, user_id=user_data.user_id)
 
@@ -47,10 +47,10 @@ async def delete_api_key(
     ],
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """todo
+    """Delete the API key for the requesting user.
 
     Args:
-        user_data: TODO: describe.
-        db: TODO: describe.
+        user_data: Requesting user context.
+        db: Async database session.
     """
     await crud_delete_api_key(db, user_id=user_data.user_id)

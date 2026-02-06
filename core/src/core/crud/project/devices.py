@@ -101,12 +101,12 @@ def get_project_device(
     deep: bool,
     include_name_long: bool = False,
 ) -> DbQuery[models.Device, Literal[True]]:
-    """TODO: add description.
+    """Fetch a single device by id with optional related data.
 
     Args:
-        device_id: TODO: describe.
-        deep: TODO: describe.
-        include_name_long: TODO: describe.
+        device_id: Device id to fetch.
+        deep: Whether to eager-load related device type data.
+        include_name_long: Load device type name_long only when True.
     """
     options = get_project_device_options(deep=deep, include_name_long=include_name_long)
     stmt = (

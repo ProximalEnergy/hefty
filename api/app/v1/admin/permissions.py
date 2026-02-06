@@ -63,8 +63,8 @@ async def get_user_permissions(
     """Get all permissions for the requesting user at a given project.
 
     Args:
-        project_id: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Project id to query.
+        user_data: Requesting user context.
     """
 
     # Get user_permission objects
@@ -88,7 +88,7 @@ async def get_user_permissions(
 
 
 class UserPermissionRequest(BaseModel):
-    """todo"""
+    """Payload for adding or removing a user permission."""
 
     permission_id: int
 
@@ -107,10 +107,10 @@ async def add_user_permission(
     """Add a user permission for a user at a project. Requires admin access.
 
     Args:
-        project_id: TODO: describe.
-        user_id: TODO: describe.
-        user_permission: TODO: describe.
-        db: TODO: describe.
+        project_id: Project id to modify.
+        user_id: User id to modify.
+        user_permission: Permission payload.
+        db: Async database session.
     """
 
     # NOTE: We are omitting any project access checks here
@@ -144,10 +144,10 @@ async def delete_user_permission(
     """Delete a user permission for a user at a project. Requires admin access.
 
     Args:
-        project_id: TODO: describe.
-        user_id: TODO: describe.
-        user_permission: TODO: describe.
-        db: TODO: describe.
+        project_id: Project id to modify.
+        user_id: User id to modify.
+        user_permission: Permission payload.
+        db: Async database session.
     """
 
     # Create a user_permission object
@@ -179,8 +179,8 @@ async def get_company_permissions(
     """Get all permissions for the requesting user's company at a given project.
 
     Args:
-        project_id: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Project id to query.
+        user_data: Requesting user context.
     """
 
     # Get company permissions data
@@ -226,9 +226,9 @@ async def get_users_permissions(
         for the requesting user's company. Requires admin access.
 
     Args:
-        project_id: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
+        project_id: Project id to query.
+        db: Async database session.
+        user_data: Requesting user context.
     """
 
     # Get users with access to the project

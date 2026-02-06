@@ -13,29 +13,29 @@ export interface paths {
         };
         /**
          * Get API Key
-         * @description todo
+         * @description Return the current user's API key.
          *
          *     Args:
-         *         user_data: TODO: describe.
+         *         user_data: Requesting user context.
          */
         get: operations["get_api_key_v1_admin_api_key_get"];
         put?: never;
         /**
          * Create API Key
-         * @description todo
+         * @description Create an API key for the requesting user.
          *
          *     Args:
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
+         *         user_data: Requesting user context.
+         *         db: Async database session.
          */
         post: operations["create_api_key_v1_admin_api_key_post"];
         /**
          * Delete API Key
-         * @description todo
+         * @description Delete the API key for the requesting user.
          *
          *     Args:
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
+         *         user_data: Requesting user context.
+         *         db: Async database session.
          */
         delete: operations["delete_api_key_v1_admin_api_key_delete"];
         options?: never;
@@ -78,8 +78,8 @@ export interface paths {
          * @description Get all permissions for the requesting user at a given project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Project id to query.
+         *         user_data: Requesting user context.
          */
         get: operations["get_user_permissions_v1_admin_permissions_projects__project_id__user_get"];
         put?: never;
@@ -104,10 +104,10 @@ export interface paths {
          * @description Add a user permission for a user at a project. Requires admin access.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         user_id: TODO: describe.
-         *         user_permission: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Project id to modify.
+         *         user_id: User id to modify.
+         *         user_permission: Permission payload.
+         *         db: Async database session.
          */
         post: operations["add_user_permission_v1_admin_permissions_projects__project_id__users__user_id__post"];
         /**
@@ -115,10 +115,10 @@ export interface paths {
          * @description Delete a user permission for a user at a project. Requires admin access.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         user_id: TODO: describe.
-         *         user_permission: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Project id to modify.
+         *         user_id: User id to modify.
+         *         user_permission: Permission payload.
+         *         db: Async database session.
          */
         delete: operations["delete_user_permission_v1_admin_permissions_projects__project_id__users__user_id__delete"];
         options?: never;
@@ -138,8 +138,8 @@ export interface paths {
          * @description Get all permissions for the requesting user's company at a given project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Project id to query.
+         *         user_data: Requesting user context.
          */
         get: operations["get_company_permissions_v1_admin_permissions_projects__project_id__company_get"];
         put?: never;
@@ -163,9 +163,9 @@ export interface paths {
          *         for the requesting user's company. Requires admin access.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         project_id: Project id to query.
+         *         db: Async database session.
+         *         user_data: Requesting user context.
          */
         get: operations["get_users_permissions_v1_admin_permissions_projects__project_id__company_users_get"];
         put?: never;
@@ -720,12 +720,12 @@ export interface paths {
         put?: never;
         /**
          * Update User Projects
-         * @description todo
+         * @description Update user-project associations in bulk.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user_ids: TODO: describe.
-         *         operational_project_ids: TODO: describe.
+         *         db: Async database session.
+         *         user_ids: User ids to update.
+         *         operational_project_ids: Project id lists aligned with user ids.
          */
         post: operations["update_user_projects_v1_admin_user_projects_update_user_projects_post"];
         delete?: never;
@@ -743,11 +743,11 @@ export interface paths {
         };
         /**
          * Get User Projects
-         * @description Get all user projects with favorited status for a user
+         * @description Get all user projects with favorited status for a user.
          *
          *     Args:
-         *         user_id: TODO: describe.
-         *         db: TODO: describe.
+         *         user_id: User id to query.
+         *         db: Async database session.
          */
         get: operations["get_user_projects_v1_admin_user_projects__user_id__get"];
         put?: never;
@@ -773,13 +773,13 @@ export interface paths {
         head?: never;
         /**
          * Update Project Favorite
-         * @description Update the is_favorited field for a user's project
+         * @description Update the favorite status for a user's project.
          *
          *     Args:
-         *         user_id: TODO: describe.
-         *         project_id: TODO: describe.
-         *         favorite_update: TODO: describe.
-         *         db: TODO: describe.
+         *         user_id: User id to update.
+         *         project_id: Project id to update.
+         *         favorite_update: Favorite status payload.
+         *         db: Async database session.
          */
         patch: operations["update_project_favorite_v1_admin_user_projects__user_id__projects__project_id__favorite_patch"];
         trace?: never;
@@ -10945,7 +10945,7 @@ export interface components {
         };
         /**
          * UserPermissionRequest
-         * @description todo
+         * @description Payload for adding or removing a user permission.
          */
         UserPermissionRequest: {
             /** Permission Id */
