@@ -32,7 +32,7 @@ step_function_arn = os.getenv("STEP_FUNCTION_ARN_KPI_PIPELINE")
 
 
 class KPIBackfillEvent(BaseModel):
-    """todo"""
+    """Payload for a KPI backfill request."""
 
     start: date = Field(default_factory=date.today)
     end: date = Field(default_factory=date.today)
@@ -50,10 +50,10 @@ def trigger_kpi_backfill_lambda(
     *,
     event: KPIBackfillEvent,
 ):
-    """todo
+    """Trigger the KPI backfill step function.
 
     Args:
-        event: TODO: describe.
+        event: Payload describing the backfill parameters and targets.
     """
     stepfunctions_client = boto3.client("stepfunctions", region_name="us-east-2")
     input_payload = json.dumps(event.model_dump(mode="json"))

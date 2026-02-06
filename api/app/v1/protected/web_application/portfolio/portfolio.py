@@ -41,7 +41,7 @@ class PortfolioHomeShortTerm(BaseModel):
 
 
 class PortfolioHomeLongTerm(BaseModel):
-    """todo"""
+    """Long-term portfolio home metrics."""
 
     project_id: UUID
     times: list[Any] | None
@@ -52,11 +52,11 @@ class PortfolioHomeLongTerm(BaseModel):
 
 
 class PortfolioHome(PortfolioHomeShortTerm, PortfolioHomeLongTerm):
-    """todo"""
+    """Combined short- and long-term portfolio home metrics."""
 
 
 class TimeFrame(StrEnum):
-    """todo"""
+    """Time window options for portfolio metrics."""
 
     H24 = "24h"
     D30 = "30d"
@@ -67,11 +67,11 @@ async def get_portfolio_home_short_term(
     project_ids: list[UUID],
     db: AsyncSession,
 ) -> list[PortfolioHomeShortTerm]:
-    """todo
+    """Fetch short-term portfolio home metrics for projects.
 
     Args:
-        project_ids: TODO: describe.
-        db: TODO: describe.
+        project_ids: Project identifiers to include.
+        db: Async database session.
     """
     if len(project_ids) == 0:
         return []
@@ -341,11 +341,11 @@ async def get_portfolio_home_long_term(
     project_ids: list[UUID],
     db: AsyncSession,
 ) -> list[PortfolioHomeLongTerm]:
-    """todo
+    """Fetch long-term portfolio home metrics for projects.
 
     Args:
-        project_ids: TODO: describe.
-        db: TODO: describe.
+        project_ids: Project identifiers to include.
+        db: Async database session.
     """
     if len(project_ids) == 0:
         return []
@@ -461,13 +461,13 @@ async def get_home(
     time: TimeFrame = Query(default=TimeFrame.H24),  # new parameter
 ):
     # If project_ids is not provided, default to all projects the user has access to
-    """todo
+    """Return portfolio home metrics for the selected time frame.
 
     Args:
-        project_ids: TODO: describe.
-        db: TODO: describe.
-        user_data: TODO: describe.
-        time: TODO: describe.
+        project_ids: Optional project IDs to scope the response.
+        db: Async database session.
+        user_data: Authenticated user context used for access filtering.
+        time: Time frame used to select short- or long-term data.
     """
     if project_ids is None:
         project_ids = user_data.operational_project_ids
@@ -546,9 +546,9 @@ async def get_portfolio_calendar_events(
     """Get all calendar events for all projects in the user's portfolio.
 
     Args:
-        project_ids: TODO: describe.
-        user_data: TODO: describe.
-        db: TODO: describe.
+        project_ids: Optional project IDs to filter the results.
+        user_data: Authenticated user context used for access filtering.
+        db: Async database session.
     """
     # If no project_ids provided, use all accessible projects
     if not project_ids:
@@ -605,6 +605,6 @@ async def get_portfolio_calendar_categories(
     """Get all calendar event categories for all projects in the user's portfolio.
 
     Args:
-        db: TODO: describe.
+        db: Async database session.
     """
     return await crud_calendar.get_calendar_item_categories(db=db)

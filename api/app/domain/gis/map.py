@@ -9,7 +9,7 @@ from app.domain.gis._utils.arcgis import get_arcgis_token
 
 
 class MapDataType(StrEnum):
-    """todo"""
+    """Identifiers for supported map data types."""
 
     HAIL_FORECAST_POLYGON = "hail_forecast_polygon"
 
@@ -34,11 +34,11 @@ class MapDataProvider(ABC):
         data_type: MapDataType,
         time_span: datetime.timedelta | None,
     ) -> MapData | None:
-        """Get map data for the given data type
+        """Get map data for the given data type.
 
         Args:
-            data_type: TODO: describe.
-            time_span: TODO: describe.
+            data_type: Map data type to fetch.
+            time_span: Optional time span to filter data.
         """
         return await self._get_data(
             data_type=data_type,
@@ -51,11 +51,11 @@ class MapDataProvider(ABC):
         data_type: MapDataType,
         time_span: datetime.timedelta | None,
     ) -> MapData | None:
-        """Get map data for the given data type
+        """Get map data for the given data type.
 
         Args:
-            data_type: TODO: describe.
-            time_span: TODO: describe.
+            data_type: Map data type to fetch.
+            time_span: Optional time span to filter data.
         """
         raise NotImplementedError
 

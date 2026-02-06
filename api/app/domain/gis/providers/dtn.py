@@ -23,11 +23,11 @@ class DTN(
         data_type: MapDataType,
         time_span: timedelta | None = None,
     ):
-        """todo
+        """Load map data for the requested DTN data type.
 
         Args:
-            data_type: TODO: describe.
-            time_span: TODO: describe.
+            data_type: Map data type to retrieve.
+            time_span: Optional time span filter for the request.
         """
         match data_type:
             case MapDataType.HAIL_FORECAST_POLYGON:
@@ -59,10 +59,10 @@ class DTN(
         *,
         arcgis_layer_id: int,
     ):
-        """Get hail forecast polygon data from ArcGIS REST API
+        """Get hail forecast polygon data from the ArcGIS REST API.
 
         Args:
-            arcgis_layer_id: TODO: describe.
+            arcgis_layer_id: ArcGIS layer ID to query.
         """
 
         # Get the authentication token
@@ -119,10 +119,10 @@ class DTN(
                 )
 
     def _parse_polygons_response(self, *, data: dict) -> list[shapely.geometry.Polygon]:
-        """Parse ArcGIS response and extract polygons
+        """Parse an ArcGIS response and extract polygons.
 
         Args:
-            data: TODO: describe.
+            data: ArcGIS JSON response payload.
         """
         if "error" in data:
             error_msg = data["error"].get("message", "Unknown error")

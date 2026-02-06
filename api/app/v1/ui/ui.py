@@ -21,7 +21,7 @@ router = APIRouter(
 
 
 class BlockDropdownItem(BaseModel):
-    """todo"""
+    """UI dropdown item for block devices."""
 
     device_id: int
     name_full: str
@@ -38,10 +38,10 @@ class BlockDropdownItem(BaseModel):
 async def get_block_dropdown(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
 ):
-    """todo
+    """Fetch block devices for the UI dropdown.
 
     Args:
-        project_db: TODO: describe.
+        project_db: Project-scoped database session.
     """
     BLOCK_DEVICE_TYPE_ID = 6
 

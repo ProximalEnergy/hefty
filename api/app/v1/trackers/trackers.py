@@ -19,14 +19,13 @@ def get_tracking_angles(
     _auth: None = Depends(dependencies.check_project_access_from_query_async),
 ):
     # Convert to project timezone
-    """todo
+    """Return tracker angle time series for the project.
 
     Args:
-        project_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
-        project: TODO: describe.
-        _auth: TODO: describe.
+        start: Naive start time for the window, assumed to be in UTC.
+        end: Naive end time for the window, assumed to be in UTC.
+        project: Project used for location and time zone context.
+        _auth: Authorization dependency (unused).
     """
     start = pd.to_datetime(start).tz_localize("UTC").tz_convert(project.time_zone)
     end = pd.to_datetime(end).tz_localize("UTC").tz_convert(project.time_zone)

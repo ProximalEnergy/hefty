@@ -20,7 +20,7 @@ async def get_drone_providers_(
     """Retrieve all drone providers.
 
     Args:
-        db: TODO: describe.
+        db: Async database session.
     """
     return await get_drone_providers(db=db)
 
@@ -35,8 +35,8 @@ async def create_drone_provider_(
     """Create a new drone provider.
 
     Args:
-        drone_provider: TODO: describe.
-        db: TODO: describe.
+        drone_provider: Payload describing the new provider.
+        db: Async database session.
     """
     return await create_drone_provider(db=db, drone_provider=drone_provider)
 
@@ -54,9 +54,9 @@ async def update_drone_provider_(
     """Update a drone provider.
 
     Args:
-        drone_provider_id: TODO: describe.
-        drone_provider: TODO: describe.
-        db: TODO: describe.
+        drone_provider_id: Provider identifier to update.
+        drone_provider: Payload of updated provider fields.
+        db: Async database session.
     """
     return await update_drone_provider(
         db=db,
@@ -75,8 +75,8 @@ async def delete_drone_provider_(
     """Delete a drone provider.
 
     Args:
-        drone_provider_id: TODO: describe.
-        db: TODO: describe.
+        drone_provider_id: Provider identifier to delete.
+        db: Async database session.
     """
     await delete_drone_provider(db=db, drone_provider_id=drone_provider_id)
     return HTTPException(status_code=200, detail="Drone provider deleted")

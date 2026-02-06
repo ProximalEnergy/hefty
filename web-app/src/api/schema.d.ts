@@ -5268,7 +5268,7 @@ export interface paths {
          * @description Retrieve all drone providers.
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Async database session.
          */
         get: operations["get_drone_providers__v1_operational_drone_providers_get"];
         put?: never;
@@ -5277,8 +5277,8 @@ export interface paths {
          * @description Create a new drone provider.
          *
          *     Args:
-         *         drone_provider: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_provider: Payload describing the new provider.
+         *         db: Async database session.
          */
         post: operations["create_drone_provider__v1_operational_drone_providers_post"];
         delete?: never;
@@ -5300,9 +5300,9 @@ export interface paths {
          * @description Update a drone provider.
          *
          *     Args:
-         *         drone_provider_id: TODO: describe.
-         *         drone_provider: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_provider_id: Provider identifier to update.
+         *         drone_provider: Payload of updated provider fields.
+         *         db: Async database session.
          */
         put: operations["update_drone_provider__v1_operational_drone_providers__drone_provider_id__put"];
         post?: never;
@@ -5311,8 +5311,8 @@ export interface paths {
          * @description Delete a drone provider.
          *
          *     Args:
-         *         drone_provider_id: TODO: describe.
-         *         db: TODO: describe.
+         *         drone_provider_id: Provider identifier to delete.
+         *         db: Async database session.
          */
         delete: operations["delete_drone_provider__v1_operational_drone_providers__drone_provider_id__delete"];
         options?: never;
@@ -5442,13 +5442,13 @@ export interface paths {
         };
         /**
          * Get Home
-         * @description todo
+         * @description Return portfolio home metrics for the selected time frame.
          *
          *     Args:
-         *         project_ids: TODO: describe.
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         *         time: TODO: describe.
+         *         project_ids: Optional project IDs to scope the response.
+         *         db: Async database session.
+         *         user_data: Authenticated user context used for access filtering.
+         *         time: Time frame used to select short- or long-term data.
          */
         get: operations["get_home_v1_protected_web_application_portfolio_home_get"];
         put?: never;
@@ -5471,9 +5471,9 @@ export interface paths {
          * @description Get all calendar events for all projects in the user's portfolio.
          *
          *     Args:
-         *         project_ids: TODO: describe.
-         *         user_data: TODO: describe.
-         *         db: TODO: describe.
+         *         project_ids: Optional project IDs to filter the results.
+         *         user_data: Authenticated user context used for access filtering.
+         *         db: Async database session.
          */
         get: operations["get_portfolio_calendar_events_v1_protected_web_application_portfolio_calendar_get"];
         put?: never;
@@ -5496,7 +5496,7 @@ export interface paths {
          * @description Get all calendar event categories for all projects in the user's portfolio.
          *
          *     Args:
-         *         db: TODO: describe.
+         *         db: Async database session.
          */
         get: operations["get_portfolio_calendar_categories_v1_protected_web_application_portfolio_calendar_categories_get"];
         put?: never;
@@ -6857,9 +6857,9 @@ export interface paths {
          *         - 403 if not authorized (not superadmin)
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         confirm: TODO: describe.
-         *         db: TODO: describe.
+         *         project_id: Project identifier to delete.
+         *         confirm: Must be true to confirm the irreversible deletion.
+         *         db: Async database session.
          */
         delete: operations["delete_project_deep_v1_protected_deletions__project_id__delete"];
         options?: never;
@@ -6910,10 +6910,10 @@ export interface paths {
         put?: never;
         /**
          * Trigger Kpi Backfill Lambda
-         * @description todo
+         * @description Trigger the KPI backfill step function.
          *
          *     Args:
-         *         event: TODO: describe.
+         *         event: Payload describing the backfill parameters and targets.
          */
         post: operations["trigger_kpi_backfill_lambda_v1_protected_kpi_backfill_post"];
         delete?: never;
@@ -6931,14 +6931,13 @@ export interface paths {
         };
         /**
          * Get Tracking Angles
-         * @description todo
+         * @description Return tracker angle time series for the project.
          *
          *     Args:
-         *         project_id: TODO: describe.
-         *         start: TODO: describe.
-         *         end: TODO: describe.
-         *         project: TODO: describe.
-         *         _auth: TODO: describe.
+         *         start: Naive start time for the window, assumed to be in UTC.
+         *         end: Naive end time for the window, assumed to be in UTC.
+         *         project: Project used for location and time zone context.
+         *         _auth: Authorization dependency (unused).
          */
         get: operations["get_tracking_angles_v1_trackers_tracking_angles_get"];
         put?: never;
@@ -7180,7 +7179,7 @@ export interface components {
         };
         /**
          * BlockDropdownItem
-         * @description todo
+         * @description UI dropdown item for block devices.
          */
         BlockDropdownItem: {
             /** Device Id */
@@ -9087,7 +9086,7 @@ export interface components {
         };
         /**
          * KPIBackfillEvent
-         * @description todo
+         * @description Payload for a KPI backfill request.
          */
         KPIBackfillEvent: {
             /**
@@ -9844,7 +9843,7 @@ export interface components {
         };
         /**
          * PortfolioHome
-         * @description todo
+         * @description Combined short- and long-term portfolio home metrics.
          */
         PortfolioHome: {
             /**
@@ -10789,7 +10788,7 @@ export interface components {
         };
         /**
          * TimeFrame
-         * @description todo
+         * @description Time window options for portfolio metrics.
          * @enum {string}
          */
         TimeFrame: "24h" | "30d";

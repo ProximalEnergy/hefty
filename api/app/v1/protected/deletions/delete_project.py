@@ -65,9 +65,9 @@ async def delete_project_deep(
         - 403 if not authorized (not superadmin)
 
     Args:
-        project_id: TODO: describe.
-        confirm: TODO: describe.
-        db: TODO: describe.
+        project_id: Project identifier to delete.
+        confirm: Must be true to confirm the irreversible deletion.
+        db: Async database session.
     """
     raise HTTPException(status_code=499, detail="This operation is banned")
     try:

@@ -17,13 +17,13 @@ def create_series(
     company_id: uuid.UUID,
     project_id: uuid.UUID,
 ) -> models.PVBudgetedSeries:
-    """todo
+    """Create a PV budgeted series for a project.
 
     Args:
-        project_db: TODO: describe.
-        series_in: TODO: describe.
-        company_id: TODO: describe.
-        project_id: TODO: describe.
+        project_db: Project database session.
+        series_in: Series payload describing PV budgeted settings.
+        company_id: Company identifier owning the series.
+        project_id: Project identifier for the series.
     """
     series = models.PVBudgetedSeries(
         company_id=company_id,
@@ -49,11 +49,11 @@ def create_series(
 def list_series(
     *, project_db: Session, project_id: uuid.UUID | None = None
 ) -> Sequence[models.PVBudgetedSeries]:
-    """todo
+    """List PV budgeted series, optionally filtered by project.
 
     Args:
-        project_db: TODO: describe.
-        project_id: TODO: describe.
+        project_db: Project database session.
+        project_id: Optional project identifier filter.
     """
     stmt = sa.select(models.PVBudgetedSeries)
     if project_id is not None:
@@ -66,11 +66,11 @@ def list_series(
 def get_series(
     *, project_db: Session, pv_budgeted_series_id: int
 ) -> models.PVBudgetedSeries | None:
-    """todo
+    """Fetch a PV budgeted series by ID.
 
     Args:
-        project_db: TODO: describe.
-        pv_budgeted_series_id: TODO: describe.
+        project_db: Project database session.
+        pv_budgeted_series_id: Series identifier to fetch.
     """
     stmt = sa.select(models.PVBudgetedSeries).where(
         models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id
@@ -85,12 +85,12 @@ def update_series(
     pv_budgeted_series_id: int,
     series_in: interfaces.PVBudgetedSeriesIn,
 ) -> models.PVBudgetedSeries | None:
-    """todo
+    """Update a PV budgeted series by ID.
 
     Args:
-        project_db: TODO: describe.
-        pv_budgeted_series_id: TODO: describe.
-        series_in: TODO: describe.
+        project_db: Project database session.
+        pv_budgeted_series_id: Series identifier to update.
+        series_in: Series payload with updated values.
     """
     stmt = sa.select(models.PVBudgetedSeries).where(
         models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id
@@ -124,12 +124,12 @@ def bulk_upsert_data(
     pv_budgeted_series_id: int,
     rows: list[interfaces.PVBudgetedDataRow],
 ) -> int:
-    """todo
+    """Upsert PV budgeted data rows for a series.
 
     Args:
-        project_db: TODO: describe.
-        pv_budgeted_series_id: TODO: describe.
-        rows: TODO: describe.
+        project_db: Project database session.
+        pv_budgeted_series_id: Series identifier to update.
+        rows: Data rows to insert or update.
     """
     if not rows:
         return 0
@@ -173,11 +173,11 @@ def bulk_upsert_data(
 
 
 def delete_series(*, project_db: Session, pv_budgeted_series_id: int) -> bool:
-    """todo
+    """Delete a PV budgeted series and its data rows.
 
     Args:
-        project_db: TODO: describe.
-        pv_budgeted_series_id: TODO: describe.
+        project_db: Project database session.
+        pv_budgeted_series_id: Series identifier to delete.
     """
     try:
         # First delete all associated data points
@@ -209,13 +209,13 @@ def fetch_data(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ) -> Sequence[models.PVBudgetedData]:
-    """todo
+    """Fetch PV budgeted data for a series and time range.
 
     Args:
-        project_db: TODO: describe.
-        pv_budgeted_series_id: TODO: describe.
-        start: TODO: describe.
-        end: TODO: describe.
+        project_db: Project database session.
+        pv_budgeted_series_id: Series identifier to query.
+        start: Inclusive start timezone-aware datetime for filtering data.
+        end: Exclusive end timezone-aware datetime for filtering data.
     """
     stmt = sa.select(models.PVBudgetedData).where(
         models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id
