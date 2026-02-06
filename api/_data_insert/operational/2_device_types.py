@@ -13,19 +13,17 @@ with psycopg2.connect(
             cursor.execute(
                 """
                 INSERT INTO operational.device_types
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s)
                 ON CONFLICT (device_type_id)
                 DO UPDATE SET
                     name_short = EXCLUDED.name_short,
                     name_long = EXCLUDED.name_long,
-                    description = EXCLUDED.description,
-                    include_by_default = EXCLUDED.include_by_default;
+                    description = EXCLUDED.description;
                 """,
                 (
                     row["device_type_id"],
                     row["name_short"],
                     row["name_long"],
-                    row["include_by_default"],
                     row["description"],
                 ),
             )

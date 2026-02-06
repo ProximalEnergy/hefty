@@ -1670,7 +1670,6 @@ export interface paths {
          *         device_type_ids: TODO: describe.
          *         name_short: TODO: describe.
          *         name_long: TODO: describe.
-         *         only_included_by_default: TODO: describe.
          *         db: TODO: describe.
          */
         get: operations["get_device_types"];
@@ -13809,7 +13808,6 @@ export interface operations {
                 device_type_ids?: number[];
                 name_short?: string;
                 name_long?: string;
-                only_included_by_default?: boolean;
             };
             header?: {
                 authorization?: string;

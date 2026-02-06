@@ -28,7 +28,6 @@ async def get_device_types(
     device_type_ids: list[int] = [],
     name_short: str = "",
     name_long: str = "",
-    only_included_by_default: bool = True,
 ):
     """
     Retrieve a list of device types from the database based on the provided filters.
@@ -41,8 +40,6 @@ async def get_device_types(
              Defaults to an empty string.
         name_long (str, optional): A long name to filter the device types.
              Defaults to an empty string.
-        only_included_by_default (bool, optional): A flag to filter device types based
-            on their default inclusion status. Defaults to True.
 
     Returns:
         list[models.DeviceType]: A list of device types matching the specified criteria.
@@ -55,8 +52,6 @@ async def get_device_types(
         stmt = stmt.where(models.DeviceType.name_short == name_short)
     if name_long:
         stmt = stmt.where(models.DeviceType.name_long == name_long)
-    if only_included_by_default:
-        stmt = stmt.where(models.DeviceType.include_by_default.is_(True))
 
     result = await db.execute(stmt)
     return result.scalars().all()

@@ -511,7 +511,6 @@ class DeviceType(Base):
     name_short: Mapped[str] = mapped_column(unique=True)
     name_long: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str | None]
-    include_by_default: Mapped[bool] = mapped_column(server_default="TRUE")
 
     __table_args__ = {"schema": "operational"}
 

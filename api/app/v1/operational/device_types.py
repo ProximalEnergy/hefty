@@ -20,7 +20,6 @@ async def get_device_types(
     device_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",
-    only_included_by_default: bool = True,
     db: AsyncSession = Depends(get_async_db),
 ):
     """todo
@@ -29,7 +28,6 @@ async def get_device_types(
         device_type_ids: TODO: describe.
         name_short: TODO: describe.
         name_long: TODO: describe.
-        only_included_by_default: TODO: describe.
         db: TODO: describe.
     """
     return await crud_get_device_types(
@@ -37,7 +35,6 @@ async def get_device_types(
         device_type_ids=device_type_ids,
         name_short=name_short,
         name_long=name_long,
-        only_included_by_default=only_included_by_default,
     )
 
 

@@ -219,10 +219,6 @@ const DeviceTypeOverview = ({
   const deviceTypes = useGetDeviceTypes({
     queryParams: {
       device_type_ids: includedDeviceTypeIds,
-      // Some BESS device types (PCS, DC enclosure, string) may not be
-      // marked include_by_default in the DB. Allow them by disabling the
-      // default-only filter so they appear in the overview.
-      only_included_by_default: false,
     },
     queryOptions: {
       enabled: includedDeviceTypeIds.length > 0,

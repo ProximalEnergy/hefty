@@ -44,7 +44,6 @@ async def get_root_causes(
     device_types = await get_device_types(
         db=db,
         device_type_ids=device_type_ids,
-        only_included_by_default=False,
     )
     device_types_zip = {
         device_type.device_type_id: device_type.name_long
