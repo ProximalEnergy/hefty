@@ -12,11 +12,11 @@ def get_company_permissions(
     company_id: UUID,
     project_id: UUID,
 ) -> DbQuery[models.CompanyPermission, Literal[False]]:
-    """todo
+    """Get company permissions for a project.
 
     Args:
-        company_id: TODO: describe.
-        project_id: TODO: describe.
+        company_id: Company identifier to filter permissions.
+        project_id: Project identifier to filter permissions.
     """
     query = select(models.CompanyPermission).where(
         models.CompanyPermission.company_id == company_id,

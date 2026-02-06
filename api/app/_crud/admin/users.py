@@ -12,11 +12,11 @@ async def create_user(
     db: AsyncSession,
     user: User,
 ):
-    """todo
+    """Create a user record.
 
     Args:
-        db: TODO: describe.
-        user: TODO: describe.
+        db: Database session.
+        user: User payload to persist.
     """
     db_user = models.User(**user.model_dump())
     db.add(db_user)
@@ -33,11 +33,11 @@ async def delete_user(
     # Delete related records first
     # NOTE: This could be rewritten later to use a CASCADE
     # instead of deleting each record.
-    """todo
+    """Delete a user and any related records.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
+        db: Database session.
+        user_id: Identifier of the user to delete.
     """
     await db.execute(
         delete(models.UserProject).where(models.UserProject.user_id == user_id)
@@ -62,11 +62,11 @@ async def create_api_key(
     *,
     user_id: str,
 ):
-    """todo
+    """Generate a new API key for a user.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
+        db: Database session.
+        user_id: Identifier of the user to update.
     """
     stmt = (
         update(models.User)
@@ -82,11 +82,11 @@ async def delete_api_key(
     *,
     user_id: str,
 ):
-    """todo
+    """Remove a user's API key.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
+        db: Database session.
+        user_id: Identifier of the user to update.
     """
     stmt = (
         update(models.User).where(models.User.user_id == user_id).values(api_key=None)

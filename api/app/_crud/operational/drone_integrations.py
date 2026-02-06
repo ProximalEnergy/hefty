@@ -14,7 +14,7 @@ async def get_drone_integrations(*, db: AsyncSession) -> Sequence[DroneIntegrati
     """Get all drone integrations.
 
     Args:
-        db: TODO: describe.
+        db: Database session.
     """
     stmt = sa.select(DroneIntegration)
     result = await db.execute(stmt)
@@ -43,8 +43,8 @@ async def create_drone_integration(
     """Create a new drone integration.
 
     Args:
-        db: TODO: describe.
-        drone_integration: TODO: describe.
+        db: Database session.
+        drone_integration: Drone integration payload to persist.
     """
     # Calculate next drone_integration_id
     stmt = sa.select(sa.func.max(DroneIntegration.drone_integration_id))
@@ -71,9 +71,9 @@ async def update_drone_integration(
     """Update a drone integration.
 
     Args:
-        db: TODO: describe.
-        drone_integration_id: TODO: describe.
-        drone_integration: TODO: describe.
+        db: Database session.
+        drone_integration_id: Drone integration identifier to update.
+        drone_integration: Drone integration payload with updated values.
     """
     db_drone_integration = await db.get(DroneIntegration, drone_integration_id)
     if db_drone_integration:
@@ -91,8 +91,8 @@ async def delete_drone_integration(
     """Delete a drone integration.
 
     Args:
-        db: TODO: describe.
-        drone_integration_id: TODO: describe.
+        db: Database session.
+        drone_integration_id: Drone integration identifier to delete.
     """
     db_drone_integration = await db.get(DroneIntegration, drone_integration_id)
     if db_drone_integration:

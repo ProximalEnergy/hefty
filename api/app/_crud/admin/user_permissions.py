@@ -16,8 +16,8 @@ async def create_user_permission(
     """Create a new user_permissions record
 
     Args:
-        db: TODO: describe.
-        user_permission: TODO: describe.
+        db: Database session.
+        user_permission: User permission model to persist.
     """
     db.add(user_permission)
     await db.commit()
@@ -33,8 +33,8 @@ async def delete_user_permission(
     """Delete a user_permissions record
 
     Args:
-        db: TODO: describe.
-        user_permission: TODO: describe.
+        db: Database session.
+        user_permission: User permission model to delete.
     """
     delete_stmt = delete(models.UserPermission).where(
         models.UserPermission.user_id == user_permission.user_id,

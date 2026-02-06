@@ -13,13 +13,13 @@ async def get_project_documents(
     project_ids: list[UUID] | None = None,
     company_ids: list[UUID] | None = None,
 ):
-    """todo
+    """Get documents filtered by optional identifiers.
 
     Args:
-        db: TODO: describe.
-        document_ids: TODO: describe.
-        project_ids: TODO: describe.
-        company_ids: TODO: describe.
+        db: Database session.
+        document_ids: Document identifiers to filter by.
+        project_ids: Project identifiers to filter by.
+        company_ids: Company identifiers to filter by.
     """
     query = select(models.Document)
 
@@ -42,14 +42,14 @@ async def create_project_document(
     s3_key: str,
     openai_file_id: str,
 ):
-    """todo
+    """Create a document record for a project.
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
-        project_id: TODO: describe.
-        s3_key: TODO: describe.
-        openai_file_id: TODO: describe.
+        db: Database session.
+        company_id: Company identifier owning the document.
+        project_id: Project identifier owning the document.
+        s3_key: Storage key for the document.
+        openai_file_id: OpenAI file identifier.
     """
     document = models.Document(
         company_id=company_id,
@@ -68,11 +68,11 @@ async def delete_project_document(
     *,
     document_id: UUID,
 ):
-    """todo
+    """Delete a document by identifier.
 
     Args:
-        db: TODO: describe.
-        document_id: TODO: describe.
+        db: Database session.
+        document_id: Document identifier to delete.
     """
     delete_stmt = delete(models.Document).where(
         models.Document.document_id == document_id,

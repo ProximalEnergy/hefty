@@ -14,11 +14,11 @@ async def get_user_subscriptions(
     db: AsyncSession,
     user_id: str,
 ) -> list:
-    """todo
+    """Get all subscriptions for a user.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
+        db: Database session.
+        user_id: User identifier to filter subscriptions.
     """
     query = select(models.UserSubscription).where(
         models.UserSubscription.user_id == user_id
@@ -32,11 +32,11 @@ async def get_user_notification_subscriptions(
     db: AsyncSession,
     operational_project_id: UUID,
 ):
-    """todo
+    """Get notification-enabled subscriptions for a project.
 
     Args:
-        db: TODO: describe.
-        operational_project_id: TODO: describe.
+        db: Database session.
+        operational_project_id: Project identifier to filter subscriptions.
     """
     query = select(models.UserSubscription).where(
         models.UserSubscription.operational_project_id == operational_project_id,
@@ -53,13 +53,13 @@ async def update_user_notification_subscription(
     operational_project_id: UUID,
     notifications: bool,
 ):
-    """todo
+    """Update or create a notification subscription.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        operational_project_id: TODO: describe.
-        notifications: TODO: describe.
+        db: Database session.
+        user_id: User identifier to update.
+        operational_project_id: Project identifier to update.
+        notifications: New notification state.
     """
     try:
         # Try to get the existing subscription
@@ -93,11 +93,11 @@ async def get_user_report_subscriptions(
     db: AsyncSession,
     operational_project_id: UUID,
 ):
-    """todo
+    """Get report-enabled subscriptions for a project.
 
     Args:
-        db: TODO: describe.
-        operational_project_id: TODO: describe.
+        db: Database session.
+        operational_project_id: Project identifier to filter subscriptions.
     """
     query = select(models.UserSubscription).where(
         models.UserSubscription.operational_project_id == operational_project_id,
@@ -114,13 +114,13 @@ async def update_user_report_subscription(
     operational_project_id: UUID,
     reports: bool,
 ):
-    """todo
+    """Update or create a report subscription.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        operational_project_id: TODO: describe.
-        reports: TODO: describe.
+        db: Database session.
+        user_id: User identifier to update.
+        operational_project_id: Project identifier to update.
+        reports: New report state.
     """
     try:
         # Try to get the existing subscription
@@ -177,9 +177,8 @@ async def is_event_chat_notification_enabled(
         Defaults to True if no subscription exists (per model server_default).
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        operational_project_id: TODO: describe.
+        user_id: User identifier to check.
+        operational_project_id: Project identifier to check.
     """
     subscription = await get_user_event_chat_notification_subscription(
         user_id=user_id,
@@ -200,10 +199,10 @@ async def update_user_event_chat_notification_subscription(
     """Update or create event chat notification subscription.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        operational_project_id: TODO: describe.
-        event_chat_notifications: TODO: describe.
+        db: Database session.
+        user_id: User identifier to update.
+        operational_project_id: Project identifier to update.
+        event_chat_notifications: New event chat notification state.
     """
     try:
         # Try to get the existing subscription
@@ -244,9 +243,9 @@ async def get_event_chat_notification_statuses_batch(
         Defaults to True if no subscription exists (per model server_default).
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        operational_project_ids: TODO: describe.
+        db: Database session.
+        user_id: User identifier to check.
+        operational_project_ids: Project identifiers to check.
     """
     if not operational_project_ids:
         return {}

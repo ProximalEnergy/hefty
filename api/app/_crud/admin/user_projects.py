@@ -20,9 +20,9 @@ async def get_users_with_project_access(
     """Get users from a company with access to a project
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session.
+        company_id: Company identifier to filter users.
+        project_id: Project identifier to check access.
     """
     query = (
         select(models.User)
@@ -43,9 +43,9 @@ async def assign_project_to_user(
     """Assign a project to a user
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
+        db: Database session.
+        user_id: User identifier to assign.
+        project_id: Project identifier to assign.
     """
     try:
         # Check if the assignment already exists
@@ -87,14 +87,14 @@ async def assign_project_to_relevant_users(
     project_id: UUID,
     do_commit: bool = True,
 ) -> None:
-    """todo
+    """Assign a project to the creator, admins, and superadmins.
 
     Args:
-        db: TODO: describe.
-        creator_user_id: TODO: describe.
-        creator_company_id: TODO: describe.
-        project_id: TODO: describe.
-        do_commit: TODO: describe.
+        db: Database session.
+        creator_user_id: User identifier that created the project.
+        creator_company_id: Company identifier for admin lookup.
+        project_id: Project identifier to assign.
+        do_commit: Whether to commit changes immediately.
     """
     try:
         # Get all users who should have access to this project
@@ -165,10 +165,10 @@ async def update_user_project_favorite(
     """Update the is_favorited field for a user's project
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        project_id: TODO: describe.
-        is_favorited: TODO: describe.
+        db: Database session.
+        user_id: User identifier to update.
+        project_id: Project identifier to update.
+        is_favorited: New favorite state.
     """
     try:
         # Find the existing user project relationship
@@ -214,9 +214,9 @@ async def update_user_projects(
     """Update user project assignments for multiple users
 
     Args:
-        db: TODO: describe.
-        user_ids: TODO: describe.
-        operational_project_ids: TODO: describe.
+        db: Database session.
+        user_ids: User identifiers to update.
+        operational_project_ids: Project ID lists matching each user.
     """
     # Delete existing entries for these users
     delete_stmt = delete(models.UserProject).where(

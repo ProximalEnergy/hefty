@@ -8,11 +8,11 @@ async def create_feedback(
     *,
     feedback: models.Feedback,
 ):
-    """todo
+    """Create a feedback record.
 
     Args:
-        db: TODO: describe.
-        feedback: TODO: describe.
+        db: Database session.
+        feedback: Feedback model to persist.
     """
     db.add(feedback)
     await db.commit()

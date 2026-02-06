@@ -362,22 +362,22 @@ export interface paths {
         };
         /**
          * Get Teams
-         * @description todo
+         * @description Get teams for a company (admin only).
          *
          *     Args:
-         *         db: TODO: describe.
-         *         company_id: TODO: describe.
+         *         db: Database session.
+         *         company_id: Company identifier to filter teams.
          */
         get: operations["get_teams_v1_admin_teams_get"];
         put?: never;
         /**
          * Create Team
-         * @description todo
+         * @description Create a team for the current user's company (admin only).
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
-         *         team: TODO: describe.
+         *         db: Database session.
+         *         user_data: Authenticated user context.
+         *         team: Team payload to create.
          */
         post: operations["create_team_v1_admin_teams_post"];
         delete?: never;
@@ -398,8 +398,8 @@ export interface paths {
          * @description Get teams for the current user's company. No admin required.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         db: Database session.
+         *         user_data: Authenticated user context.
          */
         get: operations["get_company_teams_v1_admin_teams_company_get"];
         put?: never;
@@ -422,8 +422,8 @@ export interface paths {
          * @description Get teams with members for the current user's company. No admin required.
          *
          *     Args:
-         *         db: TODO: describe.
-         *         user_data: TODO: describe.
+         *         db: Database session.
+         *         user_data: Authenticated user context.
          */
         get: operations["get_company_teams_with_members_v1_admin_teams_company_members_get"];
         put?: never;
@@ -443,11 +443,11 @@ export interface paths {
         };
         /**
          * Get Teams With Members
-         * @description todo
+         * @description Get teams and members for a company (admin only).
          *
          *     Args:
-         *         db: TODO: describe.
-         *         company_id: TODO: describe.
+         *         db: Database session.
+         *         company_id: Company identifier to filter teams.
          */
         get: operations["get_teams_with_members_v1_admin_teams_members_get"];
         put?: never;
@@ -469,12 +469,12 @@ export interface paths {
         put?: never;
         /**
          * Add Member
-         * @description todo
+         * @description Add a member to a team (admin only).
          *
          *     Args:
-         *         team_id: TODO: describe.
-         *         payload: TODO: describe.
-         *         db: TODO: describe.
+         *         team_id: Team identifier to update.
+         *         payload: User identifier payload.
+         *         db: Database session.
          */
         post: operations["add_member_v1_admin_teams__team_id__members_post"];
         delete?: never;
@@ -495,12 +495,12 @@ export interface paths {
         post?: never;
         /**
          * Remove Member
-         * @description todo
+         * @description Remove a member from a team (admin only).
          *
          *     Args:
-         *         team_id: TODO: describe.
-         *         user_id: TODO: describe.
-         *         db: TODO: describe.
+         *         team_id: Team identifier to update.
+         *         user_id: User identifier to remove.
+         *         db: Database session.
          */
         delete: operations["remove_member_v1_admin_teams__team_id__members__user_id__delete"];
         options?: never;
@@ -520,23 +520,23 @@ export interface paths {
         post?: never;
         /**
          * Delete Team
-         * @description todo
+         * @description Delete a team (admin only).
          *
          *     Args:
-         *         team_id: TODO: describe.
-         *         db: TODO: describe.
+         *         team_id: Team identifier to delete.
+         *         db: Database session.
          */
         delete: operations["delete_team_v1_admin_teams__team_id__delete"];
         options?: never;
         head?: never;
         /**
          * Update Team
-         * @description todo
+         * @description Update a team's name (admin only).
          *
          *     Args:
-         *         team_id: TODO: describe.
-         *         payload: TODO: describe.
-         *         db: TODO: describe.
+         *         team_id: Team identifier to update.
+         *         payload: Team update payload.
+         *         db: Database session.
          */
         patch: operations["update_team_v1_admin_teams__team_id__patch"];
         trace?: never;

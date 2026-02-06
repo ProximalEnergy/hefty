@@ -16,10 +16,10 @@ async def update_user_kpi_type_favorite(
         If the relationship does not exist, it will be created.
 
     Args:
-        db: TODO: describe.
-        user_id: TODO: describe.
-        kpi_type_id: TODO: describe.
-        is_favorited: TODO: describe.
+        db: Database session.
+        user_id: User identifier to update.
+        kpi_type_id: KPI type identifier to update.
+        is_favorited: New favorite state.
     """
     try:
         # Find the existing user kpi_type relationship

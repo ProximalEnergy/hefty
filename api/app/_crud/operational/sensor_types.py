@@ -6,11 +6,11 @@ from core import models
 
 
 def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
-    """todo
+    """Create a sensor type record.
 
     Args:
-        db: TODO: describe.
-        sensor_type: TODO: describe.
+        db: Database session.
+        sensor_type: Sensor type payload to persist.
     """
     db_sensor_type = models.SensorType(
         sensor_type_id=sensor_type.sensor_type_id,
@@ -30,12 +30,12 @@ def create_sensor_type(*, db: Session, sensor_type: interfaces.SensorType):
 def update_sensor_type(
     *, db: Session, sensor_type_id: int, sensor_type: interfaces.SensorType
 ):
-    """todo
+    """Update a sensor type record.
 
     Args:
-        db: TODO: describe.
-        sensor_type_id: TODO: describe.
-        sensor_type: TODO: describe.
+        db: Database session.
+        sensor_type_id: Sensor type identifier to update.
+        sensor_type: Sensor type payload with updated values.
     """
     statement = select(models.SensorType).where(
         models.SensorType.sensor_type_id == sensor_type_id,
@@ -61,7 +61,7 @@ def get_next_sensor_type_id(*, db: Session) -> int:
     """Get the next available sensor_type_id
 
     Args:
-        db: TODO: describe.
+        db: Database session.
     """
     statement = (
         select(models.SensorType.sensor_type_id)

@@ -40,11 +40,11 @@ async def get_teams(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_id: uuid.UUID = Query(...),
 ):
-    """todo
+    """Get teams for a company (admin only).
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
+        db: Database session.
+        company_id: Company identifier to filter teams.
     """
     return await crud_get_teams(db=db, company_id=company_id)
 
@@ -60,8 +60,8 @@ async def get_company_teams(
     """Get teams for the current user's company. No admin required.
 
     Args:
-        db: TODO: describe.
-        user_data: TODO: describe.
+        db: Database session.
+        user_data: Authenticated user context.
     """
     return await crud_get_teams(db=db, company_id=user_data.company_id)
 
@@ -77,8 +77,8 @@ async def get_company_teams_with_members(
     """Get teams with members for the current user's company. No admin required.
 
     Args:
-        db: TODO: describe.
-        user_data: TODO: describe.
+        db: Database session.
+        user_data: Authenticated user context.
     """
     return await crud_get_teams_with_members(db=db, company_id=user_data.company_id)
 
@@ -94,12 +94,12 @@ async def create_team(
     user_data: Annotated[UserData, Depends(dependencies.get_user_data_async)],
     team: TeamCreate,
 ):
-    """todo
+    """Create a team for the current user's company (admin only).
 
     Args:
-        db: TODO: describe.
-        user_data: TODO: describe.
-        team: TODO: describe.
+        db: Database session.
+        user_data: Authenticated user context.
+        team: Team payload to create.
     """
     try:
         return await crud_create_team(db=db, company_id=user_data.company_id, team=team)
@@ -119,11 +119,11 @@ async def get_teams_with_members(
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     company_id: uuid.UUID = Query(...),
 ):
-    """todo
+    """Get teams and members for a company (admin only).
 
     Args:
-        db: TODO: describe.
-        company_id: TODO: describe.
+        db: Database session.
+        company_id: Company identifier to filter teams.
     """
     return await crud_get_teams_with_members(db=db, company_id=company_id)
 
@@ -138,12 +138,12 @@ async def add_member(
     payload: TeamMemberAdd,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """todo
+    """Add a member to a team (admin only).
 
     Args:
-        team_id: TODO: describe.
-        payload: TODO: describe.
-        db: TODO: describe.
+        team_id: Team identifier to update.
+        payload: User identifier payload.
+        db: Database session.
     """
     await crud_add_team_member(db=db, team_id=team_id, user_id=payload.user_id)
     return
@@ -159,12 +159,12 @@ async def remove_member(
     user_id: str,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """todo
+    """Remove a member from a team (admin only).
 
     Args:
-        team_id: TODO: describe.
-        user_id: TODO: describe.
-        db: TODO: describe.
+        team_id: Team identifier to update.
+        user_id: User identifier to remove.
+        db: Database session.
     """
     await crud_remove_team_member(db=db, team_id=team_id, user_id=user_id)
     return
@@ -178,11 +178,11 @@ async def remove_member(
 async def delete_team(
     team_id: uuid.UUID, db: Annotated[AsyncSession, Depends(dependencies.get_async_db)]
 ):
-    """todo
+    """Delete a team (admin only).
 
     Args:
-        team_id: TODO: describe.
-        db: TODO: describe.
+        team_id: Team identifier to delete.
+        db: Database session.
     """
     await crud_delete_team(db=db, team_id=team_id)
     return
@@ -198,12 +198,12 @@ async def update_team(
     payload: TeamUpdate,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
 ):
-    """todo
+    """Update a team's name (admin only).
 
     Args:
-        team_id: TODO: describe.
-        payload: TODO: describe.
-        db: TODO: describe.
+        team_id: Team identifier to update.
+        payload: Team update payload.
+        db: Database session.
     """
     try:
         return await crud_rename_team(db=db, team_id=team_id, payload=payload)
