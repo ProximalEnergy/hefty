@@ -665,7 +665,9 @@ const PlotlyPlot = ({
       <Center h={'100%'} w={'100%'}>
         <Stack align="center">
           <IconAlertTriangle size={48} />
-          <Text>{error.response?.data.detail}</Text>
+          <Text ta="center" maw={400}>
+            {error.response?.data?.detail ?? 'Oops! An unknown error occurred.'}
+          </Text>
         </Stack>
       </Center>
     )
