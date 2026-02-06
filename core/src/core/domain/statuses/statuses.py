@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import math
 from typing import Literal, SupportsInt, cast
 
 import numpy as np
@@ -46,6 +47,56 @@ FACT_COLUMNS = [
 
 def _empty_facts_df() -> pd.DataFrame:
     return pd.DataFrame({c: pd.Series(dtype="object") for c in FACT_COLUMNS})
+
+
+def parse_maybe_int(val):
+    """
+    Convert:
+      - ints -> ints
+      - floats like 3.0 -> 3 (but keep NaN)
+      - strings like '0x8800' / '0X8800' -> int base 16
+      - strings like '123' -> int base 10
+      - other values -> pd.NA (or return original if you prefer)
+    """
+    if val is None or val is pd.NA:
+        return pd.NA
+
+    # Preserve missing floats
+    if isinstance(val, float):
+        if math.isnan(val):
+            return pd.NA
+        # Only coerce clean integer floats
+        if val.is_integer():
+            return int(val)
+        return pd.NA
+
+    if isinstance(val, (int, bool)):  # bool is subclass of int; keep if desired
+        return int(val)
+
+    if isinstance(val, str):
+        s = val.strip()
+        if not s:
+            return pd.NA
+
+        # Hex detection: 0x...
+        if s.lower().startswith("0x"):
+            try:
+                return int(s, 16)
+            except ValueError:
+                return pd.NA
+
+        # Decimal integer detection
+        try:
+            # int('0012') works; int('12.0') doesn't, so handle '12.0' cleanly:
+            if "." in s:
+                f = float(s)
+                return int(f) if f.is_integer() else pd.NA
+            return int(s, 10)
+        except ValueError:
+            return pd.NA
+
+    # Anything else: bytes, dicts, etc.
+    return pd.NA
 
 
 async def get_status_timeseries_interpreted(
@@ -173,7 +224,7 @@ async def get_status_timeseries_interpreted(
     # Interpret to sparse facts
     binary_facts = (
         interpret_binary_sparse_uint(
-            binary_int_df=binary_df,
+            binary_str_df=binary_df,
             status_tags=status_tags,
             binary_table=binary_table,
             pad_len=32,
@@ -583,7 +634,7 @@ def interpret_string_sparse(
 
 def interpret_binary_sparse_uint(
     *,
-    binary_int_df: pd.DataFrame,  # integer-like, nullable ok;
+    binary_str_df: pd.DataFrame,
     # expects <=32 bits if pad_len=32
     status_tags: pd.DataFrame,  # index tag_id
     binary_table: pd.DataFrame,  # status_binary_id definitions
@@ -598,6 +649,8 @@ def interpret_binary_sparse_uint(
 
     This does NOT require you to convert ints -> reversed strings first.
     """
+    coerced_binary = cast(pd.DataFrame, binary_str_df.applymap(parse_maybe_int))  # type: ignore
+    binary_int_df = coerced_binary.astype("Int64")
     if binary_int_df.empty or binary_table.empty:
         return _empty_facts_df()
     if pad_len <= 0:
