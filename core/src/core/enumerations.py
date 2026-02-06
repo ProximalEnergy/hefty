@@ -178,7 +178,7 @@ class DeviceType(BaseIntEnum):
     BESS_MV_CIRCUIT_METER = 20
     BESS_MV_AUX_METER = 21
     PV_FEEDER = 23
-    BESS_CIRCUIT = 24
+    BESS_FEEDER = 24
     BESS_MVT = 25
     BESS_BANK = 26
     BESS_STRING = 27
