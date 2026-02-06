@@ -39,3 +39,30 @@ rules:
     severity: ERROR
     patterns:
       - pattern: sa.func.array_agg(...)
+  - id: sqlalchemy-no-return-first
+    message: >-
+      Do not return SQLAlchemy first() results; use DbQuery instead.
+    languages:
+      - python
+    severity: ERROR
+    paths:
+      include:
+        - core/src
+        - api/app
+    pattern: return $QUERY.first()
+  - id: sqlalchemy-no-return-one-or-none
+    message: >-
+      Do not return SQLAlchemy one_or_none() results; use DbQuery
+      instead.
+    languages:
+      - python
+    severity: ERROR
+    paths:
+      include:
+        - core/src
+        - api/app
+    patterns:
+      - pattern: return $QUERY.one_or_none()
+      - pattern-not-inside: |
+          def _read_sqlalchemy(...):
+              ...
