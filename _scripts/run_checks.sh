@@ -366,6 +366,8 @@ if [ "${RUN_ROOT}" = "true" ]; then
         "mise run hardcoded_type_id_check"
     add_check "Root: Hardcoded Name Shorts Check" \
         "mise run hardcoded_name_shorts_check"
+    add_check "Root: Pyproject Dependency Check" \
+        "uv run python _scripts/check_pyproject_dependencies.py"
     add_check "Root: Codegen" "mise run codegen"
 fi
 
