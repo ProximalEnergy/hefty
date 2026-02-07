@@ -1,8 +1,9 @@
 
 [tools]
-nvm = "latest"
-node = "latest"
-npm = "latest"
+node = "25.6.0" # Specific versions are safer for monorepos than "latest"
+uv = "latest"
+awscli = "latest"
+ripgrep = "latest"
 
 # =============================================================================
 # MONOREPO-LEVEL TASKS
