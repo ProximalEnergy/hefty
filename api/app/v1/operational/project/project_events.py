@@ -934,9 +934,6 @@ async def get_uptime(
     # 5) drop missing device / missing device type
     out = out.dropna(subset=["device_type_id", "device_type_name_long"])
 
-    # 6) skip tracker_pv_pcs
-    out = out[out["device_type_id"] != DeviceType.TRACKER_PV_PCS]
-
     # 7) build strings + metrics
     name_long = out["name_long"].fillna("")
     # If name_long can be NaN floats / pd.NA, fillna handles it; also strip whitespace
