@@ -66,3 +66,19 @@ rules:
       - pattern-not-inside: |
           def _read_sqlalchemy(...):
               ...
+  - id: sqlalchemy-no-return-scalar-one
+    message: >-
+      Do not return SQLAlchemy scalar_one() results; use DbQuery
+      instead.
+    languages:
+      - python
+    severity: ERROR
+    paths:
+      include:
+        - core/src
+        - api/app
+    patterns:
+      - pattern: return $QUERY.scalar_one()
+      - pattern-not-inside: |
+          def _read_sqlalchemy(...):
+              ...

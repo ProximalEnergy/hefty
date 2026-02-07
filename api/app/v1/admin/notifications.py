@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,7 +26,6 @@ from app._crud.admin.notifications import (
 from app._crud.admin.notifications import (
     mark_notification_as_unread as crud_mark_notification_as_unread,
 )
-from core.db_query import OutputType
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

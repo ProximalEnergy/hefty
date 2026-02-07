@@ -1,9 +1,9 @@
 from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.db_query import DbQuery
 from core import enumerations, models
 
 
