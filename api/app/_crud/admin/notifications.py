@@ -1,6 +1,9 @@
+from typing import Literal
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.db_query import DbQuery
 from core import enumerations, models
 
 
@@ -213,17 +216,15 @@ async def mark_all_notifications_as_read(
     return count
 
 
-async def get_unread_notification_count(
+def get_unread_notification_count(
     *,
-    db: AsyncSession,
     user_id: str,
-) -> int:
+) -> DbQuery[int, Literal[True]]:
     """Get the count of unread IN_APP notifications for a user.
 
     This is a lightweight query that only counts, doesn't fetch full notification data.
 
     Args:
-        db: Database session.
         user_id: User ID to get unread count for.
 
     Returns:
@@ -234,5 +235,4 @@ async def get_unread_notification_count(
         models.NotificationState.channel == enumerations.NotificationChannel.IN_APP,
         models.NotificationState.state == enumerations.NotificationState.UNREAD,
     )
-    result = await db.execute(query)
-    return result.scalar_one() or 0
+    return DbQuery(query=query, is_scalar=True)

@@ -25,6 +25,7 @@ from app._crud.admin.notifications import (
 from app._crud.admin.notifications import (
     mark_notification_as_unread as crud_mark_notification_as_unread,
 )
+from core.db_query import OutputType
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -84,7 +85,6 @@ async def get_user_notifications(
     description="Get count of unread IN_APP notifications for the requesting user.",
 )
 async def get_unread_notification_count(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     user_data: Annotated[
         interfaces.UserData, Depends(dependencies.get_user_data_async)
     ],
@@ -92,13 +92,14 @@ async def get_unread_notification_count(
     """Return the unread IN_APP notification count for the requesting user.
 
     Args:
-        db: Database session.
         user_data: Authenticated user data.
 
     Returns:
         Dictionary with count of unread notifications.
     """
-    count = await crud_get_unread_notification_count(db=db, user_id=user_data.user_id)
+    count = await crud_get_unread_notification_count(
+        user_id=user_data.user_id
+    ).get_async(output_type=OutputType.SQLALCHEMY)
     return {"count": count}
 
 
