@@ -184,24 +184,3 @@ async def get_project_devices_async(
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
-
-
-async def get_project_device_async(
-    *, db: AsyncSession, device_id: int, deep: bool, include_name_long: bool = False
-) -> models.Device | None:
-    """Fetch a single device by id asynchronously.
-
-    Args:
-        db: Project database session.
-        device_id: Device id to fetch.
-        deep: Whether to eager-load related device type data.
-        include_name_long: Load device type name_long only when True.
-    """
-    options = get_project_device_options(deep=deep, include_name_long=include_name_long)
-    stmt = (
-        select(models.Device)
-        .options(options)
-        .where(models.Device.device_id == device_id)
-    )
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()

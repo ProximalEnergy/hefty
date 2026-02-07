@@ -17,6 +17,7 @@ import core
 from app import custom_types, interfaces, utils
 from app._utils.arrow import polars_to_arrow_response
 from app.dependencies import (
+    check_project_access_async,
     get_project_db,
     get_project_db_async,
 )
@@ -27,6 +28,7 @@ DESCRIPTION_404 = "Device not found"
 router = APIRouter(
     prefix="/devices",
     tags=["project_devices"],
+    dependencies=[Depends(check_project_access_async)],
 )
 
 
@@ -65,10 +67,14 @@ async def get_project_device(
         deep: Whether to include related entities such as children and tags.
         project_db: Database session for the current project.
     """
-    device = await core.crud.project.devices.get_project_device_async(
-        db=project_db,
+    project_schema = await utils.get_project_schema_async(project_db=project_db)
+    query_obj = core.crud.project.devices.get_project_device(
         device_id=device_id,
         deep=deep,
+    )
+    device = await query_obj.get_async(
+        output_type=OutputType.SQLALCHEMY,
+        schema=project_schema,
     )
     utils.check_404(value=device, detail=DESCRIPTION_404)
     return device
