@@ -1,20 +1,24 @@
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core import models
 
 
-def get_project_type(*, db: Session, project_type_id: int):
+def get_project_type(
+    *, project_type_id: int
+) -> DbQuery[models.ProjectType, Literal[True]]:
     """Return a project type by its primary key.
 
     Args:
-        db: Database session used to run the lookup.
         project_type_id: Identifier of the project type to retrieve.
     """
     statement = select(models.ProjectType).where(
         models.ProjectType.project_type_id == project_type_id,
     )
-    return db.execute(statement).scalar_one_or_none()
+    return DbQuery(query=statement, is_scalar=True)
 
 
 def get_project_types(
