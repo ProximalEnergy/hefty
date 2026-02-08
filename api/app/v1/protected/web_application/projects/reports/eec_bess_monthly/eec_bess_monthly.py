@@ -1901,9 +1901,12 @@ async def get_tps_element_identifier(
     Raises:
         KeyError: If project name_short is not in the mapping.
     """
-    qse_integration = await crud_get_qse_integration_by_project_id(
-        db=db,
+    qse_integration_query = crud_get_qse_integration_by_project_id(
         project_id=project.project_id,
+    )
+    qse_integration = await qse_integration_query.get_async(
+        executor=db,
+        output_type=OutputType.SQLALCHEMY,
     )
     if qse_integration is None:
         raise KeyError("QSE integration not found")

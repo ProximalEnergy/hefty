@@ -114,11 +114,14 @@ async def get_battery_settlement_details(
         user: Description for user.
         db_async: Description for db_async.
     """
-    qse_integration = (
-        await core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
-            db=db_async,
+    qse_integration_query = (
+        core.crud.operational.qse_integrations.get_qse_integration_by_project_id(
             project_id=project.project_id,
         )
+    )
+    qse_integration = await qse_integration_query.get_async(
+        executor=db_async,
+        output_type=OutputType.SQLALCHEMY,
     )
     if qse_integration is None:
         raise HTTPException(status_code=404, detail="QSE integration not found")

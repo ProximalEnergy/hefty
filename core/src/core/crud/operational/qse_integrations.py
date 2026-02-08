@@ -9,27 +9,13 @@ from core.db_query import DbQuery
 from core.models import QSEField, QSEIntegration, QSEPermission, QSEProvider
 
 
-async def get_qse_integration_by_project_id(
+def get_qse_integration_by_project_id(
     *,
-    db: AsyncSession,
     project_id: UUID,
-) -> QSEIntegration | None:
-    """Get QSE integration by project ID
-
-        Parameters:
-        -----------
-        db: AsyncSession
-            The database session.
-        project_id: UUID
-            The project ID to filter by.
-
-        Returns:
-        --------
-        QSEIntegration | None
-            The QSE integration if it exists, None otherwise.
+) -> DbQuery[QSEIntegration, Literal[True]]:
+    """Build a query for QSE integration by project ID.
 
     Args:
-        db: Async session for operational data.
         project_id: Project id to fetch integration for.
     """
     query = (
@@ -47,9 +33,7 @@ async def get_qse_integration_by_project_id(
         )
         .where(QSEIntegration.project_id == project_id)
     )
-
-    result = await db.execute(query)
-    return result.scalar_one_or_none()
+    return DbQuery(query=query, is_scalar=True)
 
 
 def get_qse_permissions_by_company_id(
