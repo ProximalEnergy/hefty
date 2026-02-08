@@ -25,10 +25,6 @@ interface ProjectWeatherData {
   forecastError: ReturnType<typeof useGetForecast>['error'] | null
 
   // Sensor data
-  ghiData: DataTimeSeriesLastWithTag[] | null | undefined
-  tempData: DataTimeSeriesLastWithTag[] | null | undefined
-  windData: DataTimeSeriesLastWithTag[] | null | undefined
-  meterPowerData: DataTimeSeriesLastWithTag[] | null | undefined
   sensorLoading: boolean
   sensorError: ReturnType<typeof useGetWeather>['error'] | null
 
@@ -41,7 +37,6 @@ interface ProjectWeatherData {
 
 export const useProjectWeatherData = (
   projectId: string,
-  isOpen: boolean,
 ): ProjectWeatherData => {
   const {
     data: weatherData,
@@ -50,7 +45,6 @@ export const useProjectWeatherData = (
   } = useGetWeather({
     pathParams: { projectId },
     queryOptions: {
-      enabled: isOpen,
       staleTime: 15 * 60 * 1000, // 15 minutes
     },
   })
@@ -63,7 +57,6 @@ export const useProjectWeatherData = (
   } = useGetForecast({
     pathParams: { projectId },
     queryOptions: {
-      enabled: isOpen,
       staleTime: 15 * 60 * 1000, // 15 minutes
     },
   })
@@ -80,7 +73,6 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.MET_STATION_GHI],
     },
     queryOptions: {
-      enabled: isOpen,
       staleTime: 60 * 1000,
     },
   })
@@ -95,7 +87,6 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE],
     },
     queryOptions: {
-      enabled: isOpen,
       staleTime: 60 * 1000,
     },
   })
@@ -110,7 +101,6 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.MET_STATION_WIND_SPEED],
     },
     queryOptions: {
-      enabled: isOpen,
       staleTime: 60 * 1000,
     },
   })
@@ -125,7 +115,6 @@ export const useProjectWeatherData = (
       sensor_type_ids: [SensorTypeEnum.METER_ACTIVE_POWER],
     },
     queryOptions: {
-      enabled: isOpen,
       staleTime: 60 * 1000,
     },
   })
@@ -134,7 +123,6 @@ export const useProjectWeatherData = (
   const { data: tagsData } = useGetTags({
     pathParams: { projectId },
     queryOptions: {
-      enabled: isOpen,
       staleTime: Infinity,
     },
   })
@@ -205,10 +193,6 @@ export const useProjectWeatherData = (
     forecast: forecastData,
     forecastLoading,
     forecastError: forecastError || null,
-    ghiData: ghiDataWithTags,
-    tempData: tempDataWithTags,
-    windData: windDataWithTags,
-    meterPowerData: meterPowerDataWithTags,
     sensorLoading,
     sensorError,
     avgGHI,

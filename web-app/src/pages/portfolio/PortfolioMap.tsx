@@ -126,11 +126,7 @@ const ProjectMarker = ({
             </div>
           </Link>
         </HoverCard.Target>
-        <WeatherHoverCard
-          projectId={project.project_id}
-          projectName={project.name_long}
-          isOpen={isHoverCardOpen}
-        />
+        {isHoverCardOpen && <WeatherHoverCard project={project} />}
       </HoverCard>
     </Marker>
   )

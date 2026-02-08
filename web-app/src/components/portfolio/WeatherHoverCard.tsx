@@ -1,3 +1,5 @@
+import { SensorTypeEnum } from '@/api/enumerations'
+import { Project } from '@/api/v1/operational/projects'
 import { useProjectWeatherData } from '@/hooks/useProjectWeatherData'
 import {
   type ForecastListItem,
@@ -21,16 +23,10 @@ import { ForecastSlider } from './ForecastSlider'
 import { WeatherContent } from './WeatherContent'
 
 interface WeatherHoverCardProps {
-  projectId: string
-  projectName: string
-  isOpen: boolean
+  project: Project
 }
 
-export const WeatherHoverCard = ({
-  projectId,
-  projectName,
-  isOpen,
-}: WeatherHoverCardProps) => {
+export const WeatherHoverCard = ({ project }: WeatherHoverCardProps) => {
   const {
     weather,
     weatherLoading,
@@ -41,7 +37,7 @@ export const WeatherHoverCard = ({
     avgTemp,
     avgWind,
     avgMeterPowerMW,
-  } = useProjectWeatherData(projectId, isOpen)
+  } = useProjectWeatherData(project.project_id)
 
   const [selectedTomorrowForecast, setSelectedTomorrowForecast] =
     useState<ForecastListItem | null>(null)
@@ -74,6 +70,17 @@ export const WeatherHoverCard = ({
     threeDaysOut,
     timezoneOffsetSeconds,
   )
+
+  const hasGhiSensor = project.spec.used_sensor_type_ids?.includes(
+    SensorTypeEnum.MET_STATION_GHI,
+  )
+  const hasTempSensor = project.spec.used_sensor_type_ids?.includes(
+    SensorTypeEnum.MET_STATION_AMBIENT_TEMPERATURE,
+  )
+  const hasWindSensor = project.spec.used_sensor_type_ids?.includes(
+    SensorTypeEnum.MET_STATION_WIND_SPEED,
+  )
+  const hasAnySensor = hasGhiSensor || hasTempSensor || hasWindSensor
 
   // Helper to normalize weather data for WeatherContent
   const normalizeWeatherData = (
@@ -137,7 +144,7 @@ export const WeatherHoverCard = ({
       <Stack gap="sm">
         <Group justify="space-between" align="center">
           <Text size="sm" fw={600}>
-            {projectName}
+            {project.name_long}
           </Text>
           {sensorLoading ? (
             <Text size="xs" c="dimmed">
@@ -196,54 +203,70 @@ export const WeatherHoverCard = ({
                 )
               })()
             )}
-            <Divider my="sm" />
             {/* Sensor Data Section - Only show for "Now" */}
-            <Stack gap="xs">
-              <Text size="sm" fw={600}>
-                Site Sensor Data
-              </Text>
-              {sensorLoading ? (
-                <Text size="xs" c="dimmed">
-                  Loading sensor data...
-                </Text>
-              ) : (
-                <Group gap="md" grow>
-                  <Stack gap={4}>
-                    <Group gap={4} align="center">
-                      <IconSun size={14} />
-                      <Text size="xs" c="dimmed">
-                        GHI
-                      </Text>
-                    </Group>
-                    <Text size="sm" fw={500}>
-                      {avgGHI !== null ? `${Math.round(avgGHI)} W/m²` : 'N/A'}
+            {hasAnySensor && (
+              <>
+                <Divider my="sm" />
+                <Stack gap="xs">
+                  <Text size="sm" fw={600}>
+                    Site Sensor Data
+                  </Text>
+                  {sensorLoading ? (
+                    <Text size="xs" c="dimmed">
+                      Loading sensor data...
                     </Text>
-                  </Stack>
-                  <Stack gap={4}>
-                    <Group gap={4} align="center">
-                      <IconTemperature size={14} />
-                      <Text size="xs" c="dimmed">
-                        Temp
-                      </Text>
+                  ) : (
+                    <Group gap="md" grow>
+                      {hasGhiSensor ? (
+                        <Stack gap={4}>
+                          <Group gap={4} align="center">
+                            <IconSun size={14} />
+                            <Text size="xs" c="dimmed">
+                              GHI
+                            </Text>
+                          </Group>
+                          <Text size="sm" fw={500}>
+                            {avgGHI !== null && avgGHI >= 0
+                              ? `${Math.round(avgGHI)} W/m²`
+                              : 'N/A'}
+                          </Text>
+                        </Stack>
+                      ) : null}
+                      {hasTempSensor ? (
+                        <Stack gap={4}>
+                          <Group gap={4} align="center">
+                            <IconTemperature size={14} />
+                            <Text size="xs" c="dimmed">
+                              Temp
+                            </Text>
+                          </Group>
+                          <Text size="sm" fw={500}>
+                            {avgTemp !== null
+                              ? `${Math.round(avgTemp)}°F`
+                              : 'N/A'}
+                          </Text>
+                        </Stack>
+                      ) : null}
+                      {hasWindSensor ? (
+                        <Stack gap={4}>
+                          <Group gap={4} align="center">
+                            <IconWind size={14} />
+                            <Text size="xs" c="dimmed">
+                              Wind
+                            </Text>
+                          </Group>
+                          <Text size="sm" fw={500}>
+                            {avgWind !== null && avgWind >= 0
+                              ? `${Math.round(avgWind)} mph`
+                              : 'N/A'}
+                          </Text>
+                        </Stack>
+                      ) : null}
                     </Group>
-                    <Text size="sm" fw={500}>
-                      {avgTemp !== null ? `${Math.round(avgTemp)}°F` : 'N/A'}
-                    </Text>
-                  </Stack>
-                  <Stack gap={4}>
-                    <Group gap={4} align="center">
-                      <IconWind size={14} />
-                      <Text size="xs" c="dimmed">
-                        Wind
-                      </Text>
-                    </Group>
-                    <Text size="sm" fw={500}>
-                      {avgWind !== null ? `${Math.round(avgWind)} mph` : 'N/A'}
-                    </Text>
-                  </Stack>
-                </Group>
-              )}
-            </Stack>
+                  )}
+                </Stack>
+              </>
+            )}
           </Tabs.Panel>
 
           <Tabs.Panel value="tomorrow" pt="sm">
