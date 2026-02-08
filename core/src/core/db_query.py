@@ -3,7 +3,7 @@
 import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 import pandas as pd
 import polars as pl
@@ -12,8 +12,14 @@ from sqlalchemy import Select, TextClause
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.orm.strategy_options import Load, _LoadElement
+from sqlalchemy.sql.expression import Executable
 
 from core.database import async_engine, engine, with_db, with_db_async
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Connection
+    from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
+    from sqlalchemy.orm import Session
 
 T = TypeVar("T")
 S = TypeVar(
@@ -52,13 +58,14 @@ class DbQuery[T, S]:
         - Use SqlAlchemy for selectinload (one to many) operations
     """
 
-    query: TextClause | Select
+    query: TextClause | Select | Executable
     is_scalar: bool = False
     use_scalars: bool = True
 
     def get(
         self,
         *,
+        executor: "Connection | Session | None" = None,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
     ) -> (
@@ -68,9 +75,16 @@ class DbQuery[T, S]:
         Execute the query on a sync connection and return data.
 
         Args:
+            executor: Optional external session/connection.
             schema: Optional schema name for translation map.
             output_type: Output format for the returned data.
         """
+        if executor:
+            return self._read_data(
+                executor=executor,
+                output_type=output_type,
+            )
+
         with self._get_sync_context(schema=schema, output_type=output_type) as db_obj:
             return self._read_data(
                 executor=db_obj,
@@ -80,6 +94,7 @@ class DbQuery[T, S]:
     async def get_async(
         self,
         *,
+        executor: "AsyncConnection | AsyncSession | None" = None,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
     ) -> (
@@ -89,9 +104,18 @@ class DbQuery[T, S]:
         Execute the query on an async connection and return data.
 
         Args:
+            executor: Optional external async session/connection.
             schema: Optional schema name for translation map.
             output_type: Output format for the returned data.
         """
+        if executor:
+            return await executor.run_sync(
+                lambda sync_obj: self._read_data(
+                    executor=sync_obj,
+                    output_type=output_type,
+                )
+            )
+
         async with self._get_async_context(
             schema=schema, output_type=output_type
         ) as db_obj:
@@ -102,10 +126,58 @@ class DbQuery[T, S]:
                 )
             )
 
+    def execute(
+        self,
+        *,
+        executor: "Connection | Session | None" = None,
+        schema: str | None = "operational",
+    ) -> None:
+        """
+        Execute a write operation (INSERT/UPDATE/DELETE).
+        Commits if managing its own session.
+
+        Args:
+            executor: Optional external session/connection.
+            schema: Optional schema name for translation map.
+        """
+        if executor:
+            executor.execute(self.query)
+            return
+
+        with self._get_sync_context(
+            schema=schema, output_type=OutputType.SQLALCHEMY
+        ) as db:
+            db.execute(self.query)
+            db.commit()
+
+    async def execute_async(
+        self,
+        *,
+        executor: "AsyncConnection | AsyncSession | None" = None,
+        schema: str | None = "operational",
+    ) -> None:
+        """
+        Execute a write operation (INSERT/UPDATE/DELETE) asynchronously.
+        Commits if managing its own session.
+
+        Args:
+            executor: Optional external async session/connection.
+            schema: Optional schema name for translation map.
+        """
+        if executor:
+            await executor.execute(self.query)
+            return
+
+        async with self._get_async_context(
+            schema=schema, output_type=OutputType.SQLALCHEMY
+        ) as db:
+            await db.execute(self.query)
+            await db.commit()
+
     def _read_data(
         self,
         *,
-        executor,
+        executor: Any,
         output_type: OutputType,
     ) -> (
         pd.DataFrame | pl.DataFrame | list[RowMapping] | list[T] | RowMapping | T | None
@@ -165,6 +237,9 @@ class DbQuery[T, S]:
             return items
 
         result = executor.execute(self.query)
+
+        if not result.returns_rows:
+            return None
 
         if self.is_scalar:
             return result.mappings().one_or_none()

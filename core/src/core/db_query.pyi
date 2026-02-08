@@ -7,7 +7,9 @@ import pandas as pd
 import polars as pl
 from sqlalchemy import Select, TextClause
 from sqlalchemy.engine import Connection, RowMapping
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import Executable
 
 T = TypeVar("T")
 S = TypeVar(
@@ -20,7 +22,7 @@ _SQL_TO_MODEL_COL_MAP: Mapping[str, str]
 from core.enumerations import OutputType as OutputType
 
 class DbQuery(Generic[T, S]):
-    query: TextClause | Select
+    query: TextClause | Select | Executable
     sql_string: str
     is_scalar: S
     use_scalars: bool
@@ -44,14 +46,14 @@ class DbQuery(Generic[T, S]):
     def __init__(
         self: DbQuery[T, Literal[True]],
         *,
-        query: Select,
+        query: Select | Executable,
         is_scalar: Literal[True],
     ) -> None: ...
     @overload
     def __init__(
         self: DbQuery[T, Literal[False]],
         *,
-        query: Select,
+        query: Select | Executable,
         is_scalar: Literal[False] = False,
         use_scalars: bool = True,
     ) -> None: ...
@@ -59,50 +61,49 @@ class DbQuery(Generic[T, S]):
     def _read_data(
         self,
         *,
-        conn: Connection,
+        executor: Connection | Session,
         output_type: Literal[OutputType.POLARS],
     ) -> pl.DataFrame: ...
     @overload
     def _read_data(
         self,
         *,
-        conn: Connection,
+        executor: Connection | Session,
         output_type: Literal[OutputType.PANDAS],
     ) -> pd.DataFrame: ...
     @overload
     def _read_data(
         self: DbQuery[T, Literal[False]],
         *,
-        session: Session,
+        executor: Connection | Session,
         output_type: Literal[OutputType.SQLALCHEMY],
     ) -> list[T]: ...
     @overload
     def _read_data(
         self: DbQuery[T, Literal[True]],
         *,
-        session: Session,
+        executor: Connection | Session,
         output_type: Literal[OutputType.SQLALCHEMY],
     ) -> T | None: ...
     @overload
     def _read_data(
         self: DbQuery[T, Literal[False]],
         *,
-        conn: Connection | None = None,
-        session: Session | None = None,
+        executor: Connection | Session,
         output_type: OutputType,
     ) -> pd.DataFrame | pl.DataFrame | list[T]: ...
     @overload
     def _read_data(
         self: DbQuery[T, Literal[True]],
         *,
-        conn: Connection | None = None,
-        session: Session | None = None,
+        executor: Connection | Session,
         output_type: OutputType,
     ) -> pd.DataFrame | pl.DataFrame | T | None: ...
     @overload
     def get(
         self,
         *,
+        executor: Connection | Session | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.POLARS] = OutputType.POLARS,
     ) -> pl.DataFrame: ...
@@ -110,6 +111,7 @@ class DbQuery(Generic[T, S]):
     def get(
         self,
         *,
+        executor: Connection | Session | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.PANDAS],
     ) -> pd.DataFrame: ...
@@ -117,6 +119,7 @@ class DbQuery(Generic[T, S]):
     def get(
         self: DbQuery[T, Literal[False]],
         *,
+        executor: Connection | Session | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.SQLALCHEMY],
     ) -> list[T]: ...
@@ -124,6 +127,7 @@ class DbQuery(Generic[T, S]):
     def get(
         self: DbQuery[T, Literal[True]],
         *,
+        executor: Connection | Session | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.SQLALCHEMY],
     ) -> T | None: ...
@@ -131,6 +135,7 @@ class DbQuery(Generic[T, S]):
     def get(
         self: DbQuery[T, Literal[False]],
         *,
+        executor: Connection | Session | None = None,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
     ) -> pd.DataFrame | pl.DataFrame | list[T]: ...
@@ -138,6 +143,7 @@ class DbQuery(Generic[T, S]):
     def get(
         self: DbQuery[T, Literal[True]],
         *,
+        executor: Connection | Session | None = None,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
     ) -> pd.DataFrame | pl.DataFrame | T | None: ...
@@ -145,6 +151,7 @@ class DbQuery(Generic[T, S]):
     async def get_async(
         self,
         *,
+        executor: AsyncConnection | AsyncSession | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.POLARS] = OutputType.POLARS,
     ) -> pl.DataFrame: ...
@@ -152,6 +159,7 @@ class DbQuery(Generic[T, S]):
     async def get_async(
         self,
         *,
+        executor: AsyncConnection | AsyncSession | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.PANDAS],
     ) -> pd.DataFrame: ...
@@ -159,6 +167,7 @@ class DbQuery(Generic[T, S]):
     async def get_async(
         self: DbQuery[T, Literal[False]],
         *,
+        executor: AsyncConnection | AsyncSession | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.SQLALCHEMY],
     ) -> list[T]: ...
@@ -166,6 +175,7 @@ class DbQuery(Generic[T, S]):
     async def get_async(
         self: DbQuery[T, Literal[True]],
         *,
+        executor: AsyncConnection | AsyncSession | None = None,
         schema: str | None = "operational",
         output_type: Literal[OutputType.SQLALCHEMY],
     ) -> T | None: ...
@@ -173,6 +183,7 @@ class DbQuery(Generic[T, S]):
     async def get_async(
         self: DbQuery[T, Literal[False]],
         *,
+        executor: AsyncConnection | AsyncSession | None = None,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
     ) -> pd.DataFrame | pl.DataFrame | list[T]: ...
@@ -180,9 +191,14 @@ class DbQuery(Generic[T, S]):
     async def get_async(
         self: DbQuery[T, Literal[True]],
         *,
+        executor: AsyncConnection | AsyncSession | None = None,
         schema: str | None = "operational",
         output_type: OutputType = OutputType.POLARS,
     ) -> pd.DataFrame | pl.DataFrame | T | None: ...
+    def execute(self, *, executor: Connection | Session | None = None) -> None: ...
+    async def execute_async(
+        self, *, executor: AsyncConnection | AsyncSession | None = None
+    ) -> None: ...
     @overload
     def _apply_mapping(self, *, df: pd.DataFrame) -> pd.DataFrame: ...
     @overload
