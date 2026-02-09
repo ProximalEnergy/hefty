@@ -1,15 +1,11 @@
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Literal
 
+from core.db_query import DbQuery
+from sqlalchemy import select
 from core import models
 
 
-async def get_ercot_dmes(*, db: AsyncSession):
-    """Return all ERCOT DME records.
-
-    Args:
-        db: Async SQLAlchemy session used for the query.
-    """
+def get_ercot_dmes() -> DbQuery[models.DME, Literal[False]]:
+    """Build a query for all ERCOT DME records."""
     query = select(models.DME)
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query)
