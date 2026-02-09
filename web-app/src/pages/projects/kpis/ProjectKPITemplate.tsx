@@ -15,6 +15,7 @@ import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
+import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import Attribution from '@/components/gis/Attribution'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
@@ -48,7 +49,7 @@ import {
   IconInfoCircle,
 } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
-import dayjs from 'dayjs'
+import type { Dayjs } from 'dayjs'
 import { FeatureCollection } from 'geojson'
 import { Data, PlotMouseEvent } from 'plotly.js'
 import { ReactNode, useCallback, useContext, useState } from 'react'
@@ -88,17 +89,9 @@ const Page = () => {
   const navigate = useNavigate()
   const theme = useMantineTheme()
 
-  // Parse query params
-  let start: dayjs.Dayjs | null = null
-  let end: dayjs.Dayjs | null = null
-  if (searchParams.get('start')) {
-    start = dayjs(searchParams.get('start'))
-  }
-  if (searchParams.get('end')) {
-    end = dayjs(searchParams.get('end'))
-  }
-  const startQuery = start?.format('YYYY-MM-DD')
-  const endQuery = end?.add(1, 'day').format('YYYY-MM-DD')
+  const { start, end, startQuery, endQuery } = getQueryParamDateRange({
+    searchParams,
+  })
 
   // Query Project data
   const project = useSelectProject(projectId!)
@@ -761,8 +754,8 @@ const ProjectPlotCard = ({
   theme: MantineTheme
   navigate: NavigateFunction
   kpiTypeId: string
-  start: dayjs.Dayjs | null
-  end: dayjs.Dayjs | null
+  start: Dayjs | null
+  end: Dayjs | null
 }) => {
   const [showComparison, setShowComparison] = useState(true)
   const [selectedAggregationType, setSelectedAggregationType] = useState<

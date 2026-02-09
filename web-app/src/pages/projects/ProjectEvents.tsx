@@ -8,7 +8,7 @@ import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsEventsTable } from '@/components/Tips'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
-import { useValidateDateRange } from '@/components/datepicker/utils'
+import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import { useProjectFilter } from '@/hooks/custom'
 import { EventSummary } from '@/hooks/types'
 import {
@@ -34,7 +34,7 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 dayjs.extend(timezone)
 dayjs.extend(relativeTime)
@@ -57,11 +57,12 @@ const ProjectEvents = () => {
   )
   const navigate = useNavigate()
 
-  const { start: urlStart, end: urlEnd } = useValidateDateRange({
-    maxDays: 30, // Limit to 30 days max
+  const [searchParams] = useSearchParams()
+  const { startQuery, endQuery } = getQueryParamDateRange({
+    searchParams,
+    maxDays: 30,
+    format: 'YYYY-MM-DD HH:mm:ss',
   })
-  const startQuery = urlStart?.format('YYYY-MM-DD HH:mm:ss')
-  const endQuery = urlEnd?.format('YYYY-MM-DD HH:mm:ss')
 
   const { data: project, isLoading: isProjectLoading } = useSelectProject(
     projectId!,

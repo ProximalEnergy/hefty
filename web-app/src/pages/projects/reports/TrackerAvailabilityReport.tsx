@@ -6,7 +6,7 @@ import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetReportType } from '@/api/v1/operational/report_types'
 import { PageLoader } from '@/components/Loading'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
-import { useValidateDateRange } from '@/components/datepicker/utils'
+import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import { useProjectFilter } from '@/hooks/custom'
 import { Button, Group, List, Stack, Text, Title, Tooltip } from '@mantine/core'
 import { IconDownload, IconExternalLink } from '@tabler/icons-react'
@@ -48,9 +48,9 @@ const Page: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const reportDocUrl = 'kpi/trackers.html'
 
-  const { start, end } = useValidateDateRange()
-  const startQuery = start?.format('YYYY-MM-DD')
-  const endQuery = end?.add(1, 'day').format('YYYY-MM-DD')
+  const { startQuery, endQuery } = getQueryParamDateRange({
+    searchParams,
+  })
   const [isFetching, setIsFetching] = useState(false)
 
   const project = useSelectProject(projectId!)
@@ -64,7 +64,7 @@ const Page: React.FC = () => {
 
   const fileName = `reports/persistent/${reportType?.data?.name_short}/${
     project.data?.name_short
-  }_${start?.format('YYYY-MM-DD')}.xlsx`
+  }_${startQuery}.xlsx`
   const presignedUrl = useGetPresignedUrl({
     queryParams: {
       bucket_name: 'proximal-am-documents',
