@@ -21,6 +21,7 @@ def get_event_losses(
     time_gte: datetime.datetime | None = None,
     time_lt: datetime.datetime | None = None,
     event_ids: list[int] | None = None,
+    event_loss_type_ids: list[int] | None = None,
 ) -> DbQuery[models.EventLoss, Literal[False]]:
     """Build a query for event losses with optional filters.
 
@@ -39,6 +40,8 @@ def get_event_losses(
         stmt = stmt.where(models.EventLoss.time < time_lt)
     if event_ids is not None:
         stmt = stmt.where(models.EventLoss.event_id.in_(event_ids))
+    if event_loss_type_ids is not None:
+        stmt = stmt.where(models.EventLoss.event_loss_type_id.in_(event_loss_type_ids))
     return DbQuery(query=stmt)
 
 
