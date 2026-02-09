@@ -19,6 +19,7 @@ def get_windowed_events(
     end: datetime.datetime,
     deep: bool = False,
     include_underperformance: bool = True,
+    failure_mode_ids: list[int] | None = None,
 ) -> DbQuery[models.Event, Literal[False]]:
     """Query events that start before `end` and end after `start` or are ongoing.
 
@@ -27,6 +28,7 @@ def get_windowed_events(
         end: Window end time.
         deep: Whether to eager-load related device data.
         include_underperformance: Include underperformance events when True.
+        failure_mode_ids: Filter by a list of failure mode ids.
     """
     stmt = sa.select(models.Event).where(models.Event.time_start <= end)
     stmt = stmt.where(
@@ -42,6 +44,8 @@ def get_windowed_events(
                 models.FailureMode.name_long.contains("Underperforming")
             )
         )
+    if failure_mode_ids is not None:
+        stmt = stmt.where(models.Event.failure_mode_id.in_(failure_mode_ids))
     if options:
         stmt = stmt.options(*options)
     return DbQuery(query=stmt)
