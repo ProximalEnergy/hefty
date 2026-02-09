@@ -241,27 +241,32 @@ async def get_status_time_series_js(
     ).get_async(output_type=OutputType.PANDAS, schema=project.name_short)
     status_names = status_names.set_index("tag_id")
     facts = pd.DataFrame(data)
-    alerts = ~facts["is_nominal"].astype(bool)
-    alerts_df = (
-        alerts.groupby([facts["time"], facts["tag_id"]])
-        .any()
-        .unstack("tag_id")
-        .reindex(
-            index=pd.date_range(start, end, freq="5min"),
+    timeline_index = pd.date_range(start, end, freq="5min")
+    if facts.empty or "is_nominal" not in facts.columns:
+        alerts_df = pd.DataFrame(False, index=timeline_index, columns=tag_ids)
+        wide_reindexed = pd.DataFrame(index=timeline_index, columns=tag_ids)
+    else:
+        alerts = ~facts["is_nominal"].astype(bool)
+        alerts_df = (
+            alerts.groupby([facts["time"], facts["tag_id"]])
+            .any()
+            .unstack("tag_id")
+            .reindex(
+                index=timeline_index,
+                columns=tag_ids,
+            )
+        ).fillna(False)
+        labels = (
+            facts["description"].astype("string")
+            + ": "
+            + facts["resolved_state"].astype("string")
+        )
+        cell_text = labels.groupby([facts["time"], facts["tag_id"]]).agg(", ".join)
+        wide = cell_text.unstack("tag_id")
+        wide_reindexed = wide.reindex(
+            index=timeline_index,
             columns=tag_ids,
         )
-    ).fillna(False)
-    labels = (
-        facts["description"].astype("string")
-        + ": "
-        + facts["resolved_state"].astype("string")
-    )
-    cell_text = labels.groupby([facts["time"], facts["tag_id"]]).agg(", ".join)
-    wide = cell_text.unstack("tag_id")
-    wide_reindexed = wide.reindex(
-        index=pd.date_range(start, end, freq="5min"),
-        columns=tag_ids,
-    )
     data_out = [
         {
             "x": pd.to_datetime(wide_reindexed.index)
