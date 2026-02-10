@@ -55,6 +55,7 @@ class FilterMethod(Enum):
 
     TAG_IDS = "tag_ids"
     TAG_POLARS = "tag_polars"
+    TAGS_PANDAS = "tags_pandas"
     SENSOR_TYPE_IDS = "sensor_type_ids"
 
 
@@ -84,7 +85,7 @@ class DataTimeseries:
     # Required fields, must be provided in constructor
     project_name_short: str
     filter_method: FilterMethod
-    filter_values: list[int] | pl.DataFrame
+    filter_values: list[int] | pd.DataFrame | pl.DataFrame
     query_start: datetime
     query_end: datetime
     project_db: Session
@@ -177,12 +178,33 @@ class DataTimeseries:
         apply_scale_and_offset: bool = ...,
     ) -> None: ...
 
+    @overload
+    def __init__(
+        self,
+        *,
+        project_name_short: str,
+        filter_method: Literal[FilterMethod.TAGS_PANDAS],
+        filter_values: pd.DataFrame,
+        query_start: datetime,
+        query_end: datetime,
+        project_db: Session,
+        max_lookback_period: TimeOffset = ...,
+        freq: TimeInterval = ...,
+        aggregation_method: AggregationMethod = ...,
+        pagination_limit: int = ...,
+        pagination_offset: int = ...,
+        dangerous_pagination_override: bool = ...,
+        ffill_limit: int | None = ...,
+        ensure_full_range: bool = ...,
+        apply_scale_and_offset: bool = ...,
+    ) -> None: ...
+
     def __init__(
         self,
         *,
         project_name_short: str,
         filter_method: FilterMethod,
-        filter_values: list[int] | pl.DataFrame,
+        filter_values: list[int] | pd.DataFrame | pl.DataFrame,
         query_start: datetime,
         query_end: datetime,
         project_db: Session,
@@ -1139,6 +1161,21 @@ class DataTimeseries:
 
                 self._tag_ids = self.filter_values["tag_id"].to_list()
                 self._tags_lut = self.filter_values
+                self._tag_dtype_by_id = {}
+                return
+
+            # Case 4: filter_values is a Pandas DataFrame with tag_id column
+            # Result: Convert to Polars, extract tag_id column directly
+            case FilterMethod.TAGS_PANDAS:
+                if not isinstance(self.filter_values, pd.DataFrame):
+                    raise TypeError(
+                        "filter_values must be pd.DataFrame when "
+                        "filter_method is TAGS_PANDAS"
+                    )
+
+                tags_polars = pl.from_pandas(self.filter_values)
+                self._tag_ids = tags_polars["tag_id"].cast(pl.Int64).to_list()
+                self._tags_lut = tags_polars
                 self._tag_dtype_by_id = {}
                 return
 
