@@ -143,6 +143,7 @@ async def get_project_aggregated_kpi_data_freq(
 @router.get(
     "/agg",
     response_model=float,
+    response_class=ORJSONResponse,
 )
 async def get_project_aggregated_kpi_data(
     *,
@@ -211,7 +212,11 @@ def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
     return {kpi_type_id: contract_id for kpi_type_id, contract_id in contractual_kpis}
 
 
-@router.get("/kpi-summary-cards", response_model=list[interfaces.KPISummary])
+@router.get(
+    "/kpi-summary-cards",
+    response_model=list[interfaces.KPISummary],
+    response_class=ORJSONResponse,
+)
 def get_project_kpi_summary(
     project_id: uuid.UUID,
     db: Annotated[Session, Depends(get_db)],
@@ -421,18 +426,14 @@ def get_project_kpi_summary(
         }
         dict_out[kpi_type.kpi_type_id] = temp_dict
 
-    ## Last check to replace np.nan with None
-    for key, values in dict_out.items():
-        for sub_key, value in values.items():
-            if pd.isna(value):
-                dict_out[key][sub_key] = None
-
-    data_out = list(dict_out.values())
-
-    return data_out
+    return list(dict_out.values())
 
 
-@router.get("/kpi-alerts", response_model=list[interfaces.KPIAlert])
+@router.get(
+    "/kpi-alerts",
+    response_model=list[interfaces.KPIAlert],
+    response_class=ORJSONResponse,
+)
 async def get_user_kpi_alerts(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_async_db)],
@@ -524,6 +525,7 @@ async def delete_kpi_alert(
 @router.get(
     "/contract-kpis",
     response_model=list[interfaces.ContractKPIs],
+    response_class=ORJSONResponse,
     operation_id="get_project_contract_kpis",
 )
 def get_contract_kpis(
@@ -597,7 +599,10 @@ def get_contract_kpis(
     return contract_kpis_with_counterparty
 
 
-@router.get("/llm-kpis")
+@router.get(
+    "/llm-kpis",
+    response_class=ORJSONResponse,
+)
 def get_llm_kpis(
     project_id: uuid.UUID,
     start: datetime.datetime | None = None,
@@ -646,7 +651,10 @@ class RTEResponse(BaseModel):
     rte: float | None
 
 
-@router.get("/rte")
+@router.get(
+    "/rte",
+    response_class=ORJSONResponse,
+)
 async def get_rte(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_async_db)],
@@ -735,6 +743,4 @@ async def get_rte(
     if rte > 1:
         rte = np.nan
 
-    # Convert np.nan to None for JSON serialization
-    rte_value = None if pd.isna(rte) else rte
-    return RTEResponse(rte=rte_value)
+    return RTEResponse(rte=rte)
