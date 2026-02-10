@@ -122,10 +122,12 @@ async def get_resource_net_power(
         end=end,
     )
     dam_spp_data = await crud_get_ercot_dam_spp(
-        db,
         settlement_point_ids=[resource.settlement_point_id],
         start=start,
         end=end,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
     rtm_spp_data = await crud_get_ercot_rtm_spp(
         db=db,
@@ -152,7 +154,7 @@ async def get_resource_net_power(
     df_load = pd.DataFrame.from_records([d.__dict__ for d in sced_load_data])
     df_load = df_load[["power_consumed", "time"]].set_index("time").sort_index()
 
-    df_dam = pd.DataFrame.from_records([d.__dict__ for d in dam_spp_data])
+    df_dam = dam_spp_data.copy()
     df_dam = df_dam.set_index("time")
     df_dam.index = df_dam.index.tz_convert("US/Central")  # type: ignore
 
@@ -204,10 +206,12 @@ async def get_prices(
         db: Description for db.
     """
     dam_spp = await crud_get_ercot_dam_spp(
-        db,
         settlement_point_ids=[settlement_point_id],
         start=start,
         end=end,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
     rtm_spp = await crud_get_ercot_rtm_spp(
         db,
@@ -217,7 +221,7 @@ async def get_prices(
     )
 
     if len(dam_spp) > 0:
-        df_dam = pd.DataFrame.from_records([d.__dict__ for d in dam_spp])
+        df_dam = dam_spp.copy()
         df_dam = df_dam.set_index("time")
         df_dam = df_dam.sort_index()
         df_dam.index = df_dam.index.tz_convert("US/Central")  # type: ignore

@@ -370,9 +370,9 @@ if [ "${RUN_API}" = "true" ]; then
     add_check "API: Unused Import Check" "mise run api:deptry"
     add_check "API: Dead Code Check" "mise run api:vulture"
     add_check "API: DbQuery.get Check" "mise run api:db_query_get"
-    add_check "API: Pytest" "mise run api:pytest"
+    add_db_check "API: Pytest" "mise run api:pytest"
     add_check "API: Docstring Args Check" "mise run api:docstring_args"
-    add_check "API: Unused Routes Check" \
+    add_db_check "API: Unused Routes Check" \
         "mise run api:unused_routes_detailed"
 fi
 
@@ -384,7 +384,7 @@ if [ "${RUN_ROOT}" = "true" ]; then
         "mise run hardcoded_name_shorts_check"
     add_check "Root: Pyproject Dependency Check" \
         "uv run python _scripts/check_pyproject_dependencies.py"
-    add_check "Root: Codegen" "mise run codegen"
+    add_db_check "Root: Codegen" "mise run codegen"
 fi
 
 # Global Checks (Run if any project changed)

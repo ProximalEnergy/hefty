@@ -1,15 +1,12 @@
+from typing import Literal
+
+from core.db_query import DbQuery
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
 
 
-async def get_ercot_qses(*, db: AsyncSession):
-    """Return all ERCOT QSE records.
-
-    Args:
-        db: Async SQLAlchemy session used for the query.
-    """
+def get_ercot_qses() -> DbQuery[models.QSE, Literal[False]]:
+    """Build a query for all ERCOT QSE records."""
     query = select(models.QSE)
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query, use_scalars=True)
