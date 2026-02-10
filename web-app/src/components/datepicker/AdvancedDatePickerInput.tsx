@@ -70,7 +70,7 @@ const defaultLimits: Limits = {
 }
 
 const INCREMENT_SMALL = 1
-const INCREMENT_LARGE = 3
+const INCREMENT_LARGE_MIN = 2
 const PX = 0
 const POPOVER_Z_INDEX = 500
 const STROKE = 1.5
@@ -364,8 +364,22 @@ export function AdvancedDatePicker({
     )
   }
 
-  const getMaxForwardDays = () => {
-    if (!end) return INCREMENT_LARGE
+  const getRangeShiftDays = () => {
+    if (maxDays === 1) {
+      return INCREMENT_SMALL
+    }
+
+    if (!start || !end) {
+      return INCREMENT_SMALL
+    }
+
+    return (
+      dayjs(end).startOf('day').diff(dayjs(start).startOf('day'), 'day') + 1
+    )
+  }
+
+  const getMaxForwardDays = (desiredDays: number) => {
+    if (!end) return desiredDays
     const today = dayjs().startOf('day')
     const endDate = dayjs(end).startOf('day')
     const adjustedToday = includeTodayInDateRange
@@ -375,8 +389,10 @@ export function AdvancedDatePicker({
     if (endDate.isAfter(adjustedToday)) return 0
 
     const daysUntilToday = adjustedToday.diff(endDate, 'day')
-    return Math.min(INCREMENT_LARGE, daysUntilToday)
+    return Math.min(desiredDays, daysUntilToday)
   }
+
+  const rangeShiftDays = Math.max(INCREMENT_LARGE_MIN, getRangeShiftDays())
 
   return (
     <Button.Group w={width}>
@@ -385,7 +401,9 @@ export function AdvancedDatePicker({
           <Tooltip
             label={`Shift ${
               maxDays === 1 ? 'date' : 'range'
-            } back by ${INCREMENT_LARGE} days`}
+            } back by ${rangeShiftDays} ${
+              rangeShiftDays === 1 ? 'day' : 'days'
+            }`}
             disabled={empty}
           >
             <Button
@@ -394,7 +412,7 @@ export function AdvancedDatePicker({
               variant="default"
               disabled={empty}
               onClick={() => {
-                incrementDateRange(-INCREMENT_LARGE)
+                incrementDateRange(-rangeShiftDays)
               }}
             >
               <IconChevronsLeft stroke={STROKE} />
@@ -520,7 +538,9 @@ export function AdvancedDatePicker({
           <Tooltip
             label={`Shift ${
               maxDays === 1 ? 'date' : 'range'
-            } forward by up to ${INCREMENT_LARGE} days`}
+            } forward by up to ${rangeShiftDays} ${
+              rangeShiftDays === 1 ? 'day' : 'days'
+            }`}
             disabled={empty || isEndToday()}
           >
             <Button
@@ -529,8 +549,8 @@ export function AdvancedDatePicker({
               variant="default"
               disabled={empty || isEndToday()}
               onClick={() => {
-                const maxDays = getMaxForwardDays()
-                incrementDateRange(maxDays)
+                const forwardDays = getMaxForwardDays(rangeShiftDays)
+                incrementDateRange(forwardDays)
               }}
             >
               <IconChevronsRight stroke={STROKE} />
