@@ -177,6 +177,18 @@ export const themes = {
     '#17668A',
     '#166083',
   ],
+  'sable-point-energy-green': [
+    '#E7EAEA',
+    '#C8CFCE',
+    '#A9B3B3',
+    '#8A9898',
+    '#6C7D7C',
+    '#4D6261',
+    '#2E4645',
+    '#0F2B2A',
+    '#0E2928',
+    '#0E2726',
+  ],
 } satisfies Record<string, StringArray10 & MantineColorsTuple>
 
 // Extract the keys from the themes object

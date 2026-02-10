@@ -10,16 +10,17 @@ const COMPANY_THEME_CONFIG: Record<string, KnownMantineColor | CustomColors> = {
   desri: 'desri-blue',
   excelsior: 'excelsior-blue',
   first_solar: 'red',
-  mccarthy: 'mccarthy-red',
+  goshe_energy_storage: 'goshe-energy-storage-blue',
+  lightsource_bp: 'lightsource-bp-orange',
   longroad_energy: 'mccarthy-red',
+  lydian_energy: 'lydian-energy-blue',
+  mccarthy: 'mccarthy-red',
+  oriden: 'oriden-green',
   origis_energy: 'origis-blue',
+  sable_point_energy: 'sable-point-energy-green',
   strata: 'orange',
   swift_current_energy: 'swift-blue',
   terabase_energy: 'terabase-blue',
-  lightsource_bp: 'lightsource-bp-orange',
-  oriden: 'oriden-green',
-  lydian_energy: 'lydian-energy-blue',
-  goshe_energy_storage: 'goshe-energy-storage-blue',
 }
 
 export const CompanyThemeManager = () => {

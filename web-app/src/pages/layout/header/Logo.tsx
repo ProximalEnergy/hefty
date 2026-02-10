@@ -1,6 +1,7 @@
 import { getCompanyLogoUrl } from '@/utils/cdn'
 import { useUser } from '@clerk/clerk-react'
 import { Image, Stack, Title, useComputedColorScheme } from '@mantine/core'
+import { useEffect } from 'react'
 
 const ProximalLogo = () => {
   const computedColorScheme = useComputedColorScheme()
@@ -52,6 +53,53 @@ const OdenLogo = () => {
       }}
       h="75%"
     />
+  )
+}
+
+const MONTSERRAT_FONT_ID = 'sable-point-montserrat-font'
+
+const SablePointEnergyLogo = () => {
+  const computedColorScheme = useComputedColorScheme()
+
+  useEffect(() => {
+    if (document.getElementById(MONTSERRAT_FONT_ID)) return
+    const preconnect1 = document.createElement('link')
+    preconnect1.rel = 'preconnect'
+    preconnect1.href = 'https://fonts.googleapis.com'
+    document.head.appendChild(preconnect1)
+    const preconnect2 = document.createElement('link')
+    preconnect2.rel = 'preconnect'
+    preconnect2.href = 'https://fonts.gstatic.com'
+    preconnect2.setAttribute('crossorigin', '')
+    document.head.appendChild(preconnect2)
+    const link = document.createElement('link')
+    link.id = MONTSERRAT_FONT_ID
+    link.rel = 'stylesheet'
+    link.href =
+      'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap'
+    document.head.appendChild(link)
+  }, [])
+
+  return (
+    <>
+      <Image
+        src={getCompanyLogoUrl('logo_sable_point_energy.svg')}
+        h="65%"
+        mr={-20}
+        style={{
+          filter:
+            computedColorScheme === 'dark' ? 'brightness(0) invert(1)' : 'none',
+        }}
+      />
+      <Title
+        lh={1}
+        order={2}
+        style={{ fontFamily: 'Montserrat, sans-serif' }}
+        c={computedColorScheme === 'dark' ? undefined : '#0F2B2A'}
+      >
+        SABLE POINT ENERGY
+      </Title>
+    </>
   )
 }
 
@@ -113,6 +161,8 @@ const Logo = () => {
             h="70%"
           />
         )
+      case 'sable_point_energy':
+        return <SablePointEnergyLogo />
     }
   }
 
