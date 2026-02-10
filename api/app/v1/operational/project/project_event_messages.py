@@ -1107,6 +1107,8 @@ async def toggle_event_chat_mute(
 @router.get("/{event_id}/mute-status")
 async def get_event_chat_mute_status(
     *,
+    project_db: Annotated[AsyncSession, Depends(dependencies.get_project_db_async)],
+    _: Annotated[None, Depends(dependencies.check_project_access_async)],
     event_id: int,
     user_data: Annotated[
         dependencies.interfaces.UserData, Depends(dependencies.get_user_data_async)
@@ -1118,7 +1120,7 @@ async def get_event_chat_mute_status(
             {"muted": bool} - True if muted, False if not muted
 
     Args:
-        project_db: Description for project_db.
+        project_db: Project-scoped DB session (event_chat_mutes in project schema).
         event_id: Description for event_id.
         user_data: Description for user_data.
     """
@@ -1126,7 +1128,10 @@ async def get_event_chat_mute_status(
         event_id=event_id, user_id=user_data.user_id
     )
     is_muted = (
-        await muted_query.get_async(output_type=OutputType.SQLALCHEMY) is not None
+        await muted_query.get_async(
+            executor=project_db, output_type=OutputType.SQLALCHEMY
+        )
+        is not None
     )
 
     return {"muted": is_muted}

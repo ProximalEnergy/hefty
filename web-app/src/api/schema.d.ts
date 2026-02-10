@@ -2830,7 +2830,7 @@ export interface paths {
          *             {"muted": bool} - True if muted, False if not muted
          *
          *     Args:
-         *         project_db: Description for project_db.
+         *         project_db: Project-scoped DB session (event_chat_mutes in project schema).
          *         event_id: Description for event_id.
          *         user_data: Description for user_data.
          */
