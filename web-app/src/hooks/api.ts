@@ -15,13 +15,14 @@ import axios, { AxiosHeaders, AxiosRequestConfig } from 'axios'
 import { FeatureCollection } from 'geojson'
 import qs from 'qs'
 
-// Add request interceptor to include current page URL
+// Add request interceptor to include current page URL (backend only).
+// Skip for third-party origins (e.g. NOAA) so CORS preflight succeeds.
 axios.interceptors.request.use((config) => {
-  // Only add header if we're in a browser environment
-  if (typeof window !== 'undefined') {
-    config.headers = AxiosHeaders.from(config.headers)
-    config.headers.set('X-Client-Page-URL', window.location.href)
-  }
+  if (typeof window === 'undefined') return config
+  const url = String(config.url ?? '')
+  if (url.includes('mapservices.weather.noaa.gov')) return config
+  config.headers = AxiosHeaders.from(config.headers)
+  config.headers.set('X-Client-Page-URL', window.location.href)
   return config
 })
 
