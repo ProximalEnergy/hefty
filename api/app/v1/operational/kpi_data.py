@@ -168,20 +168,27 @@ def get_kpi_data_helper(
             # device_values_df = pd.DataFrame(device_values, dtype=np.float64).T
 
             # Pandas handled statistics
-            if device_values_df.empty:
+            agg_columns = [
+                "sum",
+                "mean",
+                "std",
+                "min",
+                "max",
+                "median",
+                "count",
+                "range",
+                "available_data",
+            ]
+            has_values = device_values_df.notna().any().any()
+            if device_values_df.empty or not has_values:
                 device_agg_df = pd.DataFrame(
-                    columns=[
-                        "sum",
-                        "mean",
-                        "std",
-                        "min",
-                        "max",
-                        "median",
-                        "count",
-                        "range",
-                        "available_data",
-                    ]
+                    index=device_values_df.columns,
+                    columns=agg_columns,
+                    dtype=np.float64,
                 )
+                if not device_agg_df.empty:
+                    device_agg_df["count"] = 0
+                    device_agg_df["available_data"] = 0
             else:
                 device_agg_df = device_values_df.T.agg(
                     ["sum", "mean", "std", "min", "max", "median", "count"]
