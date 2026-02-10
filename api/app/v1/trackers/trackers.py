@@ -3,7 +3,6 @@ from typing import Annotated
 
 import pandas as pd
 from fastapi import APIRouter, Depends
-from fastapi.responses import ORJSONResponse
 
 from app import dependencies, utils
 from core import models
@@ -11,7 +10,7 @@ from core import models
 router = APIRouter(prefix="/trackers", tags=["trackers"])
 
 
-@router.get("/tracking-angles", response_class=ORJSONResponse)
+@router.get("/tracking-angles")
 def get_tracking_angles(
     start: datetime.datetime,
     end: datetime.datetime,

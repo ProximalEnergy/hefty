@@ -8,7 +8,6 @@ from core.crud.project.events import get_project_events
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import ORJSONResponse
 from natsort import natsorted
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -32,10 +31,7 @@ router = APIRouter(
 )
 
 
-@router.get(
-    "/bess",
-    response_class=ORJSONResponse,
-)
+@router.get("/bess")
 async def get_bess(
     start: datetime.datetime,
     end: datetime.datetime,
@@ -59,10 +55,7 @@ async def get_bess(
     )
 
 
-@router.get(
-    "/bess-pcs",
-    response_class=ORJSONResponse,
-)
+@router.get("/bess-pcs")
 async def get_bess_pcs(
     start: datetime.datetime,
     end: datetime.datetime,
@@ -85,11 +78,7 @@ async def get_bess_pcs(
     )
 
 
-@router.get(
-    "/combiner",
-    response_class=ORJSONResponse,
-    deprecated=True,
-)
+@router.get("/combiner", deprecated=True)
 async def get_equipment_analysis_combiner(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
@@ -112,10 +101,7 @@ async def get_equipment_analysis_combiner(
     )
 
 
-@router.get(
-    "/tracker",
-    response_class=ORJSONResponse,
-)
+@router.get("/tracker")
 async def get_tracker(
     start: datetime.date,
     end: datetime.date,
@@ -138,10 +124,7 @@ async def get_tracker(
     )
 
 
-@router.get(
-    "/tracker/{pv_block_id}",
-    response_class=ORJSONResponse,
-)
+@router.get("/tracker/{pv_block_id}")
 async def get_tracker_by_pv_block_id(
     pv_block_id: int,
     start: datetime.datetime,
@@ -167,7 +150,7 @@ async def get_tracker_by_pv_block_id(
     )
 
 
-@router.get("/pcs", response_class=ORJSONResponse)
+@router.get("/pcs")
 async def get_equipment_analysis_pcs(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
@@ -190,7 +173,7 @@ async def get_equipment_analysis_pcs(
     )
 
 
-@router.get("/heatmap/{sensor_type_name_short}", response_class=ORJSONResponse)
+@router.get("/heatmap/{sensor_type_name_short}")
 async def get_heatmap(
     sensor_type_name_short: str,
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],

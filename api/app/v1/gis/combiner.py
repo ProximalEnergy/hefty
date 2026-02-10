@@ -7,7 +7,6 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 
 import core
@@ -26,7 +25,6 @@ router = APIRouter(
 @router.get(
     "/{project_id}/{block_device_id}",
     response_model=interfaces.GeoJSON,
-    response_class=ORJSONResponse,
 )
 async def get_combiner_block_performance(
     *,

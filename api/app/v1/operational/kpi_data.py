@@ -11,7 +11,6 @@ from core.crud.operational.device_types import get_device_types
 from core.database import get_db
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query, UploadFile
-from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -35,7 +34,6 @@ router = APIRouter(prefix="/kpi-data", tags=["kpi_data"])
     "",
     operation_id="get_kpi_data",
     response_model=list[interfaces.OperationalKPIData],
-    response_class=ORJSONResponse,
 )
 def get_kpi_data(
     start: datetime.date,

@@ -11,7 +11,6 @@ from core.database import get_db
 from core.db_query import OutputType
 from core.enumerations import DeviceType, KPIType, ProjectStatusType, SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import ORJSONResponse
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
@@ -29,7 +28,7 @@ router = APIRouter(
 )
 
 
-@router.get("/pcs", response_class=ORJSONResponse)
+@router.get("/pcs")
 async def get_pcs(
     project_id: UUID,
     start: datetime.datetime | None = None,
@@ -378,7 +377,7 @@ async def get_bess_enclosure(
     return return_data
 
 
-@router.get("/devices-in-viewport", response_class=ORJSONResponse)
+@router.get("/devices-in-viewport")
 async def get_devices_in_viewport(
     *,
     north: float,
@@ -602,7 +601,7 @@ async def get_devices_in_viewport(
 
         response_data.append(device_dict)
 
-    return ORJSONResponse(content=response_data)
+    return response_data
 
 
 # Removed @router.post decorator - this is now an internal helper function

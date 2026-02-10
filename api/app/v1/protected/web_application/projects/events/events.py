@@ -6,7 +6,6 @@ import pandas as pd
 from core.db_query import OutputType
 from core.enumerations import DeviceType
 from fastapi import APIRouter, Depends
-from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -372,7 +371,7 @@ async def get_meta_analysis(
     )
 
 
-@router.get("/home-page-summary", response_class=ORJSONResponse)
+@router.get("/home-page-summary")
 def get_events_home_page_summary(
     project_db: Session = Depends(get_project_db),
     sort_by: Literal["daily", "total"] = "daily",

@@ -7,7 +7,6 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorType, TimeOffset
 from fastapi import APIRouter, Depends
-from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 
 import core
@@ -23,7 +22,7 @@ router = APIRouter(
 )
 
 
-@router.get("/meter-power-and-expected-power-v2", response_class=ORJSONResponse)
+@router.get("/meter-power-and-expected-power-v2")
 async def get_meter_power_and_expected_power_v2(
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,

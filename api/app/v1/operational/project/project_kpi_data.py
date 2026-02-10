@@ -13,7 +13,6 @@ from core.database import get_db
 from core.db_query import OutputType
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import ORJSONResponse
 from pandas.tseries.offsets import DateOffset
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -79,7 +78,6 @@ class ProjectKPIData(BaseModel):
 @router.get(
     "/agg-freq",
     response_model=ProjectKPIData,
-    response_class=ORJSONResponse,
 )
 async def get_project_aggregated_kpi_data_freq(
     *,
@@ -137,7 +135,6 @@ async def get_project_aggregated_kpi_data_freq(
 @router.get(
     "/agg",
     response_model=float,
-    response_class=ORJSONResponse,
 )
 async def get_project_aggregated_kpi_data(
     *,
@@ -209,7 +206,6 @@ def get_contractual_kpi_type_ids(*, db: Session, project_id: uuid.UUID):
 @router.get(
     "/kpi-summary-cards",
     response_model=list[interfaces.KPISummary],
-    response_class=ORJSONResponse,
 )
 def get_project_kpi_summary(
     project_id: uuid.UUID,
@@ -426,7 +422,6 @@ def get_project_kpi_summary(
 @router.get(
     "/contract-kpis",
     response_model=list[interfaces.ContractKPIs],
-    response_class=ORJSONResponse,
     operation_id="get_project_contract_kpis",
 )
 def get_contract_kpis(
@@ -500,10 +495,7 @@ def get_contract_kpis(
     return contract_kpis_with_counterparty
 
 
-@router.get(
-    "/llm-kpis",
-    response_class=ORJSONResponse,
-)
+@router.get("/llm-kpis")
 def get_llm_kpis(
     project_id: uuid.UUID,
     start: datetime.datetime | None = None,
@@ -552,10 +544,7 @@ class RTEResponse(BaseModel):
     rte: float | None
 
 
-@router.get(
-    "/rte",
-    response_class=ORJSONResponse,
-)
+@router.get("/rte")
 async def get_rte(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_async_db)],

@@ -6,7 +6,6 @@ import pandas as pd
 from core.db_query import OutputType, postprocess_pandas_df
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -452,7 +451,6 @@ async def get_portfolio_home_long_term(
 @router.get(
     "/home",
     response_model=list[PortfolioHome],
-    response_class=ORJSONResponse,
 )
 async def get_home(
     project_ids: Annotated[list[UUID] | None, Query()] = None,

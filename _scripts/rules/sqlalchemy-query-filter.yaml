@@ -47,8 +47,8 @@ rules:
     severity: ERROR
     paths:
       include:
-        - core/src
-        - api/app
+        - "/**core/src**"
+        - "/**api/app**"
     pattern: return $QUERY.first()
   - id: sqlalchemy-no-return-one-or-none
     message: >-
@@ -59,8 +59,8 @@ rules:
     severity: ERROR
     paths:
       include:
-        - core/src
-        - api/app
+        - "/**core/src**"
+        - "/**api/app**"
     patterns:
       - pattern: return $QUERY.one_or_none()
       - pattern-not-inside: |
@@ -75,8 +75,8 @@ rules:
     severity: ERROR
     paths:
       include:
-        - core/src
-        - api/app
+        - "/**core/src**"
+        - "/**api/app**"
     patterns:
       - pattern: return $QUERY.scalar_one()
       - pattern-not-inside: |

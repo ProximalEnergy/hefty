@@ -10,7 +10,6 @@ from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
-from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -36,7 +35,6 @@ class UtilityExpectedResponse(BaseModel):
 @router.get(
     "",
     response_model=UtilityExpectedResponse,
-    response_class=ORJSONResponse,
 )
 async def utility_expected(
     device_id: int,

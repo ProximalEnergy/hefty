@@ -58,6 +58,9 @@ jobs:
           uvx semgrep --error --config
           _scripts/rules/with-async-db.yaml api/app
           --exclude api/app/dependencies.py
+      - name: Run Semgrep no orjsonresponse response class check
+        run: >
+          uvx semgrep --error --config _scripts/rules/fastapi-no-orjsonresponse-response-class.yaml
 
   mypy:
     runs-on: ubuntu-latest

@@ -2,7 +2,6 @@ from typing import Annotated
 
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 
 import core
@@ -15,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_class=ORJSONResponse)
+@router.get("")
 async def get_data_timeseries_last(
     project_db: Annotated[Session, Depends(get_project_db)],
     tag_ids: Annotated[list[int] | None, Query()] = None,

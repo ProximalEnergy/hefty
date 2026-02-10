@@ -1,0 +1,13 @@
+rules:
+  - id: fastapi-no-orjsonresponse-response-class
+    message: >
+      Avoid using ORJSONResponse directly in routes; rely on the app-level
+      default_response_class instead.
+    languages: [python]
+    severity: ERROR
+    pattern-either:
+      - pattern: $CALL(..., response_class=ORJSONResponse, ...)
+      - pattern: ORJSONResponse(...)
+    paths:
+      include:
+        - "/**api/app**"

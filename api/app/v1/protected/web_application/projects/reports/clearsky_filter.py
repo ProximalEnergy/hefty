@@ -6,7 +6,6 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import Depends, HTTPException
-from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 
 import core
@@ -15,7 +14,7 @@ from app.v1.protected.web_application.projects.reports.reports import router
 from core import models
 
 
-@router.get("/clearsky-poa", response_class=ORJSONResponse)
+@router.get("/clearsky-poa")
 async def get_clearsky_poa(
     *,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],

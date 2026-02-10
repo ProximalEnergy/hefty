@@ -9,7 +9,6 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
 from core.enumerations import TimeInterval
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import ORJSONResponse
 from natsort import natsorted
 from sqlalchemy.orm import Session
 
@@ -281,7 +280,7 @@ async def get_llm_time_series(
     return df.to_dict("tight")
 
 
-@router.get("/dataframe", response_class=ORJSONResponse)
+@router.get("/dataframe")
 async def get_project_dataframe_endpoint(
     tag_ids: Annotated[list[int], Query()] = [],
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
@@ -337,7 +336,7 @@ async def get_project_dataframe_endpoint(
     return df.to_dict("tight")
 
 
-@router.get("/time-series", response_class=ORJSONResponse)
+@router.get("/time-series")
 async def get_time_series(
     tag_ids: Annotated[list[int], Query()] = [],
     device_ids: Annotated[list[int], Query()] = [],

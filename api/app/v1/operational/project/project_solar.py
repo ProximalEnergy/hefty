@@ -3,7 +3,6 @@ from typing import Annotated
 
 import pandas as pd
 from fastapi import APIRouter, Depends
-from fastapi.responses import ORJSONResponse
 from pvlib import location
 from pydantic import BaseModel
 
@@ -25,9 +24,7 @@ class SolarPositionResponse(BaseModel):
     next_sunrise: datetime.datetime | None
 
 
-@router.get(
-    "/position", response_model=SolarPositionResponse, response_class=ORJSONResponse
-)
+@router.get("/position", response_model=SolarPositionResponse)
 def get_solar_position(
     project: Annotated[models.Project, Depends(get_project_api)],
     timestamp: datetime.datetime | None = None,

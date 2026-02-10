@@ -6,6 +6,7 @@ import sentry_sdk
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import ORJSONResponse
 from fastapi_mcp import FastApiMCP
 from pydantic.json_schema import PydanticJsonSchemaWarning
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -89,6 +90,7 @@ app = FastAPI(
     title="Proximal Energy API",
     description="Documentation for the Proximal Energy API",
     version=version,
+    default_response_class=ORJSONResponse,
 )
 
 app.add_middleware(

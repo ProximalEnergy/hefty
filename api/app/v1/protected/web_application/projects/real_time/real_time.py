@@ -13,7 +13,6 @@ from core.crud.project.data_timeseries_last import (
 from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import ORJSONResponse
 from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy import Float, cast, func, select
@@ -70,10 +69,7 @@ SENSOR_TYPE_NAME = {
 
 
 # --- 3) Expected power endpoint (must come before generic device_type_id route) ---
-@router.get(
-    "/{device_type_id}/expected-power",
-    response_class=ORJSONResponse,
-)
+@router.get("/{device_type_id}/expected-power")
 async def get_expected_power_by_device_type_id(
     device_type_id: int,
     project_db: Session = Depends(get_project_db),
@@ -186,7 +182,7 @@ async def get_expected_power_by_device_type_id(
 
 
 # --- 4) the main endpoint -----------------------------------------------
-@router.get("/{device_type_id}", response_class=ORJSONResponse)
+@router.get("/{device_type_id}")
 async def get_by_device_type_id(
     device_type_id: int,
     sensor_type_ids: Annotated[list[int] | None, Query()] = None,
@@ -309,7 +305,6 @@ class DeviceTypePowerSummary(BaseModel):
 @router.get(
     "/device-type-overview/power-summary",
     response_model=DeviceTypePowerSummary,
-    response_class=ORJSONResponse,
 )
 async def get_device_type_power_summary(
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],

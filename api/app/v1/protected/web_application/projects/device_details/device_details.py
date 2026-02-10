@@ -11,7 +11,6 @@ from core.db_query import OutputType
 from core.enumerations import DeviceType, TimeOffset
 from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import ORJSONResponse
 from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,10 +28,7 @@ router = APIRouter(
 )
 
 
-@router.get(
-    "/horizontal/bess",
-    response_class=ORJSONResponse,
-)
+@router.get("/horizontal/bess")
 async def get_horizontal_bess(
     start: datetime.datetime,
     end: datetime.datetime,
@@ -160,7 +156,6 @@ class DeviceDetailsHorizontalPV(BaseModel):
 
 @router.get(
     "/horizontal/pv",
-    response_class=ORJSONResponse,
     response_model=DeviceDetailsHorizontalPV,
 )
 async def get_horizontal_pv(
@@ -252,10 +247,7 @@ async def get_horizontal_pv(
     }
 
 
-@router.get(
-    "/single/{device_id}",
-    response_class=ORJSONResponse,
-)
+@router.get("/single/{device_id}")
 async def get_single_by_device_id(
     device_id: int,
     start: datetime.datetime,
@@ -485,10 +477,7 @@ async def get_vertical_controller(
     }
 
 
-@router.get(
-    "/vertical",
-    response_class=ORJSONResponse,
-)
+@router.get("/vertical")
 async def get_vertical(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
