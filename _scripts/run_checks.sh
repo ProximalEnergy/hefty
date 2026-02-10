@@ -9,6 +9,10 @@ set +e  # Don't exit on first error - we want to run all checks
 SKIP_TESTS=false
 RUN_ALL=false
 OFFLINE=false
+ASYNC_OFFLINE=false
+if [ "${AGENT_ENVIRONMENT}" = "async-offline" ]; then
+    ASYNC_OFFLINE=true
+fi
 for arg in "$@"; do
     case $arg in
         --static)
@@ -59,6 +63,18 @@ add_check() {
     CHECKS_NAME+=("$name")
     CHECKS_CMD+=("$cmd")
     CHECKS_IS_PARALLEL+=("$is_parallel")
+}
+
+add_db_check() {
+    local name="$1"
+    local cmd="$2"
+
+    if [ "${ASYNC_OFFLINE}" = "true" ]; then
+        echo -e "${YELLOW}Skipping ${name} (async offline env)${NC}"
+        return 0
+    fi
+
+    add_check "$name" "$cmd"
 }
 
 # Function to run a check and track its result
@@ -333,7 +349,7 @@ if [ "${RUN_CORE}" = "true" ]; then
         add_check "Core: Version" "check_core_version"
     fi
     add_check "Core: Type Checking (mypy)" "mise run core:types"
-    add_check "Core: Enum Validation" "mise run core:enum"
+    add_db_check "Core: Enum Validation" "mise run core:enum"
     add_check "Core: Unused Import Check" "mise run core:deptry"
     add_check "Core: Dead Code Check" "mise run core:vulture"
     add_check "Core: Docstring Args Check" "mise run core:docstring_args"
