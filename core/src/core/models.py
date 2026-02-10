@@ -131,6 +131,7 @@ class CompanyProject(Base):
         primary_key=True,
     )
     vector_store_id: Mapped[str]
+    data_access_start: Mapped[datetime.date | None]
 
     __table_args__ = {"schema": "admin"}
 
