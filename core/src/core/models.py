@@ -842,28 +842,6 @@ class StatusBoolean(Base):
     __table_args__ = {"schema": "operational"}
 
 
-class KPIAlert(Base):
-    __tablename__ = "kpi_alerts"
-    kpi_alert_id: Mapped[int] = mapped_column(
-        sa.SmallInteger,
-        primary_key=True,
-        autoincrement=False,
-    )
-    user_id: Mapped[str] = mapped_column(
-        sa.ForeignKey("admin.users.user_id"),
-        primary_key=True,
-    )
-    project_id: Mapped[uuid.UUID] = mapped_column(
-        sa.ForeignKey("operational.projects.project_id"),
-    )
-    kpi_type_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("operational.kpi_types.kpi_type_id"),
-    )
-    config: Mapped[dict] = mapped_column(JSONB)
-
-    __table_args__ = {"schema": "operational"}
-
-
 class KPIInstance(Base):
     __tablename__ = "kpi_instances"
 

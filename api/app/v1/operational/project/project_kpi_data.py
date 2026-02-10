@@ -21,12 +21,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, aliased
 
 from app import interfaces
-from app._crud.operational.kpi_alerts import add_kpi_alert as crud_add_kpi_alert
-from app._crud.operational.kpi_alerts import delete_kpi_alert as crud_delete_kpi_alert
-from app._crud.operational.kpi_alerts import (
-    get_user_kpi_alerts as crud_get_user_kpi_alerts,
-)
-from app._crud.operational.kpi_alerts import update_kpi_alert as crud_update_kpi_alert
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_data import get_kpi_data_async as crud_get_kpi_data_async
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
@@ -427,99 +421,6 @@ def get_project_kpi_summary(
         dict_out[kpi_type.kpi_type_id] = temp_dict
 
     return list(dict_out.values())
-
-
-@router.get(
-    "/kpi-alerts",
-    response_model=list[interfaces.KPIAlert],
-    response_class=ORJSONResponse,
-)
-async def get_user_kpi_alerts(
-    project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
-    kpi_type_id: int | None = None,
-):
-    """todo
-
-    Args:
-        project_id: Description for project_id.
-        db: Description for db.
-        user_data: Description for user_data.
-        kpi_type_id: Description for kpi_type_id.
-    """
-    user_id = user_data.user_id
-    data = await crud_get_user_kpi_alerts(
-        db,
-        user_id=user_id,
-        project_id=project_id,
-        kpi_type_id=kpi_type_id,
-    )
-
-    return data
-
-
-@router.post("/kpi-alerts")
-async def get_project_kpi_alerts(
-    project_id: uuid.UUID,
-    data: interfaces.KPIAlertAdd,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
-):
-    """todo
-
-    Args:
-        project_id: Description for project_id.
-        data: Description for data.
-        db: Description for db.
-        user_data: Description for user_data.
-    """
-    kpi_type_id = int(data.kpi_type_id)
-    config = data.__dict__
-    return await crud_add_kpi_alert(
-        db=db,
-        user_id=user_data.user_id,
-        project_id=project_id,
-        kpi_type_id=kpi_type_id,
-        config=config,
-    )
-
-
-@router.put("/update-kpi-alert")
-async def update_kpi_alert(
-    data: interfaces.KPIAlertUpdate,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-):
-    """todo
-
-    Args:
-        data: Description for data.
-        db: Description for db.
-    """
-    kpi_type_id = int(data.kpi_type_id)
-    config = data.__dict__
-    return await crud_update_kpi_alert(
-        db=db,
-        kpi_type_id=kpi_type_id,
-        config=config,
-    )
-
-
-@router.delete("/kpi-alerts")
-async def delete_kpi_alert(
-    data: interfaces.KPIDelete,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-):
-    """todo
-
-    Args:
-        data: Description for data.
-        db: Description for db.
-    """
-    return await crud_delete_kpi_alert(
-        db=db,
-        alert_id=data.alert_id,
-    )
 
 
 @router.get(

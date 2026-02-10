@@ -258,7 +258,7 @@ async def deep_delete_project(
     Deep delete a project by removing all related records from tables that reference it:
     1. Admin tables: user_projects, user_subscriptions, company_projects,
     company_permissions, user_permissions
-    2. Operational tables: documents, contracts, kpi_alerts, kpi_instances,
+    2. Operational tables: documents, contracts, kpi_instances,
     data_timeseries, kpi_data, project_data_last_updated, report_instances, cmms_devices
     3. Finally the project itself from operational.projects
 
@@ -359,18 +359,6 @@ async def deep_delete_project(
         result = await db.execute(delete_stmt)
         result = cast(CursorResult, result)
         deletion_counts["contracts"] = result.rowcount
-
-        # kpi_alerts (if exists)
-        try:
-            delete_stmt = delete(models.KPIAlert).where(
-                models.KPIAlert.project_id == project_id
-            )
-            result = await db.execute(delete_stmt)
-            result = cast(CursorResult, result)
-            deletion_counts["kpi_alerts"] = result.rowcount
-        except AttributeError:
-            # KPIAlert model might not exist or have different structure
-            pass
 
         # kpi_instances
         delete_stmt = delete(models.KPIInstance).where(

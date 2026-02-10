@@ -17,12 +17,6 @@ from sqlalchemy.orm import Session
 
 import core
 from app import interfaces, utils
-from app._crud.operational.kpi_alerts import (
-    get_user_triggered_alerts as crud_get_user_triggered_alerts,
-)
-from app._crud.operational.kpi_alerts import (
-    trigger_user_alert as crud_trigger_user_alert,
-)
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app.dependencies import (
@@ -217,42 +211,6 @@ def get_kpi_data_helper(
         return_data.append(data)
 
     return return_data
-
-
-@router.get("/user-triggered-alerts")
-async def get_triggered_user_alerts(
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-    user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
-):
-    """todo
-
-    Args:
-        db: Description for db.
-        user_data: Description for user_data.
-    """
-    user_alerts = await crud_get_user_triggered_alerts(db, user_id=user_data.user_id)
-    data_triggered = [x for x in user_alerts if x.config and x.config["triggered"]]
-    return data_triggered
-
-
-@router.post("/trigger-user-alert")
-async def trigger_alert(
-    kpi_alert_id: int,
-    triggered: bool,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-):
-    """todo
-
-    Args:
-        kpi_alert_id: Description for kpi_alert_id.
-        triggered: Description for triggered.
-        db: Description for db.
-    """
-    return await crud_trigger_user_alert(
-        db=db,
-        kpi_alert_id=kpi_alert_id,
-        triggered=triggered,
-    )
 
 
 @router.get(

@@ -132,7 +132,6 @@ import BatterySettlement from './pages/projects/finances/BatterySettlement'
 // GIS
 import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
 import PCSGIS from './pages/projects/gis/pcs-gis'
-import ProjectKPIAlerts from './pages/projects/kpis/ProjectKPIAlerts'
 import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPITemplate from './pages/projects/kpis/ProjectKPITemplate'
 import ProjectKPIHome from './pages/projects/kpis/project-kpi-home/ProjectKPIHome'
@@ -417,7 +416,6 @@ const ClerkProviderWithRoutes = () => {
               {/* KPIs */}
               <Route path="kpis">
                 <Route index element={<ProjectKPIHome />} />
-                <Route path="alerts" element={<ProjectKPIAlerts />} />
                 <Route
                   path="contractual/:nameShort"
                   element={<ProjectKPIContractual />}

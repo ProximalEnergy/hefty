@@ -6,19 +6,6 @@ import type { Device } from './devices'
 export * from './devices'
 export * from './projectTags'
 
-export const statisticOptions = [
-  { value: 'sum', label: 'Sum' },
-  { value: 'mean', label: 'Mean' },
-  { value: 'std', label: 'Standard Deviation' },
-  { value: 'min', label: 'Minimum' },
-  { value: 'max', label: 'Maximum' },
-  { value: 'median', label: 'Median' },
-  { value: 'count', label: 'Count' },
-  { value: 'range', label: 'Range' },
-  { value: 'available_data', label: 'Available Data' },
-] as const
-
-export type StatisticType = (typeof statisticOptions)[number]['value']
 export type StatisticIcon =
   | 'events'
   | 'pcs'
@@ -314,35 +301,6 @@ export interface GISPCS {
       red_outline: boolean
     }
   }
-}
-
-export interface KPIInstanceProps {
-  name_short: string
-  name_long: string
-  unit: string
-  kpi_type_id: number
-  description?: string
-  aggregation_method: string
-  device_type_id: number
-}
-
-interface alertProps {
-  alert_name: string
-  comparison: string | null
-  duration_value: string | null
-  kpi_type_id: string | null
-  statistic: StatisticType | null
-  notify: boolean
-  threshold_value: number | null | string
-  triggered: boolean | null
-}
-
-export interface KPIAlertProps {
-  kpi_alert_id: number
-  user_id: string
-  project_id: string
-  kpi_type_id: string
-  config: alertProps
 }
 
 export interface SunburstProps {

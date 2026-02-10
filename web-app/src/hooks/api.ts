@@ -1,7 +1,6 @@
 import type { operations } from '@/api/schema'
 import { KPIType } from '@/api/v1/operational/kpi_types'
 import * as types from '@/hooks/types'
-import { StatisticType } from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
 import {
@@ -335,30 +334,6 @@ export const useGetTags = ({
   return useCustomQuery<types.Tag[]>({
     axiosConfig,
     queryName: 'getTags',
-    pathParams,
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useGetKPIAlerts = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: { kpi_type_id?: number }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/kpi-data/kpi-alerts/`,
-  }
-
-  const defaultQueryOptions = {}
-
-  return useCustomQuery<types.KPIAlertProps[]>({
-    axiosConfig,
-    queryName: 'getKPIAlerts',
     pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
@@ -771,143 +746,6 @@ export const useGetResourceNetPower = ({
     queryName: 'getResourceNetPower',
     pathParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
-export const useAddKPIAlert = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({
-      project_id,
-      alert_name,
-      comparison,
-      duration_value,
-      kpi_type_id,
-      statistic,
-      notify,
-      threshold_value,
-      triggered,
-    }: {
-      project_id: string
-      alert_name: string
-      comparison: string | null
-      duration_value: string | null
-      kpi_type_id: string | null
-      statistic: StatisticType | null
-      notify: boolean
-      threshold_value: number | null | string
-      triggered: boolean | null
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'post',
-        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/kpi-alerts`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          project_id,
-          alert_name,
-          comparison,
-          duration_value,
-          kpi_type_id,
-          statistic,
-          notify,
-          threshold_value,
-          triggered,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
-    },
-  })
-}
-
-export const useUpdateKPIAlert = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({
-      kpi_alert_id,
-      project_id,
-      alert_name,
-      comparison,
-      duration_value,
-      kpi_type_id,
-      statistic,
-      notify,
-      threshold_value,
-      triggered,
-    }: {
-      kpi_alert_id: number
-      project_id: string
-      alert_name: string
-      comparison: string | null
-      duration_value: string | null
-      kpi_type_id: string | null
-      statistic: StatisticType | null
-      notify: boolean
-      threshold_value: number | null | string
-      triggered: boolean | null
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'put',
-        url:
-          `${baseURL}/v1/operational/projects/` +
-          `${project_id}/kpi-data/update-kpi-alert`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          kpi_alert_id,
-          project_id,
-          alert_name,
-          comparison,
-          duration_value,
-          kpi_type_id,
-          statistic,
-          notify,
-          threshold_value,
-          triggered,
-        },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
-    },
-  })
-}
-
-export const useDeleteKPIAlert = () => {
-  const { getToken } = useAuth()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({
-      project_id,
-      alert_id,
-    }: {
-      project_id: string
-      alert_id: number
-    }) => {
-      const token = await getToken({ template: 'default' })
-      return axios({
-        method: 'delete',
-        url: `${baseURL}/v1/operational/projects/${project_id}/kpi-data/kpi-alerts/`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: { alert_id },
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getKPIAlerts'] })
-    },
   })
 }
 

@@ -601,35 +601,6 @@ class KPIInstance(BaseModel):
     kpi_type: KPIType | None = None
 
 
-class KPIAlertPost(BaseModel):
-    """
-    Inherited by:
-    - KPIAlertAdd
-    - KPIAlertUpdate
-    """
-
-    project_id: str
-    alert_name: str
-    comparison: str
-    duration_value: str
-    kpi_type_id: str
-    statistic: str | None = None
-    notify: bool
-    threshold_value: float
-
-
-class KPIAlertAdd(KPIAlertPost):
-    """Kpialertadd model."""
-
-    triggered: bool
-
-
-class KPIAlertUpdate(KPIAlertPost):
-    """Kpialertupdate model."""
-
-    kpi_alert_id: int
-
-
 class DeviceDataObj(BaseModel):
     """Devicedataobj model."""
 
@@ -666,22 +637,6 @@ class OperationalKPIData(BaseModel):
     project_id: uuid.UUID
     kpi_type_id: int
     data: OperationalKPIDataObj
-
-
-class KPIAlert(BaseModel):
-    """Kpialert model."""
-
-    kpi_alert_id: int
-    user_id: str
-    project_id: uuid.UUID
-    kpi_type_id: int
-    config: dict
-
-
-class KPIDelete(BaseModel):
-    """Kpidelete model."""
-
-    alert_id: int
 
 
 class TagV1(BaseModel):
