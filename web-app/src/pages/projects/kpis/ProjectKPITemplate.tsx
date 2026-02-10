@@ -507,13 +507,18 @@ const SelectableChartCard = ({
                           text: 'Device',
                         },
                       },
+                      margin: {
+                        b: 80,
+                      },
                       plot_bgcolor:
-                        computedColorScheme === 'dark' ? '#2C2E33' : '#F8F9FA', // Theme-aware background for null values
+                        computedColorScheme === 'dark' ? '#2C2E33' : '#F8F9FA',
+                      // Theme-aware background for null values.
                     }
           }
           colorscale={
-            // For temperature heatmaps, use custom colorscale from data (undefined = use data colorscale)
-            // For all other plots, use the red-green scale from PlotlyPlot
+            // For temperature heatmaps, use custom colorscale from data
+            // (undefined = use data colorscale). For all other plots, use
+            // the red-green scale from PlotlyPlot.
             plotType === 'heatmap' && kpiType.unit === 'C'
               ? undefined
               : KPI_TYPE_IDS_REVERSE.includes(kpiType.kpi_type_id)
@@ -630,7 +635,15 @@ const DevicePlotCard = ({
               tickformat: kpiType.unit === '%' ? ',.0%' : ',.2f',
               title: {
                 text: yAxisTitle,
+                side: 'top',
               },
+              orientation: 'h',
+              x: 0.5,
+              xanchor: 'center',
+              y: -0.25,
+              yanchor: 'top',
+              len: 0.6,
+              thickness: 12,
             },
             // Use a custom colorscale only for temperature KPIs (Celsius)
             // For non-temperature KPIs, the colorscale prop will apply the red-green scale
