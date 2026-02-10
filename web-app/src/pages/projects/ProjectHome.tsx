@@ -1,12 +1,8 @@
-import { KPITypeEnum, ProjectTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum } from '@/api/enumerations'
 import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
-import {
-  useGetContractKPIs,
-  useGetOperationalKPIData,
-} from '@/api/v1/operational/kpi_data'
+import { useGetContractKPIs } from '@/api/v1/operational/kpi_data'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
-import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import {
   Project,
   useGetProjects,
@@ -20,26 +16,19 @@ import KPICard, { EmptyKPICard } from '@/components/KPICard'
 import { PageLoader } from '@/components/Loading'
 import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
-import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
-import { BESSEnclosureGIS } from '@/pages/projects/gis/bess-enclosure-gis'
 import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
-import { getInterval, roundTime } from '@/utils/interval'
 import { projectDescription } from '@/utils/projectDescription'
 import {
   ActionIcon,
-  Badge,
   Box,
   Button,
   Card,
   Center,
-  Grid,
   Group,
-  List,
   LoadingOverlay,
-  Menu,
   Modal,
   Popover,
   ScrollArea,
@@ -55,10 +44,6 @@ import {
 } from '@mantine/core'
 import { useElementSize } from '@mantine/hooks'
 import {
-  IconActivity,
-  IconArrowLeft,
-  IconArrowRight,
-  IconCaretDown,
   IconChevronDown,
   IconChevronUp,
   IconCursorText,
@@ -74,417 +59,25 @@ import {
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import type { Data } from 'plotly.js'
-import { PlotRelayoutEvent } from 'plotly.js'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-
-import AdaptiveGisBESS from './gis/adaptive-gis-bess'
 
 // Extend dayjs with timezone support
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-const PowerPlotBESS = () => {
-  const { projectId } = useParams()
-  const theme = useMantineTheme()
-  const [startTime, setStartTime] = useState<string>(
-    dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .subtract(24, 'hours')
-      .toISOString(),
-  )
-  const [endTime, setEndTime] = useState<string>(
-    dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .toISOString(),
-  )
-  const [interval, setInterval] = useState<string>('5min')
-  const [isAutoUpdating, setIsAutoUpdating] = useState(true) // Track if we should auto-update the range
-
-  const handleDefaultView = () => {
-    const newEndTime = dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .toISOString()
-    const newStartTime = dayjs()
-      .minute(Math.floor(dayjs().minute() / 5) * 5)
-      .second(0)
-      .subtract(24, 'hours')
-      .toISOString()
-    setEndTime(newEndTime)
-    setStartTime(newStartTime)
-    setInterval(getInterval(newStartTime, newEndTime))
-    setIsAutoUpdating(true) // Re-enable auto-update when resetting to default view
-  }
-
-  const handleTimeRangeChange = (range: '48h' | '7d' | 'yesterday') => {
-    let start = dayjs()
-    const end = dayjs()
-
-    if (range === '48h') {
-      start = end.subtract(48, 'hours')
-    } else if (range === '7d') {
-      start = end.subtract(7, 'days')
-    } else if (range === 'yesterday') {
-      start = dayjs().subtract(1, 'day').startOf('day')
-      setIsAutoUpdating(false) // Disable auto-update for "yesterday" view
-    } else {
-      setIsAutoUpdating(true) // Enable auto-update for relative time ranges
-    }
-
-    setStartTime(start.toISOString())
-    setEndTime(end.toISOString())
-    setInterval(getInterval(start.toISOString(), end.toISOString()))
-  }
-
-  const handlePan = (direction: 'left' | 'right') => {
-    const range = dayjs(endTime).diff(dayjs(startTime), 'minute')
-    const newStartTime =
-      direction === 'left'
-        ? dayjs(startTime).subtract(range, 'minute').toISOString()
-        : dayjs(startTime).add(range, 'minute').toISOString()
-    const newEndTime =
-      direction === 'left'
-        ? dayjs(endTime).subtract(range, 'minute').toISOString()
-        : dayjs(endTime).add(range, 'minute').toISOString()
-    setStartTime(newStartTime)
-    setEndTime(newEndTime)
-    setIsAutoUpdating(false) // Disable auto-update when user manually pans
-  }
-
-  const handleRelayout = (event: Readonly<PlotRelayoutEvent>) => {
-    const newStartTime = event['xaxis.range[0]']
-    const newEndTime = event['xaxis.range[1]']
-
-    if (newStartTime && newEndTime) {
-      // Convert Plotly time values to proper ISO strings
-      // Plotly returns time values as local time strings, but we need to interpret them as project timezone
-      const projectTimezone = project.data?.time_zone || 'UTC'
-
-      const newStartTimeStr =
-        typeof newStartTime === 'number'
-          ? new Date(newStartTime).toISOString()
-          : dayjs.tz(String(newStartTime), projectTimezone).utc().toISOString()
-      const newEndTimeStr =
-        typeof newEndTime === 'number'
-          ? new Date(newEndTime).toISOString()
-          : dayjs.tz(String(newEndTime), projectTimezone).utc().toISOString()
-
-      const currentStart = dayjs(startTime)
-      const currentEnd = dayjs(endTime)
-      const newStart = dayjs(newStartTimeStr)
-      const newEnd = dayjs(newEndTimeStr)
-
-      if (
-        Math.abs(currentStart.diff(newStart, 'minute')) > 1 ||
-        Math.abs(currentEnd.diff(newEnd, 'minute')) > 1
-      ) {
-        setStartTime(newStartTimeStr)
-        setEndTime(newEndTimeStr)
-        setInterval(getInterval(newStartTimeStr, newEndTimeStr))
-        setIsAutoUpdating(false) // Disable auto-update when user manually zooms
-      }
-    }
-  }
-
-  const project = useSelectProject(projectId!)
-
-  // Auto-update time range for "last 24 hours" view
-  useEffect(() => {
-    if (!isAutoUpdating) return
-
-    const updateTimeRange = () => {
-      const now = dayjs()
-      const newEndTime = now
-        .minute(Math.floor(now.minute() / 5) * 5)
-        .second(0)
-        .toISOString()
-      const newStartTime = now
-        .minute(Math.floor(now.minute() / 5) * 5)
-        .second(0)
-        .subtract(24, 'hours')
-        .toISOString()
-
-      setEndTime(newEndTime)
-      setStartTime(newStartTime)
-      setInterval(getInterval(newStartTime, newEndTime))
-    }
-
-    // Update immediately
-    updateTimeRange()
-
-    // Then update every minute to keep the range current
-    const intervalId = window.setInterval(updateTimeRange, 60 * 1000)
-
-    return () => window.clearInterval(intervalId)
-  }, [isAutoUpdating])
-
-  const data = useGetTimeSeries({
-    pathParams: { project_id: projectId || '-1' },
-    queryParams: {
-      sensor_type_name_shorts: [
-        'meter_active_power',
-        'project_soc_percent',
-        'bess_pcs_available_charge_power',
-        'bess_pcs_available_discharge_power',
-      ],
-      start: roundTime(startTime, interval, 'down'),
-      end: roundTime(endTime, interval, 'up'),
-      interval: interval,
-    },
-    queryOptions: {
-      enabled: !!project.data && !!startTime && !!endTime,
-      refetchOnWindowFocus: false,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
-    },
-  })
-
-  // Aggregate project-level available charge/discharge power from all PCS devices
-  const timeSeriesData = data.data
-  const projectDetails = project.data
-
-  const aggregatedData = useMemo(() => {
-    if (!timeSeriesData || !projectDetails) return timeSeriesData
-
-    const chargeTraces = timeSeriesData.filter(
-      (d) => d.sensor_type_name === 'bess_pcs_available_charge_power',
-    )
-    const dischargeTraces = timeSeriesData.filter(
-      (d) => d.sensor_type_name === 'bess_pcs_available_discharge_power',
-    )
-    const otherTraces = timeSeriesData.filter(
-      (d) =>
-        d.sensor_type_name !== 'bess_pcs_available_charge_power' &&
-        d.sensor_type_name !== 'bess_pcs_available_discharge_power',
-    )
-
-    const aggregated: typeof timeSeriesData = [...otherTraces]
-
-    // Get current time to filter out future timestamps
-    const now = dayjs()
-
-    // Aggregate charge power: sum all PCS values, divide by -1000, clip to -poi
-    if (chargeTraces.length > 0) {
-      const poi = projectDetails.poi
-      const firstTrace = chargeTraces[0]
-
-      // Filter out future timestamps
-      const filteredIndices = firstTrace.x
-        .map((timestamp, idx) => ({
-          timestamp,
-          idx,
-        }))
-        .filter(
-          ({ timestamp }) =>
-            dayjs(timestamp).isBefore(now) || dayjs(timestamp).isSame(now),
-        )
-        .map(({ idx }) => idx)
-
-      const filteredX = filteredIndices.map((idx) => firstTrace.x[idx])
-      const aggregatedY = filteredIndices.map((idx) => {
-        const values = chargeTraces.map((trace) => trace.y[idx])
-        // If all values are null/undefined, return null to avoid showing zero
-        if (values.every((v) => v === null || v === undefined)) {
-          return null
-        }
-        const sum = values.reduce<number>((acc, v) => acc + (v || 0), 0)
-        const mw = sum / -1000
-        return Math.max(mw, -poi)
-      })
-
-      // Only add trace if there's at least one non-null value
-      if (aggregatedY.some((v) => v !== null)) {
-        aggregated.push({
-          ...firstTrace,
-          x: filteredX,
-          y: aggregatedY as number[], // Plotly supports null for gaps, cast to satisfy type
-          name: 'Available Charge Power',
-        })
-      }
-    }
-
-    // Aggregate discharge power: sum all PCS values, divide by 1000, clip to poi
-    if (dischargeTraces.length > 0) {
-      const poi = projectDetails.poi
-      const firstTrace = dischargeTraces[0]
-
-      // Filter out future timestamps
-      const filteredIndices = firstTrace.x
-        .map((timestamp, idx) => ({
-          timestamp,
-          idx,
-        }))
-        .filter(
-          ({ timestamp }) =>
-            dayjs(timestamp).isBefore(now) || dayjs(timestamp).isSame(now),
-        )
-        .map(({ idx }) => idx)
-
-      const filteredX = filteredIndices.map((idx) => firstTrace.x[idx])
-      const aggregatedY = filteredIndices.map((idx) => {
-        const values = dischargeTraces.map((trace) => trace.y[idx])
-        // If all values are null/undefined, return null to avoid showing zero
-        if (values.every((v) => v === null || v === undefined)) {
-          return null
-        }
-        const sum = values.reduce<number>((acc, v) => acc + (v || 0), 0)
-        const mw = sum / 1000
-        return Math.min(mw, poi)
-      })
-
-      // Only add trace if there's at least one non-null value
-      if (aggregatedY.some((v) => v !== null)) {
-        aggregated.push({
-          ...firstTrace,
-          x: filteredX,
-          y: aggregatedY as number[], // Plotly supports null for gaps, cast to satisfy type
-          name: 'Available Discharge Power',
-        })
-      }
-    }
-
-    return aggregated
-  }, [projectDetails, timeSeriesData])
-
-  return (
-    <CustomCard
-      title="Meter Power"
-      style={{ flex: 2 }}
-      headerChildren={
-        <Group>
-          <Tooltip label="Pan Left">
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => handlePan('left')}
-            >
-              <IconArrowLeft />
-            </Button>
-          </Tooltip>
-          <Button.Group>
-            <Tooltip label="Reset to the last 24 hours. You can also zoom by scrolling.">
-              <Button size="xs" variant="outline" onClick={handleDefaultView}>
-                Last 24 Hours
-              </Button>
-            </Tooltip>
-            <Menu>
-              <Menu.Target>
-                <Tooltip label="Select a time range">
-                  <Button size="xs" variant="outline">
-                    <IconCaretDown />
-                  </Button>
-                </Tooltip>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={() => handleTimeRangeChange('yesterday')}>
-                  Yesterday
-                </Menu.Item>
-                <Menu.Item onClick={() => handleTimeRangeChange('48h')}>
-                  Last 48 Hours
-                </Menu.Item>
-                <Menu.Item onClick={() => handleTimeRangeChange('7d')}>
-                  Last 7 Days
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Button.Group>
-          <Tooltip label="Pan Right">
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => handlePan('right')}
-            >
-              <IconArrowRight />
-            </Button>
-          </Tooltip>
-        </Group>
-      }
-    >
-      <PlotlyPlot
-        data={aggregatedData?.map((d) => {
-          const isAvailableCharge =
-            d.sensor_type_name === 'bess_pcs_available_charge_power'
-          const isAvailableDischarge =
-            d.sensor_type_name === 'bess_pcs_available_discharge_power'
-          const isSoc = d.sensor_type_name === 'project_soc_percent'
-
-          return {
-            x: d.x,
-            y: d.y,
-            name: d.name,
-            fill:
-              isSoc || isAvailableCharge || isAvailableDischarge
-                ? null
-                : 'tozeroy',
-            line: {
-              color: isSoc
-                ? theme.colors.blue[7]
-                : isAvailableCharge || isAvailableDischarge
-                  ? theme.colors.orange[7]
-                  : theme.colors.green[7],
-              dash:
-                isAvailableCharge || isAvailableDischarge ? 'dot' : undefined,
-            },
-            yaxis: isSoc ? 'y2' : 'y',
-          }
-        })}
-        layout={
-          project.data && {
-            yaxis: {
-              title: { text: 'Power (MW)' },
-              fixedrange: true,
-              range: [project.data.poi * 1.05 * -1, project.data.poi * 1.05],
-            },
-            yaxis2: {
-              title: { text: 'SOC' },
-              fixedrange: true,
-              range: [0, 1.05],
-              overlaying: 'y',
-              side: 'right',
-              tickformat: '.0%',
-            },
-            xaxis: {
-              type: 'date',
-              fixedrange: false,
-              tickangle: 0,
-            },
-          }
-        }
-        onRelayout={handleRelayout}
-        isLoading={data.isLoading}
-        error={data.error}
-        config={{ responsive: true, scrollZoom: true }}
-      />
-    </CustomCard>
-  )
-}
-
-const PowerPlot = ({ projectType }: { projectType: number }) => {
-  if (projectType === ProjectTypeEnum.BESS) {
-    return <PowerPlotBESS />
-  }
-  return <PowerPlotPVZoom />
-}
-
 const CurrentTime = ({ timezone }: { timezone: string }) => {
-  const formattedTime = () => {
-    return dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss')
-  }
-
-  const [currentTime, setCurrentTime] = useState(formattedTime())
+  const [currentTime, setCurrentTime] = useState(() =>
+    dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss'),
+  )
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(formattedTime())
+      setCurrentTime(dayjs().tz(timezone).format('MMM D, YYYY HH:mm:ss'))
     }, 1000)
 
-    // Cleanup interval on component unmount
     return () => clearInterval(interval)
-  })
+  }, [timezone])
 
   return (
     <Text size="sm" style={{ fontFamily: 'monospace' }}>
@@ -632,9 +225,7 @@ const KPICards = () => {
 const EventTable = ({ project }: { project: Project }) => {
   const { projectId } = useParams()
   const [sortBy, setSortBy] = useState<'daily' | 'total'>('daily')
-  const showLosses =
-    project.project_type_id === ProjectTypeEnum.BESS ||
-    project.has_expected_energy_integration
+  const showLosses = project.has_expected_energy_integration
 
   const homepageSummary = useGetHomepageSummary({
     pathParams: { projectId: projectId || '-1' },
@@ -843,828 +434,6 @@ function KioskMode({
         onChange={(event) => setEnabled(event.currentTarget.checked)}
       />
     </Tooltip>
-  )
-}
-
-const BatteryHealth = () => {
-  const { projectId } = useParams()
-  const theme = useMantineTheme()
-  const navigate = useNavigate()
-  const [showCycleData, setShowCycleData] = useState(false)
-  const [showSocData, setShowSocData] = useState(false)
-  const [showRestSocData, setShowRestSocData] = useState(false)
-
-  // Get project data to access COD
-  const project = useSelectProject(projectId!)
-
-  // Battery Health KPI IDs - using string KPIs instead of bank KPIs
-  const batteryHealthKpiIds = [54, 55, 32, 25, 30, 49] // String SOH, Module SOH, String cycles, String SOC, String Rest SOC, String DOD
-
-  const kpiData = useGetKPISummaryCards({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: {
-      kpi_type_ids: batteryHealthKpiIds,
-    },
-    queryOptions: {
-      enabled: !!projectId,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
-    },
-  })
-
-  // Fetch daily KPI data for SOH chart
-  const dailyKpiData = useGetOperationalKPIData({
-    queryParams: {
-      project_ids: [projectId || '-1'],
-      kpi_type_ids: [KPITypeEnum.BESS_STRING_SOH],
-      start: project.data?.cod
-        ? dayjs(project.data.cod).format('YYYY-MM-DD')
-        : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
-      end: dayjs().format('YYYY-MM-DD'),
-      include_device_data: false,
-      include_all_dates: false,
-    },
-    queryOptions: {
-      enabled: !!projectId,
-      refetchInterval: 60 * 1000, // Refetch every 60 seconds
-      staleTime: 30 * 1000, // Consider data stale after 30 seconds
-    },
-  })
-
-  // Fetch daily cycle data for secondary axis
-  const dailyCycleData = useGetOperationalKPIData({
-    queryParams: {
-      project_ids: [projectId || '-1'],
-      kpi_type_ids: [KPITypeEnum.BESS_STRING_CYCLE_COUNT],
-      start: project.data?.cod
-        ? dayjs(project.data.cod).format('YYYY-MM-DD')
-        : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
-      end: dayjs().format('YYYY-MM-DD'),
-      include_device_data: false,
-      include_all_dates: false,
-    },
-    queryOptions: {
-      enabled: !!projectId && showCycleData,
-    },
-  })
-
-  // Fetch daily SOC data for secondary axis
-  const dailySocData = useGetOperationalKPIData({
-    queryParams: {
-      project_ids: [projectId || '-1'],
-      kpi_type_ids: [KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT],
-      start: project.data?.cod
-        ? dayjs(project.data.cod).format('YYYY-MM-DD')
-        : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
-      end: dayjs().format('YYYY-MM-DD'),
-      include_device_data: false,
-      include_all_dates: false,
-    },
-    queryOptions: {
-      enabled: !!projectId && showSocData,
-    },
-  })
-
-  // Fetch daily Rest SOC data for secondary axis
-  const dailyRestSocData = useGetOperationalKPIData({
-    queryParams: {
-      project_ids: [projectId || '-1'],
-      kpi_type_ids: [KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT],
-      start: project.data?.cod
-        ? dayjs(project.data.cod).format('YYYY-MM-DD')
-        : dayjs().subtract(2, 'years').format('YYYY-MM-DD'),
-      end: dayjs().format('YYYY-MM-DD'),
-      include_device_data: false,
-      include_all_dates: false,
-    },
-    queryOptions: {
-      enabled: !!projectId && showRestSocData,
-    },
-  })
-
-  // Extract specific KPI values
-  const sohData = kpiData.data?.find(
-    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-  )
-  const cycleData = kpiData.data?.find(
-    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_CYCLE_COUNT,
-  )
-  const avgSocData = kpiData.data?.find(
-    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT,
-  )
-  const restSocData = kpiData.data?.find(
-    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
-  )
-  const avgDodData = kpiData.data?.find(
-    (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_DEPTH_OF_DISCHARGE,
-  )
-
-  // Get the last available SOH value from daily data
-  const getLastSohValue = () => {
-    if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (
-        sohKpiData?.data?.project_data &&
-        sohKpiData.data.project_data.length > 0
-      ) {
-        // Get the last non-null value and convert to percentage
-        const lastValue = sohKpiData.data.project_data
-          .filter((val): val is number => val !== null)
-          .slice(-1)[0]
-        return lastValue ? lastValue * 100 : null
-      }
-    }
-    // Fallback to summary card data
-    return sohData?.ytd_value || sohData?.value || 100
-  }
-
-  const currentSoh = getLastSohValue() || 100
-
-  // Calculate expected SOH for current date
-  const getExpectedSoh = () => {
-    // Determine start date: use COD if available, otherwise use first available data date
-    let startDate: dayjs.Dayjs
-    if (project.data?.cod) {
-      startDate = dayjs(project.data.cod)
-    } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
-        startDate = dayjs(sohKpiData.data.dates[0])
-      } else {
-        return 100
-      }
-    } else {
-      return 100
-    }
-
-    const currentDate = dayjs()
-    const daysSinceStart = currentDate.diff(startDate, 'days')
-
-    // Daily degradation rate: 1% per year = 1/365 = 0.00274% per day
-    const dailyDegradationRate = 1 / 365
-    const expectedValue = Math.max(
-      100 - daysSinceStart * dailyDegradationRate,
-      80,
-    )
-
-    return expectedValue
-  }
-
-  // Calculate expected SOH for the last actual data point date
-  const getExpectedSohForLastDataPoint = () => {
-    if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
-        const lastDate = sohKpiData.data.dates[sohKpiData.data.dates.length - 1]
-
-        // Determine start date: use COD if available, otherwise use first available data date
-        let startDate: dayjs.Dayjs
-        if (project.data?.cod) {
-          startDate = dayjs(project.data.cod)
-        } else {
-          startDate = dayjs(sohKpiData.data.dates[0])
-        }
-
-        const lastDataDate = dayjs(lastDate)
-        const daysSinceStart = lastDataDate.diff(startDate, 'days')
-
-        // Daily degradation rate: 1% per year = 1/365 = 0.00274% per day
-        const dailyDegradationRate = 1 / 365
-        const expectedValue = Math.max(
-          100 - daysSinceStart * dailyDegradationRate,
-          80,
-        )
-
-        return expectedValue
-      }
-    }
-
-    // Fallback to current date calculation
-    return getExpectedSoh()
-  }
-
-  const expectedSoh = getExpectedSohForLastDataPoint()
-  const sohDifference = currentSoh - expectedSoh
-  const sohDifferenceFormatted =
-    sohDifference > 0
-      ? `+${sohDifference.toFixed(2)}%`
-      : `${sohDifference.toFixed(2)}%`
-  const sohDifferenceText = sohDifference > 0 ? 'above' : 'below'
-
-  // Create SOH degradation chart data and zoom range
-  const { chartData: sohChartData, defaultZoomRange } = useMemo(() => {
-    // Generate expected SOH data with proper dates (20 years from start date)
-    const generateExpectedSohData = () => {
-      // Determine start date: use COD if available, otherwise use first available data date
-      let startDate: dayjs.Dayjs
-      if (project.data?.cod) {
-        startDate = dayjs(project.data.cod)
-      } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-        const sohKpiData = dailyKpiData.data.find(
-          (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-        )
-        if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
-          startDate = dayjs(sohKpiData.data.dates[0])
-        } else {
-          return { x: [], y: [] }
-        }
-      } else {
-        return { x: [], y: [] }
-      }
-
-      const totalDays = 7300 // 20 years
-
-      // Generate dates from start date to 20 years out
-      const dates = []
-      const expectedSoh = []
-
-      for (let i = 0; i <= totalDays; i++) {
-        const currentDate = startDate.add(i, 'days')
-        dates.push(currentDate.format('YYYY-MM-DD'))
-
-        // Daily degradation rate: 1% per year = 1/365 = 0.00274% per day
-        const dailyDegradationRate = 1 / 365
-        const expectedValue = Math.max(100 - i * dailyDegradationRate, 80)
-        expectedSoh.push(expectedValue)
-      }
-
-      return { x: dates, y: expectedSoh }
-    }
-
-    const expectedSohData = generateExpectedSohData()
-
-    // Use real daily KPI data if available
-    let actualSohData: { x: string[]; y: number[] } | null = null
-    if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-      const sohKpiData = dailyKpiData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-      )
-      if (sohKpiData?.data?.dates && sohKpiData?.data?.project_data) {
-        const dates = sohKpiData.data.dates.map((date) =>
-          dayjs(date).format('YYYY-MM-DD'),
-        )
-        const values = sohKpiData.data.project_data
-          .filter((val): val is number => val !== null)
-          .map((val) => val * 100) // Convert from decimal to percentage
-        actualSohData = { x: dates, y: values }
-      }
-    }
-
-    // Calculate default zoom range based on actual data
-    const getDefaultZoomRange = () => {
-      if (actualSohData && actualSohData.x.length > 0) {
-        // If we have actual data, zoom to show that data with some padding
-        const startDate = actualSohData.x[0]
-        const endDate = actualSohData.x[actualSohData.x.length - 1]
-
-        // Add 30 days padding on each side
-        const paddedStart = dayjs(startDate)
-          .subtract(30, 'days')
-          .format('YYYY-MM-DD')
-        const paddedEnd = dayjs(endDate).add(30, 'days').format('YYYY-MM-DD')
-
-        return [paddedStart, paddedEnd]
-      }
-
-      // If no actual data, show first 2 years from start date
-      if (project.data?.cod) {
-        const codDate = dayjs(project.data.cod)
-        const twoYearsLater = codDate.add(2, 'years').format('YYYY-MM-DD')
-        return [project.data.cod, twoYearsLater]
-      } else if (dailyKpiData.data && dailyKpiData.data.length > 0) {
-        const sohKpiData = dailyKpiData.data.find(
-          (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_SOH,
-        )
-        if (sohKpiData?.data?.dates && sohKpiData.data.dates.length > 0) {
-          const startDate = dayjs(sohKpiData.data.dates[0])
-          const twoYearsLater = startDate.add(2, 'years').format('YYYY-MM-DD')
-          return [startDate.format('YYYY-MM-DD'), twoYearsLater]
-        }
-      }
-
-      return undefined
-    }
-
-    const defaultZoomRange = getDefaultZoomRange()
-
-    const chartData: Data[] = [
-      {
-        x: expectedSohData.x,
-        y: expectedSohData.y,
-        name: 'Expected SOH',
-        line: { color: theme.colors.gray[4], dash: 'dash', width: 2 },
-        type: 'scatter',
-        hovertemplate: '%{y:.2f}%<extra></extra>',
-      } satisfies Data,
-    ]
-
-    if (actualSohData && actualSohData.x.length > 0) {
-      chartData.push({
-        x: actualSohData.x,
-        y: actualSohData.y,
-        name: 'Actual SOH',
-        line: { color: theme.colors.blue[6], width: 3 },
-        type: 'scatter',
-        hovertemplate: '%{y:.2f}%<extra></extra>',
-      } satisfies Data)
-    }
-
-    // Add cycle data if enabled
-    if (
-      showCycleData &&
-      dailyCycleData.data &&
-      dailyCycleData.data.length > 0
-    ) {
-      const cycleKpiData = dailyCycleData.data.find(
-        (kpi) => kpi.kpi_type_id === KPITypeEnum.BESS_STRING_CYCLE_COUNT,
-      )
-      if (cycleKpiData?.data?.dates && cycleKpiData?.data?.project_data) {
-        const dates = cycleKpiData.data.dates.map((date) =>
-          dayjs(date).format('YYYY-MM-DD'),
-        )
-        const values = cycleKpiData.data.project_data.filter(
-          (val): val is number => val !== null,
-        )
-        chartData.push({
-          x: dates,
-          y: values,
-          name: 'Cycle Count',
-          type: 'bar',
-          yaxis: 'y2',
-          hovertemplate: '%{y:.0f}<extra></extra>',
-          marker: { color: theme.colors.gray[6] },
-        } satisfies Data)
-      }
-    }
-
-    // Add SOC data if enabled
-    if (showSocData && dailySocData.data && dailySocData.data.length > 0) {
-      const socKpiData = dailySocData.data.find(
-        (kpi) =>
-          kpi.kpi_type_id === KPITypeEnum.BESS_STRING_AVERAGE_SOC_PERCENT,
-      )
-      if (socKpiData?.data?.dates && socKpiData?.data?.project_data) {
-        const dates = socKpiData.data.dates.map((date) =>
-          dayjs(date).format('YYYY-MM-DD'),
-        )
-        const values = socKpiData.data.project_data
-          .filter((val): val is number => val !== null)
-          .map((val) => val * 100) // Convert to percentage
-        chartData.push({
-          x: dates,
-          y: values,
-          name: 'String SOC',
-          line: { color: theme.colors.green[6] },
-          type: 'scatter',
-          yaxis: 'y2',
-          hovertemplate: '%{y:.1f}%<extra></extra>',
-        } satisfies Data)
-      }
-    }
-
-    // Add Rest SOC data if enabled
-    if (
-      showRestSocData &&
-      dailyRestSocData.data &&
-      dailyRestSocData.data.length > 0
-    ) {
-      const restSocKpiData = dailyRestSocData.data.find(
-        (kpi) =>
-          kpi.kpi_type_id === KPITypeEnum.BESS_STRING_RESTING_SOC_PERCENT,
-      )
-      if (restSocKpiData?.data?.dates && restSocKpiData?.data?.project_data) {
-        const dates = restSocKpiData.data.dates.map((date) =>
-          dayjs(date).format('YYYY-MM-DD'),
-        )
-        const values = restSocKpiData.data.project_data
-          .filter((val): val is number => val !== null)
-          .map((val) => val * 100) // Convert to percentage
-        chartData.push({
-          x: dates,
-          y: values,
-          name: 'String Rest SOC',
-          line: { color: theme.colors.violet[6] },
-          type: 'scatter',
-          yaxis: 'y2',
-          hovertemplate: '%{y:.1f}%<extra></extra>',
-        } satisfies Data)
-      }
-    }
-
-    return { chartData, defaultZoomRange }
-  }, [
-    theme,
-    dailyKpiData.data,
-    project.data,
-    showCycleData,
-    dailyCycleData.data,
-    showSocData,
-    dailySocData.data,
-    showRestSocData,
-    dailyRestSocData.data,
-  ])
-
-  // Show loading state
-  if (kpiData.isLoading) {
-    return (
-      <CustomCard
-        title={
-          <Link
-            to={`/projects/${projectId}/battery-health`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            Battery Health
-          </Link>
-        }
-        style={{ height: 350, minHeight: 350 }}
-      >
-        <LoadingOverlay visible={true} />
-      </CustomCard>
-    )
-  }
-
-  const formatValue = (value: number | null | undefined, unit: string = '') => {
-    if (value === null || value === undefined) return 'N/A'
-    return `${value.toFixed(2)}${unit}`
-  }
-
-  // Calculate annual cycle count projection
-  const calculateAnnualCycles = (ytdValue: number | null | undefined) => {
-    if (!ytdValue) return null
-    const currentDate = new Date()
-    const startOfYear = new Date(currentDate.getFullYear(), 0, 1)
-    const daysElapsed =
-      (currentDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-    const daysInYear = 365
-    return Math.round((ytdValue / daysElapsed) * daysInYear)
-  }
-
-  const getSohColor = (soh: number) => {
-    if (soh >= 90) return theme.colors.green[6]
-    if (soh >= 80) return theme.colors.yellow[6]
-    return theme.colors.red[6]
-  }
-
-  // Check if we have any battery health data
-  const hasBatteryData = sohData || cycleData || avgSocData
-
-  if (!hasBatteryData) {
-    return (
-      <CustomCard
-        title={
-          <Link
-            to={`/projects/${projectId}/battery-health`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            Battery Health
-          </Link>
-        }
-        style={{ height: 350, minHeight: 350 }}
-      >
-        <Center h={200}>
-          <Text c="dimmed">No battery health data available</Text>
-        </Center>
-      </CustomCard>
-    )
-  }
-
-  return (
-    <CustomCard
-      title={
-        <Link
-          to={`/projects/${projectId}/battery-health`}
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          Battery Health
-        </Link>
-      }
-      allowFullscreen={false}
-      style={{ height: 350, minHeight: 350 }}
-    >
-      <Stack gap="md">
-        {/* SOH Degradation Chart */}
-        {sohData && (
-          <Box>
-            <Center>
-              <Box w="100%">
-                <PlotlyPlot
-                  data={sohChartData}
-                  layout={{
-                    height: 200,
-                    margin: { l: 40, r: 100, t: 20, b: 20 },
-                    dragmode: 'zoom',
-                    xaxis: {
-                      type: 'date',
-                      showgrid: true,
-                      gridcolor: theme.colors.gray[2],
-                      rangeslider: { visible: false },
-                      range: defaultZoomRange,
-                      fixedrange: false,
-                    },
-                    yaxis: {
-                      title: { text: 'SOH (%)' },
-                      range: [80, 100],
-                      showgrid: true,
-                      gridcolor: theme.colors.gray[2],
-                      tickformat: '.2f',
-                      fixedrange: true,
-                    },
-                    yaxis2:
-                      showCycleData || showSocData || showRestSocData
-                        ? {
-                            title: {
-                              text: showCycleData
-                                ? 'Cycle Count'
-                                : showSocData
-                                  ? 'String SOC (%)'
-                                  : 'String Rest SOC (%)',
-                              font: {
-                                color: showCycleData
-                                  ? theme.colors.gray[6]
-                                  : showSocData
-                                    ? theme.colors.green[6]
-                                    : theme.colors.violet[6],
-                              },
-                            },
-                            overlaying: 'y',
-                            side: 'right',
-                            showgrid: false,
-                            range: showCycleData ? [0, 2] : [0, 100],
-                            tickformat: showCycleData ? '.1f' : '.1f',
-                            fixedrange: true,
-                            tickfont: {
-                              color: showCycleData
-                                ? theme.colors.gray[6]
-                                : showSocData
-                                  ? theme.colors.green[6]
-                                  : theme.colors.violet[6],
-                            },
-                          }
-                        : undefined,
-                    showlegend: false,
-                    plot_bgcolor: 'transparent',
-                    paper_bgcolor: 'transparent',
-                  }}
-                  config={{
-                    scrollZoom: true,
-                    displayModeBar: false,
-                  }}
-                  isLoading={kpiData.isLoading}
-                  error={kpiData.error}
-                />
-              </Box>
-            </Center>
-
-            {/* Custom Legend Overlay */}
-            <Group justify="center" gap="lg" mt={-10} mb={10}>
-              <Group gap="xs" align="center">
-                <Box
-                  w={16}
-                  h={2}
-                  style={{
-                    backgroundColor: theme.colors.gray[4],
-                    borderTop: `2px dashed ${theme.colors.gray[4]}`,
-                  }}
-                />
-                <Text size="xs" c="dimmed">
-                  Expected SOH
-                </Text>
-              </Group>
-              <Group gap="xs" align="center">
-                <Box
-                  w={16}
-                  h={2}
-                  style={{
-                    backgroundColor: theme.colors.blue[6],
-                  }}
-                />
-                <Text size="xs" c="dimmed">
-                  Actual SOH
-                </Text>
-              </Group>
-            </Group>
-          </Box>
-        )}
-
-        {/* Key Metrics Grid */}
-        <Grid>
-          {/* SOH Metrics */}
-          <Grid.Col span={4}>
-            <Stack align="center" gap="xs">
-              {sohData ? (
-                <>
-                  <Box ta="center">
-                    <Text
-                      size="xl"
-                      fw={700}
-                      c={getSohColor(currentSoh)}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() =>
-                        navigate(`/projects/${projectId}/kpis/type/54`)
-                      }
-                      onMouseEnter={() => {
-                        setShowCycleData(false)
-                        setShowSocData(false)
-                        setShowRestSocData(false)
-                      }}
-                    >
-                      {formatValue(currentSoh, '%')}
-                    </Text>
-                    <Tooltip label={sohData.info || ''} withArrow>
-                      <Text
-                        size="xs"
-                        c="dimmed"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() =>
-                          navigate(`/projects/${projectId}/kpis/type/54`)
-                        }
-                        onMouseEnter={() => {
-                          setShowCycleData(false)
-                          setShowSocData(false)
-                          setShowRestSocData(false)
-                        }}
-                      >
-                        {sohData.title}
-                      </Text>
-                    </Tooltip>
-                    <Text size="xs" c="dimmed">
-                      {sohDifferenceFormatted} {sohDifferenceText} expected
-                    </Text>
-                  </Box>
-                </>
-              ) : (
-                <Box ta="center">
-                  <Text size="lg" c="dimmed">
-                    N/A
-                  </Text>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(`/projects/${projectId}/kpis/type/54`)
-                    }
-                  >
-                    System SOH
-                  </Text>
-                </Box>
-              )}
-            </Stack>
-          </Grid.Col>
-
-          {/* Cycles YTD */}
-          <Grid.Col span={4}>
-            <Stack align="center" gap="xs">
-              <Box ta="center">
-                <Text
-                  size="xl"
-                  fw={700}
-                  c={theme.colors.gray[6]}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    navigate(`/projects/${projectId}/kpis/type/32`)
-                  }
-                  onMouseEnter={() => {
-                    setShowCycleData(true)
-                    setShowSocData(false)
-                    setShowRestSocData(false)
-                  }}
-                >
-                  {formatValue(cycleData?.ytd_value || cycleData?.value, '')}
-                </Text>
-                <Tooltip label={cycleData?.info || ''} withArrow>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(`/projects/${projectId}/kpis/type/32`)
-                    }
-                    onMouseEnter={() => {
-                      setShowCycleData(true)
-                      setShowSocData(false)
-                      setShowRestSocData(false)
-                    }}
-                  >
-                    {cycleData?.title || 'Cycles YTD'}
-                  </Text>
-                </Tooltip>
-                {cycleData && calculateAnnualCycles(cycleData.ytd_value) && (
-                  <Text size="xs" c="dimmed">
-                    Projected: {calculateAnnualCycles(cycleData.ytd_value)}/year
-                  </Text>
-                )}
-              </Box>
-              {avgDodData && (
-                <Badge
-                  variant="light"
-                  color="gray"
-                  size="sm"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    navigate(`/projects/${projectId}/kpis/type/49`)
-                  }
-                >
-                  <IconActivity size={12} style={{ marginRight: 4 }} />
-                  {formatValue(
-                    avgDodData.ytd_value || avgDodData.value,
-                    '%',
-                  )}{' '}
-                  Avg DOD
-                </Badge>
-              )}
-            </Stack>
-          </Grid.Col>
-
-          {/* SOC Metrics */}
-          <Grid.Col span={4}>
-            <Stack align="center" gap="xs">
-              <Box ta="center">
-                <Text
-                  size="lg"
-                  fw={700}
-                  c={theme.colors.green[6]}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() =>
-                    navigate(`/projects/${projectId}/kpis/type/25`)
-                  }
-                  onMouseEnter={() => {
-                    setShowSocData(true)
-                    setShowCycleData(false)
-                    setShowRestSocData(false)
-                  }}
-                >
-                  {formatValue(avgSocData?.ytd_value || avgSocData?.value, '%')}
-                </Text>
-                <Tooltip label={avgSocData?.info || ''} withArrow>
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(`/projects/${projectId}/kpis/type/25`)
-                    }
-                    onMouseEnter={() => {
-                      setShowSocData(true)
-                      setShowCycleData(false)
-                      setShowRestSocData(false)
-                    }}
-                  >
-                    String SOC YTD
-                  </Text>
-                </Tooltip>
-              </Box>
-              {restSocData && (
-                <Box ta="center">
-                  <Text
-                    size="sm"
-                    fw={500}
-                    c={theme.colors.gray[6]}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      navigate(`/projects/${projectId}/kpis/type/30`)
-                    }
-                    onMouseEnter={() => {
-                      setShowRestSocData(true)
-                      setShowCycleData(false)
-                      setShowSocData(false)
-                    }}
-                  >
-                    {formatValue(
-                      restSocData.ytd_value || restSocData.value,
-                      '%',
-                    )}
-                  </Text>
-                  <Tooltip label={restSocData.info || ''} withArrow>
-                    <Text
-                      size="xs"
-                      c="dimmed"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() =>
-                        navigate(`/projects/${projectId}/kpis/type/29`)
-                      }
-                      onMouseEnter={() => {
-                        setShowRestSocData(true)
-                        setShowCycleData(false)
-                        setShowSocData(false)
-                      }}
-                    >
-                      String Rest SOC YTD
-                    </Text>
-                  </Tooltip>
-                </Box>
-              )}
-            </Stack>
-          </Grid.Col>
-        </Grid>
-      </Stack>
-    </CustomCard>
   )
 }
 
@@ -2085,12 +854,16 @@ const ContractualKPIOverview = ({
                           size="xs"
                           onClick={(e) => {
                             e.stopPropagation()
-                            if (contractKPI?.document_url) {
+                            if (
+                              contractKPI?.document_url?.startsWith('https://')
+                            ) {
                               setSelectedContractUrl(contractKPI.document_url)
                               setContractModalOpen(true)
                             }
                           }}
-                          disabled={!contractKPI?.document_url}
+                          disabled={
+                            !contractKPI?.document_url?.startsWith('https://')
+                          }
                         >
                           View
                         </Button>
@@ -2112,9 +885,10 @@ const ContractualKPIOverview = ({
               title: { fontSize: '1.2rem', fontWeight: 600 },
             }}
           >
-            {selectedContractUrl && (
+            {selectedContractUrl?.startsWith('https://') && (
               <iframe
                 src={selectedContractUrl}
+                sandbox="allow-popups"
                 style={{
                   width: '100%',
                   height: '80vh',
@@ -2134,7 +908,6 @@ const ContractualKPIOverview = ({
 const ProjectHome = () => {
   const { projectId } = useParams()
   const { ref: stackRef } = useElementSize()
-  const [contractRisksExpanded, setContractRisksExpanded] = useState(true)
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
@@ -2145,17 +918,13 @@ const ProjectHome = () => {
   if (project.isError) return <PageError error={project.error} />
   if (project.data === undefined) return <PageError error={undefined} />
 
-  let mapComponent
-  if (project.data.project_type_id === ProjectTypeEnum.BESS) {
-    mapComponent = <BESSEnclosureGIS showTitleCard={false} />
-  } else if (
+  const mapComponent =
     projectId === '3028d2ee-c924-4c6e-a133-9938926bc4b6' ||
-    projectId === '679f8f19-af11-43e0-9a60-64fc706f92a4'
-  ) {
-    mapComponent = <PCSGISMap showTitleCard={false} />
-  } else {
-    mapComponent = <AdaptiveGisMap />
-  }
+    projectId === '679f8f19-af11-43e0-9a60-64fc706f92a4' ? (
+      <PCSGISMap showTitleCard={false} />
+    ) : (
+      <AdaptiveGisMap />
+    )
 
   return (
     <Stack p="md" h="100%" ref={stackRef}>
@@ -2202,361 +971,153 @@ const ProjectHome = () => {
       </Box>
       <Group flex={1} align="start">
         <Stack h="100%" flex={1}>
-          {/* Performance card - hidden for BESS projects */}
-          {project.data.project_type_id !== ProjectTypeEnum.BESS && (
-            <CustomCard
-              title="Performance"
-              fill
-              style={{ flex: 1 }}
-              info={
-                <Stack gap="xs">
-                  <Text fw={600}>Understanding Performance Values</Text>
-                  <Text size="sm">
-                    This map shows how well each device is performing compared
-                    to expected output.
-                  </Text>
-                  <Text size="sm">
-                    <Text component="span" fw={500} c="red.7">
-                      Red areas:
-                    </Text>{' '}
-                    Devices performing below 70% of expected output (potential
-                    issues)
-                  </Text>
-                  <Text size="sm">
-                    <Text component="span" fw={500} c="yellow.7">
-                      Yellow areas:
-                    </Text>{' '}
-                    Devices performing at 70-90% of expected output (monitor
-                    closely)
-                  </Text>
-                  <Text size="sm">
-                    <Text component="span" fw={500} c="green.7">
-                      Green areas:
-                    </Text>{' '}
-                    Devices performing at 90%+ of expected output (good
-                    performance)
-                  </Text>
-                  <Text size="sm" fw={500}>
-                    How values are calculated:
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <Text component="span" fw={500}>
-                      PCS & Combiners:
-                    </Text>{' '}
-                    (Actual Power ÷ Expected Power) × 100%
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <Text component="span" fw={500}>
-                      Fallback:
-                    </Text>{' '}
-                    (Actual Power ÷ Device Capacity) × 100% when expected data
-                    unavailable
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <Text component="span" fw={500}>
-                      Trackers:
-                    </Text>{' '}
-                    Show angle position (-60° to +60°) with color-coded time of
-                    day
-                  </Text>
-                  <Text size="sm" fw={500}>
-                    Map Controls:
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <IconZoomIn
-                      size={14}
-                      style={{ display: 'inline', verticalAlign: 'middle' }}
-                    />
-                    <Text component="span" fw={500}>
-                      {' '}
-                      Zoom:
-                    </Text>{' '}
-                    Changes device detail level (PCS → Combiners → Trackers)
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <IconMouse
-                      size={14}
-                      style={{ display: 'inline', verticalAlign: 'middle' }}
-                    />
-                    <Text component="span" fw={500}>
-                      {' '}
-                      Hover:
-                    </Text>{' '}
-                    View device name and performance values
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <IconLock
-                      size={14}
-                      style={{ display: 'inline', verticalAlign: 'middle' }}
-                    />
-                    <Text component="span" fw={500}>
-                      {' '}
-                      Lock View:
-                    </Text>{' '}
-                    Pin current zoom level to specific device type
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <IconCursorText
-                      size={14}
-                      style={{ display: 'inline', verticalAlign: 'middle' }}
-                    />
-                    <Text component="span" fw={500}>
-                      {' '}
-                      Labels:
-                    </Text>{' '}
-                    Toggle device name labels on/off
-                  </Text>
-                  <Text size="sm">
-                    •{' '}
-                    <IconSatellite
-                      size={14}
-                      style={{ display: 'inline', verticalAlign: 'middle' }}
-                    />
-                    <Text component="span" fw={500}>
-                      {' '}
-                      Satellite:
-                    </Text>{' '}
-                    Switch between map and satellite view
-                  </Text>
-                  <Text size="sm">
-                    <Text component="span" fw={500}>
-                      Note:
-                    </Text>{' '}
-                    Values are averaged over the last hour and updated every 5
-                    minutes.
-                  </Text>
-                </Stack>
-              }
-            >
-              {mapComponent}
-            </CustomCard>
-          )}
-          {/* Battery Health + System Map for BESS projects */}
-          {project.data.project_type_id === ProjectTypeEnum.BESS && (
-            <>
-              <CustomCard
-                title="Performance Map"
-                info={
-                  <Stack gap="xs">
-                    <Text fw={600}>Understanding Performance Values</Text>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Data is realtime
-                      </Text>{' '}
-                      and updated every 30 seconds. This map displays BESS
-                      (Battery Energy Storage System) performance metrics.
-                    </Text>
-                    <Text size="sm" fw={500}>
-                      PCS (Power Conversion System) - Left Color Scale:
-                    </Text>
-                    <List spacing={4} withPadding>
-                      <List.Item>
-                        <Text size="sm">
-                          <Text component="span" fw={500} c="green.7">
-                            Bright Green:
-                          </Text>{' '}
-                          Higher power output from PCS
-                        </Text>
-                      </List.Item>
-                      <List.Item>
-                        <Text size="sm">
-                          <Text component="span" fw={500} c="gray.7">
-                            Gray:
-                          </Text>{' '}
-                          Low/idle power output
-                        </Text>
-                      </List.Item>
-                      <List.Item>
-                        <Text size="sm">
-                          <Text component="span" fw={500}>
-                            Glow:
-                          </Text>{' '}
-                          Charging shows a subtle white inner glow; discharging
-                          shows a green outline glow. Glow intensity scales with
-                          power magnitude.
-                        </Text>
-                      </List.Item>
-                    </List>
-                    <Text size="sm" fw={500}>
-                      SOC (State of Charge) - Right Color Scale:
-                    </Text>
-                    <List spacing={4} withPadding>
-                      <List.Item>
-                        <Text size="sm">
-                          <Text component="span" fw={500} c="green.7">
-                            Green:
-                          </Text>{' '}
-                          High SOC (75-100%) - Battery is well charged
-                        </Text>
-                      </List.Item>
-                      <List.Item>
-                        <Text size="sm">
-                          <Text component="span" fw={500} c="yellow.7">
-                            Yellow:
-                          </Text>{' '}
-                          Medium SOC (50-75%) - Moderate charge level
-                        </Text>
-                      </List.Item>
-                      <List.Item>
-                        <Text size="sm">
-                          <Text component="span" fw={500} c="red.7">
-                            Red:
-                          </Text>{' '}
-                          Low SOC (0-50%) - Battery charge is low
-                        </Text>
-                      </List.Item>
-                    </List>
-                    <Text size="sm" fw={500}>
-                      Device Types:
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <Text component="span" fw={500}>
-                        PCS:
-                      </Text>{' '}
-                      Shows normalized AC power (-1 = full charge, 0 = idle, 1 =
-                      full discharge)
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <Text component="span" fw={500}>
-                        DC Enclosures:
-                      </Text>{' '}
-                      Shows SOC percentage (0-100%)
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <Text component="span" fw={500}>
-                        BESS Strings:
-                      </Text>{' '}
-                      Shows SOC percentage (0-100%)
-                    </Text>
-                    <Text size="sm" fw={500}>
-                      Map Controls:
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <IconZoomIn
-                        size={14}
-                        style={{
-                          display: 'inline',
-                          verticalAlign: 'middle',
-                        }}
-                      />
-                      <Text component="span" fw={500}>
-                        {' '}
-                        Zoom:
-                      </Text>{' '}
-                      Changes device detail level (PCS + DC Enclosures → PCS +
-                      Strings)
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <IconMouse
-                        size={14}
-                        style={{
-                          display: 'inline',
-                          verticalAlign: 'middle',
-                        }}
-                      />
-                      <Text component="span" fw={500}>
-                        {' '}
-                        Hover:
-                      </Text>{' '}
-                      View device name, power values, and SOC
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <IconLock
-                        size={14}
-                        style={{
-                          display: 'inline',
-                          verticalAlign: 'middle',
-                        }}
-                      />
-                      <Text component="span" fw={500}>
-                        {' '}
-                        Lock View:
-                      </Text>{' '}
-                      Pin current zoom level to specific device type
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <IconCursorText
-                        size={14}
-                        style={{
-                          display: 'inline',
-                          verticalAlign: 'middle',
-                        }}
-                      />
-                      <Text component="span" fw={500}>
-                        {' '}
-                        Labels:
-                      </Text>{' '}
-                      Toggle device name labels on/off
-                    </Text>
-                    <Text size="sm">
-                      •{' '}
-                      <IconSatellite
-                        size={14}
-                        style={{
-                          display: 'inline',
-                          verticalAlign: 'middle',
-                        }}
-                      />
-                      <Text component="span" fw={500}>
-                        {' '}
-                        Satellite:
-                      </Text>{' '}
-                      Switch between map and satellite view
-                    </Text>
-                    <Text size="sm">
-                      <Text component="span" fw={500}>
-                        Note:
-                      </Text>{' '}
-                      PCS charging shows a white glow effect, discharging shows
-                      a green outline glow. Click on devices to view detailed
-                      information.
-                    </Text>
-                  </Stack>
-                }
-                fill
-                style={{ flex: 1 }}
-                key={`${projectId}-${contractRisksExpanded}`}
-              >
-                <AdaptiveGisBESS />
-              </CustomCard>
-              <BatteryHealth />
-            </>
-          )}
+          <CustomCard
+            title="Performance"
+            fill
+            style={{ flex: 1 }}
+            info={
+              <Stack gap="xs">
+                <Text fw={600}>Understanding Performance Values</Text>
+                <Text size="sm">
+                  This map shows how well each device is performing compared to
+                  expected output.
+                </Text>
+                <Text size="sm">
+                  <Text component="span" fw={500} c="red.7">
+                    Red areas:
+                  </Text>{' '}
+                  Devices performing below 70% of expected output (potential
+                  issues)
+                </Text>
+                <Text size="sm">
+                  <Text component="span" fw={500} c="yellow.7">
+                    Yellow areas:
+                  </Text>{' '}
+                  Devices performing at 70-90% of expected output (monitor
+                  closely)
+                </Text>
+                <Text size="sm">
+                  <Text component="span" fw={500} c="green.7">
+                    Green areas:
+                  </Text>{' '}
+                  Devices performing at 90%+ of expected output (good
+                  performance)
+                </Text>
+                <Text size="sm" fw={500}>
+                  How values are calculated:
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <Text component="span" fw={500}>
+                    PCS & Combiners:
+                  </Text>{' '}
+                  (Actual Power ÷ Expected Power) × 100%
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <Text component="span" fw={500}>
+                    Fallback:
+                  </Text>{' '}
+                  (Actual Power ÷ Device Capacity) × 100% when expected data
+                  unavailable
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <Text component="span" fw={500}>
+                    Trackers:
+                  </Text>{' '}
+                  Show angle position (-60° to +60°) with color-coded time of
+                  day
+                </Text>
+                <Text size="sm" fw={500}>
+                  Map Controls:
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <IconZoomIn
+                    size={14}
+                    style={{ display: 'inline', verticalAlign: 'middle' }}
+                  />
+                  <Text component="span" fw={500}>
+                    {' '}
+                    Zoom:
+                  </Text>{' '}
+                  Changes device detail level (PCS → Combiners → Trackers)
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <IconMouse
+                    size={14}
+                    style={{ display: 'inline', verticalAlign: 'middle' }}
+                  />
+                  <Text component="span" fw={500}>
+                    {' '}
+                    Hover:
+                  </Text>{' '}
+                  View device name and performance values
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <IconLock
+                    size={14}
+                    style={{ display: 'inline', verticalAlign: 'middle' }}
+                  />
+                  <Text component="span" fw={500}>
+                    {' '}
+                    Lock View:
+                  </Text>{' '}
+                  Pin current zoom level to specific device type
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <IconCursorText
+                    size={14}
+                    style={{ display: 'inline', verticalAlign: 'middle' }}
+                  />
+                  <Text component="span" fw={500}>
+                    {' '}
+                    Labels:
+                  </Text>{' '}
+                  Toggle device name labels on/off
+                </Text>
+                <Text size="sm">
+                  •{' '}
+                  <IconSatellite
+                    size={14}
+                    style={{ display: 'inline', verticalAlign: 'middle' }}
+                  />
+                  <Text component="span" fw={500}>
+                    {' '}
+                    Satellite:
+                  </Text>{' '}
+                  Switch between map and satellite view
+                </Text>
+                <Text size="sm">
+                  <Text component="span" fw={500}>
+                    Note:
+                  </Text>{' '}
+                  Values are averaged over the last hour and updated every 5
+                  minutes.
+                </Text>
+              </Stack>
+            }
+          >
+            {mapComponent}
+          </CustomCard>
           {/* Contractual KPI Overview for PV-only projects in left pane */}
           {project.data.project_type_id === ProjectTypeEnum.PV && (
-            <ContractualKPIOverview
-              project={project.data}
-              onExpandedChange={setContractRisksExpanded}
-            />
+            <ContractualKPIOverview project={project.data} />
           )}
         </Stack>
         <Stack h="100%" flex={1}>
           {project.data.has_event_integration && (
             <EventTable project={project.data as Project} />
           )}
-          {/* Contractual KPI Overview for PV_BESS and BESS projects */}
-          {(project.data.project_type_id === ProjectTypeEnum.PVS ||
-            project.data.project_type_id === ProjectTypeEnum.BESS) && (
-            <ContractualKPIOverview
-              project={project.data}
-              onExpandedChange={setContractRisksExpanded}
-            />
+          {/* Contractual KPI Overview for PV+Storage projects (right pane) */}
+          {project.data.project_type_id === ProjectTypeEnum.PVS && (
+            <ContractualKPIOverview project={project.data} />
           )}
-          <PowerPlot projectType={project.data.project_type_id} />
+          <PowerPlotPVZoom />
         </Stack>
       </Group>
 

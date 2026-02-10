@@ -84,7 +84,7 @@ import ProjectAdmin from './pages/projects/ProjectAdmin'
 import ProjectAvailabilityAnalysis from './pages/projects/ProjectAvailabilityAnalysis'
 import ProjectEvents from './pages/projects/ProjectEvents'
 // Project Home
-import ProjectHome from './pages/projects/ProjectHome'
+import ProjectHomeRouter from './pages/projects/ProjectHomeRouter'
 import ProjectLossWaterfall from './pages/projects/ProjectLossWaterfall'
 // Reports
 import ProjectReports from './pages/projects/ProjectReports'
@@ -319,7 +319,7 @@ const ClerkProviderWithRoutes = () => {
 
             {/* Project */}
             <Route path="/projects/:projectId">
-              <Route index element={<ProjectHome />} />
+              <Route index element={<ProjectHomeRouter />} />
               <Route path="custom-dash">
                 <Route index element={<CustomDashMenu />} />
                 <Route path="new" element={<CustomDash />} />
