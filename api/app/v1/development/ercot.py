@@ -116,10 +116,12 @@ async def get_resource_net_power(
         end=end,
     )
     sced_load_data = await crud_get_ercot_sced_load(
-        db,
         resource_id=resource_id,
         start=start,
         end=end,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
     dam_spp_data = await crud_get_ercot_dam_spp(
         settlement_point_ids=[resource.settlement_point_id],
@@ -151,8 +153,8 @@ async def get_resource_net_power(
     df_gen = pd.DataFrame.from_records([d.__dict__ for d in sced_gen_data])
     df_gen = df_gen[["power_generated", "time"]].set_index("time").sort_index()
 
-    df_load = pd.DataFrame.from_records([d.__dict__ for d in sced_load_data])
-    df_load = df_load[["power_consumed", "time"]].set_index("time").sort_index()
+    df_load = sced_load_data[["power_consumed", "time"]]
+    df_load = df_load.set_index("time").sort_index()
 
     df_dam = dam_spp_data.copy()
     df_dam = df_dam.set_index("time")
