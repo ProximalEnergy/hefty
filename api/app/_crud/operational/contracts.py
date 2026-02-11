@@ -1,7 +1,7 @@
 from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -60,12 +60,14 @@ async def get_project_contracts(
     db: AsyncSession,
     *,
     project_id: UUID,
+    company_ids: list[UUID],
 ):
     """Return contracts for a project with company and document data.
 
     Args:
         db: Async SQLAlchemy session used for the query.
         project_id: Project identifier to filter by.
+        company_ids: Company identifiers to filter by.
     """
     query = (
         select(
@@ -104,6 +106,14 @@ async def get_project_contracts(
         )
         .where(models.Contract.project_id == project_id)
     )
+
+    if company_ids:
+        query = query.where(
+            or_(
+                models.Contract.company_id_counter.in_(company_ids),
+                models.Contract.company_id_provider.in_(company_ids),
+            )
+        )
 
     result = await db.execute(query)
     return result.all()

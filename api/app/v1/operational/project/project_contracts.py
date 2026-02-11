@@ -20,6 +20,8 @@ from app._crud.operational.contracts import (
     get_project_contracts as crud_get_project_contracts,
 )
 from app._crud.operational.documents import get_project_documents
+from app._dependencies import authentication
+from app.interfaces import UserAuthed
 from core import models
 
 from .project_documents import generate_presigned_url
@@ -113,6 +115,7 @@ async def create_contract(
 async def get_project_contracts(
     project_id: UUID,
     project_db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user: Annotated[UserAuthed, Depends(authentication.get_user)],
 ):
     # Retrieve all contracts for the project
     """todo
@@ -120,9 +123,12 @@ async def get_project_contracts(
     Args:
         project_id: Description for project_id.
         project_db: Description for project_db.
+        user: Description for user.
     """
     project_contracts = await crud_get_project_contracts(
-        project_db, project_id=project_id
+        project_db,
+        project_id=project_id,
+        company_ids=[user.company_id],
     )
 
     # Convert SQLAlchemy Row objects to dictionaries and add document URLs

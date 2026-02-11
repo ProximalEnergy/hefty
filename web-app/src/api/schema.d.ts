@@ -2105,6 +2105,7 @@ export interface paths {
          *     Args:
          *         project_id: Description for project_id.
          *         project_db: Description for project_db.
+         *         user: Description for user.
          */
         get: operations["get_project_contracts_v1_operational_projects__project_id__contracts_get"];
         put?: never;
@@ -3425,6 +3426,7 @@ export interface paths {
          *     Args:
          *         project_id: Description for project_id.
          *         is_superadmin: Description for is_superadmin.
+         *         user: Description for user.
          *         report_type_ids: Description for report_type_ids.
          *         deep: Description for deep.
          */
@@ -14840,11 +14842,11 @@ export interface operations {
     get_llm_time_series_v1_operational_projects__project_id__llm_time_series_get: {
         parameters: {
             query?: {
-                start?: string | null;
                 end?: string | null;
                 interval?: string;
                 tag_ids?: number[] | null;
                 sensor_type_ids?: number[] | null;
+                start?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -14932,10 +14934,10 @@ export interface operations {
                 parent_device_id?: number | null;
                 sensor_type_ids?: number[];
                 sensor_type_name_shorts?: string[];
-                start?: string | null;
                 end?: string | null;
                 include_ghost_tags?: boolean;
                 interval?: string;
+                start?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -14973,11 +14975,11 @@ export interface operations {
             query?: {
                 tag_ids?: number[];
                 sensor_type_ids?: number[];
-                start?: string | null;
                 end?: string | null;
                 interval?: string | null;
                 ensure_full_range?: boolean;
                 cutoff_now?: boolean;
+                start?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -15329,10 +15331,10 @@ export interface operations {
         parameters: {
             query?: {
                 open?: boolean;
-                start?: string | null;
                 end?: string | null;
                 device_type_ids?: number[] | null;
                 device_ids?: number[] | null;
+                start?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -16166,8 +16168,9 @@ export interface operations {
                 kpi_type_ids?: number[] | null;
                 device_type_id?: number | null;
                 contract_id?: number | null;
-                start?: string | null;
                 schema?: string | null;
+                start?: string | null;
+                project_ids?: string[] | null;
             };
             header?: {
                 authorization?: string;
@@ -16278,9 +16281,10 @@ export interface operations {
     get_rte_v1_operational_projects__project_id__kpi_data_rte_get: {
         parameters: {
             query: {
-                start: string;
                 end: string;
                 level?: string;
+                start: string;
+                project_ids?: string[] | null;
             };
             header?: {
                 authorization?: string;
@@ -16871,8 +16875,8 @@ export interface operations {
         parameters: {
             query: {
                 device_ids: number[];
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -17699,12 +17703,12 @@ export interface operations {
     get_kpi_data: {
         parameters: {
             query: {
-                start: string;
                 end: string;
-                project_ids?: string[];
+                project_ids?: string[] | null;
                 kpi_type_ids?: number[];
                 include_device_data?: boolean;
                 include_all_dates?: boolean;
+                start: string;
                 schema?: string | null;
             };
             header?: {
@@ -19824,8 +19828,8 @@ export interface operations {
     get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get: {
         parameters: {
             query: {
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -19861,8 +19865,8 @@ export interface operations {
     get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get: {
         parameters: {
             query: {
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -20125,8 +20129,8 @@ export interface operations {
     get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get: {
         parameters: {
             query: {
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -20199,8 +20203,8 @@ export interface operations {
     get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get: {
         parameters: {
             query: {
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -20273,8 +20277,8 @@ export interface operations {
         parameters: {
             query: {
                 device_ids: number[];
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -20673,8 +20677,8 @@ export interface operations {
     get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get: {
         parameters: {
             query?: {
-                start?: string | null;
                 end?: string | null;
+                start?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -21271,8 +21275,8 @@ export interface operations {
     get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get: {
         parameters: {
             query: {
-                start: string;
                 end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -21787,7 +21791,9 @@ export interface operations {
     };
     get_project_kpi_summary_table_v1_protected_web_application_projects__project_id__kpi_summary_table_get: {
         parameters: {
-            query?: never;
+            query?: {
+                project_ids?: string[] | null;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;

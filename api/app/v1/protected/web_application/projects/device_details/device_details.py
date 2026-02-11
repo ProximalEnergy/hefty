@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
+from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app._utils.arrow import polars_to_arrow_response
 from core import models
 
@@ -30,7 +31,9 @@ router = APIRouter(
 
 @router.get("/horizontal/bess")
 async def get_horizontal_bess(
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
@@ -250,7 +253,9 @@ async def get_horizontal_pv(
 @router.get("/single/{device_id}")
 async def get_single_by_device_id(
     device_id: int,
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
@@ -482,7 +487,9 @@ async def get_vertical(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     device_ids: Annotated[list[int], Query()],
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
 ):
     # Manually define the sensor type IDs that we want to fetch

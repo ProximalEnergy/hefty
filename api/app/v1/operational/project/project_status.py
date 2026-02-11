@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
+from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.dependencies import get_project_api, get_project_db
 from app.logger import logger
 from core import models
@@ -192,7 +193,9 @@ async def get_status_time_series_js(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
     device_ids: list[int] = Query(...),
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
 ):
     """

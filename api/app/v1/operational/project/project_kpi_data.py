@@ -26,6 +26,10 @@ from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
 )
+from app._dependencies.filtering import (
+    filter_start_date_or_none_to_projects_data_access_start_date,
+    filter_start_date_to_projects_data_access_start_date,
+)
 from app.dependencies import (
     get_async_db,
     get_is_superadmin_async,
@@ -215,7 +219,10 @@ def get_project_kpi_summary(
     kpi_type_ids: Annotated[list[int] | None, Query()] = None,
     device_type_id: int | None = None,
     contract_id: int | None = None,
-    start: datetime.date | None = None,
+    start: Annotated[
+        datetime.date | None,
+        Depends(filter_start_date_or_none_to_projects_data_access_start_date),
+    ] = None,
 ):
     # Fetch contractual KPI type IDs and their contract IDs
     """todo
@@ -548,7 +555,9 @@ class RTEResponse(BaseModel):
 async def get_rte(
     project_id: uuid.UUID,
     db: Annotated[AsyncSession, Depends(get_async_db)],
-    start: datetime.date,
+    start: Annotated[
+        datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)
+    ],
     end: datetime.date,
     level: str = "string",
 ) -> RTEResponse:

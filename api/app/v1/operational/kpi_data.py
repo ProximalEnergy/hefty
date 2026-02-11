@@ -18,6 +18,9 @@ import core
 from app import interfaces, utils
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
+from app._dependencies.filtering import (
+    filter_start_date_to_projects_data_access_start_date,
+)
 from app.dependencies import (
     check_project_access_async,
     get_async_db,
@@ -36,7 +39,9 @@ router = APIRouter(prefix="/kpi-data", tags=["kpi_data"])
     response_model=list[interfaces.OperationalKPIData],
 )
 def get_kpi_data(
-    start: datetime.date,
+    start: Annotated[
+        datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)
+    ],
     end: datetime.date,
     project_ids: Annotated[list[uuid.UUID], Query()] = [],
     kpi_type_ids: Annotated[list[int], Query()] = [],

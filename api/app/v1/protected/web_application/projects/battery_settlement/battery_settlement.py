@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import datetime
+from typing import Annotated
 
 import numpy as np
 import pandas as pd
 import requests
 from app import dependencies, utils
+from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.integrations.token_manager import TokenManager
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
@@ -95,7 +97,9 @@ def get_battery_settlement_details_dataframe(
 
 @router.get("")
 async def get_battery_settlement_details(
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),

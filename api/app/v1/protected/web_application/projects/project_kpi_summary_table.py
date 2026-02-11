@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import case, select
 
 from app import interfaces
+from app._dependencies.filtering import get_company_projects_data_access_start_date
 from app.dependencies import (
     get_is_superadmin_async,
     get_project_api,
@@ -86,7 +87,10 @@ class KPISummaryTable(BaseModel):
 async def get_project_kpi_summary_table(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
-    project: models.Project = Depends(get_project_api),
+    project: Annotated[models.Project, Depends(get_project_api)],
+    data_access_start_date: Annotated[
+        datetime.date, Depends(get_company_projects_data_access_start_date)
+    ],
 ):
     """API endpoint that returns aggregated KPI data for a project.
 
@@ -103,6 +107,9 @@ async def get_project_kpi_summary_table(
     month_start = yesterday - datetime.timedelta(days=29)
     ytd_start = datetime.date(yesterday.year, 1, 1)
     year_start = yesterday - datetime.timedelta(days=364)
+
+    if data_access_start_date > year_start:
+        year_start = data_access_start_date
 
     # Generate common trend_dates array (365 days from year_start to yesterday)
     trend_dates = [year_start + datetime.timedelta(days=i) for i in range(365)]

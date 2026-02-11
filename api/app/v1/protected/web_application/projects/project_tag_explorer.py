@@ -67,9 +67,6 @@ def _process_numeric_values(*, values: list) -> tuple[bool, str, int]:
         return False, "N/A", total_unique_values
 
 
-# Remove the custom function - we'll use the existing useGetTimeSeries hook instead
-
-
 router = APIRouter(prefix="/project-tag-explorer", tags=["project_tag_explorer"])
 
 

@@ -1,5 +1,5 @@
 import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
 import core.models as models
 import pandas as pd
@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session
 
 import core
 from app import utils
+from app._dependencies.filtering import (
+    filter_start_datetime_or_none_to_date_access_start_time,
+)
 from app.dependencies import get_project_api, get_project_db, get_project_db_async
 
 router = APIRouter(
@@ -85,7 +88,10 @@ def _clip_to_window(  # nosemgrep: python-enforce-keyword-only-args
 
 @router.get("/meta", response_model=EventMetaData)
 async def get_meta_analysis(
-    start: datetime.datetime | None = None,
+    start: Annotated[
+        datetime.datetime | None,
+        Depends(filter_start_datetime_or_none_to_date_access_start_time),
+    ] = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
     project_db_async: AsyncSession = Depends(get_project_db_async),

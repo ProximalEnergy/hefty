@@ -82,7 +82,9 @@ async def get_project_documents(
         company_ids=[user.company_id],
     )
 
-    project_contracts = await crud_get_project_contracts(db=db, project_id=project_id)
+    project_contracts = await crud_get_project_contracts(
+        db=db, project_id=project_id, company_ids=[user.company_id]
+    )
     contract_map = {
         c[2]: c[14] for c in project_contracts
     }  # c[2] = document_id, c[14] = company name_long

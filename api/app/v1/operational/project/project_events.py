@@ -33,6 +33,9 @@ from app._crud.projects.drone_anomalies import bulk_update_anomalies_with_event_
 from app._crud.projects.drone_anomalies import (
     get_anomalies_by_event_id as crud_get_anomalies_by_event_id,
 )
+from app._dependencies.filtering import (
+    filter_start_datetime_or_none_to_date_access_start_time,
+)
 from app.dependencies import (
     get_async_db,
     get_project_api,
@@ -540,7 +543,10 @@ async def get_events_summary(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     *,
     open: bool = True,
-    start: datetime.datetime | None = None,
+    start: Annotated[
+        datetime.datetime | None,
+        Depends(filter_start_datetime_or_none_to_date_access_start_time),
+    ] = None,
     end: datetime.datetime | None = None,
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     device_ids: Annotated[list[int] | None, Query()] = None,

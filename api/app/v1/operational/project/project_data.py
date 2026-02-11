@@ -15,6 +15,9 @@ from sqlalchemy.orm import Session
 import app.utils as utils
 import core
 from app import interfaces
+from app._dependencies.filtering import (
+    filter_start_datetime_or_none_to_date_access_start_time,
+)
 from app.dependencies import get_project_api, get_project_db
 from core import models
 
@@ -177,7 +180,10 @@ async def get_project_dataframe(
 async def get_llm_time_series(
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
-    start: datetime.datetime | None = None,
+    start: Annotated[
+        datetime.datetime | None,
+        Depends(filter_start_datetime_or_none_to_date_access_start_time),
+    ] = None,
     end: datetime.datetime | None = None,
     interval: str = "5min",
     tag_ids: Annotated[list[int] | None, Query()] = None,
@@ -343,7 +349,10 @@ async def get_time_series(
     parent_device_id: int | None = None,
     sensor_type_ids: Annotated[list[int], Query()] = [],
     sensor_type_name_shorts: Annotated[list[str], Query()] = [],
-    start: datetime.datetime | None = None,
+    start: Annotated[
+        datetime.datetime | None,
+        Depends(filter_start_datetime_or_none_to_date_access_start_time),
+    ] = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
     project: models.Project = Depends(get_project_api),
@@ -506,7 +515,10 @@ async def get_timeseries_v3(
     project: Annotated[models.Project, Depends(get_project_api)],
     tag_ids: Annotated[list[int], Query()] = [],
     sensor_type_ids: Annotated[list[int], Query()] = [],
-    start: datetime.datetime | None = None,
+    start: Annotated[
+        datetime.datetime | None,
+        Depends(filter_start_datetime_or_none_to_date_access_start_time),
+    ] = None,
     end: datetime.datetime | None = None,
     interval: str | None = None,
     ensure_full_range: bool = False,

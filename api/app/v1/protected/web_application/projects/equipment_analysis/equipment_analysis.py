@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies, utils
+from app._dependencies.filtering import filter_start_datetime_to_data_access_start_time
 from app.domain.current_day_pages.bess import get_bess_data
 from app.domain.current_day_pages.bess_pcs import get_bess_pcs_data
 from app.domain.current_day_pages.combiner import get_equipment_analysis_combiner_data
@@ -33,7 +34,9 @@ router = APIRouter(
 
 @router.get("/bess")
 async def get_bess(
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),
@@ -57,7 +60,9 @@ async def get_bess(
 
 @router.get("/bess-pcs")
 async def get_bess_pcs(
-    start: datetime.datetime,
+    start: Annotated[
+        datetime.datetime, Depends(filter_start_datetime_to_data_access_start_time)
+    ],
     end: datetime.datetime,
     project: models.Project = Depends(dependencies.get_project_api),
     project_db: Session = Depends(dependencies.get_project_db),

@@ -1,7 +1,9 @@
 import uuid
 from typing import Annotated
+from uuid import UUID
 
 from core.db_query import OutputType
+from core.enumerations import ReportType
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,11 +12,16 @@ from app import interfaces
 from app._crud.operational.report_instances import (
     bulk_upsert_report_instances,
 )
+from app._dependencies import authentication
 from app.dependencies import (
     get_async_db,
     get_is_superadmin_async,
     requires_superadmin_async,
 )
+from app.interfaces import UserAuthed
+
+SABLE_POINT_COMPANY_ID = UUID("38a8e696-dafa-44c0-b817-e3aee8cdfe8c")
+
 
 router = APIRouter(
     prefix="/report-instances",
@@ -26,6 +33,7 @@ router = APIRouter(
 async def get_project_reports_instances(
     project_id: uuid.UUID,
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
+    user: Annotated[UserAuthed, Depends(authentication.get_user)],
     report_type_ids: list[int] | None = None,
     deep: bool = False,
 ):
@@ -34,6 +42,7 @@ async def get_project_reports_instances(
     Args:
         project_id: Description for project_id.
         is_superadmin: Description for is_superadmin.
+        user: Description for user.
         report_type_ids: Description for report_type_ids.
         deep: Description for deep.
     """
@@ -48,7 +57,18 @@ async def get_project_reports_instances(
         report_type_ids=report_type_ids,
         deep=deep,
     )
-    return await query.get_async(output_type=OutputType.SQLALCHEMY)
+
+    report_instances = await query.get_async(output_type=OutputType.SQLALCHEMY)
+
+    # Remove the EEC report instance if you are a Sable Point user.
+    if user.company_id == SABLE_POINT_COMPANY_ID:
+        report_instances = [
+            ri
+            for ri in report_instances
+            if ri.report_type_id != ReportType.EEC_BESS_MONTHLY_REPORT
+        ]
+
+    return report_instances
 
 
 @router.put(
