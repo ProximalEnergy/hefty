@@ -15,6 +15,9 @@ export type StatisticIcon =
   | 'availability'
   | 'performance'
   | 'project'
+  | 'price'
+  | 'revenue'
+  | 'dispatch'
 
 export interface Statistic {
   title: string

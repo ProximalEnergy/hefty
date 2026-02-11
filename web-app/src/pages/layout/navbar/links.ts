@@ -120,6 +120,16 @@ export const projectLinks: DropdownLink[] = [
           `/projects/${projectId}/finances/battery-settlement`,
         label: 'Battery Settlement',
       },
+      {
+        to: (projectId: string) =>
+          `/projects/${projectId}/finances/market-performance`,
+        label: 'Market Performance',
+      },
+      {
+        to: (projectId: string) => `/projects/${projectId}/finances/ptp-data`,
+        label: 'PTP Data',
+        userTypeRequired: 'superadmin',
+      },
     ],
   },
   {

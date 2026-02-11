@@ -256,6 +256,19 @@ const PlotlyPlot = ({
     yaxis3: yaxisTemplate,
     colorway: traceColors(theme),
     hovermode: 'x',
+    hoverlabel: {
+      bgcolor:
+        computedColorScheme === 'dark'
+          ? 'rgba(37,38,43,0.8)'
+          : 'rgba(255,255,255,0.9)',
+      bordercolor:
+        computedColorScheme === 'dark'
+          ? 'rgba(255,255,255,0.2)'
+          : 'rgba(0,0,0,0.2)',
+      font: {
+        color: layoutSettings.fontcolor,
+      },
+    },
     modebar: {
       bgcolor:
         computedColorScheme === 'dark'

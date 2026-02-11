@@ -1276,6 +1276,171 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/development/ptp/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Markets
+         * @description Get available markets from PTP API.
+         *
+         *     Returns:
+         *         List of available markets.
+         */
+        get: operations["get_ptp_markets_v1_development_ptp_markets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/development/ptp/markets/{market}/endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Endpoints
+         * @description Get available endpoints for a market.
+         *
+         *     Args:
+         *         market: Market name (e.g., ERCOTNodal).
+         *         tps_token: Token manager for PTP API authentication.
+         *
+         *     Returns:
+         *         List of available endpoints for the market.
+         */
+        get: operations["get_ptp_endpoints_v1_development_ptp_markets__market__endpoints_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/development/ptp/markets/{market}/endpoints/{endpoint}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Endpoint Schema
+         * @description Get schema information for a specific endpoint.
+         *
+         *     Args:
+         *         market: Market name (e.g., ERCOTNodal).
+         *         endpoint: Endpoint name.
+         *         tps_token: Token manager for PTP API authentication.
+         *
+         *     Returns:
+         *         Schema information for the endpoint.
+         */
+        get: operations["get_ptp_endpoint_schema_v1_development_ptp_markets__market__endpoints__endpoint__schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/development/ptp/markets/{market}/endpoints/{endpoint}/elements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Endpoint Elements
+         * @description Get elements available for an endpoint.
+         *
+         *     Args:
+         *         market: Market name (e.g., ERCOTNodal).
+         *         endpoint: Endpoint name.
+         *         viewport: Optional viewport date (YYYY-MM-DD format).
+         *         tps_token: Token manager for PTP API authentication.
+         *
+         *     Returns:
+         *         List of available elements for the endpoint.
+         */
+        get: operations["get_ptp_endpoint_elements_v1_development_ptp_markets__market__endpoints__endpoint__elements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/development/ptp/markets/{market}/endpoints/{endpoint}/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Endpoint Data
+         * @description Query data from an endpoint.
+         *
+         *     Args:
+         *         market: Market name (e.g., ERCOTNodal).
+         *         endpoint: Endpoint name.
+         *         elements: Optional list of element identifiers to filter.
+         *         begin: Optional begin timestamp (ISO 8601 UTC).
+         *         end: Optional end timestamp (ISO 8601 UTC).
+         *         environment: Optional environment filter.
+         *         tps_token: Token manager for PTP API authentication.
+         *
+         *     Returns:
+         *         Data from the endpoint.
+         */
+        get: operations["get_ptp_endpoint_data_v1_development_ptp_markets__market__endpoints__endpoint__data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/development/ptp/explore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Explore Ptp Api
+         * @description Explore the PTP API structure and return a comprehensive summary.
+         *
+         *     This endpoint queries the API to understand available markets, endpoints,
+         *     and their schemas. Useful for development and debugging.
+         *
+         *     Returns:
+         *         Dictionary containing API structure summary.
+         */
+        get: operations["explore_ptp_api_v1_development_ptp_explore_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/feedback": {
         parameters: {
             query?: never;
@@ -6557,6 +6722,247 @@ export interface paths {
          *         tps_token: TPS API authentication token.
          */
         post: operations["post_eec_bess_monthly_report_v1_protected_web_application_projects__project_id__reports_eec_bess_monthly_report_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/market-performance/debug/raw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Market Performance Debug Raw
+         * @description Debug endpoint to return raw PTP API response.
+         *
+         *     This helps understand the actual structure of data returned from PTP.
+         */
+        get: operations["get_market_performance_debug_raw_v1_protected_web_application_projects__project_id__market_performance_debug_raw_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/market-performance/realtime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Market Performance Realtime
+         * @description Get real-time market performance data.
+         *
+         *     Args:
+         *         start: Optional start datetime (defaults to 2 hours ago).
+         *         end: Optional end datetime (defaults to now).
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *
+         *     Returns:
+         *         Real-time market performance data including telemetry, market prices,
+         *         awards, and financial metrics.
+         */
+        get: operations["get_market_performance_realtime_v1_protected_web_application_projects__project_id__market_performance_realtime_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/market-performance/realtime/price": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Realtime Price
+         * @description Get the latest real-time settlement point price (RTSPP) for the project.
+         *
+         *     Args:
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *
+         *     Returns:
+         *         Latest RTSPP value in $/MWh, or None if not available.
+         */
+        get: operations["get_realtime_price_v1_protected_web_application_projects__project_id__market_performance_realtime_price_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/market-performance/identifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Identifiers
+         * @description Get all PTP identifiers (parent and children) for the project.
+         *
+         *     Queries multiple endpoints to find all identifiers related to the
+         *     project's QSE identifier, including child identifiers that may be
+         *     needed for different endpoints.
+         *
+         *     Args:
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *
+         *     Returns:
+         *         List of identifiers with metadata (identifier, element, definition,
+         *         resource_id, parent_identifier).
+         */
+        get: operations["get_project_identifiers_v1_protected_web_application_projects__project_id__market_performance_identifiers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/ptp-data/endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Endpoints
+         * @description Get available PTP endpoints organized by category.
+         *
+         *     Args:
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *
+         *     Returns:
+         *         Dictionary of endpoints organized by category.
+         */
+        get: operations["get_ptp_endpoints_v1_protected_web_application_projects__project_id__ptp_data_endpoints_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/ptp-data/endpoints/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Endpoints Availability
+         * @description Check data availability for endpoints in a specific category.
+         *
+         *     Args:
+         *         category: Category name (performance, settlement, market, etc.).
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *
+         *     Returns:
+         *         Dictionary mapping endpoint names to availability booleans.
+         */
+        get: operations["get_ptp_endpoints_availability_v1_protected_web_application_projects__project_id__ptp_data_endpoints_availability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/ptp-data/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ptp Data
+         * @description Get PTP data for a specific endpoint.
+         *
+         *     Args:
+         *         endpoint: PTP endpoint name (e.g., "Generator-Performance").
+         *         category: Endpoint category (performance, settlement, market, etc.).
+         *         start: Optional start datetime (ISO 8601 UTC).
+         *         end: Optional end datetime (ISO 8601 UTC).
+         *         element_id: Optional element identifier (defaults from provider_config).
+         *         data_points: Optional list of data point keynames to filter.
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *
+         *     Returns:
+         *         PTP endpoint data.
+         */
+        get: operations["get_ptp_data_v1_protected_web_application_projects__project_id__ptp_data_data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/ptp-data/active-outage-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Active Outage Tickets
+         * @description Get count of active outage tickets for a resource.
+         *
+         *     Args:
+         *         project: Project model provided by dependency injection.
+         *         tps_token: Token manager for PTP API authentication.
+         *         user: User model provided by dependency injection.
+         *         db_async: Database session.
+         *         resource_name: Resource name to query (default: from provider_config).
+         *
+         *     Returns:
+         *         Dictionary with active_tickets count.
+         */
+        get: operations["get_active_outage_tickets_v1_protected_web_application_projects__project_id__ptp_data_active_outage_tickets_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -13038,6 +13444,221 @@ export interface operations {
                 start: string;
                 end: string;
             };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_markets_v1_development_ptp_markets_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_endpoints_v1_development_ptp_markets__market__endpoints_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                market: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_endpoint_schema_v1_development_ptp_markets__market__endpoints__endpoint__schema_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                market: string;
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_endpoint_elements_v1_development_ptp_markets__market__endpoints__endpoint__elements_get: {
+        parameters: {
+            query?: {
+                /** @description Viewport date (YYYY-MM-DD) */
+                viewport?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                market: string;
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_endpoint_data_v1_development_ptp_markets__market__endpoints__endpoint__data_get: {
+        parameters: {
+            query?: {
+                /** @description Element identifiers to filter */
+                elements?: string[] | null;
+                /** @description Begin timestamp (ISO 8601 UTC) */
+                begin?: string | null;
+                /** @description End timestamp (ISO 8601 UTC) */
+                end?: string | null;
+                /** @description Environment filter */
+                environment?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                market: string;
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explore_ptp_api_v1_development_ptp_explore_get: {
+        parameters: {
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -20847,6 +21468,302 @@ export interface operations {
                 "application/json": components["schemas"]["BESSMonthlyReportRequest"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_market_performance_debug_raw_v1_protected_web_application_projects__project_id__market_performance_debug_raw_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_market_performance_realtime_v1_protected_web_application_projects__project_id__market_performance_realtime_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_realtime_price_v1_protected_web_application_projects__project_id__market_performance_realtime_price_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_identifiers_v1_protected_web_application_projects__project_id__market_performance_identifiers_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_endpoints_v1_protected_web_application_projects__project_id__ptp_data_endpoints_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_endpoints_availability_v1_protected_web_application_projects__project_id__ptp_data_endpoints_availability_get: {
+        parameters: {
+            query: {
+                /** @description Category to check availability for */
+                category: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ptp_data_v1_protected_web_application_projects__project_id__ptp_data_data_get: {
+        parameters: {
+            query: {
+                /** @description PTP endpoint name */
+                endpoint: string;
+                /** @description Endpoint category */
+                category: string;
+                /** @description Start datetime (ISO 8601 UTC) */
+                start?: string | null;
+                /** @description End datetime (ISO 8601 UTC) */
+                end?: string | null;
+                /** @description Element identifier (defaults from provider_config) */
+                element_id?: string | null;
+                data_points?: string[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_active_outage_tickets_v1_protected_web_application_projects__project_id__ptp_data_active_outage_tickets_get: {
+        parameters: {
+            query?: {
+                /** @description Resource name to query (default: from provider_config) */
+                resource_name?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

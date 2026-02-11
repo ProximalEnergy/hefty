@@ -38,10 +38,8 @@ def get_battery_settlement_details_dataframe(
         project: Description for project.
         token: Description for token.
     """
-    url = (
-        "https://api.ptp.energy/v1/markets/ERCOTNodal/endpoints/"
-        "Battery-Settlement-Details/data"
-    )
+    # Using new /ptp API structure
+    url = "https://api.ptp.energy/ptp/ERCOTNodal/Battery-Settlement-Details/query"
     headers = {"Authorization": f"Bearer {token}"}
     tz = project.time_zone
     start_ts = start if start.tzinfo else start.tz_localize(tz)
@@ -51,7 +49,7 @@ def get_battery_settlement_details_dataframe(
     params = {
         "begin": begin_utc.isoformat().replace("+00:00", "Z"),
         "end": end_utc.isoformat().replace("+00:00", "Z"),
-        "elements": [identifier],
+        "elementIdentifiers": [identifier],
     }
     try:
         response = requests.get(url, headers=headers, params=params, timeout=15)

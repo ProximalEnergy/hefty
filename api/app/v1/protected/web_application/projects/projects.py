@@ -18,6 +18,10 @@ from app.v1.protected.web_application.projects.equipment_analysis import (
     equipment_analysis,
 )
 from app.v1.protected.web_application.projects.events import events
+from app.v1.protected.web_application.projects.market_performance import (
+    market_performance,
+)
+from app.v1.protected.web_application.projects.ptp_data import ptp_data
 from app.v1.protected.web_application.projects.real_time import real_time
 from app.v1.protected.web_application.projects.reports import reports
 
@@ -37,4 +41,6 @@ router.include_router(custom_dash.router)
 router.include_router(battery_settlement.router)
 router.include_router(combiner_correlation_analysis.router)
 router.include_router(reports.router)
+router.include_router(market_performance.router)
+router.include_router(ptp_data.router)
 router.include_router(project_kpi_summary_table.router)

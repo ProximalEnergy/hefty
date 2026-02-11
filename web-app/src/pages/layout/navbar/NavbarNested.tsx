@@ -382,7 +382,16 @@ export function NavbarNested({
             removeReportIntegrationLinks
           ) &&
           // Remove Drone Integration links if necessary
-          !(dropdownLink.requiresDroneIntegration && !hasDroneIntegration),
+          !(dropdownLink.requiresDroneIntegration && !hasDroneIntegration) &&
+          // Remove links by user type (nested link)
+          !(
+            dropdownLink.userTypeRequired === 'superadmin' &&
+            userType.data?.name_short !== 'superadmin'
+          ) &&
+          !(
+            dropdownLink.userTypeRequired === 'admin' &&
+            !['admin', 'superadmin'].includes(userType.data?.name_short ?? '')
+          ),
       )
 
       return { ...link, links: filteredChildren }

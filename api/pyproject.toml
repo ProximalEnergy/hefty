@@ -110,3 +110,9 @@ DEP002 = [
     "kaleido",    # optional dependency used by plotly
     "jinja2",     # optional dependency used by pandas for DataFrame rendering
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["_tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

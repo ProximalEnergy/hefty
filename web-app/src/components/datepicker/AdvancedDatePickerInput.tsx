@@ -88,6 +88,8 @@ export function AdvancedDatePicker({
   disableInput = false,
   disableQuickActions = false,
   defaultRange,
+  startParamKey = 'start',
+  endParamKey = 'end',
 }: {
   includeClearButton?: boolean
   includeIncrementButtons?: boolean
@@ -99,6 +101,8 @@ export function AdvancedDatePicker({
   disableInput?: boolean
   disableQuickActions?: boolean | DurationTerms[]
   defaultRange?: DurationTerms
+  startParamKey?: string
+  endParamKey?: string
 }) {
   // State used to manage Popover containing DatePicker
   // NOTE: Because we are using a DatePicker instead of a DatePickerInput, we
@@ -109,8 +113,8 @@ export function AdvancedDatePicker({
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Parse start and end dates from URL search params
-  const startParam = searchParams.get('start')
-  const endParam = searchParams.get('end')
+  const startParam = searchParams.get(startParamKey)
+  const endParam = searchParams.get(endParamKey)
 
   // Convert start and end dates to Date objects, or null if not present
   const start = startParam ? dayjs(startParam).toDate() : null
@@ -188,19 +192,19 @@ export function AdvancedDatePicker({
     ([startDate, endDate]: [Date | null, Date | null]) => {
       const nextParams = new URLSearchParams(searchParams)
       if (startDate) {
-        nextParams.set('start', dayjs(startDate).format('YYYY-MM-DD'))
+        nextParams.set(startParamKey, dayjs(startDate).format('YYYY-MM-DD'))
       } else {
-        nextParams.delete('start')
+        nextParams.delete(startParamKey)
       }
       if (endDate) {
-        nextParams.set('end', dayjs(endDate).format('YYYY-MM-DD'))
+        nextParams.set(endParamKey, dayjs(endDate).format('YYYY-MM-DD'))
       } else {
-        nextParams.delete('end')
+        nextParams.delete(endParamKey)
       }
 
       setSearchParams(nextParams, { replace: true })
     },
-    [searchParams, setSearchParams],
+    [endParamKey, searchParams, setSearchParams, startParamKey],
   )
 
   const setDateRangeByTerm = useCallback(

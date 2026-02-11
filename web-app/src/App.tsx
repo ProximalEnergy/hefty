@@ -129,6 +129,8 @@ import EventRouter from './pages/projects/events/EventRouter'
 import EventsMetaAnalysis from './pages/projects/events/EventsMetaAnalysis'
 import UptimeTable from './pages/projects/events/UptimeTable'
 import BatterySettlement from './pages/projects/finances/BatterySettlement'
+import MarketPerformance from './pages/projects/finances/MarketPerformance'
+import PTPData from './pages/projects/finances/PTPData'
 // GIS
 import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
 import PCSGIS from './pages/projects/gis/pcs-gis'
@@ -523,6 +525,18 @@ const ClerkProviderWithRoutes = () => {
                 <Route
                   path="battery-settlement"
                   element={<BatterySettlement />}
+                />
+                <Route
+                  path="market-performance"
+                  element={<MarketPerformance />}
+                />
+                <Route
+                  path="ptp-data"
+                  element={
+                    <RequiresUserType requiredUserType="superadmin">
+                      <PTPData />
+                    </RequiresUserType>
+                  }
                 />
               </Route>
 

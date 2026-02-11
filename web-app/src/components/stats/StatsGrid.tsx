@@ -1,17 +1,28 @@
 import { Statistic, StatisticIcon } from '@/hooks/types'
-import { Card, Group, SimpleGrid, Skeleton, Text, Tooltip } from '@mantine/core'
+import {
+  Box,
+  Card,
+  Group,
+  SimpleGrid,
+  Skeleton,
+  Text,
+  Tooltip,
+} from '@mantine/core'
 import {
   Icon,
+  IconActivity,
   IconArrowDownRight,
   IconArrowUpRight,
   IconBatteryCharging,
   IconBolt,
   IconBuilding,
   IconChartBar,
+  IconCurrencyDollar,
   IconDiscountCheck,
   IconExclamationCircle,
   IconHeart,
   IconTemperature,
+  IconTrendingUp,
 } from '@tabler/icons-react'
 
 type StatsGridProps = {
@@ -28,6 +39,9 @@ const icons: Record<StatisticIcon, Icon> = {
   availability: IconDiscountCheck,
   performance: IconChartBar,
   project: IconBuilding,
+  price: IconTrendingUp,
+  revenue: IconCurrencyDollar,
+  dispatch: IconActivity,
 }
 
 export function StatsGrid({ data, isLoading }: StatsGridProps) {
@@ -102,9 +116,22 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
           </Group>
 
           <Group align="flex-end" gap="xs" mt={15}>
-            <Text fz={32} fw={700}>
-              {stat.value}
-            </Text>
+            {stat.value === null ? (
+              <Skeleton height={32} width={120} radius="xl" />
+            ) : typeof stat.value === 'string' ? (
+              <Text fz={32} fw={700}>
+                {stat.value}
+              </Text>
+            ) : (
+              <Box
+                style={{
+                  fontSize: 'calc(2rem * var(--mantine-scale))',
+                  fontWeight: 700,
+                }}
+              >
+                {stat.value}
+              </Box>
+            )}
             {stat.diff !== undefined && stat.diff !== null && (
               <Text c={diffColor} fz="sm" fw={500}>
                 {stat.title.includes('(avg)') ? (

@@ -30,6 +30,15 @@ ALLOWED_UNUSED_ROUTES = {
     "/v1/operational/projects/{param}/status/interpret",
     "/v1/operational/projects/{param}/status/time-series-python",
     "/v1/operational/projects/{param}/llm-time-series",
+    # Dev/debug endpoints intentionally not used by the web-app.
+    "/v1/development/ptp/explore",
+    "/v1/development/ptp/markets",
+    "/v1/development/ptp/markets/{param}/endpoints",
+    "/v1/development/ptp/markets/{param}/endpoints/{param}/data",
+    "/v1/development/ptp/markets/{param}/endpoints/{param}/elements",
+    "/v1/development/ptp/markets/{param}/endpoints/{param}/schema",
+    "/v1/protected/web-application/projects/{param}/market-performance/debug/raw",
+    "/v1/protected/web-application/projects/{param}/market-performance/realtime",
 }
 
 
