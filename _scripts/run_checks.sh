@@ -370,9 +370,9 @@ if [ "${RUN_API}" = "true" ]; then
     add_check "API: Unused Import Check" "mise run api:deptry"
     add_check "API: Dead Code Check" "mise run api:vulture"
     add_check "API: DbQuery.get Check" "mise run api:db_query_get"
-    add_db_check "API: Pytest" "mise run api:pytest"
+    add_check "API: Pytest" "mise run api:pytest"
     add_check "API: Docstring Args Check" "mise run api:docstring_args"
-    add_db_check "API: Unused Routes Check" \
+    add_check "API: Unused Routes Check" \
         "mise run api:unused_routes_detailed"
 fi
 

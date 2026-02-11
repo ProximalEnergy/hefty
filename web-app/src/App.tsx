@@ -154,6 +154,7 @@ import ExpectedPlotting from './pages/projects/utility/ExpectedPlotting'
 // import CustomDash from './pages/projects/custom_dash/CustomDash'
 
 const URL_SIGN_IN = '/sign-in'
+const MFA_EXEMPT_EMAILS = new Set(['bot@proximal.energy'])
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -222,6 +223,11 @@ const RequiresTwoFactor = ({ children }: { children: React.ReactNode }) => {
 
   const hasTwoFactorEnabled = user?.twoFactorEnabled
   const isDemoUser = user?.publicMetadata?.demo
+  const isMfaExemptUser = Boolean(
+    user?.emailAddresses?.some((email) =>
+      MFA_EXEMPT_EMAILS.has(email.emailAddress.toLowerCase()),
+    ),
+  )
 
   // If the user is not loaded, return loader
   if (!isLoaded) {
@@ -229,7 +235,7 @@ const RequiresTwoFactor = ({ children }: { children: React.ReactNode }) => {
   }
 
   // If the user does not have two factor enabled and they are not a demo user, redirect to the account settings page for two factor configuration
-  if (!hasTwoFactorEnabled && !isDemoUser) {
+  if (!hasTwoFactorEnabled && !isDemoUser && !isMfaExemptUser) {
     return <Navigate to="/account-settings#/security" replace />
   }
 
