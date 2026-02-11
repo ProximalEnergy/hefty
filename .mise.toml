@@ -335,9 +335,10 @@ arg "<description>" help="Migration description"
 dir = "core"
 run = '''
 echo "Generating alembic migration with description ${usage_description}"
-alembic revision --autogenerate -m "${usage_description}"
+uv run alembic revision --autogenerate -m "${usage_description}"
 python3 _scripts/clean_alembic.py --latest
-cd .. && uv run --dev ruff check core/_alembic_migrations/versions && uv run --dev ruff format core/_alembic_migrations/versions
+uv run --dev ruff check --config ../pyproject.toml .
+
 '''
 
 [tasks."core:tag"]
