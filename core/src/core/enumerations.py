@@ -618,6 +618,19 @@ class ReactionType(StrEnum):
     EYES = "eyes"
     QUESTION_MARK = "question_mark"
     HEART = "heart"
+    LAUGHING = "laughing"
+    SURPRISED = "surprised"
+    SAD = "sad"
+    ANGRY = "angry"
+    PARTY = "party"
+    CHECK = "check"
+    CLAP = "clap"
+    HUNDRED = "hundred"
+    ROCKET = "rocket"
+    LIGHTBULB = "lightbulb"
+    STAR = "star"
+    TARGET = "target"
+    PRAY = "pray"
 
 
 class NotificationSeverity(StrEnum):

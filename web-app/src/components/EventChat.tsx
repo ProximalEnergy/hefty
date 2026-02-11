@@ -121,9 +121,10 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
     return () => clearTimeout(timeoutId)
   }, [inputValue, draftKey])
 
-  // Extended emoji reactions
+  // Extended emoji reactions (must match ReactionType enum in core)
   const emojiReactions = [
     { emoji: '👍', type: 'thumbs_up', label: 'Thumbs up' },
+    { emoji: '👎', type: 'thumbs_down', label: 'Thumbs down' },
     { emoji: '👀', type: 'eyes', label: 'Eyes' },
     { emoji: '❓', type: 'question_mark', label: 'Question' },
     { emoji: '❤️', type: 'heart', label: 'Heart' },

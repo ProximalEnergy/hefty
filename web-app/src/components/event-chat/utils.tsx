@@ -15,6 +15,7 @@ export const ALLOWED_IMAGE_TYPES = [
 export function getReactionEmoji(reactionType: string): string {
   const emojiMap: Record<string, string> = {
     thumbs_up: '👍',
+    thumbs_down: '👎',
     eyes: '👀',
     question_mark: '❓',
     heart: '❤️',
