@@ -904,6 +904,16 @@ class EventSummary(BaseModel):
     loss_daily_energy: float | None
 
 
+class EventCMMSTicket(BaseModel):
+    """Eventcmmsticket model."""
+
+    event_cmms_ticket_id: int
+    event_id: int
+    cmms_ticket_id: int
+    created_by_user_id: str
+    created_at: datetime.datetime
+
+
 class GeoJSON(BaseModel):
     """Geojson model."""
 

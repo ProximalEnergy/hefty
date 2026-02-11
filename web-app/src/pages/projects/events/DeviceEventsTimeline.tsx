@@ -7,6 +7,7 @@ import {
   HoverCard,
   ScrollArea,
   Skeleton,
+  Stack,
   Text,
   Timeline,
 } from '@mantine/core'
@@ -86,47 +87,53 @@ const DeviceEventsTimeline = ({
             reverseActive
             align="left"
           >
-            {eventsAndTickets.map((item, index) =>
-              item.type === 'event' ? (
-                <Timeline.Item key={index}>
-                  <Link
-                    to={`/projects/${projectId}/events/event/?eventId=${item.event?.event_id}`}
-                    style={{ color: 'inherit' }}
-                  >
-                    <Text
-                      style={{
-                        fontWeight:
-                          selectedEvent.event_id === item.event?.event_id
-                            ? 'bold'
-                            : 'normal',
-                      }}
+            {eventsAndTickets.map((item, index) => {
+              if (item.type === 'event') {
+                return (
+                  <Timeline.Item key={index}>
+                    <Link
+                      to={`/projects/${projectId}/events/event/?eventId=${item.event?.event_id}`}
+                      style={{ color: 'inherit' }}
                     >
-                      {item.event?.time_end
-                        ? `${dayjs(item.event?.time_start).format(
-                            'MM/DD/YYYY',
-                          )} - ${dayjs(item.event?.time_end).format('MM/DD/YYYY')}`
-                        : dayjs(item.event?.time_start).format('MM/DD/YYYY')}
-                    </Text>
-                  </Link>
-                  <Group>
-                    <Text
-                      size="sm"
-                      style={{
-                        fontWeight:
-                          selectedEvent.event_id === item.event?.event_id
-                            ? 'bold'
-                            : 'normal',
-                      }}
-                    >
-                      Failure mode:{' '}
-                      {failureModes.find(
-                        (fm) =>
-                          fm.failure_mode_id === item.event?.failure_mode_id,
-                      )?.name_long || 'Unknown'}
-                    </Text>
-                  </Group>
-                </Timeline.Item>
-              ) : (
+                      <Text
+                        style={{
+                          fontWeight:
+                            selectedEvent.event_id === item.event?.event_id
+                              ? 'bold'
+                              : 'normal',
+                        }}
+                      >
+                        {item.event?.time_end
+                          ? `${dayjs(item.event?.time_start).format(
+                              'MM/DD/YYYY',
+                            )} - ${dayjs(item.event?.time_end).format(
+                              'MM/DD/YYYY',
+                            )}`
+                          : dayjs(item.event?.time_start).format('MM/DD/YYYY')}
+                      </Text>
+                    </Link>
+                    <Group>
+                      <Text
+                        size="sm"
+                        style={{
+                          fontWeight:
+                            selectedEvent.event_id === item.event?.event_id
+                              ? 'bold'
+                              : 'normal',
+                        }}
+                      >
+                        Failure mode:{' '}
+                        {failureModes.find(
+                          (fm) =>
+                            fm.failure_mode_id === item.event?.failure_mode_id,
+                        )?.name_long || 'Unknown'}
+                      </Text>
+                    </Group>
+                  </Timeline.Item>
+                )
+              }
+
+              return (
                 <Timeline.Item key={index} color="orange" radius="xs">
                   <HoverCard>
                     <HoverCard.Target>
@@ -151,15 +158,17 @@ const DeviceEventsTimeline = ({
                       />
                     </HoverCard.Dropdown>
                   </HoverCard>
-                  <Text c="dimmed" size="sm">
-                    {item.ticket?.summary}
-                  </Text>
-                  <Badge color="orange" size="sm">
-                    {item.ticket?.status}
-                  </Badge>
+                  <Stack p={0} gap={0}>
+                    <Text c="dimmed" size="sm">
+                      {item.ticket?.summary}
+                    </Text>
+                    <Badge color="orange" size="sm">
+                      {item.ticket?.status}
+                    </Badge>
+                  </Stack>
                 </Timeline.Item>
-              ),
-            )}
+              )
+            })}
           </Timeline>
         </Box>
       </ScrollArea.Autosize>

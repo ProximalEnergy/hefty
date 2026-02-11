@@ -21,9 +21,11 @@ router = APIRouter(
 class CMMSTicket(BaseModel):
     """A CMMS ticket with provider metadata and scheduling details."""
 
+    cmms_ticket_id: int  # internal ticket_id from Proximal's DB.
     cmms_provider: str
     id: int  # machine readable identifier
     key: str  # human readable identifier
+    cmms_integration_id: int
     created_at: datetime | None = None  # the date and time the ticket was created
     due_date: datetime | None = None
     summary: str | None = None
@@ -159,7 +161,9 @@ async def get_cmms_tickets(
 
     tickets = [
         CMMSTicket(
+            cmms_ticket_id=ticket[0].cmms_ticket_id,
             cmms_provider=ticket[1],
+            cmms_integration_id=ticket[0].cmms_integration_id,
             id=ticket[0].source_id,
             key=ticket[0].key,
             created_at=ticket[0].source_created_at,

@@ -17,6 +17,9 @@ from app.v1.protected.web_application.projects.device_details import device_deta
 from app.v1.protected.web_application.projects.equipment_analysis import (
     equipment_analysis,
 )
+from app.v1.protected.web_application.projects.event_cmms_tickets import (
+    event_cmms_tickets,
+)
 from app.v1.protected.web_application.projects.events import events
 from app.v1.protected.web_application.projects.market_performance import (
     market_performance,
@@ -32,14 +35,15 @@ router = APIRouter(
     dependencies=[Depends(check_project_access_async)],
 )
 
-router.include_router(equipment_analysis.router)
-router.include_router(device_details.router)
-router.include_router(project_tag_explorer.router)
-router.include_router(real_time.router)
-router.include_router(events.router)
-router.include_router(custom_dash.router)
 router.include_router(battery_settlement.router)
 router.include_router(combiner_correlation_analysis.router)
+router.include_router(custom_dash.router)
+router.include_router(device_details.router)
+router.include_router(equipment_analysis.router)
+router.include_router(event_cmms_tickets.router)
+router.include_router(events.router)
+router.include_router(project_tag_explorer.router)
+router.include_router(real_time.router)
 router.include_router(reports.router)
 router.include_router(market_performance.router)
 router.include_router(ptp_data.router)

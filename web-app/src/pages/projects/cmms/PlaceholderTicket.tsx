@@ -6,6 +6,7 @@ import CMMSTicketCard from './CMMSTicketCard'
 
 const PlaceholderTicket = () => {
   const placeholderTicket: CMMSTicket = {
+    cmms_ticket_id: -1,
     id: 1,
     key: 'EX-01',
     summary: 'Example Ticket: Inverter Underperformance',
@@ -19,6 +20,7 @@ const PlaceholderTicket = () => {
     location: 'Inverter 10, String 3',
     cmms_provider: 'Jira',
     cmms_device_id: 'INV-10',
+    cmms_integration_id: -1,
   }
 
   return (

@@ -5558,7 +5558,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/bess": {
+    "/v1/protected/web-application/projects/{project_id}/battery-settlement": {
         parameters: {
             query?: never;
             header?: never;
@@ -5566,43 +5566,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Bess
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project: Description for project.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/bess-pcs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Bess Pcs
+         * Get Battery Settlement Details
          * @description todo
          *
          *     Args:
          *         start: Description for start.
          *         end: Description for end.
          *         project: Description for project.
-         *         project_db: Description for project_db.
+         *         tps_token: Description for tps_token.
+         *         user: Description for user.
+         *         db_async: Description for db_async.
          */
-        get: operations["get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get"];
+        get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5611,7 +5586,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/combiner": {
+    "/v1/protected/web-application/projects/{project_id}/combiner-correlation-analysis": {
         parameters: {
             query?: never;
             header?: never;
@@ -5619,597 +5594,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Equipment Analysis Combiner
-         * @deprecated
+         * Combiner Correlation Analysis
          * @description todo
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         *         start: Description for start.
-         *         end: Description for end.
-         */
-        get: operations["get_equipment_analysis_combiner_v1_protected_web_application_projects__project_id__equipment_analysis_combiner_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/tracker": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tracker
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_db: Description for project_db.
+         *         analysis_date: Description for analysis_date.
+         *         block_names: Description for block_names.
          *         project: Description for project.
          */
-        get: operations["get_tracker_v1_protected_web_application_projects__project_id__equipment_analysis_tracker_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/tracker/{pv_block_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tracker By Pv Block Id
-         * @description todo
-         *
-         *     Args:
-         *         pv_block_id: Description for pv_block_id.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project: Description for project.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/pcs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Equipment Analysis Pcs
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/heatmap/{sensor_type_name_short}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Heatmap
-         * @description todo
-         *
-         *     Args:
-         *         sensor_type_name_short: Description for sensor_type_name_short.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         agg: Description for agg.
-         *         fillna_zero: Description for fillna_zero.
-         */
-        get: operations["get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/sunburst-data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Sunburst Data
-         * @description todo
-         *
-         *     Args:
-         *         db: Description for db.
-         *         project_db: Description for project_db.
-         *         project_id: Description for project_id.
-         *         mode: Description for mode.
-         *         ignored_device_type_ids: Description for ignored_device_type_ids.
-         */
-        get: operations["get_sunburst_data_v1_protected_web_application_projects__project_id__equipment_analysis_sunburst_data_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/horizontal/bess": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Horizontal Bess
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project: Description for project.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/horizontal/pv": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Horizontal Pv
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project: Description for project.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_horizontal_pv_v1_protected_web_application_projects__project_id__device_details_horizontal_pv_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/single/{device_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Single By Device Id
-         * @description todo
-         *
-         *     Args:
-         *         device_id: Description for device_id.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project: Description for project.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/vertical/controller/{device_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Vertical Controller
-         * @description todo
-         *
-         *     Args:
-         *         device_id: Description for device_id.
-         *         db: Description for db.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/vertical": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Vertical
-         * @description todo
-         *
-         *     Args:
-         *         project: Description for project.
-         *         project_db: Description for project_db.
-         *         device_ids: Description for device_ids.
-         *         start: Description for start.
-         *         end: Description for end.
-         */
-        get: operations["get_vertical_v1_protected_web_application_projects__project_id__device_details_vertical_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/data-availability": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Data Availability
-         * @description Calculate data availability and staleness for a given set of device types.
-         *
-         *     Args:
-         *         device_type_ids: Device type ids to filter by.
-         *         project_db: Project database session.
-         *         include_ghost_tags: Include tags without sensor_type_id when True.
-         */
-        get: operations["get_data_availability_v1_protected_web_application_projects__project_id__device_details_data_availability_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/device-details/data-availability-v2": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Data Availability V2
-         * @description Calculates data availability and staleness for a given set of device types.
-         *         This implementation uses a Common Table Expression (CTE) and the PostgreSQL
-         *         ANY() operator to efficiently handle a large number of device_type_ids,
-         *         avoiding the 32,767 parameter limit.
-         *
-         *     Args:
-         *         device_type_ids: Description for device_type_ids.
-         *         project_name_short: Description for project_name_short.
-         *         include_ghost_tags: Description for include_ghost_tags.
-         */
-        get: operations["get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/unique-tag-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Unique Tag Types
-         * @description Get unique tag types for the current project.
-         *         This endpoint is only accessible to superadmins.
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/assign-pattern-sensor-type": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Assign Sensor Type To Pattern
-         * @description todo
-         *
-         *     Args:
-         *         request: Description for request.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         *         db: Description for db.
-         */
-        post: operations["assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/unique-tag-patterns": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Put Unique Tag Patterns
-         * @description todo
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        put: operations["put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/tag-pattern-samples/{tag_pattern}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tag Pattern Samples
-         * @description Get sample values for all tags in a specific pattern.
-         *         Returns up to 10 random tags from the pattern with their sample values.
-         *
-         *     Args:
-         *         tag_pattern: Description for tag_pattern.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_tag_pattern_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_samples__tag_pattern__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/tag-pattern-tags/{tag_pattern}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tag Pattern Tags
-         * @description Fetch all tags that match a given tag pattern (with [INT] wildcards).
-         *         Returns lightweight tag info for client-side processing.
-         *
-         *     Args:
-         *         tag_pattern: Description for tag_pattern.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/real-time/{device_type_id}/expected-power": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Expected Power By Device Type Id
-         * @description Get latest expected power for all devices of a given device type.
-         *
-         *     Uses the same logic as utility_expected in gis.py to fetch expected power
-         *     with proper fallback handling for expected_metric_ids.
-         *
-         *     Args:
-         *         device_type_id: The device type ID to fetch expected power for.
-         *         project_db: Database session.
-         *         project: Project model.
-         */
-        get: operations["get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/real-time/{device_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get By Device Type Id
-         * @description todo
-         *
-         *     Args:
-         *         device_type_id: Description for device_type_id.
-         *         sensor_type_ids: Description for sensor_type_ids.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/real-time/device-type-overview/power-summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Device Type Power Summary
-         * @description Get power summary for all device types in the project.
-         *
-         *         This endpoint efficiently calculates actual power for all device types
-         *         using the same proven logic as the GIS and plotting endpoints.
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/events/meta": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Meta Analysis
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_db: Description for project_db.
-         *         project_db_async: Description for project_db_async.
-         *         project: Description for project.
-         */
-        get: operations["get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/protected/web-application/projects/{project_id}/events/home-page-summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Events Home Page Summary
-         * @description todo
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         *         sort_by: Description for sort_by.
-         */
-        get: operations["get_events_home_page_summary_v1_protected_web_application_projects__project_id__events_home_page_summary_get"];
+        get: operations["combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6567,7 +5960,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/battery-settlement": {
+    "/v1/protected/web-application/projects/{project_id}/device-details/horizontal/bess": {
         parameters: {
             query?: never;
             header?: never;
@@ -6575,18 +5968,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Battery Settlement Details
+         * Get Horizontal Bess
          * @description todo
          *
          *     Args:
          *         start: Description for start.
          *         end: Description for end.
          *         project: Description for project.
-         *         tps_token: Description for tps_token.
-         *         user: Description for user.
-         *         db_async: Description for db_async.
+         *         project_db: Description for project_db.
          */
-        get: operations["get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get"];
+        get: operations["get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6595,7 +5986,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/web-application/projects/{project_id}/combiner-correlation-analysis": {
+    "/v1/protected/web-application/projects/{project_id}/device-details/horizontal/pv": {
         parameters: {
             query?: never;
             header?: never;
@@ -6603,15 +5994,706 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Combiner Correlation Analysis
+         * Get Horizontal Pv
          * @description todo
          *
          *     Args:
-         *         analysis_date: Description for analysis_date.
-         *         block_names: Description for block_names.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_horizontal_pv_v1_protected_web_application_projects__project_id__device_details_horizontal_pv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/device-details/single/{device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Single By Device Id
+         * @description todo
+         *
+         *     Args:
+         *         device_id: Description for device_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/device-details/vertical/controller/{device_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Vertical Controller
+         * @description todo
+         *
+         *     Args:
+         *         device_id: Description for device_id.
+         *         db: Description for db.
+         *         project_db: Description for project_db.
          *         project: Description for project.
          */
-        get: operations["combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get"];
+        get: operations["get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/device-details/vertical": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Vertical
+         * @description todo
+         *
+         *     Args:
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         *         device_ids: Description for device_ids.
+         *         start: Description for start.
+         *         end: Description for end.
+         */
+        get: operations["get_vertical_v1_protected_web_application_projects__project_id__device_details_vertical_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/device-details/data-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Data Availability
+         * @description Calculate data availability and staleness for a given set of device types.
+         *
+         *     Args:
+         *         device_type_ids: Device type ids to filter by.
+         *         project_db: Project database session.
+         *         include_ghost_tags: Include tags without sensor_type_id when True.
+         */
+        get: operations["get_data_availability_v1_protected_web_application_projects__project_id__device_details_data_availability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/device-details/data-availability-v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Data Availability V2
+         * @description Calculates data availability and staleness for a given set of device types.
+         *         This implementation uses a Common Table Expression (CTE) and the PostgreSQL
+         *         ANY() operator to efficiently handle a large number of device_type_ids,
+         *         avoiding the 32,767 parameter limit.
+         *
+         *     Args:
+         *         device_type_ids: Description for device_type_ids.
+         *         project_name_short: Description for project_name_short.
+         *         include_ghost_tags: Description for include_ghost_tags.
+         */
+        get: operations["get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/bess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bess
+         * @description todo
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/bess-pcs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bess Pcs
+         * @description todo
+         *
+         *     Args:
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/combiner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Equipment Analysis Combiner
+         * @deprecated
+         * @description todo
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         */
+        get: operations["get_equipment_analysis_combiner_v1_protected_web_application_projects__project_id__equipment_analysis_combiner_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/tracker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tracker
+         * @description todo
+         *
+         *     Args:
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        get: operations["get_tracker_v1_protected_web_application_projects__project_id__equipment_analysis_tracker_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/tracker/{pv_block_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tracker By Pv Block Id
+         * @description todo
+         *
+         *     Args:
+         *         pv_block_id: Description for pv_block_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/pcs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Equipment Analysis Pcs
+         * @description todo
+         *
+         *     Args:
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        get: operations["get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/heatmap/{sensor_type_name_short}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Heatmap
+         * @description todo
+         *
+         *     Args:
+         *         sensor_type_name_short: Description for sensor_type_name_short.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         agg: Description for agg.
+         *         fillna_zero: Description for fillna_zero.
+         */
+        get: operations["get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/equipment-analysis/sunburst-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sunburst Data
+         * @description todo
+         *
+         *     Args:
+         *         db: Description for db.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         *         mode: Description for mode.
+         *         ignored_device_type_ids: Description for ignored_device_type_ids.
+         */
+        get: operations["get_sunburst_data_v1_protected_web_application_projects__project_id__equipment_analysis_sunburst_data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/event-cmms-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Cmms Tickets
+         * @description Get event-CMMS ticket relationships by various filters.
+         *
+         *     Args:
+         *         project: The project to get the event-CMMS ticket relationships for.
+         *         event_cmms_ticket_ids: The event-CMMS ticket ids to get the relationships for.
+         *         event_ids: The event ids to get the relationships for.
+         *         cmms_ticket_ids: The CMMS ticket ids to get the relationships for.
+         *         created_by_user_ids: The user ids to get the relationships for.
+         *         created_at_gte: The created at greater than or equal to.
+         *         created_at_lte: The created at less than or equal to.
+         */
+        get: operations["get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get"];
+        put?: never;
+        /**
+         * Create Event Cmms Ticket
+         * @description Create a new event-CMMS ticket relationship.
+         *
+         *     Args:
+         *         project_db: The project database session.
+         *         user_data: The user data.
+         *         request: The request body.
+         */
+        post: operations["create_event_cmms_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/{event_cmms_ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Event Cmms Ticket
+         * @description Delete an event-CMMS ticket relationship.
+         *
+         *     Args:
+         *         project_db: The project database session.
+         *         event_cmms_ticket_id: The event-CMMS ticket ID.
+         */
+        delete: operations["delete_event_cmms_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets__event_cmms_ticket_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/suggested-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Suggested Events From Ticket
+         * @description Get suggested events from a ticket.
+         */
+        get: operations["get_suggested_events_from_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets_suggested_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/events/meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Meta Analysis
+         * @description todo
+         *
+         *     Args:
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project_db_async: Description for project_db_async.
+         *         project: Description for project.
+         */
+        get: operations["get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/events/home-page-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Events Home Page Summary
+         * @description todo
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         sort_by: Description for sort_by.
+         */
+        get: operations["get_events_home_page_summary_v1_protected_web_application_projects__project_id__events_home_page_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/unique-tag-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Unique Tag Types
+         * @description Get unique tag types for the current project.
+         *         This endpoint is only accessible to superadmins.
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        get: operations["get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/assign-pattern-sensor-type": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign Sensor Type To Pattern
+         * @description todo
+         *
+         *     Args:
+         *         request: Description for request.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         db: Description for db.
+         */
+        post: operations["assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/unique-tag-patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Unique Tag Patterns
+         * @description todo
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        put: operations["put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/tag-pattern-samples/{tag_pattern}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tag Pattern Samples
+         * @description Get sample values for all tags in a specific pattern.
+         *         Returns up to 10 random tags from the pattern with their sample values.
+         *
+         *     Args:
+         *         tag_pattern: Description for tag_pattern.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        get: operations["get_tag_pattern_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_samples__tag_pattern__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/project-tag-explorer/tag-pattern-tags/{tag_pattern}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tag Pattern Tags
+         * @description Fetch all tags that match a given tag pattern (with [INT] wildcards).
+         *         Returns lightweight tag info for client-side processing.
+         *
+         *     Args:
+         *         tag_pattern: Description for tag_pattern.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/real-time/{device_type_id}/expected-power": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Expected Power By Device Type Id
+         * @description Get latest expected power for all devices of a given device type.
+         *
+         *     Uses the same logic as utility_expected in gis.py to fetch expected power
+         *     with proper fallback handling for expected_metric_ids.
+         *
+         *     Args:
+         *         device_type_id: The device type ID to fetch expected power for.
+         *         project_db: Database session.
+         *         project: Project model.
+         */
+        get: operations["get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/real-time/{device_type_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get By Device Type Id
+         * @description todo
+         *
+         *     Args:
+         *         device_type_id: Description for device_type_id.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/projects/{project_id}/real-time/device-type-overview/power-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Device Type Power Summary
+         * @description Get power summary for all device types in the project.
+         *
+         *         This endpoint efficiently calculates actual power for all device types
+         *         using the same proven logic as the GIS and plotting endpoints.
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        get: operations["get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7494,6 +7576,17 @@ export interface components {
             /** Screenshot */
             screenshot?: string | null;
         };
+        /** Body_get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get */
+        Body_get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get: {
+            /** Event Cmms Ticket Ids */
+            event_cmms_ticket_ids?: number[] | null;
+            /** Event Ids */
+            event_ids?: number[] | null;
+            /** Cmms Ticket Ids */
+            cmms_ticket_ids?: number[] | null;
+            /** Created By User Ids */
+            created_by_user_ids?: string[] | null;
+        };
         /** Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post */
         Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post: {
             /**
@@ -7851,12 +7944,16 @@ export interface components {
          * @description A CMMS ticket with provider metadata and scheduling details.
          */
         CMMSTicket: {
+            /** Cmms Ticket Id */
+            cmms_ticket_id: number;
             /** Cmms Provider */
             cmms_provider: string;
             /** Id */
             id: number;
             /** Key */
             key: string;
+            /** Cmms Integration Id */
+            cmms_integration_id: number;
             /** Created At */
             created_at?: string | null;
             /** Due Date */
@@ -9019,6 +9116,25 @@ export interface components {
             device_name_full?: string | null;
             /** Version */
             version?: string | null;
+        };
+        /**
+         * EventCMMSTicket
+         * @description Eventcmmsticket model.
+         */
+        EventCMMSTicket: {
+            /** Event Cmms Ticket Id */
+            event_cmms_ticket_id: number;
+            /** Event Id */
+            event_id: number;
+            /** Cmms Ticket Id */
+            cmms_ticket_id: number;
+            /** Created By User Id */
+            created_by_user_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /**
          * EventData
@@ -11342,6 +11458,49 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** _CreateEventCMMSTicketRequest */
+        _CreateEventCMMSTicketRequest: {
+            /** Event Id */
+            event_id: number;
+            /** Cmms Ticket Id */
+            cmms_ticket_id: number;
+        };
+        /** _EventWithScore */
+        _EventWithScore: {
+            /** Event Id */
+            event_id: number;
+            /** Device Id */
+            device_id: number;
+            /** Failure Mode Id */
+            failure_mode_id: number;
+            /** Root Cause Id */
+            root_cause_id: number | null;
+            /**
+             * Time Start
+             * Format: date-time
+             */
+            time_start: string;
+            /** Time End */
+            time_end: string | null;
+            /**
+             * Time Detected
+             * Format: date-time
+             */
+            time_detected: string;
+            /** Time Last Analyzed */
+            time_last_analyzed: string | null;
+            /** Loss Total Financial */
+            loss_total_financial: number | null;
+            failure_mode?: components["schemas"]["FailureMode"] | null;
+            root_cause?: components["schemas"]["RootCause"] | null;
+            device?: components["schemas"]["Device"] | null;
+            /** Device Name Full */
+            device_name_full?: string | null;
+            /** Version */
+            version?: string | null;
+            /** Score */
+            score: number;
+        };
         /**
          * KPIType
          * @description Kpitype model.
@@ -11391,7 +11550,7 @@ export interface components {
          * KPIType
          * @enum {integer}
          */
-        core__enumerations__KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105;
+        core__enumerations__KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106;
         /**
          * SensorType
          * @enum {integer}
@@ -19825,7 +19984,7 @@ export interface operations {
             };
         };
     };
-    get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get: {
+    get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get: {
         parameters: {
             query: {
                 end: string;
@@ -19862,859 +20021,11 @@ export interface operations {
             };
         };
     };
-    get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get: {
-        parameters: {
-            query: {
-                end: string;
-                start: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_equipment_analysis_combiner_v1_protected_web_application_projects__project_id__equipment_analysis_combiner_get: {
+    combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get: {
         parameters: {
             query?: {
-                start?: string | null;
-                end?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tracker_v1_protected_web_application_projects__project_id__equipment_analysis_tracker_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pv_block_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                sensor_type_name_short: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_sunburst_data_v1_protected_web_application_projects__project_id__equipment_analysis_sunburst_data_get: {
-        parameters: {
-            query?: {
-                mode?: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": number[];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get: {
-        parameters: {
-            query: {
-                end: string;
-                start: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_horizontal_pv_v1_protected_web_application_projects__project_id__device_details_horizontal_pv_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceDetailsHorizontalPV"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get: {
-        parameters: {
-            query: {
-                end: string;
-                start: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                device_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                device_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_vertical_v1_protected_web_application_projects__project_id__device_details_vertical_get: {
-        parameters: {
-            query: {
-                device_ids: number[];
-                end: string;
-                start: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_data_availability_v1_protected_web_application_projects__project_id__device_details_data_availability_get: {
-        parameters: {
-            query: {
-                device_type_ids: number[];
-                include_ghost_tags?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get: {
-        parameters: {
-            query: {
-                device_type_ids: number[];
-                include_ghost_tags?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AssignPatternSensorTypeRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tag_pattern_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_samples__tag_pattern__get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                tag_pattern: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                tag_pattern: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                device_type_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__get: {
-        parameters: {
-            query?: {
-                sensor_type_ids?: number[] | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                device_type_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceTypePowerSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get: {
-        parameters: {
-            query?: {
-                end?: string | null;
-                start?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMetaData"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_events_home_page_summary_v1_protected_web_application_projects__project_id__events_home_page_summary_get: {
-        parameters: {
-            query?: {
-                sort_by?: "daily" | "total";
+                analysis_date?: string | null;
+                block_names?: string[] | null;
             };
             header?: {
                 authorization?: string;
@@ -21272,7 +20583,7 @@ export interface operations {
             };
         };
     };
-    get_battery_settlement_details_v1_protected_web_application_projects__project_id__battery_settlement_get: {
+    get_horizontal_bess_v1_protected_web_application_projects__project_id__device_details_horizontal_bess_get: {
         parameters: {
             query: {
                 end: string;
@@ -21309,11 +20620,122 @@ export interface operations {
             };
         };
     };
-    combiner_correlation_analysis_v1_protected_web_application_projects__project_id__combiner_correlation_analysis_get: {
+    get_horizontal_pv_v1_protected_web_application_projects__project_id__device_details_horizontal_pv_get: {
         parameters: {
-            query?: {
-                analysis_date?: string | null;
-                block_names?: string[] | null;
+            query: {
+                start: string;
+                end: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceDetailsHorizontalPV"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_single_by_device_id_v1_protected_web_application_projects__project_id__device_details_single__device_id__get: {
+        parameters: {
+            query: {
+                end: string;
+                start: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                device_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_vertical_controller_v1_protected_web_application_projects__project_id__device_details_vertical_controller__device_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                device_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_vertical_v1_protected_web_application_projects__project_id__device_details_vertical_get: {
+        parameters: {
+            query: {
+                device_ids: number[];
+                end: string;
+                start: string;
             };
             header?: {
                 authorization?: string;
@@ -21333,6 +20755,896 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_data_availability_v1_protected_web_application_projects__project_id__device_details_data_availability_get: {
+        parameters: {
+            query: {
+                device_type_ids: number[];
+                include_ghost_tags?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_data_availability_v2_v1_protected_web_application_projects__project_id__device_details_data_availability_v2_get: {
+        parameters: {
+            query: {
+                device_type_ids: number[];
+                include_ghost_tags?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bess_v1_protected_web_application_projects__project_id__equipment_analysis_bess_get: {
+        parameters: {
+            query: {
+                end: string;
+                start: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bess_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_bess_pcs_get: {
+        parameters: {
+            query: {
+                end: string;
+                start: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_equipment_analysis_combiner_v1_protected_web_application_projects__project_id__equipment_analysis_combiner_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tracker_v1_protected_web_application_projects__project_id__equipment_analysis_tracker_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tracker_by_pv_block_id_v1_protected_web_application_projects__project_id__equipment_analysis_tracker__pv_block_id__get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_block_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_equipment_analysis_pcs_v1_protected_web_application_projects__project_id__equipment_analysis_pcs_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_heatmap_v1_protected_web_application_projects__project_id__equipment_analysis_heatmap__sensor_type_name_short__get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                sensor_type_name_short: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sunburst_data_v1_protected_web_application_projects__project_id__equipment_analysis_sunburst_data_get: {
+        parameters: {
+            query?: {
+                mode?: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": number[];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get: {
+        parameters: {
+            query?: {
+                created_at_gte?: string | null;
+                created_at_lte?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["Body_get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCMMSTicket"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_event_cmms_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_CreateEventCMMSTicketRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCMMSTicket"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_event_cmms_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets__event_cmms_ticket_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_cmms_ticket_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCMMSTicket"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_suggested_events_from_ticket_v1_protected_web_application_projects__project_id__event_cmms_tickets_suggested_events_get: {
+        parameters: {
+            query: {
+                cmms_ticket_id: number;
+                cmms_integration_id: number;
+                cmms_device_id?: string | null;
+                source_created_at?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_EventWithScore"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_meta_analysis_v1_protected_web_application_projects__project_id__events_meta_get: {
+        parameters: {
+            query?: {
+                end?: string | null;
+                start?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMetaData"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_events_home_page_summary_v1_protected_web_application_projects__project_id__events_home_page_summary_get: {
+        parameters: {
+            query?: {
+                sort_by?: "daily" | "total";
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_unique_tag_types_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_types_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_sensor_type_to_pattern_v1_protected_web_application_projects__project_id__project_tag_explorer_assign_pattern_sensor_type_post: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignPatternSensorTypeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_unique_tag_patterns_v1_protected_web_application_projects__project_id__project_tag_explorer_unique_tag_patterns_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tag_pattern_samples_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_samples__tag_pattern__get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                tag_pattern: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tag_pattern_tags_v1_protected_web_application_projects__project_id__project_tag_explorer_tag_pattern_tags__tag_pattern__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                tag_pattern: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_expected_power_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__expected_power_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                device_type_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_by_device_type_id_v1_protected_web_application_projects__project_id__real_time__device_type_id__get: {
+        parameters: {
+            query?: {
+                sensor_type_ids?: number[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                device_type_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_device_type_power_summary_v1_protected_web_application_projects__project_id__real_time_device_type_overview_power_summary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceTypePowerSummary"];
                 };
             };
             /** @description Validation Error */

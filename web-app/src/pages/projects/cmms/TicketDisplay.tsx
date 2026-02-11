@@ -2,6 +2,11 @@ import {
   CMMSTicket,
   useGetCMMSTickets,
 } from '@/api/v1/operational/project/cmms_tickets'
+import { useSelectProject } from '@/api/v1/operational/projects'
+import {
+  EventCMMSTicket,
+  useGetEventCMMSTickets,
+} from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import {
@@ -23,12 +28,21 @@ const Page = () => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [showClosed, setShowClosed] = useState(false)
 
+  const project = useSelectProject(projectId!)
+
   const tickets = useGetCMMSTickets({
     pathParams: { projectId: projectId || '' },
     queryParams: {},
     queryOptions: { enabled: !!projectId },
   })
-
+  const cmmsTicketIds = useMemo(() => {
+    return tickets.data?.data.map((ticket) => ticket.cmms_ticket_id) ?? []
+  }, [tickets.data])
+  const eventCMMSTickets = useGetEventCMMSTickets({
+    pathParams: { projectId: projectId || '' },
+    queryParams: { cmms_ticket_ids: cmmsTicketIds },
+    queryOptions: { enabled: !!projectId && cmmsTicketIds.length > 0 },
+  })
   const availableStatuses = useMemo(() => {
     if (!tickets.data?.data) return []
     const statuses = new Set(
@@ -69,7 +83,7 @@ const Page = () => {
     })
   }, [tickets.data, selectedStatuses, showClosed])
 
-  if (tickets.isLoading) {
+  if (tickets.isLoading || eventCMMSTickets.isLoading || project.isLoading) {
     return <PageLoader />
   }
 
@@ -102,7 +116,15 @@ const Page = () => {
         <ScrollArea.Autosize flex={1} type="scroll">
           <Stack gap="md">
             {sortedAndFilteredTickets.map((ticket: CMMSTicket) => (
-              <CMMSTicketCard key={ticket.id} ticket={ticket} />
+              <CMMSTicketCard
+                key={ticket.id}
+                ticket={ticket}
+                eventCMMSTickets={eventCMMSTickets.data?.filter(
+                  (eventCMMSTicket: EventCMMSTicket) =>
+                    eventCMMSTicket.cmms_ticket_id === ticket.cmms_ticket_id,
+                )}
+                project={project.data}
+              />
             ))}
           </Stack>
         </ScrollArea.Autosize>
