@@ -27,6 +27,8 @@ creates the required PR body sections, and captures web-app screenshots for the
 4. Upload screenshots and insert markdown image links in `# Testing`.
 5. Re-run the script after adding screenshot/video files if you want them
    included in the PR body.
+6. As the final step, summarize recent git logs into:
+   Features, Refactors, and Bugfixes.
 
 ## Commands
 
@@ -65,6 +67,20 @@ In the PR body, include:
 If running in a sandboxed environment:
 - Run the command with escalated permissions for `.git` writes.
 - Ensure network-enabled escalation is available for `gh pr create`.
+
+### 4) Final summary from git logs
+
+After the PR body/screenshots are prepared, summarize git history in three
+sections using:
+
+```bash
+./.agents/skills/dev-history-summary/scripts/summarize_dev_history.sh --days 14
+```
+
+Then produce markdown with:
+- `## Features`
+- `## Refactors`
+- `## Bugfixes`
 
 ## Notes
 
