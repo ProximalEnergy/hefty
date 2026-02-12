@@ -2,6 +2,7 @@
 [tools]
 node = "25.6.0" # Specific versions are safer for monorepos than "latest"
 uv = "latest"
+gh = "latest"
 awscli = "latest"
 ripgrep = "latest"
 semgrep = "latest"
@@ -21,6 +22,7 @@ mise run api:switch-core && \
 uv sync --directory api && \
 cd web-app && npm ci && npx node build-plotly-custom.js && \
 aws configure && \
+(gh auth status >/dev/null 2>&1 || gh auth login) && \
 mise run api:get_env && \
 cp api/.env.from_parameter_store api/.env && \
 mise run web:get_env && \
