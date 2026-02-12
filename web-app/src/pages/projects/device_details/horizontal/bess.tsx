@@ -136,7 +136,7 @@ const Page = () => {
   }
 
   return (
-    <Stack p="md" h="100%">
+    <Stack p="md" pb="xl" mih="100%">
       <PageTitle info="View all BESS PCSs and the highest level of the BESS hierarchy in a single view. Click on a single trace to zoom in to its vertical device detail view.">
         BESS Device Details
       </PageTitle>

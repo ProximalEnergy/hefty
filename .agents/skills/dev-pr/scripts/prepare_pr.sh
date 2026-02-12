@@ -4,6 +4,11 @@ set -euo pipefail
 BASE_BRANCH="dev"
 REPO_ROOT=""
 TEMPLATE_PATH=""
+DEFAULT_WEB_URL="http://127.0.0.1:5173"
+DEV_SERVER_HELPER_REL=".agents/skills/dev-pr-screenshot/scripts/\
+ensure_dev_servers.sh"
+PLAYWRIGHT_WRAPPER_DEFAULT="$HOME/.codex/skills/playwright/scripts/\
+playwright_cli.sh"
 
 usage() {
   cat <<USAGE
@@ -119,7 +124,7 @@ for line in "${status_lines[@]}"; do
 
   if [[ "$file" == *"/"* ]]; then
     label="${file%%/*}"
-    # Special case: map microservices to api as they are conceptually related in this repo
+    # Special case: map microservices to api as conceptually related here.
     if [[ "$label" == "microservices" ]]; then
       label="api"
     fi
@@ -245,6 +250,82 @@ END {
   rm -f "${content_file}"
 }
 
+has_label() {
+  local target="$1"
+  local label
+  for label in "${labels[@]}"; do
+    if [[ "${label}" == "${target}" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+capture_web_screenshot() {
+  local screenshot_opt
+  screenshot_opt="$(printf "%s" "${AUTO_WEB_SCREENSHOT:-1}" | tr \
+    '[:upper:]' '[:lower:]')"
+  if [[ "${screenshot_opt}" == "0" || "${screenshot_opt}" == "false" ]]; then
+    echo "Skipping Playwright capture: AUTO_WEB_SCREENSHOT=${AUTO_WEB_SCREENSHOT:-1}"
+    return 0
+  fi
+
+  local helper_path="${REPO_ROOT}/${DEV_SERVER_HELPER_REL}"
+  if [[ ! -x "${helper_path}" ]]; then
+    echo "Skipping Playwright capture: missing helper at ${helper_path}"
+    return 0
+  fi
+
+  local pwcli_path="${PWCLI:-${PLAYWRIGHT_WRAPPER_DEFAULT}}"
+  if ! command -v npx >/dev/null 2>&1 || [[ ! -x "${pwcli_path}" ]]; then
+    echo "Skipping Playwright capture: npx or wrapper script unavailable."
+    return 0
+  fi
+
+  local web_url="${WEB_URL:-${DEFAULT_WEB_URL}}"
+  if ! API_URL="${API_URL:-http://127.0.0.1:8000}" WEB_URL="${web_url}" \
+    "${helper_path}"; then
+    echo "Skipping Playwright capture: unable to start API/web services."
+    return 0
+  fi
+
+  local shot_dir="${REPO_ROOT}/artifacts/pr-screenshots"
+  mkdir -p "${shot_dir}"
+  local marker
+  marker="$(mktemp)"
+  touch "${marker}"
+  local session="dev-pr-screenshot"
+
+  pushd "${shot_dir}" >/dev/null
+  if "${pwcli_path}" --session "${session}" open "${web_url}" >/dev/null 2>&1 \
+    && "${pwcli_path}" --session "${session}" snapshot >/dev/null 2>&1 \
+    && "${pwcli_path}" --session "${session}" screenshot >/dev/null 2>&1; then
+    :
+  else
+    echo "Playwright capture command failed. Continuing without screenshot."
+  fi
+  "${pwcli_path}" --session "${session}" close >/dev/null 2>&1 || true
+  popd >/dev/null
+
+  local new_file=""
+  new_file="$(find "${shot_dir}" -maxdepth 1 -type f \
+    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \
+    \) -newer "${marker}" | sort | head -n 1)"
+  rm -f "${marker}"
+
+  if [[ -n "${new_file}" ]]; then
+    local relative_file="${new_file#${REPO_ROOT}/}"
+    media_lines+=("- ![${relative_file}](${relative_file})")
+    echo "Captured Playwright screenshot: ${relative_file}"
+  else
+    echo "No new Playwright screenshot detected."
+  fi
+}
+
+if has_label "web-app"; then
+  capture_web_screenshot
+fi
+
 summary_content="$(join_lines "${summary_lines[@]}")"
 template="$(cat "${TEMPLATE_PATH}")"
 template="$(
@@ -292,7 +373,9 @@ if [[ -n "$(git status --porcelain)" ]]; then
   if [[ -z "${user_description}" ]]; then
     # Fallback: use branch name (minus prefix) if it's not a common branch name
     clean_branch="${branch_name##*/}"
-    if [[ "${clean_branch}" != "dev" && "${clean_branch}" != "main" && "${clean_branch}" != "master" && "${clean_branch}" != "staging" ]]; then
+    if [[ "${clean_branch}" != "dev" && "${clean_branch}" != "main" \
+      && "${clean_branch}" != "master" \
+      && "${clean_branch}" != "staging" ]]; then
       user_description="${clean_branch//[-_]/ }"
     else
       user_description="update"
