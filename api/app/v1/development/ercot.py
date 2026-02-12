@@ -132,10 +132,12 @@ async def get_resource_net_power(
         output_type=OutputType.PANDAS,
     )
     rtm_spp_data = await crud_get_ercot_rtm_spp(
-        db=db,
         settlement_point_ids=[resource.settlement_point_id],
         start=start,
         end=end,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
 
     # Check if any data is missing
@@ -160,7 +162,7 @@ async def get_resource_net_power(
     df_dam = df_dam.set_index("time")
     df_dam.index = df_dam.index.tz_convert("US/Central")  # type: ignore
 
-    df_rtm = pd.DataFrame.from_records([d.__dict__ for d in rtm_spp_data])
+    df_rtm = rtm_spp_data.copy()
     df_rtm = df_rtm.set_index("time")
     df_rtm.index = df_rtm.index.tz_convert("US/Central")  # type: ignore
 
@@ -216,10 +218,12 @@ async def get_prices(
         output_type=OutputType.PANDAS,
     )
     rtm_spp = await crud_get_ercot_rtm_spp(
-        db,
         settlement_point_ids=[settlement_point_id],
         start=start,
         end=end,
+    ).get_async(
+        executor=db,
+        output_type=OutputType.PANDAS,
     )
 
     if len(dam_spp) > 0:
@@ -236,7 +240,7 @@ async def get_prices(
         dam_data = {}
 
     if len(rtm_spp) > 0:
-        df_rtm = pd.DataFrame.from_records([d.__dict__ for d in rtm_spp])
+        df_rtm = rtm_spp.copy()
         df_rtm = df_rtm.set_index("time")
         df_rtm = df_rtm.sort_index()
         df_rtm.index = df_rtm.index.tz_convert("US/Central")  # type: ignore

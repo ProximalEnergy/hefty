@@ -1,22 +1,21 @@
 import datetime
+from typing import Literal
 
+from core.db_query import DbQuery
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
 
 
-async def get_ercot_rtm_spp(
-    db: AsyncSession,
+def get_ercot_rtm_spp(
     *,
-    settlement_point_ids: list[int] = [],
+    settlement_point_ids: list[int] | None = None,
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
-):
+) -> DbQuery[models.RTMSPP, Literal[False]]:
     """Fetch RTM settlement point prices with optional filters.
 
     Args:
-        db: Async SQLAlchemy session used for the query.
         settlement_point_ids: Settlement point IDs to filter by.
         start: Inclusive start timestamp for filtering.
         end: Exclusive end timestamp for filtering.
@@ -32,5 +31,4 @@ async def get_ercot_rtm_spp(
     if end:
         query = query.where(models.RTMSPP.time < end)
 
-    result = await db.execute(query)
-    return result.scalars().all()
+    return DbQuery(query=query, use_scalars=True)
