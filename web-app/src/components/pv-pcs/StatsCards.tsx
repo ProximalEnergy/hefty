@@ -152,7 +152,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   })
 
   const cmmsTickets = useGetCMMSTickets({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
     },
@@ -162,8 +162,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     },
   })
 
-  const hasCMMSIntegration =
-    cmmsTickets.data?.metadata?.integration_configured === true
+  const hasCMMSIntegration = cmmsTickets.data?.integration_configured === true
 
   return (
     <SimpleGrid cols={{ base: 1, xs: 2, sm: 4, md: 5 }}>

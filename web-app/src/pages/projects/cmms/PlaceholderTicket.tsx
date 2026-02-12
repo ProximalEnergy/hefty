@@ -7,18 +7,20 @@ import CMMSTicketCard from './CMMSTicketCard'
 const PlaceholderTicket = () => {
   const placeholderTicket: CMMSTicket = {
     cmms_ticket_id: -1,
-    id: 1,
+    db_created_at: new Date().toISOString(),
+    db_updated_at: new Date().toISOString(),
+    source_id: 1,
     key: 'EX-01',
     summary: 'Example Ticket: Inverter Underperformance',
     summary_long:
       'This is an example of a CMMS ticket. The details shown here are for demonstration purposes only, as there is currently no CMMS integration configured for this project.',
     status: 'Open',
     priority: 'Medium',
-    created_at: new Date().toISOString(),
+    source_created_at: new Date().toISOString(),
     reporter: 'System',
     assigned_to: 'Site Manager',
     location: 'Inverter 10, String 3',
-    cmms_provider: 'Jira',
+    cmms_provider_name_long: 'Jira',
     cmms_device_id: 'INV-10',
     cmms_integration_id: -1,
   }

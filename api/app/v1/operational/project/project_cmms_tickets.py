@@ -1,8 +1,14 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any, cast
 from uuid import UUID
 
+import pandas as pd
 import pytz
+from core.crud.operational.cmms_permissions import (
+    get_cmms_permissions_by_project_id as core_get_cmms_permissions_by_project_id,
+)
+from core.crud.project.cmms_tickets import get_project_cmms_tickets
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import and_, exists, select
@@ -54,7 +60,7 @@ class CMMSResponse(BaseModel):
     data: list[CMMSTicket]
 
 
-@router.get("", response_model=CMMSResponse)
+@router.get("", response_model=CMMSResponse, deprecated=True)
 async def get_cmms_tickets(
     project_id: UUID,
     db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
@@ -195,4 +201,91 @@ async def get_cmms_tickets(
     return CMMSResponse(
         data=tickets,
         metadata=CMMSMetadata(integration_configured=integration_configured),
+    )
+
+
+class EnrichedCMMSTicket(interfaces.CMMSTicket):
+    """An enriched CMMS ticket with provider metadata."""
+
+    cmms_provider_name_long: str
+
+
+class CMMSTicketV2(BaseModel):
+    """Response wrapper containing integration state and ticket results."""
+
+    integration_configured: bool
+    data: list[EnrichedCMMSTicket]
+
+
+@router.get("/v2", response_model=CMMSTicketV2)
+async def get_cmms_tickets_v2(
+    project: Annotated[models.Project, Depends(dependencies.get_project_api)],
+    user: Annotated[interfaces.UserData, Depends(dependencies.get_user_data_async)],
+    cmms_ticket_ids: Annotated[list[int] | None, Query()] = None,
+    cmms_integration_ids: Annotated[list[int] | None, Query()] = None,
+    max_results: Annotated[int | None, Query()] = 50,
+    device_ids: Annotated[list[int] | None, Query()] = None,
+    device_type_ids: Annotated[list[int] | None, Query()] = None,
+    include_json_raw: Annotated[
+        bool, Query()
+    ] = False,  # include the raw JSON data in the response
+):
+    """Get the CMMS tickets for a project.
+
+    Args:
+        project: The project to get the CMMS tickets for.
+        user: The user to get the CMMS tickets for.
+        cmms_ticket_ids: The list of CMMS ticket ids to filter by.
+        cmms_integration_ids: The list of CMMS integration ids to filter by.
+        max_results: The maximum number of tickets to return.
+        device_ids: The list of device ids to filter by.
+        device_type_ids: The list of device type ids to filter by.
+        include_json_raw: Whether to include the raw JSON data in the response.
+    """
+    cmms_permissions = await core_get_cmms_permissions_by_project_id(
+        company_id=user.company_id,
+        project_id=project.project_id,
+        can_view=True,
+    ).get_async(output_type=OutputType.PANDAS)
+
+    # Early return if no permissions are found
+    if cmms_permissions.empty:
+        return CMMSTicketV2(
+            integration_configured=False,
+            data=[],
+        )
+
+    cmms_integration_ids = cmms_permissions["cmms_integration_id"].unique().tolist()
+
+    cmms_tickets = await get_project_cmms_tickets(
+        cmms_ticket_ids=cmms_ticket_ids,
+        cmms_integration_ids=cmms_integration_ids,
+        device_ids=device_ids,
+        device_type_ids=device_type_ids,
+        max_results=max_results,
+        include_json_raw=include_json_raw,
+    ).get_async(schema=project.name_short, output_type=OutputType.PANDAS)
+
+    provider_info = cmms_permissions[
+        ["cmms_integration_id", "cmms_provider_name_long"]
+    ].drop_duplicates()
+    enriched_tickets_df = cmms_tickets.merge(
+        provider_info, on="cmms_integration_id", how="left"
+    )
+    enriched_cmms_tickets: list[EnrichedCMMSTicket] = []
+    for ticket_dict in cast(
+        list[dict[str, Any]],
+        enriched_tickets_df.to_dict(orient="records"),
+    ):
+        sanitized_ticket = {
+            key: (None if pd.isna(value) else value)
+            for key, value in ticket_dict.items()
+        }
+        enriched_cmms_tickets.append(
+            EnrichedCMMSTicket.model_validate(sanitized_ticket)
+        )
+
+    return CMMSTicketV2(
+        integration_configured=True,
+        data=enriched_cmms_tickets,
     )

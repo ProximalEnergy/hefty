@@ -1,28 +1,25 @@
-import type * as types from '@/api/schema'
+import { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-const _URL = '/v1/operational/projects/{project_id}/cmms-tickets' as const
+const URL_GET_CMMS_TICKETS =
+  '/v1/operational/projects/{project_id}/cmms-tickets/v2' as const
+type GetCMMSTickets = Endpoint<typeof URL_GET_CMMS_TICKETS, 'get'>
+type ExtractTicket<T> = T extends { data: Array<infer Item> } ? Item : never
 
-type get = types.paths[typeof _URL]['get']
-type getQueryParams = get['parameters']['query']
-type getPathParams = get['parameters']['path']
-type getResponse = get['responses'][200]['content']['application/json']
-
-type CMMSResponse = getResponse
-export type CMMSTicket = getResponse['data'][number]
+export type CMMSTicket = ExtractTicket<GetCMMSTickets['Response']>
 
 export const useGetCMMSTickets = ({
   pathParams,
   queryParams,
   queryOptions = {},
 }: {
-  pathParams: { projectId: getPathParams['project_id'] }
-  queryParams?: getQueryParams
+  pathParams: { project_id: GetCMMSTickets['PathParams']['project_id'] }
+  queryParams?: GetCMMSTickets['QueryParams']
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/operational/projects/${pathParams.projectId}/cmms-tickets`,
+    url: URL_GET_CMMS_TICKETS,
   }
 
   const defaultQueryOptions = {
@@ -30,7 +27,7 @@ export const useGetCMMSTickets = ({
     staleTime: 1000 * 60 * 5,
   }
 
-  return useCustomQuery<CMMSResponse>({
+  return useCustomQuery<GetCMMSTickets['Response']>({
     axiosConfig,
     queryName: 'getCMMSTickets',
     pathParams,

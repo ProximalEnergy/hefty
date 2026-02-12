@@ -176,7 +176,7 @@ const RealtimeTab = () => {
 
   // Get CMMS tickets for PV PCS devices
   const cmmsTickets = useGetCMMSTickets({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
     },

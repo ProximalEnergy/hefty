@@ -59,11 +59,11 @@ const DeviceEventsTimeline = ({
           const aTime =
             a.type === 'event'
               ? dayjs(a.event?.time_start).unix()
-              : dayjs(a.ticket?.created_at).unix()
+              : dayjs(a.ticket?.source_created_at).unix()
           const bTime =
             b.type === 'event'
               ? dayjs(b.event?.time_start).unix()
-              : dayjs(b.ticket?.created_at).unix()
+              : dayjs(b.ticket?.source_created_at).unix()
           return bTime - aTime // Sort in descending order (newest first)
         }),
       ),
@@ -143,7 +143,7 @@ const DeviceEventsTimeline = ({
                       >
                         <Group gap={2}>
                           <Text>
-                            {dayjs(item.ticket?.created_at).format(
+                            {dayjs(item.ticket?.source_created_at).format(
                               'MM/DD/YYYY',
                             )}
                           </Text>

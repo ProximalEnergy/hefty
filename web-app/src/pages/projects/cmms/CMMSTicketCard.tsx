@@ -55,7 +55,10 @@ const getStatusColor = (status: string) => {
   }
 }
 
-const getProviderColor = (provider: string) => {
+const getProviderColor = (provider?: string) => {
+  if (!provider) {
+    return 'gray'
+  }
   switch (provider.toLowerCase()) {
     case 'jira':
       return 'blue'
@@ -92,6 +95,10 @@ const CMMSTicketCard = ({
 }) => {
   const { projectId } = useParams()
   const [opened, setOpened] = useState(false)
+  const provider = ticket.cmms_provider_name_long?.trim()
+  const providerLabel = provider ? provider.toUpperCase() : 'UNKNOWN'
+  const providerText = provider ?? 'Unknown'
+  const providerColor = getProviderColor(provider)
   return (
     <>
       <Card
@@ -108,22 +115,18 @@ const CMMSTicketCard = ({
                 {ticket.link ? (
                   <Link to={ticket.link} target="_blank">
                     <Badge
-                      color={getProviderColor(ticket.cmms_provider)}
+                      color={providerColor}
                       rightSection={<IconExternalLink size={16} />}
                       variant="light"
                       size="lg"
                       style={{ cursor: 'pointer' }}
                     >
-                      {ticket.cmms_provider.toUpperCase()}: {ticket.key}
+                      {providerLabel}: {ticket.key}
                     </Badge>
                   </Link>
                 ) : (
-                  <Badge
-                    variant="light"
-                    size="lg"
-                    color={getProviderColor(ticket.cmms_provider)}
-                  >
-                    {ticket.cmms_provider.toUpperCase()}: {ticket.key}
+                  <Badge variant="light" size="lg" color={providerColor}>
+                    {providerLabel}: {ticket.key}
                   </Badge>
                 )}
                 {ticket.priority?.toLowerCase() === 'high' && (
@@ -162,18 +165,15 @@ const CMMSTicketCard = ({
               <Group gap={GAP}>
                 <Group gap="xs">
                   <IconUser {...ICON_PROPS} />
-                  <Badge
-                    color={getProviderColor(ticket.cmms_provider)}
-                    size="md"
-                  >
-                    {ticket.cmms_provider}
+                  <Badge color={providerColor} size="md">
+                    {providerText}
                   </Badge>
                 </Group>
                 <Group gap="xs">
                   <IconClock {...ICON_PROPS} />
                   <Text c="dimmed">
                     Created:{' '}
-                    {dayjs(ticket.created_at).format('YYYY-MM-DD HH:mm')}
+                    {dayjs(ticket.source_created_at).format('YYYY-MM-DD HH:mm')}
                   </Text>
                 </Group>
               </Group>

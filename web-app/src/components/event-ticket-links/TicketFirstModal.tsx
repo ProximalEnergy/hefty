@@ -62,7 +62,7 @@ const TicketFirstModal = ({
       cmms_ticket_id: String(ticket.cmms_ticket_id),
       cmms_integration_id: ticket.cmms_integration_id,
       cmms_device_id: Number(ticket.cmms_device_id) || undefined,
-      source_created_at: ticket.created_at || undefined,
+      source_created_at: ticket.source_created_at || undefined,
     },
   })
 
@@ -221,7 +221,7 @@ const TicketFirstModal = ({
           </Stack>
           <Stack w="100%" h="100%" style={{ flex: 1 }}>
             <Title order={2}>Suggested Events</Title>
-            {!ticket.cmms_device_id || !ticket.created_at ? (
+            {!ticket.cmms_device_id || !ticket.source_created_at ? (
               <>
                 <Text>
                   <IconAlertTriangle size={12} /> Warning: suggested Events may
@@ -229,7 +229,7 @@ const TicketFirstModal = ({
                   ticket.
                 </Text>
                 {!ticket.cmms_device_id && <Text>CMMS Device ID Missing.</Text>}
-                {!ticket.created_at && (
+                {!ticket.source_created_at && (
                   <Text>Source Creation Time Missing.</Text>
                 )}
               </>

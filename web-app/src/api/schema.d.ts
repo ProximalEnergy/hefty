@@ -3925,6 +3925,7 @@ export interface paths {
         };
         /**
          * Get Cmms Tickets
+         * @deprecated
          * @description Pulls the first 50 tickets for each CMMS provider.
          *
          *         Parameters:
@@ -3953,6 +3954,36 @@ export interface paths {
          *         device_type_ids: Optional list of device type IDs to filter matching tickets.
          */
         get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/cmms-tickets/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Cmms Tickets V2
+         * @description Get the CMMS tickets for a project.
+         *
+         *     Args:
+         *         project: The project to get the CMMS tickets for.
+         *         user: The user to get the CMMS tickets for.
+         *         cmms_ticket_ids: The list of CMMS ticket ids to filter by.
+         *         cmms_integration_ids: The list of CMMS integration ids to filter by.
+         *         max_results: The maximum number of tickets to return.
+         *         device_ids: The list of device ids to filter by.
+         *         device_type_ids: The list of device type ids to filter by.
+         *         include_json_raw: Whether to include the raw JSON data in the response.
+         */
+        get: operations["get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7982,6 +8013,16 @@ export interface components {
             link?: string | null;
         };
         /**
+         * CMMSTicketV2
+         * @description Response wrapper containing integration state and ticket results.
+         */
+        CMMSTicketV2: {
+            /** Integration Configured */
+            integration_configured: boolean;
+            /** Data */
+            data: components["schemas"]["EnrichedCMMSTicket"][];
+        };
+        /**
          * CalendarItem
          * @description Calendaritem model.
          */
@@ -9061,6 +9102,62 @@ export interface components {
         DuplicateDashboardRequest: {
             /** Target Project Ids */
             target_project_ids?: string[] | null;
+        };
+        /**
+         * EnrichedCMMSTicket
+         * @description An enriched CMMS ticket with provider metadata.
+         */
+        EnrichedCMMSTicket: {
+            /** Cmms Ticket Id */
+            cmms_ticket_id: number;
+            /** Cmms Integration Id */
+            cmms_integration_id: number;
+            /**
+             * Db Created At
+             * Format: date-time
+             */
+            db_created_at: string;
+            /**
+             * Db Updated At
+             * Format: date-time
+             */
+            db_updated_at: string;
+            /** Key */
+            key: string;
+            /** Source Id */
+            source_id: number;
+            /** Source Created At */
+            source_created_at?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Summary Long */
+            summary_long?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Status Change At */
+            status_change_at?: string | null;
+            /** Priority */
+            priority?: string | null;
+            /** Reporter */
+            reporter?: string | null;
+            /** Assigned To */
+            assigned_to?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Cmms Device Id */
+            cmms_device_id?: string | null;
+            /** Cmms Device Name */
+            cmms_device_name?: string | null;
+            /** Link */
+            link?: string | null;
+            /** Json Raw */
+            json_raw?: {
+                [key: string]: unknown;
+            } | null;
+            /** Cmms Provider Name Long */
+            cmms_provider_name_long: string;
         };
         /**
          * EnsureVectorStoreRequest
@@ -17461,6 +17558,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CMMSResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get: {
+        parameters: {
+            query?: {
+                cmms_ticket_ids?: number[] | null;
+                cmms_integration_ids?: number[] | null;
+                max_results?: number | null;
+                device_ids?: number[] | null;
+                device_type_ids?: number[] | null;
+                include_json_raw?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CMMSTicketV2"];
                 };
             };
             /** @description Validation Error */

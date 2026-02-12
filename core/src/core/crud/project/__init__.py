@@ -1,5 +1,6 @@
 from . import (
     cmms_devices,
+    cmms_tickets,
     data,
     data_expected,
     data_raw,
@@ -17,6 +18,7 @@ from . import (
 
 __all__ = [
     "cmms_devices",
+    "cmms_tickets",
     "pv_dc_combiners",
     "data",
     "data_expected",

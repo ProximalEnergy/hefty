@@ -118,7 +118,7 @@ const useDcFieldEventData = (
   })
 
   const CMMSTickets = useGetCMMSTickets({
-    pathParams: { projectId: projectId || '-1' },
+    pathParams: { project_id: projectId || '-1' },
     queryParams: { device_ids: [event?.device_id || -1] },
     queryOptions: { enabled: !!event?.device_id },
   })

@@ -1,7 +1,4 @@
-import {
-  CMMSTicket,
-  useGetCMMSTickets,
-} from '@/api/v1/operational/project/cmms_tickets'
+import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import {
   EventCMMSTicket,
@@ -24,14 +21,14 @@ import CMMSTicketCard from './CMMSTicketCard'
 import PlaceholderTicket from './PlaceholderTicket'
 
 const Page = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectId } = useParams()
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [showClosed, setShowClosed] = useState(false)
 
   const project = useSelectProject(projectId!)
 
   const tickets = useGetCMMSTickets({
-    pathParams: { projectId: projectId || '' },
+    pathParams: { project_id: projectId || '' },
     queryParams: {},
     queryOptions: { enabled: !!projectId },
   })
@@ -88,7 +85,7 @@ const Page = () => {
   }
 
   const renderContent = () => {
-    if (!tickets.data?.metadata.integration_configured) {
+    if (!tickets.data?.integration_configured) {
       return <PlaceholderTicket />
     }
 
@@ -115,9 +112,9 @@ const Page = () => {
         </Group>
         <ScrollArea.Autosize flex={1} type="scroll">
           <Stack gap="md">
-            {sortedAndFilteredTickets.map((ticket: CMMSTicket) => (
+            {sortedAndFilteredTickets.map((ticket) => (
               <CMMSTicketCard
-                key={ticket.id}
+                key={ticket.cmms_ticket_id}
                 ticket={ticket}
                 eventCMMSTickets={eventCMMSTickets.data?.filter(
                   (eventCMMSTicket: EventCMMSTicket) =>

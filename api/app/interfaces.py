@@ -1916,3 +1916,28 @@ class Message(BaseModel):
     """Message model."""
 
     message: str
+
+
+class CMMSTicket(BaseModel):
+    """CMMSTicket model."""
+
+    cmms_ticket_id: int
+    cmms_integration_id: int
+    db_created_at: datetime.datetime
+    db_updated_at: datetime.datetime
+    key: str
+    source_id: int
+    source_created_at: datetime.datetime | None = None
+    due_date: datetime.datetime | None = None
+    summary: str | None = None
+    summary_long: str | None = None
+    status: str | None = None
+    status_change_at: datetime.datetime | None = None
+    priority: str | None = None
+    reporter: str | None = None
+    assigned_to: str | None = None
+    location: str | None = None
+    cmms_device_id: str | None = None
+    cmms_device_name: str | None = None
+    link: str | None = None
+    json_raw: dict | None = None
