@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import case, select
 
 from app import interfaces
-from app._dependencies.filtering import get_company_projects_data_access_start_date
+from app._dependencies.filtering import get_company_project_data_access_start_time
 from app.dependencies import (
     get_is_superadmin_async,
     get_project_api,
@@ -88,8 +88,8 @@ async def get_project_kpi_summary_table(
     user_data: Annotated[interfaces.UserData, Depends(get_user_data_async)],
     is_superadmin: Annotated[bool, Depends(get_is_superadmin_async)],
     project: Annotated[models.Project, Depends(get_project_api)],
-    data_access_start_date: Annotated[
-        datetime.date, Depends(get_company_projects_data_access_start_date)
+    data_access_start_time: Annotated[
+        datetime.datetime, Depends(get_company_project_data_access_start_time)
     ],
 ):
     """API endpoint that returns aggregated KPI data for a project.
@@ -108,6 +108,7 @@ async def get_project_kpi_summary_table(
     ytd_start = datetime.date(yesterday.year, 1, 1)
     year_start = yesterday - datetime.timedelta(days=364)
 
+    data_access_start_date = data_access_start_time.date()
     if data_access_start_date > year_start:
         year_start = data_access_start_date
 

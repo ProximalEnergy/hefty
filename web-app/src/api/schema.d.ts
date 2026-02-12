@@ -22103,9 +22103,7 @@ export interface operations {
     };
     get_project_kpi_summary_table_v1_protected_web_application_projects__project_id__kpi_summary_table_get: {
         parameters: {
-            query?: {
-                project_ids?: string[] | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
