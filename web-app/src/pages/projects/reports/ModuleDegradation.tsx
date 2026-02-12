@@ -1435,7 +1435,7 @@ const ModuleDegradation: React.FC = () => {
   } = useGetOperationalKPIData({
     queryParams: {
       project_ids: projectId ? [projectId] : undefined,
-      kpi_type_ids: [KPITypeEnum.MODULE_EXCESS_DEGRADATION],
+      kpi_type_ids: [KPITypeEnum.MODULE_STATE_OF_HEALTH_BY_COMBINER],
       start: startQuery,
       end: endQuery,
       include_device_data: true,

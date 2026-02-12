@@ -2480,7 +2480,8 @@ async def get_contract_uec(
     if contract_kpis.empty:
         return pd.DataFrame(columns=["uec"])
     contract_uec = contract_kpis[
-        contract_kpis["kpi_type_id"] == KPIType.BESS_DC_ENCLOSURE_USABLE_ENERGY_CAPACITY
+        contract_kpis["kpi_type_id"]
+        == KPIType.BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY
     ].iloc[0]
 
     threshold = contract_uec.get("threshold")
