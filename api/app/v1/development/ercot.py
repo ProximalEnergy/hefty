@@ -115,11 +115,12 @@ async def get_resource_net_power(
         start=start,
         end=end,
     )
-    sced_load_data = await crud_get_ercot_sced_load(
+    sced_load_db_query = crud_get_ercot_sced_load(
         resource_id=resource_id,
         start=start,
         end=end,
-    ).get_async(
+    )
+    sced_load_data = await sced_load_db_query.get_async(
         executor=db,
         output_type=OutputType.PANDAS,
     )
