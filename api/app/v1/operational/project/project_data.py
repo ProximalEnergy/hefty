@@ -281,7 +281,7 @@ async def get_llm_time_series(
     )
 
     df.columns = multi_index
-    df.index = df.index.tz_convert(project.time_zone)  # type: ignore
+    df.index = df.index.tz_convert(project.time_zone)
 
     return df.to_dict("tight")
 
@@ -488,7 +488,7 @@ async def get_time_series(
 
     data = [
         {
-            "x": df.index.tz_convert(project.time_zone).tolist(),  # type: ignore
+            "x": df.index.tz_convert(project.time_zone).tolist(),
             "y": df[col].tolist(),
             "name": col[1],
             "sensor_type_name": col[2],

@@ -291,7 +291,7 @@ def get_project_kpi_summary(
         project_id=project_id,
         kpi_type_ids=kpi_type_ids,
         start=start,
-        end=end,  # type: ignore
+        end=end,
     )
 
     # Get YTD data
@@ -539,7 +539,7 @@ def get_llm_kpis(
 
     if "json" in df.columns and not df["json"].isnull().all():
         if df["json"].apply(lambda x: isinstance(x, dict)).any():
-            json_df = pd.json_normalize(df["json"].dropna().tolist())  # type: ignore
+            json_df = pd.json_normalize(df["json"].dropna().tolist())
             df = df.join(json_df).drop("json", axis=1)
 
     return df.to_dict("tight")

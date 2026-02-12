@@ -115,7 +115,7 @@ async def get_clearsky_poa(
     metrics_index = pd.DatetimeIndex(df_metrics.index).tz_convert(project.time_zone)
     data: list[dict[str, object]] = [
         {
-            "x": data_index.tolist(),  # type: ignore
+            "x": data_index.tolist(),
             "y": df_filtered[col].tolist(),
             "name": col,
             "sensor_type_name": None,
@@ -129,7 +129,7 @@ async def get_clearsky_poa(
     data.extend(
         [
             {
-                "x": metrics_index.tolist(),  # type: ignore
+                "x": metrics_index.tolist(),
                 "y": df_metrics[col].tolist(),
                 "name": col,
                 "sensor_type_name": None,

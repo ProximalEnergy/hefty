@@ -11,7 +11,7 @@ import json
 import logging
 import os
 
-import boto3  # type: ignore[import-untyped]
+import boto3
 import dotenv
 
 # Load environment variables (useful for local runs)

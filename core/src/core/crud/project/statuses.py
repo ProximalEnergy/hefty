@@ -373,7 +373,7 @@ async def get_status_interpret(
         elif status_type == "status_string_id":
             status_df["value"] = (
                 status_df["value"].astype(str).str.translate(tbl).str.lower()
-            )  # type: ignore
+            )
             status_string_query = core.crud.project.statuses.get_status_string(
                 status_string_ids=status_df[status_type].tolist(),
             )
@@ -850,7 +850,7 @@ def _to_frontend_status_payload(*, df: pd.DataFrame) -> list[dict]:
         if raw is None or pd.isna(raw):
             return None
         try:
-            return int(raw)  # type: ignore[arg-type]
+            return int(raw)
         except (TypeError, ValueError):
             return None
 

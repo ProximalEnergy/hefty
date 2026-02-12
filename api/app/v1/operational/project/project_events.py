@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
-import sentry_sdk  # type: ignore
+import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
 from core.crud.project import event_losses as core_event_losses

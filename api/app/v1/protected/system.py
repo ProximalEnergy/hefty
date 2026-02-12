@@ -271,9 +271,9 @@ async def get_meter_power_and_expected_power_v2(
     # Find the "lowest" level level. "good" > "warning" > "bad"
     quality["level"] = "good"
     for detail in quality["details"]:
-        if detail["level"] == "warning" and quality["level"] == "good":  # type: ignore
+        if detail["level"] == "warning" and quality["level"] == "good":
             quality["level"] = "warning"
-        if detail["level"] == "bad":  # type: ignore
+        if detail["level"] == "bad":
             quality["level"] = "bad"
 
     quality["message"] = "Data quality evaluated over the plotted interval"

@@ -375,7 +375,7 @@ async def get_equipment_analysis_pcs_data(
                 block_series_list.append(pd.Series(0, index=df_pcs.index, dtype=float))
         df_block = pd.concat(block_series_list, axis=1)
         block_ids = list(block_device_id_to_pcs_device_ids.keys())
-        df_block.columns = pd.Index(block_ids)  # type: ignore
+        df_block.columns = pd.Index(block_ids)
         df_block = df_block.fillna(0)
 
     return_data: dict[str, Any] = dict()

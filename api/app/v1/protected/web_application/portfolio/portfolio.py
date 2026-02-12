@@ -123,7 +123,7 @@ async def get_portfolio_home_short_term(
     if day_behind_project_ids:
         day_behind_start = (
             start.tz_convert(
-                projects_df.loc[day_behind_project_ids, "time_zone"].values[0]  # type: ignore
+                projects_df.loc[day_behind_project_ids, "time_zone"].values[0]
             )
             .normalize()
             .tz_convert("UTC")

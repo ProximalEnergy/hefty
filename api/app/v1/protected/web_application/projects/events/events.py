@@ -231,7 +231,7 @@ async def get_meta_analysis(
     for dtid, sub in completed_agg.groupby("device_type_id", sort=True):
         device_totals.append(
             DeviceTotals(
-                device_type_id=int(dtid),  # type: ignore
+                device_type_id=int(dtid),
                 device_ids=sub["device_id"].astype(int).tolist(),
                 device_names=sub["device_name"].tolist(),
                 total_failures=sub["total_failures"].astype(int).tolist(),
@@ -275,7 +275,7 @@ async def get_meta_analysis(
     mtbf = (
         df.groupby("device_id", as_index=False)["time_diff"]
         .mean()
-        .rename(columns={"time_diff": "MTBF"})  # type: ignore
+        .rename(columns={"time_diff": "MTBF"})
     )
     mtbf["MTBF_hours"] = mtbf["MTBF"].dt.total_seconds() / 3600
     mtbf["device_type_id"] = mtbf["device_id"].map(dtype_map)
@@ -291,7 +291,7 @@ async def get_meta_analysis(
     mttr = (
         df_mttr.groupby("device_id", as_index=False)["repair_time"]
         .mean()
-        .rename(columns={"repair_time": "MTTR_hours"})  # type: ignore
+        .rename(columns={"repair_time": "MTTR_hours"})
     )
     mttr["device_type_id"] = mttr["device_id"].map(dtype_map)
     mttr_by_type = mttr.groupby("device_type_id", as_index=False)["MTTR_hours"].mean()

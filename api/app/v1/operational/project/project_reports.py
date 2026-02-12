@@ -100,8 +100,8 @@ async def get_pcs_apparent_vs_voltage(
         return []
     voltage_items = (
         tags_df.loc[rows_to_grab]  # type: ignore
-        .groupby("device_id", group_keys=False)  # type: ignore
-        .apply(lambda x: x.index.tolist(), include_groups=False)  # type: ignore
+        .groupby("device_id", group_keys=False)
+        .apply(lambda x: x.index.tolist(), include_groups=False)
         .to_dict()
     )
     df_voltage = pd.DataFrame(columns=voltage_items.keys(), index=df.index)

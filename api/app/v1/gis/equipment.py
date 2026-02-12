@@ -143,7 +143,7 @@ async def get_pcs(
                     ],
                     axis=1,
                 )
-                df_block.columns = list(block_device_id_to_pcs_device_ids.keys())  # type: ignore
+                df_block.columns = list(block_device_id_to_pcs_device_ids.keys())
 
                 df_block_ep = pd.concat(
                     [
@@ -224,7 +224,7 @@ async def get_pcs(
             missing_data = True
 
         if not missing_data:
-            df_pcs.columns = [int(col) for col in df_pcs.columns]  # type: ignore
+            df_pcs.columns = [int(col) for col in df_pcs.columns]
 
             df_block = pd.concat(
                 [
@@ -233,7 +233,7 @@ async def get_pcs(
                 ],
                 axis=1,
             )
-            df_block.columns = list(block_device_id_to_pcs_device_ids.keys())  # type: ignore
+            df_block.columns = list(block_device_id_to_pcs_device_ids.keys())
 
             df = pd.concat([df_pcs, df_block], axis=1)
 

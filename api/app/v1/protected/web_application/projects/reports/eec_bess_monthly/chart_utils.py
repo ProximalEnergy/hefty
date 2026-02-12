@@ -6,10 +6,10 @@ used in PDF reports.
 
 from typing import cast
 
-import numpy as np  # type: ignore
+import numpy as np
 import pandas as pd
-import plotly.graph_objects as go  # type: ignore
-from numpy.typing import NDArray  # type: ignore
+import plotly.graph_objects as go
+from numpy.typing import NDArray
 
 # ---------------------------------------------------------------------------
 # Chart Configuration

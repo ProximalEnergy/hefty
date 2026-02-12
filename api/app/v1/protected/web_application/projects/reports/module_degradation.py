@@ -92,7 +92,7 @@ async def get_degradation_poa(
     bad_trackers = trkr_scores[trkr_scores < trkr_scores.mean() * 0.9].index
     df = df.drop(columns=bad_trackers)
 
-    df_1d = df.diff(periods=1).abs() + df.diff(periods=-1).abs()  # type: ignore[operator]
+    df_1d = df.diff(periods=1).abs() + df.diff(periods=-1).abs()
     df_1d_std = df_1d.std(axis=1).rolling(3, center=True).mean()
     df_1d_std_left = df_1d_std.diff(periods=1).abs()
     df_1d_std_right = df_1d_std.diff(periods=-1).abs()
@@ -101,7 +101,7 @@ async def get_degradation_poa(
     irr_idx = df.median(axis=1) < min_poa
     der_idx = df_1d.mean(axis=1) > max_poa_1d
     std_idx = df_1d_std > max_poa_std
-    std_1d_idx = df_1d_std_1d > max_poa_std_1d  # type: ignore
+    std_1d_idx = df_1d_std_1d > max_poa_std_1d
     changing_idx = df.diff(periods=1).abs().sum(axis=1) < 0.1
     bad_idx = (std_idx & std_1d_idx) | irr_idx | der_idx | changing_idx
 
@@ -140,7 +140,7 @@ async def get_degradation_poa(
     data: dict[str, object] = {
         "data": [
             {
-                "x": data_index.tolist(),  # type: ignore
+                "x": data_index.tolist(),
                 "y": df_raw[col].tolist(),
                 "name": col,
                 "sensor_type_name": None,
@@ -155,7 +155,7 @@ async def get_degradation_poa(
     filtered_index = pd.DatetimeIndex(df_filtered.index).tz_convert(
         project.time_zone,
     )
-    data["valid_indexes"] = filtered_index.tolist()  # type: ignore[attr-defined]
+    data["valid_indexes"] = filtered_index.tolist()
     data["valid_columns"] = df_filtered.columns.tolist()
 
     return data

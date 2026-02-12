@@ -299,7 +299,7 @@ async def get_kpi_excel(
     project_df.index.name = "Date"
     metadata_df = (
         pd.DataFrame(kpi_type.__dict__, index=["Value"])
-        .T.loc[["name_long", "description", "aggregation_method", "unit"]]  # type: ignore
+        .T.loc[["name_long", "description", "aggregation_method", "unit"]]
         .reset_index()
         .rename(columns={"index": "Property"})
     )

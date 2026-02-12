@@ -167,7 +167,7 @@ async def check_weather_alerts(*, api_prod: bool = True) -> dict:
 
             for weather_type, get_polygons_func, is_fire_alert in weather_types:
                 try:
-                    polygons = get_polygons_func()  # type: ignore[assignment]
+                    polygons = get_polygons_func()
                     summary["polygons_retrieved"][weather_type] = len(polygons)  # type: ignore[index,arg-type]
                     logger.info(
                         f"Retrieved {len(polygons)} {weather_type} polygons from NWS"  # type: ignore[arg-type]
@@ -199,7 +199,7 @@ async def check_weather_alerts(*, api_prod: bool = True) -> dict:
                                 polygons=polygons,  # type: ignore[arg-type]
                                 is_fire_alert=is_fire_alert,
                                 api_prod=api_prod,
-                                summary=summary,  # type: ignore[arg-type]
+                                summary=summary,
                             )
                         except Exception as e:
                             error_msg = (

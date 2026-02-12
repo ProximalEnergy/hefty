@@ -27,6 +27,6 @@ def export_system(
     )
 
     with fs.open(f"{AWS_S3_BUCKET_NAME}/{project_name_short}.parquet", "wb") as f:
-        system.to_parquet(path=f)  # type: ignore
+        system.to_parquet(path=f)
 
     return 200

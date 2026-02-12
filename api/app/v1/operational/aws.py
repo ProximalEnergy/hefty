@@ -25,7 +25,7 @@ def retrieve_presigned_url(
         str: A presigned URL for the file.
     """
     object_name = file_path.split("/")[-1] if "/" in file_path else file_path
-    content_type, _ = mimetypes.guess_type(object_name)  # type: ignore
+    content_type, _ = mimetypes.guess_type(object_name)
     s3_client = boto3.client("s3", region_name="us-east-2")
     if content_type is None:
         content_type = "application/octet-stream"  # Default to binary if unknown

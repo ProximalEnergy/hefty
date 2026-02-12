@@ -60,7 +60,7 @@ def get_kpi_data(
     # NOTE: This function returns a pandas DataFrame using read_sql
     # because of how SQLAlchemy handles the `defer` option.
     return pd.read_sql(
-        statement,  # type: ignore
+        statement,
         db.connection(),
     )
 

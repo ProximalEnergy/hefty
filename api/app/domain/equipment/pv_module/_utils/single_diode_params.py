@@ -92,10 +92,10 @@ def calc_reference_params(
             alpha_sc=pv_module.get("alpha_isc"),
             beta_voc=pv_module.get("beta_voc"),
             cells_in_series=pv_module.get("cells_in_series"),  # type: ignore
-            EgRef=pv_module.get("eg"),  # type: ignore
-            dEgdT=pv_module.get("degdt"),  # type: ignore
-            temp_ref=TEMP_REF,  # type: ignore
-            irrad_ref=IRRAD_REF,  # type: ignore
+            EgRef=pv_module.get("eg"),
+            dEgdT=pv_module.get("degdt"),
+            temp_ref=TEMP_REF,
+            irrad_ref=IRRAD_REF,
             init_guess=init_guess,
         )
         fit_is_successful = optimization_results.success

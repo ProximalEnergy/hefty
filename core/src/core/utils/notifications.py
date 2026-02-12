@@ -7,7 +7,7 @@ from collections.abc import Callable
 from uuid import UUID
 
 import boto3
-from botocore.exceptions import ClientError  # type: ignore[import-untyped]
+from botocore.exceptions import ClientError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

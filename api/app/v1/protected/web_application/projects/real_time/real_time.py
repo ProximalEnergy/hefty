@@ -236,7 +236,7 @@ async def get_by_device_type_id(
     # Sort device_ids and device_names together using natural sort on device_names
     sorted_pairs = natsorted(zip(device_names, device_ids), key=lambda x: x[0] or "")
     if sorted_pairs:
-        device_names, device_ids = map(list, zip(*sorted_pairs))  # type: ignore[assignment]
+        device_names, device_ids = map(list, zip(*sorted_pairs))
     device_names_y: list[str] = [".".join(str(n).split(".")[:-1]) for n in device_names]
     device_names_x: list[str] = [str(n).split(".")[-1] for n in device_names]
 
