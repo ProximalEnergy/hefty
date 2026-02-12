@@ -1,5 +1,7 @@
+import { useGetUserSelf } from '@/api/v1/admin/users'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetRealtimePrice } from '@/api/v1/protected/web-application/projects/financial/market_performance'
+import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { Group, Skeleton, Stack, Tabs, Text } from '@mantine/core'
@@ -10,10 +12,14 @@ import { LongTermTab } from './LongTermTab'
 import { RealtimeTab } from './RealtimeTab'
 import { WeekViewTab } from './WeekViewTab'
 
+const SABLE_POINT_COMPANY_ID = '38a8e696-dafa-44c0-b817-e3aee8cdfe8c'
+
 const MarketPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const project = useSelectProject(projectId!)
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const self = useGetUserSelf({})
 
   const activeTab = useMemo(() => {
     const tab = searchParams.get('tab')
@@ -44,6 +50,15 @@ const MarketPerformance = () => {
   // Early return - MUST be after all hooks
   if (project.isLoading) {
     return <PageLoader />
+  }
+
+  if (self.isLoading) {
+    return <PageLoader />
+  }
+  if (self.data?.company_id === SABLE_POINT_COMPANY_ID) {
+    return (
+      <PageError text="Please provide a Tenaska API key to see Market Performance" />
+    )
   }
 
   return (
