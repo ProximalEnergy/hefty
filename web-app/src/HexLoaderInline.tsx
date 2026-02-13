@@ -19,7 +19,7 @@ export const HexLoaderInline: MantineLoaderComponent = forwardRef(
           ...style, // Spread incoming style prop last to allow overrides
         } as React.CSSProperties
       }
-      viewBox="0 0 100 100"
+      viewBox="-6 -6 112 112"
       xmlns="http://www.w3.org/2000/svg"
     >
       <polygon
