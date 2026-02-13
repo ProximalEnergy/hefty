@@ -50,11 +50,12 @@ async def get_cec_pv_modules_in_proximal_format(
     Args:
         cec_pv_module_id: Description for cec_pv_module_id.
     """
-    cec_pv_module = await crud_get_cec_pv_modules(
+    cec_pv_modules = await crud_get_cec_pv_modules(
         cec_pv_module_ids=[cec_pv_module_id],
     ).get_async(output_type=OutputType.SQLALCHEMY)
-    if cec_pv_module is None:
+    if not cec_pv_modules:
         raise HTTPException(status_code=404, detail=DESCRIPTION_404)
+    cec_pv_module = cec_pv_modules[0]
     cec_pv_module_validated = interfaces.CECPVModule.model_validate(cec_pv_module)
     cec_pv_module_adapted = adapt_cec_pv_module_to_proximal(
         cec_pv_module=cec_pv_module_validated,

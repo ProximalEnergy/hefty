@@ -47,7 +47,78 @@ import {
   IconRefresh,
   IconUpload,
 } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+const FIELD_LABELS: Record<string, string> = {
+  half_cut: 'Half Cut',
+  frame_overhang: 'Frame Overhang',
+  alpha_isc: 'Alpha Isc (Absolute)',
+  alpha_isc_relative: 'Alpha Isc (Relative)',
+  beta_voc: 'Beta Voc (Absolute)',
+  beta_voc_relative: 'Beta Voc (Relative)',
+}
+
+type ValidationIssue = {
+  loc?: Array<string | number>
+  msg?: string
+}
+
+const formatFieldLabel = (field: string) => {
+  if (FIELD_LABELS[field]) {
+    return FIELD_LABELS[field]
+  }
+
+  return field
+    .split('_')
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+const getSubmitErrorMessage = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const detail = error.response?.data?.detail as unknown
+
+    if (error.response?.status === 422) {
+      if (Array.isArray(detail)) {
+        const issues = detail
+          .map((item) => item as ValidationIssue)
+          .filter(
+            (item) => Array.isArray(item.loc) && typeof item.msg === 'string',
+          )
+          .map((item) => {
+            const locParts = item.loc
+              ?.filter((locPart) => typeof locPart === 'string')
+              .filter((locPart) => locPart !== 'body')
+            const field = locParts?.[locParts.length - 1]
+            const fieldLabel =
+              typeof field === 'string' ? formatFieldLabel(field) : 'Request'
+            return `${fieldLabel}: ${item.msg}`
+          })
+
+        if (issues.length > 0) {
+          return `Validation failed: ${issues.join(' | ')}`
+        }
+      }
+
+      if (typeof detail === 'string') {
+        return `Validation failed: ${detail}`
+      }
+
+      return 'Validation failed. Check required fields and value formats.'
+    }
+
+    if (typeof detail === 'string') {
+      return detail
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return 'Failed to save module configuration'
+}
 
 const Page = () => {
   // --- User and Company Info ---
@@ -481,87 +552,118 @@ const Page = () => {
     isLoadingCECModuleDetails || isLoadingProximalModuleDetails
   const moduleDetailsError = cecModuleDetailsError || proximalModuleDetailsError
 
-  // Handle successful module details fetch
-  useEffect(() => {
-    // Don't auto-populate if user has manually edited the form
-    if (hasManualEdits) {
-      return
+  const autoPopulateModuleData = useMemo(() => {
+    if (dataSource === 'cec') {
+      return cecModuleDetails ?? null
     }
 
-    let moduleData: PVModule | null = null
-
-    // For CEC data source, use the CEC proximal format data (single object)
-    if (dataSource === 'cec' && cecModuleDetails) {
-      moduleData = cecModuleDetails
-    }
-    // For proximal data source, use the regular module details (array)
-    else if (
+    if (
       dataSource === 'proximal' &&
       proximalModuleDetails &&
       proximalModuleDetails.length > 0
     ) {
-      moduleData = proximalModuleDetails[0]
+      return proximalModuleDetails[0]
     }
 
-    if (moduleData) {
-      form.setValues({
-        technology: moduleData.technology,
-        bifacialityFactor: moduleData.bifaciality_factor,
-        pmax: moduleData.pmax,
-        isc: moduleData.isc,
-        voc: moduleData.voc,
-        imp: moduleData.imp,
-        vmp: moduleData.vmp,
-        gammaPmax: moduleData.gamma_pmax,
-        alphaIscRelative:
-          moduleData.alpha_isc_relative === null
-            ? undefined
-            : typeof moduleData.alpha_isc_relative === 'string'
-              ? parseFloat(moduleData.alpha_isc_relative) || ''
-              : moduleData.alpha_isc_relative,
-        betaVocRelative:
-          moduleData.beta_voc_relative === null
-            ? undefined
-            : typeof moduleData.beta_voc_relative === 'string'
-              ? parseFloat(moduleData.beta_voc_relative) || ''
-              : moduleData.beta_voc_relative,
-        alphaIsc:
-          moduleData.alpha_isc === null
-            ? undefined
-            : typeof moduleData.alpha_isc === 'string'
-              ? parseFloat(moduleData.alpha_isc) || ''
-              : moduleData.alpha_isc,
-        betaVoc:
-          moduleData.beta_voc === null
-            ? undefined
-            : typeof moduleData.beta_voc === 'string'
-              ? parseFloat(moduleData.beta_voc) || ''
-              : moduleData.beta_voc,
-        warrantedDegradationRate: moduleData.warranted_degradation_rate,
-        warrantedDegradationInitial: moduleData.warranted_degradation_initial,
-        length: moduleData.length,
-        width: moduleData.width,
-        frameOverhang: moduleData.frame_overhang,
-        hasArCoating: moduleData.has_ar_coating,
-        cellsInSeries: moduleData.cells_in_series,
-        cellsInParallel: moduleData.cells_in_parallel,
-        photocurrent: moduleData.photocurrent,
-        diodeSaturationCurrent: moduleData.diode_saturation_current,
-        rSeries: moduleData.r_series,
-        rShunt: moduleData.r_shunt,
-        modifiedIdealityFactor: moduleData.modified_ideality_factor,
-        eg: moduleData.eg,
-        degdt: moduleData.degdt,
-        family: moduleData.family,
-        halfCut: moduleData.half_cut,
-      })
+    return null
+  }, [cecModuleDetails, dataSource, proximalModuleDetails])
+
+  const autoPopulateModuleSignature = useMemo(() => {
+    if (!autoPopulateModuleData) {
+      return null
     }
+
+    return [
+      dataSource,
+      selectedModuleId ?? '',
+      autoPopulateModuleData.manufacturer,
+      autoPopulateModuleData.model,
+      autoPopulateModuleData.pmax,
+    ].join('|')
+  }, [autoPopulateModuleData, dataSource, selectedModuleId])
+
+  const lastAppliedModuleSignature = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (hasManualEdits) {
+      lastAppliedModuleSignature.current = null
+    }
+  }, [hasManualEdits])
+
+  // Auto-populate once per loaded module signature to avoid render loops.
+  useEffect(() => {
+    if (
+      hasManualEdits ||
+      !autoPopulateModuleData ||
+      !autoPopulateModuleSignature
+    ) {
+      return
+    }
+
+    if (lastAppliedModuleSignature.current === autoPopulateModuleSignature) {
+      return
+    }
+
+    lastAppliedModuleSignature.current = autoPopulateModuleSignature
+
+    const moduleData = autoPopulateModuleData
+
+    form.setValues({
+      technology: moduleData.technology,
+      bifacialityFactor: moduleData.bifaciality_factor,
+      pmax: moduleData.pmax,
+      isc: moduleData.isc,
+      voc: moduleData.voc,
+      imp: moduleData.imp,
+      vmp: moduleData.vmp,
+      gammaPmax: moduleData.gamma_pmax,
+      alphaIscRelative:
+        moduleData.alpha_isc_relative === null
+          ? undefined
+          : typeof moduleData.alpha_isc_relative === 'string'
+            ? parseFloat(moduleData.alpha_isc_relative) || ''
+            : moduleData.alpha_isc_relative,
+      betaVocRelative:
+        moduleData.beta_voc_relative === null
+          ? undefined
+          : typeof moduleData.beta_voc_relative === 'string'
+            ? parseFloat(moduleData.beta_voc_relative) || ''
+            : moduleData.beta_voc_relative,
+      alphaIsc:
+        moduleData.alpha_isc === null
+          ? undefined
+          : typeof moduleData.alpha_isc === 'string'
+            ? parseFloat(moduleData.alpha_isc) || ''
+            : moduleData.alpha_isc,
+      betaVoc:
+        moduleData.beta_voc === null
+          ? undefined
+          : typeof moduleData.beta_voc === 'string'
+            ? parseFloat(moduleData.beta_voc) || ''
+            : moduleData.beta_voc,
+      warrantedDegradationRate: moduleData.warranted_degradation_rate,
+      warrantedDegradationInitial: moduleData.warranted_degradation_initial,
+      length: moduleData.length,
+      width: moduleData.width,
+      frameOverhang: moduleData.frame_overhang,
+      hasArCoating: moduleData.has_ar_coating,
+      cellsInSeries: moduleData.cells_in_series,
+      cellsInParallel: moduleData.cells_in_parallel,
+      photocurrent: moduleData.photocurrent,
+      diodeSaturationCurrent: moduleData.diode_saturation_current,
+      rSeries: moduleData.r_series,
+      rShunt: moduleData.r_shunt,
+      modifiedIdealityFactor: moduleData.modified_ideality_factor,
+      eg: moduleData.eg,
+      degdt: moduleData.degdt,
+      family: moduleData.family,
+      halfCut: moduleData.half_cut ?? false,
+    })
   }, [
-    cecModuleDetails,
-    proximalModuleDetails,
-    dataSource,
-    hasManualEdits,
+    autoPopulateModuleData,
+    autoPopulateModuleSignature,
     form,
+    hasManualEdits,
   ])
 
   // Create or Update PV Module mutation
@@ -578,10 +680,17 @@ const Page = () => {
         throw new Error('Company ID is required')
       }
 
-      // Normalize selectedModuleId to number | null
-      const normalizedModuleId: number | null = Array.isArray(selectedModuleId)
-        ? (selectedModuleId[0] ?? null)
-        : selectedModuleId
+      const isExistingCompanyModule =
+        dataSource === 'proximal' &&
+        typeof selectedModuleId === 'number' &&
+        selectedModuleId > 0
+
+      // CEC lookup IDs are not company pv_module_id values.
+      const normalizedModuleId: number | null = isExistingCompanyModule
+        ? Array.isArray(selectedModuleId)
+          ? (selectedModuleId[0] ?? null)
+          : selectedModuleId
+        : null
 
       // Create the module data object
       const moduleData: PVModule = {
@@ -631,7 +740,7 @@ const Page = () => {
         degdt: values.degdt,
         data_source: dataSource,
         family: values.family,
-        half_cut: values.halfCut,
+        half_cut: values.halfCut ?? false,
       }
 
       // Call the mutation
@@ -639,31 +748,30 @@ const Page = () => {
         await createOrUpdatePVModuleMutation.mutateAsync(moduleData)
 
       // Update the module ID if this was a new creation
-      if (
-        (typeof selectedModuleId !== 'number' || selectedModuleId === 0) &&
-        result.pv_module_id
-      ) {
+      if (!isExistingCompanyModule && result.pv_module_id) {
+        if (dataSource === 'cec') {
+          setDataSource('proximal')
+        }
         setSelectedModuleId(result.pv_module_id)
+        setHasManualEdits(false)
       }
 
       // Show success notification
       notifications.show({
-        title:
-          typeof selectedModuleId === 'number' && selectedModuleId > 0
-            ? 'Module Updated'
-            : 'Module Created',
-        message: `Successfully ${typeof selectedModuleId === 'number' && selectedModuleId > 0 ? 'updated' : 'created'} PV module for ${selectedManufacturer} - ${selectedModel}`,
+        title: isExistingCompanyModule ? 'Module Updated' : 'Module Created',
+        message: `Successfully ${
+          isExistingCompanyModule ? 'updated' : 'created'
+        } PV module for ${selectedManufacturer} - ${selectedModel}`,
         color: 'green',
         icon: <IconCheck size="1.1rem" />,
       })
     } catch (error) {
-      // Show error notification
+      const errorMessage = getSubmitErrorMessage(error)
+      setValidationError(errorMessage)
+
       notifications.show({
-        title: 'Error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to save module configuration',
+        title: 'Error Saving Module',
+        message: errorMessage,
         color: 'red',
       })
     } finally {
@@ -671,7 +779,10 @@ const Page = () => {
     }
   }
 
-  const isUpdate = typeof selectedModuleId === 'number' && selectedModuleId > 0
+  const isUpdate =
+    dataSource === 'proximal' &&
+    typeof selectedModuleId === 'number' &&
+    selectedModuleId > 0
 
   const technologyOptions = [
     { value: 'c-Si', label: 'Crystalline Silicon (c-Si)' },

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
@@ -248,12 +248,12 @@ async def create_pv_module(
     # 2. Get or Create the database object
     if pv_module.pv_module_id is not None:
         # --- UPDATE PATH: Find the existing module ---
-        query = select(models.PVModule).where(
+        update_query = select(models.PVModule).where(
             models.PVModule.pv_module_id == pv_module.pv_module_id,
             models.PVModule.company_id == pv_module.company_id,
         )
-        result = await db.execute(query)
-        db_pv_module = result.scalar_one_or_none()
+        update_result = await db.execute(update_query)
+        db_pv_module = update_result.scalar_one_or_none()
         # Fail fast if the ID for that company doesn't exist
         if not db_pv_module:
             raise ValueError(
@@ -261,15 +261,12 @@ async def create_pv_module(
             )
     else:
         # --- CREATE PATH: Determine new ID and create instance ---
-        query = (
-            select(models.PVModule)
-            .where(models.PVModule.company_id == pv_module.company_id)
-            .order_by(models.PVModule.pv_module_id.desc())
+        create_query = select(func.max(models.PVModule.pv_module_id)).where(
+            models.PVModule.company_id == pv_module.company_id
         )
-        result = await db.execute(query)
-        max_pv_module = result.scalar_one_or_none()
-
-        new_id = 1 if max_pv_module is None else max_pv_module.pv_module_id + 1
+        create_result = await db.execute(create_query)
+        max_pv_module_id: int | None = create_result.scalar_one()
+        new_id = 1 if max_pv_module_id is None else max_pv_module_id + 1
 
         db_pv_module = models.PVModule(
             pv_module_id=new_id, company_id=pv_module.company_id

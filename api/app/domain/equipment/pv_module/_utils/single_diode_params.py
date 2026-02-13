@@ -91,7 +91,7 @@ def calc_reference_params(
             i_sc=pv_module.get("isc"),
             alpha_sc=pv_module.get("alpha_isc"),
             beta_voc=pv_module.get("beta_voc"),
-            cells_in_series=pv_module.get("cells_in_series"),  # type: ignore
+            # cells_in_series=pv_module.get("cells_in_series"),  # type: ignore
             EgRef=pv_module.get("eg"),
             dEgdT=pv_module.get("degdt"),
             temp_ref=TEMP_REF,
