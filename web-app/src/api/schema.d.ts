@@ -7327,6 +7327,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/kpi-backfill/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Schedule Kpi Backfill
+         * @description Schedule a one-time KPI backfill step function execution.
+         *
+         *     Args:
+         *         event: Payload describing the backfill and schedule execution time.
+         */
+        post: operations["schedule_kpi_backfill_v1_protected_kpi_backfill_schedule_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/trackers/tracking-angles": {
         parameters: {
             query?: never;
@@ -9540,8 +9563,13 @@ export interface components {
              * @default 0
              */
             backfill_days: number;
+            /**
+             * Days Per Chunk
+             * @default 1
+             */
+            days_per_chunk: number;
             /** Project Name Short List */
-            project_name_short_list: string[];
+            project_name_short_list?: string[] | null;
             /** Kpi Type Ids */
             kpi_type_ids?: number[] | null;
         };
@@ -10824,6 +10852,41 @@ export interface components {
             x: string[];
             /** Y */
             y: (number | null)[];
+        };
+        /**
+         * ScheduledKPIBackfillEvent
+         * @description Payload for scheduling a KPI backfill request.
+         */
+        ScheduledKPIBackfillEvent: {
+            /**
+             * Start
+             * Format: date
+             */
+            start?: string;
+            /**
+             * End
+             * Format: date
+             */
+            end?: string;
+            /**
+             * Backfill Days
+             * @default 0
+             */
+            backfill_days: number;
+            /**
+             * Days Per Chunk
+             * @default 1
+             */
+            days_per_chunk: number;
+            /** Project Name Short List */
+            project_name_short_list?: string[] | null;
+            /** Kpi Type Ids */
+            kpi_type_ids?: number[] | null;
+            /**
+             * Scheduled For
+             * Format: date-time
+             */
+            scheduled_for: string;
         };
         /**
          * SettlementPoint
@@ -22523,6 +22586,42 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["KPIBackfillEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schedule_kpi_backfill_v1_protected_kpi_backfill_schedule_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduledKPIBackfillEvent"];
             };
         };
         responses: {
