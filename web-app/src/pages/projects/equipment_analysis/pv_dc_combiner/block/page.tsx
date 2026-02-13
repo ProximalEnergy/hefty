@@ -68,6 +68,12 @@ type combinerData = {
 
 const MAX_DAYS = 7
 
+const formatCombinerPower = (powerKw: number, useGrouping = true): string =>
+  powerKw.toLocaleString('en-US', {
+    maximumFractionDigits: 1,
+    useGrouping,
+  })
+
 const Page = () => {
   const context = useContext(GISContext)
   const theme = useMantineTheme()
@@ -431,7 +437,7 @@ const Page = () => {
       .map((d) => {
         const row = [
           `C${d.combiner_name_long}`,
-          d.combiner_dc_capacity,
+          formatCombinerPower(d.combiner_dc_capacity, false),
           d.tag_name_scada,
         ]
         return row.join('\t')
@@ -471,7 +477,7 @@ const Page = () => {
               color={capacityDCsToColors[combiner.combiner_dc_capacity]}
               offset={0}
             />
-            {combiner.combiner_dc_capacity}
+            {formatCombinerPower(combiner.combiner_dc_capacity)}
           </Group>
         </Table.Td>
       </Table.Tr>
