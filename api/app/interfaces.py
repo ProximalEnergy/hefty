@@ -402,6 +402,7 @@ class ProjectUpdate(BaseModel):
     interconnecting_voltage: float | None = None
     interconnecting_iso: str | None = None
     interconnecting_node_code: str | None = None
+    gsheet_id: str | None = None
 
 
 class Project(ProjectShared):

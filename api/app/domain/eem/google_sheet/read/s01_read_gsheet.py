@@ -51,7 +51,9 @@ def _column_index_to_letter(*, index: int) -> str:
 
 
 def read_google_sheet(
-    *, spreadsheet_id: str, end_column_name: str = GSHEET_IMPORTANT_COLUMNS[-1]
+    *,
+    spreadsheet_id: str,
+    end_column_name: str = GSHEET_IMPORTANT_COLUMNS[-1],
 ) -> pd.DataFrame:
     # Authenticate using the service account key
     """todo

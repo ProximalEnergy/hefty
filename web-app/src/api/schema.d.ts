@@ -1153,6 +1153,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/commissioning/projects/{project_id}/system/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Project System Import
+         * @description Import system data from Google Sheets into S3.
+         *     Args:
+         *         project_db: The database session for the project.
+         *         db: The database session for the project.
+         *         project: The project object.
+         */
+        put: operations["put_project_system_import_v1_commissioning_projects__project_id__system_import_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/development/ercot/settlement-points": {
         parameters: {
             query?: never;
@@ -10679,6 +10703,8 @@ export interface components {
             interconnecting_iso?: string | null;
             /** Interconnecting Node Code */
             interconnecting_node_code?: string | null;
+            /** Gsheet Id */
+            gsheet_id?: string | null;
         };
         /**
          * ProviderSite
@@ -13604,6 +13630,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuggestRootCauseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_project_system_import_v1_commissioning_projects__project_id__system_import_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

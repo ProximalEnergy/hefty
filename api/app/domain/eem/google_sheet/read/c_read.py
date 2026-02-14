@@ -1,8 +1,11 @@
+import asyncio
+
 import pandas as pd
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from app import interfaces
 from app.domain.eem.google_sheet.read.s01_read_gsheet import (
     read_google_sheet,
 )
@@ -29,14 +32,13 @@ from app.domain.eem.google_sheet.read.s09_add_devices_circuits import (
 )
 from app.domain.eem.google_sheet.read.s10_build_system import build_system
 from app.domain.eem.google_sheet.read.s11_export import export_system
-from core import models
 
 
 async def import_google_sheet(
     *,
     db: AsyncSession,
     project_db: Session,
-    project: models.Project,
+    project: interfaces.Project,
 ):
     # --- Read data ---
     """todo
@@ -50,7 +52,8 @@ async def import_google_sheet(
     google_sheet_id: str | None = project.gsheet_id
     if google_sheet_id is None:
         raise HTTPException(status_code=404, detail="Google Sheet ID not found")
-    system: pd.DataFrame = read_google_sheet(
+    system: pd.DataFrame = await asyncio.to_thread(
+        read_google_sheet,
         spreadsheet_id=google_sheet_id,
     )
 
@@ -90,12 +93,14 @@ async def import_google_sheet(
     )
 
     # --- Build System ---
-    system = build_system(
+    system = await asyncio.to_thread(
+        build_system,
         system=system,
     )
 
     # --- Export ---
-    export_system(
+    await asyncio.to_thread(
+        export_system,
         system=system,
         project_name_short=project_name_short,
     )

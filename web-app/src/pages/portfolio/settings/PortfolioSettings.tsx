@@ -7,6 +7,7 @@ import { Stack, Tabs, Text } from '@mantine/core'
 import PVInverter from './PVInverter'
 import PVModule from './PVModule'
 import PVRack from './PVRack'
+import System from './System'
 
 const PortfolioSettings = () => {
   // Get all company projects to check if any have PV or PV+S (project_type_id 1 or 3)
@@ -53,6 +54,7 @@ const PortfolioSettings = () => {
           {isUserSuperadmin && (
             <Tabs.Tab value="PV Modules">PV Modules</Tabs.Tab>
           )}
+          {isUserSuperadmin && <Tabs.Tab value="System">System</Tabs.Tab>}
         </Tabs.List>
 
         <Tabs.Panel value="PV Inverters" h="100%">
@@ -63,9 +65,17 @@ const PortfolioSettings = () => {
           <PVRack />
         </Tabs.Panel>
 
-        <Tabs.Panel value="PV Modules" h="100%">
-          <PVModule />
-        </Tabs.Panel>
+        {isUserSuperadmin && (
+          <Tabs.Panel value="PV Modules" h="100%">
+            <PVModule />
+          </Tabs.Panel>
+        )}
+
+        {isUserSuperadmin && (
+          <Tabs.Panel value="System" h="100%">
+            <System />
+          </Tabs.Panel>
+        )}
       </Tabs>
     </Stack>
   )

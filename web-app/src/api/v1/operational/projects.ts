@@ -47,6 +47,7 @@ export interface Project {
   name_long: string
   data_interval: string
   data_receive_schedule?: string
+  gsheet_id?: string | null
   address: string | null
   image_url: string | null
   point: Point
@@ -125,6 +126,7 @@ export interface ProjectUpdate {
   interconnecting_voltage?: number
   interconnecting_iso?: string
   interconnecting_node_code?: string
+  gsheet_id?: string | null
 }
 
 export const useCreateProject = () => {
