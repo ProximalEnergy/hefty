@@ -1,9 +1,4 @@
-import {
-  type MRT_ColumnDef,
-  type MRT_Row,
-  MantineReactTable,
-} from 'mantine-react-table'
-import { useCallback, useMemo } from 'react'
+import { NumberInput, Paper, Table } from '@mantine/core'
 import { useNavigate, useParams } from 'react-router'
 
 interface DeviceTypeSummary {
@@ -16,6 +11,17 @@ interface DeviceTypeSummaryTableProps {
   onDataChange?: (updatedData: DeviceTypeSummary[]) => void
 }
 
+const getDeviceTypeRoute = (deviceType: string): string => {
+  const routeMap: Record<string, string> = {
+    'Met Stations': 'met-stations',
+    Transformers: 'transformers',
+    Inverters: 'inverters',
+    Combiners: 'combiners',
+    Trackers: 'trackers',
+  }
+  return routeMap[deviceType] || deviceType.toLowerCase().replace(/\s+/g, '-')
+}
+
 export function DeviceTypeSummaryTable({
   data,
   onDataChange,
@@ -23,130 +29,77 @@ export function DeviceTypeSummaryTable({
   const navigate = useNavigate()
   const { projectId } = useParams<{ projectId: string }>()
 
-  const getDeviceTypeRoute = (deviceType: string): string => {
-    const routeMap: Record<string, string> = {
-      'Met Stations': 'met-stations',
-      Transformers: 'transformers',
-      Inverters: 'inverters',
-      Combiners: 'combiners',
-      Trackers: 'trackers',
-    }
-    return routeMap[deviceType] || deviceType.toLowerCase().replace(/\s+/g, '-')
+  const handleRowClick = (row: DeviceTypeSummary) => {
+    const route = getDeviceTypeRoute(row.deviceType)
+    navigate(`/onboarding/${projectId}/device-types/${route}`)
   }
 
-  const handleRowClick = useCallback(
-    (row: DeviceTypeSummary) => {
-      const route = getDeviceTypeRoute(row.deviceType)
-      navigate(`/onboarding/${projectId}/device-types/${route}`)
-    },
-    [navigate, projectId],
-  )
-
-  const columns = useMemo<MRT_ColumnDef<DeviceTypeSummary>[]>(
-    () => [
-      {
-        accessorKey: 'deviceType',
-        header: 'Device Type',
-        enableEditing: false,
-        Cell: ({ row }) => (
-          <div
-            onClick={() => handleRowClick(row.original)}
-            style={{
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              width: '100%',
-              height: '100%',
-              padding: '8px 8px 8px 8px',
-              margin: '0px 0px 0px 0px',
-              borderRadius: '4px',
-              transition: 'background-color 0.1s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--mantine-color-proximal-blue-9)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
-            {row.original.deviceType}
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'numberOfDevices',
-        header: 'Number of Devices',
-        enableEditing: true,
-        muiEditTextFieldProps: ({
-          row,
-        }: {
-          row: MRT_Row<DeviceTypeSummary>
-        }) => ({
-          type: 'number',
-          inputProps: { min: 0 },
-          onBlur: (event: React.FocusEvent<HTMLInputElement>) => {
-            const newValue = parseInt(event.target.value) || 0
-            if (onDataChange) {
-              const updatedData = data.map((item, index) => {
-                if (index === row.index) {
-                  return {
-                    ...item,
-                    numberOfDevices: newValue,
-                  }
-                }
-                return item
-              })
-              onDataChange(updatedData)
-            }
-          },
-        }),
-      },
-    ],
-    [data, handleRowClick, onDataChange],
-  )
+  const handleDeviceCountChange = (index: number, value: number) => {
+    if (!onDataChange) return
+    const updatedData = data.map((item, i) => {
+      if (i === index) {
+        return { ...item, numberOfDevices: value }
+      }
+      return item
+    })
+    onDataChange(updatedData)
+  }
 
   return (
-    <MantineReactTable
-      columns={columns}
-      data={data}
-      enableRowSelection={false}
-      enableColumnOrdering={false}
-      enableSorting={false}
-      enableFilters={false}
-      enablePagination={false}
-      enableGlobalFilter={false}
-      enableFullScreenToggle={false}
-      enableDensityToggle={false}
-      enableColumnActions={false}
-      enableHiding={false}
-      enableColumnFilters={false}
-      enableEditing={!!onDataChange}
-      editDisplayMode="cell"
-      initialState={{
-        density: 'xs',
-      }}
-      mantineTableProps={{
-        highlightOnHover: false,
-        striped: true,
-      }}
-      mantineTableBodyCellProps={({ cell }) => ({
-        style:
-          cell.column.id === 'deviceType'
-            ? {
-                paddingTop: 0,
-                paddingRight: 0,
-                paddingBottom: 0,
-                paddingLeft: 0,
-              }
-            : {},
-      })}
-      mantinePaperProps={{
-        withBorder: true,
-        shadow: 'none',
-        radius: 'md',
-      }}
-    />
+    <Paper withBorder shadow="none" radius="md">
+      <Table striped>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Device Type</Table.Th>
+            <Table.Th>Number of Devices</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {data.map((row, index) => (
+            <Table.Tr key={row.deviceType}>
+              <Table.Td style={{ padding: 0 }}>
+                <div
+                  onClick={() => handleRowClick(row)}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
+                    width: '100%',
+                    height: '100%',
+                    padding: '8px',
+                    borderRadius: '4px',
+                    transition: 'background-color 0.1s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      'var(--mantine-color-proximal-blue-9)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                >
+                  {row.deviceType}
+                </div>
+              </Table.Td>
+              <Table.Td>
+                {onDataChange ? (
+                  <NumberInput
+                    size="xs"
+                    min={0}
+                    value={row.numberOfDevices}
+                    onChange={(value) =>
+                      handleDeviceCountChange(index, Number(value) || 0)
+                    }
+                  />
+                ) : (
+                  row.numberOfDevices
+                )}
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Paper>
   )
 }

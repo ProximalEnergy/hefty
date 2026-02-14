@@ -14,6 +14,7 @@ import {
   Popover,
   Select,
   Stack,
+  Table,
   Text,
   TextInput,
   Title,
@@ -22,13 +23,24 @@ import {
 import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconPlus } from '@tabler/icons-react'
-import {
-  type MRT_Cell,
-  MRT_ColumnDef,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
+
+const columns = [
+  { key: 'sensor_type_id', header: 'ID', align: 'center' as const },
+  { key: 'name_short', header: 'Short Name' },
+  { key: 'name_long', header: 'Long Name' },
+  { key: 'name_metric', header: 'Metric Name' },
+  { key: 'unit', header: 'Unit', align: 'center' as const },
+  { key: 'device_type_id', header: 'Device Type' },
+  { key: 'description', header: 'Description' },
+  {
+    key: 'actions',
+    header: 'Actions',
+    align: 'center' as const,
+    filterable: false,
+    sortable: false,
+  },
+]
 
 const SensorTypes = () => {
   const [isModalOpen, { open, close }] = useDisclosure(false)
@@ -37,6 +49,11 @@ const SensorTypes = () => {
   const [editingSensorType, setEditingSensorType] = useState<SensorType | null>(
     null,
   )
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
+  const [sortConfig, setSortConfig] = useState<{
+    key: string
+    direction: 'asc' | 'desc'
+  } | null>({ key: 'sensor_type_id', direction: 'asc' })
 
   const sensorTypes = useGetSensorTypes({})
   const deviceTypes = useGetDeviceTypes({})
@@ -66,7 +83,6 @@ const SensorTypes = () => {
         if (!value || value.length === 0) {
           return 'Short name is required'
         }
-        // Check for duplicates (excluding the current editing sensor type)
         const isDuplicate = sensorTypes.data?.some(
           (sensorType) =>
             sensorType.name_short === value &&
@@ -82,21 +98,18 @@ const SensorTypes = () => {
     },
   })
 
-  const handleEdit = useCallback(
-    (sensorType: SensorType) => {
-      setEditingSensorType(sensorType)
-      form.setValues({
-        device_type_id: sensorType.device_type_id.toString(),
-        name_short: sensorType.name_short,
-        name_long: sensorType.name_long,
-        name_metric: sensorType.name_metric,
-        unit: sensorType.unit || '',
-        description: sensorType.description || '',
-      })
-      open()
-    },
-    [form, open],
-  )
+  const handleEdit = (sensorType: SensorType) => {
+    setEditingSensorType(sensorType)
+    form.setValues({
+      device_type_id: sensorType.device_type_id.toString(),
+      name_short: sensorType.name_short,
+      name_long: sensorType.name_long,
+      name_metric: sensorType.name_metric,
+      unit: sensorType.unit || '',
+      description: sensorType.description || '',
+    })
+    open()
+  }
 
   const handleAdd = () => {
     setEditingSensorType(null)
@@ -104,7 +117,6 @@ const SensorTypes = () => {
     open()
   }
 
-  // Handle device type selection to pre-populate long name
   const handleDeviceTypeChange = (deviceTypeId: string | null) => {
     if (deviceTypeId && deviceTypes.data) {
       const selectedDeviceType = deviceTypes.data.find(
@@ -112,7 +124,6 @@ const SensorTypes = () => {
       )
       if (selectedDeviceType) {
         form.setFieldValue('device_type_id', deviceTypeId)
-        // Pre-populate the long name with the device type name
         form.setFieldValue('name_long', selectedDeviceType.name_long)
       }
     } else {
@@ -129,7 +140,6 @@ const SensorTypes = () => {
       }
 
       if (editingSensorType) {
-        // Update existing sensor type
         await updateSensorType.mutateAsync({
           sensorTypeId: editingSensorType.sensor_type_id,
           sensorType: {
@@ -138,17 +148,15 @@ const SensorTypes = () => {
           },
         })
       } else {
-        // Create new sensor type
         await createSensorType.mutateAsync({
           ...sensorTypeData,
-          sensor_type_id: 0, // Let backend auto-generate the ID
+          sensor_type_id: 0,
         })
       }
       close()
       closeConfirm()
     } catch (error) {
       console.error('Error saving sensor type:', error)
-      // TODO: Add proper error handling/notification
     }
   }
 
@@ -156,138 +164,90 @@ const SensorTypes = () => {
     openConfirm()
   }
 
-  const columns = useMemo<MRT_ColumnDef<SensorType>[]>(
-    () => [
-      {
-        header: 'ID',
-        accessorKey: 'sensor_type_id',
-        size: 100,
-        mantineTableHeadCellProps: {
-          align: 'center',
-        },
-        mantineTableBodyCellProps: {
-          align: 'center',
-        },
-      },
-      {
-        header: 'Short Name',
-        accessorKey: 'name_short',
-        size: 200,
-      },
-      {
-        header: 'Long Name',
-        accessorKey: 'name_long',
-        size: 300,
-      },
-      {
-        header: 'Metric Name',
-        accessorKey: 'name_metric',
-        size: 300,
-      },
-      {
-        header: 'Unit',
-        accessorKey: 'unit',
-        size: 150,
-        mantineTableHeadCellProps: {
-          align: 'center',
-        },
-        mantineTableBodyCellProps: {
-          align: 'center',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => (
-          <Text size="sm">{cell.getValue<string | null>() || '-'}</Text>
-        ),
-      },
-      {
-        header: 'Device Type',
-        accessorKey: 'device_type_id',
-        size: 200,
-        Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => {
-          const deviceTypeId = cell.getValue<number>()
-          const deviceType = deviceTypes.data?.find(
-            (dt) => dt.device_type_id === deviceTypeId,
-          )
-          return (
-            <Text size="sm">
-              {deviceType ? `${deviceType.name_short}` : '-'}
-            </Text>
-          )
-        },
-      },
-      {
-        header: 'Description',
-        accessorKey: 'description',
-        size: 300,
-        Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => (
-          <Text size="sm">{cell.getValue<string | null>() || '-'}</Text>
-        ),
-      },
-      {
-        header: 'Actions',
-        accessorKey: 'actions',
-        size: 120,
-        mantineTableHeadCellProps: {
-          align: 'center',
-        },
-        mantineTableBodyCellProps: {
-          align: 'center',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<SensorType> }) => (
+  const getCellText = (sensorType: SensorType, key: string): string => {
+    switch (key) {
+      case 'unit':
+      case 'description':
+        return (sensorType[key as keyof SensorType] as string) || '-'
+      case 'device_type_id': {
+        const dt = deviceTypes.data?.find(
+          (d) => d.device_type_id === sensorType.device_type_id,
+        )
+        return dt ? dt.name_short : '-' // noqa: hardcoded-name-short
+      }
+      case 'actions':
+        return ''
+      default:
+        return String(sensorType[key as keyof SensorType] ?? '')
+    }
+  }
+
+  const renderCell = (sensorType: SensorType, key: string): React.ReactNode => {
+    switch (key) {
+      case 'unit':
+      case 'description':
+        return (
+          <Text size="sm">
+            {(sensorType[key as keyof SensorType] as string) || '-'}
+          </Text>
+        )
+      case 'device_type_id': {
+        const dt = deviceTypes.data?.find(
+          (d) => d.device_type_id === sensorType.device_type_id,
+        )
+        return <Text size="sm">{dt ? dt.name_short : '-'}</Text> // noqa: hardcoded-name-short
+      }
+      case 'actions':
+        return (
           <ActionIcon
             variant="subtle"
             color="blue"
-            onClick={() => handleEdit(cell.row.original)}
+            onClick={() => handleEdit(sensorType)}
           >
             <IconEdit style={{ width: 16, height: 16 }} />
           </ActionIcon>
-        ),
-        enableSorting: false,
-        enableColumnFilter: false,
-        enableGlobalFilter: false,
-      },
-    ],
-    [handleEdit, deviceTypes.data],
+        )
+      default:
+        return String(sensorType[key as keyof SensorType] ?? '')
+    }
+  }
+
+  const handleSort = (key: string) => {
+    setSortConfig((current) => {
+      if (!current || current.key !== key) {
+        return { key, direction: 'asc' }
+      }
+      if (current.direction === 'asc') {
+        return { key, direction: 'desc' }
+      }
+      return null
+    })
+  }
+
+  const filtered = (sensorTypes.data ?? []).filter((row) =>
+    columns.every((col) => {
+      const filter = columnFilters[col.key]
+      if (!filter) return true
+      if (col.filterable === false) return true
+      const cellText = getCellText(row, col.key)
+      return cellText.toLowerCase().includes(filter.toLowerCase())
+    }),
   )
 
-  const table = useMantineReactTable({
-    columns,
-    data: sensorTypes.data ?? [],
-    enableGrouping: true,
-    enableColumnDragging: true,
-    enableColumnResizing: true,
-    enableColumnOrdering: true,
-    enableRowSelection: false,
-    enableMultiSort: true,
-    enableGlobalFilter: true,
-    enableColumnFilters: true,
-    enableDensityToggle: true,
-    enableFullScreenToggle: true,
-    enableHiding: true,
-    layoutMode: 'grid',
-    initialState: {
-      density: 'xs',
-      columnVisibility: {
-        sensor_type_id: true,
-        name_short: true,
-        name_long: true,
-        name_metric: true,
-        unit: true,
-        actions: true,
-      },
-      sorting: [{ id: 'sensor_type_id', desc: false }],
-      globalFilter: '',
-      showGlobalFilter: true,
-      pagination: {
-        pageSize: 50,
-        pageIndex: 0,
-      },
-    },
-    mantineTableProps: {
-      striped: true,
-      highlightOnHover: true,
-      style: { width: '100%' },
-    },
-  })
+  const sortedData = sortConfig
+    ? [...filtered].sort((a, b) => {
+        const aVal = getCellText(a, sortConfig.key)
+        const bVal = getCellText(b, sortConfig.key)
+        const aNum = Number(aVal)
+        const bNum = Number(bVal)
+        const bothNumeric =
+          aVal !== '' && bVal !== '' && !isNaN(aNum) && !isNaN(bNum)
+        const cmp = bothNumeric
+          ? aNum - bNum
+          : aVal.localeCompare(bVal, undefined, { numeric: true })
+        return sortConfig.direction === 'asc' ? cmp : -cmp
+      })
+    : filtered
 
   if (sensorTypes.isLoading || deviceTypes.isLoading) {
     return <PageLoader />
@@ -302,7 +262,64 @@ const SensorTypes = () => {
         </Button>
       </Group>
 
-      <MantineReactTable table={table} />
+      <Table.ScrollContainer minWidth={1000}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              {columns.map((col) => {
+                const isSortable = col.sortable !== false
+                return (
+                  <Table.Th
+                    key={col.key}
+                    style={{
+                      textAlign: col.align,
+                      cursor: isSortable ? 'pointer' : undefined,
+                    }}
+                    onClick={isSortable ? () => handleSort(col.key) : undefined}
+                  >
+                    {col.header}
+                    {sortConfig?.key === col.key && (
+                      <span>
+                        {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </Table.Th>
+                )
+              })}
+            </Table.Tr>
+            <Table.Tr>
+              {columns.map((col) => (
+                <Table.Th key={`${col.key}-filter`}>
+                  {col.filterable !== false ? (
+                    <TextInput
+                      size="xs"
+                      placeholder="Filter..."
+                      value={columnFilters[col.key] ?? ''}
+                      onChange={(e) =>
+                        setColumnFilters((prev) => ({
+                          ...prev,
+                          [col.key]: e.currentTarget.value,
+                        }))
+                      }
+                    />
+                  ) : null}
+                </Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedData.map((sensorType) => (
+              <Table.Tr key={sensorType.sensor_type_id}>
+                {columns.map((col) => (
+                  <Table.Td key={col.key} style={{ textAlign: col.align }}>
+                    {renderCell(sensorType, col.key)}
+                  </Table.Td>
+                ))}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
 
       <Modal
         opened={isModalOpen}
@@ -368,7 +385,6 @@ const SensorTypes = () => {
                     .replace(/\s+/g, '_')
                     .replace(/[^a-z0-9_]/g, '')
                   form.setFieldValue('name_short', shortName)
-                  // Trigger validation on short name after setting the value
                   setTimeout(() => form.validateField('name_short'), 0)
                   form.getInputProps('name_long').onChange(event)
                 }}
@@ -385,7 +401,6 @@ const SensorTypes = () => {
                 required
                 {...form.getInputProps('name_short')}
                 onChange={(event) => {
-                  // Trigger validation immediately
                   form.validateField('name_short')
                   form.getInputProps('name_short').onChange(event)
                 }}

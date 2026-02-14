@@ -1,4 +1,14 @@
-import { Alert, Card, Grid, Group, Stack, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Card,
+  Grid,
+  Group,
+  Stack,
+  Table,
+  Text,
+  Title,
+  useMantineColorScheme,
+} from '@mantine/core'
 import {
   IconAlertCircle,
   IconClock,
@@ -6,8 +16,6 @@ import {
   IconPackage,
   IconTrendingUp,
 } from '@tabler/icons-react'
-import { type MRT_ColumnDef, MantineReactTable } from 'mantine-react-table'
-import { useMemo, useState } from 'react'
 
 interface SparePartData {
   name: string
@@ -156,8 +164,12 @@ const sparePartsData: SparePartData[] = [
   },
 ]
 
+const formatNumber = (value: number): string => value.toLocaleString()
+
+const formatCurrency = (value: number): string => `$${value.toLocaleString()}`
+
 const SparePartsPage = () => {
-  const [globalFilter, setGlobalFilter] = useState('')
+  const { colorScheme } = useMantineColorScheme()
 
   // Calculate summary metrics
   const criticalParts = sparePartsData.filter((part) => part.onSite < 10).length
@@ -178,61 +190,34 @@ const SparePartsPage = () => {
         100,
     ) || 0
 
-  const columns = useMemo<MRT_ColumnDef<SparePartData>[]>(
-    () => [
-      {
-        accessorKey: 'name',
-        header: 'Spare part name',
-        size: 150,
-      },
-      {
-        accessorKey: 'oem',
-        header: 'OEM',
-        size: 120,
-      },
-      {
-        accessorKey: 'model',
-        header: 'Model',
-        size: 120,
-      },
-      {
-        accessorKey: 'onSite',
-        header: 'Number of Spares on Site',
-        size: 120,
-        Cell: ({ cell }) => cell.getValue<number>().toLocaleString(),
-      },
-      {
-        accessorKey: 'vmi',
-        header: 'Number of Spares managed by Vendor Managed Inventory',
-        size: 200,
-        Cell: ({ cell }) => cell.getValue<number>().toLocaleString(),
-      },
-      {
-        accessorKey: 'purchasePrice',
-        header: 'Purchase Price',
-        size: 120,
-        Cell: ({ cell }) => `$${cell.getValue<number>().toLocaleString()}`,
-      },
-      {
-        accessorKey: 'carryingCosts',
-        header: 'Carrying Costs',
-        size: 120,
-        Cell: ({ cell }) => `$${cell.getValue<number>().toLocaleString()}`,
-      },
-      {
-        accessorKey: 'stockoutCosts',
-        header: 'Cost of Stockouts',
-        size: 120,
-        Cell: ({ cell }) => `$${cell.getValue<number>().toLocaleString()}`,
-      },
-      {
-        accessorKey: 'leadTime',
-        header: 'Key Spare Lead Time Summary',
-        size: 150,
-      },
-    ],
-    [],
-  )
+  const columns = [
+    { key: 'name', header: 'Spare part name' },
+    { key: 'oem', header: 'OEM' },
+    { key: 'model', header: 'Model' },
+    { key: 'onSite', header: 'Number of Spares on Site' },
+    {
+      key: 'vmi',
+      header: 'Number of Spares managed by Vendor Managed Inventory',
+    },
+    { key: 'purchasePrice', header: 'Purchase Price' },
+    { key: 'carryingCosts', header: 'Carrying Costs' },
+    { key: 'stockoutCosts', header: 'Cost of Stockouts' },
+    { key: 'leadTime', header: 'Key Spare Lead Time Summary' },
+  ]
+
+  const renderCell = (part: SparePartData, key: string): string => {
+    switch (key) {
+      case 'onSite':
+      case 'vmi':
+        return formatNumber(part[key as keyof SparePartData] as number)
+      case 'purchasePrice':
+      case 'carryingCosts':
+      case 'stockoutCosts':
+        return formatCurrency(part[key as keyof SparePartData] as number)
+      default:
+        return String(part[key as keyof SparePartData])
+    }
+  }
 
   return (
     <Stack p="md" h="100%">
@@ -315,43 +300,50 @@ const SparePartsPage = () => {
         </Grid.Col>
       </Grid>
 
-      <MantineReactTable
-        columns={columns}
-        data={sparePartsData}
-        enableGlobalFilter
-        state={{
-          globalFilter,
-        }}
-        onGlobalFilterChange={setGlobalFilter}
-        enableSorting
-        enableColumnFilters
-        enablePagination
-        initialState={{
-          showGlobalFilter: true,
-          pagination: { pageIndex: 0, pageSize: 10 },
-          density: 'xs',
-        }}
-        mantineSearchTextInputProps={{
-          placeholder: 'Search spare parts...',
-        }}
-        mantineTableProps={{
-          withTableBorder: true,
-          withColumnBorders: true,
-          striped: true,
-          highlightOnHover: true,
-        }}
-        mantineTableHeadCellProps={{
-          style: {
-            fontWeight: 600,
-            padding: '8px 12px',
-          },
-        }}
-        mantineTableBodyCellProps={{
-          style: {
-            padding: '8px 12px',
-          },
-        }}
-      />
+      <Card withBorder>
+        <Table
+          withTableBorder
+          withColumnBorders
+          striped={colorScheme === 'light'}
+          highlightOnHover
+          style={{
+            borderRadius: 'var(--mantine-radius-md)',
+            overflow: 'hidden',
+          }}
+        >
+          <Table.Thead>
+            <Table.Tr>
+              {columns.map((col) => (
+                <Table.Th
+                  key={col.key}
+                  style={{
+                    fontWeight: 600,
+                    padding: '8px 12px',
+                  }}
+                >
+                  {col.header}
+                </Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sparePartsData.map((part, index) => (
+              <Table.Tr key={index}>
+                {columns.map((col) => (
+                  <Table.Td
+                    key={col.key}
+                    style={{
+                      padding: '8px 12px',
+                    }}
+                  >
+                    {renderCell(part, col.key)}
+                  </Table.Td>
+                ))}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Card>
     </Stack>
   )
 }

@@ -2,19 +2,23 @@ import { useGetUserType } from '@/api/admin'
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { Project } from '@/api/v1/operational/projects'
-import { Paper, Stack } from '@mantine/core'
+import { Paper, Stack, Table } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconCircle } from '@tabler/icons-react'
-import {
-  type MRT_Cell,
-  type MRT_Row,
-  MantineReactTable,
-} from 'mantine-react-table'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 interface OnboardingProjectsTabProps {
   projects: Project[]
   searchTerm: string
+}
+
+const getProjectTypeName = (typeId: number | null): string => {
+  if (!typeId) return 'Unknown'
+  const key = Object.keys(ProjectTypeEnum).find(
+    (k) => ProjectTypeEnum[k as keyof typeof ProjectTypeEnum] === typeId,
+  )
+  return key || 'Unknown'
 }
 
 export function OnboardingProjectsTab({
@@ -23,8 +27,11 @@ export function OnboardingProjectsTab({
 }: OnboardingProjectsTabProps) {
   const navigate = useNavigate()
   const userType = useGetUserType({})
+  const [sortConfig, setSortConfig] = useState<{
+    key: string
+    direction: 'asc' | 'desc'
+  } | null>(null)
 
-  // Filter for onboarding projects
   const onboardingProjects =
     projects?.filter(
       (project) =>
@@ -45,94 +52,65 @@ export function OnboardingProjectsTab({
     }
   }
 
-  // Define table columns
-  const columns = [
-    {
-      accessorKey: 'name_long',
-      header: 'Project Name',
-      enableSorting: true,
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: 'project_type_id',
-      header: 'Project Type',
-      accessorFn: (row: Project) => {
-        const typeId = row.project_type_id
-        if (!typeId) return 'Unknown'
-        const key = Object.keys(ProjectTypeEnum).find(
-          (k) => ProjectTypeEnum[k as keyof typeof ProjectTypeEnum] === typeId,
-        )
-        return key || 'Unknown'
-      },
-      enableSorting: true,
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: 'devices',
-      header: 'Devices',
-      enableSorting: false,
-      enableColumnFilter: false,
-      Cell: ({ row }: { row: MRT_Row<Project> }) => {
-        if (row.original.project_type_id === ProjectTypeEnum.BESS) {
-          return null
-        }
+  const getCellText = (project: Project, key: string): string => {
+    switch (key) {
+      case 'name_long':
+        return project.name_long ?? ''
+      case 'project_type_id':
+        return getProjectTypeName(project.project_type_id)
+      default:
+        return ''
+    }
+  }
 
-        return (
-          <div
-            onClick={(e) => {
-              e.stopPropagation()
-              handleNavigation(
-                `/onboarding/create-pv-system/${row.original.project_id}`,
-              )
-            }}
-            style={{
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-              height: '100%',
-              padding: '12px',
-              margin: '-12px',
-              borderRadius: '4px',
-              transition: 'background-color 0.1s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--mantine-color-proximal-blue-9)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
-            <IconCircle style={{ fill: 'red' }} />
-          </div>
-        )
-      },
-    },
+  const filteredData = onboardingProjects.filter((project) => {
+    if (!searchTerm) return true
+    const term = searchTerm.toLowerCase()
+    return (
+      getCellText(project, 'name_long').toLowerCase().includes(term) ||
+      getCellText(project, 'project_type_id').toLowerCase().includes(term)
+    )
+  })
+
+  const handleSort = (key: string) => {
+    setSortConfig((current) => {
+      if (!current || current.key !== key) {
+        return { key, direction: 'asc' }
+      }
+      if (current.direction === 'asc') {
+        return { key, direction: 'desc' }
+      }
+      return null
+    })
+  }
+
+  const sortedData = sortConfig
+    ? [...filteredData].sort((a, b) => {
+        const aVal = getCellText(a, sortConfig.key)
+        const bVal = getCellText(b, sortConfig.key)
+        const cmp = aVal.localeCompare(bVal, undefined, {
+          numeric: true,
+        })
+        return sortConfig.direction === 'asc' ? cmp : -cmp
+      })
+    : filteredData
+
+  const sortableColumns = ['name_long', 'project_type_id']
+
+  const columns = [
+    { key: 'name_long', header: 'Project Name' },
+    { key: 'project_type_id', header: 'Project Type' },
+    { key: 'devices', header: 'Devices' },
     {
-      accessorKey: 'expected_energy_model',
+      key: 'expected_energy_model',
       header: 'Expected Energy Model',
-      enableSorting: true,
-      enableColumnFilter: true,
-      Cell: () => {
-        return (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-            }}
-          >
-            <IconCircle style={{ fill: 'red' }} />
-          </div>
-        )
-      },
     },
   ]
 
   return (
     <Paper
-      withBorder={false}
+      withBorder
+      shadow="none"
       radius="md"
       style={{
         display: 'flex',
@@ -141,51 +119,89 @@ export function OnboardingProjectsTab({
       }}
     >
       <Stack gap={0}>
-        <Paper withBorder={false} radius={0} p={0}>
-          <MantineReactTable
-            columns={columns}
-            data={onboardingProjects}
-            enableRowSelection={false}
-            enableColumnOrdering={false}
-            enableGlobalFilter
-            enableFilters={true}
-            enablePagination={false}
-            state={{
-              globalFilter: searchTerm,
-            }}
-            enableSorting={true}
-            enableFullScreenToggle={false}
-            enableDensityToggle={false}
-            enableColumnActions={false}
-            enableHiding={false}
-            enableColumnFilters={true}
-            mantineTableProps={{
-              highlightOnHover: true,
-              striped: true,
-            }}
-            mantineTableBodyRowProps={({ row }) => ({
-              onClick: () =>
-                handleNavigation(`/projects/${row.original.project_id}`),
-            })}
-            mantineTableBodyCellProps={({
-              cell,
-            }: {
-              cell: MRT_Cell<Project>
-            }) => ({
-              style:
-                cell.column.id === 'devices'
-                  ? {
-                      padding: 0,
-                    }
-                  : {},
-            })}
-            mantinePaperProps={{
-              withBorder: true,
-              shadow: 'none',
-              radius: 'md',
-            }}
-          />
-        </Paper>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              {columns.map((col) => {
+                const isSortable = sortableColumns.includes(col.key)
+                return (
+                  <Table.Th
+                    key={col.key}
+                    style={{
+                      cursor: isSortable ? 'pointer' : undefined,
+                    }}
+                    onClick={isSortable ? () => handleSort(col.key) : undefined}
+                  >
+                    {col.header}
+                    {sortConfig?.key === col.key && (
+                      <span>
+                        {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </Table.Th>
+                )
+              })}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedData.map((project) => (
+              <Table.Tr
+                key={project.project_id}
+                onClick={() =>
+                  handleNavigation(`/projects/${project.project_id}`)
+                }
+                style={{ cursor: 'pointer' }}
+              >
+                <Table.Td>{project.name_long}</Table.Td>
+                <Table.Td>
+                  {getProjectTypeName(project.project_type_id)}
+                </Table.Td>
+                <Table.Td style={{ padding: 0 }}>
+                  {project.project_type_id !== ProjectTypeEnum.BESS && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleNavigation(
+                          `/onboarding/create-pv-system/${project.project_id}`,
+                        )
+                      }}
+                      style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                        padding: '12px',
+                        borderRadius: '4px',
+                        transition: 'background-color 0.1s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          'var(--mantine-color-proximal-blue-9)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
+                    >
+                      <IconCircle style={{ fill: 'red' }} />
+                    </div>
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconCircle style={{ fill: 'red' }} />
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
       </Stack>
     </Paper>
   )
