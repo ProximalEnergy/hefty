@@ -1,6 +1,8 @@
+import { PostHogProvider } from '@posthog/react'
 import * as Sentry from '@sentry/react'
 import '@tanstack/react-query'
 import { AxiosError } from 'axios'
+import type { PostHogConfig } from 'posthog-js'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
@@ -38,10 +40,22 @@ declare module '@tanstack/react-query' {
   }
 }
 
+const posthogOptions: Partial<PostHogConfig> = {
+  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+  autocapture: false,
+  capture_pageview: false,
+  defaults: '2026-01-30',
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
+    <PostHogProvider
+      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+      options={posthogOptions}
+    >
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </PostHogProvider>
   </React.StrictMode>,
 )
