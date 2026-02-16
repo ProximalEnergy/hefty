@@ -45,5 +45,13 @@
       matchFileNames: ["docs-mdbook/**"],
       groupName: "docs-mdbook",
     },
+    {
+      matchFileNames: ["microservices/**"],
+      groupName: "microservices",
+    },
+    {
+      matchFileNames: ["sql-admin/**"],
+      groupName: "sql-admin",
+    },
   ],
 }
