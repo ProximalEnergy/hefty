@@ -19,6 +19,10 @@ on:
       - "web-app/**"
       - ".github/workflows/hardcoded-name-shorts-check.yml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   hardcoded-name-shorts-check:
     name: Hardcoded Name Shorts Check

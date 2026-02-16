@@ -8,6 +8,10 @@ on:
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/microservices-pr-checks.yml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   id-token: write
   contents: read

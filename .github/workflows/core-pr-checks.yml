@@ -8,6 +8,10 @@ on:
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/core-pr-checks.yml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   id-token: write # This is crucial for OIDC authentication
   contents: read # You might also need this depending on your workflow
