@@ -104,9 +104,7 @@ async def get_combiner_block_performance(
                 strict=True,
             ),
         )
-        df.columns = pd.Index(
-            [tag_id_to_device_id[tag_id] for tag_id in df.columns.astype(int)],
-        )
+        df = df.rename(columns=lambda tag_id: tag_id_to_device_id[int(tag_id)])
 
         timestamp = df.index[-1].isoformat()
         max_current = df.tail(1).max().max()

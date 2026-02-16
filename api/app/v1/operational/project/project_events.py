@@ -362,7 +362,8 @@ async def get_paginated_events(
         g = g.merge(ev[["event_id", "days_event"]], on="event_id", how="left")
         denom = g["days_event"]  # or g["days_data_span"] for original behavior
 
-        g["avg_loss_per_day"] = g["total_loss"] / denom.replace({0: pd.NA})
+        denom_nonzero = denom.astype("float64").where(denom != 0)
+        g["avg_loss_per_day"] = g["total_loss"] / denom_nonzero
 
         # 4) pivot once
         totals = g.pivot(
@@ -698,8 +699,9 @@ async def get_events_summary(
         # 4) Calculate daily averages from SQL-aggregated totals
         # loss_1 = energy (event_loss_type_id == EventLossType.PROXIMAL_ENERGY)
         # loss_2 = financial (event_loss_type_id == EventLossType.PROXIMAL_FINANCIAL)
-        g["avg_loss_per_day_1"] = g["loss_1"] / denom.replace({0: pd.NA})
-        g["avg_loss_per_day_2"] = g["loss_2"] / denom.replace({0: pd.NA})
+        denom_nonzero = denom.astype("float64").where(denom != 0)
+        g["avg_loss_per_day_1"] = g["loss_1"] / denom_nonzero
+        g["avg_loss_per_day_2"] = g["loss_2"] / denom_nonzero
 
         # 5) build losses_map in O(E)
         losses_map = {}
@@ -821,7 +823,7 @@ async def get_uptime(
     # and localizes tz-naive as UTC.
     allowed = pd.to_datetime(allowed, utc=True)
     allowed = allowed.sort_values()
-    allowed_ns = allowed.asi8  # int64 ns since epoch (sorted)
+    allowed_ns = allowed.view("i8")  # int64 ns since epoch (sorted)
 
     # --- Vectorize event window clipping & tz normalization ---
     ev = events.copy()
@@ -887,7 +889,7 @@ async def get_uptime(
     }
 
     # Fetch device and device type data in batches
-    device_ids = [int(device_id) for device_id in device_downtime.keys()]  # type: ignore
+    device_ids = [int(device_id) for device_id in device_downtime.keys()]
     if not device_ids:
         return []
 

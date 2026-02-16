@@ -1,5 +1,5 @@
 import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 import core.models as models
 import pandas as pd
@@ -22,6 +22,10 @@ router = APIRouter(
     tags=["events"],
     include_in_schema=utils.get_include_in_schema(),
 )
+
+
+def _to_int(*, value: Any) -> int:
+    return int(value)
 
 
 class EventMetrics(BaseModel):
@@ -229,9 +233,10 @@ async def get_meta_analysis(
     completed_agg.loc[completed_agg["device_type_id"] == 5, "device_name"] = "Project"
 
     for dtid, sub in completed_agg.groupby("device_type_id", sort=True):
+        dtid_int = _to_int(value=dtid)
         device_totals.append(
             DeviceTotals(
-                device_type_id=int(dtid),
+                device_type_id=dtid_int,
                 device_ids=sub["device_id"].astype(int).tolist(),
                 device_names=sub["device_name"].tolist(),
                 total_failures=sub["total_failures"].astype(int).tolist(),
@@ -272,11 +277,7 @@ async def get_meta_analysis(
     # MTBF (per device → per type), only if >1 event at the type level
     # -----------------------
     df["time_diff"] = df.groupby("device_id")["time_start"].diff()
-    mtbf = (
-        df.groupby("device_id", as_index=False)["time_diff"]
-        .mean()
-        .rename(columns={"time_diff": "MTBF"})
-    )
+    mtbf = df.groupby("device_id", as_index=False).agg(MTBF=("time_diff", "mean"))
     mtbf["MTBF_hours"] = mtbf["MTBF"].dt.total_seconds() / 3600
     mtbf["device_type_id"] = mtbf["device_id"].map(dtype_map)
     mtbf_by_type = mtbf.groupby("device_type_id", as_index=False)["MTBF_hours"].mean()
@@ -288,10 +289,8 @@ async def get_meta_analysis(
     df_mttr["repair_time"] = (
         df_mttr["time_end"] - df_mttr["time_start"]
     ).dt.total_seconds() / 3600
-    mttr = (
-        df_mttr.groupby("device_id", as_index=False)["repair_time"]
-        .mean()
-        .rename(columns={"repair_time": "MTTR_hours"})
+    mttr = df_mttr.groupby("device_id", as_index=False).agg(
+        MTTR_hours=("repair_time", "mean")
     )
     mttr["device_type_id"] = mttr["device_id"].map(dtype_map)
     mttr_by_type = mttr.groupby("device_type_id", as_index=False)["MTTR_hours"].mean()
@@ -342,12 +341,13 @@ async def get_meta_analysis(
     metrics: list[EventMetrics] = []
     for _, row in agg_types.iterrows():
         dt_id = int(row["device_type_id"])
+        device_type_name = (
+            "Project" if dt_id == 5 else str(device_types.at[dt_id, "name_long"])
+        )
         metrics.append(
             EventMetrics(
                 device_type_id=dt_id,
-                device_type_name=(
-                    device_types.loc[dt_id, "name_long"] if dt_id != 5 else "Project"
-                ),
+                device_type_name=device_type_name,
                 MTBF_hours=(
                     round(float(row["MTBF_hours"]), 2)
                     if pd.notna(row.get("MTBF_hours"))

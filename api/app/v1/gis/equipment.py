@@ -81,6 +81,12 @@ async def get_pcs(
     )
 
     live = start is None or end is None
+    as_of: str | None = None
+    power: dict[int, float] = {}
+    power_exp: dict[int, float] = {}
+    power_norm_exp: dict[int, float] = {}
+    red_outline: dict[int, bool] = {}
+    energy: dict[int, int] = {}
 
     if live:
         end = pd.Timestamp.utcnow().floor("5min")
@@ -129,12 +135,12 @@ async def get_pcs(
             else:
                 as_of = df_pcs.index[-1].isoformat()
 
-                df_pcs.columns = pd.Index(
-                    [
-                        tag_id_to_device_id[tag_id]
-                        for tag_id in df_pcs.columns.astype(int)
-                    ],
-                )
+                mapped_pcs_columns: list[int] = []
+                for tag_id in df_pcs.columns.tolist():
+                    tag_id_int = int(tag_id)
+                    mapped_device_id = tag_id_to_device_id.get(tag_id_int, tag_id_int)
+                    mapped_pcs_columns.append(int(mapped_device_id))
+                df_pcs.columns = pd.Index(mapped_pcs_columns)
 
                 df_block = pd.concat(
                     [
@@ -160,21 +166,33 @@ async def get_pcs(
                 df = pd.concat([df_pcs, df_block], axis=1)
                 df_ep = pd.concat([df_pcs_ep, df_block_ep], axis=1)
 
-                power = (df.iloc[-1] * 1000).round(0).to_dict()
-                power_exp = (df_ep.iloc[-1] * 1000).round(0).to_dict()
-                power_norm_exp = (df / df_ep).clip(upper=1).round(3).iloc[-1].to_dict()
+                power = {}
+                for device_id, value in (df.iloc[-1] * 1000).round(0).items():
+                    if isinstance(device_id, (int, str, bytes, bytearray)):
+                        power[int(device_id)] = float(value)
+                power_exp = {}
+                for device_id, value in (df_ep.iloc[-1] * 1000).round(0).items():
+                    if isinstance(device_id, (int, str, bytes, bytearray)):
+                        power_exp[int(device_id)] = float(value)
+                power_norm_exp = {}
+                for device_id, value in (
+                    (df / df_ep).clip(upper=1).round(3).iloc[-1]
+                ).items():
+                    if isinstance(device_id, (int, str, bytes, bytearray)):
+                        power_norm_exp[int(device_id)] = float(value)
 
                 # Identify any block ids that have a pcs device with offline inverter
+                block_ids = [int(block_id) for block_id in df_block.columns.tolist()]
                 red_outline = {
                     block_device_id: any(
                         [
-                            power[pcs_device_id] == 0
-                            for pcs_device_id in block_device_id_to_pcs_device_ids[
-                                block_device_id  # type: ignore
-                            ]
+                            power.get(int(pcs_device_id), np.nan) == 0
+                            for pcs_device_id in block_device_id_to_pcs_device_ids.get(
+                                block_device_id, []
+                            )
                         ],
                     )
-                    for block_device_id in df_block
+                    for block_device_id in block_ids
                 }
 
         data = {
@@ -237,7 +255,10 @@ async def get_pcs(
 
             df = pd.concat([df_pcs, df_block], axis=1)
 
-            energy = df.sum().astype(int).to_dict()
+            energy = {}
+            for device_id, value in df.sum().astype(int).items():
+                if isinstance(device_id, (int, str, bytes, bytearray)):
+                    energy[int(device_id)] = int(value)
 
         data = {
             "as_of": None,
@@ -643,8 +664,8 @@ async def utility_expected(
     devices_df = devices_df.copy()
     devices_df["device_id"] = devices_df["device_id"].astype(int)
     devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
-    devices_df["parent_device_id"] = devices_df["parent_device_id"].where(
-        pd.notna(devices_df["parent_device_id"]), None
+    devices_df["parent_device_id"] = devices_df["parent_device_id"].apply(
+        lambda value: None if pd.isna(value) else value
     )
     devices = list(devices_df.itertuples(index=False))
     if len(devices) != len(device_ids):
@@ -710,7 +731,11 @@ async def utility_expected(
         latest_values = df_latest.iloc[-1]  # Get the row of latest values
 
         for tag_id, value in latest_values.items():
-            dev_id = tag_id_to_device_id.get(int(tag_id))  # type: ignore
+            if isinstance(tag_id, (int, str, bytes, bytearray)):
+                tag_id_int = int(tag_id)
+            else:
+                continue
+            dev_id = tag_id_to_device_id.get(tag_id_int)
             if dev_id is not None:
                 results[dev_id] = {
                     "tracker_angle": value if pd.notna(value) else None,
@@ -786,7 +811,7 @@ async def utility_expected(
         ].astype(int)
         parent_devices_df["parent_device_id"] = parent_devices_df[
             "parent_device_id"
-        ].where(pd.notna(parent_devices_df["parent_device_id"]), None)
+        ].apply(lambda value: None if pd.isna(value) else value)
         parent_devices = list(parent_devices_df.itertuples(index=False))
         parent_device_dict = {
             typing.cast(int, dev.device_id): dev for dev in parent_devices
@@ -843,7 +868,7 @@ async def utility_expected(
         all_pcs_modules_df["device_id"] = all_pcs_modules_df["device_id"].astype(int)
         all_pcs_modules_df["parent_device_id"] = all_pcs_modules_df[
             "parent_device_id"
-        ].where(pd.notna(all_pcs_modules_df["parent_device_id"]), None)
+        ].apply(lambda value: None if pd.isna(value) else value)
         all_pcs_modules = list(all_pcs_modules_df.itertuples(index=False))
         module_ids = [typing.cast(int, mod.device_id) for mod in all_pcs_modules]
 
@@ -1148,16 +1173,16 @@ async def utility_expected(
         results[dev_id] = {
             "times": times_list_iso,
             "actual": {
-                "power": actual_power_series.where(
-                    pd.notna(actual_power_series),
-                    None,
-                ).tolist(),
+                "power": [
+                    float(value) if pd.notna(value) else None
+                    for value in actual_power_series.tolist()
+                ],
             },  # Convert NaN to None for JSON
             "expected_soiled": {
-                "power": expected_power_series.where(
-                    pd.notna(expected_power_series),
-                    None,
-                ).tolist(),
+                "power": [
+                    float(value) if pd.notna(value) else None
+                    for value in expected_power_series.tolist()
+                ],
                 "unique_versions": unique_versions,
             },
         }
@@ -1170,7 +1195,7 @@ async def get_met_station_latest_values(
     device_ids: list[int],
     project_db: Session,
     project: models.Project,
-) -> dict:
+) -> dict[int, dict[str, float]]:
     """Fetches the latest sensor values (POA, GHI, Ambient Temp, Wind Speed)
         for the given Met Station device IDs.
 

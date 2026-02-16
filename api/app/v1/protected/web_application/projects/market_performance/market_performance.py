@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
-from typing import Any
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -357,9 +357,8 @@ async def get_market_performance_realtime(
     df.index = df.index.tz_convert(project.time_zone)  # type: ignore
     df.index.name = "time"
 
-    # Replace NaN with None for JSON serialization
-    df = df.replace({pd.NA: None, pd.NaT: None})
-    df = df.where(pd.notnull(df), None)
+    # Replace null-like values with None for JSON serialization
+    df = df.replace({pd.NA: None, pd.NaT: None, np.nan: None})
 
     # Get field mappings
     fields = await core.crud.operational.qse_integrations.get_qse_fields_by_provider_id(
@@ -369,9 +368,8 @@ async def get_market_performance_realtime(
         "qse_field_name"
     )
 
-    # Replace NaN values with None for JSON serialization
-    df = df.replace({pd.NA: None, pd.NaT: None})
-    df = df.where(pd.notnull(df), None)
+    # Replace null-like values with None for JSON serialization
+    df = df.replace({pd.NA: None, pd.NaT: None, np.nan: None})
 
     # Map field names using the database mappings (same as battery_settlement)
     field_mapping = fields_df["name_long"].to_dict() if not fields_df.empty else {}
@@ -392,10 +390,11 @@ async def get_market_performance_realtime(
         """Create zero-filled series matching df index."""
         return pd.Series(0.0, index=df_renamed.index, dtype="float64")
 
-    def s(*, col_name: str) -> pd.Series:
+    def s(*, col_name: str) -> pd.Series[Any]:
         """Safely fetch numeric series or return zero series."""
         if col_name in df_renamed.columns:
-            return pd.to_numeric(df_renamed[col_name], errors="coerce").fillna(0.0)
+            series = pd.to_numeric(df_renamed[col_name], errors="coerce")
+            return cast(pd.Series[Any], series.fillna(0.0))
         return zero_series()
 
     # Calculate metrics
@@ -456,12 +455,14 @@ async def get_market_performance_realtime(
     # Add raw generation/consumption (try both mapped and original names)
     for orig_key, mapped_name in field_mapping.items():
         if orig_key in df.columns:
-            if "Generation" in mapped_name or "Generation" in orig_key:
+            orig_key_str = str(orig_key)
+            mapped_name_str = str(mapped_name)
+            if "Generation" in mapped_name_str or "Generation" in orig_key_str:
                 telemetry_data[mapped_name] = df[orig_key].tolist()
                 telemetry_data["RT_Generation_Qty"] = df[
                     orig_key
                 ].tolist()  # Also include raw name
-            elif "Consumption" in mapped_name or "Consumption" in orig_key:
+            elif "Consumption" in mapped_name_str or "Consumption" in orig_key_str:
                 telemetry_data[mapped_name] = df[orig_key].tolist()
                 telemetry_data["RT_Consumption_Qty"] = df[
                     orig_key
@@ -478,13 +479,21 @@ async def get_market_performance_realtime(
     # Add RT SPP and DA SPP (try both mapped and original)
     for orig_key, mapped_name in field_mapping.items():
         if orig_key in df.columns:
-            if "RTSPP" in mapped_name or "RTSPP" in orig_key or "RT SPP" in mapped_name:
+            orig_key_str = str(orig_key)
+            mapped_name_str = str(mapped_name)
+            if (
+                "RTSPP" in mapped_name_str
+                or "RTSPP" in orig_key_str
+                or "RT SPP" in mapped_name_str
+            ):
                 market_data[mapped_name] = df[orig_key].tolist()
                 market_data["RTSPP_Avg"] = df[
                     orig_key
                 ].tolist()  # Also include standard name
             elif (
-                "DASPP" in mapped_name or "DASPP" in orig_key or "DA SPP" in mapped_name
+                "DASPP" in mapped_name_str
+                or "DASPP" in orig_key_str
+                or "DA SPP" in mapped_name_str
             ):
                 market_data[mapped_name] = df[orig_key].tolist()
                 market_data["DASPP"] = df[
@@ -500,22 +509,24 @@ async def get_market_performance_realtime(
     # Add financial fields (try both mapped and original)
     for orig_key, mapped_name in field_mapping.items():
         if orig_key in df.columns:
-            if "Energy_Amt" in orig_key or "Energy Amt" in mapped_name:
+            orig_key_str = str(orig_key)
+            mapped_name_str = str(mapped_name)
+            if "Energy_Amt" in orig_key_str or "Energy Amt" in mapped_name_str:
                 finance_data[mapped_name] = df[orig_key].tolist()
                 # Also include with standard naming
-                if "RT_Energy_Amt" in orig_key:
+                if "RT_Energy_Amt" in orig_key_str:
                     finance_data["RT_Energy_Amt"] = df[orig_key].tolist()
                     finance_data["RT Energy Amt"] = df[orig_key].tolist()
-                elif "DA_Energy_Amt" in orig_key:
+                elif "DA_Energy_Amt" in orig_key_str:
                     finance_data["DA_Energy_Amt"] = df[orig_key].tolist()
                     finance_data["DA Energy Amt"] = df[orig_key].tolist()
-            elif "BP_Dev" in orig_key or "BP Dev" in mapped_name:
+            elif "BP_Dev" in orig_key_str or "BP Dev" in mapped_name_str:
                 finance_data[mapped_name] = df[orig_key].tolist()
                 finance_data["BP_Dev_Amt"] = df[orig_key].tolist()
                 finance_data["BP Dev Amt"] = df[orig_key].tolist()
             elif (
-                "Ancillary_Imbalance" in orig_key
-                or "Ancillary Imbalance" in mapped_name
+                "Ancillary_Imbalance" in orig_key_str
+                or "Ancillary Imbalance" in mapped_name_str
             ):
                 finance_data[mapped_name] = df[orig_key].tolist()
                 finance_data["RT_Ancillary_Imbalance_Amt"] = df[orig_key].tolist()
@@ -536,7 +547,9 @@ async def get_market_performance_realtime(
     # Convert calculated metrics to lists
     calculated_data = {}
     for col in calculated.columns:
-        calculated_data[col] = calculated[col].replace({np.nan: None}).tolist()
+        calculated_data[col] = [
+            None if pd.isna(value) else value for value in calculated[col].tolist()
+        ]
 
     # Return structured response
     return {

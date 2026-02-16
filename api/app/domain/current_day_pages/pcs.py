@@ -324,11 +324,8 @@ async def get_equipment_analysis_pcs_data(
                 raise HTTPException(status_code=404, detail="No data found")
             df_pcs = df_pcs.tail(1)
 
-        df_pcs.columns = pd.Index(
-            [
-                tags_pcs_tag_id_to_device_id[tag_id]
-                for tag_id in df_pcs.columns.astype(int)
-            ],
+        df_pcs = df_pcs.rename(
+            columns=lambda tag_id: tags_pcs_tag_id_to_device_id[int(tag_id)]
         )
         df_pcs = df_pcs[sorted(df_pcs.columns)]
         df_pcs = df_pcs.fillna(0)
@@ -342,11 +339,10 @@ async def get_equipment_analysis_pcs_data(
                 raise HTTPException(status_code=404, detail="No data found")
             df_pcs_module = df_pcs_module.tail(1)
 
-        df_pcs_module.columns = pd.Index(
-            [
-                tags_pcs_module_tag_id_to_device_id[pcs_module_device_id]
-                for pcs_module_device_id in df_pcs_module.columns.astype(int)
-            ],
+        df_pcs_module = df_pcs_module.rename(
+            columns=lambda pcs_module_device_id: tags_pcs_module_tag_id_to_device_id[
+                int(pcs_module_device_id)
+            ]
         )
         df_pcs_module = df_pcs_module[sorted(df_pcs_module.columns)]
         df_pcs_module = df_pcs_module.fillna(0)
@@ -396,7 +392,7 @@ async def get_equipment_analysis_pcs_data(
     }
     return_data["block_power_distribution"] = {
         "x": [
-            devices_block_device_id_to_name_long[block_device_id]
+            devices_block_device_id_to_name_long[int(block_device_id)]
             for block_device_id in df_block.columns.astype(int)
         ],
         "y": df_block.values.tolist(),
@@ -445,7 +441,7 @@ async def get_equipment_analysis_pcs_data(
     }
     return_data["pcs_power_distribution"] = {
         "x": [
-            devices_pcs_device_id_to_name_long[pcs_device_id]
+            devices_pcs_device_id_to_name_long[int(pcs_device_id)]
             for pcs_device_id in df_pcs.columns.astype(int)
         ],
         "y": df_pcs.values.tolist(),
@@ -493,7 +489,7 @@ async def get_equipment_analysis_pcs_data(
         }
         return_data["pcs_module_power_distribution"] = {
             "x": [
-                devices_pcs_module_device_id_to_name_long[pcs_module_device_id]
+                devices_pcs_module_device_id_to_name_long[int(pcs_module_device_id)]
                 for pcs_module_device_id in df_pcs_module.columns.astype(int)
             ],
             "y": (df_pcs_module.values.tolist()),

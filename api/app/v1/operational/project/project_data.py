@@ -164,7 +164,10 @@ async def get_project_dataframe(
     # Create MultiIndex for columns
     arrays = [
         df.columns,
-        [tag_id_to_sensor_type_name_short[tag_id] for tag_id in df.columns.astype(int)],
+        [
+            tag_id_to_sensor_type_name_short[int(tag_id)]
+            for tag_id in df.columns.to_list()
+        ],
     ]
     tuples = list(zip(*arrays))
     index = pd.MultiIndex.from_tuples(

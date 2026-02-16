@@ -88,9 +88,14 @@ async def get_pcs_apparent_vs_voltage(
 
     apparent_idx = tags_df[tags_df["sensor_type_id"] == 132].index.tolist()
     df_apparent = df.loc[:, apparent_idx]
-    df_apparent = df_apparent.rename(
-        columns=tags_df.loc[apparent_idx, "device_id"],
-    )  # type: ignore
+    apparent_col_map = {
+        int(tag_id): int(device_id)
+        for tag_id, device_id in zip(
+            apparent_idx,
+            tags_df.loc[apparent_idx, "device_id"].tolist(),
+        )
+    }
+    df_apparent = df_apparent.rename(columns=apparent_col_map)
 
     vab_idx = tags_df[tags_df["sensor_type_id"] == 133].index.tolist()
     vbc_idx = tags_df[tags_df["sensor_type_id"] == 134].index.tolist()
@@ -108,8 +113,9 @@ async def get_pcs_apparent_vs_voltage(
     for device_id, tag_ids in voltage_items.items():
         df_voltage.loc[:, device_id] = df.loc[:, tag_ids].mean(axis=1)
 
+    voltage_device_ids = [int(col) for col in df_voltage.columns.to_list()]
     devices_df = await core.crud.project.devices.get_project_devices(
-        device_ids=df_voltage.columns.astype(int).tolist()
+        device_ids=voltage_device_ids
     ).get_async(
         output_type=OutputType.PANDAS,
         schema=project_schema,
@@ -128,12 +134,13 @@ async def get_pcs_apparent_vs_voltage(
 
     out = []
     for col in df_voltage.columns.astype(int):
+        col_int = int(col)
         out.append(
             {
-                "device_id": col,
-                "device_name": device_id_to_name[col],
-                "x": df_apparent.loc[mask[col]].loc[:, col].values.tolist(),
-                "y": df_voltage.loc[mask[col]].loc[:, col].values.tolist(),
+                "device_id": col_int,
+                "device_name": device_id_to_name[col_int],
+                "x": df_apparent.loc[mask[col_int]].loc[:, col_int].values.tolist(),
+                "y": df_voltage.loc[mask[col_int]].loc[:, col_int].values.tolist(),
             }
         )
     return out

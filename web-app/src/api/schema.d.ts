@@ -9611,7 +9611,7 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type?: components["schemas"]["app__interfaces__KPIType"] | null;
+            kpi_type?: components["schemas"]["KPIType-Output"] | null;
         };
         /**
          * KPISummary
@@ -9720,6 +9720,36 @@ export interface components {
             critical_high: number | null;
             /** Trend Data */
             trend_data: (number | null)[];
+        };
+        /**
+         * KPIType
+         * @enum {integer}
+         */
+        "KPIType-Input": 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107;
+        /**
+         * KPIType
+         * @description Kpitype model.
+         */
+        "KPIType-Output": {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Description */
+            description: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Aggregation Method */
+            aggregation_method: string;
+            device_type?: components["schemas"]["DeviceType"] | null;
+            /** Doc Url */
+            doc_url?: string | null;
         };
         /**
          * KPITypeWithContractInfo
@@ -10915,6 +10945,26 @@ export interface components {
             scheduled_for: string;
         };
         /**
+         * SensorType
+         * @description Sensortype model.
+         */
+        "SensorType-Output": {
+            /** Sensor Type Id */
+            sensor_type_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Unit */
+            unit: string | null;
+            /** Description */
+            description: string | null;
+        };
+        /**
          * SettlementPoint
          * @description Settlementpoint model.
          */
@@ -11206,7 +11256,7 @@ export interface components {
             point: components["schemas"]["Point"] | null;
             polygon: components["schemas"]["Polygon"] | null;
             device?: components["schemas"]["Device"] | null;
-            sensor_type?: components["schemas"]["app__interfaces__SensorType"] | null;
+            sensor_type?: components["schemas"]["SensorType-Output"] | null;
             data_type?: components["schemas"]["DataType"] | null;
             /** Status Lookup Id */
             status_lookup_id?: number | null;
@@ -11584,6 +11634,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /**
          * VoiceChatSessionRequest
@@ -11688,31 +11742,6 @@ export interface components {
             score: number;
         };
         /**
-         * KPIType
-         * @description Kpitype model.
-         */
-        app__interfaces__KPIType: {
-            /** Kpi Type Id */
-            kpi_type_id: number;
-            /** Device Type Id */
-            device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-            /** Name Metric */
-            name_metric: string;
-            /** Description */
-            description: string | null;
-            /** Unit */
-            unit: string | null;
-            /** Aggregation Method */
-            aggregation_method: string;
-            device_type?: components["schemas"]["DeviceType"] | null;
-            /** Doc Url */
-            doc_url?: string | null;
-        };
-        /**
          * SensorType
          * @description Sensortype model.
          */
@@ -11732,11 +11761,6 @@ export interface components {
             /** Description */
             description: string | null;
         };
-        /**
-         * KPIType
-         * @enum {integer}
-         */
-        core__enumerations__KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107;
         /**
          * SensorType
          * @enum {integer}
@@ -16465,7 +16489,7 @@ export interface operations {
     get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
         parameters: {
             query: {
-                kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+                kpi_type_id: components["schemas"]["KPIType-Input"];
                 start?: string | null;
                 end?: string | null;
                 frequency?: ("month" | "year") | null;
@@ -16505,7 +16529,7 @@ export interface operations {
     get_project_aggregated_kpi_data_v1_operational_projects__project_id__kpi_data_agg_get: {
         parameters: {
             query: {
-                kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+                kpi_type_id: components["schemas"]["KPIType-Input"];
                 start?: string | null;
                 end?: string | null;
                 aggregation?: ("avg" | "sum") | null;
@@ -18330,7 +18354,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__interfaces__KPIType"][];
+                    "application/json": components["schemas"]["KPIType-Output"][];
                 };
             };
             /** @description Validation Error */
@@ -18366,7 +18390,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__interfaces__KPIType"];
+                    "application/json": components["schemas"]["KPIType-Output"];
                 };
             };
             /** @description Validation Error */
@@ -18577,7 +18601,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"][];
+                    "application/json": components["schemas"]["SensorType-Output"][];
                 };
             };
             /** @description Validation Error */
@@ -18615,7 +18639,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"];
+                    "application/json": components["schemas"]["SensorType-Output"];
                 };
             };
             /** @description Validation Error */
@@ -18649,7 +18673,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"];
+                    "application/json": components["schemas"]["SensorType-Output"];
                 };
             };
             /** @description Sensor type not found */
@@ -18696,7 +18720,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__interfaces__SensorType"];
+                    "application/json": components["schemas"]["SensorType-Output"];
                 };
             };
             /** @description Sensor type not found */

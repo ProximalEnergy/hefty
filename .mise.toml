@@ -450,8 +450,12 @@ run = "uv run vulture api/app --min-confidence 100"
 
 [tasks."api:types"]
 description = "Run mypy type checking for api"
-dir = "api"
-run = "uv run mypy --config-file ../pyproject.toml -p app"
+dir = "."
+run = """
+ROOT_DIR="$(pwd)"
+uv run --project "${ROOT_DIR}" --directory api --with-editable "${ROOT_DIR}/api" \
+  mypy --config-file ../pyproject.toml -p app
+"""
 
 [tasks."api:deptry"]
 description = "Run deptry for api"

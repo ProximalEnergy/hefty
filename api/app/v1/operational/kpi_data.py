@@ -268,8 +268,9 @@ async def get_kpi_excel(
             index=kpi_data[0]["data"]["dates"],
         )
         project_schema = utils.get_project_schema(project_db=project_db)
+        device_ids = [int(device_id) for device_id in device_df.columns.to_list()]
         devices_df = await core.crud.project.devices.get_project_devices(
-            device_ids=device_df.columns.astype(int).tolist(),
+            device_ids=device_ids,
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         devices_df = devices_df.copy()
         devices_df["name_long"] = devices_df["name_long"].fillna("")

@@ -96,7 +96,7 @@ async def get_degradation_poa(
     df_1d_std = df_1d.std(axis=1).rolling(3, center=True).mean()
     df_1d_std_left = df_1d_std.diff(periods=1).abs()
     df_1d_std_right = df_1d_std.diff(periods=-1).abs()
-    df_1d_std_1d = df_1d_std_left + df_1d_std_right  # type: ignore[operator]
+    df_1d_std_1d = df_1d_std_left + df_1d_std_right
 
     irr_idx = df.median(axis=1) < min_poa
     der_idx = df_1d.mean(axis=1) > max_poa_1d
@@ -126,7 +126,7 @@ async def get_degradation_poa(
         for x, y in zip(
             df_raw.columns,
             [
-                "POA " + tag_id_to_device_name_long.get(tag_id, tag_id)
+                f"POA {tag_id_to_device_name_long.get(int(tag_id), '')}"
                 for tag_id in df_raw.columns.astype(int)
             ],
         )

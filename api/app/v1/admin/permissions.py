@@ -247,17 +247,21 @@ async def get_users_permissions(
     # Create a mapping of user IDs to their permission IDs
     user_id_to_permission_ids: dict[str, list[int]] = {}
     if not user_permissions_df.empty:
-        user_id_to_permission_ids = (
-            user_permissions_df.groupby("user_id")["permission_id"]
+        user_id_to_permission_ids = {
+            str(user_id): [int(permission_id) for permission_id in permission_ids]
+            for user_id, permission_ids in user_permissions_df.groupby("user_id")[
+                "permission_id"
+            ]
             .apply(list)
             .to_dict()
-        )
+            .items()
+        }
 
-    # Add permission IDs to each user object
-    for user in users:
-        user.permission_ids = user_id_to_permission_ids.get(  # type: ignore
-            user.user_id,
-            [],
+    return [
+        interfaces.UserWithPermissions(
+            user_id=user.user_id,
+            name_long=user.name_long or "",
+            permission_ids=user_id_to_permission_ids.get(user.user_id, []),
         )
-
-    return users
+        for user in users
+    ]

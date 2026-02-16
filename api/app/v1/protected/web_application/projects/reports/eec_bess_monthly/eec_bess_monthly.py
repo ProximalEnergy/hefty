@@ -2234,16 +2234,21 @@ async def build_event_data(
     all_devices = await crud_get_project_devices_async(
         db=project_db, device_type_ids=[DeviceType.BESS_PCS_MODULE]
     )
-    total_ac_power_capacity = float(sum(x.capacity_ac for x in all_devices))
+    total_ac_power_capacity = float(sum((x.capacity_ac or 0.0) for x in all_devices))
     total_energy_capacity = (
         total_ac_power_capacity * (end - start).total_seconds() / 3600 / 1_000
     )
 
-    losses_dict = (
-        loss_by_failure_mode_id.set_index("failure_mode_name_long")["capacity_loss_mwh"]
-        .sort_values(ascending=False)
-        .mul(-1.0)
-        .to_dict()
+    losses_dict: dict[str, float] = (
+        {
+            str(name): float(loss)
+            for name, loss in loss_by_failure_mode_id.set_index(
+                "failure_mode_name_long"
+            )["capacity_loss_mwh"]
+            .sort_values(ascending=False)
+            .mul(-1.0)
+            .items()
+        }
         if not loss_by_failure_mode_id.empty
         else {}
     )
@@ -2523,7 +2528,8 @@ def degradation_rate_from_contract_uec(
     if pd.isna(current_aniv):
         year_slice = contract_uec.iloc[:2]
     else:
-        year_slice = contract_uec.loc[current_aniv:].iloc[:2]
+        current_aniv_ts = cast(pd.Timestamp, current_aniv)
+        year_slice = contract_uec.loc[current_aniv_ts:].iloc[:2]
 
     if len(year_slice) < 2:
         return 0.0

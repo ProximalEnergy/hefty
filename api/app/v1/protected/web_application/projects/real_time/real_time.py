@@ -420,16 +420,14 @@ async def _calculate_dc_combiner_power_sum(
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     devices_df = devices_df.copy()
     devices_df["device_id"] = devices_df["device_id"].astype(int)
-    devices_df["parent_device_id"] = devices_df["parent_device_id"].where(
-        pd.notna(devices_df["parent_device_id"]), None
-    )
+    devices_df["parent_device_id"] = devices_df["parent_device_id"].astype("Int64")
     device_dict = devices_df.set_index("device_id").to_dict(orient="index")
 
     # Find parent PCS IDs
     parent_pcs_ids = [
-        device_dict[dev_id]["parent_device_id"]
+        int(device_dict[dev_id]["parent_device_id"])
         for dev_id in device_ids
-        if device_dict[dev_id]["parent_device_id"] is not None
+        if pd.notna(device_dict[dev_id]["parent_device_id"])
     ]
 
     if not parent_pcs_ids:
@@ -437,21 +435,24 @@ async def _calculate_dc_combiner_power_sum(
 
     # Map combiners to their parent PCS ID
     combiner_to_parent_pcs_id = {
-        dev_id: device_dict[dev_id]["parent_device_id"]
+        dev_id: int(device_dict[dev_id]["parent_device_id"])
         for dev_id in device_ids
-        if device_dict[dev_id]["parent_device_id"] is not None
+        if pd.notna(device_dict[dev_id]["parent_device_id"])
     }
 
     # Get PV PCS Modules for voltage data
+    parent_device_ids_query: list[int | None] = [
+        parent_id for parent_id in parent_pcs_ids
+    ]
     all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[DeviceType.PV_PCS_MODULE],
-        parent_device_ids=parent_pcs_ids,
+        parent_device_ids=parent_device_ids_query,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     all_pcs_modules_df = all_pcs_modules_df.copy()
     all_pcs_modules_df["device_id"] = all_pcs_modules_df["device_id"].astype(int)
     all_pcs_modules_df["parent_device_id"] = all_pcs_modules_df[
         "parent_device_id"
-    ].where(pd.notna(all_pcs_modules_df["parent_device_id"]), None)
+    ].astype("Int64")
     all_pcs_modules = list(all_pcs_modules_df.itertuples(index=False))
 
     module_ids = [typing.cast(int, mod.device_id) for mod in all_pcs_modules]

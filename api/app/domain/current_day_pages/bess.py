@@ -1,4 +1,5 @@
 import datetime
+from typing import cast
 
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.db_query import OutputType
@@ -73,16 +74,18 @@ async def get_bess_data(
     }
 
     for sensor_type_id, tag_ids in sensor_type_id_to_tag_ids.items():
-        if sensor_type_id:
-            return_data[sensor_type_id_to_name[sensor_type_id]] = [
+        sensor_type_id_int = cast(int, sensor_type_id)
+        if sensor_type_id_int:
+            sensor_name = sensor_type_id_to_name[sensor_type_id_int]
+            return_data[sensor_name] = [
                 {
                     "x": df.index.tolist(),
-                    "y": df[tag_id].tolist(),
-                    "name": tag_id_to_device_name_long[tag_id],
+                    "y": df[int(tag_id)].tolist(),
+                    "name": tag_id_to_device_name_long[int(tag_id)],
                 }
                 for tag_id in tag_ids
             ]
-            return_data[sensor_type_id_to_name[sensor_type_id]].sort(
+            return_data[sensor_name].sort(
                 key=lambda x: x["name"],
             )
 

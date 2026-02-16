@@ -259,13 +259,15 @@ async def get_heatmap(
         for tag_id, tag_device_id in zip(tag_ids, tag_device_ids, strict=True)
     }
 
-    columns = df.columns.astype(int).tolist()
-    columns = [tag_id_to_device_name_long.get(tag_id, tag_id) for tag_id in columns]
-    df.columns = pd.Index(columns)
+    tag_id_columns = [int(tag_id) for tag_id in df.columns.tolist()]
+    column_labels = [
+        str(tag_id_to_device_name_long.get(tag_id, tag_id)) for tag_id in tag_id_columns
+    ]
+    df.columns = pd.Index(column_labels)
     df = df[natsorted(df.columns)]
 
     timestamps = df.index.tz_convert(project.time_zone).tolist()  # type: ignore
-    columns = df.columns.tolist()
+    columns = [str(column) for column in df.columns.tolist()]
     values = df.T.values.tolist()
 
     return {
@@ -301,9 +303,7 @@ async def get_sunburst_data(
     devices_df = devices_df.copy()
     devices_df["device_id"] = devices_df["device_id"].astype(int)
     devices_df["device_type_id"] = devices_df["device_type_id"].astype(int)
-    devices_df["parent_device_id"] = devices_df["parent_device_id"].where(
-        pd.notna(devices_df["parent_device_id"]), None
-    )
+    devices_df["parent_device_id"] = devices_df["parent_device_id"].astype("Int64")
     devices = devices_df.to_dict("records")
 
     if len(devices) == 0:

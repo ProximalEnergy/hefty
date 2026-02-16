@@ -14,9 +14,7 @@ import os
 
 import boto3
 import dotenv
-from botocore.exceptions import (  # type: ignore[import-not-found]
-    ClientError,
-)
+from botocore.exceptions import ClientError
 
 # Load environment variables (useful for local runs)
 dotenv.load_dotenv()

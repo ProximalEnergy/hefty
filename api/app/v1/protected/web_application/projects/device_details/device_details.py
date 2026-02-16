@@ -114,12 +114,12 @@ async def get_horizontal_bess(
         """
         data = [
             {
-                "values": df[c].tolist(),
-                "name": tag_id_to_device_name_long[c],
-                "device_id": tag_id_to_device_id[c],
+                "values": df[int(c)].tolist(),
+                "name": tag_id_to_device_name_long[int(c)],
+                "device_id": tag_id_to_device_id[int(c)],
             }
             for c in df.columns.astype(int)
-            if tag_id_to_category[c] == category
+            if tag_id_to_category[int(c)] == category
         ]
 
         data = natsorted(data, key=lambda x: x["name"])
@@ -226,12 +226,12 @@ async def get_horizontal_pv(
         """
         data = [
             {
-                "values": df[c].tolist(),
-                "name": tag_id_to_device_name_long[c],
-                "device_id": tag_id_to_device_id[c],
+                "values": df[int(c)].tolist(),
+                "name": tag_id_to_device_name_long[int(c)],
+                "device_id": tag_id_to_device_id[int(c)],
             }
             for c in df.columns.astype(int)
-            if tag_id_to_category[c] == category
+            if tag_id_to_category[int(c)] == category
         ]
 
         data = natsorted(data, key=lambda x: x["name"])

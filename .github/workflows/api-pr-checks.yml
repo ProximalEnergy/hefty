@@ -8,6 +8,7 @@ on:
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/api-pr-checks.yml"
       - ".github/actions/install-hurl/**"
+      - ".github/actions/setup-uv-python-from-pyproject/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -70,33 +71,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
       - name: set up python
-        run: uv python install
-        working-directory: api
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
 
-      - name: install project
+      - name: install root project
         run: uv sync
-        working-directory: api
 
-      - name: run mypy
-        run: uv run mypy --config-file ../pyproject.toml -p app # Add -v for verbosity
-        working-directory: api
+      - name: run mypy from root project env
+        run: >
+          ROOT_DIR="${PWD}";
+          uv run --project "${ROOT_DIR}" --directory api
+          --with-editable "${ROOT_DIR}/api"
+          mypy --config-file ../pyproject.toml -p app
 
   tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
       - name: set up python
-        run: uv python install
-        working-directory: api
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+          working-directory: api
 
       - name: install project
         run: uv sync
@@ -112,12 +110,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
       - name: set up python
-        run: uv python install
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
 
       - name: Run docstring args check
         run: uv run _scripts/check_docstring_args.py api
@@ -126,13 +122,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
       - name: set up python
-        run: uv python install
-        working-directory: api
+        uses: ./.github/actions/setup-uv-python-from-pyproject
+        with:
+          enable-cache: "true"
+          working-directory: api
 
       - name: install project
         run: uv sync

@@ -88,7 +88,7 @@ async def get_clearsky_poa(
         zip(tags_df["tag_id"].astype(int), tags_df["device_name_long"])
     )
     columns = [
-        "POA " + tag_id_to_device_name_long.get(tag_id, tag_id)
+        f"POA {tag_id_to_device_name_long.get(int(tag_id), '')}"
         for tag_id in df.columns.astype(int)
     ]
     df.columns = pd.Index(columns)

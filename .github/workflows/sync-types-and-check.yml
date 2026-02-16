@@ -7,6 +7,7 @@ on:
       - "api/**"
       - "core/**"
       - ".github/workflows/sync-types-and-check.yml"
+      - ".github/actions/setup-uv-python-from-pyproject/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -40,14 +41,10 @@ jobs:
 
       - name: Set up Python with uv
         if: steps.check-changes.outputs.changes_detected == 'true'
-        uses: astral-sh/setup-uv@v7
+        uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
-          enable-cache: true
-
-      - name: Install Python
-        if: steps.check-changes.outputs.changes_detected == 'true'
-        run: uv python install
-        working-directory: core
+          enable-cache: "true"
+          working-directory: core
 
       - name: Install core dependencies
         if: steps.check-changes.outputs.changes_detected == 'true'
