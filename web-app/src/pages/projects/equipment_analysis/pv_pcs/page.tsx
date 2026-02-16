@@ -23,7 +23,6 @@ import * as types from '@/hooks/types'
 import {
   getDeviceModelImagePublicUrl,
   getDeviceModelImageUrl,
-  getPublicAssetUrl,
 } from '@/utils/cdn'
 import {
   ActionIcon,
@@ -365,10 +364,7 @@ const PCSEquipmentAnalysis = () => {
     () => getDeviceModelImagePublicUrl(mostCommonDeviceModelId),
     [mostCommonDeviceModelId],
   )
-  const deviceModelIconUrl = useMemo(
-    () => getPublicAssetUrl('/icon_pv_pcs.svg'),
-    [],
-  )
+  const deviceModelIconUrl = '/icon_pv_pcs.svg'
 
   const matchesAssetUrl = (currentUrl: string, expectedUrl: string) => {
     if (!expectedUrl) {

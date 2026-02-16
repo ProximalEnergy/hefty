@@ -53,29 +53,6 @@ export function getDeviceModelImagePublicUrl(
 }
 
 /**
- * Generate a CDN URL for a public asset
- * @param assetPath - The asset path relative to public folder (e.g., '/icon_pv_pcs.svg')
- * @returns The full CDN URL or relative path if CDN is not configured
- */
-export function getPublicAssetUrl(assetPath: string): string {
-  if (!assetPath) {
-    return ''
-  }
-
-  // Ensure path starts with /
-  const normalizedPath = assetPath.startsWith('/') ? assetPath : `/${assetPath}`
-
-  const cdnBaseUrl = getCdnBaseUrl()
-
-  if (cdnBaseUrl) {
-    return `${cdnBaseUrl}${normalizedPath}`
-  }
-
-  // Fallback to relative path (current behavior)
-  return normalizedPath
-}
-
-/**
  * Generate a CDN URL for a company logo
  * @param logoFilename - The logo filename (e.g., 'logo_acme.svg')
  * @returns The full CDN URL or relative path if CDN is not configured
