@@ -67,15 +67,16 @@ jobs:
         uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
           enable-cache: "true"
-          working-directory: core
 
       - name: install project
         run: uv sync
-        working-directory: core
 
       - name: run mypy
-        run: uv run mypy --config-file ../pyproject.toml src/ # Add -v for verbosity
-        working-directory: core
+        run: |
+          ROOT_DIR="$(pwd)"
+          uv run --project "${ROOT_DIR}" --directory core --dev \
+            --with-editable "${ROOT_DIR}/core" \
+            mypy --config-file ../pyproject.toml src/
 
   validate-enums:
     runs-on: ubuntu-latest
