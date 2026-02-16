@@ -55,10 +55,25 @@ async def parse_devices_inverters(
             map(str, missing_designations[:10]),
         )  # Get first 10
         error_detail = (
-            f"Validation Error: The following {num_missing} "
-            f"Inverter Designation(s) found in the input data do not exist "
-            f"in the project's inverter devices: {missing_list_str}"
+            f"Validation Error: {num_missing} PCS Number value(s) from the "
+            "Google Sheet do not match any inverter "
+            "project.devices.name_long value. "
+            f"Missing PCS Number value(s): {missing_list_str}"
         )
+        numeric_missing = pd.to_numeric(
+            pd.Series(missing_designations),
+            errors="coerce",
+        )
+        if (
+            numeric_missing.notna().all()
+            and (numeric_missing >= 0).all()
+            and (numeric_missing < 10).all()
+        ):
+            error_detail += (
+                " Hint: all missing PCS Number values are below 10. "
+                "If project.devices.name_long uses zero padding "
+                "(for example, '01'), use the same format in the Google Sheet."
+            )
         if num_missing > 10:
             error_detail += f" (and {num_missing - 10} more)."
 

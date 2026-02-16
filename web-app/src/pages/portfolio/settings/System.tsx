@@ -1,7 +1,11 @@
-import { useImportProjectSystem } from '@/api/v1/commissioning/system'
+import {
+  useGetProjectSystemFileStatus,
+  useImportProjectSystem,
+} from '@/api/v1/commissioning/system'
 import { useGetProjects, useUpdateProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
 import {
+  Anchor,
   Button,
   Container,
   Group,
@@ -35,6 +39,10 @@ const System = () => {
   const [googleSheetDrafts, setGoogleSheetDrafts] = useState<
     Record<string, string>
   >({})
+  const systemFileStatus = useGetProjectSystemFileStatus({
+    pathParams: { projectId: selectedProjectId ?? '' },
+    queryOptions: { enabled: !!selectedProjectId },
+  })
 
   const projectOptions = useMemo(() => {
     if (!projectsQuery.data) {
@@ -63,6 +71,11 @@ const System = () => {
   const googleSheetId = selectedProjectId
     ? (googleSheetDrafts[selectedProjectId] ?? selectedProject?.gsheet_id ?? '')
     : ''
+  const normalizedGoogleSheetId = googleSheetId.trim()
+  const googleSheetUrl =
+    normalizedGoogleSheetId.length > 0
+      ? `https://docs.google.com/spreadsheets/d/${normalizedGoogleSheetId}`
+      : null
 
   const isSaveDisabled =
     !selectedProjectId ||
@@ -79,8 +92,6 @@ const System = () => {
     if (!selectedProjectId) {
       return
     }
-
-    const normalizedGoogleSheetId = googleSheetId.trim()
 
     updateProject.mutate(
       {
@@ -120,7 +131,6 @@ const System = () => {
       return
     }
 
-    const normalizedGoogleSheetId = googleSheetId.trim()
     const savedGoogleSheetId = (selectedProject?.gsheet_id ?? '').trim()
 
     if (normalizedGoogleSheetId !== savedGoogleSheetId) {
@@ -156,6 +166,7 @@ const System = () => {
       { projectId: selectedProjectId },
       {
         onSuccess: () => {
+          void systemFileStatus.refetch()
           notifications.show({
             title: 'System import started',
             message: 'Requested system S3 file update for this project.',
@@ -252,6 +263,44 @@ const System = () => {
             onChange={handleGoogleSheetIdChange}
             disabled={!selectedProjectId}
           />
+          {googleSheetUrl && (
+            <Text size="xs">
+              Google Sheet:{' '}
+              <Anchor href={googleSheetUrl} target="_blank" rel="noreferrer">
+                Open sheet
+              </Anchor>
+            </Text>
+          )}
+
+          {selectedProjectId && (
+            <Stack gap={4}>
+              <Text c="dimmed" size="xs">
+                Target S3 key: {systemFileStatus.data?.file_key ?? 'Unknown'}
+              </Text>
+              {systemFileStatus.isLoading && (
+                <Text c="dimmed" size="xs">
+                  Checking whether target S3 file already exists...
+                </Text>
+              )}
+              {systemFileStatus.isError && (
+                <Text c="red" size="xs">
+                  Unable to check if target S3 file exists.
+                </Text>
+              )}
+              {!systemFileStatus.isLoading &&
+                !systemFileStatus.isError &&
+                systemFileStatus.data && (
+                  <Text
+                    c={systemFileStatus.data.exists ? 'orange' : 'teal'}
+                    size="xs"
+                  >
+                    {systemFileStatus.data.exists
+                      ? 'Target S3 file already exists.'
+                      : 'Target S3 file does not exist yet.'}
+                  </Text>
+                )}
+            </Stack>
+          )}
 
           <Group style={{ justifyContent: 'flex-end' }} mt="md">
             <Button

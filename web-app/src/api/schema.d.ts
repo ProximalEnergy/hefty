@@ -1177,6 +1177,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/commissioning/projects/{project_id}/system/file-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project System File Status
+         * @description Return existence status for the system import output file in S3.
+         */
+        get: operations["get_project_system_file_status_v1_commissioning_projects__project_id__system_file_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/development/ercot/settlement-points": {
         parameters: {
             query?: never;
@@ -13668,6 +13688,40 @@ export interface operations {
         };
     };
     put_project_system_import_v1_commissioning_projects__project_id__system_import_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_system_file_status_v1_commissioning_projects__project_id__system_file_status_get: {
         parameters: {
             query?: never;
             header?: {

@@ -13,6 +13,15 @@ def convert_ond_data(
         ond_format: Description for ond_format.
     """
     result = {}
+
+    def _to_float_if_set(value: str | None) -> float | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        if stripped == "":
+            return None
+        return float(stripped)
+
     match ond_format:
         case ONDformat.TEXT:
             pv_obj = inverter.get("PVObject_", {})
@@ -32,28 +41,44 @@ def convert_ond_data(
             if vmpp_min:
                 result["voltage_mpp_min"] = float(vmpp_min)
                 result["voltage_min"] = float(vmpp_min)  # Same as voltage_mpp_min
+                result["voltage_start_up"] = float(vmpp_min)
             vmpp_max = converter.get("VMPPMax")
             if vmpp_max:
                 result["voltage_mpp_max"] = float(vmpp_max)
             vabs_max = converter.get("VAbsMax")
             if vabs_max:
                 result["voltage_max"] = float(vabs_max)
-            current_max = converter.get("IDCMax")
-            if current_max:
-                current_max = float(current_max)
-                if current_max < 1:
+            imax_ac = _to_float_if_set(converter.get("IMaxAC"))
+            idc_max = _to_float_if_set(converter.get("IDCMax"))
+            if imax_ac is not None and imax_ac > 0:
+                result["current_max"] = imax_ac
+            elif idc_max is not None:
+                if idc_max < 1:
                     result["current_max"] = -999
                 else:
-                    result["current_max"] = current_max
+                    result["current_max"] = idc_max
             # Power and temperature references
-            pmaxout = converter.get("PMaxOUT")
-            plim1 = converter.get("PLim1")
-            if pmaxout and plim1:
-                result["power_at_reference_temp"] = [float(pmaxout), float(plim1)]
-            tpn = converter.get("TPNom")
-            tplim1 = converter.get("TPLim1")
-            if tpn and tplim1:
-                result["reference_temp"] = [float(tpn), float(tplim1)]
+            temp_power_pairs: list[tuple[float, float]] = []
+
+            pnom = _to_float_if_set(converter.get("PMaxOUT"))
+            tnom = _to_float_if_set(converter.get("TPNom"))
+            if tnom is not None and pnom is not None:
+                temp_power_pairs.append((tnom, pnom))
+
+            plim1 = _to_float_if_set(converter.get("PLim1"))
+            tplim1 = _to_float_if_set(converter.get("TPLim1"))
+            if tplim1 is not None and plim1 is not None:
+                temp_power_pairs.append((tplim1, plim1))
+
+            # Absolute temperature/power derate point (if provided)
+            plim_abs = _to_float_if_set(converter.get("PLimAbs"))
+            tplim_abs = _to_float_if_set(converter.get("TPLimAbs"))
+            if tplim_abs is not None and plim_abs is not None:
+                temp_power_pairs.append((tplim_abs, plim_abs))
+
+            if temp_power_pairs:
+                result["reference_temp"] = [t for t, _ in temp_power_pairs]
+                result["power_at_reference_temp"] = [p for _, p in temp_power_pairs]
 
             # Voltage and efficiency profiles
             vnom_eff = converter.get("VNomEff", "")
@@ -115,6 +140,7 @@ def convert_ond_data(
             if vmpp_min:
                 result["voltage_mpp_min"] = float(vmpp_min)
                 result["voltage_min"] = float(vmpp_min)  # Same as voltage_mpp_min
+                result["voltage_start_up"] = float(vmpp_min)
             vmpp_max = inverter.get("VMPPMax")
             if vmpp_max:
                 result["voltage_mpp_max"] = float(vmpp_max)

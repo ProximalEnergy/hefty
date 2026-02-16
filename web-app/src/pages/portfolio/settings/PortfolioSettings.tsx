@@ -1,8 +1,11 @@
 import { useGetUserType } from '@/api/admin'
 import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import { useGetProjects } from '@/api/v1/operational/projects'
+import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import { Stack, Tabs, Text } from '@mantine/core'
+import { useEffect } from 'react'
+import { useSearchParams } from 'react-router'
 
 import PVInverter from './PVInverter'
 import PVModule from './PVModule'
@@ -10,6 +13,8 @@ import PVRack from './PVRack'
 import System from './System'
 
 const PortfolioSettings = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+
   // Get all company projects to check if any have PV or PV+S (project_type_id 1 or 3)
   const projects = useGetProjects({ queryParams: { deep: true } })
   const hasPVProjects =
@@ -22,6 +27,34 @@ const PortfolioSettings = () => {
   const userType = useGetUserType({})
   const isUserSuperadmin =
     userType?.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+
+  const allowedTabs = isUserSuperadmin
+    ? ['PV Inverters', 'PV Rackings', 'PV Modules', 'System']
+    : ['PV Inverters', 'PV Rackings']
+  const requestedTab = searchParams.get('tab')
+  const activeTab =
+    requestedTab && allowedTabs.includes(requestedTab)
+      ? requestedTab
+      : 'PV Inverters'
+
+  useEffect(() => {
+    if (searchParams.get('tab') === activeTab) {
+      return
+    }
+
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('tab', activeTab)
+    setSearchParams(newParams, { replace: true })
+  }, [activeTab, searchParams, setSearchParams])
+
+  if (projects.isLoading) {
+    return (
+      <Stack h="100%" p="md">
+        <PageTitle>Portfolio Settings</PageTitle>
+        <PageLoader />
+      </Stack>
+    )
+  }
 
   if (!hasPVProjects) {
     return (
@@ -47,7 +80,18 @@ const PortfolioSettings = () => {
       >
         Portfolio Settings
       </PageTitle>
-      <Tabs defaultValue="PV Inverters" h="100%">
+      <Tabs
+        value={activeTab}
+        onChange={(value) => {
+          if (!value) {
+            return
+          }
+          const newParams = new URLSearchParams(searchParams)
+          newParams.set('tab', value)
+          setSearchParams(newParams)
+        }}
+        h="100%"
+      >
         <Tabs.List>
           <Tabs.Tab value="PV Inverters">PV Inverters</Tabs.Tab>
           <Tabs.Tab value="PV Rackings">PV Rackings</Tabs.Tab>

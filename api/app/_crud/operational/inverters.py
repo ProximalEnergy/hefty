@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
@@ -259,27 +259,25 @@ async def create_inverter(
 
     if inverter.inverter_id is not None:
         # Update existing inverter
-        query = select(models.Inverter).where(
+        update_query = select(models.Inverter).where(
             and_(
                 models.Inverter.inverter_id == inverter.inverter_id,
                 models.Inverter.company_id == inverter.company_id,
             )
         )
-        result = await db.execute(query)
-        db_inverter = result.scalar_one_or_none()
+        update_result = await db.execute(update_query)
+        db_inverter = update_result.scalar_one_or_none()
         if not db_inverter:
             raise ValueError(f"No inverter found with ID {inverter.inverter_id}")
     else:
         # Create new inverter with next available ID
-        query = (
-            select(models.Inverter)
-            .where(models.Inverter.company_id == inverter.company_id)
-            .order_by(models.Inverter.inverter_id.desc())
+        max_id_query = select(func.max(models.Inverter.inverter_id)).where(
+            models.Inverter.company_id == inverter.company_id
         )
-        result = await db.execute(query)
-        max_id = result.scalar_one_or_none()
+        max_id_result = await db.execute(max_id_query)
+        max_id: int | None = max_id_result.scalar_one_or_none()
 
-        inverter_id = 1 if max_id is None else max_id.inverter_id + 1
+        inverter_id = 1 if max_id is None else max_id + 1
         db_inverter = models.Inverter(
             inverter_id=inverter_id, company_id=inverter.company_id
         )

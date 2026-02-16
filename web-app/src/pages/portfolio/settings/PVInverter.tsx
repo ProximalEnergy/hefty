@@ -37,7 +37,125 @@ import {
   IconCheck,
   IconUpload,
 } from '@tabler/icons-react'
+import axios from 'axios'
 import { useEffect, useState } from 'react'
+
+const FIELD_LABELS: Record<string, string> = {
+  voltage_mpp_min: 'Minimum MPP Voltage',
+  voltage_mpp_max: 'Maximum MPP Voltage',
+  voltage_start_up: 'Startup Voltage',
+  voltage_min: 'Minimum Voltage',
+  voltage_max: 'Maximum Voltage',
+  current_max: 'Maximum Current',
+  power_max_at_reference_temp: 'Power at Reference Temperature',
+  power_at_reference_temp: 'Power at Reference Temperature',
+  reference_temp: 'Reference Temperature',
+  voltage_nominal_efficiency: 'Nominal Efficiency Voltage',
+  efficiency_at_low_voltage: 'Low-Voltage Efficiency Curve',
+  efficiency_at_mid_voltage: 'Mid-Voltage Efficiency Curve',
+  efficiency_at_high_voltage: 'High-Voltage Efficiency Curve',
+  power_start_up: 'Startup Power',
+  power_ac_nominal: 'Nominal AC Power',
+  power_dc_nominal: 'Nominal DC Power',
+  voltage_dc_nominal: 'Nominal DC Voltage',
+  c0: 'C0',
+  c1: 'C1',
+  c2: 'C2',
+  c3: 'C3',
+  night_tare: 'Night Tare',
+}
+
+type ValidationIssue = {
+  loc?: Array<string | number>
+  msg?: string
+}
+
+type InverterWithLegacyPowerKey = Inverter & {
+  power_at_reference_temp?: number[]
+}
+
+type SubmitErrorResult = {
+  message: string
+  fieldErrors: Record<string, string>
+}
+
+const formatFieldLabel = (field: string) => {
+  if (FIELD_LABELS[field]) {
+    return FIELD_LABELS[field]
+  }
+
+  return field
+    .split('_')
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+const getSubmitErrorResult = (error: unknown): SubmitErrorResult => {
+  if (axios.isAxiosError(error)) {
+    const detail = error.response?.data?.detail as unknown
+
+    if (error.response?.status === 422) {
+      if (Array.isArray(detail)) {
+        const fieldErrors: Record<string, string> = {}
+        const issues = detail
+          .map((item) => item as ValidationIssue)
+          .filter(
+            (item) => Array.isArray(item.loc) && typeof item.msg === 'string',
+          )
+          .map((item) => {
+            const locParts = item.loc
+              ?.filter((locPart) => typeof locPart === 'string')
+              .filter((locPart) => locPart !== 'body')
+            const field = locParts?.[locParts.length - 1]
+            const fieldLabel =
+              typeof field === 'string' ? formatFieldLabel(field) : 'Request'
+            if (
+              typeof field === 'string' &&
+              typeof item.msg === 'string' &&
+              !fieldErrors[field]
+            ) {
+              fieldErrors[field] = item.msg
+            }
+            return `${fieldLabel}: ${item.msg}`
+          })
+
+        if (issues.length > 0) {
+          return {
+            message: `Validation failed: ${issues.join(' | ')}`,
+            fieldErrors,
+          }
+        }
+      }
+
+      if (typeof detail === 'string') {
+        return {
+          message: `Validation failed: ${detail}`,
+          fieldErrors: {},
+        }
+      }
+
+      return {
+        message: 'Validation failed. Check required fields and value formats.',
+        fieldErrors: {},
+      }
+    }
+
+    if (typeof detail === 'string') {
+      return { message: detail, fieldErrors: {} }
+    }
+  }
+
+  if (error instanceof Error) {
+    return { message: error.message, fieldErrors: {} }
+  }
+
+  return {
+    message: 'Failed to save inverter configuration',
+    fieldErrors: {},
+  }
+}
+
+const isNonPositive = (value: number) => !Number.isFinite(value) || value <= 0
 
 const Page = () => {
   // --- User and Company Info ---
@@ -61,6 +179,7 @@ const Page = () => {
   const [selectedInverterId, setSelectedInverterId] = useState<number | null>(
     null,
   )
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [ondFile, setOndFile] = useState<File | null>(null)
   const [ondUploadError, setOndUploadError] = useState<string | null>(null)
   const [formSubmitting, setFormSubmitting] = useState<boolean>(false)
@@ -107,6 +226,11 @@ const Page = () => {
 
   // Set inverter parameters from data object
   const setInverterParameters = (inverterData: Inverter) => {
+    const inverterDataWithLegacyKey = inverterData as InverterWithLegacyPowerKey
+    const parsedPowerAtReferenceTemp =
+      inverterDataWithLegacyKey.power_max_at_reference_temp ??
+      inverterDataWithLegacyKey.power_at_reference_temp
+
     // Operating window parameters
     setVoltageMppMin(inverterData.voltage_mpp_min)
     setVoltageMppMax(inverterData.voltage_mpp_max)
@@ -116,14 +240,9 @@ const Page = () => {
     setCurrentMax(inverterData.current_max)
 
     // Temperature-dependent power characteristics
-    if (
-      inverterData.power_max_at_reference_temp &&
-      inverterData.reference_temp
-    ) {
-      setNumTempCurvePoints(
-        inverterData.power_max_at_reference_temp.length || 1,
-      )
-      setPowerAtReferenceTemp(inverterData.power_max_at_reference_temp)
+    if (parsedPowerAtReferenceTemp && inverterData.reference_temp) {
+      setNumTempCurvePoints(parsedPowerAtReferenceTemp.length || 1)
+      setPowerAtReferenceTemp(parsedPowerAtReferenceTemp)
       setReferenceTemp(inverterData.reference_temp)
     }
     // Inverter efficiency reference parameters
@@ -187,6 +306,82 @@ const Page = () => {
     setC3(0)
     setNightTare(0)
   }
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      const aliasField =
+        field === 'power_max_at_reference_temp'
+          ? 'power_at_reference_temp'
+          : field
+      if (!prev[field] && !prev[aliasField]) {
+        return prev
+      }
+      const next = { ...prev }
+      delete next[field]
+      delete next[aliasField]
+      return next
+    })
+  }
+
+  const clientFieldErrors: Record<string, string | undefined> = {
+    manufacturer: selectedManufacturer.trim()
+      ? undefined
+      : 'Manufacturer is required',
+    model: selectedModel.trim() ? undefined : 'Model is required',
+    voltage_mpp_min: isNonPositive(voltageMppMin)
+      ? 'Minimum MPP Voltage must be greater than 0'
+      : undefined,
+    voltage_mpp_max: isNonPositive(voltageMppMax)
+      ? 'Maximum MPP Voltage must be greater than 0'
+      : undefined,
+    voltage_min: isNonPositive(voltageMin)
+      ? 'Minimum Voltage must be greater than 0'
+      : undefined,
+    voltage_max: isNonPositive(voltageMax)
+      ? 'Maximum Voltage must be greater than 0'
+      : undefined,
+    voltage_start_up: isNonPositive(voltageStartUp)
+      ? 'Start-up Voltage must be greater than 0'
+      : undefined,
+    current_max: isNonPositive(currentMax)
+      ? 'Maximum Current must be greater than 0'
+      : undefined,
+    power_start_up: isNonPositive(powerStartUp)
+      ? 'Start-up Power must be greater than 0'
+      : undefined,
+    power_ac_nominal: isNonPositive(powerAcNominal)
+      ? 'AC Nominal Power must be greater than 0'
+      : undefined,
+    power_dc_nominal: isNonPositive(powerDcNominal)
+      ? 'DC Nominal Power must be greater than 0'
+      : undefined,
+    voltage_dc_nominal: isNonPositive(voltageDcNominal)
+      ? 'DC Nominal Voltage must be greater than 0'
+      : undefined,
+    power_max_at_reference_temp: powerAtReferenceTemp.some(isNonPositive)
+      ? 'All power values must be greater than 0'
+      : undefined,
+    voltage_nominal_efficiency:
+      voltageNominalEfficiency.length < 3 ||
+      voltageNominalEfficiency.some(isNonPositive)
+        ? 'All reference voltages must be greater than 0'
+        : undefined,
+    // Curve-point validation is handled by backend; pre-submit aggregate checks
+    // caused noisy false positives across all rows.
+    efficiency_at_low_voltage: undefined,
+    efficiency_at_mid_voltage: undefined,
+    efficiency_at_high_voltage: undefined,
+  }
+
+  const getFieldError = (field: string) => {
+    const aliasField =
+      field === 'power_max_at_reference_temp'
+        ? 'power_at_reference_temp'
+        : field
+    return (
+      fieldErrors[field] || fieldErrors[aliasField] || clientFieldErrors[field]
+    )
+  }
   // --- Helper Functions ---
   const resizeEfficiencyArray = (currentArray: number[][], newSize: number) => {
     if (newSize > currentArray.length) {
@@ -202,12 +397,28 @@ const Page = () => {
 
   // --- Handlers  ---
   const handleManufacturerChange = (value: string | null) => {
+    setFieldErrors((prev) => {
+      if (!prev.manufacturer) {
+        return prev
+      }
+      const next = { ...prev }
+      delete next.manufacturer
+      return next
+    })
     setSelectedManufacturer(value || '')
     setSelectedModel('')
     setSelectedInverterId(null)
     resetFormFields()
   }
   const handleModelChange = (value: string | null) => {
+    setFieldErrors((prev) => {
+      if (!prev.model) {
+        return prev
+      }
+      const next = { ...prev }
+      delete next.model
+      return next
+    })
     setSelectedModel(value || '')
     // When changing models on manual mode, don't reset fields
     if (dataSource === 'manual') {
@@ -354,6 +565,7 @@ const Page = () => {
   const createInverterMutation = useCreateInverterMutation()
   const handleSubmit = async () => {
     try {
+      setFieldErrors({})
       setFormSubmitting(true)
       // Determine if we're updating an existing inverter or creating a new one
       const isUpdating =
@@ -402,13 +614,12 @@ const Page = () => {
         icon: <IconCheck size="1.1rem" />,
       })
     } catch (error) {
+      const submitError = getSubmitErrorResult(error)
+      setFieldErrors(submitError.fieldErrors)
       // Show error notification
       notifications.show({
         title: 'Error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to save inverter configuration',
+        message: submitError.message,
         color: 'red',
       })
     } finally {
@@ -456,6 +667,7 @@ const Page = () => {
             style={{ width: '100%' }}
             onChange={(value) => {
               setDataSource(value || '')
+              setFieldErrors({})
               setSelectedManufacturer('')
               setSelectedModel('')
               setSelectedInverterId(null)
@@ -503,10 +715,12 @@ const Page = () => {
                     label="Manufacturer"
                     required={true}
                     placeholder="Enter manufacturer name"
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      clearFieldError('manufacturer')
                       setSelectedManufacturer(event.target.value)
-                    }
+                    }}
                     value={selectedManufacturer || ''}
+                    error={getFieldError('manufacturer')}
                     style={{ width: '100%' }}
                     description="Parsed from OND file - you can edit if needed"
                   />
@@ -514,8 +728,12 @@ const Page = () => {
                     label="Model"
                     required={true}
                     placeholder="Enter model name"
-                    onChange={(event) => setSelectedModel(event.target.value)}
+                    onChange={(event) => {
+                      clearFieldError('model')
+                      setSelectedModel(event.target.value)
+                    }}
                     value={selectedModel || ''}
+                    error={getFieldError('model')}
                     style={{ width: '100%' }}
                     description="Parsed from OND file - you can edit if needed"
                   />
@@ -529,18 +747,24 @@ const Page = () => {
                 label="Manufacturer"
                 required={true}
                 placeholder="Enter manufacturer name"
-                onChange={(event) =>
+                onChange={(event) => {
+                  clearFieldError('manufacturer')
                   setSelectedManufacturer(event.target.value)
-                }
+                }}
                 value={selectedManufacturer || ''}
+                error={getFieldError('manufacturer')}
                 style={{ width: '100%' }}
               />
               <TextInput
                 label="Model"
                 required={true}
                 placeholder="Enter model name"
-                onChange={(event) => setSelectedModel(event.target.value)}
+                onChange={(event) => {
+                  clearFieldError('model')
+                  setSelectedModel(event.target.value)
+                }}
                 value={selectedModel || ''}
+                error={getFieldError('model')}
                 style={{ width: '100%' }}
               />
             </>
@@ -663,12 +887,14 @@ const Page = () => {
                         placeholder="Enter minimum MPP voltage"
                         value={voltageMppMin}
                         onChange={(value: string | number) => {
+                          clearFieldError('voltage_mpp_min')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setVoltageMppMin(numValue)
                         }}
+                        error={getFieldError('voltage_mpp_min')}
                         required
                       />
                     </Grid.Col>
@@ -679,12 +905,14 @@ const Page = () => {
                         placeholder="Enter maximum MPP voltage"
                         value={voltageMppMax}
                         onChange={(value: string | number) => {
+                          clearFieldError('voltage_mpp_max')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setVoltageMppMax(numValue)
                         }}
+                        error={getFieldError('voltage_mpp_max')}
                         required
                       />
                     </Grid.Col>
@@ -695,12 +923,14 @@ const Page = () => {
                         placeholder="Enter minimum voltage"
                         value={voltageMin}
                         onChange={(value: string | number) => {
+                          clearFieldError('voltage_min')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setVoltageMin(numValue)
                         }}
+                        error={getFieldError('voltage_min')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -712,12 +942,14 @@ const Page = () => {
                         placeholder="Enter maximum voltage"
                         value={voltageMax}
                         onChange={(value: string | number) => {
+                          clearFieldError('voltage_max')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setVoltageMax(numValue)
                         }}
+                        error={getFieldError('voltage_max')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -729,12 +961,14 @@ const Page = () => {
                         placeholder="Enter start-up voltage"
                         value={voltageStartUp}
                         onChange={(value: string | number) => {
+                          clearFieldError('voltage_start_up')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setVoltageStartUp(numValue)
                         }}
+                        error={getFieldError('voltage_start_up')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -746,12 +980,14 @@ const Page = () => {
                         placeholder="Enter maximum current"
                         value={currentMax}
                         onChange={(value: string | number) => {
+                          clearFieldError('current_max')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setCurrentMax(numValue)
                         }}
+                        error={getFieldError('current_max')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -820,6 +1056,7 @@ const Page = () => {
                             placeholder="Enter temperature"
                             value={referenceTemp[index] || 0}
                             onChange={(value: string | number) => {
+                              clearFieldError('reference_temp')
                               const numValue =
                                 typeof value === 'string'
                                   ? parseFloat(value) || 0
@@ -828,6 +1065,7 @@ const Page = () => {
                               newValues[index] = numValue
                               setReferenceTemp(newValues)
                             }}
+                            error={getFieldError('reference_temp')}
                             required
                             style={{ width: '100%' }}
                           />
@@ -839,6 +1077,7 @@ const Page = () => {
                             placeholder="Enter power value"
                             value={powerAtReferenceTemp[index] || 0}
                             onChange={(value: string | number) => {
+                              clearFieldError('power_max_at_reference_temp')
                               const numValue =
                                 typeof value === 'string'
                                   ? parseFloat(value) || 0
@@ -847,6 +1086,7 @@ const Page = () => {
                               newValues[index] = numValue
                               setPowerAtReferenceTemp(newValues)
                             }}
+                            error={getFieldError('power_max_at_reference_temp')}
                             required
                             style={{ width: '100%' }}
                           />
@@ -864,12 +1104,14 @@ const Page = () => {
                         placeholder="Enter start-up power"
                         value={powerStartUp}
                         onChange={(value: string | number) => {
+                          clearFieldError('power_start_up')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setPowerStartUp(numValue)
                         }}
+                        error={getFieldError('power_start_up')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -880,12 +1122,14 @@ const Page = () => {
                         placeholder="Enter AC nominal power"
                         value={powerAcNominal}
                         onChange={(value: string | number) => {
+                          clearFieldError('power_ac_nominal')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setPowerAcNominal(numValue)
                         }}
+                        error={getFieldError('power_ac_nominal')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -896,12 +1140,14 @@ const Page = () => {
                         placeholder="Enter DC nominal power"
                         value={powerDcNominal}
                         onChange={(value: string | number) => {
+                          clearFieldError('power_dc_nominal')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setPowerDcNominal(numValue)
                         }}
+                        error={getFieldError('power_dc_nominal')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -912,12 +1158,14 @@ const Page = () => {
                         placeholder="Enter DC nominal voltage"
                         value={voltageDcNominal}
                         onChange={(value: string | number) => {
+                          clearFieldError('voltage_dc_nominal')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setVoltageDcNominal(numValue)
                         }}
+                        error={getFieldError('voltage_dc_nominal')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -928,12 +1176,14 @@ const Page = () => {
                         placeholder="Enter night tare"
                         value={nightTare}
                         onChange={(value: string | number) => {
+                          clearFieldError('night_tare')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setNightTare(numValue)
                         }}
+                        error={getFieldError('night_tare')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -955,12 +1205,14 @@ const Page = () => {
                         placeholder="Enter C0 coefficient"
                         value={c0}
                         onChange={(value: string | number) => {
+                          clearFieldError('c0')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setC0(numValue)
                         }}
+                        error={getFieldError('c0')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -971,12 +1223,14 @@ const Page = () => {
                         placeholder="Enter C1 coefficient"
                         value={c1}
                         onChange={(value: string | number) => {
+                          clearFieldError('c1')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setC1(numValue)
                         }}
+                        error={getFieldError('c1')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -987,12 +1241,14 @@ const Page = () => {
                         placeholder="Enter C2 coefficient"
                         value={c2}
                         onChange={(value: string | number) => {
+                          clearFieldError('c2')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setC2(numValue)
                         }}
+                        error={getFieldError('c2')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -1003,12 +1259,14 @@ const Page = () => {
                         placeholder="Enter C3 coefficient"
                         value={c3}
                         onChange={(value: string | number) => {
+                          clearFieldError('c3')
                           const numValue =
                             typeof value === 'string'
                               ? parseFloat(value) || 0
                               : value
                           setC3(numValue)
                         }}
+                        error={getFieldError('c3')}
                         required
                         style={{ width: '100%' }}
                       />
@@ -1031,6 +1289,7 @@ const Page = () => {
                         min={0}
                         max={2000}
                         onChange={(value) => {
+                          clearFieldError('voltage_nominal_efficiency')
                           const newArray = [...voltageNominalEfficiency]
                           newArray[0] =
                             typeof value === 'string'
@@ -1038,6 +1297,7 @@ const Page = () => {
                               : value || 0
                           setVoltageNominalEfficiency(newArray)
                         }}
+                        error={getFieldError('voltage_nominal_efficiency')}
                       />
                     </Grid.Col>
                     <Grid.Col span={4}>
@@ -1047,6 +1307,7 @@ const Page = () => {
                         min={0}
                         max={2000}
                         onChange={(value) => {
+                          clearFieldError('voltage_nominal_efficiency')
                           const newArray = [...voltageNominalEfficiency]
                           newArray[1] =
                             typeof value === 'string'
@@ -1054,6 +1315,7 @@ const Page = () => {
                               : value || 0
                           setVoltageNominalEfficiency(newArray)
                         }}
+                        error={getFieldError('voltage_nominal_efficiency')}
                       />
                     </Grid.Col>
                     <Grid.Col span={4}>
@@ -1063,6 +1325,7 @@ const Page = () => {
                         min={0}
                         max={2000}
                         onChange={(value) => {
+                          clearFieldError('voltage_nominal_efficiency')
                           const newArray = [...voltageNominalEfficiency]
                           newArray[2] =
                             typeof value === 'string'
@@ -1070,6 +1333,7 @@ const Page = () => {
                               : value || 0
                           setVoltageNominalEfficiency(newArray)
                         }}
+                        error={getFieldError('voltage_nominal_efficiency')}
                       />
                     </Grid.Col>
                     <Grid.Col span={12}>
@@ -1185,6 +1449,7 @@ const Page = () => {
                                     efficiencyAtLowVoltage[index]?.[0] || 0
                                   }
                                   onChange={(value: string | number) => {
+                                    clearFieldError('efficiency_at_low_voltage')
                                     const numValue =
                                       typeof value === 'string'
                                         ? parseFloat(value) || 0
@@ -1198,6 +1463,9 @@ const Page = () => {
                                     newValues[index][0] = numValue
                                     setEfficiencyAtLowVoltage(newValues)
                                   }}
+                                  error={getFieldError(
+                                    'efficiency_at_low_voltage',
+                                  )}
                                   required
                                 />
                               </Grid.Col>
@@ -1209,6 +1477,7 @@ const Page = () => {
                                     efficiencyAtLowVoltage[index]?.[1] || 0
                                   }
                                   onChange={(value: string | number) => {
+                                    clearFieldError('efficiency_at_low_voltage')
                                     const numValue =
                                       typeof value === 'string'
                                         ? parseFloat(value) || 0
@@ -1222,6 +1491,9 @@ const Page = () => {
                                     newValues[index][1] = numValue
                                     setEfficiencyAtLowVoltage(newValues)
                                   }}
+                                  error={getFieldError(
+                                    'efficiency_at_low_voltage',
+                                  )}
                                   required
                                 />
                               </Grid.Col>
@@ -1252,6 +1524,7 @@ const Page = () => {
                                     efficiencyAtMidVoltage[index]?.[0] || 0
                                   }
                                   onChange={(value: string | number) => {
+                                    clearFieldError('efficiency_at_mid_voltage')
                                     const numValue =
                                       typeof value === 'string'
                                         ? parseFloat(value) || 0
@@ -1265,6 +1538,9 @@ const Page = () => {
                                     newValues[index][0] = numValue
                                     setEfficiencyAtMidVoltage(newValues)
                                   }}
+                                  error={getFieldError(
+                                    'efficiency_at_mid_voltage',
+                                  )}
                                   required
                                 />
                               </Grid.Col>
@@ -1276,6 +1552,7 @@ const Page = () => {
                                     efficiencyAtMidVoltage[index]?.[1] || 0
                                   }
                                   onChange={(value: string | number) => {
+                                    clearFieldError('efficiency_at_mid_voltage')
                                     const numValue =
                                       typeof value === 'string'
                                         ? parseFloat(value) || 0
@@ -1289,6 +1566,9 @@ const Page = () => {
                                     newValues[index][1] = numValue
                                     setEfficiencyAtMidVoltage(newValues)
                                   }}
+                                  error={getFieldError(
+                                    'efficiency_at_mid_voltage',
+                                  )}
                                   required
                                 />
                               </Grid.Col>
@@ -1319,6 +1599,9 @@ const Page = () => {
                                     efficiencyAtHighVoltage[index]?.[0] || 0
                                   }
                                   onChange={(value: string | number) => {
+                                    clearFieldError(
+                                      'efficiency_at_high_voltage',
+                                    )
                                     const numValue =
                                       typeof value === 'string'
                                         ? parseFloat(value) || 0
@@ -1332,6 +1615,9 @@ const Page = () => {
                                     newValues[index][0] = numValue
                                     setEfficiencyAtHighVoltage(newValues)
                                   }}
+                                  error={getFieldError(
+                                    'efficiency_at_high_voltage',
+                                  )}
                                   required
                                 />
                               </Grid.Col>
@@ -1343,6 +1629,9 @@ const Page = () => {
                                     efficiencyAtHighVoltage[index]?.[1] || 0
                                   }
                                   onChange={(value: string | number) => {
+                                    clearFieldError(
+                                      'efficiency_at_high_voltage',
+                                    )
                                     const numValue =
                                       typeof value === 'string'
                                         ? parseFloat(value) || 0
@@ -1356,6 +1645,9 @@ const Page = () => {
                                     newValues[index][1] = numValue
                                     setEfficiencyAtHighVoltage(newValues)
                                   }}
+                                  error={getFieldError(
+                                    'efficiency_at_high_voltage',
+                                  )}
                                   required
                                 />
                               </Grid.Col>

@@ -1,7 +1,38 @@
+import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
-import { useMutation } from '@tanstack/react-query'
+import { UseQueryOptions, useMutation } from '@tanstack/react-query'
 import axios from 'axios'
+
+interface ProjectSystemFileStatus {
+  bucket_name: string
+  file_key: string
+  exists: boolean
+}
+
+export const useGetProjectSystemFileStatus = ({
+  pathParams,
+  queryOptions = {},
+}: {
+  pathParams: { projectId: string }
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: '/v1/commissioning/projects/{project_id}/system/file-status',
+  }
+
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: 60_000,
+  }
+
+  return useCustomQuery<ProjectSystemFileStatus>({
+    axiosConfig,
+    queryName: 'getProjectSystemFileStatus',
+    pathParams: { project_id: pathParams.projectId },
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
 
 export const useImportProjectSystem = () => {
   const { getToken } = useAuth()
