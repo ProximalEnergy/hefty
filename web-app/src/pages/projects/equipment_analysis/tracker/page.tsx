@@ -26,7 +26,7 @@ import {
 import { IconInfoCircle } from '@tabler/icons-react'
 import { Data } from 'plotly.js'
 import Plotly from 'plotly.js/dist/plotly-custom.min.js'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
@@ -42,10 +42,24 @@ const ProjectEquipmentAnalysisTracker = () => {
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
   const navigate = useNavigate()
   const [view, setView] = useState<'block' | 'row'>('block')
-  const [activeTab, setActiveTab] = useState<string>('current-day')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = useMemo(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'realtime' || tab === 'current-day') {
+      return tab
+    }
+    if (isSuperadmin && tab === 'long-term') {
+      return tab
+    }
+    return 'current-day'
+  }, [isSuperadmin, searchParams])
+  const setTab = (value: string | null) => {
+    const nextTab = value || 'current-day'
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', nextTab)
+    setSearchParams(nextParams, { replace: true })
+  }
   const tabPanelRef = useRef<HTMLDivElement>(null)
-
-  const [searchParams] = useSearchParams()
   const selectedBlockId = searchParams.get('deviceId')
 
   const blockDropdown = useGetBlockDropdown({
@@ -179,8 +193,7 @@ const ProjectEquipmentAnalysisTracker = () => {
       <PageTitle>Tracker Performance</PageTitle>
       <Tabs
         value={activeTab}
-        onChange={(value) => setActiveTab(value || 'current-day')}
-        defaultValue="current-day"
+        onChange={setTab}
         variant="outline"
         keepMounted={false}
         style={{

@@ -18,8 +18,8 @@ import RealTime from '@/pages/projects/device_details/RealTime'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
 import Plotly from 'plotly.js/dist/plotly-custom.min.js'
-import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router'
+import { useEffect, useMemo, useRef } from 'react'
+import { useParams, useSearchParams } from 'react-router'
 
 const MAX_DAYS = 7
 
@@ -34,7 +34,23 @@ const Page = () => {
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
   const project = useSelectProject(projectId!)
-  const [activeTab, setActiveTab] = useState<string>('current-day')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = useMemo(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'realtime' || tab === 'current-day') {
+      return tab
+    }
+    if (isSuperadmin && tab === 'long-term') {
+      return tab
+    }
+    return 'current-day'
+  }, [isSuperadmin, searchParams])
+  const setTab = (value: string | null) => {
+    const nextTab = value || 'current-day'
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', nextTab)
+    setSearchParams(nextParams, { replace: true })
+  }
   const tabPanelRef = useRef<HTMLDivElement>(null)
 
   const { start, end } = useValidateDateRange({
@@ -122,8 +138,7 @@ const Page = () => {
       <PageTitle>BESS Performance</PageTitle>
       <Tabs
         value={activeTab}
-        onChange={(value) => setActiveTab(value || 'current-day')}
-        defaultValue="current-day"
+        onChange={setTab}
         variant="outline"
         keepMounted={false}
         style={{

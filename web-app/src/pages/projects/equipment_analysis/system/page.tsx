@@ -25,7 +25,7 @@ import { IconSettings } from '@tabler/icons-react'
 import { PlotType } from 'plotly.js'
 import Plotly from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
 
 const SystemPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -33,14 +33,29 @@ const SystemPerformance = () => {
   const [sunburstDepth, setSunburstDepth] = useState<string>('3')
   const [sunburstStyle, setSunburstStyle] = useState<PlotType>('sunburst')
   const [showGridHzV, setShowGridHzV] = useState(false)
-  const [activeTab, setActiveTab] = useState<string>('current-day')
-  const tabPanelRef = useRef<HTMLDivElement>(null)
-  const { start, end } = useValidateDateRange({})
-
   const project = useSelectProject(projectId!)
   const userType = useGetUserType({})
   const isSuperadmin =
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = useMemo(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'realtime' || tab === 'current-day') {
+      return tab
+    }
+    if (isSuperadmin && tab === 'long-term') {
+      return tab
+    }
+    return 'current-day'
+  }, [isSuperadmin, searchParams])
+  const setTab = (value: string | null) => {
+    const nextTab = value || 'current-day'
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', nextTab)
+    setSearchParams(nextParams, { replace: true })
+  }
+  const tabPanelRef = useRef<HTMLDivElement>(null)
+  const { start, end } = useValidateDateRange({})
 
   // Compute showGridHzVSwitch before early return to use in useMemo
   const GRID_HZ_V_SENSOR_TYPE_IDS = [11, 192]
@@ -140,8 +155,7 @@ const SystemPerformance = () => {
       <PageTitle>System Performance</PageTitle>
       <Tabs
         value={activeTab}
-        onChange={(value) => setActiveTab(value || 'current-day')}
-        defaultValue="current-day"
+        onChange={setTab}
         variant="outline"
         keepMounted={false}
         style={{

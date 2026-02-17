@@ -79,6 +79,8 @@ const DEVICE_TYPE_MENU_ORDER: Record<number, number> = {
   [DeviceTypeEnum.MET_STATION]: 8,
 }
 
+const withCurrentDayTab = (path: string) => `${path}?tab=current-day`
+
 const generatePerformanceLinks = (
   projectId: string,
   usedDeviceTypeIds: number[] | undefined,
@@ -88,7 +90,7 @@ const generatePerformanceLinks = (
   // Always include System
   const performanceLinks: links.Link[] = [
     {
-      to: `/projects/${projectId}/equipment-analysis/system`,
+      to: withCurrentDayTab(`/projects/${projectId}/equipment-analysis/system`),
       label: 'System',
     },
   ]
@@ -158,7 +160,9 @@ const generatePerformanceLinks = (
       }
 
       const link: links.Link = {
-        to: `/projects/${projectId}/equipment-analysis/${tabValue}`,
+        to: withCurrentDayTab(
+          `/projects/${projectId}/equipment-analysis/${tabValue}`,
+        ),
         label: deviceType.name_long,
       }
 
