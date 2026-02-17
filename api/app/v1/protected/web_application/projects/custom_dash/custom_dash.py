@@ -513,8 +513,9 @@ async def get_line(
         .bfill()
     )
 
-    # Blank out future values
-    df.loc[pd.Timestamp.now().tz_localize(project.time_zone) :] = np.nan
+    # Blank out future values using project-local current time
+    current_project_time = pd.Timestamp.now(tz="UTC").tz_convert(project.time_zone)
+    df.loc[current_project_time:] = np.nan
 
     out: list[dict[str, Any]] = []
 
