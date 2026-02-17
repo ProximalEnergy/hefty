@@ -110,6 +110,12 @@ else
 fi
 """
 
+
+[tasks.pr]
+description = "Create/update PR via automation script"
+dir = "."
+run = "./_scripts/prepare_pr.sh"
+
 [tasks.preview]
 description = "Run API and web-app preview servers concurrently"
 depends = ["sync", "api:switch-core"]

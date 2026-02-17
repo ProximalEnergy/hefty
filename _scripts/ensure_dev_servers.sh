@@ -7,7 +7,7 @@ WEB_URL="${WEB_URL:-http://127.0.0.1:5173}"
 WAIT_SECONDS="${WAIT_SECONDS:-120}"
 POLL_SECONDS=2
 LOG_DIR="${REPO_ROOT}/output/playwright"
-LOG_FILE="${LOG_DIR}/dev-pr-screenshot-dev.log"
+LOG_FILE="${LOG_DIR}/pr-screenshot-dev.log"
 
 url_ready() {
   local url="$1"
