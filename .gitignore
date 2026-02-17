@@ -214,6 +214,9 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Local screenshot captures
+_screenshot/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

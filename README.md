@@ -17,6 +17,10 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 - `Run` will run all tasks sequentially
 
 
-# Deployments
-## Beanstalk
-- Role: api-elastic-beanstalk-role
+# Onboarding
+## Setup
+- brew install mise
+- mise run onboarding
+
+## PR's
+- git switch -c Feature/pro-####-short-name (prefix branches with linear task id)

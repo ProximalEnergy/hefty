@@ -4,11 +4,9 @@ set -euo pipefail
 BASE_BRANCH="dev"
 REPO_ROOT=""
 TEMPLATE_PATH=""
-DEFAULT_WEB_URL="http://127.0.0.1:5173"
-DEV_SERVER_HELPER_REL=".agents/skills/dev-pr-screenshot/scripts/\
+DEFAULT_WEB_URL="http://localhost:5173"
+DEV_SERVER_HELPER_REL=".agents/skills/dev-pr/scripts/\
 ensure_dev_servers.sh"
-PLAYWRIGHT_WRAPPER_DEFAULT="$HOME/.codex/skills/playwright/scripts/\
-playwright_cli.sh"
 
 usage() {
   cat <<USAGE
@@ -266,60 +264,62 @@ capture_web_screenshot() {
   screenshot_opt="$(printf "%s" "${AUTO_WEB_SCREENSHOT:-1}" | tr \
     '[:upper:]' '[:lower:]')"
   if [[ "${screenshot_opt}" == "0" || "${screenshot_opt}" == "false" ]]; then
-    echo "Skipping Playwright capture: AUTO_WEB_SCREENSHOT=${AUTO_WEB_SCREENSHOT:-1}"
+    echo "Skipping web screenshot: AUTO_WEB_SCREENSHOT=${AUTO_WEB_SCREENSHOT:-1}"
     return 0
   fi
 
   local helper_path="${REPO_ROOT}/${DEV_SERVER_HELPER_REL}"
   if [[ ! -x "${helper_path}" ]]; then
-    echo "Skipping Playwright capture: missing helper at ${helper_path}"
+    echo "Skipping web screenshot: missing helper at ${helper_path}"
     return 0
   fi
 
-  local pwcli_path="${PWCLI:-${PLAYWRIGHT_WRAPPER_DEFAULT}}"
-  if ! command -v npx >/dev/null 2>&1 || [[ ! -x "${pwcli_path}" ]]; then
-    echo "Skipping Playwright capture: npx or wrapper script unavailable."
+  if ! command -v mise >/dev/null 2>&1; then
+    echo "Skipping web screenshot: mise is unavailable."
     return 0
   fi
 
   local web_url="${WEB_URL:-${DEFAULT_WEB_URL}}"
   if ! API_URL="${API_URL:-http://127.0.0.1:8000}" WEB_URL="${web_url}" \
     "${helper_path}"; then
-    echo "Skipping Playwright capture: unable to start API/web services."
+    echo "Skipping web screenshot: unable to start API/web services."
     return 0
   fi
 
-  local shot_dir="${REPO_ROOT}/artifacts/pr-screenshots"
+  local shot_dir="${REPO_ROOT}/_screenshot"
   mkdir -p "${shot_dir}"
   local marker
   marker="$(mktemp)"
   touch "${marker}"
-  local session="dev-pr-screenshot"
+  local image_path
+  local image_paths=()
 
-  pushd "${shot_dir}" >/dev/null
-  if "${pwcli_path}" --session "${session}" open "${web_url}" >/dev/null 2>&1 \
-    && "${pwcli_path}" --session "${session}" snapshot >/dev/null 2>&1 \
-    && "${pwcli_path}" --session "${session}" screenshot >/dev/null 2>&1; then
-    :
-  else
-    echo "Playwright capture command failed. Continuing without screenshot."
+  if ! (cd "${REPO_ROOT}" && mise run web:screenshot >/dev/null 2>&1); then
+    echo "web:screenshot failed. Continuing without screenshot."
+    rm -f "${marker}"
+    return 0
   fi
-  "${pwcli_path}" --session "${session}" close >/dev/null 2>&1 || true
-  popd >/dev/null
 
-  local new_file=""
-  new_file="$(find "${shot_dir}" -maxdepth 1 -type f \
-    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \
-    \) -newer "${marker}" | sort | head -n 1)"
+  while IFS= read -r image_path; do
+    image_paths+=("${image_path}")
+  done < <(
+    find "${shot_dir}" -type f \
+      \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o \
+      -iname '*.webp' -o -iname '*.gif' -o -iname '*.svg' \) \
+      -newer "${marker}" | sort
+  )
   rm -f "${marker}"
 
-  if [[ -n "${new_file}" ]]; then
-    local relative_file="${new_file#${REPO_ROOT}/}"
-    media_lines+=("- ![${relative_file}](${relative_file})")
-    echo "Captured Playwright screenshot: ${relative_file}"
-  else
-    echo "No new Playwright screenshot detected."
+  if [[ ${#image_paths[@]} -eq 0 ]]; then
+    echo "No new web screenshots detected."
+    return 0
   fi
+
+  for image_path in "${image_paths[@]}"; do
+    local relative_file="${image_path#${REPO_ROOT}/}"
+    media_lines+=("- ![${relative_file}](${relative_file})")
+    echo "Captured web screenshot: ${relative_file}"
+  done
 }
 
 if has_label "web-app"; then

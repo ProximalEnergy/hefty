@@ -646,6 +646,11 @@ description = "Check for explicit type annotation on defaultQueryOptions"
 dir = "."
 run = "uv run semgrep --error --config _scripts/rules/default-query-options-no-explicit-type.yaml"
 
+[tasks."web:screenshot"]
+description = "Screenshot routes inferred from git diff vs dev into _screenshot/"
+dir = "."
+run = "uv run python _scripts/web_screenshot.py"
+
 # =============================================================================
 # SQL-ADMIN TASKS (runs in ./sql-admin directory)
 # =============================================================================

@@ -17,7 +17,7 @@ and creates the required PR body sections.
 
 ## Workflow
 
-1. Run `.agents/skills/dev-pr-screenshot/scripts/prepare_pr.sh` to detect
+1. Run `.agents/skills/dev-pr/scripts/prepare_pr.sh` to detect
    changed repo areas versus `dev`, commit local changes, push the branch, and
    open the PR.
 2. Review the generated title prefix and body template output.
@@ -27,7 +27,7 @@ and creates the required PR body sections.
 ### Run full PR flow
 
 ```bash
-./.agents/skills/dev-pr-screenshot/scripts/prepare_pr.sh
+./.agents/skills/dev-pr/scripts/prepare_pr.sh
 ```
 
 The script prints:
