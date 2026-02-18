@@ -20,12 +20,14 @@ import {
   ActionIcon,
   Box,
   Button,
+  Card,
   Checkbox,
   Group,
   LoadingOverlay,
   MultiSelect,
   Paper,
   Stack,
+  Table,
   Tabs,
   Text,
   Textarea,
@@ -34,12 +36,13 @@ import {
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconSend, IconSparkles } from '@tabler/icons-react'
-import DOMPurify from 'dompurify'
 import {
-  MRT_ColumnDef,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import DOMPurify from 'dompurify'
 import MarkdownIt from 'markdown-it'
 import { Data } from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -54,6 +57,8 @@ interface ChatMessage {
   content: string
   createdAt: string
 }
+
+type TableRow = Record<string, string | number | null>
 
 const Page = () => {
   const { projectId } = useParams()
@@ -502,7 +507,7 @@ const Page = () => {
       {
         header: 'Time',
         accessorKey: 'time',
-        size: 200,
+        size: 320,
       },
       ...Object.keys(batterySettlementDetails.data.qse_data.data).map(
         (key) => ({
@@ -514,21 +519,10 @@ const Page = () => {
     ]
   }, [batterySettlementDetails.data])
 
-  const table = useMantineReactTable({
-    columns: columns as MRT_ColumnDef<Record<string, string | number | null>>[],
+  const table = useReactTable({
+    columns: columns as ColumnDef<TableRow>[],
     data: tableData,
-    enableColumnDragging: false,
-    enableColumnResizing: true,
-    enableSorting: false,
-    enableGlobalFilter: false,
-    enablePagination: true,
-    enableBottomToolbar: true,
-    enableStickyHeader: true,
-    mantineTableProps: {
-      striped: true,
-      highlightOnHover: true,
-      stickyHeader: true,
-    },
+    getCoreRowModel: getCoreRowModel(),
   })
 
   // Auto-scroll to bottom when messages change
@@ -808,9 +802,69 @@ const Page = () => {
           </Tabs.List>
 
           <Tabs.Panel value="table" h="calc(100% - 40px)">
-            <Box h="100%" style={{ overflowY: 'auto' }}>
-              <MantineReactTable table={table} />
-            </Box>
+            <Card
+              withBorder
+              h="100%"
+              py="md"
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
+              <Box style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+                <Table.ScrollContainer minWidth={900}>
+                  <Table
+                    striped
+                    highlightOnHover
+                    stickyHeader
+                    withTableBorder
+                    withColumnBorders
+                  >
+                    <Table.Thead>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <Table.Tr key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => (
+                            <Table.Th
+                              key={header.id}
+                              w={header.column.getSize()}
+                              style={{ whiteSpace: 'nowrap' }}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
+                            </Table.Th>
+                          ))}
+                        </Table.Tr>
+                      ))}
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {table.getRowModel().rows.length ? (
+                        table.getRowModel().rows.map((row) => (
+                          <Table.Tr key={row.id}>
+                            {row.getVisibleCells().map((cell) => (
+                              <Table.Td key={cell.id}>
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                              </Table.Td>
+                            ))}
+                          </Table.Tr>
+                        ))
+                      ) : (
+                        <Table.Tr>
+                          <Table.Td colSpan={Math.max(columns.length, 1)}>
+                            <Text size="sm" c="dimmed" ta="center">
+                              No data available
+                            </Text>
+                          </Table.Td>
+                        </Table.Tr>
+                      )}
+                    </Table.Tbody>
+                  </Table>
+                </Table.ScrollContainer>
+              </Box>
+            </Card>
           </Tabs.Panel>
 
           <Tabs.Panel value="plot" h="calc(100% - 40px)">
