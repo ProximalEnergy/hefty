@@ -531,6 +531,7 @@ const Page = () => {
           <CustomCard title="Event Traces" fill style={{ height: '400px' }}>
             <PlotlyPlot
               isLoading={expectedPower.isLoading}
+              xAxisTimeZone={projectTz}
               data={[
                 { yaxis: 'y' }, // Yes, we need this. No, I don't know why.
 

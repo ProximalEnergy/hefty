@@ -187,6 +187,7 @@ const PowerPlotBESS = () => {
   }
 
   const project = useSelectProject(projectId!)
+  const projectTimeZone = project.data?.time_zone ?? 'UTC'
 
   // Auto-update time range for "last 24 hours" view
   useEffect(() => {
@@ -428,6 +429,7 @@ const PowerPlotBESS = () => {
             yaxis: isSoc ? 'y2' : 'y',
           }
         })}
+        xAxisTimeZone={projectTimeZone}
         layout={
           project.data && {
             yaxis: {

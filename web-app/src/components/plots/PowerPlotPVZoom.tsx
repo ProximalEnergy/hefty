@@ -647,6 +647,7 @@ const PowerPlotPVZoom = () => {
     >
       <PlotlyPlot
         data={plotData}
+        xAxisTimeZone={projectTimeZone}
         layout={
           project.data && {
             yaxis: {

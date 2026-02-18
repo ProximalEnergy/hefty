@@ -879,6 +879,7 @@ const Page = () => {
           <CustomCard title="Event Traces" fill style={{ height: '400px' }}>
             <PlotlyPlot
               isLoading={isTracesLoading && !eventTraceTags.error}
+              xAxisTimeZone={projectTz}
               data={[
                 { yaxis: 'y' }, // Yes, we need this. No, I don't know why.
                 ...(() => {
@@ -1031,6 +1032,10 @@ const Page = () => {
                   columns: 1,
                   pattern: 'independent',
                 },
+                xaxis: {
+                  type: 'date',
+                  automargin: true,
+                },
                 // Base y-axis configuration for the main plot area
                 yaxis: {
                   title: {
@@ -1056,7 +1061,7 @@ const Page = () => {
                     font: { color: theme.colors.blue[6] },
                   },
                   side: 'left',
-                  domain: hasStatus ? [0.55, 1] : [0, 1],
+                  domain: hasStatus ? [0.62, 1] : [0, 1],
                   showgrid: false,
                   zeroline: false,
                   automargin: true,
@@ -1078,7 +1083,7 @@ const Page = () => {
                   })(),
                 },
                 yaxis2: {
-                  domain: hasStatus ? [0, 0.45] : [0, 1],
+                  domain: hasStatus ? [0, 0.34] : [0, 1],
                   range: [
                     traceStart.format('YYYY-MM-DD HH:mm:ss'),
                     traceEnd.format('YYYY-MM-DD HH:mm:ss'),

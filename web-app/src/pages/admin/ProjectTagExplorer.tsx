@@ -1343,6 +1343,7 @@ const ProjectTagExplorer = () => {
                               (tag) =>
                                 !tag.is_numeric && tag.sample_values.length > 0,
                             )
+                          const timezoneName = project.data?.time_zone ?? 'UTC'
 
                           return (
                             <>
@@ -1392,6 +1393,7 @@ const ProjectTagExplorer = () => {
                                           name: tag.tag_name,
                                           hoverlabel: { namelength: -1 },
                                         }))}
+                                        xAxisTimeZone={timezoneName}
                                         layout={{
                                           yaxis: {
                                             title: {

@@ -162,6 +162,7 @@ const PlotlyPlot = ({
   onRelayout,
   allowPinning,
   noDataMessage,
+  xAxisTimeZone,
 }: {
   data?: Data[]
   layout?: Partial<Layout>
@@ -174,6 +175,7 @@ const PlotlyPlot = ({
   onRelayout?: (event: Readonly<PlotRelayoutEvent>) => void
   allowPinning?: boolean
   noDataMessage?: string
+  xAxisTimeZone?: string
 }) => {
   //////////////////////////////////////////////////////////////////////////////
   /////// If the plot you're looking for is not working, go check //////////////
@@ -327,7 +329,7 @@ const PlotlyPlot = ({
       doubleClick: false,
       showTips: false,
     }),
-    [allowPinning],
+    [allowPinning, setAnnotations, setShapes],
   )
 
   if (colorscale && processedData.length > 0) {
@@ -417,7 +419,7 @@ const PlotlyPlot = ({
         setShapes((prev) => prev.filter((s) => s.name !== groupId))
       }
     },
-    [annotations],
+    [annotations, setAnnotations, setShapes],
   )
 
   useEffect(() => {
@@ -455,6 +457,42 @@ const PlotlyPlot = ({
       xaxis: {
         type: 'category',
       },
+    }
+  }
+
+  const resolvedLayout: Partial<Layout> = merge(
+    {},
+    layoutTemplate,
+    conditionalLayout,
+    layout,
+  )
+
+  const isDateLikeXAxis =
+    resolvedLayout.xaxis?.type === 'date' ||
+    (Boolean(xAxisTimeZone) && resolvedLayout.xaxis?.type !== 'category')
+
+  if (isDateLikeXAxis) {
+    const resolvedXAxis = resolvedLayout.xaxis ?? {}
+    const existingTitle = resolvedXAxis.title as unknown
+    let existingTitleText = ''
+    if (typeof existingTitle === 'string') {
+      existingTitleText = existingTitle
+    } else if (
+      existingTitle &&
+      typeof existingTitle === 'object' &&
+      'text' in existingTitle &&
+      typeof (existingTitle as { text?: unknown }).text === 'string'
+    ) {
+      existingTitleText = (existingTitle as { text: string }).text
+    }
+
+    if (existingTitleText.trim().length === 0) {
+      const titleText = xAxisTimeZone ? `Time (${xAxisTimeZone})` : 'Time'
+      resolvedLayout.xaxis = merge({}, resolvedXAxis, {
+        title: {
+          text: titleText,
+        },
+      })
     }
   }
 
@@ -705,7 +743,7 @@ const PlotlyPlot = ({
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Plot
         data={processedData}
-        layout={merge({}, layoutTemplate, conditionalLayout, layout)}
+        layout={resolvedLayout}
         config={merge({}, configTemplate, config)}
         style={{ width: '100%', height: '100%', overflow: 'hidden' }}
         useResizeHandler={true}
