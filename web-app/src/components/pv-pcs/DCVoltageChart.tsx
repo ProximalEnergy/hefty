@@ -6,7 +6,7 @@ import type { PlotRelayoutEvent } from 'plotly.js'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
-const PV_PCS_MODULE_DEVICE_TYPE_ID = DeviceTypeEnum.PV_PCS_MODULE
+const PV_INVERTER_MODULE_DEVICE_TYPE_ID = DeviceTypeEnum.PV_INVERTER_MODULE
 
 interface DCVoltageChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
@@ -18,10 +18,10 @@ export const DCVoltageChart = ({ realtimeData }: DCVoltageChartProps) => {
   const moduleRealtimeData = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: PV_PCS_MODULE_DEVICE_TYPE_ID,
+      deviceTypeId: PV_INVERTER_MODULE_DEVICE_TYPE_ID,
     },
     queryParams: {
-      sensor_type_ids: [SensorTypeEnum.PV_PCS_MODULE_DC_VOLTAGE],
+      sensor_type_ids: [SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -65,7 +65,7 @@ export const DCVoltageChart = ({ realtimeData }: DCVoltageChartProps) => {
     }
 
     const moduleDcVoltageTrace = moduleRealtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_MODULE_DC_VOLTAGE,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_MODULE_DC_VOLTAGE,
     )
 
     if (

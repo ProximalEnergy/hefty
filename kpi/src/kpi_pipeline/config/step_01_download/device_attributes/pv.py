@@ -1,5 +1,4 @@
 from core import models
-
 from kpi_pipeline.base.enums import DeviceType
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import DeviceAttributeModel
@@ -30,9 +29,9 @@ class DownloadDeviceAttrsPV(DownloadDeviceAttributesSchema):
 
     # pcs module
 
-    pv_pcs_module_power_ac_capacity_kw = Field(
+    pv_inverter_module_power_ac_capacity_kw = Field(
         DeviceAttributeModel(
             source_field_name=models.Device.capacity_ac.name,
-            device_type=DeviceType.PV_PCS_MODULE,
+            device_type=DeviceType.PV_INVERTER_MODULE,
         )
     )

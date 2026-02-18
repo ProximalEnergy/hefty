@@ -343,9 +343,9 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         device_var=Aggregate.pv_pcs_mechanical_availability_d.var,
         version="1.0.0",
     ),
-    KPIType.PV_PCS_MODULE_ENERGY_PRODUCTION: KPIMetadata(
+    KPIType.PV_INVERTER_MODULE_ENERGY_PRODUCTION: KPIMetadata(
         project_var=Aggregate.project_energy_from_pcs_module_kwh_d.var,
-        device_var=Aggregate.pv_pcs_module_energy_kwh_d.var,
+        device_var=Aggregate.pv_inverter_module_energy_kwh_d.var,
         version="1.0.0",
         scale=0.001,
     ),

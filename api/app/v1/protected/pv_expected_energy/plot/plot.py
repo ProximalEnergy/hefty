@@ -137,25 +137,29 @@ async def utility_expected(
             raise HTTPException(status_code=404, detail="PV PCS device not found")
         device_pv_pcs = device_pv_pcs_df.to_dict("records")[0]
 
-        devices_pv_pcs_modules_df = await core.crud.project.devices.get_project_devices(
-            device_type_ids=[DeviceType.PV_PCS_MODULE],
-            device_id_descendent_of=int(device_pv_pcs["device_id"]),
-        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-
-        device_ids_pv_pcs_modules = (
-            devices_pv_pcs_modules_df["device_id"].astype(int).tolist()
+        devices_pv_inverter_modules_df = (
+            await core.crud.project.devices.get_project_devices(
+                device_type_ids=[DeviceType.PV_INVERTER_MODULE],
+                device_id_descendent_of=int(device_pv_pcs["device_id"]),
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         )
 
-        tags_pv_pcs_module_voltage = await core.crud.project.tags.get_project_tags_v2(
-            device_ids=device_ids_pv_pcs_modules,
-            sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
-        ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        device_ids_pv_inverter_modules = (
+            devices_pv_inverter_modules_df["device_id"].astype(int).tolist()
+        )
+
+        tags_pv_inverter_module_voltage = (
+            await core.crud.project.tags.get_project_tags_v2(
+                device_ids=device_ids_pv_inverter_modules,
+                sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE],
+            ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
+        )
 
         ## Kind of a hacky workaround:
         ## If there are no tags for PV PCS Module Voltage,
         ## try using PV PCS DC Voltage instead.
-        if tags_pv_pcs_module_voltage.empty:
-            tags_pv_pcs_module_voltage = (
+        if tags_pv_inverter_module_voltage.empty:
+            tags_pv_inverter_module_voltage = (
                 await core.crud.project.tags.get_project_tags_v2(
                     device_ids=[int(device_pv_pcs["device_id"])],
                     sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
@@ -170,18 +174,22 @@ async def utility_expected(
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_IDS,
-            filter_values=tags_pv_pcs_module_voltage["tag_id"].astype(int).tolist(),
+            filter_values=tags_pv_inverter_module_voltage["tag_id"]
+            .astype(int)
+            .tolist(),
             query_start=start,
             query_end=end,
             project_db=project_db,
         ).get()
 
-        df_pv_pcs_module_voltage = data_timeseries_instance.df.to_pandas()
-        df_pv_pcs_module_voltage = df_pv_pcs_module_voltage.set_index("time")
-        df_pv_pcs_module_voltage.index = pd.to_datetime(
-            df_pv_pcs_module_voltage.index
+        df_pv_inverter_module_voltage = data_timeseries_instance.df.to_pandas()
+        df_pv_inverter_module_voltage = df_pv_inverter_module_voltage.set_index("time")
+        df_pv_inverter_module_voltage.index = pd.to_datetime(
+            df_pv_inverter_module_voltage.index
         ).tz_convert(project.time_zone)
-        df_pv_pcs_module_voltage.columns = df_pv_pcs_module_voltage.columns.astype(int)
+        df_pv_inverter_module_voltage.columns = (
+            df_pv_inverter_module_voltage.columns.astype(int)
+        )
 
         data_timeseries_instance = await DataTimeseries(
             project_name_short=project.name_short,
@@ -201,7 +209,7 @@ async def utility_expected(
             int
         )
 
-        s_actual = df_pv_pcs_module_voltage.mean(axis=1).mul(
+        s_actual = df_pv_inverter_module_voltage.mean(axis=1).mul(
             df_pv_dc_combiner_current.iloc[:, 0],
         )
 

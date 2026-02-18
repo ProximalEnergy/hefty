@@ -209,7 +209,7 @@ async def get_heatmap(
 
     if tags_df.is_empty():
         fallback_query = core.crud.project.tags.get_project_tags_v2(
-            sensor_type_ids=[SensorType.PV_PCS_MODULE_AC_POWER],
+            sensor_type_ids=[SensorType.PV_INVERTER_MODULE_AC_POWER],
             deep=False,
         )
         tags_df = await fallback_query.get_async(

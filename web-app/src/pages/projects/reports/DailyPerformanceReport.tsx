@@ -1087,7 +1087,7 @@ const Page: React.FC = () => {
   }, [poaTimeseriesQuery.data])
 
   // Fetch daily KPI data for stats (single day).
-  // For PVS projects we also need PV-only generation (PV_PCS or PV_PCS_MODULE).
+  // For PVS projects we also need PV-only generation (PV_PCS or PV_INVERTER_MODULE).
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
@@ -1095,7 +1095,7 @@ const Page: React.FC = () => {
         KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
         KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
         KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
-        KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
         KPITypeEnum.PERFORMANCE_RATIO,
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
         KPITypeEnum.PV_PROJECT_CURTAILMENT,
@@ -1123,7 +1123,7 @@ const Page: React.FC = () => {
       kpi_type_ids: [
         KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
         KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
-        KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
       ],
       start: trailingStart || '',
@@ -1510,7 +1510,7 @@ const Page: React.FC = () => {
     )
     const pvPcsModuleKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
     )
     const expectedKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
@@ -1703,7 +1703,7 @@ const Page: React.FC = () => {
     )
     const pvPcsModuleKpi = trailingKpiData.data?.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
     )
     // PV+Storage: prefer PV PCS energy; fall back to POI for chart only when no PV PCS data
     const generationKpi = isPvs
@@ -2311,7 +2311,7 @@ const Page: React.FC = () => {
     )
     const trailingPvPcsModuleKpi = trailingKpiData.data.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MODULE_ENERGY_PRODUCTION,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
     )
     const trailingGenerationKpi = isPvs
       ? (trailingPvPcsKpi ?? trailingPvPcsModuleKpi)

@@ -831,7 +831,7 @@ async def utility_expected(
                 continue
 
             # If parent is a PCS Module (type 3), get its parent (the PCS)
-            if parent_device.device_type_id == DeviceType.PV_PCS_MODULE:
+            if parent_device.device_type_id == DeviceType.PV_INVERTER_MODULE:
                 pcs_id = parent_device.parent_device_id
                 if pcs_id is not None:
                     parent_pcs_ids.append(typing.cast(int, pcs_id))
@@ -861,7 +861,7 @@ async def utility_expected(
 
         # DB Call 1: Fetch all relevant PV PCS Modules using parent IDs
         all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
-            device_type_ids=[DeviceType.PV_PCS_MODULE],
+            device_type_ids=[DeviceType.PV_INVERTER_MODULE],
             parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         all_pcs_modules_df = all_pcs_modules_df.copy()
@@ -907,7 +907,7 @@ async def utility_expected(
         using_pcs_level_voltage = False
         tags_voltage_pl = await core.crud.project.tags.get_project_tags_v2(
             device_ids=module_ids,
-            sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE],
+            sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE],
         ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
         if tags_voltage_pl.is_empty():

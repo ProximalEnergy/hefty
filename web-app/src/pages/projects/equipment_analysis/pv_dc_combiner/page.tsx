@@ -76,7 +76,7 @@ const Page = () => {
       device_type_ids: [
         DeviceTypeEnum.PV_DC_COMBINER,
         DeviceTypeEnum.PV_PCS,
-        DeviceTypeEnum.PV_PCS_MODULE,
+        DeviceTypeEnum.PV_INVERTER_MODULE,
       ],
     },
   })

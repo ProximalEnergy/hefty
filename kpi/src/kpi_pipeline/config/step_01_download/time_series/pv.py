@@ -59,16 +59,16 @@ class DownloadTimeSeriesPV(DownloadTimeSeriesSchema):
 
     # pv pcs module
 
-    pv_pcs_module_power_ac_kw_5m = Field(
+    pv_inverter_module_power_ac_kw_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_MODULE_AC_POWER,
+            sensor_type=SensorType.PV_INVERTER_MODULE_AC_POWER,
             scale=1000,
         )
     )
 
-    pv_pcs_module_voltage_v_5m = Field(
+    pv_inverter_module_voltage_v_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_MODULE_DC_VOLTAGE,
+            sensor_type=SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
         )
     )
 

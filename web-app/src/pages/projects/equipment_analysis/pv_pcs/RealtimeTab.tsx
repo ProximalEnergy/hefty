@@ -85,7 +85,7 @@ const RealtimeTab = () => {
         SensorTypeEnum.PV_PCS_VOLTAGE_LL_CA,
         SensorTypeEnum.PV_PCS_DC_VOLTAGE,
         SensorTypeEnum.PV_PCS_STATUS,
-        SensorTypeEnum.PV_PCS_MODULE_EFFICIENCY,
+        SensorTypeEnum.PV_INVERTER_MODULE_EFFICIENCY,
       ],
     },
     queryOptions: {
@@ -237,7 +237,7 @@ const RealtimeTab = () => {
       (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER,
     )
     const efficiencyTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_MODULE_EFFICIENCY,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_MODULE_EFFICIENCY,
     )
 
     const powerValues =

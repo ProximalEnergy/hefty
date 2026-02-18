@@ -106,6 +106,6 @@ class ValidatePV(AddCalculationsSchema):
 
     # voltage validation
     pv_pcs_voltage_v_5m = _voltage_pv(Download.time_series.pv_pcs_voltage_v_5m.var)
-    pv_pcs_module_voltage_v_5m = _voltage_pv(
-        Download.time_series.pv_pcs_module_voltage_v_5m.var
+    pv_inverter_module_voltage_v_5m = _voltage_pv(
+        Download.time_series.pv_inverter_module_voltage_v_5m.var
     )

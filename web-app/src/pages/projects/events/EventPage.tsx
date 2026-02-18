@@ -542,7 +542,7 @@ const Page = () => {
   ) {
     rootCauseDeviceTypes.push(30)
   }
-  if (event?.device?.device_type_id === DeviceTypeEnum.PV_PCS_MODULE) {
+  if (event?.device?.device_type_id === DeviceTypeEnum.PV_INVERTER_MODULE) {
     rootCauseDeviceTypes.push(2)
   }
   if (event?.device?.device_type_id === DeviceTypeEnum.TRACKER_ROW) {

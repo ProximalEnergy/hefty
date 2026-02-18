@@ -1008,20 +1008,20 @@ async def get_event_trace_tags(
             sensor_type_ids = [
                 SensorType.PV_PCS_AC_POWER,
                 SensorType.PV_PCS_AC_POWER_SETPOINT,
-                SensorType.PV_PCS_MODULE_INTERNAL_TEMPERATURE,
-                SensorType.PV_PCS_MODULE_DC_VOLTAGE,
+                SensorType.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
+                SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
                 SensorType.PV_PCS_STATUS,
-                SensorType.PV_PCS_MODULE_STATUS,
+                SensorType.PV_INVERTER_MODULE_STATUS,
             ]
-        case DeviceType.PV_PCS_MODULE:
+        case DeviceType.PV_INVERTER_MODULE:
             sensor_type_ids = [
                 SensorType.PV_PCS_AC_POWER,
-                SensorType.PV_PCS_MODULE_AC_POWER,
+                SensorType.PV_INVERTER_MODULE_AC_POWER,
                 SensorType.PV_PCS_AC_POWER_SETPOINT,
-                SensorType.PV_PCS_MODULE_INTERNAL_TEMPERATURE,
-                SensorType.PV_PCS_MODULE_DC_VOLTAGE,
+                SensorType.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
+                SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
                 SensorType.PV_PCS_STATUS,
-                SensorType.PV_PCS_MODULE_STATUS,
+                SensorType.PV_INVERTER_MODULE_STATUS,
             ]
         case DeviceType.METER:
             sensor_type_ids = [
@@ -1030,10 +1030,10 @@ async def get_event_trace_tags(
         case DeviceType.PV_DC_COMBINER:
             sensor_type_ids = [
                 SensorType.PV_PCS_AC_POWER,
-                SensorType.PV_PCS_MODULE_AC_POWER,
+                SensorType.PV_INVERTER_MODULE_AC_POWER,
                 SensorType.PV_DC_COMBINER_CURRENT,
                 SensorType.PV_PCS_STATUS,
-                SensorType.PV_PCS_MODULE_STATUS,
+                SensorType.PV_INVERTER_MODULE_STATUS,
             ]
         case DeviceType.BESS_PCS:
             sensor_type_ids = [

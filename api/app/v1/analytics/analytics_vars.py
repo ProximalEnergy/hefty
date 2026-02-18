@@ -118,17 +118,17 @@ PROJECT_LOCATION_MAP = {
 
 PROJECT_PARAMS = {
     "assembly_1": {
-        "sensor_type_name_short": "pv_pcs_module_ac_power",
+        "sensor_type_name_short": "pv_inverter_module_ac_power",
         "device_type_id": 2,
         "scale": 1.1,
     },
     "assembly_2": {
-        "sensor_type_name_short": "pv_pcs_module_ac_power",
+        "sensor_type_name_short": "pv_inverter_module_ac_power",
         "device_type_id": 2,
         "scale": 1.05,
     },
     "assembly_3": {
-        "sensor_type_name_short": "pv_pcs_module_ac_power",
+        "sensor_type_name_short": "pv_inverter_module_ac_power",
         "device_type_id": 2,
         "scale": 1.1,
         "meter_loss": 0.9779,

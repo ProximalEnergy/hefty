@@ -38,9 +38,11 @@ class CalculatePV(AddCalculationsSchema):
         )
     )
 
-    pv_pcs_module_energy_kwh_5m = Field(
+    pv_inverter_module_energy_kwh_5m = Field(
         CalcProcess(
-            calc=SelectCalc(var=Download.time_series.pv_pcs_module_power_ac_kw_5m.var),
+            calc=SelectCalc(
+                var=Download.time_series.pv_inverter_module_power_ac_kw_5m.var
+            ),
             process=ScaleOffsetProcess(scale=1 / 12),
         )
     )

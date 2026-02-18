@@ -155,15 +155,15 @@ class AggregatePV(AddCalculationsSchema):
         agg=Aggregation.SUM,
     )
 
-    pv_pcs_module_energy_kwh_d = _aggregate(
-        var=Calculate.pv_pcs_module_energy_kwh_5m.var,
+    pv_inverter_module_energy_kwh_d = _aggregate(
+        var=Calculate.pv_inverter_module_energy_kwh_5m.var,
         agg=Aggregation.SUM,
     )
 
     project_energy_from_pcs_module_kwh_d = _aggregate(
-        var=Calculate.pv_pcs_module_energy_kwh_5m.var,
+        var=Calculate.pv_inverter_module_energy_kwh_5m.var,
         agg=Aggregation.SUM,
-        child_device_axis=DeviceType.PV_PCS_MODULE,
+        child_device_axis=DeviceType.PV_INVERTER_MODULE,
     )
 
     pv_pcs_energy_production_kwh_d = _aggregate(
@@ -290,9 +290,9 @@ class AggregatePV(AddCalculationsSchema):
                 pv_pcs_ac_power_kw_5m_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
                 pv_pcs_ac_power_capacity_kw_var=Validate.pv_pcs_ac_capacity_kw.var,
                 pv_pcs_reactive_power_kvar_5m_var=Download.time_series.pv_pcs_reactive_power_kvar_5m.var,
-                pv_pcs_module_voltage_v_5m_var=Validate.pv_pcs_module_voltage_v_5m.var,
-                pv_pcs_module_power_kw_5m_var=Download.time_series.pv_pcs_module_power_ac_kw_5m.var,
-                pv_pcs_module_power_capacity_kw_var=Download.device_attributes.pv_pcs_module_power_ac_capacity_kw.var,
+                pv_inverter_module_voltage_v_5m_var=Validate.pv_inverter_module_voltage_v_5m.var,
+                pv_inverter_module_power_kw_5m_var=Download.time_series.pv_inverter_module_power_ac_kw_5m.var,
+                pv_inverter_module_power_capacity_kw_var=Download.device_attributes.pv_inverter_module_power_ac_capacity_kw.var,
                 block_tracker_deviation_from_setpoint_deg_d_var=block_tracker_deviation_from_setpoint_deg_d.var,
                 block_tracker_setpoint_deviation_from_median_deg_d_var=block_tracker_setpoint_deviation_from_median_deg_d.var,
                 pv_dc_combiner_field_health_d_var=pv_dc_combiner_field_health_d.var,
@@ -308,7 +308,7 @@ class AggregatePV(AddCalculationsSchema):
                     child_device_axis=DeviceType.PV_DC_COMBINER,
                 ),
                 module_to_pcs_combiner_model=CoordCombinerModel(
-                    child_device_axis=DeviceType.PV_PCS_MODULE,
+                    child_device_axis=DeviceType.PV_INVERTER_MODULE,
                     parent_device_axis=DeviceType.PV_PCS,
                 ),
                 final_time_combiner_model=_5min_to_daily(),

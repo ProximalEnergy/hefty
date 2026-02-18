@@ -445,7 +445,7 @@ async def _calculate_dc_combiner_power_sum(
         parent_id for parent_id in parent_pcs_ids
     ]
     all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_PCS_MODULE],
+        device_type_ids=[DeviceType.PV_INVERTER_MODULE],
         parent_device_ids=parent_device_ids_query,
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
     all_pcs_modules_df = all_pcs_modules_df.copy()
@@ -486,7 +486,7 @@ async def _calculate_dc_combiner_power_sum(
         df_voltage_modules = (
             await core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=module_ids,
-                sensor_type_ids=[SensorType.PV_PCS_MODULE_DC_VOLTAGE.value],
+                sensor_type_ids=[SensorType.PV_INVERTER_MODULE_DC_VOLTAGE.value],
                 deep=True,
                 include_ghost_tags=False,
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)

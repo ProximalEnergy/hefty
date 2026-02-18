@@ -91,7 +91,7 @@ const Page = ({
     {
       label: 'PV PCS Module',
       deviceId: '3',
-      sensorTypeIds: [String(SensorTypeEnum.PV_PCS_MODULE_AC_POWER)],
+      sensorTypeIds: [String(SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER)],
     },
     {
       label: 'PV DC Combiner',
@@ -424,7 +424,7 @@ const Page = ({
 
   const largeYAxisTitle = (() => {
     switch (deviceTypeId) {
-      case DeviceTypeEnum.PV_PCS_MODULE:
+      case DeviceTypeEnum.PV_INVERTER_MODULE:
         return 'PV PCS'
       case DeviceTypeEnum.PV_DC_COMBINER:
         return 'PV PCS'
@@ -496,7 +496,7 @@ const Page = ({
             </Text>
           </Stack>
         )
-      case DeviceTypeEnum.PV_PCS_MODULE:
+      case DeviceTypeEnum.PV_INVERTER_MODULE:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding PV PCS Module Performance</Text>

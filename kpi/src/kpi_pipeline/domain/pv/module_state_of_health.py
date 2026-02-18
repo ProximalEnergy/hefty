@@ -1,8 +1,5 @@
-from typing import Optional
-
 import xarray as xr
 from core.enumerations import DeviceType
-
 from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
 from kpi_pipeline.domain.general import diff
@@ -17,9 +14,9 @@ def pv_dc_combiner_module_excess_degradation(
     pv_pcs_ac_power_kw_5m: xr.DataArray,
     pv_pcs_ac_power_capacity_kw: xr.DataArray,
     pv_pcs_reactive_power_kvar_5m: xr.DataArray,
-    pv_pcs_module_voltage_v_5m: xr.DataArray,
-    pv_pcs_module_power_kw_5m: xr.DataArray,
-    pv_pcs_module_power_capacity_kw: xr.DataArray,
+    pv_inverter_module_voltage_v_5m: xr.DataArray,
+    pv_inverter_module_power_kw_5m: xr.DataArray,
+    pv_inverter_module_power_capacity_kw: xr.DataArray,
     block_tracker_deviation_from_setpoint_deg_d: xr.DataArray,
     block_tracker_setpoint_deviation_from_median_deg_d: xr.DataArray,
     pv_dc_combiner_field_health_d: xr.DataArray,
@@ -30,9 +27,9 @@ def pv_dc_combiner_module_excess_degradation(
     broadcast_block_to_combiner: CoordCombinerProtocol,
     module_to_pcs_combiner: CoordCombinerProtocol,
     final_time_combiner: CoordCombinerProtocol,
-    pv_pcs_ac_power_setpoint_kw_5m: Optional[xr.DataArray] = None,
+    pv_pcs_ac_power_setpoint_kw_5m: xr.DataArray | None = None,
     # todo: for north star use pv pcs voltage
-    pv_pcs_voltage_v_5m: Optional[xr.DataArray] = None,
+    pv_pcs_voltage_v_5m: xr.DataArray | None = None,
     min_poa: float = 250.0,
     max_poa_1d: float = 20.0,
     max_poa_std: float = 7.5,
@@ -186,14 +183,17 @@ def pv_dc_combiner_module_excess_degradation(
         Make sure both/all child pcs modules are greater than 5% of operating capacity (ie ac power)
         """
         voltage_good_idx = (
-            module_to_pcs_combiner.agg(pv_pcs_module_voltage_v_5m, agg=Aggregation.MAX)
+            module_to_pcs_combiner.agg(
+                pv_inverter_module_voltage_v_5m, agg=Aggregation.MAX
+            )
             - module_to_pcs_combiner.agg(
-                pv_pcs_module_voltage_v_5m, agg=Aggregation.MIN
+                pv_inverter_module_voltage_v_5m, agg=Aggregation.MIN
             )
         ) < 5
 
         power_good_idx = module_to_pcs_combiner.group(
-            pv_pcs_module_power_kw_5m > (0.05 * pv_pcs_module_power_capacity_kw)
+            pv_inverter_module_power_kw_5m
+            > (0.05 * pv_inverter_module_power_capacity_kw)
         ).all(dim=module_to_pcs_combiner.dim())
 
         return voltage_good_idx & power_good_idx
@@ -255,7 +255,7 @@ def pv_dc_combiner_module_excess_degradation(
         )
 
         pv_pcs_voltage_v_5m = module_to_pcs_combiner.agg(
-            pv_pcs_module_voltage_v_5m, agg=Aggregation.MEAN
+            pv_inverter_module_voltage_v_5m, agg=Aggregation.MEAN
         )
 
         return pv_pcs_voltage_v_5m.where(pcs_good_indices_5m)

@@ -1,8 +1,7 @@
-from typing import Any, Callable, Optional, Type
+from collections.abc import Callable
+from typing import Any
 
 import xarray as xr
-from pydantic import BaseModel, ConfigDict
-
 from kpi_pipeline.base.enums import DataType
 from kpi_pipeline.base.models import ContextModel, CoordCombinerModel
 from kpi_pipeline.base.protocols import CalcProtocol, Implements, ProcessProtocol
@@ -49,6 +48,7 @@ from kpi_pipeline.infra.calc_function_checker import verify_calc_function_alignm
 from kpi_pipeline.infra.coord_mapping import coord_combiner
 from kpi_pipeline.infra.exceptions import DatasetAccessError, ValidationError
 from kpi_pipeline.infra.utils import optional, select
+from pydantic import BaseModel, ConfigDict
 
 
 def _field_is_input(field: str, value: Any) -> bool:
@@ -73,8 +73,8 @@ calc = Implements[CalcProtocol].decorator
 
 def domain_calc(
     domain_function: Callable,
-) -> Callable[[Type[CalcBase]], Type[CalcBase]]:
-    def decorator(cls: Type[CalcBase]) -> Type[CalcBase]:
+) -> Callable[[type[CalcBase]], type[CalcBase]]:
+    def decorator(cls: type[CalcBase]) -> type[CalcBase]:
         problems = verify_calc_function_alignment(cls, domain_function)
         if problems:
             error_msg = "Calc function alignment issues:\n" + "\n".join(
@@ -169,8 +169,8 @@ class FillNACalc:
 @calc
 class VerifyBetweenFieldsCalc(CalcBase):
     target_var: str
-    min_var: Optional[str] = None
-    max_var: Optional[str] = None
+    min_var: str | None = None
+    max_var: str | None = None
 
     def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
         target = select(dataset, self.target_var)
@@ -288,7 +288,7 @@ class WeightedAverageCalc(CalcBase):
 @domain_calc(filter_by_capacity)
 class FilterByCapacityCalc(CalcBase):
     data_var: str
-    capacity_var: Optional[str] = None
+    capacity_var: str | None = None
     min_capacity_factor: float = 0.0
     max_capacity_factor: float = 1.0
 
@@ -502,7 +502,7 @@ class DischargingCyclesFromSocCalc(CalcBase):
 class MaximumContinuousDischargeCalc(CalcBase):
     energy_discharged_kwh_var: str
     time_combiner_model: CoordCombinerModel
-    energy_capacity_kwh_var: Optional[str] = None
+    energy_capacity_kwh_var: str | None = None
 
     def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
         return maximum_continuous_discharge(
@@ -649,9 +649,9 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
     pv_pcs_ac_power_kw_5m_var: str
     pv_pcs_ac_power_capacity_kw_var: str
     pv_pcs_reactive_power_kvar_5m_var: str
-    pv_pcs_module_voltage_v_5m_var: str
-    pv_pcs_module_power_kw_5m_var: str
-    pv_pcs_module_power_capacity_kw_var: str
+    pv_inverter_module_voltage_v_5m_var: str
+    pv_inverter_module_power_kw_5m_var: str
+    pv_inverter_module_power_capacity_kw_var: str
     block_tracker_deviation_from_setpoint_deg_d_var: str
     block_tracker_setpoint_deviation_from_median_deg_d_var: str
     pv_dc_combiner_field_health_d_var: str
@@ -662,8 +662,8 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
     broadcast_block_to_combiner_model: CoordCombinerModel
     module_to_pcs_combiner_model: CoordCombinerModel
     final_time_combiner_model: CoordCombinerModel
-    pv_pcs_ac_power_setpoint_kw_5m_var: Optional[str] = None
-    pv_pcs_voltage_v_5m_var: Optional[str] = None
+    pv_pcs_ac_power_setpoint_kw_5m_var: str | None = None
+    pv_pcs_voltage_v_5m_var: str | None = None
     min_poa: float = 250.0
     max_poa_1d: float = 20.0
     max_poa_std: float = 7.5
@@ -688,14 +688,14 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
             pv_pcs_reactive_power_kvar_5m=select(
                 dataset, self.pv_pcs_reactive_power_kvar_5m_var
             ),
-            pv_pcs_module_voltage_v_5m=select(
-                dataset, self.pv_pcs_module_voltage_v_5m_var
+            pv_inverter_module_voltage_v_5m=select(
+                dataset, self.pv_inverter_module_voltage_v_5m_var
             ),
-            pv_pcs_module_power_kw_5m=select(
-                dataset, self.pv_pcs_module_power_kw_5m_var
+            pv_inverter_module_power_kw_5m=select(
+                dataset, self.pv_inverter_module_power_kw_5m_var
             ),
-            pv_pcs_module_power_capacity_kw=select(
-                dataset, self.pv_pcs_module_power_capacity_kw_var
+            pv_inverter_module_power_capacity_kw=select(
+                dataset, self.pv_inverter_module_power_capacity_kw_var
             ),
             block_tracker_deviation_from_setpoint_deg_d=select(
                 dataset, self.block_tracker_deviation_from_setpoint_deg_d_var
@@ -737,7 +737,7 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
 @domain_calc(verify_by_capacity)
 class VerifyByCapacityCalc(CalcBase):
     data_var: str
-    capacity_var: Optional[str] = None
+    capacity_var: str | None = None
     min_capacity_factor: float = 0.0
     max_capacity_factor: float = 1.0
 
@@ -754,7 +754,7 @@ class VerifyByCapacityCalc(CalcBase):
 class AccumulateEnergyThenVerifyByCapacityCalc(CalcBase):
     data_var: str
     time_combiner_model: CoordCombinerModel
-    capacity_var: Optional[str] = None
+    capacity_var: str | None = None
     min_capacity_factor: float = 0.0
     max_capacity_factor: float = 1.0
 
@@ -772,7 +772,7 @@ class AccumulateEnergyThenVerifyByCapacityCalc(CalcBase):
 class AccumulateEnergyThenFilterByCapacityCalc(CalcBase):
     data_var: str
     time_combiner_model: CoordCombinerModel
-    capacity_var: Optional[str] = None
+    capacity_var: str | None = None
     min_capacity_factor: float = 0.0
     max_capacity_factor: float = 1.0
 
