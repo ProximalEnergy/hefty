@@ -397,7 +397,7 @@ const SensorTypes = () => {
             >
               <TextInput
                 label="Short Name"
-                placeholder="e.g., pv_pcs_ac_power"
+                placeholder="e.g., pv_inverter_ac_power"
                 required
                 {...form.getInputProps('name_short')}
                 onChange={(event) => {

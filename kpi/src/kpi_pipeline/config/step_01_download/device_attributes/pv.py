@@ -13,17 +13,17 @@ class DownloadDeviceAttrsPV(DownloadDeviceAttributesSchema):
         )
     )
 
-    pv_pcs_ac_capacity_kw = Field(
+    pv_inverter_ac_capacity_kw = Field(
         DeviceAttributeModel(
             source_field_name=models.Device.capacity_ac.name,
-            device_type=DeviceType.PV_PCS,
+            device_type=DeviceType.PV_INVERTER,
         )
     )
 
-    pv_pcs_dc_capacity_kw = Field(
+    pv_inverter_dc_capacity_kw = Field(
         DeviceAttributeModel(
             source_field_name=models.Device.capacity_dc.name,
-            device_type=DeviceType.PV_PCS,
+            device_type=DeviceType.PV_INVERTER,
         )
     )
 

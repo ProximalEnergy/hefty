@@ -30,7 +30,7 @@ All other samples form the **valid daylight set** for the day.
 
 ## Method – Inverter Availability
 
-1. **Query** 5-minute _pv_pcs_ac_power_ and _met_station_poa_ for every inverter in the project.
+1. **Query** 5-minute _pv_inverter_ac_power_ and _met_station_poa_ for every inverter in the project.
 2. **Validate irradiance** – keep only timestamps where POA > _Irradiance Min_.
 3. **Evaluate power threshold** – for each inverter, flag samples where  
    \[

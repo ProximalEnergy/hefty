@@ -709,7 +709,7 @@ const DeviceTypeOverview = ({
         // Meter active power may be 1 or 2; apparent power is 10
         sensor_type_ids: [
           SensorTypeEnum.METER_ACTIVE_POWER,
-          SensorTypeEnum.PV_PCS_AC_POWER,
+          SensorTypeEnum.PV_INVERTER_AC_POWER,
           SensorTypeEnum.METER_APPARENT_POWER,
         ],
       },

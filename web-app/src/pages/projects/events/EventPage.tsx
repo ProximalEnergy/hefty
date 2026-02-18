@@ -538,7 +538,7 @@ const Page = () => {
     rootCauseDeviceTypes.push(30)
   } else if (
     !project.data?.has_pv_dc_combiners &&
-    event?.device?.device_type_id === DeviceTypeEnum.PV_PCS
+    event?.device?.device_type_id === DeviceTypeEnum.PV_INVERTER
   ) {
     rootCauseDeviceTypes.push(30)
   }

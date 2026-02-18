@@ -42,7 +42,7 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
   const acPowerTimeSeries = useGetDataTimeSeriesV3({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      sensor_type_ids: [SensorTypeEnum.PV_PCS_AC_POWER],
+      sensor_type_ids: [SensorTypeEnum.PV_INVERTER_AC_POWER],
       start: efficiencyTimeRange.start,
       end: efficiencyTimeRange.end,
       interval: '1min',
@@ -58,7 +58,7 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
   const dcPowerTimeSeries = useGetDataTimeSeriesV3({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      sensor_type_ids: [SensorTypeEnum.PV_PCS_DC_POWER],
+      sensor_type_ids: [SensorTypeEnum.PV_INVERTER_DC_POWER],
       start: efficiencyTimeRange.start,
       end: efficiencyTimeRange.end,
       interval: '1min',

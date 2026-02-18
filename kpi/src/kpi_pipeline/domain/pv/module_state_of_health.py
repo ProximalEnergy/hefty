@@ -11,9 +11,9 @@ def pv_dc_combiner_module_excess_degradation(
     project_theoretical_poa_irradiance_w_m2_5m: xr.DataArray,
     project_meter_power_kw_5m: xr.DataArray,
     project_poi_limit_kw: xr.DataArray,
-    pv_pcs_ac_power_kw_5m: xr.DataArray,
-    pv_pcs_ac_power_capacity_kw: xr.DataArray,
-    pv_pcs_reactive_power_kvar_5m: xr.DataArray,
+    pv_inverter_ac_power_kw_5m: xr.DataArray,
+    pv_inverter_ac_power_capacity_kw: xr.DataArray,
+    pv_inverter_reactive_power_kvar_5m: xr.DataArray,
     pv_inverter_module_voltage_v_5m: xr.DataArray,
     pv_inverter_module_power_kw_5m: xr.DataArray,
     pv_inverter_module_power_capacity_kw: xr.DataArray,
@@ -27,9 +27,9 @@ def pv_dc_combiner_module_excess_degradation(
     broadcast_block_to_combiner: CoordCombinerProtocol,
     module_to_pcs_combiner: CoordCombinerProtocol,
     final_time_combiner: CoordCombinerProtocol,
-    pv_pcs_ac_power_setpoint_kw_5m: xr.DataArray | None = None,
+    pv_inverter_ac_power_setpoint_kw_5m: xr.DataArray | None = None,
     # todo: for north star use pv pcs voltage
-    pv_pcs_voltage_v_5m: xr.DataArray | None = None,
+    pv_inverter_voltage_v_5m: xr.DataArray | None = None,
     min_poa: float = 250.0,
     max_poa_1d: float = 20.0,
     max_poa_std: float = 7.5,
@@ -158,21 +158,23 @@ def pv_dc_combiner_module_excess_degradation(
         Only use intervals where the power factor is greater than 0.98
         """
         power_good_idx = (
-            pv_pcs_ac_power_kw_5m <= (0.95 * pv_pcs_ac_power_capacity_kw)
-        ) & (pv_pcs_ac_power_kw_5m >= (0.05 * pv_pcs_ac_power_capacity_kw))
+            pv_inverter_ac_power_kw_5m <= (0.95 * pv_inverter_ac_power_capacity_kw)
+        ) & (pv_inverter_ac_power_kw_5m >= (0.05 * pv_inverter_ac_power_capacity_kw))
         setpoint_good_idx = xr.DataArray(True)
-        if pv_pcs_ac_power_setpoint_kw_5m is not None:
-            pv_pcs_ac_power_setpoint_filled = pv_pcs_ac_power_setpoint_kw_5m.fillna(
-                pv_pcs_ac_power_capacity_kw
+        if pv_inverter_ac_power_setpoint_kw_5m is not None:
+            pv_inverter_ac_power_setpoint_filled = (
+                pv_inverter_ac_power_setpoint_kw_5m.fillna(
+                    pv_inverter_ac_power_capacity_kw
+                )
             )
-            setpoint_good_idx = pv_pcs_ac_power_setpoint_filled >= (
-                0.98 * pv_pcs_ac_power_capacity_kw
+            setpoint_good_idx = pv_inverter_ac_power_setpoint_filled >= (
+                0.98 * pv_inverter_ac_power_capacity_kw
             )
         apparent_power = (
-            pv_pcs_ac_power_kw_5m**2 + pv_pcs_reactive_power_kvar_5m**2
+            pv_inverter_ac_power_kw_5m**2 + pv_inverter_reactive_power_kvar_5m**2
         ) ** 0.5
         power_factor = xr.where(
-            apparent_power > 0, pv_pcs_ac_power_kw_5m / apparent_power, 0.0
+            apparent_power > 0, pv_inverter_ac_power_kw_5m / apparent_power, 0.0
         )
         power_factor_good_idx = power_factor >= 0.98
         return power_good_idx & setpoint_good_idx & power_factor_good_idx  # type: ignore
@@ -254,20 +256,20 @@ def pv_dc_combiner_module_excess_degradation(
             pcs_good_indices_inverter_itself_5m & pcs_from_child_module_good_indices_5m
         )
 
-        pv_pcs_voltage_v_5m = module_to_pcs_combiner.agg(
+        pv_inverter_voltage_v_5m = module_to_pcs_combiner.agg(
             pv_inverter_module_voltage_v_5m, agg=Aggregation.MEAN
         )
 
-        return pv_pcs_voltage_v_5m.where(pcs_good_indices_5m)
+        return pv_inverter_voltage_v_5m.where(pcs_good_indices_5m)
 
     def _combiner_pre_filtered_module_degradation(
         combiner_current_amps_5m: xr.DataArray,
-        pv_pcs_voltage_v_5m: xr.DataArray,
+        pv_inverter_voltage_v_5m: xr.DataArray,
     ) -> xr.DataArray:
         # / 1000 converts watts to kilowatts
         combiner_actual_power_5m = (
             combiner_current_amps_5m
-            * broadcast_pcs_to_combiner.broadcast(pv_pcs_voltage_v_5m)
+            * broadcast_pcs_to_combiner.broadcast(pv_inverter_voltage_v_5m)
         ) / 1000
         # converting 5 minute power to kwh by dividing by 12 (5 minutes * 12 = 1 hour)
         combiner_actual_energy_kwh_5m = combiner_actual_power_5m / 12
@@ -294,11 +296,11 @@ def pv_dc_combiner_module_excess_degradation(
 
     pv_dc_combiner_filtered_current_amps_5m = _pv_dc_combiner_filtered_current_amp_5m()
 
-    pv_pcs_filtered_voltage_v_5m = _pcs_filtered_voltage_v_5m()
+    pv_inverter_filtered_voltage_v_5m = _pcs_filtered_voltage_v_5m()
 
     module_degradation = _combiner_pre_filtered_module_degradation(
         combiner_current_amps_5m=pv_dc_combiner_filtered_current_amps_5m,
-        pv_pcs_voltage_v_5m=pv_pcs_filtered_voltage_v_5m,
+        pv_inverter_voltage_v_5m=pv_inverter_filtered_voltage_v_5m,
     )
 
     # if less than 15% of devices reporting, then skip that particular day

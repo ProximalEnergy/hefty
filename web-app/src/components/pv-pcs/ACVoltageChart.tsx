@@ -14,13 +14,13 @@ export const ACVoltageChart = ({ realtimeData }: ACVoltageChartProps) => {
 
   const voltageData = useMemo(() => {
     const voltageAB = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_VOLTAGE_LL_AB,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_AB,
     )
     const voltageBC = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_VOLTAGE_LL_BC,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_BC,
     )
     const voltageCA = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_VOLTAGE_LL_CA,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_CA,
     )
 
     if (

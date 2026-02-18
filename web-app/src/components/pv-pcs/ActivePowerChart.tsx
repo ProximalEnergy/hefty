@@ -11,7 +11,7 @@ import type { Data, PlotRelayoutEvent } from 'plotly.js'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
-const PV_PCS_DEVICE_TYPE_ID = DeviceTypeEnum.PV_PCS
+const PV_INVERTER_DEVICE_TYPE_ID = DeviceTypeEnum.PV_INVERTER
 
 interface ActivePowerChartProps {
   realtimeData: ReturnType<typeof useGetRealTimeByDeviceTypeID>
@@ -30,7 +30,7 @@ export const ActivePowerChart = ({
   const pcsExpectedPower = useGetExpectedPowerByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
+      deviceTypeId: PV_INVERTER_DEVICE_TYPE_ID,
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedEnergyIntegration === true,
@@ -48,10 +48,10 @@ export const ActivePowerChart = ({
 
   const activePowerChartData = useMemo(() => {
     const powerTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_AC_POWER,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER,
     )
     const setpointTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_AC_POWER_SETPOINT,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT,
     )
 
     if (
@@ -165,7 +165,7 @@ export const ActivePowerChart = ({
 
   const setpointShapes = useMemo(() => {
     const setpointTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_AC_POWER_SETPOINT,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT,
     )
 
     if (
@@ -259,10 +259,10 @@ export const ActivePowerChart = ({
   const yAxisRangeComputed = useMemo(() => {
     if (!maxCapacityMWac) return undefined
     const powerTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_AC_POWER,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER,
     )
     const setpointTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_AC_POWER_SETPOINT,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT,
     )
 
     const expectedPowerValues: number[] = []

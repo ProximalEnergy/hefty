@@ -1463,7 +1463,7 @@ const ModuleDegradation: React.FC = () => {
     pathParams: { projectId: projectId || '' },
     filters: {
       device_type_ids: [
-        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_INVERTER,
         DeviceTypeEnum.PV_BLOCK,
         DeviceTypeEnum.PV_DC_COMBINER,
         DeviceTypeEnum.PV_FEEDER,

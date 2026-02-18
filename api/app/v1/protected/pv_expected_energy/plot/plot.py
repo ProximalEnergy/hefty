@@ -108,8 +108,8 @@ async def utility_expected(
         expected_device_ids = [1]
         pv_dc_combiner = False
     # PV PCS
-    elif device["device_type_id"] == DeviceType.PV_PCS:
-        sensor_type_ids = [SensorType.PV_PCS_AC_POWER]
+    elif device["device_type_id"] == DeviceType.PV_INVERTER:
+        sensor_type_ids = [SensorType.PV_INVERTER_AC_POWER]
         expected_metric_id_clean = 9 if not warranted_degradation else 3
         expected_metric_id_soiled = 10 if not warranted_degradation else 4
         multiplier = 1_000.0
@@ -129,18 +129,18 @@ async def utility_expected(
     # Query device data
     # If combiner, need to pull PCS module voltage and combiner current
     if pv_dc_combiner:
-        device_pv_pcs_df = await core.crud.project.devices.get_project_devices(
-            device_type_ids=[DeviceType.PV_PCS],
+        device_pv_inverter_df = await core.crud.project.devices.get_project_devices(
+            device_type_ids=[DeviceType.PV_INVERTER],
             device_id_path_ancestor_of=device["device_id_path"],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
-        if device_pv_pcs_df.empty:
+        if device_pv_inverter_df.empty:
             raise HTTPException(status_code=404, detail="PV PCS device not found")
-        device_pv_pcs = device_pv_pcs_df.to_dict("records")[0]
+        device_pv_inverter = device_pv_inverter_df.to_dict("records")[0]
 
         devices_pv_inverter_modules_df = (
             await core.crud.project.devices.get_project_devices(
                 device_type_ids=[DeviceType.PV_INVERTER_MODULE],
-                device_id_descendent_of=int(device_pv_pcs["device_id"]),
+                device_id_descendent_of=int(device_pv_inverter["device_id"]),
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         )
 
@@ -161,8 +161,8 @@ async def utility_expected(
         if tags_pv_inverter_module_voltage.empty:
             tags_pv_inverter_module_voltage = (
                 await core.crud.project.tags.get_project_tags_v2(
-                    device_ids=[int(device_pv_pcs["device_id"])],
-                    sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
+                    device_ids=[int(device_pv_inverter["device_id"])],
+                    sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE],
                 ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
             )
 

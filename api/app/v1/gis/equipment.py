@@ -53,7 +53,7 @@ async def get_pcs(
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     devices_pcs = await core.crud.project.devices.get_project_devices(
-        device_type_ids=[DeviceType.PV_PCS],
+        device_type_ids=[DeviceType.PV_INVERTER],
     ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
 
     device_ids = (
@@ -67,7 +67,7 @@ async def get_pcs(
     )
 
     tags_pl = await core.crud.project.tags.get_project_tags_v2(
-        sensor_type_ids=[SensorType.PV_PCS_AC_POWER],
+        sensor_type_ids=[SensorType.PV_INVERTER_AC_POWER],
     ).get_async(output_type=OutputType.POLARS, schema=project_schema)
 
     tags_df = tags_pl.to_pandas()
@@ -228,7 +228,7 @@ async def get_pcs(
                     start=start.date(),
                     end=end.date(),
                     project_ids=[project_id],
-                    kpi_type_ids=[KPIType.PV_PCS_ENERGY_PRODUCTION],
+                    kpi_type_ids=[KPIType.PV_INVERTER_ENERGY_PRODUCTION],
                     include_device_data=True,
                 )
                 df_pcs = pd.DataFrame(
@@ -505,14 +505,14 @@ async def get_devices_in_viewport(
 
     # 2. Fetch power data for any PCS (type 2) devices if not already fetched as primary
     if (
-        power_device_type_id != DeviceType.PV_PCS
+        power_device_type_id != DeviceType.PV_INVERTER
     ):  # Check if PCS wasn't the primary type
         # Identify PCS devices that are in the viewport AND don't already have
         # their data fetched
         pcs_to_fetch_ids = [
             dev.device_id
             for dev in devices
-            if dev.device_type_id == DeviceType.PV_PCS
+            if dev.device_type_id == DeviceType.PV_INVERTER
             and dev.device_id not in all_device_extra_data
         ]
         if pcs_to_fetch_ids:
@@ -594,7 +594,7 @@ async def get_devices_in_viewport(
             # Assuming PCS (2, 13) and Combiner (9) expect their data under "power_data"
             # and utility_expected returns the payload directly for these types.
             elif device.device_type_id in [
-                DeviceType.PV_PCS,
+                DeviceType.PV_INVERTER,
                 DeviceType.PV_DC_COMBINER,
                 DeviceType.BESS_PCS,
             ]:
@@ -610,7 +610,7 @@ async def get_devices_in_viewport(
             if device.device_type_id == DeviceType.TRACKER_ROW:
                 device_dict["tracker_data"] = None
             elif device.device_type_id in [
-                DeviceType.PV_PCS,
+                DeviceType.PV_INVERTER,
                 DeviceType.PV_DC_COMBINER,
                 DeviceType.BESS_PCS,
             ]:
@@ -750,8 +750,8 @@ async def utility_expected(
     # --- Determine Parameters based on Device Type ---
     pv_dc_combiner_case = False
     sensor_type_ids = []  # Initialize for non-combiner case
-    if first_device_type_id == DeviceType.PV_PCS:
-        sensor_type_ids = [SensorType.PV_PCS_AC_POWER]
+    if first_device_type_id == DeviceType.PV_INVERTER:
+        sensor_type_ids = [SensorType.PV_INVERTER_AC_POWER]
         # Add fallback expected metric IDs for PCS (expected_metric_type_id 2)
         # Try with soiling first (10), then without soiling (9), then with
         # degradation (3), then without degradation (4)
@@ -837,7 +837,7 @@ async def utility_expected(
                     parent_pcs_ids.append(typing.cast(int, pcs_id))
                     combiner_to_parent_pcs_id[dev_id] = typing.cast(int, pcs_id)
             # If parent is already a PCS (type 2), use it directly
-            elif parent_device.device_type_id == DeviceType.PV_PCS:
+            elif parent_device.device_type_id == DeviceType.PV_INVERTER:
                 parent_pcs_ids.append(typing.cast(int, parent_id))
                 combiner_to_parent_pcs_id[dev_id] = typing.cast(int, parent_id)
             else:
@@ -913,7 +913,7 @@ async def utility_expected(
         if tags_voltage_pl.is_empty():
             tags_voltage_pl = await core.crud.project.tags.get_project_tags_v2(
                 device_ids=parent_pcs_ids,  # Use PCS device IDs for fallback
-                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE],
+                sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE],
             ).get_async(output_type=OutputType.POLARS, schema=project_schema)
             using_pcs_level_voltage = True
 

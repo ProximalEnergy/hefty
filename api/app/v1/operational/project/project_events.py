@@ -1004,23 +1004,23 @@ async def get_event_trace_tags(
     device_ids.extend(child_devices_df["device_id"].astype(int).tolist())
     device_ids.extend(ancestor_devices_df["device_id"].astype(int).tolist())
     match int(device["device_type_id"]):
-        case DeviceType.PV_PCS:
+        case DeviceType.PV_INVERTER:
             sensor_type_ids = [
-                SensorType.PV_PCS_AC_POWER,
-                SensorType.PV_PCS_AC_POWER_SETPOINT,
+                SensorType.PV_INVERTER_AC_POWER,
+                SensorType.PV_INVERTER_AC_POWER_SETPOINT,
                 SensorType.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
                 SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
-                SensorType.PV_PCS_STATUS,
+                SensorType.PV_INVERTER_STATUS,
                 SensorType.PV_INVERTER_MODULE_STATUS,
             ]
         case DeviceType.PV_INVERTER_MODULE:
             sensor_type_ids = [
-                SensorType.PV_PCS_AC_POWER,
+                SensorType.PV_INVERTER_AC_POWER,
                 SensorType.PV_INVERTER_MODULE_AC_POWER,
-                SensorType.PV_PCS_AC_POWER_SETPOINT,
+                SensorType.PV_INVERTER_AC_POWER_SETPOINT,
                 SensorType.PV_INVERTER_MODULE_INTERNAL_TEMPERATURE,
                 SensorType.PV_INVERTER_MODULE_DC_VOLTAGE,
-                SensorType.PV_PCS_STATUS,
+                SensorType.PV_INVERTER_STATUS,
                 SensorType.PV_INVERTER_MODULE_STATUS,
             ]
         case DeviceType.METER:
@@ -1029,10 +1029,10 @@ async def get_event_trace_tags(
             ]
         case DeviceType.PV_DC_COMBINER:
             sensor_type_ids = [
-                SensorType.PV_PCS_AC_POWER,
+                SensorType.PV_INVERTER_AC_POWER,
                 SensorType.PV_INVERTER_MODULE_AC_POWER,
                 SensorType.PV_DC_COMBINER_CURRENT,
-                SensorType.PV_PCS_STATUS,
+                SensorType.PV_INVERTER_STATUS,
                 SensorType.PV_INVERTER_MODULE_STATUS,
             ]
         case DeviceType.BESS_PCS:

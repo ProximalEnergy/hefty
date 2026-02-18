@@ -178,7 +178,7 @@ async def get_horizontal_pv(
     sensor_type_ids: list[int] = [
         SensorTypeEnum.METER_ACTIVE_POWER,
         SensorTypeEnum.MET_STATION_POA,
-        SensorTypeEnum.PV_PCS_AC_POWER,
+        SensorTypeEnum.PV_INVERTER_AC_POWER,
     ]
 
     project_schema = utils.get_project_schema(project_db=project_db)
@@ -190,7 +190,7 @@ async def get_horizontal_pv(
     category_mapping: dict[int, str] = {
         SensorTypeEnum.METER_ACTIVE_POWER: "meter_power",
         SensorTypeEnum.MET_STATION_POA: "met",
-        SensorTypeEnum.PV_PCS_AC_POWER: "pcs",
+        SensorTypeEnum.PV_INVERTER_AC_POWER: "pcs",
     }
 
     tag_ids = tags["tag_id"].astype(int)
@@ -503,8 +503,8 @@ async def get_vertical(
         end: Description for end.
     """
     SENSOR_TYPE_IDS_TO_LABEL: dict[int, str] = {
-        2: "Power (MW)",  # pv_pcs_ac_power
-        3: "Power (MW)",  # pv_pcs_ac_power_module
+        2: "Power (MW)",  # pv_inverter_ac_power
+        3: "Power (MW)",  # pv_inverter_ac_power_module
         27: "Current (A)",  # pv_dc_combiner_current
         24: "Position (deg)",  # tracker_row_position
         31: "Power (MW)",  # bess_pcs_ac_power

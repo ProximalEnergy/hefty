@@ -1,6 +1,5 @@
 import xarray as xr
 from core.enumerations import DeviceType
-
 from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
 
@@ -62,7 +61,7 @@ def solv_period_kwh_lost(
     # reduces unit power such that the total unit power is equal to the project meter power
     revised_unit_kw = (
         unit_power_ac_kw_5m
-        / unit_power_ac_kw_5m.sum(dim=DeviceType.PV_PCS.name.lower())
+        / unit_power_ac_kw_5m.sum(dim=DeviceType.PV_INVERTER.name.lower())
         * project_meter_power_kw_5m
     )
     # original contract also specifies that the unit is clipping when current is greater than the current
@@ -74,7 +73,7 @@ def solv_period_kwh_lost(
         unit_is_clipping_5m, unit_ac_capacity_kw, unit_dc_capacity_kw
     )
     project_average_of_all_units_ac_or_dc_capacity_kw_5m = (
-        unit_ac_or_dc_capacity_kw_5m.mean(dim=DeviceType.PV_PCS.name.lower())
+        unit_ac_or_dc_capacity_kw_5m.mean(dim=DeviceType.PV_INVERTER.name.lower())
     )
     normalized_unit_kw = (
         revised_unit_kw
@@ -82,10 +81,10 @@ def solv_period_kwh_lost(
         / unit_ac_or_dc_capacity_kw_5m
     )
     norm_p80 = normalized_unit_kw.quantile(
-        dim=DeviceType.PV_PCS.name.lower(), q=0.8
+        dim=DeviceType.PV_INVERTER.name.lower(), q=0.8
     ).drop("quantile")
     average_unit_nv = normalized_unit_kw.where(normalized_unit_kw > norm_p80).mean(
-        dim=DeviceType.PV_PCS.name.lower()
+        dim=DeviceType.PV_INVERTER.name.lower()
     )
     unit_power_lost_when_offline_kw_5m = (
         average_unit_nv
@@ -125,7 +124,7 @@ def solv_period_kwh_lost(
 
     # Step 3: For Facility Offline
 
-    facility_is_offline = unit_is_offline.all(dim=DeviceType.PV_PCS.name.lower())
+    facility_is_offline = unit_is_offline.all(dim=DeviceType.PV_INVERTER.name.lower())
 
     ## The contract has very specific language about the expected energy model used
     # however, since we do not have access to the month-of-year initial expected energy model, we
@@ -149,7 +148,7 @@ def solv_period_kwh_lost(
     )
 
     project_energy_lost_kwh_5m = unit_energy_lost_kwh_5m.sum(
-        dim=DeviceType.PV_PCS.name.lower()
+        dim=DeviceType.PV_INVERTER.name.lower()
     )
 
     # at the facility level

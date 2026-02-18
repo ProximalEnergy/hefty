@@ -18,7 +18,7 @@ import dayjs from 'dayjs'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
-const PV_PCS_DEVICE_TYPE_ID = DeviceTypeEnum.PV_PCS
+const PV_INVERTER_DEVICE_TYPE_ID = DeviceTypeEnum.PV_INVERTER
 
 interface StatsCardsProps {
   stats: {
@@ -70,10 +70,10 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   const realtimeData = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
+      deviceTypeId: PV_INVERTER_DEVICE_TYPE_ID,
     },
     queryParams: {
-      sensor_type_ids: [SensorTypeEnum.PV_PCS_AC_POWER],
+      sensor_type_ids: [SensorTypeEnum.PV_INVERTER_AC_POWER],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -85,7 +85,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   const pcsExpectedPower = useGetExpectedPowerByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
+      deviceTypeId: PV_INVERTER_DEVICE_TYPE_ID,
     },
     queryOptions: {
       enabled: !!projectId,
@@ -118,7 +118,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   const activeEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
+      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
       open: true,
     },
     queryOptions: {
@@ -154,7 +154,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   const cmmsTickets = useGetCMMSTickets({
     pathParams: { project_id: projectId || '-1' },
     queryParams: {
-      device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
+      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
     },
     queryOptions: {
       enabled: !!projectId,

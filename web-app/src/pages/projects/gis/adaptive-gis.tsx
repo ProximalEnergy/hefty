@@ -199,7 +199,7 @@ const viewNameMapping: { [key: number]: string } = {
 // Defines the parameters for each view that can be locked
 const layerLockConfig = {
   PCS: {
-    powerTypeId: DeviceTypeEnum.PV_PCS,
+    powerTypeId: DeviceTypeEnum.PV_INVERTER,
     // Use the function to stay consistent with dynamic calculations
     deviceTypeIds: calculateDeviceTypeIds(LOW_ZOOM),
     zoom: LOW_ZOOM,
@@ -386,7 +386,7 @@ export function AdaptiveGisMap() {
           // Case 2: Expected Power is missing or zero, fallback to capacity
           let usedCapacity = false
           if (
-            device.device_type_id === DeviceTypeEnum.PV_PCS &&
+            device.device_type_id === DeviceTypeEnum.PV_INVERTER &&
             device.capacity_ac &&
             device.capacity_ac > 0
           ) {
@@ -508,7 +508,7 @@ export function AdaptiveGisMap() {
           }
         }
         if (
-          device.device_type_id === DeviceTypeEnum.PV_PCS &&
+          device.device_type_id === DeviceTypeEnum.PV_INVERTER &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -545,7 +545,7 @@ export function AdaptiveGisMap() {
         }
         // PCS and Met points (same as VERY_HIGH_ZOOM, repeated for clarity)
         if (
-          device.device_type_id === DeviceTypeEnum.PV_PCS &&
+          device.device_type_id === DeviceTypeEnum.PV_INVERTER &&
           device.point &&
           Array.isArray(device.point.coordinates)
         ) {
@@ -568,7 +568,7 @@ export function AdaptiveGisMap() {
         }
       } else if (effectiveZoom >= LOW_ZOOM) {
         // MEDIUM ZOOM: PCS (point & polygon)
-        if (device.device_type_id === DeviceTypeEnum.PV_PCS) {
+        if (device.device_type_id === DeviceTypeEnum.PV_INVERTER) {
           // Check polygon validity
           if (
             device.polygon &&
@@ -606,7 +606,7 @@ export function AdaptiveGisMap() {
         // LOW ZOOM: PCS (polygon)
         // Check polygon validity
         if (
-          device.device_type_id === DeviceTypeEnum.PV_PCS &&
+          device.device_type_id === DeviceTypeEnum.PV_INVERTER &&
           device.polygon &&
           Array.isArray(device.polygon.coordinates) &&
           device.polygon.coordinates.length > 0
@@ -1193,7 +1193,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
 
   // Determine device type string
   let deviceTypeString = 'Device'
-  if (props?.device_type_id === DeviceTypeEnum.PV_PCS) {
+  if (props?.device_type_id === DeviceTypeEnum.PV_INVERTER) {
     deviceTypeString = 'PCS'
   } else if (props?.device_type_id === DeviceTypeEnum.PV_DC_COMBINER) {
     deviceTypeString = 'Combiner' // Or DC Combiner?

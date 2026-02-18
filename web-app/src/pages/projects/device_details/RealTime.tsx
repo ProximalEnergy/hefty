@@ -84,8 +84,8 @@ const Page = ({
       label: 'PV PCS',
       deviceId: '2',
       sensorTypeIds: [
-        String(SensorTypeEnum.PV_PCS_AC_POWER),
-        String(SensorTypeEnum.PV_PCS_AC_POWER_SETPOINT),
+        String(SensorTypeEnum.PV_INVERTER_AC_POWER),
+        String(SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT),
       ],
     },
     {
@@ -155,7 +155,7 @@ const Page = ({
     if (projectData.data) {
       const defaultDeviceTypeId =
         projectData.data?.project_type_id === ProjectTypeEnum.PV
-          ? DeviceTypeEnum.PV_PCS
+          ? DeviceTypeEnum.PV_INVERTER
           : DeviceTypeEnum.BESS_PCS
       queueMicrotask(() =>
         setDeviceTypeId(initialDeviceTypeId ?? defaultDeviceTypeId),
@@ -445,7 +445,7 @@ const Page = ({
 
   const getChartDescription = () => {
     switch (deviceTypeId) {
-      case DeviceTypeEnum.PV_PCS:
+      case DeviceTypeEnum.PV_INVERTER:
         return (
           <Stack gap="xs">
             <Text fw={600}>Understanding PV PCS Power Output</Text>

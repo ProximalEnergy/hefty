@@ -117,7 +117,7 @@ const Page = () => {
     },
     filters: {
       device_type_ids: [
-        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_INVERTER,
         DeviceTypeEnum.PV_BLOCK,
         DeviceTypeEnum.PV_DC_COMBINER,
       ],
@@ -136,7 +136,7 @@ const Page = () => {
   })
 
   const pcsDeviceIds = devices.data
-    ?.filter((d) => d.device_type_id === DeviceTypeEnum.PV_PCS)
+    ?.filter((d) => d.device_type_id === DeviceTypeEnum.PV_INVERTER)
     .map((d) => d.device_id)
 
   const combinerDeviceIds = devices.data

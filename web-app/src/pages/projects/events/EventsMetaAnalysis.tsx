@@ -92,7 +92,7 @@ const Page = () => {
       end: endDate.format('YYYY-MM-DD'),
       project_ids: [projectId as string],
       kpi_type_ids: [
-        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
         KPITypeEnum.PERFORMANCE_RATIO,
         KPITypeEnum.BESS_BANK_AVAILABILITY,
         KPITypeEnum.BESS_PCS_AVAILABILITY,
@@ -104,7 +104,7 @@ const Page = () => {
   const kpiTypeData = useGetKPITypes({
     queryParams: {
       kpi_type_ids: [
-        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
         KPITypeEnum.PERFORMANCE_RATIO,
         KPITypeEnum.BESS_BANK_AVAILABILITY,
         KPITypeEnum.BESS_PCS_AVAILABILITY,

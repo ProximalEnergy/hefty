@@ -646,9 +646,9 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
     project_theoretical_poa_irradiance_w_m2_5m_var: str
     project_meter_power_kw_5m_var: str
     project_poi_limit_kw_var: str
-    pv_pcs_ac_power_kw_5m_var: str
-    pv_pcs_ac_power_capacity_kw_var: str
-    pv_pcs_reactive_power_kvar_5m_var: str
+    pv_inverter_ac_power_kw_5m_var: str
+    pv_inverter_ac_power_capacity_kw_var: str
+    pv_inverter_reactive_power_kvar_5m_var: str
     pv_inverter_module_voltage_v_5m_var: str
     pv_inverter_module_power_kw_5m_var: str
     pv_inverter_module_power_capacity_kw_var: str
@@ -662,8 +662,8 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
     broadcast_block_to_combiner_model: CoordCombinerModel
     module_to_pcs_combiner_model: CoordCombinerModel
     final_time_combiner_model: CoordCombinerModel
-    pv_pcs_ac_power_setpoint_kw_5m_var: str | None = None
-    pv_pcs_voltage_v_5m_var: str | None = None
+    pv_inverter_ac_power_setpoint_kw_5m_var: str | None = None
+    pv_inverter_voltage_v_5m_var: str | None = None
     min_poa: float = 250.0
     max_poa_1d: float = 20.0
     max_poa_std: float = 7.5
@@ -681,12 +681,14 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
                 dataset, self.project_meter_power_kw_5m_var
             ),
             project_poi_limit_kw=select(dataset, self.project_poi_limit_kw_var),
-            pv_pcs_ac_power_kw_5m=select(dataset, self.pv_pcs_ac_power_kw_5m_var),
-            pv_pcs_ac_power_capacity_kw=select(
-                dataset, self.pv_pcs_ac_power_capacity_kw_var
+            pv_inverter_ac_power_kw_5m=select(
+                dataset, self.pv_inverter_ac_power_kw_5m_var
             ),
-            pv_pcs_reactive_power_kvar_5m=select(
-                dataset, self.pv_pcs_reactive_power_kvar_5m_var
+            pv_inverter_ac_power_capacity_kw=select(
+                dataset, self.pv_inverter_ac_power_capacity_kw_var
+            ),
+            pv_inverter_reactive_power_kvar_5m=select(
+                dataset, self.pv_inverter_reactive_power_kvar_5m_var
             ),
             pv_inverter_module_voltage_v_5m=select(
                 dataset, self.pv_inverter_module_voltage_v_5m_var
@@ -723,10 +725,12 @@ class PvDcCombinerModuleExcessDegradationCalc(CalcBase):
                 self.module_to_pcs_combiner_model, context
             ),
             final_time_combiner=coord_combiner(self.final_time_combiner_model, context),
-            pv_pcs_ac_power_setpoint_kw_5m=optional(
-                dataset, self.pv_pcs_ac_power_setpoint_kw_5m_var
+            pv_inverter_ac_power_setpoint_kw_5m=optional(
+                dataset, self.pv_inverter_ac_power_setpoint_kw_5m_var
             ),
-            pv_pcs_voltage_v_5m=optional(dataset, self.pv_pcs_voltage_v_5m_var),
+            pv_inverter_voltage_v_5m=optional(
+                dataset, self.pv_inverter_voltage_v_5m_var
+            ),
             min_poa=self.min_poa,
             max_poa_1d=self.max_poa_1d,
             max_poa_std=self.max_poa_std,

@@ -1087,14 +1087,14 @@ const Page: React.FC = () => {
   }, [poaTimeseriesQuery.data])
 
   // Fetch daily KPI data for stats (single day).
-  // For PVS projects we also need PV-only generation (PV_PCS or PV_INVERTER_MODULE).
+  // For PVS projects we also need PV-only generation (PV_INVERTER or PV_INVERTER_MODULE).
   const dailyKpiData = useGetOperationalKPIData({
     queryParams: {
       project_ids: [projectId || ''],
       kpi_type_ids: [
-        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
         KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
-        KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_INVERTER_ENERGY_PRODUCTION,
         KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
         KPITypeEnum.PERFORMANCE_RATIO,
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
@@ -1122,7 +1122,7 @@ const Page: React.FC = () => {
       project_ids: [projectId || ''],
       kpi_type_ids: [
         KPITypeEnum.PROJECT_ENERGY_PRODUCTION,
-        KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        KPITypeEnum.PV_INVERTER_ENERGY_PRODUCTION,
         KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
         KPITypeEnum.PV_PROJECT_EXPECTED_ENERGY_DELIVERED,
       ],
@@ -1329,7 +1329,7 @@ const Page: React.FC = () => {
   const kpiTypesQuery = useGetKPITypes({
     queryParams: {
       kpi_type_ids: [
-        KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
         KPITypeEnum.PERFORMANCE_RATIO,
       ],
     },
@@ -1506,7 +1506,7 @@ const Page: React.FC = () => {
     )
     const pvPcsKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_ENERGY_PRODUCTION,
     )
     const pvPcsModuleKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
@@ -1546,7 +1546,7 @@ const Page: React.FC = () => {
   const stats = useMemo(() => {
     const availabilityKpi = dailyKpiData.data?.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
     )
     const {
       actualMWh: generationMWh,
@@ -1668,7 +1668,7 @@ const Page: React.FC = () => {
           kpiTypeDescriptions[1] ||
           'PCS mechanical availability for the selected day'
         }${curtailmentMWh !== 0 ? `. Energy curtailment: ${curtailmentMWh.toFixed(1)} MWh` : ''}`,
-        kpiTypeId: KPITypeEnum.PV_PCS_MECHANICAL_AVAILABILITY,
+        kpiTypeId: KPITypeEnum.PV_INVERTER_MECHANICAL_AVAILABILITY,
         link: `/projects/${projectId}/kpis/type/1`,
       },
     ]
@@ -1699,7 +1699,7 @@ const Page: React.FC = () => {
     )
     const pvPcsKpi = trailingKpiData.data?.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_ENERGY_PRODUCTION,
     )
     const pvPcsModuleKpi = trailingKpiData.data?.find(
       (kpi: OperationalKPIData) =>
@@ -2307,7 +2307,7 @@ const Page: React.FC = () => {
     )
     const trailingPvPcsKpi = trailingKpiData.data.find(
       (kpi: OperationalKPIData) =>
-        kpi.kpi_type_id === KPITypeEnum.PV_PCS_ENERGY_PRODUCTION,
+        kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_ENERGY_PRODUCTION,
     )
     const trailingPvPcsModuleKpi = trailingKpiData.data.find(
       (kpi: OperationalKPIData) =>

@@ -166,15 +166,15 @@ class AggregatePV(AddCalculationsSchema):
         child_device_axis=DeviceType.PV_INVERTER_MODULE,
     )
 
-    pv_pcs_energy_production_kwh_d = _aggregate(
-        var=Calculate.pv_pcs_energy_production_kwh_5m.var,
+    pv_inverter_energy_production_kwh_d = _aggregate(
+        var=Calculate.pv_inverter_energy_production_kwh_5m.var,
         agg=Aggregation.SUM,
     )
 
     project_energy_production_pcs_kwh_d = _aggregate(
-        var=Calculate.pv_pcs_energy_production_kwh_5m.var,
+        var=Calculate.pv_inverter_energy_production_kwh_5m.var,
         agg=Aggregation.SUM,
-        child_device_axis=DeviceType.PV_PCS,
+        child_device_axis=DeviceType.PV_INVERTER,
     )
 
     project_energy_production_kwh_d = _aggregate(
@@ -215,10 +215,10 @@ class AggregatePV(AddCalculationsSchema):
         )
     )
 
-    pv_pcs_mechanical_availability_d = Field(
+    pv_inverter_mechanical_availability_d = Field(
         CalcProcess(
             calc=MechanicalAvailabilityCalc(
-                power_kw_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
+                power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 poa_threshold=90,
                 time_combiner_model=_5min_to_daily(),
@@ -230,11 +230,11 @@ class AggregatePV(AddCalculationsSchema):
     project_mechanical_availability_pcs_d = Field(
         CalcProcess(
             calc=MechanicalAvailabilityCalc(
-                power_kw_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
+                power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 poa_threshold=90,
                 time_combiner_model=_5min_to_daily(
-                    child_device_axis=DeviceType.PV_PCS,
+                    child_device_axis=DeviceType.PV_INVERTER,
                 ),
             ),
             process=FilterToRangeProcess(min_value=0, max_value=1),
@@ -244,12 +244,12 @@ class AggregatePV(AddCalculationsSchema):
     pv_dc_combiner_mechanical_availability_d = Field(
         CalcProcess(
             calc=CombinerMechanicalAvailabilityCalc(
-                pcs_power_kw_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
+                pcs_power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 combiner_current_amps_var=Download.time_series.pv_dc_combiner_current_amps_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 combiner_to_pcs_combiner_model=CoordCombinerModel(
                     child_device_axis=DeviceType.PV_DC_COMBINER,
-                    parent_device_axis=DeviceType.PV_PCS,
+                    parent_device_axis=DeviceType.PV_INVERTER,
                 ),
                 time_combiner_model=_5min_to_daily(),
             ),
@@ -260,12 +260,12 @@ class AggregatePV(AddCalculationsSchema):
     project_combiner_mechanical_availability_d = Field(
         CalcProcess(
             calc=CombinerMechanicalAvailabilityCalc(
-                pcs_power_kw_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
+                pcs_power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 combiner_current_amps_var=Download.time_series.pv_dc_combiner_current_amps_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 combiner_to_pcs_combiner_model=CoordCombinerModel(
                     child_device_axis=DeviceType.PV_DC_COMBINER,
-                    parent_device_axis=DeviceType.PV_PCS,
+                    parent_device_axis=DeviceType.PV_INVERTER,
                 ),
                 time_combiner_model=_5min_to_daily(
                     child_device_axis=DeviceType.PV_DC_COMBINER,
@@ -287,9 +287,9 @@ class AggregatePV(AddCalculationsSchema):
                 project_theoretical_poa_irradiance_w_m2_5m_var=Calculate.project_theoretical_poa_irradiance_w_m2_5m.var,
                 project_meter_power_kw_5m_var=Validate.project_active_power_meter_kw_5m.var,
                 project_poi_limit_kw_var=Download.project_attributes.project_poi_limit_kw.var,
-                pv_pcs_ac_power_kw_5m_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
-                pv_pcs_ac_power_capacity_kw_var=Validate.pv_pcs_ac_capacity_kw.var,
-                pv_pcs_reactive_power_kvar_5m_var=Download.time_series.pv_pcs_reactive_power_kvar_5m.var,
+                pv_inverter_ac_power_kw_5m_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
+                pv_inverter_ac_power_capacity_kw_var=Validate.pv_inverter_ac_capacity_kw.var,
+                pv_inverter_reactive_power_kvar_5m_var=Download.time_series.pv_inverter_reactive_power_kvar_5m.var,
                 pv_inverter_module_voltage_v_5m_var=Validate.pv_inverter_module_voltage_v_5m.var,
                 pv_inverter_module_power_kw_5m_var=Download.time_series.pv_inverter_module_power_ac_kw_5m.var,
                 pv_inverter_module_power_capacity_kw_var=Download.device_attributes.pv_inverter_module_power_ac_capacity_kw.var,
@@ -300,7 +300,7 @@ class AggregatePV(AddCalculationsSchema):
                 pv_dc_combiner_expected_energy_kwh_5m_var=Calculate.pv_dc_combiner_energy_expected_best_kwh_5m.var,
                 daily_combiner_model=_5min_to_daily(),
                 broadcast_pcs_to_combiner_model=CoordCombinerModel(
-                    parent_device_axis=DeviceType.PV_PCS,
+                    parent_device_axis=DeviceType.PV_INVERTER,
                     child_device_axis=DeviceType.PV_DC_COMBINER,
                 ),
                 broadcast_block_to_combiner_model=CoordCombinerModel(
@@ -309,11 +309,11 @@ class AggregatePV(AddCalculationsSchema):
                 ),
                 module_to_pcs_combiner_model=CoordCombinerModel(
                     child_device_axis=DeviceType.PV_INVERTER_MODULE,
-                    parent_device_axis=DeviceType.PV_PCS,
+                    parent_device_axis=DeviceType.PV_INVERTER,
                 ),
                 final_time_combiner_model=_5min_to_daily(),
-                pv_pcs_ac_power_setpoint_kw_5m_var=Validate.pv_pcs_active_power_setpoint_kw_5m.var,
-                pv_pcs_voltage_v_5m_var=Validate.pv_pcs_voltage_v_5m.var,
+                pv_inverter_ac_power_setpoint_kw_5m_var=Validate.pv_inverter_active_power_setpoint_kw_5m.var,
+                pv_inverter_voltage_v_5m_var=Validate.pv_inverter_voltage_v_5m.var,
             ),
             process=FilterToRangeProcess(min_value=0, max_value=1),
         )
@@ -368,11 +368,11 @@ class AggregatePV(AddCalculationsSchema):
     project_solv_period_kwh_lost_d = Field(
         SolvPeriodKwhLostCalc(
             project_irradiance_poa_w_m2_5m_var=Calculate.project_irradiance_poa_w_m2_5m.var,
-            unit_power_ac_kw_5m_var=Validate.pv_pcs_active_power_ac_kw_5m.var,
-            unit_power_setpoint_kw_5m_var=Validate.pv_pcs_active_power_setpoint_kw_5m.var,
+            unit_power_ac_kw_5m_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
+            unit_power_setpoint_kw_5m_var=Validate.pv_inverter_active_power_setpoint_kw_5m.var,
             project_meter_power_kw_5m_var=Validate.project_active_power_meter_kw_5m.var,
-            unit_ac_capacity_kw_var=Validate.pv_pcs_ac_capacity_kw.var,
-            unit_dc_capacity_kw_var=Validate.pv_pcs_dc_capacity_kw.var,
+            unit_ac_capacity_kw_var=Validate.pv_inverter_ac_capacity_kw.var,
+            unit_dc_capacity_kw_var=Validate.pv_inverter_dc_capacity_kw.var,
             project_expected_energy_kwh_5m_var=Calculate.project_energy_expected_best_kwh_5m.var,
             time_combiner_model=_5min_to_daily(),
         )

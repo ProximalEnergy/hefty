@@ -61,7 +61,7 @@ async def get_expected_power(
     devices["device_type_id"] = devices["device_type_id"].astype(int)
     device_types = {
         1: "Project",
-        2: "PV_PCS",
+        2: "PV_INVERTER",
         5: "Meter",
         9: "PV_DC_Combiner",
     }
@@ -178,7 +178,7 @@ async def get_expected_power(
                     "device_id": device_id,
                     "device_name_long": device_name_long,
                     "name": name_with_metric,
-                    "sensor_type_name": "pv_pcs_expected_power",
+                    "sensor_type_name": "pv_inverter_expected_power",
                     "tag_id": -device_id,
                     "tag_name_long": "",
                     "tag_name_scada": name_with_metric,
@@ -206,7 +206,7 @@ async def get_expected_power(
                     "device_id": device_id_int,
                     "device_name_long": device_name_long,
                     "name": base_name,
-                    "sensor_type_name": "pv_pcs_expected_power",
+                    "sensor_type_name": "pv_inverter_expected_power",
                     "tag_id": -device_id_int,
                     "tag_name_long": "",
                     "tag_name_scada": base_name,

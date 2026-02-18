@@ -24,11 +24,11 @@ class ValidatePV(AddCalculationsSchema):
     pv_dc_combiner_power_capacity_dc_kw = _capacity(
         Download.device_attributes.pv_dc_combiner_power_capacity_dc_kw.var
     )
-    pv_pcs_ac_capacity_kw = _capacity(
-        Download.device_attributes.pv_pcs_ac_capacity_kw.var
+    pv_inverter_ac_capacity_kw = _capacity(
+        Download.device_attributes.pv_inverter_ac_capacity_kw.var
     )
-    pv_pcs_dc_capacity_kw = _capacity(
-        Download.device_attributes.pv_pcs_dc_capacity_kw.var
+    pv_inverter_dc_capacity_kw = _capacity(
+        Download.device_attributes.pv_inverter_dc_capacity_kw.var
     )
 
     met_station_irradiance_poa_w_m2_5m = Field(
@@ -56,10 +56,10 @@ class ValidatePV(AddCalculationsSchema):
         )
     )
 
-    pv_pcs_active_power_ac_kw_5m = Field(
+    pv_inverter_active_power_ac_kw_5m = Field(
         calc.FilterByCapacityCalc(
-            data_var=Download.time_series.pv_pcs_active_power_ac_kw_5m.var,
-            capacity_var=Download.device_attributes.pv_pcs_ac_capacity_kw.var,
+            data_var=Download.time_series.pv_inverter_active_power_ac_kw_5m.var,
+            capacity_var=Download.device_attributes.pv_inverter_ac_capacity_kw.var,
             min_capacity_factor=0.0,
             max_capacity_factor=1.0,
         )
@@ -75,10 +75,10 @@ class ValidatePV(AddCalculationsSchema):
         )
     )
 
-    pv_pcs_active_power_setpoint_kw_5m = Field(
+    pv_inverter_active_power_setpoint_kw_5m = Field(
         calc.FilterByCapacityCalc(
-            data_var=Download.time_series.pv_pcs_active_power_setpoint_kw_5m.var,
-            capacity_var=Download.device_attributes.pv_pcs_ac_capacity_kw.var,
+            data_var=Download.time_series.pv_inverter_active_power_setpoint_kw_5m.var,
+            capacity_var=Download.device_attributes.pv_inverter_ac_capacity_kw.var,
             min_capacity_factor=0.0,
             max_capacity_factor=1.0,
         )
@@ -105,7 +105,9 @@ class ValidatePV(AddCalculationsSchema):
     )
 
     # voltage validation
-    pv_pcs_voltage_v_5m = _voltage_pv(Download.time_series.pv_pcs_voltage_v_5m.var)
+    pv_inverter_voltage_v_5m = _voltage_pv(
+        Download.time_series.pv_inverter_voltage_v_5m.var
+    )
     pv_inverter_module_voltage_v_5m = _voltage_pv(
         Download.time_series.pv_inverter_module_voltage_v_5m.var
     )

@@ -1,7 +1,7 @@
 # KPI Types Tests
 
 # Get KPI type by name
-GET {{baseURL}}/v1/operational/kpi-types/by-name/pv_pcs_mechanical_availability
+GET {{baseURL}}/v1/operational/kpi-types/by-name/pv_inverter_mechanical_availability
 x-api-key: {{apiKey}}
 HTTP 200
 [Asserts]

@@ -65,7 +65,7 @@ const REPORT_CONFIG: {
       'tracker-availability?report_type_id=' +
       ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT,
     [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: 'inverter-availability',
-    [ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE]:
+    [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]:
       'pcs-apparent-vs-voltage',
     [ReportTypeEnum.PV_PERFORMANCE_DAILY]: 'daily-performance',
     [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: 'eec-bess-monthly-report',
@@ -81,7 +81,7 @@ const REPORT_CONFIG: {
   },
   selectable_date_range: {
     [ReportTypeEnum.MODULE_DEGRADATION]: true,
-    [ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE]: true,
+    [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]: true,
     [ReportTypeEnum.EEC_BESS_MONTHLY_REPORT]: true,
   },
   downloadable_excel: {
@@ -119,7 +119,7 @@ const REPORT_DEVICE_GROUP: Record<
   [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_SETPOINT]: 'Tracker',
   [ReportTypeEnum.TRACKER_AVAILABILITY_POSITION_VS_MEDIAN_SETPOINT]: 'Tracker',
   [ReportTypeEnum.INVERTER_MECHANICAL_AVAILABILITY]: 'Inverter',
-  [ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE]: 'Inverter',
+  [ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE]: 'Inverter',
   [ReportTypeEnum.DC_AMPERAGE]: 'Combiner',
   [ReportTypeEnum.MODULE_DEGRADATION]: 'Module',
 }
@@ -562,7 +562,9 @@ const ReportCardTypeIcon = ({ reportTypeId }: { reportTypeId: number }) => {
     )
   }
 
-  if (reportTypeId === ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE) {
+  if (
+    reportTypeId === ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE
+  ) {
     return (
       <svg {...commonProps}>
         <path

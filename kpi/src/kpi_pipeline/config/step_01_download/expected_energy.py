@@ -29,18 +29,18 @@ class DownloadExpectedEnergy(DownloadExpectedEnergySchema):
         )
     )
 
-    pv_pcs_power_expected_degraded_kw_5m = Field(
+    pv_inverter_power_expected_degraded_kw_5m = Field(
         ExpectedEnergyModel(
             expected_metric_id=3,
-            device_type=DeviceType.PV_PCS,
+            device_type=DeviceType.PV_INVERTER,
             scale=0.001,
         )
     )
 
-    pv_pcs_power_expected_degraded_soiled_kw_5m = Field(
+    pv_inverter_power_expected_degraded_soiled_kw_5m = Field(
         ExpectedEnergyModel(
             expected_metric_id=4,
-            device_type=DeviceType.PV_PCS,
+            device_type=DeviceType.PV_INVERTER,
             scale=0.001,
         )
     )
@@ -79,18 +79,18 @@ class DownloadExpectedEnergy(DownloadExpectedEnergySchema):
         )
     )
 
-    pv_pcs_power_expected_kw_5m = Field(
+    pv_inverter_power_expected_kw_5m = Field(
         ExpectedEnergyModel(
             expected_metric_id=9,
-            device_type=DeviceType.PV_PCS,
+            device_type=DeviceType.PV_INVERTER,
             scale=0.001,
         )
     )
 
-    pv_pcs_power_expected_soiled_kw_5m = Field(
+    pv_inverter_power_expected_soiled_kw_5m = Field(
         ExpectedEnergyModel(
             expected_metric_id=10,
-            device_type=DeviceType.PV_PCS,
+            device_type=DeviceType.PV_INVERTER,
             scale=0.001,
         )
     )

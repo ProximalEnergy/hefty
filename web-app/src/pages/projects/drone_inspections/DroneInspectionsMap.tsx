@@ -199,8 +199,8 @@ const viewNameMapping: { [key: number]: string } = {
 // --- Layer Lock Configuration ---
 const layerLockConfig = {
   PCS: {
-    powerTypeId: DeviceTypeEnum.PV_PCS,
-    deviceTypeIds: [DeviceTypeEnum.PV_PCS],
+    powerTypeId: DeviceTypeEnum.PV_INVERTER,
+    deviceTypeIds: [DeviceTypeEnum.PV_INVERTER],
     zoom: LOW_ZOOM,
   },
   'DC Combiner': {

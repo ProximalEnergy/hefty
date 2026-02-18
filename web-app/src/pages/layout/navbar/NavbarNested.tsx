@@ -51,7 +51,7 @@ import * as links from './links'
 // Mapping from device_type_id to equipment-analysis tab value
 // Note: Multiple device types can map to the same tab (e.g., BESS_STRING and BESS_BLOCK both map to 'bess')
 const DEVICE_TYPE_TO_TAB_MAP: Record<number, string> = {
-  [DeviceTypeEnum.PV_PCS]: 'pv-pcs',
+  [DeviceTypeEnum.PV_INVERTER]: 'pv-pcs',
   [DeviceTypeEnum.PV_DC_COMBINER]: 'pv-dc-combiner',
   [DeviceTypeEnum.TRACKER_ROW]: 'tracker',
   [DeviceTypeEnum.MET_STATION]: 'met-station',
@@ -70,7 +70,7 @@ const DEVICE_TYPE_PRIORITY: Record<number, number> = {
 // Custom sort order for menu items (lower number = appears earlier)
 const DEVICE_TYPE_MENU_ORDER: Record<number, number> = {
   [DeviceTypeEnum.PV_FEEDER]: 1,
-  [DeviceTypeEnum.PV_PCS]: 2,
+  [DeviceTypeEnum.PV_INVERTER]: 2,
   [DeviceTypeEnum.PV_DC_COMBINER]: 3,
   [DeviceTypeEnum.TRACKER_ROW]: 4,
   [DeviceTypeEnum.BESS_PCS]: 5,

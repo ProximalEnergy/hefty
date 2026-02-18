@@ -24,7 +24,7 @@ import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
-const PV_PCS_DEVICE_TYPE_ID = DeviceTypeEnum.PV_PCS
+const PV_INVERTER_DEVICE_TYPE_ID = DeviceTypeEnum.PV_INVERTER
 
 const findLatestExpectedPower = (series?: DataTimeSeries[]) => {
   let value: number | null = null
@@ -61,7 +61,7 @@ const RealtimeTab = () => {
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
+      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -72,19 +72,19 @@ const RealtimeTab = () => {
   const realtimeData = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
+      deviceTypeId: PV_INVERTER_DEVICE_TYPE_ID,
     },
     queryParams: {
       sensor_type_ids: [
-        SensorTypeEnum.PV_PCS_AC_POWER,
-        SensorTypeEnum.PV_PCS_AC_POWER_SETPOINT,
-        SensorTypeEnum.PV_PCS_REACTIVE_POWER,
-        SensorTypeEnum.PV_PCS_REACTIVE_POWER_SETPOINT,
-        SensorTypeEnum.PV_PCS_VOLTAGE_LL_AB,
-        SensorTypeEnum.PV_PCS_VOLTAGE_LL_BC,
-        SensorTypeEnum.PV_PCS_VOLTAGE_LL_CA,
-        SensorTypeEnum.PV_PCS_DC_VOLTAGE,
-        SensorTypeEnum.PV_PCS_STATUS,
+        SensorTypeEnum.PV_INVERTER_AC_POWER,
+        SensorTypeEnum.PV_INVERTER_AC_POWER_SETPOINT,
+        SensorTypeEnum.PV_INVERTER_REACTIVE_POWER,
+        SensorTypeEnum.PV_INVERTER_REACTIVE_POWER_SETPOINT,
+        SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_AB,
+        SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_BC,
+        SensorTypeEnum.PV_INVERTER_VOLTAGE_LL_CA,
+        SensorTypeEnum.PV_INVERTER_DC_VOLTAGE,
+        SensorTypeEnum.PV_INVERTER_STATUS,
         SensorTypeEnum.PV_INVERTER_MODULE_EFFICIENCY,
       ],
     },
@@ -99,7 +99,7 @@ const RealtimeTab = () => {
   const activeEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
-      device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
+      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
       open: true,
     },
     queryOptions: {
@@ -178,7 +178,7 @@ const RealtimeTab = () => {
   const cmmsTickets = useGetCMMSTickets({
     pathParams: { project_id: projectId || '-1' },
     queryParams: {
-      device_type_ids: [PV_PCS_DEVICE_TYPE_ID],
+      device_type_ids: [PV_INVERTER_DEVICE_TYPE_ID],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -190,7 +190,7 @@ const RealtimeTab = () => {
   const pcsExpectedPower = useGetExpectedPowerByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: PV_PCS_DEVICE_TYPE_ID,
+      deviceTypeId: PV_INVERTER_DEVICE_TYPE_ID,
     },
     queryOptions: {
       enabled: !!projectId && hasExpectedIntegration === true,
@@ -231,10 +231,10 @@ const RealtimeTab = () => {
   // Calculate stats from realtime data
   const stats = useMemo(() => {
     const powerTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_AC_POWER,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_AC_POWER,
     )
     const reactivePowerTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER,
     )
     const efficiencyTrace = realtimeData.data?.traces?.find(
       (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_MODULE_EFFICIENCY,

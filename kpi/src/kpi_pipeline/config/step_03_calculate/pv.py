@@ -22,10 +22,10 @@ from kpi_pipeline.services.schema import AddCalculationsSchema
 
 
 class CalculatePV(AddCalculationsSchema):
-    pv_pcs_energy_production_kwh_5m = Field(
+    pv_inverter_energy_production_kwh_5m = Field(
         CalcProcess(
             calc=SelectCalc(
-                var=Download.time_series.pv_pcs_energy_production_total_kwh_5m.var
+                var=Download.time_series.pv_inverter_energy_production_total_kwh_5m.var
             ),
             process=DiffProcess(),
         ),

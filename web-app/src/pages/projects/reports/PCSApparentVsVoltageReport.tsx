@@ -14,7 +14,7 @@ const MAX_DAYS = 3
 
 const Page: React.FC = () => {
   useProjectFilter({
-    reportTypeId: ReportTypeEnum.PV_PCS_APPARENT_POWER_VS_AC_VOLTAGE,
+    reportTypeId: ReportTypeEnum.PV_INVERTER_APPARENT_POWER_VS_AC_VOLTAGE,
   })
 
   const { projectId } = useParams<{ projectId: string }>()

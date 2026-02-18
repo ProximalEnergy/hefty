@@ -75,7 +75,7 @@ const Page = () => {
     filters: {
       device_type_ids: [
         DeviceTypeEnum.PV_DC_COMBINER,
-        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_INVERTER,
         DeviceTypeEnum.PV_INVERTER_MODULE,
       ],
     },
@@ -89,7 +89,7 @@ const Page = () => {
     let currentDevice = devicesMap[deviceId]
     while (
       currentDevice &&
-      currentDevice.device_type_id !== DeviceTypeEnum.PV_PCS &&
+      currentDevice.device_type_id !== DeviceTypeEnum.PV_INVERTER &&
       currentDevice.parent_device_id !== null
     ) {
       currentDevice = devicesMap[currentDevice.parent_device_id]

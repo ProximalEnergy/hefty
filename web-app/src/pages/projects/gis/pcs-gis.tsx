@@ -159,7 +159,7 @@ export function PCSGISMap({
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DeviceTypeEnum.PV_PCS, DeviceTypeEnum.PV_BLOCK],
+      device_type_ids: [DeviceTypeEnum.PV_INVERTER, DeviceTypeEnum.PV_BLOCK],
     },
   })
 
@@ -202,13 +202,13 @@ export function PCSGISMap({
   const filteredDevices = devices.data?.filter((device) =>
     block
       ? device.device_type_id === DeviceTypeEnum.PV_BLOCK
-      : device.device_type_id === DeviceTypeEnum.PV_PCS,
+      : device.device_type_id === DeviceTypeEnum.PV_INVERTER,
   )
 
   // Determine of there are more devices of device_type_id 2 than 6
   const multiplePCSsPerBlock = devices.data
     ? devices.data?.filter(
-        (device) => device.device_type_id === DeviceTypeEnum.PV_PCS,
+        (device) => device.device_type_id === DeviceTypeEnum.PV_INVERTER,
       ).length >
       devices.data?.filter(
         (device) => device.device_type_id === DeviceTypeEnum.PV_BLOCK,

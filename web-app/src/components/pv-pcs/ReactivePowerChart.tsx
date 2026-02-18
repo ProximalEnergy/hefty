@@ -23,10 +23,11 @@ export const ReactivePowerChart = ({
 
   const reactivePowerChartData = useMemo(() => {
     const reactiveTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER,
     )
     const reactiveSetpointTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER_SETPOINT,
+      (t) =>
+        t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER_SETPOINT,
     )
 
     if (
@@ -79,7 +80,8 @@ export const ReactivePowerChart = ({
 
   const reactivePowerSetpointShapes = useMemo(() => {
     const reactiveSetpointTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER_SETPOINT,
+      (t) =>
+        t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER_SETPOINT,
     )
 
     if (
@@ -125,10 +127,11 @@ export const ReactivePowerChart = ({
   const yAxisRangeComputed = useMemo(() => {
     if (!maxCapacityMWac) return undefined
     const reactiveTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER,
     )
     const reactiveSetpointTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_REACTIVE_POWER_SETPOINT,
+      (t) =>
+        t.sensor_type_id === SensorTypeEnum.PV_INVERTER_REACTIVE_POWER_SETPOINT,
     )
     const allValues = [
       ...(reactiveTrace?.values?.filter((v): v is number => v !== null) || []),

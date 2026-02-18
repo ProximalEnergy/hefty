@@ -97,7 +97,7 @@ async def get_expected_power_by_device_type_id(
     device_ids = devices_df["device_id"].astype(int).tolist()
 
     # Determine expected_metric_ids based on device type (same as utility_expected)
-    if device_type_id == DeviceType.PV_PCS:
+    if device_type_id == DeviceType.PV_INVERTER:
         expected_metric_ids_fallback = [10, 9, 4, 3]  # With soiling first, then without
         expected_device_ids_for_query = device_ids
     elif device_type_id == DeviceType.PV_DC_COMBINER:
@@ -332,8 +332,9 @@ async def get_device_type_power_summary(
 
     # --- Optimized path: compute power sums for most device types in one query ---
     # We treat AC-power-like device types (PCS/MVT/Circuit/BESS PCS/MVT/Circuit, etc.)
-    # as sum of latest sensor_type_id=PV_PCS_AC_POWER values, scaled by tag.unit_scale.
-    # We exclude tracker rows (29) and PV DC Combiner (9) from this grouped query.
+    # as sum of latest sensor_type_id=PV_INVERTER_AC_POWER values, scaled by
+    # tag.unit_scale. We exclude tracker rows (29) and PV DC Combiner (9) from this
+    # grouped query.
 
     ac_like_types = [
         dt
@@ -365,7 +366,7 @@ async def get_device_type_power_summary(
                 models.DataTimeseriesLast.tag_id == models.Tag.tag_id,
             )
             .where(models.Device.device_type_id == func.any(array(ac_like_types)))
-            .where(models.Tag.sensor_type_id == SensorType.PV_PCS_AC_POWER.value)
+            .where(models.Tag.sensor_type_id == SensorType.PV_INVERTER_AC_POWER.value)
             .group_by(models.Device.device_type_id)
         )
 
@@ -498,7 +499,7 @@ async def _calculate_dc_combiner_power_sum(
         df_voltage_pcs = (
             await core.crud.project.data_timeseries_last.get_data_timeseries_last(
                 device_ids=[pid for pid in parent_pcs_ids if pid is not None],
-                sensor_type_ids=[SensorType.PV_PCS_DC_VOLTAGE.value],
+                sensor_type_ids=[SensorType.PV_INVERTER_DC_VOLTAGE.value],
                 deep=True,
                 include_ghost_tags=False,
             ).get_async(output_type=OutputType.PANDAS, schema=project_schema)

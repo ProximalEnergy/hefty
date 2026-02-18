@@ -10,7 +10,7 @@ import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetOMContractorScopes } from '@/api/v1/operational/project/om_contractors'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetInverters } from '@/api/v1/operational/pv_inverters'
-import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_pcs'
+import { useGetEquipmentAnalysisPCSv2 } from '@/api/v1/protected/web-application/projects/equipment-analysis/pv_inverter'
 import CustomCard from '@/components/CustomCard'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -85,7 +85,7 @@ const PCSHeatmap = ({
   const { data, isLoading, error } = useGetHeatmap({
     pathParams: {
       projectId: projectId || '-1',
-      sensorTypeName: 'pv_pcs_ac_power',
+      sensorTypeName: 'pv_inverter_ac_power',
     },
     queryParams: {
       start: startQuery,
@@ -231,7 +231,7 @@ const PCSEquipmentAnalysis = () => {
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DeviceTypeEnum.PV_PCS],
+      device_type_ids: [DeviceTypeEnum.PV_INVERTER],
     },
     queryOptions: {
       enabled: !!projectId,
@@ -289,11 +289,11 @@ const PCSEquipmentAnalysis = () => {
     },
   })
 
-  // Filter contractors that have PV_PCS (device_type_id 2) in their scope
+  // Filter contractors that have PV_INVERTER (device_type_id 2) in their scope
   const pcsContractors = useMemo(() => {
     if (!omContractorScopes.data) return []
     return omContractorScopes.data.filter((scope) =>
-      scope.scope_json?.device_type_ids?.includes(DeviceTypeEnum.PV_PCS),
+      scope.scope_json?.device_type_ids?.includes(DeviceTypeEnum.PV_INVERTER),
     )
   }, [omContractorScopes.data])
 
@@ -623,7 +623,7 @@ const PCSEquipmentAnalysis = () => {
     if (!devices.data || devices.data.length === 0) {
       return null
     }
-    // Sum all PCS device capacities (devices are already filtered to PV_PCS type)
+    // Sum all PCS device capacities (devices are already filtered to PV_INVERTER type)
     const totalKWac = devices.data.reduce((sum, device) => {
       return sum + (device.capacity_ac || 0)
     }, 0)

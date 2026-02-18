@@ -68,7 +68,7 @@ const Page = () => {
     filters: {
       device_type_ids: [
         DeviceTypeEnum.METER,
-        DeviceTypeEnum.PV_PCS,
+        DeviceTypeEnum.PV_INVERTER,
         DeviceTypeEnum.PV_DC_COMBINER,
       ],
     },

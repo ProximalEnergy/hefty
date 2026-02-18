@@ -26,7 +26,7 @@ export const StatusAndErrorCodes = ({
     )
 
     const statusTrace = realtimeData.data.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_STATUS,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_STATUS,
     )
 
     const statusValues = statusTrace?.values || []
@@ -112,7 +112,7 @@ export const StatusAndErrorCodes = ({
           </Table>
         ) : (
           <Text size="sm" c="dimmed" ta="center" mt="md">
-            No status data available. Required sensor type: PV_PCS_STATUS
+            No status data available. Required sensor type: PV_INVERTER_STATUS
           </Text>
         )}
       </ScrollArea>

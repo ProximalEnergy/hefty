@@ -353,8 +353,8 @@ async def get_portfolio_home_long_term(
     kpi_type_ids = [
         KPIType.BESS_STRING_CYCLE_COUNT,
         KPIType.BESS_STRING_SOH,
-        KPIType.PV_PCS_MECHANICAL_AVAILABILITY,
-        KPIType.PV_PCS_ENERGY_PRODUCTION,
+        KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY,
+        KPIType.PV_INVERTER_ENERGY_PRODUCTION,
     ]
 
     # end equal to current date in UTC

@@ -120,7 +120,7 @@ import EquipmentAnalysisCircuit from './pages/projects/equipment_analysis/circui
 import EquipmentAnalysisMetStation from './pages/projects/equipment_analysis/met_station/page'
 import EquipmentAnalysisPVDCCombinerBlock from './pages/projects/equipment_analysis/pv_dc_combiner/block/page'
 import EquipmentAnalysisPVDCCombiner from './pages/projects/equipment_analysis/pv_dc_combiner/page'
-import EquipmentAnalysisPVPCS from './pages/projects/equipment_analysis/pv_pcs/page'
+import EquipmentAnalysisPVPCS from './pages/projects/equipment_analysis/pv_inverter/page'
 import EquipmentAnalysisSingleLineDiagram from './pages/projects/equipment_analysis/single_line_diagram/SnapshotSLD'
 import EquipmentAnalysisSystem from './pages/projects/equipment_analysis/system/page'
 import EquipmentAnalysisTrackerBlock from './pages/projects/equipment_analysis/tracker/block/page'

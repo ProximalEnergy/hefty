@@ -36,7 +36,7 @@ export const DCVoltageChart = ({ realtimeData }: DCVoltageChartProps) => {
 
   const dcVoltageData = useMemo(() => {
     const pcsDcVoltageTrace = realtimeData.data?.traces?.find(
-      (t) => t.sensor_type_id === SensorTypeEnum.PV_PCS_DC_VOLTAGE,
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_INVERTER_DC_VOLTAGE,
     )
 
     if (

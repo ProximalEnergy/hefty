@@ -53,10 +53,10 @@ async def get_pcs_apparent_vs_voltage(
     project_schema = utils.get_project_schema(project_db=project_db)
     tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[
-            SensorType.PV_PCS_AC_APPARENT_POWER,
-            SensorType.PV_PCS_VOLTAGE_LL_AB,
-            SensorType.PV_PCS_VOLTAGE_LL_BC,
-            SensorType.PV_PCS_VOLTAGE_LL_CA,
+            SensorType.PV_INVERTER_AC_APPARENT_POWER,
+            SensorType.PV_INVERTER_VOLTAGE_LL_AB,
+            SensorType.PV_INVERTER_VOLTAGE_LL_BC,
+            SensorType.PV_INVERTER_VOLTAGE_LL_CA,
         ],
     ).get_async(
         output_type=OutputType.PANDAS,
@@ -268,7 +268,7 @@ async def dc_amperage_report_v2(
     logger.info("CB data processing")
     devices_df = await core.crud.project.devices.get_project_devices(
         device_type_ids=[
-            DeviceType.PV_PCS,
+            DeviceType.PV_INVERTER,
             DeviceType.MET_STATION,
             DeviceType.PV_DC_COMBINER,
         ],
@@ -282,7 +282,7 @@ async def dc_amperage_report_v2(
     devices_df["name_short"] = devices_df["name_short"].fillna("")
 
     inv_devices_df = devices_df[
-        devices_df["device_type_id"] == DeviceType.PV_PCS
+        devices_df["device_type_id"] == DeviceType.PV_INVERTER
     ].set_index("device_id", drop=True)
 
     df_cb_report = devices_df[

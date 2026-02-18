@@ -17,30 +17,30 @@ class DownloadTimeSeriesPV(DownloadTimeSeriesSchema):
 
     # pcs
 
-    pv_pcs_active_power_ac_kw_5m = Field(
+    pv_inverter_active_power_ac_kw_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_AC_POWER,
+            sensor_type=SensorType.PV_INVERTER_AC_POWER,
             scale=1000,
         )
     )
 
-    pv_pcs_reactive_power_kvar_5m = Field(
+    pv_inverter_reactive_power_kvar_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_REACTIVE_POWER,
+            sensor_type=SensorType.PV_INVERTER_REACTIVE_POWER,
             scale=1000,
         )
     )
 
-    pv_pcs_active_power_setpoint_kw_5m = Field(
+    pv_inverter_active_power_setpoint_kw_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_AC_POWER_SETPOINT,
+            sensor_type=SensorType.PV_INVERTER_AC_POWER_SETPOINT,
             scale=1000,
         )
     )
 
-    pv_pcs_voltage_v_5m = Field(
+    pv_inverter_voltage_v_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_DC_VOLTAGE,
+            sensor_type=SensorType.PV_INVERTER_DC_VOLTAGE,
         )
     )
 
@@ -50,9 +50,9 @@ class DownloadTimeSeriesPV(DownloadTimeSeriesSchema):
         )
     )
 
-    pv_pcs_energy_production_total_kwh_5m = Field(
+    pv_inverter_energy_production_total_kwh_5m = Field(
         SensorModel(
-            sensor_type=SensorType.PV_PCS_AC_NET_ENERGY,
+            sensor_type=SensorType.PV_INVERTER_AC_NET_ENERGY,
             scale=1000,
         )
     )

@@ -25,9 +25,9 @@ def get_data_timeseries_latest_by_device_type(
     """
     if not sensor_type_ids:
         device_type_id_to_sensor_type_ids: dict[int, list[int]] = {
-            DeviceType.PV_PCS.value: [
-                SensorType.PV_PCS_AC_POWER.value,
-                SensorType.PV_PCS_AC_POWER_SETPOINT.value,
+            DeviceType.PV_INVERTER.value: [
+                SensorType.PV_INVERTER_AC_POWER.value,
+                SensorType.PV_INVERTER_AC_POWER_SETPOINT.value,
             ],
             DeviceType.PV_DC_COMBINER.value: [
                 SensorType.PV_DC_COMBINER_CURRENT.value,
