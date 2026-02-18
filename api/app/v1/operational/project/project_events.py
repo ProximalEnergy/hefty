@@ -961,6 +961,8 @@ async def get_uptime(
     else:
         out["downtime_percentage"] = 0.0
 
+    out["possible_uptime"] = float(possible_uptime)
+
     # 8) final shape (list[dict])
     out = out[
         [
@@ -969,6 +971,7 @@ async def get_uptime(
             "device_name_full",
             "downtime_hours",
             "downtime_percentage",
+            "possible_uptime",
             "events",
         ]
     ]

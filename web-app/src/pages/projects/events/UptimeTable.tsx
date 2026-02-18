@@ -8,10 +8,34 @@ import { useValidateDateRange } from '@/components/datepicker/utils'
 import { useGetTags, useGetUptimeTable } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
 import { Tag } from '@/hooks/projectTags'
-import { Button, Group, Stack, Tabs, Text, Title } from '@mantine/core'
-import { IconArrowRight } from '@tabler/icons-react'
-import { MantineReactTable } from 'mantine-react-table'
-import { useEffect, useRef, useState } from 'react'
+import {
+  Button,
+  Group,
+  Pagination,
+  Select,
+  Stack,
+  Table,
+  Tabs,
+  Text,
+  Title,
+  UnstyledButton,
+} from '@mantine/core'
+import {
+  IconArrowRight,
+  IconChevronDown,
+  IconChevronUp,
+} from '@tabler/icons-react'
+import {
+  type ColumnDef,
+  type PaginationState,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LngLatBoundsLike, MapRef } from 'react-map-gl/mapbox'
 import { useParams } from 'react-router'
 
@@ -52,6 +76,18 @@ function ViewDataButton({
       </Button>
     </Stack>
   )
+}
+
+type UptimeDisplayRow = {
+  deviceTypeName: string
+  deviceName: string
+  uptimeHours: number
+  uptimePercentage: number
+  downtimeHours: number
+  downtimePercentage: number
+  events: number
+  deviceId: number
+  deviceTypeId: number
 }
 
 const UptimeTable = () => {
@@ -142,18 +178,127 @@ const UptimeTable = () => {
     pcsBounds,
   ])
 
+  const maxUptime = useMemo(() => {
+    if (!uptimeData?.length) {
+      return 0
+    }
+
+    const possibleUptime = uptimeData[0]?.possible_uptime
+    if (!Number.isFinite(possibleUptime)) {
+      return 0
+    }
+
+    return Math.max(possibleUptime, 0)
+  }, [uptimeData])
+
+  const deviceTypeNamesById = useMemo(() => {
+    const namesById = new Map<number, string>()
+    ;(deviceTypes || []).forEach((deviceType) => {
+      namesById.set(deviceType.device_type_id, deviceType.name_long)
+    })
+    return namesById
+  }, [deviceTypes])
+
+  const displayRows = useMemo<UptimeDisplayRow[]>(() => {
+    return (uptimeData || []).map((row) => {
+      return {
+        deviceTypeName:
+          deviceTypeNamesById.get(row.device_type_id) || 'Unknown Device Type',
+        deviceName: row.device_name_full,
+        uptimeHours: Math.max(maxUptime - row.downtime_hours, 0),
+        uptimePercentage: (1 - row.downtime_percentage) * 100,
+        downtimeHours: row.downtime_hours,
+        downtimePercentage: row.downtime_percentage * 100,
+        events: row.events,
+        deviceId: row.device_id,
+        deviceTypeId: row.device_type_id,
+      }
+    })
+  }, [deviceTypeNamesById, maxUptime, uptimeData])
+
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 25,
+  })
+
+  const columns = useMemo<ColumnDef<UptimeDisplayRow>[]>(() => {
+    return [
+      {
+        accessorKey: 'deviceTypeName',
+        header: 'Device Type',
+      },
+      {
+        accessorKey: 'deviceName',
+        header: 'Device Name',
+      },
+      {
+        accessorKey: 'uptimeHours',
+        header: 'Uptime Hours',
+        cell: ({ getValue }) => Number(getValue()).toFixed(1),
+      },
+      {
+        accessorKey: 'uptimePercentage',
+        header: 'Uptime Percentage',
+        cell: ({ getValue }) => `${Number(getValue()).toFixed(1)}%`,
+      },
+      {
+        accessorKey: 'downtimeHours',
+        header: 'Downtime Hours',
+        cell: ({ getValue }) => Number(getValue()).toFixed(1),
+      },
+      {
+        accessorKey: 'downtimePercentage',
+        header: 'Downtime Percentage',
+        cell: ({ getValue }) => `${Number(getValue()).toFixed(1)}%`,
+      },
+      {
+        accessorKey: 'events',
+        header: 'Events',
+      },
+      {
+        id: 'dataBrowsing',
+        header: 'Data Browsing',
+        cell: ({ row }) => {
+          return (
+            <ViewDataButton
+              deviceId={row.original.deviceId}
+              deviceTypeId={row.original.deviceTypeId}
+              startQuery={startQuery || ''}
+              endQuery={endQuery || ''}
+              tags={tags || []}
+            />
+          )
+        },
+      },
+    ]
+  }, [endQuery, startQuery, tags])
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable<UptimeDisplayRow>({
+    data: displayRows,
+    columns,
+    state: { sorting, pagination },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  })
+
+  const rowModel = table.getPaginationRowModel()
+  const firstHeaderGroup = table.getHeaderGroups()[0]
+  const visibleHeaderCells = firstHeaderGroup?.headers || []
+  const visibleRows = rowModel.rows
+  const colspan = visibleHeaderCells.length || 1
+  const pageCount = Math.max(table.getPageCount(), 1)
+
   if (isUptimeDataLoading || isDeviceTypesLoading || isTagsLoading) {
     return <PageLoader />
   }
 
-  let maxUptime: number = 0
-  if (uptimeData && uptimeData.length > 0) {
-    maxUptime =
-      uptimeData?.[0]?.downtime_hours / uptimeData?.[0]?.downtime_percentage
-  }
-
   return (
-    <Stack h="100%" w="100%" p="sm">
+    <Stack h="100%" w="100%" p="md">
       <Title order={1}>Uptime Table</Title>
       <Group justify="space-between">
         <AdvancedDatePicker defaultRange="today" includeClearButton={false} />
@@ -170,58 +315,99 @@ const UptimeTable = () => {
           <Tabs.Tab value="table">Table</Tabs.Tab>
           <Tabs.Tab value="gis">GIS</Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel value="table">
-          <MantineReactTable
-            data={uptimeData || []}
-            enableDensityToggle={false}
-            initialState={{ density: 'xs' }}
-            columns={[
-              {
-                accessorFn: (row) =>
-                  deviceTypes?.find(
-                    (type) => type.device_type_id === row.device_type_id,
-                  )?.name_long,
-                header: 'Device Type',
-              },
-              {
-                accessorFn: (row) => row.device_name_full,
-                header: 'Device Name',
-              },
-              {
-                accessorFn: (row) =>
-                  (maxUptime - row.downtime_hours).toFixed(1),
-                header: 'Uptime Hours',
-              },
-              {
-                accessorFn: (row) =>
-                  ((1 - row.downtime_percentage) * 100).toFixed(1) + '%',
-                header: 'Uptime Percentage',
-              },
+        <Tabs.Panel value="table" pb="md">
+          <Table.ScrollContainer minWidth="100%" flex={1}>
+            <Table
+              striped
+              highlightOnHover
+              stickyHeader
+              horizontalSpacing="sm"
+              verticalSpacing="sm"
+              fz="sm"
+            >
+              <Table.Thead>
+                <Table.Tr>
+                  {visibleHeaderCells.map((header) => (
+                    <Table.Th key={header.id}>
+                      {header.isPlaceholder ? null : (
+                        <UnstyledButton
+                          onClick={header.column.getToggleSortingHandler()}
+                          disabled={!header.column.getCanSort()}
+                        >
+                          <Group gap={4} wrap="nowrap">
+                            <Text fw={600} size="sm">
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                            </Text>
+                            {header.column.getIsSorted() === 'asc' && (
+                              <IconChevronUp size={14} />
+                            )}
+                            {header.column.getIsSorted() === 'desc' && (
+                              <IconChevronDown size={14} />
+                            )}
+                          </Group>
+                        </UnstyledButton>
+                      )}
+                    </Table.Th>
+                  ))}
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {visibleRows.length === 0 ? (
+                  <Table.Tr>
+                    <Table.Td colSpan={colspan}>
+                      <Text size="sm" c="dimmed">
+                        No uptime data available for the selected range.
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                ) : (
+                  visibleRows.map((row) => {
+                    const cells = row.getVisibleCells()
 
-              {
-                accessorFn: (row) => row.downtime_hours.toFixed(1),
-                header: 'Downtime Hours',
-              },
-              {
-                accessorFn: (row) =>
-                  (row.downtime_percentage * 100).toFixed(1) + '%',
-                header: 'Downtime Percentage',
-              },
-              { accessorFn: (row) => row.events, header: 'Events' },
-              {
-                accessorFn: (row) => (
-                  <ViewDataButton
-                    deviceId={row.device_id}
-                    deviceTypeId={row.device_type_id}
-                    startQuery={startQuery || ''}
-                    endQuery={endQuery || ''}
-                    tags={tags || []}
-                  />
-                ),
-                header: 'Data Browsing',
-              },
-            ]}
-          />
+                    return (
+                      <Table.Tr key={row.id}>
+                        {cells.map((cell) => (
+                          <Table.Td key={cell.id}>
+                            {cell.getIsPlaceholder()
+                              ? null
+                              : flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                          </Table.Td>
+                        ))}
+                      </Table.Tr>
+                    )
+                  })
+                )}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+          <Group justify="center" mt="sm" pb="sm" gap="xl">
+            <Group gap="xs" align="center">
+              <Text size="sm">Rows per page</Text>
+              <Select
+                size="xs"
+                w={80}
+                value={String(pagination.pageSize)}
+                data={['25', '50', '100']}
+                onChange={(value) => {
+                  if (!value) return
+                  table.setPageSize(Number(value))
+                  table.setPageIndex(0)
+                }}
+              />
+            </Group>
+            <Pagination
+              size="sm"
+              total={pageCount}
+              value={pagination.pageIndex + 1}
+              onChange={(page) => table.setPageIndex(page - 1)}
+            />
+          </Group>
         </Tabs.Panel>
         <Tabs.Panel value="gis" h="100%">
           <Tabs

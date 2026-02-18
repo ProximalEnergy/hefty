@@ -102,6 +102,7 @@ export interface UptimeData {
   device_name_full: string
   downtime_hours: number
   downtime_percentage: number
+  possible_uptime: number
   events: number
 }
 
