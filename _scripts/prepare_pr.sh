@@ -4,6 +4,7 @@ set -euo pipefail
 BASE_BRANCH="dev"
 DEFAULT_WEB_URL="http://localhost:5173"
 DEV_SERVER_HELPER_REL="_scripts/ensure_dev_servers.sh"
+PR_ASSETS_RELEASE_TAG="${PR_ASSETS_RELEASE_TAG:-pr-assets}"
 
 usage() {
   cat <<USAGE
@@ -13,7 +14,83 @@ Environment variables:
   PR_DESCRIPTION        Optional short description for commit/PR title
   AUTO_WEB_SCREENSHOT   Set to 0/false to skip web screenshots
   WEB_URL               Web URL used by screenshot helper
+  PR_ASSETS_RELEASE_TAG Release tag used for PR screenshot assets
 USAGE
+}
+
+cleanup_closed_pr_assets() {
+  local release_tag="$1"
+  local open_pr_numbers
+  local asset_names
+  local asset_name
+  local asset_pr
+
+  if ! open_pr_numbers="$(gh pr list --state open --limit 500 \
+    --json number --jq '.[].number' 2>/dev/null)"
+  then
+    return 0
+  fi
+
+  if ! asset_names="$(gh release view "${release_tag}" --json assets \
+    --jq '.assets[].name' 2>/dev/null)"
+  then
+    return 0
+  fi
+
+  while IFS= read -r asset_name; do
+    [[ -z "${asset_name}" ]] && continue
+    if [[ "${asset_name}" =~ ^pr-([0-9]+)- ]]; then
+      asset_pr="${BASH_REMATCH[1]}"
+      if ! grep -Fxq "${asset_pr}" <<<"${open_pr_numbers}"; then
+        gh release delete-asset "${release_tag}" "${asset_name}" \
+          --yes >/dev/null 2>&1 || true
+      fi
+    fi
+  done <<<"${asset_names}"
+}
+
+update_pr_screenshots_section() {
+  local pr_number="$1"
+  local pr_title="$2"
+  local screenshot_md="$3"
+  local current_body
+  local updated_body
+
+  current_body="$(gh pr view "${pr_number}" --json body --jq '.body')"
+
+  updated_body="$(awk -v block="${screenshot_md}" '
+    BEGIN {
+      in_section = 0
+      replaced = 0
+    }
+    /^##[[:space:]]+Screenshots and Videos[[:space:]]*$/ {
+      print
+      print ""
+      print block
+      in_section = 1
+      replaced = 1
+      next
+    }
+    in_section && /^##[[:space:]]+/ {
+      in_section = 0
+    }
+    !in_section {
+      print
+    }
+    END {
+      if (!replaced) {
+        if (NR > 0) {
+          print ""
+        }
+        print "## Screenshots and Videos"
+        print ""
+        print block
+      }
+    }
+  ' <<<"${current_body}")"
+
+  gh pr edit "${pr_number}" --title "${pr_title}" --body "${updated_body}" \
+    >/dev/null 2>&1 || true
 }
 
 if [[ $# -ne 0 ]]; then
@@ -229,13 +306,57 @@ if [[ "${has_web_change}" == "true" ]]; then
       if API_URL="${API_URL:-http://127.0.0.1:8000}" WEB_URL="${web_url}" \
         "${helper_path}" && (cd "${repo_root}" && mise run web:screenshot)
       then
-        latest_file="$(find "${repo_root}/_screenshot" -type f \
-          \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o \
-          -iname '*.webp' -o -iname '*.gif' -o -iname '*.svg' \) \
-          -printf '%T@ %p\n' | sort -nr | head -n 1 | cut -d' ' -f2-)"
+        latest_file="$(
+          find "${repo_root}/_screenshot" -type f \
+            \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o \
+            -iname '*.webp' -o -iname '*.gif' -o -iname '*.svg' \) \
+            -print0 | while IFS= read -r -d '' file; do
+              mtime="$(stat -f '%m' "${file}")" || continue
+              printf '%s\t%s\n' "${mtime}" "${file#${repo_root}/}"
+            done | sort -nr | head -n 1 | cut -f2-
+        )"
         if [[ -n "${latest_file}" ]]; then
-          relative_file="${latest_file#${repo_root}/}"
-          gh pr comment "${pr_number}" --body "Screenshot: ${relative_file}"
+          asset_name="pr-${pr_number}-$(basename "${latest_file}")"
+          screenshot_path="${repo_root}/${latest_file}"
+          tmp_asset_dir="$(mktemp -d)"
+          tmp_asset_path="${tmp_asset_dir}/${asset_name}"
+          release_tag="${PR_ASSETS_RELEASE_TAG}"
+          release_ready="false"
+          cp "${screenshot_path}" "${tmp_asset_path}"
+          if gh release view "${release_tag}" >/dev/null 2>&1; then
+            release_ready="true"
+          elif gh release create "${release_tag}" \
+            --title "PR Assets" \
+            --notes "Automated PR screenshot assets." >/dev/null 2>&1
+          then
+            release_ready="true"
+          elif gh release view "${release_tag}" >/dev/null 2>&1; then
+            release_ready="true"
+          fi
+
+          if [[ "${release_ready}" == "true" ]] && gh release upload \
+            "${release_tag}" "${tmp_asset_path}" --clobber \
+            >/dev/null 2>&1
+          then
+            cleanup_closed_pr_assets "${release_tag}"
+            image_url="$(gh release view "${release_tag}" --json assets --jq \
+              ".assets[] | select(.name == \"${asset_name}\") | .url" \
+              2>/dev/null || true)"
+            if [[ -n "${image_url}" ]]; then
+              image_body="![${asset_name}](${image_url})"
+              update_pr_screenshots_section "${pr_number}" "${pr_title}" \
+                "${image_body}"
+            else
+              image_body="Screenshot: ${latest_file}"
+              update_pr_screenshots_section "${pr_number}" "${pr_title}" \
+                "${image_body}"
+            fi
+          else
+            image_body="Screenshot: ${latest_file}"
+            update_pr_screenshots_section "${pr_number}" "${pr_title}" \
+              "${image_body}"
+          fi
+          rm -rf "${tmp_asset_dir}"
         fi
       fi
     fi
