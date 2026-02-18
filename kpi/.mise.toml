@@ -1,0 +1,8 @@
+[tasks.check]
+description = "Run mypy on src + lambda, then run calc and process services"
+run = [
+    "mypy src/kpi_pipeline",
+    "mypy lambda_function.py",
+    "python -m kpi_pipeline.services.calc",
+    "python -m kpi_pipeline.services.process",
+]

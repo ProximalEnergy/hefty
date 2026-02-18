@@ -305,9 +305,14 @@ RUN_MICRO=false
 RUN_SQL_ADMIN=false
 RUN_WEB=false
 RUN_ROOT=false
+CORE_CHANGED=false
 
 if [ "${RUN_ALL}" = "false" ]; then
+    if [ -n "${DIFF_FILES}" ]; then
+        RUN_ROOT=true
+    fi
     if diff_has '^core/'; then
+        CORE_CHANGED=true
         RUN_CORE=true
         RUN_ROOT=true
     fi
@@ -321,6 +326,9 @@ if [ "${RUN_ALL}" = "false" ]; then
     fi
     if diff_has '^sql-admin/'; then
         RUN_SQL_ADMIN=true
+        RUN_ROOT=true
+    fi
+    if diff_has '^kpi/'; then
         RUN_ROOT=true
     fi
     if diff_has '^web-app/'; then
@@ -343,7 +351,9 @@ fi
 
 # Register all checks
 if [ "${RUN_CORE}" = "true" ]; then
-    if [ "${OFFLINE}" = "true" ]; then
+    if [ "${CORE_CHANGED}" != "true" ]; then
+        echo -e "${YELLOW}Skipping Core: Version (no core changes)${NC}"
+    elif [ "${OFFLINE}" = "true" ]; then
         echo -e "${YELLOW}Skipping Core: Version (offline mode)${NC}"
     else
         add_check "Core: Version" "check_core_version"
