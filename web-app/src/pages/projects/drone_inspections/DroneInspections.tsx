@@ -1,6 +1,5 @@
 import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
-  DroneAnomaly,
   DroneInspection,
   DroneIntegration,
   DronePermission,
@@ -42,16 +41,10 @@ import {
   IconPlus,
   IconRefresh,
 } from '@tabler/icons-react'
-import {
-  MRT_Cell,
-  MRT_ColumnDef,
-  MRT_Row,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 
+import DroneAnomaliesTable from './DroneAnomaliesTable'
 import DroneInspectionsMap from './DroneInspectionsMap'
 
 const DroneInspections: React.FC = () => {
@@ -171,40 +164,6 @@ const DroneInspections: React.FC = () => {
       )
   }, [inspections])
 
-  // Define columns for anomalies table
-  const anomalyColumns = useMemo(
-    () => [
-      {
-        header: 'Subsystem',
-        accessorKey: 'subsystem',
-      },
-      {
-        header: 'DC Power Loss (kW)',
-        accessorKey: 'power_loss_kw',
-        aggregationFn: 'sum',
-        Cell: ({ cell }: { cell: MRT_Cell<DroneAnomaly> }) => (
-          <Text>{cell.getValue<number>()?.toFixed(2) || '0.00'}</Text>
-        ),
-        AggregatedCell: ({ cell }: { cell: MRT_Cell<DroneAnomaly> }) => (
-          <Text fw={600}>{cell.getValue<number>()?.toFixed(2) || '0.00'}</Text>
-        ),
-      },
-      {
-        header: 'IR Signal',
-        accessorKey: 'ir_signal',
-      },
-      {
-        header: 'RGB Signal',
-        accessorKey: 'rgb_signal',
-      },
-      {
-        header: 'Remediation',
-        accessorKey: 'remediation_category',
-      },
-    ],
-    [],
-  )
-
   const [selectedInspection, setSelectedInspection] =
     useState<DroneInspection | null>(null)
 
@@ -266,68 +225,6 @@ const DroneInspections: React.FC = () => {
     selectedInspection,
     syncAnomalies,
   ])
-
-  // Create table instance
-  const anomalyTable = useMantineReactTable({
-    columns: anomalyColumns as MRT_ColumnDef<DroneAnomaly>[],
-    data: anomalies ?? [],
-    enableGrouping: true,
-    enableColumnDragging: false,
-    initialState: {
-      density: 'xs',
-      grouping: ['subsystem'],
-      sorting: [{ id: 'power_loss_kw', desc: true }],
-    },
-    mantineTableBodyRowProps: ({ row }: { row: MRT_Row<DroneAnomaly> }) => {
-      const anomaly = row.original
-      const imgSrc = anomaly.ir_image_url || anomaly.rgb_image_url
-      return {
-        style: { cursor: 'default' },
-        title: imgSrc ? 'Hover to preview anomaly image' : undefined,
-        onMouseEnter: (e: React.MouseEvent<HTMLTableRowElement>) => {
-          if (!imgSrc) return
-          const preview = document.createElement('div')
-          preview.style.position = 'fixed'
-          preview.style.pointerEvents = 'none'
-          preview.style.zIndex = '9999'
-          preview.style.padding = '4px'
-          preview.style.background = 'rgba(0,0,0,0.85)'
-          preview.style.borderRadius = '6px'
-          const img = document.createElement('img')
-          img.src = imgSrc
-          img.style.maxWidth = '280px'
-          img.style.maxHeight = '220px'
-          img.style.borderRadius = '4px'
-          preview.appendChild(img)
-          preview.id = 'anomaly-row-preview'
-          document.body.appendChild(preview)
-          const move = (ev: MouseEvent) => {
-            const p = document.getElementById('anomaly-row-preview')
-            if (p) {
-              p.style.left = `${ev.clientX + 16}px`
-              p.style.top = `${ev.clientY + 16}px`
-            }
-          }
-          document.addEventListener('mousemove', move)
-          ;(
-            e.currentTarget as HTMLTableRowElement & {
-              _previewMove?: (ev: MouseEvent) => void
-            }
-          )._previewMove = move
-        },
-        onMouseLeave: (e: React.MouseEvent<HTMLTableRowElement>) => {
-          const el = document.getElementById('anomaly-row-preview')
-          if (el) el.remove()
-          const move = (
-            e.currentTarget as HTMLTableRowElement & {
-              _previewMove?: (ev: MouseEvent) => void
-            }
-          )._previewMove
-          if (move) document.removeEventListener('mousemove', move)
-        },
-      }
-    },
-  })
 
   if (
     integrationsLoading ||
@@ -835,7 +732,10 @@ const DroneInspections: React.FC = () => {
             {anomaliesLoading ? (
               <PageLoader />
             ) : anomalies && anomalies.length > 0 ? (
-              <MantineReactTable table={anomalyTable} />
+              <DroneAnomaliesTable
+                anomalies={anomalies}
+                inspectionId={selectedInspection?.inspection_uuid}
+              />
             ) : (
               <Text size="sm" c="dimmed">
                 No anomalies found for this inspection.
