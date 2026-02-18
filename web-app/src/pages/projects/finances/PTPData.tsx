@@ -16,6 +16,7 @@ import {
   ScrollArea,
   SimpleGrid,
   Stack,
+  Table,
   Tabs,
   Text,
   useMantineTheme,
@@ -23,20 +24,27 @@ import {
 import { DatePickerInput } from '@mantine/dates'
 import {
   IconChartBar,
+  IconChevronDown,
+  IconChevronUp,
   IconCurrencyDollar,
   IconDatabase,
   IconFileText,
   IconGauge,
   IconTrendingUp,
 } from '@tabler/icons-react'
+import {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import {
-  MRT_ColumnDef,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
 import { Data, Layout } from 'plotly.js/dist/plotly-custom.min.js'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
@@ -154,12 +162,19 @@ const DataViewer = ({
       enabled: !!endpoint && !!category,
     },
   })
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 50,
+  })
+
+  type TableRow = Record<string, string | number | null>
 
   const tableData = useMemo(() => {
     if (!data?.data || data.data.length === 0) return []
 
     const element = data.data[0]
-    const rows: Record<string, string | number | null>[] = []
+    const rows: TableRow[] = []
 
     // Get all unique intervals
     const intervals = new Set<string>()
@@ -188,31 +203,30 @@ const DataViewer = ({
     )
   }, [data])
 
-  const columns: MRT_ColumnDef<Record<string, string | number | null>>[] =
-    useMemo(() => {
-      if (!data?.data || data.data.length === 0) return []
+  const columns: ColumnDef<TableRow>[] = useMemo(() => {
+    if (!data?.data || data.data.length === 0) return []
 
-      const baseColumns: MRT_ColumnDef<
-        Record<string, string | number | null>
-      >[] = [
-        {
-          accessorKey: 'interval',
-          header: 'Interval',
-          size: 180,
-        },
-      ]
+    const baseColumns: ColumnDef<TableRow>[] = [
+      {
+        accessorKey: 'interval',
+        header: 'Interval',
+        size: 180,
+        enableSorting: true,
+      },
+    ]
 
-      const element = data.data[0]
-      element.dataPoints.forEach((dp) => {
-        baseColumns.push({
-          accessorKey: dp.keyName,
-          header: dp.keyName,
-          size: 150,
-        })
+    const element = data.data[0]
+    element.dataPoints.forEach((dp) => {
+      baseColumns.push({
+        accessorKey: dp.keyName,
+        header: dp.keyName,
+        size: 150,
+        enableSorting: true,
       })
+    })
 
-      return baseColumns
-    }, [data])
+    return baseColumns
+  }, [data])
 
   const plotData: Data[] = useMemo(() => {
     if (!data?.data || data.data.length === 0) return []
@@ -253,16 +267,20 @@ const DataViewer = ({
     [endpoint],
   )
 
-  const table = useMantineReactTable({
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
     columns,
     data: tableData,
-    enableColumnResizing: true,
-    enableStickyHeader: true,
-    enablePagination: true,
-    enableBottomToolbar: true,
-    initialState: {
-      pagination: { pageSize: 50, pageIndex: 0 },
+    enableSorting: true,
+    state: {
+      sorting,
+      pagination,
     },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   })
 
   if (error) {
@@ -303,8 +321,98 @@ const DataViewer = ({
 
             <Tabs.Panel value="table" pt="md">
               <ScrollArea h={600}>
-                <MantineReactTable table={table} />
+                <Table.ScrollContainer minWidth={700}>
+                  <Table stickyHeader striped highlightOnHover withTableBorder>
+                    <Table.Thead>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <Table.Tr key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            const sorted = header.column.getIsSorted()
+                            return (
+                              <Table.Th
+                                key={header.id}
+                                w={header.column.getSize()}
+                                style={{
+                                  cursor: header.column.getCanSort()
+                                    ? 'pointer'
+                                    : undefined,
+                                  userSelect: 'none',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                onClick={() => {
+                                  if (!header.column.getCanSort()) return
+                                  if (sorted === false) {
+                                    header.column.toggleSorting(false)
+                                    return
+                                  }
+                                  if (sorted === 'asc') {
+                                    header.column.toggleSorting(true)
+                                    return
+                                  }
+                                  header.column.toggleSorting(false)
+                                }}
+                              >
+                                <Group gap={6} wrap="nowrap">
+                                  {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext(),
+                                      )}
+                                  {sorted === 'asc' && (
+                                    <IconChevronUp size={14} />
+                                  )}
+                                  {sorted === 'desc' && (
+                                    <IconChevronDown size={14} />
+                                  )}
+                                </Group>
+                              </Table.Th>
+                            )
+                          })}
+                        </Table.Tr>
+                      ))}
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {table.getRowModel().rows.map((row) => (
+                        <Table.Tr key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <Table.Td key={cell.id}>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </Table.Td>
+                          ))}
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </Table.ScrollContainer>
               </ScrollArea>
+              <Group justify="space-between" mt="sm">
+                <Text size="sm" c="dimmed">
+                  Page {table.getState().pagination.pageIndex + 1} of{' '}
+                  {Math.max(table.getPageCount(), 1)}
+                </Text>
+                <Group gap="xs">
+                  <Button
+                    size="xs"
+                    variant="default"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                  >
+                    Next
+                  </Button>
+                </Group>
+              </Group>
             </Tabs.Panel>
 
             <Tabs.Panel value="chart" pt="md">
