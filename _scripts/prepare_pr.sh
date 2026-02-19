@@ -15,6 +15,7 @@ Environment variables:
   AUTO_WEB_SCREENSHOT   Set to 0/false to skip web screenshots
   WEB_URL               Web URL used by screenshot helper
   PR_ASSETS_RELEASE_TAG Release tag used for PR screenshot assets
+  PR_DIFF_CONTEXT_LINES Max diff lines sent to codex (default: 1200)
 USAGE
 }
 
@@ -149,7 +150,6 @@ fi
 
 seen_labels=","
 labels=()
-summary_lines=()
 changed_files=()
 
 add_label() {
@@ -179,16 +179,6 @@ for line in "${status_lines[@]}"; do
   else
     add_label "misc"
   fi
-
-  case "${code}" in
-    A) summary_lines+=("- Added \`${file}\`") ;;
-    M) summary_lines+=("- Updated \`${file}\`") ;;
-    D) summary_lines+=("- Removed \`${file}\`") ;;
-    R) summary_lines+=("- Renamed \`${path_a}\` to \`${path_b}\`") ;;
-    C) summary_lines+=("- Copied \`${path_a}\` to \`${path_b}\`") ;;
-    U) summary_lines+=("- Resolved merge conflicts in \`${file}\`") ;;
-    *) summary_lines+=("- Changed \`${file}\`") ;;
-  esac
 done
 
 if [[ ${#labels[@]} -eq 0 ]]; then
@@ -245,16 +235,48 @@ if [[ -z "${pr_number}" || ! "${pr_number}" =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
+diff_context_lines="${PR_DIFF_CONTEXT_LINES:-1200}"
+if [[ ! "${diff_context_lines}" =~ ^[0-9]+$ ]] || \
+  [[ "${diff_context_lines}" -le 0 ]]; then
+  diff_context_lines=1200
+fi
+
+diff_file="$(mktemp)"
+git diff --no-color --find-renames --unified=1 "${base_ref}...HEAD" \
+  >"${diff_file}"
+diff_total_lines="$(wc -l <"${diff_file}" | tr -d ' ')"
+
+commit_log="$(git log --reverse --pretty='- %h %s' "${base_ref}..HEAD")"
+if [[ -z "${commit_log}" ]]; then
+  commit_log="- No commits between ${base_ref} and HEAD."
+fi
+
+diff_stat="$(git diff --stat --find-renames "${base_ref}...HEAD")"
+if [[ -z "${diff_stat}" ]]; then
+  diff_stat="- No diff stat available."
+fi
+
 context_file="$(mktemp)"
 {
   echo "PREFIX=${prefix}"
   echo "COMMIT_TITLE=${commit_title}"
   echo "BASE_REF=${base_ref}"
   echo "BRANCH=${branch_name}"
-  echo "SUMMARY_LINES:"
-  printf '%s\n' "${summary_lines[@]}"
+  echo "FILE_STATUS_LINES:"
+  printf '%s\n' "${status_lines[@]}"
+  echo "COMMIT_LOG:"
+  printf '%s\n' "${commit_log}"
+  echo "DIFF_STAT:"
+  printf '%s\n' "${diff_stat}"
   echo "CHANGED_FILES:"
   printf '%s\n' "${changed_files[@]}"
+  echo "DIFF_EXCERPT:"
+  sed -n "1,${diff_context_lines}p" "${diff_file}"
+  if [[ "${diff_total_lines}" -gt "${diff_context_lines}" ]]; then
+    echo
+    echo "[Diff truncated. Showing first ${diff_context_lines} of "\
+"${diff_total_lines} lines.]"
+  fi
 } >"${context_file}"
 
 copy_file="$(mktemp)"
@@ -272,7 +294,12 @@ BODY_START
 BODY_END
 Rules:
 - Keep '# Reasoning for Changes' present but empty.
-- Keep summary concise and reflect changed files.
+- In '## Summary of Changes', explain application behavior changes in plain
+  English.
+- Focus on user-visible effects, API contract changes, and operational impact.
+- Do not provide a file-by-file list unless needed for clarity.
+- If context is incomplete, state assumptions briefly and avoid fabricated
+  details.
 - Keep markdown valid.
 PROMPT
 } | codex exec - >"${copy_file}"
@@ -363,6 +390,14 @@ if [[ "${has_web_change}" == "true" ]]; then
   fi
 fi
 
-rm -f "${context_file}" "${copy_file}"
+rm -f "${context_file}" "${copy_file}" "${diff_file}"
+
+pr_url="$(gh pr view "${pr_number}" --json url --jq '.url' 2>/dev/null || \
+  true)"
 
 echo "PR #${pr_number} updated successfully."
+if [[ -n "${pr_url}" ]]; then
+  printf 'PR URL: %s\n' "${pr_url}"
+  printf 'Open PR: \033]8;;%s\033\\%s\033]8;;\033\\\n' \
+    "${pr_url}" "${pr_url}"
+fi
