@@ -1,4 +1,5 @@
 import { useGetUserPermissions } from '@/api/admin'
+import { useGetCompanies } from '@/api/v1/admin/companies'
 import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   useDeleteProjectDocument,
@@ -177,6 +178,14 @@ const Documents = ({ projectId }: DocumentsProps) => {
     pathParams: { projectId },
   })
   const self = useGetUserSelf({})
+  const companies = useGetCompanies({
+    queryParams: {
+      company_ids: self.data?.company_id ? [self.data.company_id] : undefined,
+    },
+    queryOptions: {
+      enabled: !!self.data?.company_id,
+    },
+  })
 
   const documents = useGetProjectDocuments({
     pathParams: { projectId },
@@ -214,6 +223,9 @@ const Documents = ({ projectId }: DocumentsProps) => {
   const canCreateDocuments =
     checkPermissions(permissions.data, 'create:documents') ||
     (self.data?.user_type_id ?? 3) <= 2
+  const isAdminUser = (self.data?.user_type_id ?? 3) <= 2
+
+  const companyName = companies.data?.[0]?.name_long ?? 'your company'
 
   const rows = documents.data?.map((doc) => (
     <Table.Tr key={doc.document_id}>
@@ -246,10 +258,13 @@ const Documents = ({ projectId }: DocumentsProps) => {
     <Stack h="100%" pt="md">
       <Group justify="space-between" align="flex-start">
         <Text style={{ flex: 1 }}>
-          All uploaded documents will be added to the Aria knowledge base. They
-          will only be accessible to other users within your company. Text-based
-          documents such as contracts, manuals, and data sheets are recommended
-          for the best results.
+          This document will be viewable by all users in {companyName}. Uploaded
+          documents are also added to the Aria knowledge base.{' '}
+          {isAdminUser && (
+            <>
+              Manage users in <Link to="/admin/users">User Management</Link>.
+            </>
+          )}
         </Text>
         <FileUpload
           projectId={projectId}

@@ -1,4 +1,4 @@
-import { useCreateCompany } from '@/api/v1/admin/companies'
+import { useCreateCompany, useGetCompanies } from '@/api/v1/admin/companies'
 import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   useCreateCalendarEvent,
@@ -192,6 +192,16 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
   const { data: project } = useSelectProject(projectId ?? '')
 
   const { data: currentUser } = useGetUserSelf({})
+  const { data: companies } = useGetCompanies({
+    queryParams: {
+      company_ids: currentUser?.company_id
+        ? [currentUser.company_id]
+        : undefined,
+    },
+    queryOptions: {
+      enabled: opened && !!currentUser?.company_id,
+    },
+  })
 
   const { data: categories, isLoading: categoriesLoading } =
     useGetContractCategories({
@@ -581,6 +591,8 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
         value: doc.document_id,
         label: doc.name,
       })) || []
+  const companyName = companies?.[0]?.name_long ?? 'your company'
+  const isAdminUser = (currentUser?.user_type_id ?? 3) <= 2
 
   const handleSubmit = async () => {
     if (
@@ -658,6 +670,15 @@ const CreateContractModal = ({ opened, onClose }: CreateContractModalProps) => {
                 Document Selection
               </Title>
               <Stack gap="md">
+                <Text size="sm" c="dimmed">
+                  This document will be viewable by all users in {companyName}.{' '}
+                  {isAdminUser && (
+                    <>
+                      Manage users in{' '}
+                      <Link to="/admin/users">User Management</Link>.
+                    </>
+                  )}
+                </Text>
                 {documentOptions.length > 0 ? (
                   <Select
                     label="Select Document"
