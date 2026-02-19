@@ -1,7 +1,8 @@
-from typing import Any, ClassVar, MutableMapping, Self, Type
+import warnings
+from collections.abc import MutableMapping
+from typing import Any, ClassVar, Self
 
 import xarray as xr
-
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import ContextModel
 from kpi_pipeline.base.protocols import ActionProtocol, ObserverProtocol, SchemaProtocol
@@ -92,7 +93,7 @@ class ScopeWrappedAction[T](ActionProtocol[T]):
 
 class SchemaAbstract[T, K](metaclass=SchemaMetaclass):
     _registry: ClassVar[dict[str, K]]
-    _allowed_attribute_type: ClassVar[Type[Any]]
+    _allowed_attribute_type: ClassVar[type[Any]]
     _attribute_name_exceptions: ClassVar[list[str]] = ["value_registry", "export"]
 
     @classmethod
@@ -120,7 +121,7 @@ class SchemaAbstract[T, K](metaclass=SchemaMetaclass):
 
 class FieldSchemaAbstract[T, V](SchemaAbstract[T, Field]):
     _allowed_attribute_type = Field
-    _allowed_field_value_type: Type[V]
+    _allowed_field_value_type: type[V]
 
     @classmethod
     def _check_valid_attribute_value(cls, attr_name: str, attr_value: Field) -> None:
@@ -128,6 +129,9 @@ class FieldSchemaAbstract[T, V](SchemaAbstract[T, Field]):
             raise TypeError(
                 f"Attribute {attr_name} must be type {cls._allowed_attribute_type} for {cls.__name__}"
             )
+        if attr_value.value is None:
+            warnings.warn(f"Field {attr_name} has no value")
+            return
         if not isinstance(attr_value.value, cls._allowed_field_value_type):
             raise TypeError(
                 f"Field value type {type(attr_value.value)} must be type {cls._allowed_field_value_type} for {cls.__name__}"
@@ -135,7 +139,11 @@ class FieldSchemaAbstract[T, V](SchemaAbstract[T, Field]):
 
     @classmethod
     def value_registry(cls) -> dict[str, V]:
-        return {name: field.value for name, field in cls._registry.items()}
+        return {
+            name: field.value
+            for name, field in cls._registry.items()
+            if field.value is not None
+        }
 
 
 class TransformFieldSchemaAbstract[V](FieldSchemaAbstract[xr.Dataset, V]):

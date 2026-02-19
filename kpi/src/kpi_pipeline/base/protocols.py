@@ -5,16 +5,14 @@ from typing import (
     ContextManager,
     Protocol,
     Self,
-    Type,
 )
 
 import pandas as pd
 import xarray as xr
 from core.enumerations import DeviceType
 from core.models import Project
-from typing_extensions import runtime_checkable
-
 from kpi_pipeline.base.enums import Aggregation, DataType, Time
+from typing_extensions import runtime_checkable
 
 if TYPE_CHECKING:
     from kpi_pipeline.base.models import ContextModel
@@ -170,5 +168,5 @@ class DownloaderProtocol[T: DataDownloadModelProtocol](Protocol):
 
 class Implements[P]:
     @classmethod
-    def decorator(cls, _cls: Type[P]) -> Type[P]:
+    def decorator(cls, _cls: type[P]) -> type[P]:
         return _cls
