@@ -25,11 +25,14 @@ import {
   Menu,
   Modal,
   MultiSelect,
+  Pagination,
   Select,
   Stack,
+  Table,
   Tabs,
   Text,
   Tooltip,
+  UnstyledButton,
   rem,
   useComputedColorScheme,
 } from '@mantine/core'
@@ -43,13 +46,18 @@ import {
   IconLockOpen,
   IconRobot,
 } from '@tabler/icons-react'
-import { type Feature, type GeoJsonProperties, type Geometry } from 'geojson'
 import {
-  type MRT_ColumnDef,
-  type MRT_TableInstance,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
+  type ColumnDef,
+  type PaginationState,
+  type RowSelectionState,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import { type Feature, type GeoJsonProperties, type Geometry } from 'geojson'
 import { LngLatBoundsLike } from 'mapbox-gl'
 import {
   useCallback,
@@ -109,12 +117,6 @@ type CombinerRow = {
   signalPairRgb: string
   count: number
   loss: number
-}
-
-type TableWithSelection = MRT_TableInstance<CombinerRow> & {
-  getIsAllPageRowsSelected?: () => boolean
-  getIsAllRowsSelected?: () => boolean
-  toggleAllRowsSelected?: (value?: boolean) => void
 }
 
 type SubsystemAggregation = {
@@ -823,12 +825,15 @@ const DroneInspectionsMap = ({
   )
   const suggestRootCauses = useSuggestRootCauses()
 
-  // --- Table state (filter/sort/selection) ---
-  const [tableFilter] = useState('')
-  const [sortBy] = useState<'name' | 'count' | 'loss'>('loss')
-  const [sortDir] = useState<'asc' | 'desc'>('desc')
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+  // --- Table state (sort/selection/pagination) ---
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'loss', desc: true },
+  ])
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
   const [isMapping, setIsMapping] = useState(false)
 
   // Helper function to get confidence-based styling
@@ -859,15 +864,21 @@ const DroneInspectionsMap = ({
   }
 
   useEffect(() => {
-    const all = new Set<string>(Array.from(combinerAggregation.keys()))
-    queueMicrotask(() => setSelected(all))
-    const rs: Record<string, boolean> = {}
-    all.forEach((key) => (rs[key] = true))
+    const rs: RowSelectionState = {}
+    Array.from(combinerAggregation.keys()).forEach((key) => {
+      rs[key] = true
+    })
     queueMicrotask(() => setRowSelection(rs))
+    queueMicrotask(() =>
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: 0,
+      })),
+    )
   }, [combinerAggregation])
 
   const combinerRows = useMemo<CombinerRow[]>(() => {
-    const rows = Array.from(combinerAggregation.entries()).map(([key, v]) => ({
+    return Array.from(combinerAggregation.entries()).map(([key, v]) => ({
       key,
       device_id: v.dcFieldId,
       name: v.dcFieldName,
@@ -878,29 +889,37 @@ const DroneInspectionsMap = ({
       count: v.anomalyCount,
       loss: v.lossKw,
     }))
-    const filtered = rows.filter((r) =>
-      tableFilter
-        ? r.name?.toLowerCase().includes(tableFilter.toLowerCase())
-        : true,
-    )
-    const sorted = filtered.sort((a, b) => {
-      const dir = sortDir === 'asc' ? 1 : -1
-      if (sortBy === 'name') return a.name.localeCompare(b.name) * dir
-      if (sortBy === 'count') return (a.count - b.count) * dir
-      return (a.loss - b.loss) * dir
-    })
-    return sorted
-  }, [combinerAggregation, tableFilter, sortBy, sortDir])
+  }, [combinerAggregation])
 
   // Legacy flags removed
 
-  // MantineReactTable setup (unconditional to preserve hook order)
-  const combinerColumns = useMemo<MRT_ColumnDef<CombinerRow>[]>(() => {
+  const combinerColumns = useMemo<ColumnDef<CombinerRow>[]>(() => {
     return [
+      {
+        id: 'selection',
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            indeterminate={table.getIsSomePageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+            aria-label="Select all rows on this page"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            onChange={row.getToggleSelectedHandler()}
+            aria-label={`Select row ${row.original.name}`}
+          />
+        ),
+        enableSorting: false,
+        size: 40,
+      },
       {
         accessorKey: 'name',
         header: 'DC Field',
-        Cell: ({ row }) => (
+        cell: ({ row }) => (
           <Text size="sm" fw={500}>
             {row.original.name}
           </Text>
@@ -909,17 +928,17 @@ const DroneInspectionsMap = ({
       {
         accessorKey: 'signalPairIr',
         header: 'IR Signal',
-        Cell: ({ row }) => <Text size="sm">{row.original.signalPairIr}</Text>,
+        cell: ({ row }) => <Text size="sm">{row.original.signalPairIr}</Text>,
       },
       {
         accessorKey: 'signalPairRgb',
         header: 'RGB Signal',
-        Cell: ({ row }) => <Text size="sm">{row.original.signalPairRgb}</Text>,
+        cell: ({ row }) => <Text size="sm">{row.original.signalPairRgb}</Text>,
       },
       {
         accessorKey: 'count',
         header: '# Anomalies',
-        Cell: ({ cell }) => (
+        cell: ({ cell }) => (
           <Text size="sm">
             {Number(cell.getValue())?.toLocaleString?.() ?? 0}
           </Text>
@@ -928,57 +947,46 @@ const DroneInspectionsMap = ({
       {
         accessorKey: 'loss',
         header: 'Total DC Loss (kW)',
-        Cell: ({ cell }) => (
+        cell: ({ cell }) => (
           <Text size="sm">{Number(cell.getValue()).toFixed(2)}</Text>
         ),
       },
     ]
   }, [])
 
-  const combinerTable = useMantineReactTable<CombinerRow>({
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const combinerTable = useReactTable({
     columns: combinerColumns,
     data: combinerRows,
     getRowId: (row) => row.key,
+    enableSorting: true,
     enableRowSelection: true,
     enableMultiRowSelection: true,
-    positionToolbarAlertBanner: 'top',
-    renderToolbarAlertBannerContent: ({
-      table,
-    }: {
-      table: MRT_TableInstance<CombinerRow>
-    }) => {
-      const tableWithSelection = table as TableWithSelection
-      const allPageSelected = tableWithSelection.getIsAllPageRowsSelected?.()
-      const allSelected = tableWithSelection.getIsAllRowsSelected?.()
-      if (allPageSelected && !allSelected) {
-        return (
-          <Group gap={8}>
-            <Text size="sm">All rows selected on this page.</Text>
-            <Button
-              variant="subtle"
-              size="compact-sm"
-              onClick={() => tableWithSelection.toggleAllRowsSelected?.(true)}
-            >
-              Select All from All Pages
-            </Button>
-          </Group>
-        )
-      }
-      return null
+    state: {
+      rowSelection,
+      sorting,
+      pagination,
     },
-    initialState: {
-      density: 'xs',
-      sorting: [{ id: sortBy, desc: sortDir === 'desc' }],
-    },
-    enableColumnDragging: false,
-    mantineTableProps: {
-      withTableBorder: true,
-      withColumnBorders: true,
-      striped: true,
-    },
-    state: { rowSelection },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   })
+
+  const selectedRowCount = useMemo(
+    () => Object.values(rowSelection).filter(Boolean).length,
+    [rowSelection],
+  )
+
+  const combinerPageCount = combinerTable.getPageCount()
+
+  useEffect(() => {
+    const maxPageIndex = Math.max(combinerPageCount - 1, 0)
+    if (pagination.pageIndex <= maxPageIndex) return
+    setPagination((prev) => ({ ...prev, pageIndex: maxPageIndex }))
+  }, [combinerPageCount, pagination.pageIndex])
 
   const handleConfirmAddEvents = async () => {
     if (!projectId || !openDate || combinerAggregation.size === 0) {
@@ -2406,7 +2414,7 @@ const DroneInspectionsMap = ({
                 <Button
                   onClick={handleConfirmAddEvents}
                   loading={bulkCreate.isPending}
-                  disabled={!openDate || selected.size === 0}
+                  disabled={!openDate || selectedRowCount === 0}
                 >
                   Create Events
                 </Button>
@@ -2421,7 +2429,109 @@ const DroneInspectionsMap = ({
                 No signal pair groups matched the current filters.
               </Text>
             ) : (
-              <MantineReactTable table={combinerTable} />
+              <Stack gap="xs">
+                <Table
+                  withTableBorder
+                  withColumnBorders
+                  striped
+                  highlightOnHover
+                >
+                  <Table.Thead>
+                    {combinerTable.getHeaderGroups().map((headerGroup) => (
+                      <Table.Tr key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          const canSort = header.column.getCanSort()
+                          const sortState = header.column.getIsSorted()
+                          const sortIconRotation = sortState === 'asc' ? 180 : 0
+
+                          return (
+                            <Table.Th key={header.id}>
+                              {header.isPlaceholder ? null : canSort ? (
+                                <UnstyledButton
+                                  onClick={header.column.getToggleSortingHandler()}
+                                >
+                                  <Group gap={6} wrap="nowrap">
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    )}
+                                    <IconChevronDown
+                                      size={14}
+                                      style={{
+                                        opacity: sortState ? 1 : 0.4,
+                                        transform: `rotate(${sortIconRotation}deg)`,
+                                        transition: 'transform 120ms ease',
+                                      }}
+                                    />
+                                  </Group>
+                                </UnstyledButton>
+                              ) : (
+                                flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )
+                              )}
+                            </Table.Th>
+                          )
+                        })}
+                      </Table.Tr>
+                    ))}
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {combinerTable.getRowModel().rows.map((row) => (
+                      <Table.Tr
+                        key={row.id}
+                        style={{
+                          backgroundColor: row.getIsSelected()
+                            ? 'var(--mantine-primary-color-light-hover)'
+                            : undefined,
+                        }}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Td key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </Table.Td>
+                        ))}
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+                <Group justify="space-between" align="center">
+                  <Group gap="xs" align="center">
+                    <Text size="sm" c="dimmed">
+                      Rows per page
+                    </Text>
+                    <Select
+                      data={['10', '25', '50', '100']}
+                      value={String(pagination.pageSize)}
+                      onChange={(value) => {
+                        if (!value) return
+                        setPagination({
+                          pageIndex: 0,
+                          pageSize: Number(value),
+                        })
+                      }}
+                      w={80}
+                      size="xs"
+                      allowDeselect={false}
+                    />
+                  </Group>
+                  <Group gap="xs" align="center">
+                    <Text size="sm" c="dimmed">
+                      {selectedRowCount} selected
+                    </Text>
+                    <Pagination
+                      size="sm"
+                      total={Math.max(combinerTable.getPageCount(), 1)}
+                      value={pagination.pageIndex + 1}
+                      onChange={(page) => combinerTable.setPageIndex(page - 1)}
+                    />
+                  </Group>
+                </Group>
+              </Stack>
             )}
           </Card>
         </Stack>
