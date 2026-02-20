@@ -4,11 +4,13 @@
 # This script runs each check independently and tracks which ones pass/fail
 
 set +e  # Don't exit on first error - we want to run all checks
+unset VIRTUAL_ENV
 
 # Parse command line arguments
 SKIP_TESTS=false
 RUN_ALL=false
 OFFLINE=false
+QUIET=true
 ASYNC_OFFLINE=false
 if [ "${AGENT_ENVIRONMENT}" = "async-offline" ]; then
     ASYNC_OFFLINE=true
@@ -25,6 +27,14 @@ for arg in "$@"; do
             ;;
         --offline)
             OFFLINE=true
+            shift
+            ;;
+        --quiet)
+            QUIET=true
+            shift
+            ;;
+        --verbose)
+            QUIET=false
             shift
             ;;
     esac
@@ -81,99 +91,190 @@ add_db_check() {
 run_check() {
     local check_name="$1"
     local check_command="$2"
+    local log_file
+
+    if [ "${QUIET}" != "true" ]; then
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BOLD}Running: ${check_name}${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        if eval "$check_command"; then
+            PASSED_CHECKS+=("$check_name")
+            echo -e "${GREEN}✓ ${check_name} passed${NC}\n"
+            return 0
+        else
+            FAILED_CHECKS+=("$check_name:$check_command")
+            echo -e "${RED}✗ ${check_name} failed${NC}\n"
+            return 1
+        fi
+    fi
+
+    log_file=$(mktemp)
+    if eval "$check_command" >"$log_file" 2>&1; then
+        PASSED_CHECKS+=("$check_name")
+        echo -e "${GREEN}✓ ${check_name} passed${NC}"
+        rm -f "$log_file"
+        return 0
+    fi
 
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BOLD}Running: ${check_name}${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    cat "$log_file"
+    rm -f "$log_file"
+    FAILED_CHECKS+=("$check_name:$check_command")
+    echo -e "${RED}✗ ${check_name} failed${NC}\n"
+    return 1
+}
 
-    if eval "$check_command"; then
-        PASSED_CHECKS+=("$check_name")
-        echo -e "${GREEN}✓ ${check_name} passed${NC}\n"
-        return 0
-    else
-        FAILED_CHECKS+=("$check_name:$check_command")
-        echo -e "${RED}✗ ${check_name} failed${NC}\n"
-        return 1
+cleanup_run_all_checks() {
+    tput cnorm 2>/dev/null || true
+    if [ -n "${RUN_CHECKS_LOG_DIR:-}" ] && [ -d "${RUN_CHECKS_LOG_DIR}" ]; then
+        rm -rf "${RUN_CHECKS_LOG_DIR}"
+    fi
+}
+
+update_check_ui_status() {
+    local check_index="$1"
+    local exit_code="$2"
+    local total_checks="$3"
+    local lines_up=$((total_checks - check_index))
+    local lines_down=$((lines_up - 1))
+    local color="$GREEN"
+    local symbol="*"
+
+    if [ "$exit_code" -ne 0 ]; then
+        color="$RED"
+        symbol="x"
+    fi
+
+    printf "\033[%sA" "$lines_up"
+    printf "\r\033[2K%b%s%b %s\n" \
+        "$color" \
+        "$symbol" \
+        "$NC" \
+        "${CHECKS_NAME[$check_index]}"
+    if [ "$lines_down" -gt 0 ]; then
+        printf "\033[%sB" "$lines_down"
     fi
 }
 
 # Function to run all registered checks
 run_all_checks() {
-    local LOG_DIR
-    LOG_DIR=$(mktemp -d)
-    if [[ -z "$LOG_DIR" || ! -d "$LOG_DIR" ]]; then
-        echo -e "${RED}Failed to create temporary directory.${NC}"
-        return 1
+    local total_checks="${#CHECKS_NAME[@]}"
+    local -a parallel_indices=()
+    local -a failed_indices=()
+    local -a parallel_done_by_index=()
+    local parallel_done=0
+    local parallel_total=0
+    local i
+    local cmd
+    local log_file
+    local status_file
+    local status
+
+    if [ "$total_checks" -eq 0 ]; then
+        echo -e "${GREEN}No checks were scheduled.${NC}"
+        exit 0
     fi
-    trap 'rm -rf "$LOG_DIR"' EXIT
 
-    local pids=()
-    local parallel_indices=()
+    RUN_CHECKS_LOG_DIR=$(mktemp -d)
+    if [[ -z "${RUN_CHECKS_LOG_DIR}" || ! -d "${RUN_CHECKS_LOG_DIR}" ]]; then
+        echo -e "${RED}Failed to create temporary directory.${NC}"
+        exit 1
+    fi
+    trap cleanup_run_all_checks EXIT
+    trap 'exit 130' INT TERM
 
-    # Start parallel checks
+    for i in "${!CHECKS_NAME[@]}"; do
+        echo -e "${YELLOW}●${NC} ${CHECKS_NAME[$i]}"
+    done
+
+    tput civis 2>/dev/null || true
+
+    # Phase 1: Kick off all parallel checks in the background.
     for i in "${!CHECKS_NAME[@]}"; do
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "true" ]; then
-            local name="${CHECKS_NAME[$i]}"
-            local cmd="${CHECKS_CMD[$i]}"
-            local log_file="$LOG_DIR/check_$i.log"
-            local status_file="$LOG_DIR/check_$i.status"
-
+            cmd="${CHECKS_CMD[$i]}"
+            log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+            status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
             parallel_indices+=("$i")
             (
-                # Run the check and capture output
-                if eval "$cmd" > "$log_file" 2>&1; then
-                    echo 0 > "$status_file"
+                if eval "$cmd" >"$log_file" 2>&1; then
+                    echo 0 >"$status_file"
                 else
-                    echo $? > "$status_file"
+                    echo $? >"$status_file"
                 fi
             ) &
-            pids+=($!)
         fi
     done
 
-    # If we have parallel checks, notify the user
-    if [ ${#parallel_indices[@]} -gt 0 ]; then
-        echo -e "${BLUE}Starting ${#parallel_indices[@]} checks in parallel...${NC}\n"
-    fi
+    # Poll status files and update each completed parallel check in-place.
+    parallel_total="${#parallel_indices[@]}"
+    while [ "$parallel_done" -lt "$parallel_total" ]; do
+        for i in "${parallel_indices[@]}"; do
+            if [ "${parallel_done_by_index[$i]:-0}" -eq 1 ]; then
+                continue
+            fi
 
-    # Wait for parallel checks and print results as they finish
-    # To maintain a stable output, we'll wait for them in order
-    for idx in "${!parallel_indices[@]}"; do
-        local i="${parallel_indices[$idx]}"
-        local name="${CHECKS_NAME[$i]}"
-        local cmd="${CHECKS_CMD[$i]}"
-        local log_file="$LOG_DIR/check_$i.log"
-        local status_file="$LOG_DIR/check_$i.status"
+            status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
+            if [ -f "$status_file" ]; then
+                status=$(cat "$status_file")
+                parallel_done_by_index[$i]=1
+                parallel_done=$((parallel_done + 1))
 
-        wait "${pids[$idx]}"
-        local status
-        if [ -f "$status_file" ]; then
-            status=$(cat "$status_file")
-        else
-            status=1 # Indicate failure
-            echo -e "${RED}Error: Could not determine status of '${name}'. Status file not found.${NC}" >> "$log_file"
-        fi
+                update_check_ui_status "$i" "$status" "$total_checks"
+                if [ "$status" -eq 0 ]; then
+                    PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
+                else
+                    FAILED_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
+                    failed_indices+=("$i")
+                fi
+            fi
+        done
 
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${BOLD}Finished: ${name}${NC}"
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        cat "$log_file"
-
-        if [ "$status" -eq 0 ]; then
-            PASSED_CHECKS+=("$name")
-            echo -e "${GREEN}✓ ${name} passed${NC}\n"
-        else
-            FAILED_CHECKS+=("$name:$cmd")
-            echo -e "${RED}✗ ${name} failed${NC}\n"
+        if [ "$parallel_done" -lt "$parallel_total" ]; then
+            sleep 0.1
         fi
     done
 
-    # Run sequential checks (Ruff, Formatting)
+    # Phase 2: Run sequential checks one at a time, then update in-place.
     for i in "${!CHECKS_NAME[@]}"; do
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
-            run_check "${CHECKS_NAME[$i]}" "${CHECKS_CMD[$i]}"
+            cmd="${CHECKS_CMD[$i]}"
+            log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+            if eval "$cmd" >"$log_file" 2>&1; then
+                status=0
+                PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
+            else
+                status=$?
+                FAILED_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
+                failed_indices+=("$i")
+            fi
+            update_check_ui_status "$i" "$status" "$total_checks"
         fi
     done
+
+    echo ""
+    if [ "${#failed_indices[@]}" -eq 0 ]; then
+        echo -e "${GREEN}All checks passed.${NC}"
+        exit 0
+    fi
+
+    echo -e "${RED}Failed checks:${NC}"
+    echo ""
+    for i in "${failed_indices[@]}"; do
+        echo -e "${BOLD}${RED}${CHECKS_NAME[$i]}${NC}"
+        log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+        if [ -f "$log_file" ]; then
+            cat "$log_file"
+        else
+            echo "No log file found for this check."
+        fi
+        echo ""
+    done
+
+    exit 1
 }
 
 # Function to check for package.json or package-lock.json in the root
@@ -387,11 +488,16 @@ if [ "${RUN_API}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
+    NAME_SHORTS_CHECK_CMD="mise run hardcoded_name_shorts_check"
+    if [ "${QUIET}" = "true" ]; then
+        NAME_SHORTS_CHECK_CMD="mise run hardcoded_name_shorts_check -- --quiet"
+    fi
+
     add_check "Root: No package.json" "check_root_for_package_json"
     add_check "Root: Hardcoded Type ID Check" \
         "mise run hardcoded_type_id_check"
     add_check "Root: Hardcoded Name Shorts Check" \
-        "mise run hardcoded_name_shorts_check"
+        "${NAME_SHORTS_CHECK_CMD}"
     add_check "Root: Pyproject Dependency Check" \
         "uv run python _scripts/check_pyproject_dependencies.py"
     add_db_check "Root: Codegen" "mise run codegen"
@@ -402,8 +508,6 @@ if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = 
     add_check "Global: Semgrep" "mise run semgrep:check"
     add_check "Global: Ruff Linting" "mise run ruff:check"
     add_check "Global: Ruff Formatting" "mise run ruff:format"
-    add_check "Tools: Ruff Linting" "mise run tools:ruff"
-    add_check "Tools: Ruff Formatting" "mise run tools:format"
 fi
 
 if [ "${RUN_WEB}" = "true" ]; then
@@ -415,40 +519,3 @@ fi
 
 # Run all registered checks
 run_all_checks
-
-# Print summary
-echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BOLD}${BLUE}                    CHECK SUMMARY                     ${NC}"
-echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-
-# Print passed checks
-if [ ${#PASSED_CHECKS[@]} -gt 0 ]; then
-    echo -e "${BOLD}${GREEN}Passed (${#PASSED_CHECKS[@]}):${NC}"
-    for check in "${PASSED_CHECKS[@]}"; do
-        echo -e "  ${GREEN}✓${NC} $check"
-    done
-    echo ""
-fi
-
-# Print failed checks
-if [ ${#FAILED_CHECKS[@]} -gt 0 ]; then
-    echo -e "${BOLD}${RED}Failed (${#FAILED_CHECKS[@]}):${NC}"
-    for check_info in "${FAILED_CHECKS[@]}"; do
-        check_name="${check_info%%:*}"
-        check_command="${check_info#*:}"
-        echo -e "  ${RED}✗${NC} ${check_name}: ${BOLD}${check_command}${NC}"
-    done
-    echo ""
-fi
-
-# Print overall result
-echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-if [ ${#FAILED_CHECKS[@]} -eq 0 ]; then
-    echo -e "${BOLD}${GREEN}All checks passed! ✓${NC}"
-    echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-    exit 0
-else
-    echo -e "${BOLD}${RED}${#FAILED_CHECKS[@]} check(s) failed ✗${NC}"
-    echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-    exit 1
-fi

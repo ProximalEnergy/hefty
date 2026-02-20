@@ -12,7 +12,7 @@
 #   - 1: Hardcoded patterns found (failure)
 #
 # Usage:
-#   ./hardcoded_name_shorts_check.sh
+#   ./hardcoded_name_shorts_check.sh [--quiet]
 #
 # Configuration:
 #   - FOLDER_PATH_EXCLUDES: Add folder paths to exclude from checks
@@ -49,6 +49,22 @@
 #   4. Hardcoded name_short Assignments (TypeScript/TSX) - e.g., nameShort: "value"
 
 set -euo pipefail
+
+# Runtime options
+QUIET=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --quiet)
+            QUIET=true
+            ;;
+        *)
+            echo "Error: Unknown argument '$arg'" >&2
+            echo "Usage: $0 [--quiet]" >&2
+            exit 2
+            ;;
+    esac
+done
 
 # Colors for output
 RED='\033[0;31m'
@@ -243,19 +259,24 @@ load_patterns
 OVERALL_FAILED=0
 TOTAL_MATCHES=0
 
-# Print header
-echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BOLD}${BLUE}    Hardcoded name_shorts/name_short Check          ${NC}"
-echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+if [ "$QUIET" != "true" ]; then
+    echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BOLD}${BLUE}    Hardcoded name_shorts/name_short Check          ${NC}"
+    echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+fi
 
 # Check for required tools
 # ripgrep is preferred for speed, but grep is used as a fallback
 if ! command -v rg &> /dev/null; then
-    echo -e "${YELLOW}⚠️  Warning: ripgrep (rg) not found. Falling back to grep (may be slower).${NC}"
-    echo -e "${YELLOW}   Install ripgrep for better performance: https://github.com/BurntSushi/ripgrep${NC}\n"
+    if [ "$QUIET" != "true" ]; then
+        echo -e "${YELLOW}⚠️  Warning: ripgrep (rg) not found. Falling back to grep (may be slower).${NC}"
+        echo -e "${YELLOW}   Install ripgrep for better performance: https://github.com/BurntSushi/ripgrep${NC}\n"
+    fi
     USE_RIPGREP=false
 else
-    echo -e "${GREEN}✓ Using ripgrep for fast pattern matching${NC}\n"
+    if [ "$QUIET" != "true" ]; then
+        echo -e "${GREEN}✓ Using ripgrep for fast pattern matching${NC}\n"
+    fi
     USE_RIPGREP=true
 fi
 
@@ -265,13 +286,15 @@ for i in "${!PATTERN_NAMES[@]}"; do
     pattern_regex="${PATTERN_REGEXES[$i]}"
     pattern_desc="${PATTERN_DESCRIPTIONS[$i]}"
     pattern_exclude_str="${PATTERN_EXCLUDE_DIRS[$i]}"
-    
-    echo -e "${BLUE}Checking pattern: ${BOLD}${pattern_name}${NC}"
-    if [ -n "$pattern_desc" ]; then
-        echo -e "  ${BLUE}Description: ${pattern_desc}${NC}"
+
+    if [ "$QUIET" != "true" ]; then
+        echo -e "${BLUE}Checking pattern: ${BOLD}${pattern_name}${NC}"
+        if [ -n "$pattern_desc" ]; then
+            echo -e "  ${BLUE}Description: ${pattern_desc}${NC}"
+        fi
+        echo -e "  ${BLUE}Pattern: ${pattern_regex}${NC}\n"
     fi
-    echo -e "  ${BLUE}Pattern: ${pattern_regex}${NC}\n"
-    
+
     MATCHES_FOUND=0
     
     if [ "$USE_RIPGREP" = true ]; then
@@ -360,10 +383,14 @@ for i in "${!PATTERN_NAMES[@]}"; do
             TOTAL_MATCHES=$((TOTAL_MATCHES + match_count))
             OVERALL_FAILED=1
         else
-            echo -e "${GREEN}✓ No matches found for pattern '${pattern_name}'${NC}\n"
+            if [ "$QUIET" != "true" ]; then
+                echo -e "${GREEN}✓ No matches found for pattern '${pattern_name}'${NC}\n"
+            fi
         fi
     else
-        echo -e "${GREEN}✓ No matches found for pattern '${pattern_name}'${NC}\n"
+        if [ "$QUIET" != "true" ]; then
+            echo -e "${GREEN}✓ No matches found for pattern '${pattern_name}'${NC}\n"
+        fi
     fi
 done
 
@@ -371,14 +398,18 @@ done
 # Summary and Exit
 # ============================================================================
 
-# Print final summary
-echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 if [ $OVERALL_FAILED -eq 0 ]; then
-    echo -e "${BOLD}${GREEN}✓ All hardcoded name_shorts/name_short checks passed!${NC}"
-    echo -e "${BOLD}${GREEN}  No hardcoded patterns found in the codebase.${NC}"
-    echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    if [ "$QUIET" != "true" ]; then
+        echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BOLD}${GREEN}✓ All hardcoded name_shorts/name_short checks passed!${NC}"
+        echo -e "${BOLD}${GREEN}  No hardcoded patterns found in the codebase.${NC}"
+        echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    fi
     exit 0
 else
+    if [ "$QUIET" != "true" ]; then
+        echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    fi
     echo -e "${BOLD}${RED}✗ Hardcoded name_shorts/name_short check failed${NC}"
     echo -e "${BOLD}${RED}  Found ${TOTAL_MATCHES} hardcoded pattern(s) that need to be addressed.${NC}"
     echo -e "${BOLD}${YELLOW}  To fix:${NC}"
@@ -386,7 +417,10 @@ else
     echo -e "${BOLD}${YELLOW}    2. Add ignore comments for legitimate cases:${NC}"
     echo -e "${BOLD}${YELLOW}       Python:   # noqa: hardcoded-name-short${NC}"
     echo -e "${BOLD}${YELLOW}       TS/TSX:   // noqa: hardcoded-name-short${NC}"
-    echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    if [ "$QUIET" != "true" ]; then
+        echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    else
+        echo ""
+    fi
     exit 1
 fi
-

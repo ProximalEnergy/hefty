@@ -128,6 +128,8 @@ usage = '''
   flag "--static" help="Skip non-static tests"
   flag "--all" help="Run all checks without diff filtering"
   flag "--offline" help="Skip checks that need network access"
+  flag "--quiet" help="Keep reduced output (default behavior)"
+  flag "--verbose" help="Show full output for successful checks"
 '''
 run = """
 ALL_ARGS=""
@@ -139,6 +141,12 @@ if [ "${usage_static:-false}" = "true" ]; then
 fi
 if [ "${usage_offline:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --offline"
+fi
+if [ "${usage_quiet:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --quiet"
+fi
+if [ "${usage_verbose:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --verbose"
 fi
 ./_scripts/run_checks.sh ${ALL_ARGS}
 """
@@ -217,7 +225,7 @@ run = "./_scripts/hardcoded_name_shorts_check.sh"
 [tasks."semgrep:check"]
 description = "Run all semgrep quality checks on the monorepo"
 dir = "."
-run = "uv run semgrep --error --config _scripts/rules/ core/src api/app microservices web-app/src --exclude api/app/dependencies.py"
+run = "uv run semgrep --quiet --disable-version-check --error --config _scripts/rules/ core/src api/app microservices web-app/src --exclude api/app/dependencies.py"
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
@@ -229,7 +237,7 @@ dir = "."
 usage = '''
   arg "[branch]" help="The source branch to checkout files from (optional)"
 '''
-run = "python3 _tools/git_checkout_tui.py ${usage_branch:-}"
+run = "python3 _scripts/git_checkout_tui.py ${usage_branch:-}"
 
 [tasks."core:check"]
 description = "Run all quality checks for core"
