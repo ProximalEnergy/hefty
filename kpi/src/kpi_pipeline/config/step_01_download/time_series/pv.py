@@ -83,14 +83,14 @@ class DownloadTimeSeriesPV(DownloadTimeSeriesSchema):
         SensorModel(sensor_type=SensorType.MET_STATION_POA, aggregation=Aggregation.MAX)
     )
 
-    tracker_row_position_deg_5m = Field(None)
-    #     SensorModel(
-    #         sensor_type=SensorType.TRACKER_POSITION,
-    #     )
-    # )
+    tracker_row_position_deg_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.TRACKER_POSITION,
+        )
+    )
 
-    tracker_row_setpoint_deg_5m = Field(None)
-    #     SensorModel(
-    #         sensor_type=SensorType.TRACKER_SETPOINT,
-    #     )
-    # )
+    tracker_row_setpoint_deg_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.TRACKER_SETPOINT,
+        )
+    )

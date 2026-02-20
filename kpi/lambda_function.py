@@ -3,10 +3,13 @@
 import os
 
 import sentry_sdk
+import sentry_sdk.integrations.aws_lambda as sentry_aws_lambda
 from dotenv import load_dotenv
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 
 load_dotenv()
+# SDK uses this constant (ms before timeout to fire warning). Default 1500; use 30s.
+sentry_aws_lambda.TIMEOUT_WARNING_BUFFER = 30_000
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_DSN"),
     send_default_pii=True,
@@ -18,16 +21,15 @@ sentry_sdk.init(
 import datetime
 from uuid import UUID
 
+import kpi_pipeline.config as config
 from core.crud.operational.projects import get_project
 from core.enumerations import KPIType, OutputType
-from pydantic import BaseModel
-
-import kpi_pipeline.config as config
 from kpi_pipeline.base.models import ContextModel
 from kpi_pipeline.infra.dataset_builder import create_dataset
 from kpi_pipeline.infra.device_manager import DeviceTree
 from kpi_pipeline.infra.observer import SentryObserver
 from kpi_pipeline.services.client import action_from_list
+from pydantic import BaseModel
 
 
 class Event(BaseModel):

@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Self
 
 import pandas as pd
+import polars as pl
 import xarray as xr
-from core import models
 from core.crud.operational.sensor_types import get_sensor_types
 from core.crud.project.data_expected import get_project_data_expected
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
@@ -14,9 +14,6 @@ from core.database import with_db
 from core.db_query import OutputType
 from core.domain.statuses.statuses import get_status_time_series_failure_mode_ids
 from core.enumerations import DeviceType, SensorType, TimeOffset
-from pydantic import ConfigDict, validate_call
-from sqlalchemy.orm import Session
-
 from kpi_pipeline.base.enums import UTC
 from kpi_pipeline.base.models import (
     ContextModel,
@@ -34,8 +31,13 @@ from kpi_pipeline.infra.data_access.pandas_to_xarray import (
     pandas_time_series_to_xarray,
 )
 from kpi_pipeline.infra.exceptions import NoDownloadedDataError
+from pydantic import ConfigDict, validate_call
+from sqlalchemy.orm import Session
+
+from core import models
 
 arbitrary_types = ConfigDict(arbitrary_types_allowed=True)
+KPI_TAG_CHUNK_SIZE = 2_000
 
 # helper functions
 
@@ -45,7 +47,7 @@ async def _async_get_data_timeseries(
     *,
     project_db: Session,
     project_name_short: str,
-    sensor_types_list: list[SensorType],
+    tags_chunk: pl.DataFrame,
     start: datetime,
     end: datetime,
 ):
@@ -55,8 +57,8 @@ async def _async_get_data_timeseries(
         query_end=end,
         max_lookback_period=TimeOffset.ONE_HOUR,
         project_db=project_db,
-        filter_method=FilterMethod.SENSOR_TYPE_IDS,
-        filter_values=[sensor_type.value for sensor_type in sensor_types_list],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=tags_chunk,
         ensure_full_range=True,
         dangerous_pagination_override=False,
     ).get_all()
@@ -202,6 +204,38 @@ def _get_tag_df(
     )[[models.Tag.sensor_type_id.name, models.Tag.device_id.name]]
 
 
+def _get_tag_polars(
+    *, sensor_type_id_list: list[int], project: models.Project
+) -> pl.DataFrame:
+    return get_project_tags_v2(
+        sensor_type_ids=sensor_type_id_list,
+    ).get(
+        schema=project.name_short,
+        output_type=OutputType.POLARS,
+    )
+
+
+def _iter_tag_chunks(*, tags: pl.DataFrame) -> list[pl.DataFrame]:
+    return [
+        tags.slice(i, KPI_TAG_CHUNK_SIZE)
+        for i in range(0, len(tags), KPI_TAG_CHUNK_SIZE)
+    ]
+
+
+def _tag_df_from_tags_polars(*, tags: pl.DataFrame) -> pd.DataFrame:
+    return (
+        tags.select(
+            [
+                models.Tag.tag_id.name,
+                models.Tag.sensor_type_id.name,
+                models.Tag.device_id.name,
+            ]
+        )
+        .to_pandas()
+        .set_index(models.Tag.tag_id.name)
+    )
+
+
 def _get_sensor_types(sensor_type_id_list: list[int]):
     sensor_types = get_sensor_types(
         sensor_type_ids=sensor_type_id_list,
@@ -243,20 +277,37 @@ class TimeSeriesDownloader(
         start = context.start_date
         # add 5 minutes to get first time step of the following day
         end = context.end_date + pd.Timedelta(minutes=5)
-
-        with with_db(schema=project.name_short) as project_db:
-            data_timeseries = run_in_loop(
-                _async_get_data_timeseries(
-                    project_db=project_db,
-                    project_name_short=project.name_short,
-                    sensor_types_list=[sensor.sensor_type for sensor in map.values()],
-                    start=start,  # type: ignore
-                    end=end,  # type: ignore
-                )
+        sensor_type_id_list = [sensor.sensor_type.value for sensor in map.values()]
+        tags_polars = _get_tag_polars(
+            sensor_type_id_list=sensor_type_id_list,
+            project=project,
+        )
+        if tags_polars.is_empty():
+            raise NoDownloadedDataError(
+                "No tags found for sensor types "
+                f"{[s.sensor_type for s in map.values()]}"
             )
 
-        data_raw = data_timeseries.df.to_pandas().set_index(
-            models.DataTimeseries.time.name
+        with with_db(schema=project.name_short) as project_db:
+            data_timeseries_chunks = []
+            for tags_chunk in _iter_tag_chunks(tags=tags_polars):
+                data_timeseries_chunks.append(
+                    run_in_loop(
+                        _async_get_data_timeseries(
+                            project_db=project_db,
+                            project_name_short=project.name_short,
+                            tags_chunk=tags_chunk,
+                            start=start,  # type: ignore
+                            end=end,  # type: ignore
+                        )
+                    )
+                )
+        data_raw = pd.concat(
+            [
+                chunk.df.to_pandas().set_index(models.DataTimeseries.time.name)
+                for chunk in data_timeseries_chunks
+            ],
+            axis=1,
         )
         data_raw = _set_index_and_columns(data_raw)
 
@@ -264,9 +315,7 @@ class TimeSeriesDownloader(
 
         # For each tag, get corresponding sensor type and device id
 
-        sensor_type_id_list = [sensor.sensor_type.value for sensor in map.values()]
-
-        tag_df = _get_tag_df(sensor_type_id_list, project)
+        tag_df = _tag_df_from_tags_polars(tags=tags_polars)
 
         # For each sensor type, get corresponding device type
 
