@@ -10,6 +10,7 @@ import { useGetProjects } from '@/api/v1/operational/projects'
 import { PageLoader } from '@/components/Loading'
 import {
   ActionIcon,
+  Box,
   Button,
   Checkbox,
   Group,
@@ -26,7 +27,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { IconUserMinus } from '@tabler/icons-react'
 import { AxiosError } from 'axios'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const CreateUserModal = ({
   opened,
@@ -122,11 +123,12 @@ const CreateUserModal = ({
           <Select
             required
             label="Company"
-            placeholder="Select Company"
+            placeholder="Select or type to search company"
             data={companies?.map((company) => ({
               value: company.company_id,
               label: company.name_long,
             }))}
+            searchable
             {...form.getInputProps('company_id')}
           />
           <Button type="submit" loading={createUser.isPending}>
@@ -169,8 +171,13 @@ const UserManagement = () => {
     [users.data],
   )
 
+  // Superadmin: fetch all companies so Create User modal can assign any company.
+  // Non-superadmin: only companies that already have users (for table + modal).
   const companies = useGetCompanies({
-    queryParams: { company_ids: uniqueCompanyIds },
+    queryParams:
+      self.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
+        ? {}
+        : { company_ids: uniqueCompanyIds },
   })
 
   // Create a map of company IDs to company names for easier lookup
@@ -203,10 +210,22 @@ const UserManagement = () => {
     },
   })
 
-  // Add new state for company filter
+  // Add new state for company filter (default to current user's company)
   const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<
     string | null
   >(null)
+  const hasSetInitialCompanyFilter = useRef(false)
+  useEffect(() => {
+    if (
+      self.data?.company_id &&
+      !hasSetInitialCompanyFilter.current &&
+      (companies.data?.length || 0) > 1
+    ) {
+      hasSetInitialCompanyFilter.current = true
+      const companyId = self.data.company_id
+      queueMicrotask(() => setSelectedCompanyFilter(companyId))
+    }
+  }, [self.data?.company_id, companies.data?.length])
 
   // Modify the sorting and filtering of users
   const sortedUsers = useMemo(
@@ -329,21 +348,24 @@ const UserManagement = () => {
 
       {/* Only show company filter if there are multiple companies */}
       {(companies.data?.length || 0) > 1 && (
-        <Select
-          label="Filter by Company"
-          placeholder="All Companies"
-          clearable
-          data={
-            companies.data
-              ?.map((company) => ({
-                value: company.company_id,
-                label: company.name_long,
-              }))
-              .sort((a, b) => a.label.localeCompare(b.label)) || []
-          }
-          value={selectedCompanyFilter}
-          onChange={setSelectedCompanyFilter}
-        />
+        <Box maw={320}>
+          <Select
+            label="Filter by Company"
+            placeholder="All Companies (type to search)"
+            clearable
+            searchable
+            data={
+              companies.data
+                ?.map((company) => ({
+                  value: company.company_id,
+                  label: company.name_long,
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label)) || []
+            }
+            value={selectedCompanyFilter}
+            onChange={setSelectedCompanyFilter}
+          />
+        </Box>
       )}
 
       <Table stickyHeader stickyHeaderOffset={0} striped highlightOnHover>
