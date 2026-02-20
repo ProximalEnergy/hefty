@@ -150,16 +150,25 @@ function AdaptiveGisBESS() {
     return { north: 40.0, east: -95.0, south: 35.0, west: -99.0 }
   }, [projectBounds])
 
-  // Pick device types based on a single threshold to avoid flip-flopping at high zoom:
-  // - zoom >= ZOOM_LEVEL_2 (19): BESS Strings + PCS
-  // - zoom < ZOOM_LEVEL_2: PCS + BESS DC Enclosures
-  const dynamicDeviceTypeIds = useMemo(() => {
-    return zoom >= ZOOM_LEVEL_2
-      ? [DT_BESS_STRING, DT_BESS_PCS]
-      : [DT_BESS_PCS, DT_BESS_DC_ENCLOSURE]
-  }, [zoom])
+  // DC Enclosure SOC in project spec: if not assigned, only show PCS + String layer
+  const hasEnclosureSOC = useMemo(() => {
+    const usedSensorTypeIds = project.data?.spec?.used_sensor_type_ids ?? []
+    return usedSensorTypeIds.includes(SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT)
+  }, [project.data?.spec?.used_sensor_type_ids])
 
-  const deviceTypeIdsToFetch = isViewLocked
+  // Pick device types: when project has no DC Enclosure SOC, only PCS + String.
+  // Otherwise zoom-based: zoom >= ZOOM_LEVEL_2 -> Strings + PCS, else PCS + DC Enclosures.
+  const dynamicDeviceTypeIds = useMemo(() => {
+    if (!hasEnclosureSOC || zoom >= ZOOM_LEVEL_2) {
+      return [DT_BESS_STRING, DT_BESS_PCS]
+    }
+    return [DT_BESS_PCS, DT_BESS_DC_ENCLOSURE]
+  }, [zoom, hasEnclosureSOC])
+
+  // When project has no DC Enclosure SOC, treat "PCS + DC Enclosure" lock as off
+  const effectiveIsViewLocked =
+    isViewLocked && (hasEnclosureSOC || lockedViewName !== 'PCS + DC Enclosure')
+  const deviceTypeIdsToFetch = effectiveIsViewLocked
     ? (lockedDeviceTypeIds ?? dynamicDeviceTypeIds)
     : dynamicDeviceTypeIds
 
@@ -214,13 +223,7 @@ function AdaptiveGisBESS() {
     },
   })
 
-  // Check if sensor_type_id 43 is available in project spec (enclosure SOC)
-  const hasEnclosureSOC = useMemo(() => {
-    const usedSensorTypeIds = project.data?.spec?.used_sensor_type_ids ?? []
-    return usedSensorTypeIds.includes(43)
-  }, [project.data?.spec?.used_sensor_type_ids])
-
-  // Fetch BESS DC Enclosure SOC (sensor_type_id 43) - only if available in project
+  // Fetch BESS DC Enclosure SOC - only if available in project (hasEnclosureSOC)
   const enclosureSocRealtime = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
@@ -468,13 +471,15 @@ function AdaptiveGisBESS() {
     if (!viewportDevices.data) return null
 
     // Determine the zoom level to use for geometry and rendering logic
-    const effectiveZoom = isViewLocked ? (lockedZoom ?? zoom) : zoom
+    const effectiveZoom = effectiveIsViewLocked ? (lockedZoom ?? zoom) : zoom
 
     const features: Feature[] = []
-    // Determine view based on locked device types if locked, otherwise use zoom threshold
-    const isStringsView = isViewLocked
-      ? (lockedDeviceTypeIds?.includes(DT_BESS_STRING) ?? false)
-      : effectiveZoom >= ZOOM_LEVEL_2
+    // When project has no DC Enclosure SOC we only show PCS + String; else use lock/zoom
+    const isStringsView =
+      !hasEnclosureSOC ||
+      (effectiveIsViewLocked
+        ? (lockedDeviceTypeIds?.includes(DT_BESS_STRING) ?? false)
+        : effectiveZoom >= ZOOM_LEVEL_2)
 
     viewportDevices.data.forEach((device) => {
       const latestActualPower =
@@ -592,7 +597,8 @@ function AdaptiveGisBESS() {
   }, [
     viewportDevices.data,
     zoom,
-    isViewLocked,
+    hasEnclosureSOC,
+    effectiveIsViewLocked,
     lockedZoom,
     lockedDeviceTypeIds,
     pcsRealtimeByDevice,
@@ -652,15 +658,15 @@ function AdaptiveGisBESS() {
     else setHoverInfo({ feature: null, x: 0, y: 0 })
   }, [])
 
-  // Calculate the current view name based on zoom, even if not locked
+  // Current view name: when no enclosure SOC or zoomed in, PCS + String; else PCS + DC Enclosure
   const currentViewName = useMemo(() => {
-    // Single threshold for consistent progression: DC → String
-    return zoom >= ZOOM_LEVEL_2 ? 'PCS + String' : 'PCS + DC Enclosure'
-  }, [zoom])
+    if (!hasEnclosureSOC || zoom >= ZOOM_LEVEL_2) return 'PCS + String'
+    return 'PCS + DC Enclosure'
+  }, [zoom, hasEnclosureSOC])
 
   // --- Lock Toggle Handler ---
   const handleLockToggle = () => {
-    if (isViewLocked) {
+    if (effectiveIsViewLocked) {
       // If it's already locked, unlock it.
       setIsViewLocked(false)
       setLockedDeviceTypeIds(null)
@@ -708,7 +714,7 @@ function AdaptiveGisBESS() {
           style={{ height: '100%', width: '100%', position: 'relative' }}
         >
           {viewportDevices.isFetching &&
-            (zoom >= ZOOM_LEVEL_2 || isViewLocked) && (
+            (zoom >= ZOOM_LEVEL_2 || effectiveIsViewLocked) && (
               <Box
                 style={{
                   position: 'absolute',
@@ -1145,7 +1151,9 @@ function AdaptiveGisBESS() {
           <Menu shadow="md" width={200} position="top-start" withArrow>
             <Group gap={0}>
               <Tooltip
-                label={isViewLocked ? 'Unlock View' : 'Lock Current View'}
+                label={
+                  effectiveIsViewLocked ? 'Unlock View' : 'Lock Current View'
+                }
                 position="right"
               >
                 <Button
@@ -1153,7 +1161,7 @@ function AdaptiveGisBESS() {
                   variant="default"
                   onClick={handleLockToggle}
                   leftSection={
-                    isViewLocked ? (
+                    effectiveIsViewLocked ? (
                       <IconLock size={16} />
                     ) : (
                       <IconLockOpen size={16} />
@@ -1164,7 +1172,9 @@ function AdaptiveGisBESS() {
                     borderBottomRightRadius: 0,
                   }}
                 >
-                  {isViewLocked ? `${lockedViewName}` : `${currentViewName}`}
+                  {effectiveIsViewLocked
+                    ? `${lockedViewName}`
+                    : `${currentViewName}`}
                 </Button>
               </Tooltip>
               <Menu.Target>
@@ -1186,16 +1196,31 @@ function AdaptiveGisBESS() {
 
             <Menu.Dropdown>
               <Menu.Label>Lock to Layer</Menu.Label>
-              {Object.keys(layerLockConfig).map((layer) => (
-                <Menu.Item
-                  key={layer}
-                  onClick={() =>
-                    handleLockToLayer(layer as keyof typeof layerLockConfig)
-                  }
-                >
-                  {layer}
-                </Menu.Item>
-              ))}
+              {Object.keys(layerLockConfig).map((layer) => {
+                const isEnclosureLayer = layer === 'PCS + DC Enclosure'
+                const disabled = isEnclosureLayer && !hasEnclosureSOC
+                const item = (
+                  <Menu.Item
+                    key={layer}
+                    disabled={disabled}
+                    onClick={() =>
+                      handleLockToLayer(layer as keyof typeof layerLockConfig)
+                    }
+                  >
+                    {layer}
+                  </Menu.Item>
+                )
+                return disabled ? (
+                  <Tooltip
+                    key={layer}
+                    label="Not available: no DC Enclosure SOC data in project"
+                  >
+                    {item}
+                  </Tooltip>
+                ) : (
+                  item
+                )
+              })}
             </Menu.Dropdown>
           </Menu>
         </Stack>
