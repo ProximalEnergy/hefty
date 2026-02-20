@@ -1,0 +1,46 @@
+rules:
+  - id: jsx-inline-calculation
+    languages:
+      - javascript
+      - typescript
+    severity: WARNING
+    message: Avoid doing arithmetic directly in JSX; precompute values first.
+    metadata:
+      intended-syntax:
+        - jsx
+        - tsx
+    paths:
+      include:
+        - '**/*.jsx'
+        - '**/*.tsx'
+    pattern-either:
+      - patterns:
+          - pattern: '<$TAG ...>{ $EXPR }</$TAG>'
+          - metavariable-pattern:
+              metavariable: $EXPR
+              pattern-either:
+                - pattern: $LEFT + $RIGHT
+                - pattern: $LEFT - $RIGHT
+                - pattern: $LEFT * $RIGHT
+                - pattern: $LEFT / $RIGHT
+                - pattern: $LEFT % $RIGHT
+      - patterns:
+          - pattern: '<$TAG ... $ATTR={ $EXPR } ... />'
+          - metavariable-pattern:
+              metavariable: $EXPR
+              pattern-either:
+                - pattern: $LEFT + $RIGHT
+                - pattern: $LEFT - $RIGHT
+                - pattern: $LEFT * $RIGHT
+                - pattern: $LEFT / $RIGHT
+                - pattern: $LEFT % $RIGHT
+      - patterns:
+          - pattern: '<$TAG ... $ATTR={ $EXPR } ...>...</$TAG>'
+          - metavariable-pattern:
+              metavariable: $EXPR
+              pattern-either:
+                - pattern: $LEFT + $RIGHT
+                - pattern: $LEFT - $RIGHT
+                - pattern: $LEFT * $RIGHT
+                - pattern: $LEFT / $RIGHT
+                - pattern: $LEFT % $RIGHT

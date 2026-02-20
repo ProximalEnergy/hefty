@@ -163,6 +163,11 @@ uv tree --outdated && \
 npm outdated
 """
 
+[tasks.smells]
+description = "Detect arithmetic calculations in web-app JSX with semgrep"
+dir = "."
+run = "uv run semgrep --config web-app/_scripts/jsx-calculations.yaml web-app"
+
 [tasks.codegen]
 description = "Automatically generate interfaces"
 run = """
