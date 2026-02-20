@@ -180,8 +180,9 @@ usage = '''
   arg "<folder>" help="Name of the folder to create (sibling to current directory)"
   arg "<branch>" help="Name of the branch to create"
   flag "-e --editor <editor>" help="Editor to open the worktree in (cursor, zed)"
+  flag "-x --existing" help="Check out existing branch (fetch and resolve name)"
 '''
-run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-}"
+run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-} ${usage_existing:+--existing}"
 
 [tasks."ruff:check"]
 description = "Run ruff linter on entire monorepo"

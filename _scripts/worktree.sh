@@ -3,14 +3,24 @@ set -e
 
 # =============================================================================
 # Git Worktree Setup Script
-# Creates a new worktree with environment files and opens in editor
+# Creates a new worktree with environment files and opens in editor.
+# Without --existing: creates a new branch. With --existing: fetches, resolves
+# the branch name (local or origin/<branch>), and checks out that ref.
 #
-# Usage: ./worktree.sh <folder-name> <branch-name> [editor]
+# Usage: ./worktree.sh <folder-name> <branch-name> [editor] [--existing]
 # =============================================================================
 
-FOLDER_NAME="${1:?Usage: mise run worktree <folder-name> <branch-name> [-e editor]}"
-BRANCH_NAME="${2:?Usage: mise run worktree <folder-name> <branch-name> [-e editor]}"
-EDITOR_CHOICE="${3:-}"
+FOLDER_NAME="${1:?Usage: mise run worktree <folder-name> <branch-name> [-e editor] [-x]}"
+BRANCH_NAME="${2:?Usage: mise run worktree <folder-name> <branch-name> [-e editor] [-x]}"
+USE_EXISTING=0
+EDITOR_CHOICE=""
+for arg in "${3:-}" "${4:-}"; do
+    if [[ "$arg" == "--existing" ]]; then
+        USE_EXISTING=1
+    elif [[ "$arg" == "cursor" || "$arg" == "zed" ]]; then
+        EDITOR_CHOICE="$arg"
+    fi
+done
 
 # Paths
 CURRENT_DIR="$(pwd)"
@@ -30,8 +40,27 @@ FILES_TO_COPY=(
 echo "Creating worktree at: $NEW_WORKTREE"
 echo "Branch: $BRANCH_NAME"
 
-# Create the worktree with new branch
-git worktree add -b "$BRANCH_NAME" "$NEW_WORKTREE"
+# Create the worktree (new branch or existing)
+if [[ "$USE_EXISTING" -eq 1 ]]; then
+    echo "Fetching..."
+    git fetch
+    RESOLVED_REF=""
+    if git rev-parse --verify "$BRANCH_NAME" &>/dev/null; then
+        RESOLVED_REF="$BRANCH_NAME"
+    elif git rev-parse --verify "origin/$BRANCH_NAME" &>/dev/null; then
+        RESOLVED_REF="origin/$BRANCH_NAME"
+    else
+        echo "Branch not found: $BRANCH_NAME (tried local and origin/$BRANCH_NAME)"
+        exit 1
+    fi
+    if [[ "$RESOLVED_REF" == "$BRANCH_NAME" ]]; then
+        git worktree add "$NEW_WORKTREE" "$BRANCH_NAME"
+    else
+        git worktree add -b "$BRANCH_NAME" "$NEW_WORKTREE" "origin/$BRANCH_NAME"
+    fi
+else
+    git worktree add -b "$BRANCH_NAME" "$NEW_WORKTREE"
+fi
 
 # Copy environment files
 echo "Copying environment files..."
