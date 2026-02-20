@@ -153,6 +153,16 @@ const DEVICE_TYPE_CONFIG: Record<
   },
 }
 
+const BESS_LAYOUT_SUBSTATION_WIDTH = 120
+const BESS_LAYOUT_DEVICE_GAP = 8
+const BESS_LAYOUT_CONNECTOR_OFFSET = 30
+const BESS_LAYOUT_CONNECTOR_LEFT =
+  BESS_LAYOUT_SUBSTATION_WIDTH +
+  BESS_LAYOUT_DEVICE_GAP +
+  BESS_LAYOUT_CONNECTOR_OFFSET
+const BESS_LAYOUT_SPACER_WIDTH =
+  BESS_LAYOUT_SUBSTATION_WIDTH + BESS_LAYOUT_DEVICE_GAP
+
 // Device types to exclude from display (Ghost, Project, etc.)
 const EXCLUDED_DEVICE_TYPES: number[] = [
   0, // ghost
@@ -1514,6 +1524,8 @@ const DeviceTypeOverview = ({
     )
   }
 
+  const bessPower = getBESSPowerReading()
+
   return (
     <Card ref={cardRef} className={className} p="md" withBorder>
       {isPVBESSProject ? (
@@ -1537,7 +1549,7 @@ const DeviceTypeOverview = ({
             <Box
               style={{
                 position: 'absolute',
-                left: 120 + 8 + 30, // Move further left (half of previous position)
+                left: BESS_LAYOUT_CONNECTOR_LEFT,
                 top: -40, // Move further up to better connect with horizontal connector
                 width: 2,
                 height: 50, // Shorter line
@@ -1552,41 +1564,38 @@ const DeviceTypeOverview = ({
               gap="sm"
               style={{
                 position: 'absolute',
-                left: 120 + 8 + 30, // Same position as vertical line
+                left: BESS_LAYOUT_CONNECTOR_LEFT,
                 top: 0, // Move down a bit from device text
                 transform: 'translateY(-50%)',
                 zIndex: 2,
               }}
             >
               {/* BESS power reading */}
-              {(() => {
-                const bessPower = getBESSPowerReading()
-                return bessPower !== null ? (
-                  <Tooltip
-                    label="Total BESS power"
-                    position="top"
-                    withArrow
-                    multiline
-                    w={200}
+              {bessPower !== null ? (
+                <Tooltip
+                  label="Total BESS power"
+                  position="top"
+                  withArrow
+                  multiline
+                  w={200}
+                >
+                  <Text
+                    size="xs"
+                    fw={600}
+                    c={theme.colors.gray[7]}
+                    style={{
+                      backgroundColor: theme.colors.gray[0],
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      border: `1px solid ${theme.colors.gray[3]}`,
+                      whiteSpace: 'nowrap',
+                      cursor: 'help',
+                    }}
                   >
-                    <Text
-                      size="xs"
-                      fw={600}
-                      c={theme.colors.gray[7]}
-                      style={{
-                        backgroundColor: theme.colors.gray[0],
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        border: `1px solid ${theme.colors.gray[3]}`,
-                        whiteSpace: 'nowrap',
-                        cursor: 'help',
-                      }}
-                    >
-                      {bessPower.toFixed(1)} MW
-                    </Text>
-                  </Tooltip>
-                ) : null
-              })()}
+                    {bessPower.toFixed(1)} MW
+                  </Text>
+                </Tooltip>
+              ) : null}
 
               {/* BESS chevron button */}
               <Button
@@ -1621,8 +1630,9 @@ const DeviceTypeOverview = ({
               gap="sm"
               style={{ minHeight: 100, marginTop: 20 }}
             >
-              {/* Spacer to align BESS Circuit under PV Circuit (substation width + gap) */}
-              <Box style={{ width: 120 + 8, height: 100 }} />
+              {/* Spacer to align BESS Circuit under PV Circuit */}
+              {/* (substation width + gap) */}
+              <Box style={{ width: BESS_LAYOUT_SPACER_WIDTH, height: 100 }} />
               {renderDeviceGroup(bessDevices)}
             </Flex>
           )}
