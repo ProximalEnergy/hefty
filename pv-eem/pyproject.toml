@@ -1,0 +1,56 @@
+[project]
+name = "pv-expected-energy"
+version = "0.16.6"
+description = "PV Expected Energy Model for Proximal Energy"
+readme = "README.md"
+requires-python = ">=3.11.10,<3.12"
+dependencies = [
+    "boto3~=1.38.0", # for reading pyproject.toml version
+    "polars~=1.31.0", # for database read interactions (faster than pandas)
+    "psycopg2-binary~=2.9.10", # used under the hood by sqlalchemy
+    "pvlib~=0.13.0", # main performance modeling library
+    "pyarrow~=20.0.0", # needed for polars database connection
+    "python-dotenv~=1.0.1", # environment variables
+    "s3fs~=2024.10.0", # needed for s3 connection
+    "sentry-sdk~=2.30.0",
+    "solarfactors~=1.6.0",
+    "sqlalchemy~=2.0.36", # for database interactions
+    "tomli~=2.2.1", # needed to read version from pyproject.toml
+]
+
+[dependency-groups]
+dev = [ # for debugging
+    "aws-cdk-lib~=2.210.0",
+    "connectorx~=0.4.0", # shortcut for database access
+    "dill~=0.4.0",
+    "geopandas~=1.0.1", # commissioning maps to GCR's
+    "ipykernel~=6.29.5", # for reading electrical diagrams
+    "matplotlib~=3.10.5",
+    "memray~=1.18.0",
+    "pandas-stubs~=2.3.0.250703",
+    "plotly~=5.24.1", # graphing test results
+    "pymupdf~=1.25.3", # for verification plots
+    "pytest~=8.3.3", # for testing
+]
+
+# REMOVE ALL DEPENDENCIES FROM SOLARFACTORS
+# (removes dep on matplotlib which needs gcc to compile)
+[[tool.uv.dependency-metadata]]
+name = "solarfactors"
+requires-dist = ["shapely>=2.0.7"]
+
+[tool.pytest.ini_options]
+log_level = "WARNING"
+python_files = ["test_*.py", "*_test.py"]
+python_functions = "test*"
+pythonpath = "src"
+
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+include = ["src", "_tests"]
+exclude = ["**/__pycache__", "**/.venv"]
+pythonVersion = "3.11"
+extraPaths = ["src"]
+executionEnvironments = [{ root = ".", pythonVersion = "3.11" }]

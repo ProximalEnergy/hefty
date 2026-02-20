@@ -1,0 +1,244 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+jobs:
+  check-tag-exists:
+    runs-on: ubuntu-latest
+    outputs:
+      has-tag: ${{ steps.check-tag.outputs.has-tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if commit has tag
+        id: check-tag
+        run: |
+          if git tag --points-at HEAD | grep -q "^v"; then
+            echo "has-tag=true" >> $GITHUB_OUTPUT
+            echo "Commit has a version tag"
+          else
+            echo "has-tag=false" >> $GITHUB_OUTPUT
+            echo "Commit has no version tag"
+          fi
+
+  check-changes:
+    runs-on: ubuntu-latest
+    needs: [check-tag-exists]
+    # Run on tag pushes OR on main pushes that don't have tags
+    if: >-
+      startsWith(github.ref, 'refs/tags/') ||
+      (github.ref == 'refs/heads/main' &&
+      needs.check-tag-exists.outputs.has-tag == 'false')
+    outputs:
+      events-changed: ${{ steps.changes.outputs.events }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q '^events/'; then
+            echo "events=true" >> $GITHUB_OUTPUT
+            echo "Events files changed"
+          else
+            echo "events=false" >> $GITHUB_OUTPUT
+            echo "No events files changed"
+          fi
+
+  verify-version:
+    runs-on: ubuntu-latest
+    needs: [check-tag-exists, check-changes]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version consistency
+        run: |
+          # Get the tag name and remove the 'v' prefix if it exists
+          TAG_VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+
+          # Extract version from pyproject.toml
+          TOML_VERSION=$(
+            grep '^version = "' pyproject.toml | sed 's/version = "\(.*\)"/\1/'
+          )
+
+          # Compare versions
+          if [ "$TAG_VERSION" != "$TOML_VERSION" ]; then
+              echo "Version mismatch!"
+              echo "Git tag: $TAG_VERSION"
+              echo "pyproject.toml version: $TOML_VERSION"
+              exit 1
+          fi
+
+          echo "Versions match: $TAG_VERSION"
+
+  build-lambdas:
+    needs: [check-tag-exists, check-changes, verify-version]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      id-token: write
+      contents: write
+    env:
+      ECR_REPOSITORY: pv-expected-energy/simulation
+    steps:
+      # AWS login
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo ENVIRONMENT=${{ vars.ENVIRONMENT }} >> .env
+          echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} >> .env
+          echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> .env
+          echo DB_URI_PROD=${{ secrets.DB_URI_PROD }} >> .env
+          echo AWS_S3_REGION=${{ vars.AWS_S3_REGION }} >> .env
+          echo AWS_S3_BUCKET_NAME=${{ vars.AWS_S3_BUCKET_NAME }} >> .env
+          echo WEBHOOK_URL=${{ secrets.GCHAT_WEBHOOK }} >> .env
+          cat .env
+
+      - name: Check .env file
+        run: |
+          required_vars=(
+            "ENVIRONMENT"
+            "AWS_ACCESS_KEY_ID"
+            "AWS_SECRET_ACCESS_KEY"
+            "DB_URI_PROD"
+            "AWS_S3_REGION"
+            "AWS_S3_BUCKET_NAME"
+            "WEBHOOK_URL"
+          )
+
+          for var in "${required_vars[@]}"; do
+            if ! grep -q "^$var=" .env; then
+              echo "Missing required variable: $var in .env file"
+              exit 1
+            fi
+          done
+
+          echo "All required variables present in .env file"
+
+      # AWS IAM role assumption
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_LAMBDA_REGION }}
+
+      # AWS ECR login
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve image repository URI
+        id: image-repo
+        run: |
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          IMAGE_REPO_URI="${REGISTRY}/${{ env.ECR_REPOSITORY }}"
+          echo "uri=${IMAGE_REPO_URI}" >> "$GITHUB_OUTPUT"
+
+      # Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # AWS Lambdas cannot have "." in the name
+      - name: Process tag name
+        id: process-tag
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          PROCESSED_TAG="${TAG_NAME//./-}"
+          echo "processed_tag=$PROCESSED_TAG" >> $GITHUB_OUTPUT
+
+      - name: Compose image tags
+        id: image-tags
+        run: |
+          REPO_URI="${{ steps.image-repo.outputs.uri }}"
+          RELEASE_TAG="${{ steps.process-tag.outputs.processed_tag }}"
+          echo "release=${REPO_URI}:${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "latest=${REPO_URI}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve image output format
+        id: output-format
+        run: |
+          PART_ONE="type=image,manifest-type=application/vnd.docker.distribution"
+          PART_TWO=".manifest.v2+json"
+          echo "value=${PART_ONE}${PART_TWO}" >> "$GITHUB_OUTPUT"
+
+      # Docker
+      - name: Build and push container
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/arm64
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image-tags.outputs.release }}
+            ${{ steps.image-tags.outputs.latest }}
+          provenance: false
+          outputs: ${{ steps.output-format.outputs.value }}
+
+  deploy-cdk:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    if: >-
+      (startsWith(github.ref, 'refs/tags/') &&
+      needs.build-lambdas.result == 'success') ||
+      (github.ref == 'refs/heads/main' &&
+      needs.check-tag-exists.outputs.has-tag == 'false' &&
+      needs.check-changes.outputs.events-changed == 'true')
+    needs: [check-tag-exists, check-changes, build-lambdas]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_LAMBDA_REGION }}
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "24"
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Resolve image tag for CDK
+        id: image-tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            IMAGE_TAG="${GITHUB_REF_NAME//./-}"
+          else
+            IMAGE_TAG="latest"
+          fi
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: CDK Deploy
+        run: |
+          source .venv/bin/activate
+          cd events
+          cdk deploy \
+            --require-approval never \
+            --all \
+            -c imageTag=${{ steps.image-tag.outputs.image_tag }}

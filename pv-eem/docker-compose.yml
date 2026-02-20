@@ -1,0 +1,11 @@
+# For testing locally
+services:
+  lambda:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:8080"
+    # mounts AWS credentials from local
+    volumes:
+      - ~/.aws:/root/.aws

@@ -405,6 +405,7 @@ RUN_API=false
 RUN_MICRO=false
 RUN_SQL_ADMIN=false
 RUN_WEB=false
+RUN_PVEEM=false
 RUN_ROOT=false
 CORE_CHANGED=false
 
@@ -415,25 +416,25 @@ if [ "${RUN_ALL}" = "false" ]; then
     if diff_has '^core/'; then
         CORE_CHANGED=true
         RUN_CORE=true
-        RUN_ROOT=true
+        RUN_PVEEM=true
     fi
     if diff_has '^api/'; then
         RUN_API=true
-        RUN_ROOT=true
     fi
     if diff_has '^microservices/'; then
         RUN_MICRO=true
-        RUN_ROOT=true
     fi
     if diff_has '^sql-admin/'; then
         RUN_SQL_ADMIN=true
-        RUN_ROOT=true
     fi
     if diff_has '^kpi/'; then
-        RUN_ROOT=true
+        pass
     fi
     if diff_has '^web-app/'; then
         RUN_WEB=true
+    fi
+    if diff_has '^pv-eem/'; then
+        RUN_PVEEM=true
     fi
     if diff_has '^_scripts/|^_tools/|^pyproject\\.toml$|^uv\\.lock$|^\\.mise\\.toml$'; then
         RUN_ALL=true
@@ -446,6 +447,7 @@ if [ "${RUN_ALL}" = "true" ]; then
     RUN_MICRO=true
     RUN_SQL_ADMIN=true
     RUN_WEB=true
+    RUN_PVEEM=true
     RUN_ROOT=true
 fi
 
@@ -485,6 +487,11 @@ if [ "${RUN_API}" = "true" ]; then
     add_check "API: Docstring Args Check" "mise run api:docstring_args"
     add_check "API: Unused Routes Check" \
         "mise run api:unused_routes_detailed"
+fi
+
+if [ "${RUN_PVEEM}" = "true" ]; then
+    add_check "PV-EEM: Type Checking (mypy)" "mise run pveem:types"
+    add_check "PV-EEM: Pytest" "mise run pveem:pytest"
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then

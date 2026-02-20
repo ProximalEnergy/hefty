@@ -195,22 +195,12 @@ run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-} 
 [tasks."ruff:check"]
 description = "Run ruff linter on entire monorepo"
 dir = "."
-run = "uv run --dev ruff check core/ api/ microservices/ sql-admin/"
+run = "uv run --dev ruff check core/ api/ microservices/ sql-admin/ pv-eem/"
 
 [tasks."ruff:format"]
 description = "Run ruff formatter on entire monorepo"
 dir = "."
-run = "uv run --dev ruff format core/ api/ microservices/ sql-admin/"
-
-[tasks."tools:ruff"]
-description = "Run ruff linter on _tools"
-dir = "."
-run = "uv run --dev ruff check _tools/"
-
-[tasks."tools:format"]
-description = "Run ruff formatter on _tools"
-dir = "."
-run = "uv run --dev ruff format _tools/"
+run = "uv run --dev ruff format core/ api/ microservices/ sql-admin/ pv-eem/"
 
 [tasks."hardcoded_type_id_check"]
 description = "Run hardcoded type ID check on entire monorepo"
@@ -701,3 +691,134 @@ sleep 2
 uv run python -m webbrowser "http://127.0.0.1:8001/admin"
 wait $server_pid
 """
+
+# =============================================================================
+# PV-EEM TASKS (runs in ./pv-eem directory)
+# =============================================================================
+
+[tasks."pveem:get_env"]
+description = "Generate .env file from AWS Systems Manager Parameter Store"
+dir = "api"
+run = "uv run _scripts/generate_pveem_env_from_parameter_store.py"
+
+[tasks."pveem:check"]
+description = "Run project quality checks for pv-eem"
+dir = "pv-eem"
+depends = ["pveem:types", "pveem:ruff", "pveem:pytest"]
+
+[tasks."pveem:types"]
+description = "Run mypy type checks for pv-eem"
+dir = "pv-eem"
+run = """
+ROOT_DIR="$(pwd)/.."
+uv run --project "${ROOT_DIR}" --directory . --dev \
+  --with-editable "${ROOT_DIR}/pv-eem" \
+  mypy --config-file ../pyproject.toml src/
+"""
+
+[tasks."pveem:ruff"]
+description = "Run ruff lint checks for pv-eem"
+dir = "pv-eem"
+run = "uv run --project .. --dev ruff check --config ../pyproject.toml ."
+
+[tasks."pveem:pytest"]
+description = "Run test suite for pv-eem"
+dir = "pv-eem"
+run = "uv run pytest"
+
+[tasks."pveem:cdk-deploy"]
+description = "Deploy the CDK app in events/ for pv-eem"
+dir = "pv-eem"
+run = "bash _scripts/cdk_deploy.sh"
+
+[tasks."pveem:deploy"]
+description = "Run checks and then deploy CDK for pv-eem"
+dir = "pv-eem"
+depends = ["pveem:check", "pveem:cdk-deploy"]
+
+[tasks."pveem:freeze"]
+description = "Export pinned runtime requirements for pv-eem"
+dir = "pv-eem"
+run = """
+uv export --frozen --no-emit-workspace --no-dev --no-editable \
+  -o requirements.txt --no-hashes
+"""
+
+[tasks."pveem:bump-patch"]
+description = "Bump project version (patch) for pv-eem"
+dir = "pv-eem"
+run = "uv version --bump patch"
+
+[tasks."pveem:bump-minor"]
+description = "Bump project version (minor) for pv-eem"
+dir = "pv-eem"
+run = "uv version --bump minor"
+
+[tasks."pveem:bump-major"]
+description = "Bump project version (major) for pv-eem"
+dir = "pv-eem"
+run = "uv version --bump major"
+
+[tasks."pveem:git-add"]
+description = "Stage all changes for pv-eem"
+dir = "pv-eem"
+run = "git add ."
+
+[tasks."pveem:git-commit-release"]
+description = "Create release commit for pv-eem"
+dir = "pv-eem"
+run = "git commit -m 'Release'"
+
+[tasks."pveem:git-push"]
+description = "Push branch to origin for pv-eem"
+dir = "pv-eem"
+run = "git push"
+
+[tasks."pveem:git-tag"]
+description = "Tag current version and push tag for pv-eem"
+dir = "pv-eem"
+run = """
+VERSION=$(python -c "import tomli; \
+  print(tomli.load(open('pyproject.toml', 'rb'))['project']['version'])")
+git tag "v$VERSION"
+git push origin "v$VERSION"
+"""
+
+[tasks."pveem:release-patch"]
+description = "Run checks and create a patch release for pv-eem"
+dir = "pv-eem"
+depends = [
+  "pveem:check",
+  "pveem:freeze",
+  "pveem:bump-patch",
+  "pveem:git-add",
+  "pveem:git-commit-release",
+  "pveem:git-push",
+  "pveem:git-tag",
+]
+
+[tasks."pveem:release-minor"]
+description = "Run checks and create a minor release for pv-eem"
+dir = "pv-eem"
+depends = [
+  "pveem:check",
+  "pveem:freeze",
+  "pveem:bump-minor",
+  "pveem:git-add",
+  "pveem:git-commit-release",
+  "pveem:git-push",
+  "pveem:git-tag",
+]
+
+[tasks."pveem:release-major"]
+description = "Run checks and create a major release for pv-eem"
+dir = "pv-eem"
+depends = [
+  "pveem:check",
+  "pveem:freeze",
+  "pveem:bump-major",
+  "pveem:git-add",
+  "pveem:git-commit-release",
+  "pveem:git-push",
+  "pveem:git-tag",
+]

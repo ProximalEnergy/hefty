@@ -1,0 +1,41 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "label": "MAIN",
+    "adapter": "Debugpy",
+    "request": "launch",
+    "program": "src/main.py",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "env": {
+      "PYDEVD_WARN_EVALUATION_TIMEOUT": "10",
+      "PYDEVD_THREAD_DUMP_ON_WARN_EVALUATION_TIMEOUT": "true",
+      "PYDEVD_INTERRUPT_THREAD_TIMEOUT": "10"
+    }
+  },
+  {
+    "label": "COMMISSION",
+    "adapter": "Debugpy",
+    "request": "launch",
+    "module": "system.c_system",
+    "cwd": "$ZED_WORKTREE_ROOT/commissioning"
+  },
+  {
+    "label": "TEST",
+    "adapter": "Debugpy",
+    "request": "launch",
+    "program": ".venv/bin/pytest",
+    "args": ["-s", "-k", "serrano"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "adapter": "Debugpy",
+    "label": "TEST",
+    "request": "launch",
+    "program": ".venv/bin/pytest",
+    "args": ["-s", "-k", "serrano"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  }
+]

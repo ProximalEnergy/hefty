@@ -109,6 +109,8 @@ EXCLUDE_FILES=(
 FOLDER_PATH_EXCLUDES=(
     "api/_data_insert"  # Data insertion scripts may contain hardcoded values
     "api/_tests"       # Test files may contain hardcoded values for testing
+    "pv-eem/_scripts"  # PV-EEM utility scripts may contain hardcoded values
+    "pv-eem/_tests"    # PV-EEM test files may contain hardcoded values
 )
 
 # Ignore comment pattern - lines with this comment will be ignored

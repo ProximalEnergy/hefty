@@ -1,0 +1,55 @@
+[
+  {
+    "project_name_short": "double_black_diamond",
+    "single_diode_model": "DESOTO"
+  },
+  {
+    "project_name_short": "sun_streams_4",
+    "single_diode_model": "DESOTO"
+  },
+  {
+    "project_name_short": "serrano",
+    "single_diode_model": "DESOTO",
+    "dc_wiring_to_combiner": "fixed",
+    "dc_wiring_to_inverter": "fixed"
+  },
+  {
+    "project_name_short": "north_star",
+    "single_diode_model": "PVWATTS",
+    "degradation": "warranted",
+    "use_poa_only": true,
+    "use_median_irr_sensor": true
+  },
+  {
+    "project_name_short": "north_star",
+    "single_diode_model": "PVWATTS",
+    "degradation": "none",
+    "use_poa_only": true,
+    "use_median_irr_sensor": true
+  },
+  {
+    "project_name_short": "sigurd",
+    "single_diode_model": "PVWATTS",
+    "degradation": "none",
+    "use_poa_only": false
+  },
+  {
+    "project_name_short": "sigurd",
+    "single_diode_model": "PVWATTS",
+    "soiling": "none",
+    "degradation": "warranted",
+    "use_poa_only": false
+  },
+  {
+    "project_name_short": "sun_pond",
+    "single_diode_model": "DESOTO",
+    "degradation": "warranted",
+    "use_poa_only": false
+  },
+  {
+    "project_name_short": "sun_pond",
+    "single_diode_model": "DESOTO",
+    "degradation": "none",
+    "use_poa_only": false
+  }
+]
