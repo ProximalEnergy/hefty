@@ -81,6 +81,14 @@ const UptimeGIS = ({
       })
     }
   }, [])
+
+  const formattedUptimePercentage =
+    hoverInfo.feature?.properties?.downtime_percentage != null
+      ? `${(hoverInfo.feature.properties.downtime_percentage * 100).toFixed(
+          1,
+        )}%`
+      : 'No Data'
+
   let bounds: LngLatBoundsLike | undefined = undefined
   let filteredData: FeatureCollection
 
@@ -188,14 +196,7 @@ const UptimeGIS = ({
             <Text fw={700}>
               {deviceTypeName} {hoverInfo.feature.properties?.name}
             </Text>
-            <Text>
-              Uptime:{' '}
-              {hoverInfo.feature.properties?.downtime_percentage !== undefined
-                ? (
-                    hoverInfo.feature.properties?.downtime_percentage * 100
-                  ).toFixed(1) + '%'
-                : 'No Data'}
-            </Text>
+            <Text>Uptime: {formattedUptimePercentage}</Text>
           </Paper>
         )}
       </Map>
