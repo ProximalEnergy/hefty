@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import and_, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import core
@@ -105,6 +106,38 @@ def _project_tzinfo(*, tz: str | None) -> datetime.tzinfo:
         return ZoneInfo(tz)
     except Exception:
         return datetime.UTC
+
+
+@router.get("/has-access")
+async def check_qse_access(
+    project: models.Project = Depends(dependencies.get_project_api),
+    user: models.User = Depends(dependencies.get_user_data_async),
+    db_async: AsyncSession = Depends(dependencies.get_async_db),
+) -> dict[str, bool]:
+    """Check if user has QSE market access for a project.
+
+    Returns whether the project has a QSE integration and
+    the user's company has the corresponding QSE permission.
+
+    Args:
+        project: Project from dependency injection.
+        user: Authenticated user from dependency injection.
+        db_async: Async database session.
+    """
+    has_access_query = select(
+        exists().where(
+            and_(
+                models.QSEIntegration.project_id == project.project_id,
+                models.QSEPermission.qse_integration_id
+                == models.QSEIntegration.qse_integration_id,
+                models.QSEPermission.company_id == user.company_id,
+                models.QSEPermission.can_view.is_(True),
+            )
+        )
+    )
+    result = await db_async.execute(has_access_query)
+    has_access = result.scalar_one()
+    return {"has_access": has_access}
 
 
 @router.get("/debug/raw")

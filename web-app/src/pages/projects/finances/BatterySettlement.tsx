@@ -1,5 +1,4 @@
 import { SensorTypeEnum } from '@/api/enumerations'
-import { useGetUserSelf } from '@/api/v1/admin/users'
 import {
   type SCADADataPoint,
   requestBatterySettlementAnalysis,
@@ -8,6 +7,7 @@ import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetSensorTypes } from '@/api/v1/operational/sensor_types'
 import { useGetBatterySettlementDetails } from '@/api/v1/protected/web-application/projects/financial/battery_settlement'
+import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -48,8 +48,6 @@ import { Data } from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { v4 as uuidv4 } from 'uuid'
-
-const SABLE_POINT_COMPANY_ID = '38a8e696-dafa-44c0-b817-e3aee8cdfe8c'
 
 interface ChatMessage {
   id: string
@@ -133,7 +131,11 @@ const Page = () => {
       enabled: !!project.data,
     },
   })
-  const self = useGetUserSelf({})
+  const qseAccess = useGetQSEAccess({
+    pathParams: { projectId: projectId || '-1' },
+    queryOptions: { enabled: !!projectId },
+  })
+  const hasQSEAccess = qseAccess.data?.has_access === true
   const batterySettlementDetails = useGetBatterySettlementDetails({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -141,7 +143,7 @@ const Page = () => {
       end: endRequest || '',
     },
     queryOptions: {
-      enabled: !!projectId && !!startRequest && !!endRequest,
+      enabled: !!projectId && !!startRequest && !!endRequest && hasQSEAccess,
     },
   })
   const scadaData = useGetTimeSeries({
@@ -755,12 +757,12 @@ const Page = () => {
     )
   }
 
-  if (self.isLoading) {
+  if (qseAccess.isLoading) {
     return <PageLoader />
   }
-  if (self.data?.company_id === SABLE_POINT_COMPANY_ID) {
+  if (!hasQSEAccess) {
     return (
-      <PageError text="Please provide a Tenaska API key to see Battery Settlement Details" />
+      <PageError text="Your company's QSE integration is not set up for this project" />
     )
   }
 

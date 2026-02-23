@@ -1,6 +1,6 @@
-import { useGetUserSelf } from '@/api/v1/admin/users'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetRealtimePrice } from '@/api/v1/protected/web-application/projects/financial/market_performance'
+import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import { PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
@@ -12,14 +12,16 @@ import { LongTermTab } from './LongTermTab'
 import { RealtimeTab } from './RealtimeTab'
 import { WeekViewTab } from './WeekViewTab'
 
-const SABLE_POINT_COMPANY_ID = '38a8e696-dafa-44c0-b817-e3aee8cdfe8c'
-
 const MarketPerformance = () => {
   const { projectId } = useParams<{ projectId: string }>()
   const project = useSelectProject(projectId!)
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const self = useGetUserSelf({})
+  const qseAccess = useGetQSEAccess({
+    pathParams: { projectId: projectId! },
+    queryOptions: { enabled: !!projectId },
+  })
+  const hasQSEAccess = qseAccess.data?.has_access === true
 
   const activeTab = useMemo(() => {
     const tab = searchParams.get('tab')
@@ -40,7 +42,7 @@ const MarketPerformance = () => {
   const { data: priceData, isLoading: priceLoading } = useGetRealtimePrice({
     pathParams: { projectId: projectId! },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && hasQSEAccess,
     },
   })
 
@@ -51,13 +53,12 @@ const MarketPerformance = () => {
   if (project.isLoading) {
     return <PageLoader />
   }
-
-  if (self.isLoading) {
+  if (qseAccess.isLoading) {
     return <PageLoader />
   }
-  if (self.data?.company_id === SABLE_POINT_COMPANY_ID) {
+  if (!hasQSEAccess) {
     return (
-      <PageError text="Please provide a Tenaska API key to see Market Performance" />
+      <PageError text="Your company's QSE integration is not set up for this project" />
     )
   }
 

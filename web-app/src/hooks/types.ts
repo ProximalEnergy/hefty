@@ -25,6 +25,7 @@ export interface Statistic {
   value: ReactNode
   diff?: number
   icon: StatisticIcon
+  onClick?: () => void
 }
 
 export interface UserSubscription {

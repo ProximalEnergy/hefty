@@ -107,7 +107,13 @@ export function StatsGrid({ data, isLoading }: StatsGridProps) {
         withArrow
         disabled={!stat.description}
       >
-        <Card withBorder p="md" radius="md">
+        <Card
+          withBorder
+          p="md"
+          radius="md"
+          onClick={stat.onClick}
+          style={stat.onClick ? { cursor: 'pointer' } : undefined}
+        >
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
               {stat.title}

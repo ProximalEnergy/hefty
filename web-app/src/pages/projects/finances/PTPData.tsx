@@ -4,6 +4,9 @@ import {
   useGetPTPEndpoints,
   useGetPTPEndpointsAvailability,
 } from '@/api/v1/protected/web-application/projects/financial/ptp_data'
+import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
+import { PageError } from '@/components/Error'
+import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectDropdownToggle } from '@/hooks/custom'
@@ -439,6 +442,12 @@ const Page = () => {
   const project = useSelectProject(projectId || '-1')
   useProjectDropdownToggle()
 
+  const qseAccess = useGetQSEAccess({
+    pathParams: { projectId: projectId || '-1' },
+    queryOptions: { enabled: !!projectId },
+  })
+  const hasQSEAccess = qseAccess.data?.has_access === true
+
   const [activeTab, setActiveTab] = useState<string>('performance')
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -455,7 +464,7 @@ const Page = () => {
     useGetPTPEndpoints({
       pathParams: { projectId: projectId || '-1' },
       queryOptions: {
-        enabled: !!projectId && !!project.data,
+        enabled: !!projectId && !!project.data && hasQSEAccess,
       },
     })
 
@@ -470,6 +479,7 @@ const Page = () => {
         enabled:
           !!projectId &&
           !!project.data &&
+          hasQSEAccess &&
           !!endpointsData &&
           !availabilityCache[activeTab],
       },
@@ -510,6 +520,18 @@ const Page = () => {
         ].length,
     }))
   }, [endpointsData])
+
+  if (project.isLoading) {
+    return <PageLoader />
+  }
+  if (qseAccess.isLoading) {
+    return <PageLoader />
+  }
+  if (!hasQSEAccess) {
+    return (
+      <PageError text="Your company's QSE integration is not set up for this project" />
+    )
+  }
 
   if (selectedEndpoint && selectedCategory) {
     return (

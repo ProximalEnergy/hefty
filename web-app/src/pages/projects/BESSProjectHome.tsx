@@ -13,6 +13,7 @@ import {
   useSelectProject,
 } from '@/api/v1/operational/projects'
 import { useGetHomepageSummary } from '@/api/v1/protected/web-application/projects/events/events'
+import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/financial/qse_access'
 import CustomCard, { iconSize, iconStroke } from '@/components/CustomCard'
 import DeviceTypeOverview from '@/components/DeviceTypeOverview'
 import { PageError } from '@/components/Error'
@@ -21,6 +22,7 @@ import { PageLoader } from '@/components/Loading'
 import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
+import { MarketStatsGrid } from '@/components/stats/MarketStatsGrid'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { getInterval, roundTime } from '@/utils/interval'
 import { projectDescription } from '@/utils/projectDescription'
@@ -2151,18 +2153,88 @@ const ContractualKPIOverview = ({
   )
 }
 
+type ViewMode = 'markets' | 'kpis' | 'devices'
+
+const VIEW_MODE_STORAGE_KEY = 'bessHomeViewMode'
+
+function getStoredViewMode(projectId: string): ViewMode | null {
+  try {
+    const raw = localStorage.getItem(`${VIEW_MODE_STORAGE_KEY}_${projectId}`)
+    if (raw === 'markets' || raw === 'kpis' || raw === 'devices') {
+      return raw
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+function storeViewMode(projectId: string, mode: ViewMode) {
+  try {
+    localStorage.setItem(`${VIEW_MODE_STORAGE_KEY}_${projectId}`, mode)
+  } catch {
+    // ignore
+  }
+}
+
 const BESSProjectHome = () => {
   const { projectId } = useParams()
   const { ref: stackRef } = useElementSize()
   const [projectInfoModalOpen, setProjectInfoModalOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'kpis' | 'devices'>('kpis')
 
   const project = useSelectProject(projectId!)
   const [kioskModeEnabled, setKioskModeEnabled] = useState(false)
 
+  // Check QSE market access — fires in parallel with project query
+  const qseAccess = useGetQSEAccess({
+    pathParams: { projectId: projectId! },
+    queryOptions: { enabled: !!projectId },
+  })
+  const hasQSEAccess = qseAccess.data?.has_access === true
+
+  // Resolve the initial view mode once, after QSE settles
+  const resolvedInitial = useMemo((): ViewMode => {
+    const stored = getStoredViewMode(projectId!)
+    if (stored) {
+      // If stored is 'markets' but no access, fall back
+      if (stored === 'markets' && !hasQSEAccess) return 'kpis'
+      return stored
+    }
+    return hasQSEAccess ? 'markets' : 'kpis'
+  }, [projectId, hasQSEAccess])
+
+  const [viewMode, setViewMode] = useState<ViewMode>(resolvedInitial)
+
+  // Keep viewMode in sync when the resolved default changes
+  // (e.g. projectId navigation or QSE data arriving)
+  useEffect(() => {
+    queueMicrotask(() => setViewMode(resolvedInitial))
+  }, [resolvedInitial])
+
+  const handleViewModeChange = (value: string) => {
+    const mode = value as ViewMode
+    setViewMode(mode)
+    storeViewMode(projectId!, mode)
+  }
+
+  const segmentedData = useMemo(() => {
+    const items: { label: string; value: string }[] = []
+    if (hasQSEAccess) {
+      items.push({
+        label: 'Markets',
+        value: 'markets',
+      })
+    }
+    items.push({ label: 'KPIs', value: 'kpis' })
+    items.push({ label: 'System', value: 'devices' })
+    return items
+  }, [hasQSEAccess])
+
   if (project.isLoading) return <PageLoader />
   if (project.isError) return <PageError error={project.error} />
   if (project.data === undefined) return <PageError error={undefined} />
+
+  const qseSettled = !qseAccess.isLoading
 
   return (
     <Stack p="md" h="100%" ref={stackRef}>
@@ -2192,20 +2264,27 @@ const BESSProjectHome = () => {
             enabled={kioskModeEnabled}
             setEnabled={setKioskModeEnabled}
           />
-          <SegmentedControl
-            size="xs"
-            value={viewMode}
-            onChange={(value) => setViewMode(value as 'kpis' | 'devices')}
-            data={[
-              { label: 'KPIs', value: 'kpis' },
-              { label: 'System', value: 'devices' },
-            ]}
-          />
+          {qseSettled && (
+            <SegmentedControl
+              size="xs"
+              value={viewMode}
+              onChange={handleViewModeChange}
+              data={segmentedData}
+            />
+          )}
         </Group>
       </Group>
 
       <Box style={{ minHeight: 'fit-content', flexShrink: 0 }}>
-        {viewMode === 'kpis' ? <KPICards /> : <DeviceTypeOverview />}
+        {!qseSettled ? (
+          <Skeleton height={42} radius="md" />
+        ) : viewMode === 'markets' && hasQSEAccess ? (
+          <MarketStatsGrid projectId={projectId!} />
+        ) : viewMode === 'kpis' ? (
+          <KPICards />
+        ) : (
+          <DeviceTypeOverview />
+        )}
       </Box>
       <Group flex={1} align="start">
         <Stack h="100%" flex={1}>

@@ -6887,6 +6887,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/market-performance/has-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check Qse Access
+         * @description Check if user has QSE market access for a project.
+         *
+         *     Returns whether the project has a QSE integration and
+         *     the user's company has the corresponding QSE permission.
+         *
+         *     Args:
+         *         project: Project from dependency injection.
+         *         user: Authenticated user from dependency injection.
+         *         db_async: Async database session.
+         */
+        get: operations["check_qse_access_v1_protected_web_application_projects__project_id__market_performance_has_access_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/web-application/projects/{project_id}/market-performance/debug/raw": {
         parameters: {
             query?: never;
@@ -22131,6 +22159,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_qse_access_v1_protected_web_application_projects__project_id__market_performance_has_access_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
                 };
             };
             /** @description Validation Error */
