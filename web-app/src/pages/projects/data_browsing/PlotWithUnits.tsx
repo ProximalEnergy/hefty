@@ -73,7 +73,7 @@ const PlotWithUnits = ({
 
     // Group tags by unit
     tags.forEach((tag) => {
-      const unit = tag.sensor_type?.unit || ''
+      const unit = tag.sensor_type_unit || ''
       if (!groups.has(unit)) {
         groups.set(unit, [])
       }
