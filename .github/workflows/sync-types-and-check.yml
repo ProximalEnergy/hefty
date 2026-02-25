@@ -62,24 +62,17 @@ jobs:
         with:
           node-version: 24
 
-      - name: Get pinned openapi-typescript version
+      - name: Install web-app dependencies
         if: steps.check-changes.outputs.changes_detected == 'true'
-        id: get-version
-        run: |
-          # Extract version from package-lock.json (lockfileVersion 3 uses packages structure)
-          OPENAPI_TS_VERSION=$(node -p "require('./web-app/package-lock.json').packages['node_modules/openapi-typescript'].version")
-          echo "version=${OPENAPI_TS_VERSION}" >> $GITHUB_OUTPUT
-          echo "Using openapi-typescript version: ${OPENAPI_TS_VERSION}"
+        run: npm ci
+        working-directory: web-app
 
       - name: Run sync script
         if: steps.check-changes.outputs.changes_detected == 'true'
         env:
-          # Minimal environment variables needed for OpenAPI schema generation
           DATABASE_URL: "postgresql://dummy:dummy@localhost/dummy"
           DISABLE_PARAMETER_STORE_BOOTSTRAP: "1"
           ENVIRONMENT: "development"
-          # Pass the pinned version to the sync script
-          OPENAPI_TYPESCRIPT_VERSION: ${{ steps.get-version.outputs.version }}
         run: bash _scripts/sync_api_and_ts_types_and_enums.sh
 
       - name: Check if generated files changed
@@ -92,7 +85,7 @@ jobs:
             echo "::error::This means backend changes require frontend type updates."
             echo "::error::👀 Please run 'mise run codegen' locally and commit the changes. 👀"
             echo ""
-            echo "Changed files:"
-            git diff --name-only web-app/src/api/enumerations.ts web-app/src/api/schema.d.ts
+            echo "Diff:"
+            git diff web-app/src/api/enumerations.ts web-app/src/api/schema.d.ts
             exit 1
           fi

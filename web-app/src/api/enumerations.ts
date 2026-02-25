@@ -9,11 +9,28 @@ export const AggregationMethodEnum = {
 export const BaseIntEnumEnum = {
 } as const;
 
+export const ClaimStatusEnum = {
+  DRAFT: "draft",
+  SUBMITTED: "submitted",
+  IN_PROGRESS: "in_progress",
+  RESOLVED: "resolved",
+  CLOSED: "closed",
+} as const;
+
 export const ClaimSubmissionChannelEnum = {
   EMAIL: "email",
   PORTAL: "portal",
   HYBRID: "hybrid",
   UNKNOWN: "unknown",
+} as const;
+
+export const ClaimUpdateTypeEnum = {
+  STATUS_CHANGE: "status_change",
+  SUBMISSION: "submission",
+  OEM_MESSAGE: "oem_message",
+  NOTE: "note",
+  PARTS: "parts",
+  FIELD_VISIT: "field_visit",
 } as const;
 
 export const ComponentTypeEnum = {

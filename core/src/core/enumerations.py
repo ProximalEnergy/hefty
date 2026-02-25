@@ -659,6 +659,23 @@ class ClaimSubmissionChannel(StrEnum):
     UNKNOWN = "unknown"
 
 
+class ClaimStatus(StrEnum):
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+
+
+class ClaimUpdateType(StrEnum):
+    STATUS_CHANGE = "status_change"
+    SUBMISSION = "submission"
+    OEM_MESSAGE = "oem_message"
+    NOTE = "note"
+    PARTS = "parts"
+    FIELD_VISIT = "field_visit"
+
+
 class ProjectDatabaseProvider(StrEnum):
     TIMESCALE = "timescale"
     CLICKHOUSE = "clickhouse"

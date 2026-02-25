@@ -64,6 +64,20 @@ claim_submission_channel_enum = Enum(
     metadata=Base.metadata,
 )
 
+claim_status_enum = Enum(
+    enumerations.ClaimStatus,
+    name="claimstatus",
+    schema="operational",
+    metadata=Base.metadata,
+)
+
+claim_update_type_enum = Enum(
+    enumerations.ClaimUpdateType,
+    name="claimupdatetype",
+    schema="operational",
+    metadata=Base.metadata,
+)
+
 
 ##### START ADMIN SCHEMA #####
 # NOTE: Every model in the admin schema must specify
@@ -2848,3 +2862,81 @@ class EventCMMSTicket(Base):
     cmms_ticket = relationship("CMMSTicket")
 
     __table_args__ = (sa.UniqueConstraint("event_id", "cmms_ticket_id"),)
+
+
+class Claim(Base):
+    __tablename__ = "claims"
+
+    claim_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    claim_config_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("operational.claim_configs.claim_config_id"),
+    )
+    status: Mapped[enumerations.ClaimStatus] = mapped_column(claim_status_enum)
+    summary: Mapped[str | None]
+    external_reference: Mapped[str | None]
+
+    claim_config = relationship("ClaimConfig")
+
+
+class ClaimDevice(Base):
+    __tablename__ = "claim_devices"
+
+    claim_device_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    claim_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.claims.claim_id"),
+    )
+    device_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.devices.device_id"),
+    )
+    event_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("project.events.event_id"),
+        nullable=True,
+    )
+    oem_serial_number: Mapped[str | None]
+    oem_part_number: Mapped[str | None]
+    notes: Mapped[str | None]
+
+    claim = relationship("Claim")
+    device = relationship("Device")
+    event = relationship("Event", primaryjoin="ClaimDevice.event_id == Event.event_id")
+
+
+class ClaimUpdate(Base):
+    __tablename__ = "claim_updates"
+
+    claim_update_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    claim_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("project.claims.claim_id"),
+    )
+    update_type: Mapped[enumerations.ClaimUpdateType] = mapped_column(
+        claim_update_type_enum,
+    )
+    from_status: Mapped[enumerations.ClaimStatus | None] = mapped_column(
+        claim_status_enum,
+        nullable=True,
+    )
+    to_status: Mapped[enumerations.ClaimStatus | None] = mapped_column(
+        claim_status_enum,
+        nullable=True,
+    )
+    message: Mapped[str | None]
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        sa.ForeignKey("admin.users.user_id"),
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+
+    claim = relationship("Claim")
+    user = relationship("User")
