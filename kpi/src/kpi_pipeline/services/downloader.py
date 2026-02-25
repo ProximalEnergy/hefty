@@ -371,6 +371,7 @@ class StatusTimeSeriesDownloader(
                     sensor_type_ids=[
                         sensor.sensor_type.value for sensor in map.values()
                     ],
+                    get_all=True,
                 )
             )
 

@@ -23,6 +23,7 @@ dependencies = [
     # Added strict constraint to avoid breaking change in polars/polars#24027.
     "polars==1.37.1",
     "psycopg2-binary>=2.9.11,<3",
+    "pyarrow~=20.0",
     "python-dateutil>=2.9.0,<3",
     "python-dotenv~=1.2.1",
     "shapely>=2.1.2,<3",
@@ -70,7 +71,7 @@ extend_exclude = ["_alembic_migrations/**"]
 known_first_party = ["core"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["asyncpg", "greenlet", "psycopg2-binary"]
+DEP002 = ["asyncpg", "greenlet", "psycopg2-binary", "pyarrow"]
 DEP004 = [
     "fastapi", # optional dependency used by api callers
 ]

@@ -108,6 +108,7 @@ async def get_status_timeseries_interpreted(
     tag_ids: list[int] | None = None,
     device_ids: list[int] | None = None,
     sensor_type_ids: list[int] | None = None,
+    get_all: bool = False,
 ):
     """Get data_timeseries entries for statuses with filters.
 
@@ -138,7 +139,10 @@ async def get_status_timeseries_interpreted(
         query_end=end,
         project_db=project_db,
     )
-    data_df = (await data_query.get()).df.to_pandas()
+    if get_all:
+        data_df = (await data_query.get_all()).df.to_pandas()
+    else:
+        data_df = (await data_query.get()).df.to_pandas()
 
     # Early return for no data
     if data_df.empty:
@@ -274,6 +278,7 @@ async def get_status_time_series_failure_mode_ids(
     device_ids: list[int] | None = None,
     sensor_type_ids: list[int] | None = None,
     device_type_ids: list[int] | None = None,
+    get_all: bool = False,
 ):
     get_status_tags_query = crud_statuses.get_status_tags(
         device_ids=device_ids,
@@ -298,6 +303,7 @@ async def get_status_time_series_failure_mode_ids(
         tag_ids=tag_ids,
         start=start,
         end=end,
+        get_all=get_all,
     )
     if len(data) == 0:
         return []
