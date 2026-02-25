@@ -134,14 +134,111 @@ cleanup_run_all_checks() {
     fi
 }
 
+prompt_show_failure_logs() {
+    local show_logs_input
+
+    while true; do
+        read -r -p 'Show error logs? [y/n]: ' show_logs_input
+        case "$show_logs_input" in
+            y|Y)
+                return 0
+                ;;
+            n|N)
+                return 1
+                ;;
+            *)
+                echo "Please enter 'y' or 'n'."
+                ;;
+        esac
+    done
+}
+
+count_errors_in_log() {
+    local log_file="$1"
+    local match
+
+    if [ ! -f "$log_file" ]; then
+        echo 0
+        return
+    fi
+
+    match=$(
+        grep -Eio 'found[[:space:]]+[0-9]+[[:space:]]+errors?' \
+            "$log_file" | tail -n 1
+    )
+    if [ -n "$match" ]; then
+        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
+        return
+    fi
+
+    match=$(
+        grep -Eio '[0-9]+[[:space:]]+errors?,[[:space:]]*[0-9]+[[:space:]]+warnings?' \
+            "$log_file" | tail -n 1
+    )
+    if [ -n "$match" ]; then
+        echo "$match" | grep -Eo '^[0-9]+'
+        return
+    fi
+
+    match=$(
+        grep -Eio '[0-9]+[[:space:]]+errors?' \
+            "$log_file" | tail -n 1
+    )
+    if [ -n "$match" ]; then
+        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
+        return
+    fi
+
+    match=$(
+        grep -Eio '[0-9]+[[:space:]]+fail(ed|ures?)' \
+            "$log_file" | tail -n 1
+    )
+    if [ -n "$match" ]; then
+        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
+        return
+    fi
+
+    match=$(
+        grep -Eio '[0-9]+[[:space:]]+finding(s)?' \
+            "$log_file" | tail -n 1
+    )
+    if [ -n "$match" ]; then
+        echo "$match" | grep -Eo '[0-9]+' | tail -n 1
+        return
+    fi
+
+    echo 1
+}
+
+get_finished_check_ui_label() {
+    local check_index="$1"
+    local error_count="$2"
+    local noun="errors"
+
+    if [ "$error_count" -eq 0 ]; then
+        echo "$(get_check_ui_label "$check_index")"
+        return
+    fi
+
+    if [ "$error_count" -eq 1 ]; then
+        noun="error"
+    fi
+
+    echo "$(get_check_ui_label "$check_index") (${error_count} ${noun})"
+}
+
 update_check_ui_status() {
     local check_index="$1"
     local exit_code="$2"
     local total_checks="$3"
+    local error_count="$4"
     local lines_up=$((total_checks - check_index))
     local lines_down=$((lines_up - 1))
     local color="$GREEN"
     local symbol="*"
+    local check_label
+
+    check_label=$(get_finished_check_ui_label "$check_index" "$error_count")
 
     if [ "$exit_code" -ne 0 ]; then
         color="$RED"
@@ -153,10 +250,15 @@ update_check_ui_status() {
         "$color" \
         "$symbol" \
         "$NC" \
-        "${CHECKS_NAME[$check_index]}"
+        "$check_label"
     if [ "$lines_down" -gt 0 ]; then
         printf "\033[%sB" "$lines_down"
     fi
+}
+
+get_check_ui_label() {
+    local check_index="$1"
+    echo "${CHECKS_CMD[$check_index]}"
 }
 
 # Function to run all registered checks
@@ -172,6 +274,7 @@ run_all_checks() {
     local log_file
     local status_file
     local status
+    local error_count
 
     if [ "$total_checks" -eq 0 ]; then
         echo -e "${GREEN}No checks were scheduled.${NC}"
@@ -187,7 +290,7 @@ run_all_checks() {
     trap 'exit 130' INT TERM
 
     for i in "${!CHECKS_NAME[@]}"; do
-        echo -e "${YELLOW}●${NC} ${CHECKS_NAME[$i]}"
+        echo -e "${YELLOW}●${NC} $(get_check_ui_label "$i")"
     done
 
     tput civis 2>/dev/null || true
@@ -223,7 +326,14 @@ run_all_checks() {
                 parallel_done_by_index[$i]=1
                 parallel_done=$((parallel_done + 1))
 
-                update_check_ui_status "$i" "$status" "$total_checks"
+                if [ "$status" -eq 0 ]; then
+                    error_count=0
+                else
+                    log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+                    error_count=$(count_errors_in_log "$log_file")
+                fi
+                update_check_ui_status "$i" "$status" "$total_checks" \
+                    "$error_count"
                 if [ "$status" -eq 0 ]; then
                     PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
                 else
@@ -245,13 +355,16 @@ run_all_checks() {
             log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
             if eval "$cmd" >"$log_file" 2>&1; then
                 status=0
+                error_count=0
                 PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
             else
                 status=$?
+                error_count=$(count_errors_in_log "$log_file")
                 FAILED_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
                 failed_indices+=("$i")
             fi
-            update_check_ui_status "$i" "$status" "$total_checks"
+            update_check_ui_status "$i" "$status" "$total_checks" \
+                "$error_count"
         fi
     done
 
@@ -264,15 +377,30 @@ run_all_checks() {
     echo -e "${RED}Failed checks:${NC}"
     echo ""
     for i in "${failed_indices[@]}"; do
-        echo -e "${BOLD}${RED}${CHECKS_NAME[$i]}${NC}"
-        log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
-        if [ -f "$log_file" ]; then
-            cat "$log_file"
-        else
-            echo "No log file found for this check."
-        fi
-        echo ""
+        echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
     done
+
+    if [ -t 0 ]; then
+        echo ""
+        if prompt_show_failure_logs; then
+            echo ""
+            echo -e "${RED}Failure logs:${NC}"
+            echo ""
+            for i in "${failed_indices[@]}"; do
+                echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
+                log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+                if [ -f "$log_file" ]; then
+                    cat "$log_file"
+                else
+                    echo "No log file found for this check."
+                fi
+                echo ""
+            done
+        fi
+    elif [ "${QUIET}" = "true" ]; then
+        echo ""
+        echo "Rerun with --verbose to see full output from failing checks."
+    fi
 
     exit 1
 }
