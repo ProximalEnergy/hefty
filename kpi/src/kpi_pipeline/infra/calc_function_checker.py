@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Optional, Union, get_args, get_origin
+import types
+from typing import Any, Union, get_args, get_origin
 
 import xarray as xr
-from pydantic.fields import PydanticUndefined
-
 from kpi_pipeline.base.models import CoordCombinerModel
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
+from pydantic.fields import PydanticUndefined
 
 # Function parameters that may be skipped when comparing against the calc
 DEFAULT_FUNCTION_IGNORES = {
@@ -49,8 +49,14 @@ def _types_match(expected: Any, actual: Any) -> bool:
     if expected == actual:
         return True
     expected_origin, actual_origin = get_origin(expected), get_origin(actual)
-    if expected_origin is not None and expected_origin == actual_origin:
-        return set(get_args(expected)) == set(get_args(actual))
+    if expected_origin is not None and actual_origin is not None:
+        union_origins = (Union, types.UnionType)
+        same_origin = expected_origin == actual_origin
+        both_unions = (
+            expected_origin in union_origins and actual_origin in union_origins
+        )
+        if same_origin or both_unions:
+            return set(get_args(expected)) == set(get_args(actual))
     return False
 
 
@@ -77,28 +83,26 @@ def _is_coord_combiner_protocol(annotation: Any) -> bool:
     return any(_is_coord_combiner_protocol(arg) for arg in get_args(annotation))
 
 
+def _is_optional_coord_combiner_protocol(annotation: Any) -> bool:
+    """Check if annotation is Optional[CoordCombinerProtocol]."""
+    origin = get_origin(annotation)
+    if origin in (Union, types.UnionType):
+        args = get_args(annotation)
+        if len(args) == 2 and type(None) in args:
+            other_arg = next((arg for arg in args if arg is not type(None)), None)
+            return other_arg is not None and _is_coord_combiner_protocol(other_arg)
+    return False
+
+
 def _is_optional_data_array(annotation: Any) -> bool:
     """Check if annotation is Optional[xr.DataArray] or Union[xr.DataArray, None]."""
     origin = get_origin(annotation)
-    # Handle both Union (old syntax) and types.UnionType (Python 3.10+ | syntax)
-    if origin is Union:
+    # Handle both Union (old syntax) and types.UnionType (| syntax)
+    if origin in (Union, types.UnionType):
         args = get_args(annotation)
-        # Optional[T] is Union[T, None] or Union[T, NoneType]
         if len(args) == 2 and type(None) in args:
-            # Check if the other arg is xr.DataArray
             other_arg = next((arg for arg in args if arg is not type(None)), None)
             return other_arg is not None and _is_data_array_type(other_arg)
-    # Handle Python 3.10+ union syntax (str | None)
-    try:
-        import types
-
-        if origin is types.UnionType:
-            args = get_args(annotation)
-            if len(args) == 2 and type(None) in args:
-                other_arg = next((arg for arg in args if arg is not type(None)), None)
-                return other_arg is not None and _is_data_array_type(other_arg)
-    except (ImportError, AttributeError):
-        pass
     return False
 
 
@@ -188,12 +192,15 @@ def verify_calc_function_alignment(
         expected_ann = func_ann
 
         # Special handling for CoordCombinerProtocol -> CoordCombinerModel mapping
-        if _is_coord_combiner_protocol(func_ann):
+        if _is_optional_coord_combiner_protocol(func_ann):
+            expected_name = f"{func_name}_model"
+            expected_ann = CoordCombinerModel | None
+        elif _is_coord_combiner_protocol(func_ann):
             expected_name = f"{func_name}_model"
             expected_ann = CoordCombinerModel
         elif _is_optional_data_array(func_ann):
             expected_name = f"{func_name}_var"
-            expected_ann = Optional[str]
+            expected_ann = str | None
         elif _is_data_array_type(func_ann):
             expected_name = f"{func_name}_var"
             expected_ann = str
@@ -307,7 +314,10 @@ def verify_process_function_alignment(
         expected_ann = func_ann
 
         # Special handling for CoordCombinerProtocol -> CoordCombinerModel mapping
-        if _is_coord_combiner_protocol(func_ann):
+        if _is_optional_coord_combiner_protocol(func_ann):
+            expected_name = f"{func_name}_model"
+            expected_ann = CoordCombinerModel | None
+        elif _is_coord_combiner_protocol(func_ann):
             expected_name = f"{func_name}_model"
             expected_ann = CoordCombinerModel
 

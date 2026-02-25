@@ -501,13 +501,19 @@ class DischargingCyclesFromSocCalc(CalcBase):
 @domain_calc(maximum_continuous_discharge)
 class MaximumContinuousDischargeCalc(CalcBase):
     energy_discharged_kwh_var: str
+    energy_charged_kwh_var: str
     time_combiner_model: CoordCombinerModel
+    device_combiner_model: CoordCombinerModel | None = None
     energy_capacity_kwh_var: str | None = None
 
     def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
         return maximum_continuous_discharge(
             energy_discharged_kwh=select(dataset, self.energy_discharged_kwh_var),
+            energy_charged_kwh=select(dataset, self.energy_charged_kwh_var),
             time_combiner=coord_combiner(self.time_combiner_model, context),
+            device_combiner=coord_combiner(self.device_combiner_model, context)
+            if self.device_combiner_model
+            else None,
             energy_capacity_kwh=optional(dataset, self.energy_capacity_kwh_var),
         )
 

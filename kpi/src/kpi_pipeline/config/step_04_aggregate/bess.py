@@ -561,9 +561,33 @@ class AggregateBESS(AddCalculationsSchema):
         )
     )
 
+    # Continuous Discharge Calculations
+
+    bess_string_maximum_continuous_discharge_kwh_d = Field(
+        MaximumContinuousDischargeCalc(
+            energy_discharged_kwh_var=Calculate.bess_string_energy_discharged_kwh_5m.var,
+            energy_charged_kwh_var=Calculate.bess_string_energy_charged_kwh_5m.var,
+            energy_capacity_kwh_var=Validate.bess_string_energy_capacity_kwh.var,
+            time_combiner_model=_5min_to_daily(),
+        )
+    )
+
+    project_maximum_continuous_discharge_across_strings_kwh_d = Field(
+        MaximumContinuousDischargeCalc(
+            energy_discharged_kwh_var=Calculate.bess_string_energy_discharged_kwh_5m.var,
+            energy_charged_kwh_var=Calculate.bess_string_energy_charged_kwh_5m.var,
+            energy_capacity_kwh_var=Validate.bess_string_energy_capacity_kwh.var,
+            device_combiner_model=CoordCombinerModel(
+                child_device_axis=DeviceType.BESS_STRING,
+            ),
+            time_combiner_model=_5min_to_daily(),
+        )
+    )
+
     project_maximum_continuous_discharge_kwh_d = Field(
         MaximumContinuousDischargeCalc(
             energy_discharged_kwh_var=Calculate.project_energy_discharged_kwh_5m.var,
+            energy_charged_kwh_var=Calculate.project_energy_charged_kwh_5m.var,
             energy_capacity_kwh_var=Validate.project_energy_capacity_kwh.var,
             time_combiner_model=_5min_to_daily(),
         )

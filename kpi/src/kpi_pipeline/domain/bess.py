@@ -5,11 +5,8 @@ This module contains pure business logic functions for BESS calculations
 that are independent of any external technologies or frameworks.
 """
 
-from typing import Optional
-
 import numpy as np
 import xarray as xr
-
 from kpi_pipeline.base.enums import Aggregation
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
 from kpi_pipeline.domain.general import diff, filter_by_capacity
@@ -136,23 +133,86 @@ def max_run_sm_1d(a: np.ndarray) -> float:
     return best
 
 
+def max_run_sm_2d(a: np.ndarray) -> np.ndarray:
+    """
+    2D version of max_run_sm_1d applied independently per component.
+
+    It's assumed that all values are non-negative.
+
+    Args:
+        a: Array with shape (time, component)
+
+    Returns:
+        1D array (component,) with maximum continuous positive run sums.
+    """
+    if a.ndim != 2:
+        msg = "max_run_sm_2d expects a 2D array (time, component)"
+        raise ValueError(msg)
+
+    if np.isnan(a).all(axis=0).all():
+        return np.full(a.shape[1], np.nan)
+
+    best = np.zeros(a.shape[1], dtype=float)
+    current = np.zeros(a.shape[1], dtype=float)
+
+    for v in a:
+        invalid = np.isnan(v) | (v <= 0)
+        current = np.where(invalid, 0.0, current + v)
+        best = np.maximum(best, current)
+
+    all_nan = np.isnan(a).all(axis=0)
+    best[all_nan] = np.nan
+    return best
+
+
 def maximum_continuous_discharge(
     *,
     energy_discharged_kwh: xr.DataArray,
+    energy_charged_kwh: xr.DataArray,
     time_combiner: CoordCombinerProtocol,
-    energy_capacity_kwh: Optional[xr.DataArray] = None,
+    device_combiner: CoordCombinerProtocol | None = None,
+    energy_capacity_kwh: xr.DataArray | None = None,
 ) -> xr.DataArray:
-    discharge_only = energy_discharged_kwh.where(energy_discharged_kwh > 0)
+    EPSILON = 1e-6
+
+    # device grouping first (if any)
+    if device_combiner is not None:
+        energy_discharged_kwh = device_combiner.agg(
+            energy_discharged_kwh, agg=Aggregation.SUM
+        )
+        energy_charged_kwh = device_combiner.agg(
+            energy_charged_kwh, agg=Aggregation.SUM
+        )
+        if energy_capacity_kwh is not None:
+            energy_capacity_kwh = device_combiner.agg(
+                energy_capacity_kwh, agg=Aggregation.SUM
+            )
+
+    # filter to only periods where there was discharge but no charge
+    discharge_only = energy_discharged_kwh.where(energy_charged_kwh < EPSILON)
+
+    # time grouping
     grouped = time_combiner.group(discharge_only)
     time_dim = time_combiner.get_high_res_time_axis().value
 
     def reducer(g: xr.DataArray) -> xr.DataArray:
+        if g.ndim == 1:
+            return xr.apply_ufunc(  # type: ignore
+                max_run_sm_1d,
+                g,
+                input_core_dims=[[time_dim]],
+                output_core_dims=[()],
+            )
+
+        component_dim = "__component__"
+        non_time_dims = tuple(dim for dim in g.dims if dim != time_dim)
+        stacked = g.stack({component_dim: non_time_dims})
         return xr.apply_ufunc(  # type: ignore
-            max_run_sm_1d,
-            g,
-            input_core_dims=[[time_dim]],
-            output_core_dims=[()],
-        )
+            max_run_sm_2d,
+            stacked,
+            input_core_dims=[[time_dim, component_dim]],
+            output_core_dims=[[component_dim]],
+        ).unstack(component_dim)
 
     result = grouped.map(reducer)
 

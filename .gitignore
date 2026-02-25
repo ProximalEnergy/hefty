@@ -242,7 +242,7 @@ dist-ssr
 *.local
 
 # Editor directories and files
-mono.code-workspace
+*.code-workspace
 .vscode/*
 !.vscode/extensions.json
 .idea

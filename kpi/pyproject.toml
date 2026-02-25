@@ -6,13 +6,13 @@ authors = [{ name = "David Kyle", email = "dkpollster@gmail.com" }]
 requires-python = ">=3.12.8, <3.13"
 dependencies = [
     "bottleneck~=1.6",
-    "core==0.3.102b1",
+    "core",
     "flox~=0.10",
     "greenlet~=3.3",
     "pandas~=2.3",
     "psycopg2-binary~=2.9",
     "pvlib~=0.13",
-    "pyarrow~=23.0",
+    "pyarrow~=20.0",
     "pydantic~=2.11",
     "sentry-sdk~=2.0",
     "shapely~=2.0",

@@ -39,11 +39,16 @@ def _dod(soc: str) -> Field:
     )
 
 
-def _incremental_diff(field: str) -> Field:
+def _energy_accumulator(field: str) -> Field:
     return Field(
         CalcProcess(
             calc=SelectCalc(var=field),
-            process=DiffProcess(),
+            process=ProcessList(
+                steps=[
+                    DiffProcess(),
+                    ClampProcess(min_value=0),
+                ],
+            ),
         ),
     )
 
@@ -138,11 +143,11 @@ class CalculateBESS(AddCalculationsSchema):
         )
     )
 
-    bess_string_energy_charged_kwh_5m = _incremental_diff(
+    bess_string_energy_charged_kwh_5m = _energy_accumulator(
         Download.time_series.bess_string_total_energy_charged_kwh_5m.var
     )
 
-    bess_string_energy_discharged_kwh_5m = _incremental_diff(
+    bess_string_energy_discharged_kwh_5m = _energy_accumulator(
         Download.time_series.bess_string_total_energy_discharged_kwh_5m.var
     )
 

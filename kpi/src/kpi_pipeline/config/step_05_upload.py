@@ -248,6 +248,12 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         device_var=Aggregate.bess_string_max_module_temp_c_d.var,
         version="1.0.0",
     ),
+    KPIType.BESS_STRING_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
+        project_var=Aggregate.project_maximum_continuous_discharge_across_strings_kwh_d.var,
+        device_var=Aggregate.bess_string_maximum_continuous_discharge_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
     KPIType.BESS_STRING_MIN_CELL_TEMPERATURE: KPIMetadata(
         project_var=Aggregate.project_min_string_cell_temp_c_d.var,
         device_var=Aggregate.bess_string_min_cell_temp_c_d.var,
