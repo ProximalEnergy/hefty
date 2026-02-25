@@ -34,7 +34,7 @@ async def get_combiner_block_performance(
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
     # Query data for the last 30 minutes (offset by 5 minutes)
-    """todo
+    """Get combiner performance at the block level
 
     Args:
         project_id: Description for project_id.

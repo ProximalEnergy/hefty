@@ -270,6 +270,7 @@ rollup-plugin-visualizer-stats.html
 
 # uv lock files
 uv.lock
+!api/uv.lock
 
 # dont track sandbox files
 */_sandbox/

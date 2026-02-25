@@ -1568,7 +1568,7 @@ export interface paths {
         };
         /**
          * Get Combiner Block Performance
-         * @description todo
+         * @description Get combiner performance at the block level
          *
          *     Args:
          *         project_id: Description for project_id.
