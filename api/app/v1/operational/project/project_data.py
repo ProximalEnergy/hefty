@@ -3,23 +3,23 @@ from collections.abc import Sequence
 from types import SimpleNamespace
 from typing import Annotated, cast
 
-import app.utils as utils
 import pandas as pd
+from core.crud.operational.sensor_types import get_sensor_types
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.db_query import OutputType
+from core.enumerations import TimeInterval
+from fastapi import APIRouter, Depends, HTTPException, Query
+from natsort import natsorted
+from sqlalchemy.orm import Session
+
+import app.utils as utils
+import core
 from app import interfaces
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
-from fastapi import APIRouter, Depends, HTTPException, Query
-from natsort import natsorted
-from sqlalchemy.orm import Session
-
-import core
 from core import models
-from core.crud.operational.sensor_types import get_sensor_types
-from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
-from core.db_query import OutputType
-from core.enumerations import TimeInterval
 
 router = APIRouter(
     prefix="",

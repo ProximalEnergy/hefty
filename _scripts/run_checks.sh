@@ -405,20 +405,6 @@ run_all_checks() {
     exit 1
 }
 
-# Function to check for package.json or package-lock.json in the root
-check_root_for_package_json() {
-    if [ -f "package.json" ] || [ -f "package-lock.json" ]; then
-        echo "Error: package.json or package-lock.json found in the root"
-        echo "directory. These files should not exist at the monorepo"
-        echo "root."
-        return 1
-    else
-        echo "No package.json or package-lock.json found in the root"
-        echo "directory. Check passed."
-        return 0
-    fi
-}
-
 # Function to check for core version bump
 check_core_version() {
     echo "Checking for core version bump..."
@@ -623,31 +609,31 @@ if [ "${RUN_PVEEM}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
-    NAME_SHORTS_CHECK_CMD="mise run hardcoded_name_shorts_check"
+    NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts_check"
     if [ "${QUIET}" = "true" ]; then
-        NAME_SHORTS_CHECK_CMD="mise run hardcoded_name_shorts_check -- --quiet"
+        NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts_check -- --quiet"
     fi
 
-    add_check "Root: No package.json" "check_root_for_package_json"
+    add_check "Root: No package.json" "mise run root:no_package_json"
     add_check "Root: Hardcoded Type ID Check" \
-        "mise run hardcoded_type_id_check"
+        "mise run root:hardcoded_type_id_check"
     add_check "Root: Hardcoded Name Shorts Check" \
         "${NAME_SHORTS_CHECK_CMD}"
     add_check "Root: Pyproject Dependency Check" \
-        "uv run python _scripts/check_pyproject_dependencies.py"
-    add_db_check "Root: Codegen" "mise run codegen"
+        "mise run root:pyproject_dependencies"
+    add_db_check "Root: Codegen" "mise run root:codegen"
 fi
 
 # Global Checks (Run if any project changed)
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
-    add_check "Global: Semgrep" "mise run semgrep:check"
-    add_check "Global: Ruff Linting" "mise run ruff:check"
-    add_check "Global: Ruff Formatting" "mise run ruff:format"
+    add_check "Global: Semgrep" "mise run root:semgrep_check"
+    add_check "Global: Ruff Linting" "mise run root:ruff_check"
+    add_check "Global: Ruff Formatting" "mise run root:ruff_format"
 fi
 
 if [ "${RUN_WEB}" = "true" ]; then
-    add_check "Web-App: Type Check" "cd web-app && npm run check"
-    add_check "Web-App: Linting" "cd web-app && npm run lint"
+    add_check "Web-App: Type Check" "mise run web:typecheck"
+    add_check "Web-App: Linting" "mise run web:lint"
     add_check "Web-App: Console Log Check" \
         "mise run web:console_log_check"
 fi

@@ -242,7 +242,10 @@ def main() -> int:
         # Fast mode: use generated web-app schema.d.ts
         schema_path = repo_root / "web-app" / "src" / "api" / "schema.d.ts"
         if not schema_path.exists():
-            print("schema.d.ts not found. Run 'mise run codegen' to generate it.")
+            print(
+                "schema.d.ts not found. "
+                "Run 'mise run root:codegen' to generate it."
+            )
             return 1
 
         api_paths = get_api_paths_from_schema_dts(schema_path=schema_path)

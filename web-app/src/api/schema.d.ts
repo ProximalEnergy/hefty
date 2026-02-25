@@ -7715,12 +7715,18 @@ export interface components {
         };
         /** Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post */
         Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post: {
-            /** File */
+            /**
+             * File
+             * Format: binary
+             */
             file: string;
         };
         /** Body_parse_pan_file_v1_operational_pv_modules_parse_pan_post */
         Body_parse_pan_file_v1_operational_pv_modules_parse_pan_post: {
-            /** File */
+            /**
+             * File
+             * Format: binary
+             */
             file: string;
         };
         /** Body_update_user_projects_v1_admin_user_projects_update_user_projects_post */
@@ -7732,12 +7738,18 @@ export interface components {
         };
         /** Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post */
         Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
-            /** File */
+            /**
+             * File
+             * Format: binary
+             */
             file: string;
         };
         /** Body_upload_project_document_v1_operational_projects__project_id__documents_post */
         Body_upload_project_document_v1_operational_projects__project_id__documents_post: {
-            /** File */
+            /**
+             * File
+             * Format: binary
+             */
             file: string;
         };
         /**

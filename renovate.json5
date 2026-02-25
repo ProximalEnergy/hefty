@@ -53,5 +53,9 @@
       matchFileNames: ["sql-admin/**"],
       groupName: "sql-admin",
     },
+    {
+      matchFileNames: ["pv-eem/**"],
+      groupName: "pv-eem",
+    },
   ],
 }

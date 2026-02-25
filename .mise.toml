@@ -168,13 +168,6 @@ description = "Detect arithmetic calculations in web-app JSX with semgrep"
 dir = "."
 run = "uv run semgrep --config web-app/_scripts/jsx-calculations.yaml web-app"
 
-[tasks.codegen]
-description = "Automatically generate interfaces"
-run = """
-./_scripts/sync_api_and_ts_types_and_enums.sh
-"""
-
-
 [tasks.sync]
 description = "Sync current branch with latest dev from remote"
 run = """
@@ -199,30 +192,57 @@ usage = '''
 '''
 run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-} ${usage_existing:+--existing}"
 
-[tasks."ruff:check"]
-description = "Run ruff linter on entire monorepo"
-dir = "."
-run = "uv run --dev ruff check core/ api/ microservices/ sql-admin/ pv-eem/"
-
-[tasks."ruff:format"]
-description = "Run ruff formatter on entire monorepo"
-dir = "."
-run = "uv run --dev ruff format core/ api/ microservices/ sql-admin/ pv-eem/"
-
-[tasks."hardcoded_type_id_check"]
+[tasks."root:hardcoded_type_id_check"]
 description = "Run hardcoded type ID check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_type_id_check.sh"
 
-[tasks."hardcoded_name_shorts_check"]
+[tasks."root:hardcoded_name_shorts_check"]
 description = "Run hardcoded name shorts check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_name_shorts_check.sh"
 
-[tasks."semgrep:check"]
+[tasks."root:semgrep_check"]
 description = "Run all semgrep quality checks on the monorepo"
 dir = "."
-run = "uv run semgrep --quiet --disable-version-check --error --config _scripts/rules/ core/src api/app microservices web-app/src --exclude api/app/dependencies.py"
+run = """
+uv run semgrep --quiet --disable-version-check --error \
+  --config _scripts/rules/ \
+  core/src api/app microservices web-app/src \
+  --exclude api/app/dependencies.py
+"""
+
+[tasks."root:no_package_json"]
+description = "Fail when package.json or package-lock.json exists at repo root"
+dir = "."
+run = """
+if [ -f package.json ] || [ -f package-lock.json ]; then
+  echo "Error: package.json or package-lock.json found in the root directory."
+  echo "These files should not exist at the monorepo root."
+  exit 1
+fi
+echo "No package.json or package-lock.json found in the root directory."
+"""
+
+[tasks."root:pyproject_dependencies"]
+description = "Check for undeclared or mismatched dependencies in pyproject.toml"
+dir = "."
+run = "uv run python _scripts/check_pyproject_dependencies.py"
+
+[tasks."root:codegen"]
+description = "Automatically generate interfaces"
+dir = "."
+run = "./_scripts/sync_api_and_ts_types_and_enums.sh"
+
+[tasks."root:ruff_check"]
+description = "Run ruff linter on entire monorepo"
+dir = "."
+run = "uv run --dev ruff check core/ api/ microservices/ sql-admin/ pv-eem/"
+
+[tasks."root:ruff_format"]
+description = "Run ruff formatter on entire monorepo"
+dir = "."
+run = "uv run --dev ruff format core/ api/ microservices/ sql-admin/ pv-eem/"
 
 # =============================================================================
 # CORE TASKS (runs in ./core directory)
@@ -618,6 +638,11 @@ run = "npm run preview"
 description = "Generate .env file from AWS Systems Manager Parameter Store"
 dir = "api"
 run = "uv run ../web-app/_scripts/generate_env_from_parameter_store.py"
+
+[tasks."web:typecheck"]
+description = "Run TypeScript check for web-app"
+dir = "web-app"
+run = "npm run check"
 
 [tasks."web:check"]
 description = "Run TypeScript check, ESLint, and format web-app"
