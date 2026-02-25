@@ -1,25 +1,25 @@
 import datetime
 from collections.abc import Sequence
 from types import SimpleNamespace
-from typing import Annotated
-
-import pandas as pd
-from core.crud.operational.sensor_types import get_sensor_types
-from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
-from core.db_query import OutputType
-from core.enumerations import TimeInterval
-from fastapi import APIRouter, Depends, HTTPException, Query
-from natsort import natsorted
-from sqlalchemy.orm import Session
+from typing import Annotated, cast
 
 import app.utils as utils
-import core
+import pandas as pd
 from app import interfaces
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
 from app.dependencies import get_project_api, get_project_db
+from fastapi import APIRouter, Depends, HTTPException, Query
+from natsort import natsorted
+from sqlalchemy.orm import Session
+
+import core
 from core import models
+from core.crud.operational.sensor_types import get_sensor_types
+from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
+from core.db_query import OutputType
+from core.enumerations import TimeInterval
 
 router = APIRouter(
     prefix="",
@@ -688,9 +688,20 @@ async def get_timeseries_v3(
 
         # Get values and convert to list, handling None/NaN
         values = df[col].tolist()
-        y_values = [
-            float(val) if val is not None and pd.notna(val) else None for val in values
-        ]
+        this_tag = [t for t in tags if t.tag_id == tag_id][0]
+        if this_tag.pg_data_type_id == core.enumerations.PGDataType.TEXT:
+            y_values = [
+                cast(float | str | None, str(val) if pd.notna(val) else None)
+                for val in values
+            ]
+        else:
+            y_values = [
+                cast(
+                    float | str | None,
+                    float(val) if pd.notna(val) else None,
+                )
+                for val in values
+            ]
 
         # Include tag_id in the trace data for matching in frontend
         trace_data = {

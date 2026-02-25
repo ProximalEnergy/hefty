@@ -507,6 +507,7 @@ class KPIType(BaseIntEnum):
     BESS_PROJECT_DC_ENCLOSURE_RTE = 105
     PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY = 106
     BESS_PCS_MODULE_AVAILABILITY = 107
+    BESS_STRING_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY = 108
 
 
 class EventLossType(BaseIntEnum):
@@ -687,3 +688,13 @@ class OutputType(StrEnum):
     PANDAS = "pandas"
     POLARS = "polars"
     SQLALCHEMY = "sqlalchemy"
+
+
+class PGDataType(IntEnum):
+    UNKNOWN = 0
+    INTEGER = 1
+    BIGINT = 2
+    REAL = 3
+    DOUBLE = 4
+    BOOLEAN = 5
+    TEXT = 6

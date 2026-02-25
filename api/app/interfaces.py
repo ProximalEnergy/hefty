@@ -738,8 +738,8 @@ class DataTimeSeries(BaseModel):
     """Datatimeseries model."""
 
     x: list[str]
-    y: list[float | None]
-    y_range: list[float | None]
+    y: list[float | str | None]
+    y_range: list[float | str | None]
     yaxis: str
     name: str
     sensor_type_name: str
