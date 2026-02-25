@@ -28,8 +28,9 @@ from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.devices import (
     get_project_devices_async as crud_get_project_devices_async,
 )
+from core.crud.project.tags import get_project_tags_v2 as crud_get_project_tags_v2
 from core.db_query import OutputType
-from core.enumerations import DeviceType, KPIType, TimeInterval
+from core.enumerations import DeviceType, KPIType, SensorType, TimeInterval
 from pydantic import BaseModel
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -606,25 +607,77 @@ def section_two_column_metrics(
     # calc_delta is now imported from report_utils as calc_delta_percentage
 
     # ---- data ----
+    soh_mean = kpi_means.get(KPIType.BESS_STRING_SOH)
+    soh_actual_display = (
+        format_percentage_value(value=soh_mean) if soh_mean is not None else "—"
+    )
+    soh_delta_display = (
+        calc_delta_percentage(actual=soh_mean, expected=current_soh)
+        if soh_mean is not None
+        else "—"
+    )
+    cycle_count_sum = kpi_sums.get(KPIType.BESS_STRING_CYCLE_COUNT)
+    monthly_cycles_actual = (
+        f"{cycle_count_sum:.2f}" if cycle_count_sum is not None else "—"
+    )
+    monthly_cycles_delta = (
+        calc_delta_percentage(
+            actual=cycle_count_sum,
+            expected=kpi_expected_values["monthly_cycles"],
+        )
+        if cycle_count_sum is not None
+        else "—"
+    )
+    ytd_cycles_delta = (
+        calc_delta_percentage(
+            actual=cycle_count_sum,
+            expected=kpi_expected_values["ytd_cycles"],
+        )
+        if cycle_count_sum is not None
+        else "—"
+    )
+    average_soc_mean = kpi_means.get(KPIType.PROJECT_AVERAGE_SOC_PERCENT)
+    average_soc_actual = (
+        format_percentage_value(value=average_soc_mean)
+        if average_soc_mean is not None
+        else "—"
+    )
+    average_soc_delta = (
+        calc_delta_percentage(
+            actual=average_soc_mean,
+            expected=kpi_expected_values["average_soc"],
+        )
+        if average_soc_mean is not None
+        else "—"
+    )
+    resting_soc_mean = kpi_means.get(KPIType.BESS_STRING_RESTING_SOC_PERCENT)
+    resting_soc_actual = (
+        format_percentage_value(value=resting_soc_mean)
+        if resting_soc_mean is not None
+        else "—"
+    )
+    resting_soc_delta = (
+        calc_delta_percentage(
+            actual=resting_soc_mean,
+            expected=kpi_expected_values["average_resting_soc"],
+        )
+        if resting_soc_mean is not None
+        else "—"
+    )
+
     kpi_rows = [
         # Metric name | Actual | Expected | Δ vs Expected
         (
             "Monthly Cycles",
-            f"{kpi_sums[KPIType.BESS_STRING_CYCLE_COUNT]:.2f}",
+            monthly_cycles_actual,
             f"{kpi_expected_values['monthly_cycles']:.2f}",
-            calc_delta_percentage(
-                actual=kpi_sums[KPIType.BESS_STRING_CYCLE_COUNT],
-                expected=kpi_expected_values["monthly_cycles"],
-            ),
+            monthly_cycles_delta,
         ),  # source: BESS Bank Cycle Count KPI
         (
             "YTD Cycles",
             "—",
             f"{kpi_expected_values['ytd_cycles']:.2f}",
-            calc_delta_percentage(
-                actual=kpi_sums[KPIType.BESS_STRING_CYCLE_COUNT],
-                expected=kpi_expected_values["ytd_cycles"],
-            ),
+            ytd_cycles_delta,
         ),  # source: BESS Bank Cycle Count KPI
         (
             "Lifetime Cycles",
@@ -634,34 +687,21 @@ def section_two_column_metrics(
         ),  # source: BESS Bank Cycle Count KPI
         (
             "BESS State of Health (%)",
-            format_percentage_value(value=kpi_means[KPIType.BESS_STRING_SOH]),
+            soh_actual_display,
             format_percentage_value(value=current_soh),
-            calc_delta_percentage(
-                actual=kpi_means[KPIType.BESS_STRING_SOH],
-                expected=current_soh,
-            ),
+            soh_delta_display,
         ),  # source: BESS Bank SoH KPI
         (
             "Average SOC (%)",
-            format_percentage_value(
-                value=kpi_means[KPIType.PROJECT_AVERAGE_SOC_PERCENT]
-            ),
+            average_soc_actual,
             format_percentage_value(value=kpi_expected_values["average_soc"]),
-            calc_delta_percentage(
-                actual=kpi_means[KPIType.PROJECT_AVERAGE_SOC_PERCENT],
-                expected=kpi_expected_values["average_soc"],
-            ),
+            average_soc_delta,
         ),  # source: Project Average SOC KPI
         (
             "Average Resting SOC (%)",
-            format_percentage_value(
-                value=kpi_means[KPIType.BESS_STRING_RESTING_SOC_PERCENT]
-            ),
+            resting_soc_actual,
             format_percentage_value(value=kpi_expected_values["average_resting_soc"]),
-            calc_delta_percentage(
-                actual=kpi_means[KPIType.BESS_STRING_RESTING_SOC_PERCENT],
-                expected=kpi_expected_values["average_resting_soc"],
-            ),
+            resting_soc_delta,
         ),  # source: BESS Bank Resting SOC KPI
         (
             "Minimum SOC (%)",
@@ -2053,15 +2093,16 @@ async def get_kpi_data(
         output_type=OutputType.PANDAS,
     )
 
-    # TODO: Remove the explicit tag_id and find dynamically instead.
-    # This should query for the PROJECT_SOC_PERCENT sensor type tag
-    tag_id = 217648
+    project_soc_tags = await crud_get_project_tags_v2(
+        sensor_type_ids=[SensorType.PROJECT_SOC_PERCENT]
+    ).get_async(output_type=OutputType.POLARS, schema=project.name_short)
+    tag_id = project_soc_tags["tag_id"][0]
+
     project_soc_data_instance = DataTimeseries(
         project_db=project_db_sync,
         project_name_short=project.name_short,
-        # sensor_type_ids=[core.enumerations.SensorType.PROJECT_SOC_PERCENT.value],
-        filter_method=FilterMethod.TAG_IDS,
-        filter_values=[tag_id],
+        filter_method=FilterMethod.TAG_POLARS,
+        filter_values=project_soc_tags,
         query_start=pd.Timestamp(start),
         query_end=pd.Timestamp(end),
         freq=TimeInterval.ONE_MINUTE,
