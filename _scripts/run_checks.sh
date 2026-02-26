@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Script to run all quality checks across the monorepo with a summary at the end
-# This script runs each check independently and tracks which ones pass/fail
 
 set +e  # Don't exit on first error - we want to run all checks
 unset VIRTUAL_ENV
@@ -937,6 +935,8 @@ fi
 
 if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Type Check" "mise run web:typecheck"
+    add_check "Web-App: Prettier Check" "mise run web:prettier_check"
+    add_check "Web-App: Knip" "mise run web:knip"
     add_check "Web-App: Linting" "mise run web:lint"
     add_warning_check "Web-App: JSX Calculations" \
         "mise run web:jsx_calcs"

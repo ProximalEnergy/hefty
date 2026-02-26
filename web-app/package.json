@@ -8,7 +8,11 @@
     "build": "node build-plotly-custom.js && tsc && NODE_OPTIONS=--max_old_space_size=8192 vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "check": "npx tsc && npx prettier --write --log-level warn . && npx knip"
+    "typecheck": "npx tsc --noEmit",
+    "prettier": "npx prettier --write --log-level warn .",
+    "prettier:check": "npx prettier --check --log-level warn .",
+    "knip": "npx knip",
+    "check": "npm run typecheck && npm run prettier:check && npm run knip"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.24.1",

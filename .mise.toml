@@ -645,10 +645,20 @@ run = "uv run ../web-app/_scripts/generate_env_from_parameter_store.py"
 [tasks."web:typecheck"]
 description = "Run TypeScript check for web-app"
 dir = "web-app"
-run = "npm run check"
+run = "npm run typecheck"
+
+[tasks."web:prettier_check"]
+description = "Run Prettier check for web-app"
+dir = "web-app"
+run = "npm run prettier:check"
+
+[tasks."web:knip"]
+description = "Run Knip for web-app"
+dir = "web-app"
+run = "npm run knip"
 
 [tasks."web:check"]
-description = "Run TypeScript check, ESLint, and format web-app"
+description = "Run TypeScript, Prettier, Knip, and ESLint checks for web-app"
 dir = "web-app"
 depends = [
   "web:console_log_check",
