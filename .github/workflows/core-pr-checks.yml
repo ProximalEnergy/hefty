@@ -113,77 +113,101 @@ jobs:
   validate-version:
     name: Validate Version Bump
     runs-on: ubuntu-latest
-    if: github.base_ref == 'dev'
+    if: >
+      github.base_ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout PR branch
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
-      - name: Install Dependencies
+      - name: Compare with dev and bump patch if needed
+        id: version_check
         run: |
-          uv sync
-        working-directory: core
+          git fetch origin dev
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
-          aws-region: us-east-2 # This must match the AWS region of your CodeArtifact repository.
+          python - <<'PY'
+          import os
+          import re
+          import subprocess
+          import tomllib
+          from pathlib import Path
 
-      - name: Check for Version Bump
-        env:
-          CODEARTIFACT_DOMAIN: proximal-code-artifact-domain
-          CODEARTIFACT_REPOSITORY: proximal-hub
-          PACKAGE_NAME: core
-        working-directory: core
-        run: |
-          # Extract the current version from the pyproject.toml file.
-          current_version=$(uv run -q python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
-          echo "Current version in pyproject.toml: $current_version"
+          pyproject_path = Path("core/pyproject.toml")
+          pr_version = tomllib.loads(
+              pyproject_path.read_text(encoding="utf-8")
+          )["project"]["version"]
 
-          # Fetch the latest published version from AWS CodeArtifact.
-          echo "Fetching latest version from AWS CodeArtifact..."
-          aws_output=$(aws codeartifact list-package-versions --domain $CODEARTIFACT_DOMAIN --repository $CODEARTIFACT_REPOSITORY --format pypi --package $PACKAGE_NAME --sort-by PUBLISHED_TIME 2>/dev/null || echo '{"versions":[]}')
-          latest_version=$(echo $aws_output | jq -r '.versions[0].version')
-          echo "Latest published version from CodeArtifact: $latest_version"
+          dev_toml = subprocess.run(
+              ["git", "show", "origin/dev:core/pyproject.toml"],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout
+          dev_version = tomllib.loads(dev_toml)["project"]["version"]
 
-          # Compare only the numeric release segments (ignore rc/beta tags).
-          # The script will exit with an error if the current release is not
-          # strictly greater than the latest published release.
-          uv run -q python - <<EOF
-          from packaging.version import Version
+          def parse_release(version: str) -> tuple[int, int, int]:
+              match = re.match(r"^(\d+)\.(\d+)\.(\d+)", version)
+              if match is None:
+                  raise ValueError(
+                      f"Unsupported version '{version}'. "
+                      "Expected major.minor.patch."
+                  )
+              return tuple(int(part) for part in match.groups())
 
-          current = "$current_version".strip()
-          latest = "$latest_version".strip()
+          pr_release = parse_release(pr_version)
+          dev_release = parse_release(dev_version)
 
-          print(f"DEBUG: Comparing '{current}' vs '{latest}'")
+          print(f"PR version: {pr_version}")
+          print(f"dev version: {dev_version}")
 
-          try:
-              current_parsed = Version(current)
-              latest_parsed = Version(latest)
-          except Exception as e:
-               print(f"::error::Version parsing failed: {e}")
-               exit(1)
+          bumped = "false"
+          new_version = pr_version
 
-          current_release = current_parsed.release
-          latest_release = latest_parsed.release
-
-          if current_release <= latest_release:
-              print(
-                  "::error::Version check failed. The current version "
-                  f"({current}) must be greater than the latest published "
-                  f"version ({latest}). Please bump the version in "
-                  "core/pyproject.toml."
+          if pr_release < dev_release:
+              major, minor, patch = dev_release
+              new_version = f"{major}.{minor}.{patch + 1}"
+              updated_text = re.sub(
+                  r'(?m)^version\s*=\s*"[^"]+"\s*$',
+                  f'version = "{new_version}"',
+                  pyproject_path.read_text(encoding="utf-8"),
+                  count=1,
               )
-              exit(1)
+              pyproject_path.write_text(updated_text, encoding="utf-8")
+              bumped = "true"
+              print(
+                  "PR version is lower than dev. "
+                  f"Bumping patch version to {new_version}."
+              )
+          else:
+              print("PR version is not lower than dev. No change needed.")
 
-          print(f"Version check passed. Current version ({current}) > Latest version ({latest}).")
-          EOF
+          output_path = Path(os.environ["GITHUB_OUTPUT"])
+          with output_path.open("a", encoding="utf-8") as output_file:
+              output_file.write(f"bumped={bumped}\n")
+              output_file.write(f"new_version={new_version}\n")
+          PY
+
+      - name: Commit and push patched version
+        if: steps.version_check.outputs.bumped == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add core/pyproject.toml
+          git commit -m \
+            "chore(core): auto-bump patch to ${{ steps.version_check.outputs.new_version }}"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+
+      - name: Version status
+        if: steps.version_check.outputs.bumped != 'true'
+        run: echo "Version already >= dev, skipping patch bump."
