@@ -292,11 +292,12 @@ render_check_ui_line() {
     local symbol="$2"
     local label="$3"
     local columns
+    local reserved_columns=6
     local max_label_len
     local rendered_label
 
     columns=$(get_ui_terminal_columns)
-    max_label_len=$((columns - 2))
+    max_label_len=$((columns - reserved_columns))
     if [ "$max_label_len" -lt 1 ]; then
         max_label_len=1
     fi
@@ -312,27 +313,50 @@ render_check_ui_line() {
 get_finished_check_ui_label() {
     local check_index="$1"
     local error_count="$2"
+    local elapsed_seconds="${3:-0}"
+    local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
     local severity="${CHECKS_SEVERITY[$check_index]}"
-    local noun="errors"
+    local count_suffix="e"
+    local elapsed_label
 
-    if [ "$error_count" -eq 0 ]; then
+    if [ -n "$skip_reason" ]; then
         echo "$(get_check_ui_label "$check_index")"
         return
     fi
 
     if [ "$severity" = "warning" ]; then
-        noun="warnings"
+        count_suffix="w"
     fi
 
-    if [ "$error_count" -eq 1 ]; then
-        if [ "$severity" = "warning" ]; then
-            noun="warning"
-        else
-            noun="error"
-        fi
+    elapsed_label=$(format_elapsed_seconds "$elapsed_seconds")
+    echo "$(get_check_ui_label "$check_index") (${error_count}${count_suffix}, \
+${elapsed_label})"
+}
+
+format_elapsed_seconds() {
+    local elapsed_seconds="$1"
+    local minutes
+    local seconds
+
+    if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+        echo "0s"
+        return
     fi
 
-    echo "$(get_check_ui_label "$check_index") (${error_count} ${noun})"
+    if [ "$elapsed_seconds" -lt 60 ]; then
+        echo "${elapsed_seconds}s"
+        return
+    fi
+
+    minutes=$((elapsed_seconds / 60))
+    seconds=$((elapsed_seconds % 60))
+
+    if [ "$seconds" -eq 0 ]; then
+        echo "${minutes}m"
+        return
+    fi
+
+    echo "${minutes}m ${seconds}s"
 }
 
 init_check_ui_lines_up() {
@@ -392,6 +416,7 @@ update_check_ui_status() {
     local check_index="$1"
     local exit_code="$2"
     local error_count="$3"
+    local elapsed_seconds="${4:-0}"
     local severity="${CHECKS_SEVERITY[$check_index]}"
     local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
     local lines_up="${CHECKS_UI_LINES_UP[$check_index]:-0}"
@@ -400,7 +425,12 @@ update_check_ui_status() {
     local symbol="*"
     local check_label
 
-    check_label=$(get_finished_check_ui_label "$check_index" "$error_count")
+    check_label=$(
+        get_finished_check_ui_label \
+            "$check_index" \
+            "$error_count" \
+            "$elapsed_seconds"
+    )
 
     if [ -n "$skip_reason" ]; then
         color="$YELLOW"
@@ -446,15 +476,19 @@ run_all_checks() {
     local -a failed_error_indices=()
     local -a failed_warning_indices=()
     local -a parallel_done_by_index=()
+    local -a check_start_seconds_by_index=()
     local parallel_done=0
     local parallel_total=0
     local i
     local cmd
     local log_file
     local status_file
+    local status_payload
     local status
+    local elapsed_seconds
     local error_count
     local show_logs_mode="none"
+    local check_started_at
 
     if [ "$total_checks" -eq 0 ]; then
         echo -e "${GREEN}No checks were scheduled.${NC}"
@@ -476,7 +510,7 @@ run_all_checks() {
 
     for i in "${!CHECKS_NAME[@]}"; do
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "skip" ]; then
-            update_check_ui_status "$i" 0 0
+            update_check_ui_status "$i" 0 0 0
         fi
     done
 
@@ -487,12 +521,16 @@ run_all_checks() {
             log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
             status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
             parallel_indices+=("$i")
+            check_start_seconds_by_index[$i]="$SECONDS"
             (
+                check_started_at="$SECONDS"
                 if eval "$cmd" >"$log_file" 2>&1; then
-                    echo 0 >"$status_file"
+                    status=0
                 else
-                    echo $? >"$status_file"
+                    status=$?
                 fi
+                elapsed_seconds=$((SECONDS - check_started_at))
+                echo "${status}:${elapsed_seconds}" >"$status_file"
             ) &
         fi
     done
@@ -507,7 +545,19 @@ run_all_checks() {
 
             status_file="${RUN_CHECKS_LOG_DIR}/check_${i}.status"
             if [ -f "$status_file" ]; then
-                status=$(cat "$status_file")
+                status_payload=$(cat "$status_file")
+                status="${status_payload%%:*}"
+                elapsed_seconds="${status_payload#*:}"
+                if ! [[ "$status" =~ ^[0-9]+$ ]]; then
+                    continue
+                fi
+                if [ "$status_payload" = "$status" ]; then
+                    check_started_at="${check_start_seconds_by_index[$i]:-0}"
+                    elapsed_seconds=$((SECONDS - check_started_at))
+                fi
+                if ! [[ "$elapsed_seconds" =~ ^[0-9]+$ ]]; then
+                    elapsed_seconds=0
+                fi
                 parallel_done_by_index[$i]=1
                 parallel_done=$((parallel_done + 1))
 
@@ -517,7 +567,11 @@ run_all_checks() {
                     log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
                     error_count=$(count_errors_in_log "$log_file")
                 fi
-                update_check_ui_status "$i" "$status" "$error_count"
+                update_check_ui_status \
+                    "$i" \
+                    "$status" \
+                    "$error_count" \
+                    "$elapsed_seconds"
                 if [ "$status" -eq 0 ]; then
                     PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
                 elif [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
@@ -542,6 +596,7 @@ run_all_checks() {
         if [ "${CHECKS_IS_PARALLEL[$i]}" = "false" ]; then
             cmd="${CHECKS_CMD[$i]}"
             log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+            check_started_at="$SECONDS"
             if eval "$cmd" >"$log_file" 2>&1; then
                 status=0
                 error_count=0
@@ -559,7 +614,12 @@ run_all_checks() {
                     failed_error_indices+=("$i")
                 fi
             fi
-            update_check_ui_status "$i" "$status" "$error_count"
+            elapsed_seconds=$((SECONDS - check_started_at))
+            update_check_ui_status \
+                "$i" \
+                "$status" \
+                "$error_count" \
+                "$elapsed_seconds"
         fi
     done
 
