@@ -46,6 +46,11 @@
       groupName: "docs-mdbook",
     },
     {
+      matchFileNames: ["kpi/**"],
+      groupName: "kpi",
+      reviewers: ["davidthemathman"],
+    },
+    {
       matchFileNames: ["microservices/**"],
       groupName: "microservices",
     },

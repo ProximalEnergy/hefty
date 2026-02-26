@@ -802,7 +802,7 @@ if [ "${RUN_ALL}" = "false" ]; then
 fi
 
 if [ "${RUN_ALL}" = "false" ] && [ -z "${DIFF_FILES}" ]; then
-    echo "No changes detected vs ${DIFF_BASE}; running API sync check only."
+    echo "No changes detected vs ${DIFF_BASE}."
 fi
 
 diff_has() {
@@ -893,10 +893,8 @@ if [ "${RUN_SQL_ADMIN}" = "true" ]; then
     :
 fi
 
-# API dependency sync always runs with the API check group.
-add_check "API: Dependency Sync" "mise run api:sync" "error" "false"
-
 if [ "${RUN_API}" = "true" ]; then
+    add_check "API: Dependency Sync" "mise run api:sync" "error" "false"
     add_check "API: Type Checking (mypy)" "mise run api:types"
     add_check "API: Unused Import Check" "mise run api:deptry"
     add_check "API: Dead Code Check" "mise run api:vulture"
