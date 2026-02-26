@@ -444,6 +444,14 @@ description = "Check which core dependency source is currently configured"
 dir = "api"
 run = "grep -A 1 '\\[tool.uv.sources\\]' pyproject.toml | grep core"
 
+[tasks."api:sync"]
+description = "Sync API dependencies and lockfile"
+dir = "."
+run = """
+mise run api:switch-core && \
+uv sync --directory api
+"""
+
 [tasks."api:check"]
 description = "Run all quality checks for api"
 dir = "api"

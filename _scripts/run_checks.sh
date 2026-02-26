@@ -69,7 +69,7 @@ add_check() {
     local name="$1"
     local cmd="$2"
     local severity="${3:-error}"
-    local is_parallel="true"
+    local is_parallel="${4:-true}"
 
     # Ruff checks and Formatting should run sequentially at the end
     if [[ "$name" == *"Ruff"* ]] || [[ "$name" == *"Formatting"* ]] || [[ "$name" == *"Format"* ]]; then
@@ -802,8 +802,7 @@ if [ "${RUN_ALL}" = "false" ]; then
 fi
 
 if [ "${RUN_ALL}" = "false" ] && [ -z "${DIFF_FILES}" ]; then
-    echo "No changes detected vs ${DIFF_BASE}; skipping checks."
-    exit 0
+    echo "No changes detected vs ${DIFF_BASE}; running API sync check only."
 fi
 
 diff_has() {
@@ -862,7 +861,6 @@ if [ "${RUN_ALL}" = "true" ]; then
     RUN_ROOT=true
 fi
 
-
 # Register all checks
 if [ "${RUN_CORE}" = "true" ]; then
     if [ "${CORE_CHANGED}" != "true" ]; then
@@ -894,6 +892,9 @@ if [ "${RUN_SQL_ADMIN}" = "true" ]; then
     # We'll handle SQL-Admin linting in the global Ruff check
     :
 fi
+
+# API dependency sync always runs with the API check group.
+add_check "API: Dependency Sync" "mise run api:sync" "error" "false"
 
 if [ "${RUN_API}" = "true" ]; then
     add_check "API: Type Checking (mypy)" "mise run api:types"
