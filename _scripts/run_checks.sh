@@ -45,6 +45,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
@@ -52,17 +53,22 @@ echo -e "${BOLD}${BLUE}Running relevant quality checks...${NC}\n"
 
 # Arrays to track results
 declare -a PASSED_CHECKS=()
-declare -a FAILED_CHECKS=()
+declare -a FAILED_ERROR_CHECKS=()
+declare -a FAILED_WARNING_CHECKS=()
 
 # Arrays to store checks to be run
 declare -a CHECKS_NAME=()
 declare -a CHECKS_CMD=()
 declare -a CHECKS_IS_PARALLEL=()
+declare -a CHECKS_SEVERITY=()
+declare -a CHECKS_SKIP_REASON=()
+declare -a CHECKS_UI_LINES_UP=()
 
 # Function to add a check to the list
 add_check() {
     local name="$1"
     local cmd="$2"
+    local severity="${3:-error}"
     local is_parallel="true"
 
     # Ruff checks and Formatting should run sequentially at the end
@@ -73,6 +79,26 @@ add_check() {
     CHECKS_NAME+=("$name")
     CHECKS_CMD+=("$cmd")
     CHECKS_IS_PARALLEL+=("$is_parallel")
+    CHECKS_SEVERITY+=("$severity")
+}
+
+add_warning_check() {
+    local name="$1"
+    local cmd="$2"
+
+    add_check "$name" "$cmd" "warning"
+}
+
+add_skipped_warning_check() {
+    local name="$1"
+    local cmd="$2"
+    local skip_reason="$3"
+    local check_index
+
+    add_check "$name" "$cmd" "warning"
+    check_index=$((${#CHECKS_NAME[@]} - 1))
+    CHECKS_IS_PARALLEL[$check_index]="skip"
+    CHECKS_SKIP_REASON[$check_index]="$skip_reason"
 }
 
 add_db_check() {
@@ -80,7 +106,7 @@ add_db_check() {
     local cmd="$2"
 
     if [ "${ASYNC_OFFLINE}" = "true" ]; then
-        echo -e "${YELLOW}Skipping ${name} (async offline env)${NC}"
+        add_skipped_warning_check "$name" "$cmd" "async offline env"
         return 0
     fi
 
@@ -103,7 +129,7 @@ run_check() {
             echo -e "${GREEN}✓ ${check_name} passed${NC}\n"
             return 0
         else
-            FAILED_CHECKS+=("$check_name:$check_command")
+            FAILED_ERROR_CHECKS+=("$check_name:$check_command")
             echo -e "${RED}✗ ${check_name} failed${NC}\n"
             return 1
         fi
@@ -122,7 +148,7 @@ run_check() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     cat "$log_file"
     rm -f "$log_file"
-    FAILED_CHECKS+=("$check_name:$check_command")
+    FAILED_ERROR_CHECKS+=("$check_name:$check_command")
     echo -e "${RED}✗ ${check_name} failed${NC}\n"
     return 1
 }
@@ -138,16 +164,31 @@ prompt_show_failure_logs() {
     local show_logs_input
 
     while true; do
-        read -r -p 'Show error logs? [y/n]: ' show_logs_input
+        read -r -p \
+            'Show failure logs? [(e)rrors/(w)arnings/(a)ll/(n)one]: ' \
+            show_logs_input
+        show_logs_input=$(
+            printf '%s' "$show_logs_input" | tr '[:upper:]' '[:lower:]'
+        )
         case "$show_logs_input" in
-            y|Y)
+            e|errors)
+                echo "errors"
                 return 0
                 ;;
-            n|N)
-                return 1
+            w|warnings)
+                echo "warnings"
+                return 0
+                ;;
+            a|all)
+                echo "all"
+                return 0
+                ;;
+            n|none)
+                echo "none"
+                return 0
                 ;;
             *)
-                echo "Please enter 'y' or 'n'."
+                echo "Please enter e, w, a, or n."
                 ;;
         esac
     done
@@ -210,9 +251,68 @@ count_errors_in_log() {
     echo 1
 }
 
+get_ui_terminal_columns() {
+    local cols=120
+
+    if [ -t 1 ]; then
+        cols=$(tput cols 2>/dev/null || echo 120)
+    fi
+
+    if ! [[ "$cols" =~ ^[0-9]+$ ]] || [ "$cols" -lt 20 ]; then
+        cols=120
+    fi
+
+    echo "$cols"
+}
+
+truncate_ui_label() {
+    local label="$1"
+    local max_len="$2"
+
+    if [ "$max_len" -le 0 ]; then
+        echo ""
+        return
+    fi
+
+    if [ "${#label}" -le "$max_len" ]; then
+        echo "$label"
+        return
+    fi
+
+    if [ "$max_len" -le 3 ]; then
+        printf "%.*s" "$max_len" "$label"
+        return
+    fi
+
+    printf "%.*s..." "$((max_len - 3))" "$label"
+}
+
+render_check_ui_line() {
+    local color="$1"
+    local symbol="$2"
+    local label="$3"
+    local columns
+    local max_label_len
+    local rendered_label
+
+    columns=$(get_ui_terminal_columns)
+    max_label_len=$((columns - 2))
+    if [ "$max_label_len" -lt 1 ]; then
+        max_label_len=1
+    fi
+
+    rendered_label=$(truncate_ui_label "$label" "$max_label_len")
+    printf "\r\033[2K%b%s%b %s\n" \
+        "$color" \
+        "$symbol" \
+        "$NC" \
+        "$rendered_label"
+}
+
 get_finished_check_ui_label() {
     local check_index="$1"
     local error_count="$2"
+    local severity="${CHECKS_SEVERITY[$check_index]}"
     local noun="errors"
 
     if [ "$error_count" -eq 0 ]; then
@@ -220,19 +320,81 @@ get_finished_check_ui_label() {
         return
     fi
 
+    if [ "$severity" = "warning" ]; then
+        noun="warnings"
+    fi
+
     if [ "$error_count" -eq 1 ]; then
-        noun="error"
+        if [ "$severity" = "warning" ]; then
+            noun="warning"
+        else
+            noun="error"
+        fi
     fi
 
     echo "$(get_check_ui_label "$check_index") (${error_count} ${noun})"
 }
 
+init_check_ui_lines_up() {
+    local -a error_indices=()
+    local -a warning_indices=()
+    local i
+    local line_no=0
+    local total_lines
+
+    for i in "${!CHECKS_NAME[@]}"; do
+        if [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
+            warning_indices+=("$i")
+        else
+            error_indices+=("$i")
+        fi
+    done
+
+    if [ "${#error_indices[@]}" -gt 0 ]; then
+        echo -e "${BOLD}${RED}Errors:${NC}"
+        line_no=$((line_no + 1))
+        for i in "${error_indices[@]}"; do
+            render_check_ui_line \
+                "${YELLOW}" \
+                "●" \
+                "$(get_check_ui_label "$i")"
+            line_no=$((line_no + 1))
+            CHECKS_UI_LINES_UP[$i]="$line_no"
+        done
+    fi
+
+    if [ "${#warning_indices[@]}" -gt 0 ]; then
+        if [ "$line_no" -gt 0 ]; then
+            echo ""
+            line_no=$((line_no + 1))
+        fi
+        echo -e "${BOLD}${PURPLE}Warnings:${NC}"
+        line_no=$((line_no + 1))
+        for i in "${warning_indices[@]}"; do
+            render_check_ui_line \
+                "${YELLOW}" \
+                "●" \
+                "$(get_check_ui_label "$i")"
+            line_no=$((line_no + 1))
+            CHECKS_UI_LINES_UP[$i]="$line_no"
+        done
+    fi
+
+    total_lines="$line_no"
+    for i in "${!CHECKS_NAME[@]}"; do
+        if [ -n "${CHECKS_UI_LINES_UP[$i]:-}" ]; then
+            CHECKS_UI_LINES_UP[$i]=$((total_lines - CHECKS_UI_LINES_UP[$i] + 1))
+        fi
+    done
+}
+
 update_check_ui_status() {
     local check_index="$1"
     local exit_code="$2"
-    local total_checks="$3"
-    local error_count="$4"
-    local lines_up=$((total_checks - check_index))
+    local error_count="$3"
+    local severity="${CHECKS_SEVERITY[$check_index]}"
+    local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
+    local lines_up="${CHECKS_UI_LINES_UP[$check_index]:-0}"
     local lines_down=$((lines_up - 1))
     local color="$GREEN"
     local symbol="*"
@@ -240,17 +402,26 @@ update_check_ui_status() {
 
     check_label=$(get_finished_check_ui_label "$check_index" "$error_count")
 
-    if [ "$exit_code" -ne 0 ]; then
-        color="$RED"
-        symbol="x"
+    if [ -n "$skip_reason" ]; then
+        color="$YELLOW"
+        symbol="-"
+    elif [ "$exit_code" -ne 0 ]; then
+        if [ "$severity" = "warning" ]; then
+            color="$PURPLE"
+            symbol="?"
+        else
+            color="$RED"
+            symbol="x"
+        fi
+    fi
+
+    if [ "$lines_up" -le 0 ]; then
+        render_check_ui_line "$color" "$symbol" "$check_label"
+        return
     fi
 
     printf "\033[%sA" "$lines_up"
-    printf "\r\033[2K%b%s%b %s\n" \
-        "$color" \
-        "$symbol" \
-        "$NC" \
-        "$check_label"
+    render_check_ui_line "$color" "$symbol" "$check_label"
     if [ "$lines_down" -gt 0 ]; then
         printf "\033[%sB" "$lines_down"
     fi
@@ -258,14 +429,22 @@ update_check_ui_status() {
 
 get_check_ui_label() {
     local check_index="$1"
-    echo "${CHECKS_CMD[$check_index]}"
+    local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
+    local check_label="${CHECKS_CMD[$check_index]}"
+
+    if [ -n "$skip_reason" ]; then
+        check_label="${check_label} (skipped: ${skip_reason})"
+    fi
+
+    echo "$check_label"
 }
 
 # Function to run all registered checks
 run_all_checks() {
     local total_checks="${#CHECKS_NAME[@]}"
     local -a parallel_indices=()
-    local -a failed_indices=()
+    local -a failed_error_indices=()
+    local -a failed_warning_indices=()
     local -a parallel_done_by_index=()
     local parallel_done=0
     local parallel_total=0
@@ -275,6 +454,7 @@ run_all_checks() {
     local status_file
     local status
     local error_count
+    local show_logs_mode="none"
 
     if [ "$total_checks" -eq 0 ]; then
         echo -e "${GREEN}No checks were scheduled.${NC}"
@@ -289,11 +469,16 @@ run_all_checks() {
     trap cleanup_run_all_checks EXIT
     trap 'exit 130' INT TERM
 
-    for i in "${!CHECKS_NAME[@]}"; do
-        echo -e "${YELLOW}●${NC} $(get_check_ui_label "$i")"
-    done
+    CHECKS_UI_LINES_UP=()
+    init_check_ui_lines_up
 
     tput civis 2>/dev/null || true
+
+    for i in "${!CHECKS_NAME[@]}"; do
+        if [ "${CHECKS_IS_PARALLEL[$i]}" = "skip" ]; then
+            update_check_ui_status "$i" 0 0
+        fi
+    done
 
     # Phase 1: Kick off all parallel checks in the background.
     for i in "${!CHECKS_NAME[@]}"; do
@@ -332,13 +517,17 @@ run_all_checks() {
                     log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
                     error_count=$(count_errors_in_log "$log_file")
                 fi
-                update_check_ui_status "$i" "$status" "$total_checks" \
-                    "$error_count"
+                update_check_ui_status "$i" "$status" "$error_count"
                 if [ "$status" -eq 0 ]; then
                     PASSED_CHECKS+=("${CHECKS_NAME[$i]}")
+                elif [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
+                    FAILED_WARNING_CHECKS+=(
+                        "${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}"
+                    )
+                    failed_warning_indices+=("$i")
                 else
-                    FAILED_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
-                    failed_indices+=("$i")
+                    FAILED_ERROR_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
+                    failed_error_indices+=("$i")
                 fi
             fi
         done
@@ -360,49 +549,97 @@ run_all_checks() {
             else
                 status=$?
                 error_count=$(count_errors_in_log "$log_file")
-                FAILED_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
-                failed_indices+=("$i")
+                if [ "${CHECKS_SEVERITY[$i]}" = "warning" ]; then
+                    FAILED_WARNING_CHECKS+=(
+                        "${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}"
+                    )
+                    failed_warning_indices+=("$i")
+                else
+                    FAILED_ERROR_CHECKS+=("${CHECKS_NAME[$i]}:${CHECKS_CMD[$i]}")
+                    failed_error_indices+=("$i")
+                fi
             fi
-            update_check_ui_status "$i" "$status" "$total_checks" \
-                "$error_count"
+            update_check_ui_status "$i" "$status" "$error_count"
         fi
     done
 
     echo ""
-    if [ "${#failed_indices[@]}" -eq 0 ]; then
+    if [ "${#failed_error_indices[@]}" -eq 0 ] \
+        && [ "${#failed_warning_indices[@]}" -eq 0 ]; then
         echo -e "${GREEN}All checks passed.${NC}"
         exit 0
     fi
 
-    echo -e "${RED}Failed checks:${NC}"
-    echo ""
-    for i in "${failed_indices[@]}"; do
-        echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
-    done
+    if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+        echo -e "${RED}Failed checks:${NC}"
+        echo ""
+        for i in "${failed_error_indices[@]}"; do
+            echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
+        done
+    fi
+
+    if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
+        if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+            echo ""
+        fi
+        echo -e "${PURPLE}Warning checks:${NC}"
+        echo ""
+        for i in "${failed_warning_indices[@]}"; do
+            echo -e "${BOLD}${PURPLE}$(get_check_ui_label "$i")${NC}"
+        done
+    fi
 
     if [ -t 0 ]; then
         echo ""
-        if prompt_show_failure_logs; then
+        show_logs_mode=$(prompt_show_failure_logs)
+        if [ "$show_logs_mode" = "errors" ] \
+            || [ "$show_logs_mode" = "all" ]; then
             echo ""
-            echo -e "${RED}Failure logs:${NC}"
-            echo ""
-            for i in "${failed_indices[@]}"; do
-                echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
-                log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
-                if [ -f "$log_file" ]; then
-                    cat "$log_file"
-                else
-                    echo "No log file found for this check."
-                fi
+            if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+                echo -e "${RED}Error failure logs:${NC}"
                 echo ""
-            done
+                for i in "${failed_error_indices[@]}"; do
+                    echo -e "${BOLD}${RED}$(get_check_ui_label "$i")${NC}"
+                    log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+                    if [ -f "$log_file" ]; then
+                        cat "$log_file"
+                    else
+                        echo "No log file found for this check."
+                    fi
+                    echo ""
+                done
+            fi
+        fi
+        if [ "$show_logs_mode" = "warnings" ] \
+            || [ "$show_logs_mode" = "all" ]; then
+            echo ""
+            if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
+                echo -e "${PURPLE}Warning failure logs:${NC}"
+                echo ""
+                for i in "${failed_warning_indices[@]}"; do
+                    echo -e "${BOLD}${PURPLE}$(get_check_ui_label "$i")${NC}"
+                    log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+                    if [ -f "$log_file" ]; then
+                        cat "$log_file"
+                    else
+                        echo "No log file found for this check."
+                    fi
+                    echo ""
+                done
+            fi
         fi
     elif [ "${QUIET}" = "true" ]; then
         echo ""
         echo "Rerun with --verbose to see full output from failing checks."
     fi
 
-    exit 1
+    if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+        exit 1
+    fi
+
+    echo ""
+    echo -e "${PURPLE}Warning checks failed, but error checks passed.${NC}"
+    exit 0
 }
 
 # Function to check for core version bump
@@ -495,13 +732,13 @@ fi
 
 DIFF_FILES=""
 if [ "${RUN_ALL}" = "false" ]; then
-    # Include committed, staged, and unstaged changes vs base.
-    DIFF_FILES=$(
-        {
-            git diff --name-only "${DIFF_BASE}...HEAD"
-            git diff --name-only HEAD
-        } | sort -u
-    )
+    if ! DIFF_FILES="$(
+        ./_scripts/diff_files_vs_dev.sh "${DIFF_BASE}"
+    )"; then
+        RUN_ALL=true
+        DIFF_FILES=""
+        echo "Failed to detect diff files vs ${DIFF_BASE}; running all checks."
+    fi
 fi
 
 if [ "${RUN_ALL}" = "false" ] && [ -z "${DIFF_FILES}" ]; then
@@ -530,7 +767,7 @@ if [ "${RUN_ALL}" = "false" ]; then
     if diff_has '^core/'; then
         CORE_CHANGED=true
         RUN_CORE=true
-        RUN_PVEEM=true
+        RUN_API=true
     fi
     if diff_has '^api/'; then
         RUN_API=true
@@ -561,7 +798,7 @@ if [ "${RUN_ALL}" = "true" ]; then
     RUN_MICRO=true
     RUN_SQL_ADMIN=true
     RUN_WEB=true
-    RUN_PVEEM=true
+    # RUN_PVEEM=true
     RUN_ROOT=true
 fi
 
@@ -569,11 +806,17 @@ fi
 # Register all checks
 if [ "${RUN_CORE}" = "true" ]; then
     if [ "${CORE_CHANGED}" != "true" ]; then
-        echo -e "${YELLOW}Skipping Core: Version (no core changes)${NC}"
+        add_skipped_warning_check \
+            "Core: Version" \
+            "check_core_version" \
+            "no core changes"
     elif [ "${OFFLINE}" = "true" ]; then
-        echo -e "${YELLOW}Skipping Core: Version (offline mode)${NC}"
+        add_skipped_warning_check \
+            "Core: Version" \
+            "check_core_version" \
+            "offline mode"
     else
-        add_check "Core: Version" "check_core_version"
+        add_warning_check "Core: Version" "check_core_version"
     fi
     add_check "Core: Type Checking (mypy)" "mise run core:types"
     add_db_check "Core: Enum Validation" "mise run core:enum"
@@ -626,6 +869,8 @@ fi
 
 # Global Checks (Run if any project changed)
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
+    add_warning_check "Global: SQLAlchemy Return Methods" \
+        "mise run root:sqlalchemy_return"
     add_check "Global: Semgrep" "mise run root:semgrep_check"
     add_check "Global: Ruff Linting" "mise run root:ruff_check"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
@@ -634,6 +879,8 @@ fi
 if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Type Check" "mise run web:typecheck"
     add_check "Web-App: Linting" "mise run web:lint"
+    add_warning_check "Web-App: JSX Calculations" \
+        "mise run web:jsx_calcs"
     add_check "Web-App: Console Log Check" \
         "mise run web:console_log_check"
 fi
