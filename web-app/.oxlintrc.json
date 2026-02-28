@@ -1,0 +1,19 @@
+{
+  // Setting `plugins` overwrites the default plugin set, so the array should include everything you want enabled.
+  // https://oxc.rs/docs/guide/usage/linter/config.html#configure-plugins
+  "plugins": [
+    "eslint",
+    "import",
+    "oxc",
+    "react",
+    "react-perf",
+    "typescript",
+    "unicorn"
+  ],
+  "rules": {
+    "eslint/no-console": ["warn", { "allow": ["error", "warn"] }],
+    "eslint/no-param-reassign": "warn",
+    "import/no-duplicates": "warn",
+    "typescript/no-explicit-any": "warn"
+  }
+}

@@ -78,7 +78,7 @@ export function Teams() {
       const nextTeam = list.find((t) => t.team_id === nextId)!
       setDraftMembers(nextTeam.members.map((m) => m.user_id))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [teams.data]) // intentionally not depending on draftMembers/selectedTeamId to avoid loops
 
   const selectedTeam = useMemo(() => {
@@ -150,7 +150,7 @@ export function Teams() {
 
   const hasMemberChanges = useMemo(() => {
     if (!selectedTeam) return false
-    const current = [...selectedTeam.members.map((m) => m.user_id)].sort()
+    const current = selectedTeam.members.map((m) => m.user_id).sort()
     const draft = [...draftMembers].sort()
     if (current.length !== draft.length) return true
     for (let i = 0; i < current.length; i++) {

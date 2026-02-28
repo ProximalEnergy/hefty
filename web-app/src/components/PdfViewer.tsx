@@ -1,4 +1,5 @@
 import { Box } from '@mantine/core'
+// oxlint-disable-next-line
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import {
   forwardRef,
@@ -121,7 +122,7 @@ const PdfViewer = forwardRef<PdfViewerHandle, PdfViewerProps>(
           onLoadError={(error) => console.error('PDF load error:', error)}
           inputRef={documentRef}
         >
-          {Array.from(new Array(numPages || 0), (_, index) => (
+          {Array.from({ length: numPages || 0 }, (_, index) => (
             <Page
               key={`page_${index + 1}`}
               pageNumber={index + 1}

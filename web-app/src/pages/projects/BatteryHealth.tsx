@@ -1067,15 +1067,13 @@ const BatteryHealth = ({ showTitle = true }: { showTitle?: boolean }) => {
                       size="xs"
                       fw={500}
                       c={
-                        operatingMetrics.roundTripEfficiency > 0 &&
                         operatingMetrics.roundTripEfficiency >= 80 &&
                         operatingMetrics.roundTripEfficiency <= 99
                           ? 'green'
                           : 'dimmed'
                       }
                     >
-                      {operatingMetrics.roundTripEfficiency > 0 &&
-                      operatingMetrics.roundTripEfficiency >= 80 &&
+                      {operatingMetrics.roundTripEfficiency >= 80 &&
                       operatingMetrics.roundTripEfficiency <= 99
                         ? `${operatingMetrics.roundTripEfficiency.toFixed(1)}%`
                         : 'Not enough data'}

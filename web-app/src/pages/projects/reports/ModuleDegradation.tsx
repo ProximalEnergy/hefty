@@ -368,16 +368,14 @@ const GraphsTab: React.FC<{
     currentDevice: Device | undefined,
     targetTypeId: number,
   ): number | null => {
-    let parentId =
-      currentDevice?.parent_device_id || currentDevice?.parent_device_id || null
+    let parentId = currentDevice?.parent_device_id ?? null
     let parentDevice = parentId ? deviceMap.get(parentId) : null
 
     while (parentDevice) {
       if (parentDevice.device_type_id === targetTypeId) {
         return parentDevice.device_id
       }
-      parentId =
-        parentDevice.parent_device_id || parentDevice.parent_device_id || null
+      parentId = parentDevice.parent_device_id ?? null
       parentDevice = parentId ? deviceMap.get(parentId) : null
     }
 

@@ -940,8 +940,6 @@ if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Linting" "mise run web:lint"
     add_warning_check "Web-App: JSX Calculations" \
         "mise run web:jsx_calcs"
-    add_check "Web-App: Console Log Check" \
-        "mise run web:console_log_check"
 fi
 
 # Run all registered checks

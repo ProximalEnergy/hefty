@@ -706,7 +706,7 @@ export function EventChat({ eventId, projectId }: EventChatProps) {
         setEditInlineImages([])
       }, 0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [editingMessageId, editMessageValue, editMessageImages])
 
   const handleCancelEdit = () => {

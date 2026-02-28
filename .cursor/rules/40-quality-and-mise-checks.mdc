@@ -88,14 +88,8 @@ mise run core:docstring_args
 
 ```bash
 mise run web:check    # TypeScript + Prettier + Knip
-mise run web:lint     # ESLint only
+mise run web:lint     # oxlint only
 ```
-
-## ESLint Rules
-- `@typescript-eslint/no-explicit-any` - Warn on `any` type
-- `@typescript-eslint/no-unused-vars` - Warn on unused (use `_` prefix to ignore)
-- `react/jsx-key` - Error if missing keys in lists
-- `no-restricted-imports` - `html2canvas` blocked, use `html2canvas-pro`
 
 ## Other Web Checks
 - No `console.log` in source files
@@ -112,7 +106,6 @@ mise run web:lint     # ESLint only
 | `ruff F401` | Unused import | Remove the import |
 | `ruff PLC0415` | Import inside function | Move import to top of file |
 | `check_unused_routes` | Route in ALLOWED list | Update frontend hook to use exact route path |
-| `web:console_log_check` | `console.log` in code | Remove or use proper logging |
 
 # Package-Specific Commands
 

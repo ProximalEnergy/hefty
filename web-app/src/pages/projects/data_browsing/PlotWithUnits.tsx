@@ -181,7 +181,7 @@ const PlotWithUnits = ({
           return {
             ...processedTrace,
             line: {
-              ...((traceRecord.line as Record<string, unknown>) || {}),
+              ...(traceRecord.line as Record<string, unknown>),
               color: unitColor,
             },
           } as Data

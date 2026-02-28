@@ -53,9 +53,8 @@ const { data, isLoading } = useCustomQuery<Project[]>({
 - Keep components focused; extract reusable logic to hooks
 
 # Linting & Formatting
-- ESLint with TypeScript rules enabled
+- oxlint with TypeScript rules enabled
 - Prettier for formatting (run via `npm run check`)
-- No `console.log` in production code (checked by `mise run web:console_log_check`)
 - No `html2canvas` - use `html2canvas-pro` instead (restricted import)
 
 # Common Imports

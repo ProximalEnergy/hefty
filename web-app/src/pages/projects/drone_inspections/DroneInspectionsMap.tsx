@@ -954,7 +954,6 @@ const DroneInspectionsMap = ({
     ]
   }, [])
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const combinerTable = useReactTable({
     columns: combinerColumns,
     data: combinerRows,
@@ -1032,7 +1031,7 @@ const DroneInspectionsMap = ({
         time_start: openDate.toISOString(),
         time_end: closeDate ? closeDate.toISOString() : null,
         items: batchItems.map(
-          ({ root_cause_id, ...item }) => (void root_cause_id, item),
+          ({ root_cause_id: _root_cause_id, ...item }) => item,
         ), // Remove root_cause_id from items
         root_cause_id: rootCauseId,
       }

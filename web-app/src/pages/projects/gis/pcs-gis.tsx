@@ -105,7 +105,7 @@ export function PCSGISMap({
   // URL params
   const { projectId } = useParams<{ projectId: string }>()
   const [searchParams] = useSearchParams()
-  const searchParamsObj = Object.fromEntries([...searchParams])
+  const searchParamsObj = Object.fromEntries(searchParams)
 
   const navigate = useNavigate()
   const computedColorScheme = useComputedColorScheme('dark')
@@ -516,7 +516,7 @@ function NormSegmentedControl({ dataType }: { dataType: string }) {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const normalized = QueryParamsSchema.pick({ normalized: true }).parse(
-    Object.fromEntries([...searchParams]),
+    Object.fromEntries(searchParams),
   ).normalized
 
   const handleOnChange = (value: string) => {
@@ -545,7 +545,7 @@ function BlockAggregated() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const block = QueryParamsSchema.pick({ block: true }).parse(
-    Object.fromEntries([...searchParams]),
+    Object.fromEntries(searchParams),
   ).block
 
   const handleOnChange = () => {

@@ -106,7 +106,6 @@ const DroneAnomaliesTable = ({
     setPreviewPosition(x, y)
   }, [hoverPreviewSrc])
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const anomalyTable = useReactTable({
     data: anomalies,
     columns: anomalyColumns,

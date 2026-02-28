@@ -281,7 +281,7 @@ export function AdvancedDatePicker({
     } else {
       queueMicrotask(() => setDateRange([start, end]))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [startParam, endParam, defaultRange, setDateRangeByTerm])
 
   function onDateRangeChange(value: [Date | null, Date | null]) {

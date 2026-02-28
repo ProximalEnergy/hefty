@@ -72,7 +72,7 @@ const CreateUserModal = ({
     if (defaultCompanyId) {
       form.setFieldValue('company_id', defaultCompanyId)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [defaultCompanyId])
 
   const handleSubmit = form.onSubmit(async (values) => {

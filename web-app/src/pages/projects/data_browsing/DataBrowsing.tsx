@@ -674,7 +674,7 @@ const DataBrowsing = () => {
     // Create a matrix: rows are timestamps, columns are traces
     // Initialize with empty strings
     const matrix: (string | number)[][] = sortedNormalizedTimestamps.map(() =>
-      new Array(fullTimeseriesData.length + 1).fill(''),
+      Array.from({ length: fullTimeseriesData.length + 1 }, () => ''),
     )
 
     // Fill in timestamps in first column (use normalized ISO format for consistency)

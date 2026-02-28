@@ -1458,124 +1458,114 @@ export const LongTermTab = ({ projectId }: LongTermTabProps) => {
 
                       return traces
                     })()
-                  : [
-                      // Detailed mode: show individual series
-                      // For energy_charges card, use short names; for others use field labels
-                      ...(groupId === 'energy_charges'
-                        ? [
-                            // Energy card: use short names
-                            ...keys.map((k) => {
-                              const y = chartDates.map((dateKey) => {
-                                const row = dailyRows.find(
-                                  (r) => r.date === dateKey,
-                                )
-                                return getValueForKey(row, k)
-                              })
+                  : groupId === 'energy_charges'
+                    ? keys.map((k) => {
+                        const y = chartDates.map((dateKey) => {
+                          const row = dailyRows.find((r) => r.date === dateKey)
+                          return getValueForKey(row, k)
+                        })
 
-                              const keyUpper = k.toUpperCase()
-                              // Use orange for Real Time (RTEIAMT), blue for Day Ahead (DAEPAMT, DAESAMT)
-                              const baseColor =
-                                keyUpper === 'RTEIAMT'
+                        const keyUpper = k.toUpperCase()
+                        // Use orange for Real Time (RTEIAMT), blue for Day Ahead (DAEPAMT, DAESAMT)
+                        const baseColor =
+                          keyUpper === 'RTEIAMT'
+                            ? theme.colors.orange[6]
+                            : keyUpper === 'DAEPAMT' || keyUpper === 'DAESAMT'
+                              ? theme.colors.blue[6]
+                              : theme.colors.blue[6]
+
+                        return {
+                          type: 'bar' as const,
+                          name: getEnergyFieldName(k),
+                          x: chartDates,
+                          y,
+                          hovertemplate:
+                            '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
+                          marker: {
+                            color: y.map((v) =>
+                              v >= 0 ? baseColor : theme.colors.red[6],
+                            ),
+                          },
+                        }
+                      })
+                    : [
+                        // Other cards: use field labels
+                        // Day-Ahead: show individual series with proper names from CSV metadata
+                        ...daKeys.map((k) => {
+                          const y = chartDates.map((dateKey) => {
+                            const row = dailyRows.find(
+                              (r) => r.date === dateKey,
+                            )
+                            return getValueForKey(row, k)
+                          })
+
+                          return {
+                            type: 'bar' as const,
+                            name: fieldLabels[k] || k,
+                            x: chartDates,
+                            y,
+                            hovertemplate:
+                              '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
+                            marker: {
+                              color: y.map((v) =>
+                                v >= 0
+                                  ? theme.colors.blue[6]
+                                  : theme.colors.red[6],
+                              ),
+                            },
+                          }
+                        }),
+                        // Real-Time: individual series with better names
+                        ...rtKeys.map((k) => {
+                          const y = chartDates.map((dateKey) => {
+                            const row = dailyRows.find(
+                              (r) => r.date === dateKey,
+                            )
+                            return getValueForKey(row, k)
+                          })
+
+                          return {
+                            type: 'bar' as const,
+                            name: getRTSeriesName(k),
+                            x: chartDates,
+                            y,
+                            hovertemplate:
+                              '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
+                            marker: {
+                              color: y.map((v) =>
+                                v >= 0
                                   ? theme.colors.orange[6]
-                                  : keyUpper === 'DAEPAMT' ||
-                                      keyUpper === 'DAESAMT'
-                                    ? theme.colors.blue[6]
-                                    : theme.colors.blue[6]
+                                  : theme.colors.red[6],
+                              ),
+                            },
+                          }
+                        }),
+                        // Other fields: keep as individual series
+                        ...otherKeys.map((k) => {
+                          const y = chartDates.map((dateKey) => {
+                            const row = dailyRows.find(
+                              (r) => r.date === dateKey,
+                            )
+                            return getValueForKey(row, k)
+                          })
 
-                              return {
-                                type: 'bar' as const,
-                                name: getEnergyFieldName(k),
-                                x: chartDates,
-                                y,
-                                hovertemplate:
-                                  '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
-                                marker: {
-                                  color: y.map((v) =>
-                                    v >= 0 ? baseColor : theme.colors.red[6],
-                                  ),
-                                },
-                              }
-                            }),
-                          ]
-                        : [
-                            // Other cards: use field labels
-                            // Day-Ahead: show individual series with proper names from CSV metadata
-                            ...daKeys.map((k) => {
-                              const y = chartDates.map((dateKey) => {
-                                const row = dailyRows.find(
-                                  (r) => r.date === dateKey,
-                                )
-                                return getValueForKey(row, k)
-                              })
-
-                              return {
-                                type: 'bar' as const,
-                                name: fieldLabels[k] || k,
-                                x: chartDates,
-                                y,
-                                hovertemplate:
-                                  '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
-                                marker: {
-                                  color: y.map((v) =>
-                                    v >= 0
-                                      ? theme.colors.blue[6]
-                                      : theme.colors.red[6],
-                                  ),
-                                },
-                              }
-                            }),
-                            // Real-Time: individual series with better names
-                            ...rtKeys.map((k) => {
-                              const y = chartDates.map((dateKey) => {
-                                const row = dailyRows.find(
-                                  (r) => r.date === dateKey,
-                                )
-                                return getValueForKey(row, k)
-                              })
-
-                              return {
-                                type: 'bar' as const,
-                                name: getRTSeriesName(k),
-                                x: chartDates,
-                                y,
-                                hovertemplate:
-                                  '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
-                                marker: {
-                                  color: y.map((v) =>
-                                    v >= 0
-                                      ? theme.colors.orange[6]
-                                      : theme.colors.red[6],
-                                  ),
-                                },
-                              }
-                            }),
-                            // Other fields: keep as individual series
-                            ...otherKeys.map((k) => {
-                              const y = chartDates.map((dateKey) => {
-                                const row = dailyRows.find(
-                                  (r) => r.date === dateKey,
-                                )
-                                return getValueForKey(row, k)
-                              })
-
-                              return {
-                                type: 'bar' as const,
-                                name: fieldLabels[k] || k,
-                                x: chartDates,
-                                y,
-                                hovertemplate:
-                                  '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
-                                marker: {
-                                  color: y.map((v) =>
-                                    v >= 0
-                                      ? theme.colors.green[6]
-                                      : theme.colors.red[6],
-                                  ),
-                                },
-                              }
-                            }),
-                          ]),
-                    ]
+                          return {
+                            type: 'bar' as const,
+                            name: fieldLabels[k] || k,
+                            x: chartDates,
+                            y,
+                            hovertemplate:
+                              '%{fullData.name}<br>%{x}: %{y:$,.2f}<extra></extra>',
+                            marker: {
+                              color: y.map((v) =>
+                                v >= 0
+                                  ? theme.colors.green[6]
+                                  : theme.colors.red[6],
+                              ),
+                            },
+                          }
+                        }),
+                      ]
 
             const chartLayout: Partial<Layout> = {
               xaxis: {

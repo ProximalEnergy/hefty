@@ -18,7 +18,7 @@ globs: **/*.{ts,tsx}
 
 # Naming Conventions
 
-- Prefix unused variables with `_` to satisfy ESLint (e.g., `_unusedParam`)
+- Prefix unused variables with `_` to satisfy oxlint (e.g., `_unusedParam`)
 - Use PascalCase for types/interfaces, camelCase for variables/functions
 
 # Enums

@@ -532,9 +532,7 @@ const Page = () => {
   // --- Fetch Manufacturers for no equipment check ---
   const { data: manufacturers, isLoading: isLoadingManufacturers } =
     useGetProximalPVModuleManufacturers({
-      queryParams: {
-        ...(userCompanyId ? { company_id: userCompanyId } : {}),
-      },
+      queryParams: userCompanyId ? { company_id: userCompanyId } : {},
       queryOptions: {
         enabled: dataSource === 'proximal' && !!userCompanyId,
       },

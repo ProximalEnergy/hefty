@@ -75,7 +75,7 @@ export function useProjectFilter(criteria: ProjectFilterCriteria) {
   // Memoize the criteria to prevent infinite re-renders
   // Use JSON.stringify for deep comparison to avoid re-renders when object reference changes but content is the same
   const jsonCriteria = JSON.stringify(criteria)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react/exhaustive-deps
   const memoizedCriteria = useMemo(() => criteria, [jsonCriteria])
 
   useEffect(() => {

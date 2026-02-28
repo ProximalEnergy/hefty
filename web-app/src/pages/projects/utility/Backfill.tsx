@@ -111,7 +111,7 @@ const Page = () => {
     if (form.values.simulation_start !== start) {
       form.setFieldValue('simulation_start', start)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [start?.valueOf()]) // Removed form.setFieldValue from deps, useEffect dependency logic handles this
 
   useEffect(() => {
@@ -119,7 +119,7 @@ const Page = () => {
     if (form.values.simulation_end !== end) {
       form.setFieldValue('simulation_end', end)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [end?.valueOf()]) // Removed form.setFieldValue from deps
 
   // Update project name when project data arrives
@@ -127,7 +127,7 @@ const Page = () => {
     if (project?.name_short) {
       form.setFieldValue('project_name_short', project.name_short)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [project?.name_short]) // Removed form.setFieldValue from deps
 
   // --- Get mutation state including isLoading and isSuccess ---

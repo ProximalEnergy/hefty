@@ -225,10 +225,7 @@ const CustomCard = ({
         </Card.Section>
       )}
       {!isBodyHidden && (
-        <Card.Section
-          p={padding}
-          style={{ height: '100%', ...(bodyStyle || {}) }}
-        >
+        <Card.Section p={padding} style={{ height: '100%', ...bodyStyle }}>
           {children}
         </Card.Section>
       )}

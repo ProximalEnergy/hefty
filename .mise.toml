@@ -658,21 +658,13 @@ dir = "web-app"
 run = "npm run knip"
 
 [tasks."web:check"]
-description = "Run TypeScript, Prettier, Knip, and ESLint checks for web-app"
+description = "Run TypeScript, Prettier, Knip, and oxlint checks for web-app"
 dir = "web-app"
-depends = [
-  "web:console_log_check",
-  "web:default-query-options-no-explicit-type",
-]
+depends = ["web:default-query-options-no-explicit-type"]
 run = "npm run check && npm run lint"
 
-[tasks."web:console_log_check"]
-description = "Fail if console.log is in web-app src TypeScript files"
-dir = "web-app"
-run = "./_pr_checks/console_log_check.sh"
-
 [tasks."web:lint"]
-description = "Run ESLint for web-app"
+description = "Run oxlint for web-app"
 dir = "web-app"
 run = "npm run lint"
 
@@ -680,21 +672,6 @@ run = "npm run lint"
 description = "Detect arithmetic calculations in changed web-app JSX/TSX files"
 dir = "."
 run = "./_scripts/web_jsx_calcs_check.sh"
-
-[tasks."web:lint-summary"]
-description = "Run ESLint summary for web-app"
-dir = "web-app"
-run = """npx eslint . --format json | node -e "const data=require('fs').readFileSync(0,'utf-8'); const results=JSON.parse(data); const counts={}; results.forEach(r=>r.messages.forEach(m=>{counts[m.ruleId]=(counts[m.ruleId]||0)+1})); console.log(Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([rule,count])=>''+count.toString().padStart(4)+' - '+rule).join('\\n'));" """
-
-[tasks."web:lint-focus"]
-description = "Run ESLint summary for web-app, make sure to specify the rule ID"
-dir = "web-app"
-usage = '''
-  arg "<rule>" help="ESLint rule ID to filter by"
-'''
-run = [
-  '''npx eslint . --format json | jq -r --arg rule ${usage_rule} '.[] | .filePath as $file | .messages[] | select(.ruleId == $rule) | "\($file):\(.line):\(.column) - \(.message)"' ''',
-]
 
 [tasks."web:default-query-options-no-explicit-type"]
 description = "Check for explicit type annotation on defaultQueryOptions"

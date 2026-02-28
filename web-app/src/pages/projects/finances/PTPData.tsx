@@ -270,7 +270,6 @@ const DataViewer = ({
     [endpoint],
   )
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     columns,
     data: tableData,
@@ -495,7 +494,7 @@ const Page = () => {
       }))
     }
     // We check availabilityCache[activeTab] in the condition, not as a dependency
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [availabilityData, activeTab])
 
   const handleViewData = useCallback((endpoint: string, category: string) => {

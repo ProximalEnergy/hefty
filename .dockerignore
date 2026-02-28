@@ -91,7 +91,6 @@ microservices/microservice_1/**/*
 **/package.json
 **/tsconfig.json
 **/vite.config.ts
-**/eslint.config.js
 
 # Keep only what we need:
 # - core/src/core/** (needed)

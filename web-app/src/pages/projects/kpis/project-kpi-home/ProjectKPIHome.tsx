@@ -302,7 +302,6 @@ export default function ProjectKPIHome() {
   // Table configuration
   const columns = useCreateColumns(deviceTypes, isSuperAdmin)
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<EnrichedKPISummaryTableRow>({
     data: enrichedRows,
     columns,

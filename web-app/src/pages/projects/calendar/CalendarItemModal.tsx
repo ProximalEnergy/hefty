@@ -559,7 +559,7 @@ export const CalendarItemModal = ({
       })
       setPrevItemId(undefined)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [
     opened,
     item,
@@ -578,7 +578,7 @@ export const CalendarItemModal = ({
       // Initialize previous value when modal opens
       prevEnableNotificationsRef.current = form.values.enable_notifications
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [opened, item?.calendar_item_id])
 
   // Auto-add current user to assignees when notifications are first enabled

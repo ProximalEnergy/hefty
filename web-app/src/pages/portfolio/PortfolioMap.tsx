@@ -345,7 +345,7 @@ const PortfolioMap = () => {
     if (showWindspeed && showTemperature) {
       setShowTemperature(false)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // oxlint-disable-line react/exhaustive-deps
 
   // Type definition for demo markers
   type DemoMarker = {

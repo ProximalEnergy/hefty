@@ -76,7 +76,7 @@ export function MessageBodyWithImages({
   }
 
   // If no placeholders found, return original formatted body
-  if (parts.length === 0 || parts.every((p) => p.type === 'text')) {
+  if (parts.every((p) => p.type === 'text')) {
     return (
       <Text
         size="md"

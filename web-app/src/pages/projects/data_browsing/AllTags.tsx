@@ -47,7 +47,6 @@ const AllTags = ({
 
   // TanStack Virtual's useVirtualizer returns non-memoizable functions by design.
   // This is expected behavior, so we use a ref to keep the measureElement function stable.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: tagList.length,
     getScrollElement,

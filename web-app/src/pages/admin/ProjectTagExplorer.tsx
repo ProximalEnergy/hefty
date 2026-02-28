@@ -269,7 +269,7 @@ const ProjectTagExplorer = () => {
     if (!uniqueTagTypes.data && !uniqueTagTypes.isFetching) {
       handleRefresh()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // oxlint-disable-line react/exhaustive-deps
 
   // Auto-refresh when project changes (e.g., via project dropdown)
   React.useEffect(() => {
@@ -277,7 +277,7 @@ const ProjectTagExplorer = () => {
     setSelectedTagPattern(null)
     // Refetch unique tag types for the new project
     handleRefresh()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps
   }, [projectId])
 
   // Removed legacy sensor type filter
@@ -361,8 +361,14 @@ const ProjectTagExplorer = () => {
       return [] as Array<{ index: number; min: number; max: number }>
     const parts = selectedTagPattern.split('[INT]')
     const countINT = parts.length - 1
-    const mins = new Array<number>(countINT).fill(Number.POSITIVE_INFINITY)
-    const maxs = new Array<number>(countINT).fill(Number.NEGATIVE_INFINITY)
+    const mins = Array.from(
+      { length: countINT },
+      () => Number.POSITIVE_INFINITY,
+    )
+    const maxs = Array.from(
+      { length: countINT },
+      () => Number.NEGATIVE_INFINITY,
+    )
 
     for (const t of tagsByPattern.data) {
       const name: string = t.name_scada

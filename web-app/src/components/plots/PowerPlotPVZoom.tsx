@@ -60,7 +60,7 @@ const alignLossSeries = (
   timezone: string,
 ): (number | null)[] => {
   if (baseTimes.length === 0 || lossTimes.length === 0) {
-    return new Array(baseTimes.length).fill(null)
+    return Array.from({ length: baseTimes.length }, () => null)
   }
 
   const baseMs = baseTimes.map((time) =>
@@ -73,7 +73,10 @@ const alignLossSeries = (
     }))
     .sort((a, b) => a.time - b.time)
 
-  const result: (number | null)[] = new Array(baseTimes.length).fill(null)
+  const result: (number | null)[] = Array.from(
+    { length: baseTimes.length },
+    () => null,
+  )
 
   if (targetMinutes <= 1) {
     let lossIdx = 0

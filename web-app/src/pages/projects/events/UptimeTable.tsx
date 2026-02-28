@@ -274,7 +274,6 @@ const UptimeTable = () => {
     ]
   }, [endQuery, startQuery, tags])
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<UptimeDisplayRow>({
     data: displayRows,
     columns,

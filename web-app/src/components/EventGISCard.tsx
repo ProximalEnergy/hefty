@@ -136,14 +136,14 @@ const EventGISCard = ({
       }}
     >
       <Map
-        initialViewState={{
-          ...(zoom
+        initialViewState={
+          zoom
             ? { longitude: coordinates[0], latitude: coordinates[1], zoom }
             : {
                 bounds: findBoundingBox(filteredData),
                 fitBoundsOptions: { padding: 35 },
-              }),
-        }}
+              }
+        }
         style={{
           borderBottomLeftRadius: 'inherit',
           borderBottomRightRadius: 'inherit',
