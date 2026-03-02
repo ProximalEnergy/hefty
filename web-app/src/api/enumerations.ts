@@ -90,6 +90,7 @@ export const DeviceTypeEnum = {
   BESS_PCS_MODULE: 33,
   BESS_MODULE: 34,
   PV_MODULE: 35,
+  BESS_DC_SKID: 36,
 } as const;
 
 export const EventLossTypeEnum = {
