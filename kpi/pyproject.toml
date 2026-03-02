@@ -43,11 +43,10 @@ dev = [
 ]
 
 [[tool.uv.index]]
-name = "proximal"
+name = "proximal-package-index"
 url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"
 
 [tool.uv.sources]
-# core = { index = "proximal" }
 core = { path = "../core", editable = true }
 
 

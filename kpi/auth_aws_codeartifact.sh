@@ -41,13 +41,13 @@ if [ -z "$AWS_CODEARTIFACT_TOKEN" ]; then
     exit 1
 fi
 
-export UV_INDEX_PROXIMAL_USERNAME=aws
-export UV_INDEX_PROXIMAL_PASSWORD="$AWS_CODEARTIFACT_TOKEN"
+export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws
+export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD="$AWS_CODEARTIFACT_TOKEN"
 
 echo "✅ AWS CodeArtifact authentication configured successfully"
 echo "🔑 Token set for UV authentication"
 
 # Export variables for use in other scripts
 # echo "export AWS_CODEARTIFACT_TOKEN=\"$AWS_CODEARTIFACT_TOKEN\""
-# echo "export UV_INDEX_PROXIMAL_USERNAME=aws"
-# echo "export UV_INDEX_PROXIMAL_PASSWORD=\"$AWS_CODEARTIFACT_TOKEN\""
+# echo "export UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws"
+# echo "export UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=\"$AWS_CODEARTIFACT_TOKEN\""

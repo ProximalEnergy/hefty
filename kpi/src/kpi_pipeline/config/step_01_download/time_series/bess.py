@@ -12,18 +12,28 @@ class DownloadTimeSeriesDataBESS(DownloadTimeSeriesSchema):
         )
     )
 
+    meter_total_consumed_energy_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.METER_CONSUMED_ENERGY,
+            project_level=True,
+            scale=1000,
+        )
+    )
+
+    meter_total_delivered_energy_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.METER_DELIVERED_ENERGY,
+            project_level=True,
+            scale=1000,
+        )
+    )
+
     project_total_aux_energy_kwh_5m = Field(
         SensorModel(
             sensor_type=SensorType.BESS_MV_AUX_METER_CONSUMED_ENERGY,
             project_level=True,
             scale=1000,
         )
-    )
-
-    bess_pcs_energy_charged_total_kwh_5m = Field(
-        SensorModel(
-            sensor_type=SensorType.BESS_PCS_CHARGE_ENERGY_TOTAL,
-        ),
     )
 
     bess_string_total_energy_charged_kwh_5m = Field(
@@ -33,9 +43,31 @@ class DownloadTimeSeriesDataBESS(DownloadTimeSeriesSchema):
         ),
     )
 
+    bess_pcs_total_energy_charged_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.BESS_PCS_CHARGE_ENERGY_TOTAL,
+            scale=1000,
+        ),
+    )
+
     bess_pcs_total_energy_discharged_kwh_5m = Field(
         SensorModel(
             sensor_type=SensorType.BESS_PCS_DISCHARGE_ENERGY_TOTAL,
+            scale=1000,
+        ),
+    )
+
+    bess_pcs_module_total_energy_discharged_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.BESS_PCS_MODULE_DISCHARGE_ENERGY_TOTAL,
+            scale=1000,
+        ),
+    )
+
+    bess_pcs_module_energy_charged_total_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.BESS_PCS_MODULE_CHARGE_ENERGY_TOTAL,
+            scale=1000,
         ),
     )
 

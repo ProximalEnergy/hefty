@@ -15,6 +15,8 @@ from kpi_pipeline.domain.bess import (
     daily_average_c_rate_charging,
     discharging_cycles_from_soc,
     maximum_continuous_discharge,
+    reconstruct_accumulator,
+    squeeze_fill_energy_accumulator,
 )
 from kpi_pipeline.domain.general import (
     accumulate_energy_then_filter_by_capacity,
@@ -500,20 +502,18 @@ class DischargingCyclesFromSocCalc(CalcBase):
 
 @domain_calc(maximum_continuous_discharge)
 class MaximumContinuousDischargeCalc(CalcBase):
-    energy_discharged_kwh_var: str
-    energy_charged_kwh_var: str
+    total_energy_discharged_kwh_5m_var: str
+    energy_charged_kwh_5m_var: str
     time_combiner_model: CoordCombinerModel
-    device_combiner_model: CoordCombinerModel | None = None
     energy_capacity_kwh_var: str | None = None
 
     def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
         return maximum_continuous_discharge(
-            energy_discharged_kwh=select(dataset, self.energy_discharged_kwh_var),
-            energy_charged_kwh=select(dataset, self.energy_charged_kwh_var),
+            total_energy_discharged_kwh_5m=select(
+                dataset, self.total_energy_discharged_kwh_5m_var
+            ),
+            energy_charged_kwh_5m=select(dataset, self.energy_charged_kwh_5m_var),
             time_combiner=coord_combiner(self.time_combiner_model, context),
-            device_combiner=coord_combiner(self.device_combiner_model, context)
-            if self.device_combiner_model
-            else None,
             energy_capacity_kwh=optional(dataset, self.energy_capacity_kwh_var),
         )
 
@@ -793,4 +793,32 @@ class AccumulateEnergyThenFilterByCapacityCalc(CalcBase):
             capacity=optional(dataset, self.capacity_var),
             min_capacity_factor=self.min_capacity_factor,
             max_capacity_factor=self.max_capacity_factor,
+        )
+
+
+@domain_calc(squeeze_fill_energy_accumulator)
+class SqueezeFillEnergyAccumulatorCalc(CalcBase):
+    total_energy_5m_var: str
+    power_capacity_kw_var: str
+    max_step_ratio: float = 1.0
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return squeeze_fill_energy_accumulator(
+            total_energy_5m=select(dataset, self.total_energy_5m_var),
+            power_capacity_kw=select(dataset, self.power_capacity_kw_var),
+            max_step_ratio=self.max_step_ratio,
+        )
+
+
+@domain_calc(reconstruct_accumulator)
+class ReconstructAccumulatorCalc(CalcBase):
+    total_energy_kw_5m_var: str
+    power_capacity_kw_var: str
+    modulo: float
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return reconstruct_accumulator(
+            total_energy_kw_5m=select(dataset, self.total_energy_kw_5m_var),
+            power_capacity_kw=select(dataset, self.power_capacity_kw_var),
+            modulo=self.modulo,
         )

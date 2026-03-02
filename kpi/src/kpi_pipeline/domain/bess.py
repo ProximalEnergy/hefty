@@ -7,7 +7,7 @@ that are independent of any external technologies or frameworks.
 
 import numpy as np
 import xarray as xr
-from kpi_pipeline.base.enums import Aggregation
+from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
 from kpi_pipeline.domain.general import diff, filter_by_capacity
 
@@ -113,110 +113,50 @@ def discharging_cycles_from_soc(
     return time_combiner.agg(discharging_periods, agg=Aggregation.SUM)
 
 
-def max_run_sm_1d(a: np.ndarray) -> float:
-    """
-    It's assumed that all values are non-negative
-    """
-    if np.isnan(a).all():
-        return np.nan
-
-    best = 0
-    current = 0
-
-    for v in a:
-        if np.isnan(v) or v <= 0:
-            current = 0
-        else:
-            current += v
-            if current > best:
-                best = current
-    return best
-
-
-def max_run_sm_2d(a: np.ndarray) -> np.ndarray:
-    """
-    2D version of max_run_sm_1d applied independently per component.
-
-    It's assumed that all values are non-negative.
-
-    Args:
-        a: Array with shape (time, component)
-
-    Returns:
-        1D array (component,) with maximum continuous positive run sums.
-    """
-    if a.ndim != 2:
-        msg = "max_run_sm_2d expects a 2D array (time, component)"
-        raise ValueError(msg)
-
-    if np.isnan(a).all(axis=0).all():
-        return np.full(a.shape[1], np.nan)
-
-    best = np.zeros(a.shape[1], dtype=float)
-    current = np.zeros(a.shape[1], dtype=float)
-
-    for v in a:
-        invalid = np.isnan(v) | (v <= 0)
-        current = np.where(invalid, 0.0, current + v)
-        best = np.maximum(best, current)
-
-    all_nan = np.isnan(a).all(axis=0)
-    best[all_nan] = np.nan
-    return best
-
-
 def maximum_continuous_discharge(
     *,
-    energy_discharged_kwh: xr.DataArray,
-    energy_charged_kwh: xr.DataArray,
+    total_energy_discharged_kwh_5m: xr.DataArray,
+    energy_charged_kwh_5m: xr.DataArray,
     time_combiner: CoordCombinerProtocol,
-    device_combiner: CoordCombinerProtocol | None = None,
     energy_capacity_kwh: xr.DataArray | None = None,
 ) -> xr.DataArray:
+    """
+    Calculates the total energy discharged during a single continuous period.
+    Any interval where there is any charging (even if there is both charging
+    and discharging) is ignored. If multiple continuous periods of discharging
+    exist, the maximum is returned.
+
+    If a period of discharging straddles midnight, it is counted as a discharge
+    period for the following day.
+
+    Validation is performed to make sure that the total energy discharged
+    is not greater than the energy capacity.
+
+    total_energy_discharged_kwh is expected to be
+    increasing monotonically
+    """
     EPSILON = 1e-6
 
-    # device grouping first (if any)
-    if device_combiner is not None:
-        energy_discharged_kwh = device_combiner.agg(
-            energy_discharged_kwh, agg=Aggregation.SUM
-        )
-        energy_charged_kwh = device_combiner.agg(
-            energy_charged_kwh, agg=Aggregation.SUM
-        )
-        if energy_capacity_kwh is not None:
-            energy_capacity_kwh = device_combiner.agg(
-                energy_capacity_kwh, agg=Aggregation.SUM
-            )
+    total_discharged_while_charging = total_energy_discharged_kwh_5m.where(
+        energy_charged_kwh_5m > EPSILON
+    )
 
-    # filter to only periods where there was discharge but no charge
-    discharge_only = energy_discharged_kwh.where(energy_charged_kwh < EPSILON)
+    # determine a baseline total from the most recent charging event
+    total_discharged_since_last_charging = total_discharged_while_charging.ffill(
+        dim=Time.TIME_5MIN_UTC.value
+    ).fillna(total_energy_discharged_kwh_5m.min())
 
-    # time grouping
-    grouped = time_combiner.group(discharge_only)
-    time_dim = time_combiner.get_high_res_time_axis().value
+    total_discharged_during_discharging_event = (
+        total_energy_discharged_kwh_5m - total_discharged_since_last_charging
+    )
 
-    def reducer(g: xr.DataArray) -> xr.DataArray:
-        if g.ndim == 1:
-            return xr.apply_ufunc(  # type: ignore
-                max_run_sm_1d,
-                g,
-                input_core_dims=[[time_dim]],
-                output_core_dims=[()],
-            )
+    # make sure the total discharged is not greater than the energy capacity
+    filtered = filter_by_capacity(
+        data=total_discharged_during_discharging_event,
+        capacity=energy_capacity_kwh,
+    )
 
-        component_dim = "__component__"
-        non_time_dims = tuple(dim for dim in g.dims if dim != time_dim)
-        stacked = g.stack({component_dim: non_time_dims})
-        return xr.apply_ufunc(  # type: ignore
-            max_run_sm_2d,
-            stacked,
-            input_core_dims=[[time_dim, component_dim]],
-            output_core_dims=[[component_dim]],
-        ).unstack(component_dim)
-
-    result = grouped.map(reducer)
-
-    return filter_by_capacity(data=result, capacity=energy_capacity_kwh)
+    return time_combiner.agg(filtered, agg=Aggregation.MAX)
 
 
 def bess_string_complete_availability(
@@ -236,3 +176,57 @@ def bess_string_complete_availability(
     )
     overall_status = bess_string_status | bank_status_expanded | pcs_status_expanded
     return time_combiner.agg(1 - overall_status, agg=Aggregation.MEAN)
+
+
+def squeeze_fill_energy_accumulator(
+    *,
+    total_energy_5m: xr.DataArray,
+    power_capacity_kw: xr.DataArray,
+    max_step_ratio: float = 1.0,
+) -> xr.DataArray:
+    """
+    If the jump in energy accumulation is small, just forward fill the
+    gaps, but if it's large, leave it blank.
+    In this implementation, if there is an open gap at the end, it is forward filled,
+    and if there is an open gap at the beginning, it is backward filled.
+    total_energy_5m is expected to be increasing monotonically.
+    """
+    # This function is not used yet, but will be used on energy accumulators
+    energy_ffill = total_energy_5m.ffill(dim=Time.TIME_5MIN_UTC.value)
+    energy_bfill = total_energy_5m.bfill(dim=Time.TIME_5MIN_UTC.value)
+
+    # theoretically the maximum jump in 5 minutes
+    # is 1/12th of the power capacity (12 steps per hour)
+    max_step_energy = max_step_ratio * power_capacity_kw / 12
+
+    energy_diff = energy_ffill - energy_bfill
+
+    return energy_ffill.where(np.abs(energy_diff) <= max_step_energy)
+
+
+def mod_difference(*, x: xr.DataArray, modulo: float) -> xr.DataArray:
+    """
+    Take the step-by-step difference of increasing cyclic values.
+    """
+    epsilon = 1e-6
+    difference = diff(x, time_dim=Time.TIME_5MIN_UTC)
+    # the epsilon shift is to prevent very tiny negative numbers from becoming
+    # very large positive numbers.
+    return (difference + epsilon) % modulo - epsilon
+
+
+def reconstruct_accumulator(
+    *, total_energy_kw_5m: xr.DataArray, power_capacity_kw: xr.DataArray, modulo: float
+) -> xr.DataArray:
+    """
+    Turns a cycling accumulation into an increasing monotonic function.
+    Importantly, jumps from high value that roll over the the low value
+    are captured properly rather than just assuming they are zero.
+    """
+    difference = mod_difference(x=total_energy_kw_5m, modulo=modulo)
+    max_power_step = power_capacity_kw / 12
+    return (
+        difference.where(difference <= max_power_step)
+        .cumsum(dim=Time.TIME_5MIN_UTC.value)
+        .shift({Time.TIME_5MIN_UTC.value: 1}, fill_value=0)
+    )

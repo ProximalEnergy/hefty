@@ -119,36 +119,35 @@ class CalculateBESS(AddCalculationsSchema):
 
     bess_string_dod_5m = _dod(Validate.bess_string_soc_5m.var)
 
-    project_energy_charged_kwh_5m = Field(
-        CalcProcess(
-            calc=SelectCalc(var=Validate.project_power_kw_5m.var),
-            process=ProcessList(
-                steps=[
-                    ClampProcess(max_value=0),
-                    ScaleOffsetProcess(scale=-1 / 12),
-                ]
-            ),
-        )
+    meter_consumed_energy_kwh_5m = _energy_accumulator(
+        Validate.meter_total_consumed_energy_kwh_5m.var
     )
 
-    project_energy_discharged_kwh_5m = Field(
-        CalcProcess(
-            calc=SelectCalc(var=Validate.project_power_kw_5m.var),
-            process=ProcessList(
-                steps=[
-                    ClampProcess(min_value=0),
-                    ScaleOffsetProcess(scale=1 / 12),
-                ]
-            ),
-        )
+    meter_delivered_energy_kwh_5m = _energy_accumulator(
+        Validate.meter_total_delivered_energy_kwh_5m.var
     )
-
     bess_string_energy_charged_kwh_5m = _energy_accumulator(
-        Download.time_series.bess_string_total_energy_charged_kwh_5m.var
+        Validate.bess_string_total_energy_charged_kwh_5m.var
     )
 
     bess_string_energy_discharged_kwh_5m = _energy_accumulator(
-        Download.time_series.bess_string_total_energy_discharged_kwh_5m.var
+        Validate.bess_string_total_energy_discharged_kwh_5m.var
+    )
+
+    bess_pcs_energy_charged_kwh_5m = _energy_accumulator(
+        Validate.bess_pcs_total_energy_charged_kwh_5m.var
+    )
+
+    bess_pcs_energy_discharged_kwh_5m = _energy_accumulator(
+        Download.time_series.bess_pcs_total_energy_discharged_kwh_5m.var
+    )
+
+    bess_pcs_module_energy_discharged_kwh_5m = _energy_accumulator(
+        Download.time_series.bess_pcs_module_total_energy_discharged_kwh_5m.var
+    )
+
+    bess_pcs_module_energy_charged_kwh_5m = _energy_accumulator(
+        Download.time_series.bess_pcs_module_energy_charged_total_kwh_5m.var
     )
 
     bess_string_energy_kwh_5m = Field(

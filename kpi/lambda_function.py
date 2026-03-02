@@ -39,16 +39,6 @@ class Event(BaseModel):
     kpi_type_ids: list[int]
 
 
-kpi_pipeline = action_from_list(
-    [
-        config.Download.export(),
-        config.Validate.export(),
-        config.Calculate.export(),
-        config.Aggregate.export(),
-        config.kpi_upload_action,
-    ]
-)
-
 observer = SentryObserver()
 
 
@@ -72,6 +62,23 @@ def lambda_handler(event, context):
             f"Ignoring unknown KPI type id in lambda payload: {kpi_type_id}",
             level="warning",
         )
+
+    # use the project-specific validation if it exists, otherwise use the base validation
+    validation = (
+        config.validate_per_project[project.name_short]
+        if project.name_short in config.validate_per_project
+        else config.validate_per_project["base"]
+    )
+
+    kpi_pipeline = action_from_list(
+        [
+            config.Download.export(),
+            validation.export(),
+            config.Calculate.export(),
+            config.Aggregate.export(),
+            config.kpi_upload_action,
+        ]
+    )
 
     pipeline = kpi_pipeline.trim(outputs=output_kpis)
 

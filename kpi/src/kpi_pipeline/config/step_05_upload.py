@@ -113,11 +113,23 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         device_var=Aggregate.bess_pcs_total_time_idling_hours_d.var,
         version="1.0.0",
     ),
+    # KPIType.BESS_PCS_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
+    #     project_var=Aggregate.project_maximum_continuous_discharge_across_pcs_kwh_d.var,
+    #     device_var=Aggregate.bess_pcs_maximum_continuous_discharge_kwh_d.var,
+    #     version="1.0.0",
+    #     scale=0.001,
+    # ),
     KPIType.BESS_PCS_MODULE_AVAILABILITY: KPIMetadata(
         project_var=Aggregate.project_bess_pcs_module_availability_d.var,
         device_var=Aggregate.bess_pcs_module_availability_d.var,
         version="1.0.0",
     ),
+    # KPIType.BESS_PCS_MODULE_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
+    #     project_var=Aggregate.project_maximum_continuous_discharge_across_pcs_modules_kwh_d.var,
+    #     device_var=Aggregate.bess_pcs_module_maximum_continuous_discharge_kwh_d.var,
+    #     version="1.0.0",
+    #     scale=0.001,
+    # ),
     KPIType.BESS_PROJECT_AVERAGE_C_RATE_WHILE_CHARGING: KPIMetadata(
         project_var=Aggregate.project_avg_c_rate_while_charging_d.var,
         version="1.0.0",
@@ -135,8 +147,8 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         version="1.0.0",
     ),
     KPIType.BESS_PROJECT_ENERGY_CHARGED: KPIMetadata(
-        project_var=Aggregate.project_energy_charged_kwh_d.var,
-        version="1.0.0",
+        project_var=Aggregate.meter_consumed_energy_kwh_d.var,
+        version="1.0.1",
         scale=0.001,
     ),
     KPIType.BESS_PROJECT_HOURS_CHARGING: KPIMetadata(
@@ -248,12 +260,12 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         device_var=Aggregate.bess_string_max_module_temp_c_d.var,
         version="1.0.0",
     ),
-    KPIType.BESS_STRING_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
-        project_var=Aggregate.project_maximum_continuous_discharge_across_strings_kwh_d.var,
-        device_var=Aggregate.bess_string_maximum_continuous_discharge_kwh_d.var,
-        version="1.0.0",
-        scale=0.001,
-    ),
+    # KPIType.BESS_STRING_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
+    #     project_var=Aggregate.project_maximum_continuous_discharge_across_strings_kwh_d.var,
+    #     device_var=Aggregate.bess_string_maximum_continuous_discharge_kwh_d.var,
+    #     version="1.0.0",
+    #     scale=0.001,
+    # ),
     KPIType.BESS_STRING_MIN_CELL_TEMPERATURE: KPIMetadata(
         project_var=Aggregate.project_min_string_cell_temp_c_d.var,
         device_var=Aggregate.bess_string_min_cell_temp_c_d.var,
@@ -310,8 +322,8 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         version="1.0.0",
     ),
     KPIType.PROJECT_ENERGY_DISCHARGED: KPIMetadata(
-        project_var=Aggregate.project_energy_discharged_kwh_d.var,
-        version="1.0.0",
+        project_var=Aggregate.meter_delivered_energy_kwh_d.var,
+        version="1.0.1",
         scale=0.001,
     ),
     KPIType.PROJECT_ENERGY_PRODUCTION: KPIMetadata(
@@ -321,7 +333,7 @@ kpi_map: dict[KPIType, KPIMetadata] = {
     ),
     KPIType.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
         project_var=Aggregate.project_maximum_continuous_discharge_kwh_d.var,
-        version="1.0.0",
+        version="1.1.0",
         scale=0.001,
     ),
     KPIType.PROJECT_RESTING_SOC_PERCENT: KPIMetadata(

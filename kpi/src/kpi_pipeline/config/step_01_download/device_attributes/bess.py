@@ -10,7 +10,14 @@ class DownloadDevAttrsBESS(DownloadDeviceAttributesSchema):
     bess_pcs_energy_capacity_kwh = Field(
         DeviceAttributeModel(
             device_type=DeviceType.BESS_PCS,
-            source_field_name=Device.capacity_dc.name,
+            source_field_name=Device.capacity_ac.name,
+        ),
+    )
+
+    bess_pcs_module_energy_capacity_kwh = Field(
+        DeviceAttributeModel(
+            device_type=DeviceType.BESS_PCS_MODULE,
+            source_field_name=Device.capacity_ac.name,
         ),
     )
 

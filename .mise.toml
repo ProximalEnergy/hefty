@@ -452,6 +452,19 @@ mise run api:switch-core && \
 uv sync --directory api
 """
 
+[tasks."kpi:switch-core:editable"]
+description = "Switch kpi core dependency to editable local path"
+run = "python3 kpi/_scripts/switch_core_source.py --mode editable"
+
+[tasks."kpi:switch-core:codeartifact"]
+description = "Switch kpi core dependency to CodeArtifact index"
+run = "python3 kpi/_scripts/switch_core_source.py --mode codeartifact"
+
+[tasks."kpi:check-core-source"]
+description = "Check which kpi core dependency source is currently configured"
+dir = "kpi"
+run = "rg '^core = ' pyproject.toml"
+
 [tasks."api:check"]
 description = "Run all quality checks for api"
 dir = "api"
