@@ -61,6 +61,8 @@ const ProjectDropdown = () => {
         checkIconPosition="right"
         value={String(projectId)}
         onChange={handleSelectChange}
+        onFocus={() => ref.current?.select()}
+        searchable
         data={
           selectDataLoaded
             ? projects.data
