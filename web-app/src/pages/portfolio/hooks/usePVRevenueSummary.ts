@@ -17,7 +17,7 @@ export interface PVRevenueData {
   isError: boolean
 }
 
-export interface PVRevenueSummary {
+interface PVRevenueSummary {
   energyMTD: number | null
   energyYTD: number | null
   ppaRate: number

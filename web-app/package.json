@@ -103,7 +103,8 @@
     "vite": "^7.2.2"
   },
   "overrides": {
-    "@modelcontextprotocol/sdk": "^1.25.2"
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@types/mapbox__point-geometry": "npm:@mapbox/point-geometry@^1.1.0"
   },
   "prettier": {
     "singleQuote": true,
