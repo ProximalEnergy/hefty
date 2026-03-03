@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app import dependencies, utils
-from app.v1.protected import system
+from app.v1.protected import kpi_instances, system
 from app.v1.protected.deletions import deletions
 from app.v1.protected.internal_comms import internal_comms
 from app.v1.protected.pv_expected_energy import pv_expected_energy
@@ -28,6 +28,7 @@ router.include_router(system.router)
 router.include_router(pv_expected_energy.router)
 router.include_router(deletions.router)
 router.include_router(internal_comms.router)
+router.include_router(kpi_instances.router)
 
 step_function_arn = os.getenv("STEP_FUNCTION_ARN_KPI_PIPELINE")
 scheduler_role_arn = os.getenv("EVENT_BRIDGE_SCHEDULER_START_SFN_ROLE")

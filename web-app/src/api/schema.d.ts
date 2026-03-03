@@ -7376,6 +7376,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/kpi-instances/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Instances
+         * @description Get KPI instance data for all projects and KPI types.
+         *
+         *     Queries projects, KPI types, and KPI instances separately, then builds
+         *     response data containing all projects and KPI types and instance visibility
+         *     where available.
+         */
+        get: operations["get_kpi_instances_v1_protected_kpi_instances__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/kpi-instances/upsert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upsert Kpi Instances
+         * @description Upsert KPI instances by composite key.
+         *
+         *     Args:
+         *         data: Mapping of '<kpi_type_id>::<project_id>' to is_visible.
+         *         db: Async database session.
+         */
+        post: operations["upsert_kpi_instances_v1_protected_kpi_instances_upsert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/kpi-instances/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Kpi Instances
+         * @description Delete KPI instances by composite keys.
+         *
+         *     Args:
+         *         keys: List of '<kpi_type_id>::<project_id>' strings.
+         *         db: Async database session.
+         */
+        post: operations["delete_kpi_instances_v1_protected_kpi_instances_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/kpi-backfill": {
         parameters: {
             query?: never;
@@ -9659,7 +9731,35 @@ export interface components {
             kpi_type_id: number;
             /** Is Visible */
             is_visible: boolean;
-            kpi_type?: components["schemas"]["KPIType-Output"] | null;
+            kpi_type?: components["schemas"]["app__interfaces__KPIType"] | null;
+        };
+        /**
+         * KPIInstanceColumn
+         * @description KPI instance column metadata.
+         */
+        KPIInstanceColumn: {
+            /** Name Long */
+            name_long: string;
+            /** Project Type Id */
+            project_type_id: number;
+            /** Has Any Kpi Instances */
+            has_any_kpi_instances: boolean;
+        };
+        /**
+         * KPIInstanceData
+         * @description KPI instance data structure.
+         */
+        KPIInstanceData: {
+            /** Rows */
+            rows: components["schemas"]["KPITypeInstance"][];
+            /** Columns */
+            columns: {
+                [key: string]: components["schemas"]["KPIInstanceColumn"];
+            };
+            /** Data */
+            data: {
+                [key: string]: boolean;
+            };
         };
         /**
          * KPISummary
@@ -9775,29 +9875,19 @@ export interface components {
          */
         "KPIType-Input": 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110;
         /**
-         * KPIType
-         * @description Kpitype model.
+         * KPITypeInstance
+         * @description KPI type instance metadata.
          */
-        "KPIType-Output": {
-            /** Kpi Type Id */
-            kpi_type_id: number;
+        KPITypeInstance: {
+            kpi_type_id: components["schemas"]["core__enumerations__KPIType"];
+            /** Metric Name */
+            metric_name: string;
             /** Device Type Id */
             device_type_id: number;
-            /** Name Short */
-            name_short: string;
-            /** Name Long */
-            name_long: string;
-            /** Name Metric */
-            name_metric: string;
-            /** Description */
-            description: string | null;
-            /** Unit */
-            unit: string | null;
-            /** Aggregation Method */
-            aggregation_method: string;
-            device_type?: components["schemas"]["DeviceType"] | null;
-            /** Doc Url */
-            doc_url?: string | null;
+            /** Device Type Name Long */
+            device_type_name_long: string;
+            /** Project Type Id */
+            project_type_id: number | null;
         };
         /**
          * KPITypeWithContractInfo
@@ -11790,6 +11880,31 @@ export interface components {
             score: number;
         };
         /**
+         * KPIType
+         * @description Kpitype model.
+         */
+        app__interfaces__KPIType: {
+            /** Kpi Type Id */
+            kpi_type_id: number;
+            /** Device Type Id */
+            device_type_id: number;
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /** Name Metric */
+            name_metric: string;
+            /** Description */
+            description: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Aggregation Method */
+            aggregation_method: string;
+            device_type?: components["schemas"]["DeviceType"] | null;
+            /** Doc Url */
+            doc_url?: string | null;
+        };
+        /**
          * SensorType
          * @description Sensortype model.
          */
@@ -11809,6 +11924,11 @@ export interface components {
             /** Description */
             description: string | null;
         };
+        /**
+         * KPIType
+         * @enum {integer}
+         */
+        core__enumerations__KPIType: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 | 64 | 65 | 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78 | 79 | 80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 | 90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 | 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 | 110;
         /**
          * SensorType
          * @enum {integer}
@@ -18436,7 +18556,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType-Output"][];
+                    "application/json": components["schemas"]["app__interfaces__KPIType"][];
                 };
             };
             /** @description Validation Error */
@@ -18472,7 +18592,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KPIType-Output"];
+                    "application/json": components["schemas"]["app__interfaces__KPIType"];
                 };
             };
             /** @description Validation Error */
@@ -22761,6 +22881,116 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_instances_v1_protected_kpi_instances__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPIInstanceData"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_kpi_instances_v1_protected_kpi_instances_upsert_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_kpi_instances_v1_protected_kpi_instances_delete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
                     };
                 };
             };
