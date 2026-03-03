@@ -8,11 +8,9 @@ external technologies or frameworks.
 
 import functools
 import operator
-from typing import Optional
 
 import numpy as np
 import xarray as xr
-
 from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
 from kpi_pipeline.infra.exceptions import ValidationError
@@ -48,7 +46,7 @@ def weighted_average(
 def filter_by_capacity(
     *,
     data: xr.DataArray,
-    capacity: Optional[xr.DataArray] = None,
+    capacity: xr.DataArray | None = None,
     min_capacity_factor: float = 0.0,
     max_capacity_factor: float = 1.0,
 ) -> xr.DataArray:
@@ -79,7 +77,7 @@ def filter_by_capacity(
 def verify_by_capacity(
     *,
     data: xr.DataArray,
-    capacity: Optional[xr.DataArray] = None,
+    capacity: xr.DataArray | None = None,
     min_capacity_factor: float = 0.0,
     max_capacity_factor: float = 1.0,
 ) -> xr.DataArray:
@@ -113,7 +111,7 @@ def accumulate_energy_then_verify_by_capacity(
     *,
     data: xr.DataArray,
     time_combiner: CoordCombinerProtocol,
-    capacity: Optional[xr.DataArray] = None,
+    capacity: xr.DataArray | None = None,
     min_capacity_factor: float = 0.0,
     max_capacity_factor: float = 1.0,
 ) -> xr.DataArray:
@@ -130,7 +128,7 @@ def accumulate_energy_then_filter_by_capacity(
     *,
     data: xr.DataArray,
     time_combiner: CoordCombinerProtocol,
-    capacity: Optional[xr.DataArray] = None,
+    capacity: xr.DataArray | None = None,
     min_capacity_factor: float = 0.0,
     max_capacity_factor: float = 1.0,
 ) -> xr.DataArray:
@@ -354,3 +352,15 @@ def remove_flat_lining(
     is_flat = agg_max == agg_min
     is_flat_mask = time_combiner.broadcast(is_flat)
     return x.where(~is_flat_mask)
+
+
+def or_list(
+    *,
+    arrays: list[xr.DataArray],
+) -> xr.DataArray:
+    """
+    Or a list of arrays.
+    """
+    if len(arrays) == 0:
+        return xr.DataArray(False)
+    return functools.reduce(operator.or_, arrays)

@@ -64,7 +64,7 @@ class DownloadTimeSeriesDataBESS(DownloadTimeSeriesSchema):
         ),
     )
 
-    bess_pcs_module_energy_charged_total_kwh_5m = Field(
+    bess_pcs_module_total_energy_charged_kwh_5m = Field(
         SensorModel(
             sensor_type=SensorType.BESS_PCS_MODULE_CHARGE_ENERGY_TOTAL,
             scale=1000,

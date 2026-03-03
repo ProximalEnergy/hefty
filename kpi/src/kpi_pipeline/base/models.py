@@ -1,18 +1,18 @@
 import datetime
 import uuid
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any
 
 import numpy as np
 import pandas as pd
-from core import models
 from core.enumerations import DeviceType, SensorType
 from dotenv import load_dotenv
-from pydantic import BaseModel, BeforeValidator, Field
-
 from kpi_pipeline.base.enums import Aggregation, DataType, Time
 from kpi_pipeline.base.protocols import DataDownloadModelProtocol, Implements
 from kpi_pipeline.infra.device_manager import DeviceTree
 from kpi_pipeline.infra.utils import pandas_timestamp_to_datetime64_utc
+from pydantic import BaseModel, BeforeValidator, Field
+
+from core import models
 
 NANOSECONDS = "ns"
 
@@ -28,6 +28,7 @@ class ProjectAttributeModel(BaseModel):
     scale: float | None = None
     offset: float | None = None
     dtype: DataType = DataType.FLOAT
+    fill_value: Any | None = None
 
     project_level: bool = Field(default=True, init=False)
 
@@ -39,6 +40,7 @@ class DeviceAttributeModel(BaseModel):
     scale: float | None = None
     offset: float | None = None
     dtype: DataType = DataType.FLOAT
+    fill_value: Any | None = None
 
     project_level: bool = Field(default=False, init=False)
 
@@ -51,6 +53,7 @@ class SensorModel(BaseModel):
     offset: float | None = None
     dtype: DataType = DataType.FLOAT
     aggregation: Aggregation | None = None
+    fill_value: Any | None = None
 
 
 @data_download_model
@@ -61,6 +64,7 @@ class ExpectedEnergyModel(BaseModel):
     scale: float | None = None
     offset: float | None = None
     dtype: DataType = DataType.FLOAT
+    fill_value: Any | None = None
 
 
 @data_download_model
@@ -69,7 +73,7 @@ class StatusModel(BaseModel):
     failure_modes: list[int]
     project_level: bool = False
     dtype: DataType = DataType.BOOL
-
+    fill_value: Any | None = False
     scale: float | None = Field(default=None, init=None)
     offset: float | None = Field(default=None, init=None)
 
@@ -79,6 +83,7 @@ class PvLibModel(BaseModel):
     field_name: str
     project_level: bool = True
     dtype: DataType = DataType.FLOAT
+    fill_value: Any | None = None
     scale: float | None = None
     offset: float | None = None
 
@@ -92,11 +97,11 @@ def to_finite_float(value: Any) -> Any:
 
 
 # Define a custom type alias for clarity and reuse
-FiniteFloat = Annotated[Optional[float], BeforeValidator(to_finite_float)]
+FiniteFloat = Annotated[float | None, BeforeValidator(to_finite_float)]
 
 
 class DeviceDataJson(BaseModel):
-    device_values: Dict[int, FiniteFloat]
+    device_values: dict[int, FiniteFloat]
 
     model_config = {
         "arbitrary_types_allowed": True,  # Allow numpy types
@@ -111,7 +116,7 @@ class KPIDataRow(BaseModel):
     date: datetime.date
     project_id: uuid.UUID
     kpi_type_id: int
-    device_data_json: Optional[DeviceDataJson]
+    device_data_json: DeviceDataJson | None
     project_data: float
     version: str
 

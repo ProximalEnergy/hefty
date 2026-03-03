@@ -5,9 +5,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
-from numpy.typing import NDArray
-from pydantic import ConfigDict
-
 from kpi_pipeline.base.enums import (
     UTC,
     Aggregation,
@@ -22,6 +19,8 @@ from kpi_pipeline.infra.exceptions import (
     DataTypeCastingError,
     EmptyDataArrayError,
 )
+from numpy.typing import NDArray
+from pydantic import ConfigDict
 
 arbitrary_types_allowed = ConfigDict(arbitrary_types_allowed=True)
 
@@ -51,6 +50,7 @@ def assign_var(
     dtype: DataType | None = None,
     scale: float | None = None,
     offset: float | None = None,
+    fill_value: Any | None = None,
 ):
     with observer.watch(var=var):
         result = Result()
@@ -60,17 +60,18 @@ def assign_var(
         result.value = xr.DataArray(result.value)
         if result.value.size == 0:
             raise EmptyDataArrayError(f"data array for {var} is empty")
-        try:
-            result.value = result.value.astype(dtype)
-        except ValueError as e:
-            raise DataTypeCastingError(str(e)) from e
+        if dtype is not None:
+            try:
+                result.value = result.value.astype(dtype)
+            except ValueError as e:
+                raise DataTypeCastingError(str(e)) from e
         if result.value.isnull().all():
             raise EmptyDataArrayError(f"data array for {var} values are all null")
         if scale is not None:
             result.value = result.value * scale
         if offset is not None:
             result.value = result.value + offset
-        dataset[var] = result.value
+        dataset[var] = result.value.reindex_like(dataset, fill_value=fill_value)
 
 
 def xarray_agg(

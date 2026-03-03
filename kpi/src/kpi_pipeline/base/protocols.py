@@ -152,6 +152,7 @@ class DataDownloadModelProtocol(Protocol):
     scale: float | None
     offset: float | None
     project_level: bool
+    fill_value: Any | None
 
 
 class ScaleOffsetProtocol(Protocol):

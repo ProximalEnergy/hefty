@@ -108,6 +108,9 @@ class ValidateBESS(AddCalculationsSchema):
     bess_pcs_module_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
         Download.time_series.bess_pcs_module_total_energy_discharged_kwh_5m.var
     )
+    bess_pcs_module_total_energy_charged_kwh_5m = _energy_accumulator_validation(
+        Download.time_series.bess_pcs_module_total_energy_charged_kwh_5m.var
+    )
     bess_string_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
         Download.time_series.bess_string_total_energy_discharged_kwh_5m.var
     )

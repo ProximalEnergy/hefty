@@ -22,6 +22,7 @@ from kpi_pipeline.domain.general import (
     accumulate_energy_then_filter_by_capacity,
     accumulate_energy_then_verify_by_capacity,
     filter_by_capacity,
+    or_list,
     verify_by_capacity,
     weighted_average,
 )
@@ -271,6 +272,31 @@ class WithinDeviationCalc(CalcBase):
         return select(dataset, self.var).where(
             select(dataset, self.reference_var).abs() <= self.threshold
         )
+
+
+@calc
+class OrListCalc:
+    def __init__(
+        self,
+        *,
+        vars: list[str] | None = None,
+        output_dtype: DataType = DataType.BOOL,
+    ):
+        if vars is None:
+            vars = []
+        self.vars = vars
+        self.output_dtype = output_dtype
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return or_list(
+            arrays=[
+                dataset[var] if var in dataset else xr.DataArray(False)
+                for var in self.vars
+            ]
+        )
+
+    def expected_inputs(self) -> list[str]:
+        return self.vars
 
 
 @domain_calc(weighted_average)

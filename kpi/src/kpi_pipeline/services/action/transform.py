@@ -1,8 +1,6 @@
-from typing import ClassVar, Self, Type
+from typing import ClassVar, Self
 
 import xarray as xr
-from pydantic import BaseModel
-
 from kpi_pipeline.base.models import (
     ContextModel,
     DeviceAttributeModel,
@@ -38,6 +36,7 @@ from kpi_pipeline.services.downloader import (
     StatusTimeSeriesDownloader,
     TimeSeriesDownloader,
 )
+from pydantic import BaseModel
 
 transform = Implements[TransformProtocol].decorator
 
@@ -317,7 +316,7 @@ class MergeTransform(TransformProtocol):
 
 class DownloadTransformAbstract[T](TransformProtocol):
     pass_through = False
-    _downloader_class: Type[DownloaderProtocol]
+    _downloader_class: type[DownloaderProtocol]
 
     def __init__(
         self,
@@ -344,6 +343,7 @@ class DownloadTransformAbstract[T](TransformProtocol):
                 dtype=model.dtype,
                 scale=model.scale,
                 offset=model.offset,
+                fill_value=model.fill_value,
             ) as result:
                 result.value = downloader.data_array(model=model)
         return dataset

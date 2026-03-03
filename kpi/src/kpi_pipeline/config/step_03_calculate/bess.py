@@ -4,6 +4,7 @@ from kpi_pipeline.config.step_02_validate import Validate
 from kpi_pipeline.services.calc import (
     CalcProcess,
     LinearCombinationCalc,
+    OrListCalc,
     ProcessCalc,
     QuotientCalc,
     SelectCalc,
@@ -139,15 +140,15 @@ class CalculateBESS(AddCalculationsSchema):
     )
 
     bess_pcs_energy_discharged_kwh_5m = _energy_accumulator(
-        Download.time_series.bess_pcs_total_energy_discharged_kwh_5m.var
+        Validate.bess_pcs_total_energy_discharged_kwh_5m.var
     )
 
     bess_pcs_module_energy_discharged_kwh_5m = _energy_accumulator(
-        Download.time_series.bess_pcs_module_total_energy_discharged_kwh_5m.var
+        Validate.bess_pcs_module_total_energy_discharged_kwh_5m.var
     )
 
     bess_pcs_module_energy_charged_kwh_5m = _energy_accumulator(
-        Download.time_series.bess_pcs_module_energy_charged_total_kwh_5m.var
+        Validate.bess_pcs_module_total_energy_charged_kwh_5m.var
     )
 
     bess_string_energy_kwh_5m = Field(
@@ -184,6 +185,18 @@ class CalculateBESS(AddCalculationsSchema):
         ProcessCalc(
             var=bess_pcs_c_rate_5m.var,
             process=IsIdlingProcess(),
+        )
+    )
+
+    #########################################################
+    # PCS Module
+
+    bess_pcs_module_is_offline_5m = Field(
+        OrListCalc(
+            vars=[
+                Download.status.bess_pcs_module_offline_status_5m.var,
+                Download.status.bess_pcs_module_offline_alarm_5m.var,
+            ]
         )
     )
 
