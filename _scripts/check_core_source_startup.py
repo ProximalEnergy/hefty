@@ -37,7 +37,7 @@ def get_current_core_source() -> str | None:
             if line.strip().startswith("core ="):
                 if "editable = true" in line:
                     return "editable"
-                elif 'index = "proximal"' in line:
+                elif 'index = "proximal-package-index"' in line:
                     return "codeartifact"
         return None
     except (FileNotFoundError, OSError):

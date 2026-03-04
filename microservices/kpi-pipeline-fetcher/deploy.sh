@@ -1,38 +1,15 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MONO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SWITCH_CORE_SOURCE_SCRIPT="$SCRIPT_DIR/_scripts/switch_core_source.py"
-
-switch_core_source() {
-  local mode="$1"
-  python3 "$SWITCH_CORE_SOURCE_SCRIPT" \
-    --mode "$mode" \
-    --no-sync
-}
-
-restore_editable_core_source() {
-  if ! switch_core_source editable; then
-    echo "Warning: failed to restore editable core source in kpi/pyproject.toml" >&2
-  fi
-}
-
-trap restore_editable_core_source EXIT
-
-# Pre-deploy checks (stop on first failure)
-mypy src/kpi_pipeline
-mypy lambda_function.py
-python -m kpi_pipeline.services.calc
-python -m kpi_pipeline.services.process
+MONO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Deployment configuration
-ECR_URI="016997484973.dkr.ecr.us-east-2.amazonaws.com/kpi-pipeline-ecr:latest"
-LAMBDA_FUNCTION="kpi-pipeline-lambda"
-IMAGE_NAME="kpi-pipeline-image:latest"
+ECR_URI="016997484973.dkr.ecr.us-east-2.amazonaws.com/kpi-pipeline-fetcher-ecr:latest"
+LAMBDA_FUNCTION="kpi-pipeline-fetcher-lambda"
+IMAGE_NAME="kpi-pipeline-fetcher-image:latest"
 
 # Load AWS/CodeArtifact auth vars
 . "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
-
 
 # Disable AWS CLI pager for non-interactive script runs
 export AWS_PAGER=""
@@ -49,9 +26,6 @@ for _ in {1..30}; do
 done
 docker info >/dev/null 2>&1
 
-# Use CodeArtifact source during image build/deploy.
-switch_core_source codeartifact
-
 # Build and publish container image
 INDEX_USER_ARG="UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=\
 ${UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME}"
@@ -65,11 +39,6 @@ docker buildx build \
   --build-arg "${INDEX_PASSWORD_ARG}" \
   -t "$IMAGE_NAME" \
   .
-
-# Restore local editable mode immediately after image build.
-restore_editable_core_source
-trap - EXIT
-
 aws ecr get-login-password --region us-east-2 | docker login \
   --username AWS \
   --password-stdin 016997484973.dkr.ecr.us-east-2.amazonaws.com

@@ -14,9 +14,10 @@ fi
 
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Source the authentication script
-. "$SCRIPT_DIR/auth_aws_codeartifact.sh"
+. "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
 
 # Get the environment type from argument or default to stable
 ENV_TYPE="${1:-stable}"

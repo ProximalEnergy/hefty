@@ -31,19 +31,72 @@ jobs:
   ruff:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Run Ruff linter
-        uses: astral-sh/ruff-action@v3
+      - uses: actions/checkout@v6
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
-          src: ./microservices
+          enable-cache: "true"
 
-      - name: Run Ruff formatter
-        uses: astral-sh/ruff-action@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          args: format --check --diff
-          src: ./microservices
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
+          aws-region: us-east-2
+
+      - name: Authenticate with AWS CodeArtifact
+        run: |
+          AWS_CODEARTIFACT_TOKEN=$(
+            aws codeartifact get-authorization-token \
+              --domain proximal-code-artifact-domain \
+              --region us-east-2 \
+              --query authorizationToken \
+              --output text
+          )
+          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" \
+            >> $GITHUB_ENV
+
+      - name: install root project
+        run: uv sync
+
+      - name: run ruff per microservice from root config
+        run: |
+          set -euo pipefail
+          ROOT_DIR="${PWD}"
+
+          for service_dir in "${ROOT_DIR}"/microservices/*; do
+            [ -d "${service_dir}" ] || continue
+            service_name="$(basename "${service_dir}")"
+
+            case "${service_name}" in
+              _*) continue ;;
+            esac
+
+            echo "Running ruff for microservice: ${service_name}"
+
+            if [ -f "${service_dir}/pyproject.toml" ]; then
+              uv run --project "${ROOT_DIR}" \
+                --directory "${service_dir}" \
+                --with-editable "${service_dir}" \
+                ruff check --config "${ROOT_DIR}/pyproject.toml" .
+
+              uv run --project "${ROOT_DIR}" \
+                --directory "${service_dir}" \
+                --with-editable "${service_dir}" \
+                ruff format --check --diff \
+                --config "${ROOT_DIR}/pyproject.toml" .
+            else
+              uv run --project "${ROOT_DIR}" \
+                --directory "${service_dir}" \
+                ruff check --config "${ROOT_DIR}/pyproject.toml" .
+
+              uv run --project "${ROOT_DIR}" \
+                --directory "${service_dir}" \
+                ruff format --check --diff \
+                --config "${ROOT_DIR}/pyproject.toml" .
+            fi
+          done
 
   star_syntax:
     runs-on: ubuntu-latest
@@ -64,11 +117,55 @@ jobs:
         with:
           enable-cache: "true"
 
-      - name: install project
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_CODEARTIFACT }}
+          aws-region: us-east-2
+
+      - name: Authenticate with AWS CodeArtifact
+        run: |
+          AWS_CODEARTIFACT_TOKEN=$(
+            aws codeartifact get-authorization-token \
+              --domain proximal-code-artifact-domain \
+              --region us-east-2 \
+              --query authorizationToken \
+              --output text
+          )
+          echo "::add-mask::$AWS_CODEARTIFACT_TOKEN"
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=aws" >> $GITHUB_ENV
+          echo "UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$AWS_CODEARTIFACT_TOKEN" \
+            >> $GITHUB_ENV
+
+      - name: install root project
         run: uv sync
 
-      - name: run mypy
-        run: uv run mypy --config-file pyproject.toml microservices/
+      - name: run mypy per microservice from root config
+        run: |
+          set -euo pipefail
+          ROOT_DIR="${PWD}"
+
+          for service_dir in "${ROOT_DIR}"/microservices/*; do
+            [ -d "${service_dir}" ] || continue
+            service_name="$(basename "${service_dir}")"
+
+            case "${service_name}" in
+              _*) continue ;;
+            esac
+
+            echo "Running mypy for microservice: ${service_name}"
+
+            if [ -f "${service_dir}/pyproject.toml" ]; then
+              uv run --project "${ROOT_DIR}" \
+                --directory "${service_dir}" \
+                --with-editable "${service_dir}" \
+                mypy --config-file "${ROOT_DIR}/pyproject.toml" .
+            else
+              uv run --project "${ROOT_DIR}" \
+                --directory "${service_dir}" \
+                mypy --config-file "${ROOT_DIR}/pyproject.toml" .
+            fi
+          done
 
   docstring-args:
     runs-on: ubuntu-latest

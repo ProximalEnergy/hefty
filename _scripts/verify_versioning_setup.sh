@@ -75,13 +75,13 @@ else
     error "API deploy workflow not found at .github/workflows/api-deploy.yml"
 fi
 
-# Check 3: API scripts exist and are executable
+# Check 3: Versioning scripts exist and are executable
 echo ""
-echo "📋 Checking API scripts..."
+echo "📋 Checking versioning scripts..."
 SCRIPTS=(
     "$MONO_ROOT/api/_scripts/update_core_version.sh"
     "$MONO_ROOT/api/_scripts/update_core_auto.sh"
-    "$MONO_ROOT/api/_scripts/auth_aws_codeartifact.sh"
+    "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
 )
 
 for script in "${SCRIPTS[@]}"; do
@@ -178,8 +178,7 @@ if command -v aws >/dev/null 2>&1; then
     success "AWS CLI is installed"
 
     # Try to authenticate (but don't fail if it doesn't work - might be expected locally)
-    cd "$MONO_ROOT/api"
-    if source _scripts/auth_aws_codeartifact.sh 2>/dev/null; then
+    if source "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh" 2>/dev/null; then
         success "AWS CodeArtifact authentication successful"
     else
         warning "AWS CodeArtifact authentication failed (this is normal if AWS credentials are not configured locally)"

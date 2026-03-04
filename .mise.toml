@@ -404,7 +404,125 @@ depends = [
 [tasks."micro:types"]
 description = "Run mypy type checking for microservices"
 dir = "."
-run = "uv run mypy --config-file pyproject.toml microservices/"
+run = """
+ROOT_DIR="$(pwd)"
+ROOT_MYPY_CONFIG="${ROOT_DIR}/pyproject.toml"
+ROOT_AUTH_SCRIPT="${ROOT_DIR}/_scripts/auth_aws_codeartifact.sh"
+HAS_AUTH=false
+unset VIRTUAL_ENV
+MYPY_SPEC="$(
+  python3 -c '
+import pathlib
+import tomllib
+
+data = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+deps = data.get("dependency-groups", {}).get("dev", [])
+for dep in deps:
+    if isinstance(dep, str) and dep.startswith("mypy"):
+        print(dep)
+        break
+'
+)"
+
+if [ -z "${MYPY_SPEC}" ]; then
+  echo "mypy dependency not found in root pyproject.toml" >&2
+  exit 1
+fi
+
+for service_dir in "${ROOT_DIR}"/microservices/*; do
+  [ -d "${service_dir}" ] || continue
+  service_name="$(basename "${service_dir}")"
+
+  case "${service_name}" in
+    _*) continue ;;
+  esac
+
+  echo "Running mypy for microservice: ${service_name}"
+
+  if [ ! -f "${service_dir}/pyproject.toml" ]; then
+    echo "Skipping ${service_name}: no pyproject.toml found"
+    continue
+  fi
+
+  if grep -q "proximal-code-artifact-domain" "${service_dir}/pyproject.toml"; then
+    if [ "${HAS_AUTH}" = false ]; then
+      if [ ! -f "${ROOT_AUTH_SCRIPT}" ]; then
+        echo "Missing auth script: ${ROOT_AUTH_SCRIPT}" >&2
+        exit 1
+      fi
+      echo "Authenticating with AWS CodeArtifact"
+      # shellcheck disable=SC1090
+      . "${ROOT_AUTH_SCRIPT}"
+      HAS_AUTH=true
+    fi
+  fi
+
+  service_has_sqlalchemy="$(
+    python3 -c '
+import pathlib
+import sys
+import tomllib
+
+path = pathlib.Path(sys.argv[1])
+data = tomllib.loads(path.read_text())
+
+def has_sqlalchemy(*, deps):
+    for dep in deps or []:
+        if isinstance(dep, str) and dep.lower().startswith("sqlalchemy"):
+            return True
+    return False
+
+project = data.get("project", {})
+if has_sqlalchemy(deps=project.get("dependencies", [])):
+    print("true")
+elif any(
+    has_sqlalchemy(deps=dep_group)
+    for dep_group in project.get("optional-dependencies", {}).values()
+):
+    print("true")
+elif any(
+    has_sqlalchemy(deps=dep_group)
+    for dep_group in data.get("dependency-groups", {}).values()
+):
+    print("true")
+else:
+    print("false")
+' "${service_dir}/pyproject.toml"
+  )"
+
+  mypy_config="${ROOT_MYPY_CONFIG}"
+  cleanup_config=false
+  if [ "${service_has_sqlalchemy}" != "true" ]; then
+    mypy_config="$(mktemp "${TMPDIR:-/tmp}/micro-mypy.XXXXXX.toml")"
+    cleanup_config=true
+    python3 -c '
+import pathlib
+import re
+import sys
+
+src = pathlib.Path(sys.argv[1]).read_text()
+dst = pathlib.Path(sys.argv[2])
+pattern = r"^plugins\\s*=\\s*\\[\\\"sqlalchemy\\.ext\\.mypy\\.plugin\\\"\\]\\n?"
+dst.write_text(re.sub(pattern, "", src, flags=re.MULTILINE))
+' "${ROOT_MYPY_CONFIG}" "${mypy_config}"
+  fi
+
+  uv run \
+    --project "${service_dir}" \
+    --directory "${service_dir}" \
+    --dev \
+    --with "${MYPY_SPEC}" \
+    mypy --config-file "${mypy_config}" .
+  run_status=$?
+
+  if [ "${cleanup_config}" = true ]; then
+    rm -f "${mypy_config}"
+  fi
+  if [ "${run_status}" -ne 0 ]; then
+    exit "${run_status}"
+  fi
+done
+"""
 
 [tasks."micro:ruff_check"]
 description = "Run ruff linter for microservices"

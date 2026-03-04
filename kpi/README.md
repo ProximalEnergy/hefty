@@ -23,8 +23,15 @@ The entire name should be snake case.
 Use `> build.log 2>&1` if you need to debug a failing terminal.
 
 ```
- . ./auth_aws_codeartifact.sh
- docker buildx build --platform linux/arm64 --provenance=false --build-arg UV_INDEX_PROXIMAL_PASSWORD=$UV_INDEX_PROXIMAL_PASSWORD -t kpi-pipeline-image:latest .
+ . ../_scripts/auth_aws_codeartifact.sh
+ docker buildx build \
+   --platform linux/arm64 \
+   --provenance=false \
+   --build-arg \
+   UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME=$UV_INDEX_PROXIMAL_PACKAGE_INDEX_USERNAME \
+   --build-arg \
+   UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD=$UV_INDEX_PROXIMAL_PACKAGE_INDEX_PASSWORD \
+   -t kpi-pipeline-image:latest .
 ```
 
 Test it locally

@@ -9,7 +9,8 @@ fi
 # Source the authentication script
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "$SCRIPT_DIR/auth_aws_codeartifact.sh"
+MONO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+. "$MONO_ROOT/_scripts/auth_aws_codeartifact.sh"
 
 # Simple pass-through to uv add with authentication
 exec uv "$@"

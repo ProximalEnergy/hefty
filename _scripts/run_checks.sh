@@ -836,7 +836,7 @@ if [ "${RUN_ALL}" = "false" ]; then
         RUN_SQL_ADMIN=true
     fi
     if diff_has '^kpi/'; then
-        pass
+        :
     fi
     if diff_has '^web-app/'; then
         RUN_WEB=true

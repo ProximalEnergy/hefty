@@ -1,0 +1,21 @@
+[project]
+name = "kpi-pipeline-fetcher"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "core==0.2.39",
+    "pydantic>=2,<3",
+    "python-dotenv>=1,<2",
+    "sentry-sdk>=2,<3",
+]
+
+[[tool.uv.index]]
+name = "proximal-package-index"
+url = "https://proximal-code-artifact-domain-016997484973.d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"
+explicit = true
+
+[tool.uv.sources]
+core = { index = "proximal-package-index" }
+# core = { path = "/Users/davidkyle/Desktop/Proximal/core", editable = true }
