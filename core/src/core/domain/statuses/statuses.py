@@ -62,7 +62,7 @@ def parse_maybe_int(val):
         return pd.NA
 
     # Preserve missing floats
-    if isinstance(val, float):
+    if isinstance(val, (float, np.floating)):
         if math.isnan(val):
             return pd.NA
         # Only coerce clean integer floats
@@ -70,7 +70,7 @@ def parse_maybe_int(val):
             return int(val)
         return pd.NA
 
-    if isinstance(val, (int, bool)):  # bool is subclass of int; keep if desired
+    if isinstance(val, (int, bool, np.integer, np.bool_)):
         return int(val)
 
     if isinstance(val, str):
@@ -655,7 +655,7 @@ def interpret_binary_sparse_uint(
 
     This does NOT require you to convert ints -> reversed strings first.
     """
-    coerced_binary = cast(pd.DataFrame, binary_str_df.applymap(parse_maybe_int))  # type: ignore
+    coerced_binary = binary_str_df.map(parse_maybe_int)
     binary_int_df = coerced_binary.astype("Int64")
     if binary_int_df.empty or binary_table.empty:
         return _empty_facts_df()
