@@ -60,6 +60,7 @@ mise install && \
 uv sync --directory core && \
 mise run api:switch-core && \
 uv sync --directory api && \
+uv sync --directory kpi && \
 cd web-app && npm ci && npx node build-plotly-custom.js && \
 cd .. && \
 mise run sql-admin:install

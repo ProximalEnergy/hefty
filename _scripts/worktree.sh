@@ -26,6 +26,7 @@ done
 CURRENT_DIR="$(pwd)"
 PARENT_DIR="$(dirname "$CURRENT_DIR")"
 NEW_WORKTREE="$PARENT_DIR/$FOLDER_NAME"
+OVERLAY_DIR="$HOME/.devconfig/mono"
 
 # =============================================================================
 # FILES TO COPY (edit this list as needed)
@@ -35,6 +36,7 @@ FILES_TO_COPY=(
     "api/.env"
     "core/.env"
     "web-app/.env"
+    "kpi/.env"
 )
 
 echo "Creating worktree at: $NEW_WORKTREE"
@@ -74,12 +76,22 @@ for file in "${FILES_TO_COPY[@]}"; do
     fi
 done
 
+# Overlay local devconfig files if present
+if [[ -d "$OVERLAY_DIR" ]]; then
+    echo "Applying devconfig overlay from: $OVERLAY_DIR"
+    cp -a "$OVERLAY_DIR"/. "$NEW_WORKTREE"/
+    echo "  Overlay applied"
+else
+    echo "Devconfig overlay not found, skipping: $OVERLAY_DIR"
+fi
+
 # Trust mise config files in new worktree
 echo "Trusting mise config files..."
 cd "$NEW_WORKTREE"
 mise trust
 mise trust api/.mise.toml
 mise trust core/.mise.toml
+mise trust kpi/.mise.toml
 
 # Run sync-deps in new worktree
 echo "Setting up environments (mise run sync-deps)..."
