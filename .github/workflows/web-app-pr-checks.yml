@@ -44,7 +44,7 @@ jobs:
 
       - name: Cache dependencies
         id: cache-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -97,7 +97,7 @@ jobs:
 
       - name: Cache dependencies
         id: cache-prettier-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -132,7 +132,7 @@ jobs:
 
       - name: Cache dependencies
         id: cache-knip-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -167,7 +167,7 @@ jobs:
 
       - name: Cache dependencies
         id: cache-oxlint-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
