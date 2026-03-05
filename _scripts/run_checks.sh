@@ -915,14 +915,14 @@ if [ "${RUN_PVEEM}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
-    NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts_check"
+    NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts"
     if [ "${QUIET}" = "true" ]; then
-        NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts_check -- --quiet"
+        NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts -- --quiet"
     fi
 
     add_check "Root: No package.json" "mise run root:no_package_json"
     add_check "Root: Hardcoded Type ID Check" \
-        "mise run root:hardcoded_type_id_check"
+        "mise run root:hardcoded_type_id"
     add_check "Root: Hardcoded Name Shorts Check" \
         "${NAME_SHORTS_CHECK_CMD}"
     add_check "Root: Pyproject Dependency Check" \
@@ -934,14 +934,14 @@ fi
 if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
     add_warning_check "Global: SQLAlchemy Return Methods" \
         "mise run root:sqlalchemy_return"
-    add_check "Global: Semgrep" "mise run root:semgrep_check"
-    add_check "Global: Ruff Linting" "mise run root:ruff_check"
+    add_check "Global: Semgrep" "mise run root:semgrep"
+    add_check "Global: Ruff Linting" "mise run root:ruff"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
 fi
 
 if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Type Check" "mise run web:typecheck"
-    add_check "Web-App: Prettier Check" "mise run web:prettier_check"
+    add_check "Web-App: Prettier Check" "mise run web:prettier"
     add_check "Web-App: Knip" "mise run web:knip"
     add_check "Web-App: Linting" "mise run web:lint"
     add_warning_check "Web-App: JSX Calculations" \

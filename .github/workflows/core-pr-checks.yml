@@ -34,16 +34,47 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Run Ruff linter
-        uses: astral-sh/ruff-action@v3
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
-          src: ./core
+          enable-cache: "true"
+          working-directory: core
 
-      - name: Run Ruff formatter
-        uses: astral-sh/ruff-action@v3
-        with:
-          args: format --check --diff
-          src: ./core
+      - name: install core project
+        working-directory: core
+        run: uv sync
+
+      - name: resolve root ruff requirement
+        run: |
+          python - <<'PY' >> "${GITHUB_ENV}"
+          import tomllib
+          from pathlib import Path
+
+          root_pyproject = Path("pyproject.toml")
+          deps = tomllib.loads(root_pyproject.read_text(encoding="utf-8"))[
+              "dependency-groups"
+          ]["dev"]
+          ruff_req = next((dep for dep in deps if dep.startswith("ruff")), None)
+
+          if ruff_req is None:
+              raise SystemExit(
+                  "ruff dependency not found in root pyproject.toml"
+              )
+
+          print(f"ROOT_RUFF_REQUIREMENT={ruff_req}")
+          PY
+
+      - name: run ruff check from root config and version
+        working-directory: core
+        run: >
+          uv run --with "${ROOT_RUFF_REQUIREMENT}" ruff check
+          --config ../pyproject.toml .
+
+      - name: run ruff format check from root config and version
+        working-directory: core
+        run: >
+          uv run --with "${ROOT_RUFF_REQUIREMENT}" ruff format --check --diff
+          --config ../pyproject.toml .
 
   semgrep_checks:
     runs-on: ubuntu-latest
@@ -67,16 +98,37 @@ jobs:
         uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
           enable-cache: "true"
+          working-directory: core
 
-      - name: install project
+      - name: install core project
+        working-directory: core
         run: uv sync
 
-      - name: run mypy
+      - name: resolve root mypy requirement
         run: |
-          ROOT_DIR="$(pwd)"
-          uv run --project "${ROOT_DIR}" --directory core --dev \
-            --with-editable "${ROOT_DIR}/core" \
-            mypy --config-file ../pyproject.toml src/
+          python - <<'PY' >> "${GITHUB_ENV}"
+          import tomllib
+          from pathlib import Path
+
+          root_pyproject = Path("pyproject.toml")
+          deps = tomllib.loads(root_pyproject.read_text(encoding="utf-8"))[
+              "dependency-groups"
+          ]["dev"]
+          mypy_req = next((dep for dep in deps if dep.startswith("mypy")), None)
+
+          if mypy_req is None:
+              raise SystemExit(
+                  "mypy dependency not found in root pyproject.toml"
+              )
+
+          print(f"ROOT_MYPY_REQUIREMENT={mypy_req}")
+          PY
+
+      - name: run mypy from root config and version
+        working-directory: core
+        run: >
+          uv run --with "${ROOT_MYPY_REQUIREMENT}" mypy
+          --config-file ../pyproject.toml src/
 
   validate-enums:
     runs-on: ubuntu-latest

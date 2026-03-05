@@ -29,7 +29,7 @@ done < <(
 )
 
 if [ "${#config_args[@]}" -eq 0 ]; then
-    echo "No semgrep rule configs found for root:semgrep_check."
+    echo "No semgrep rule configs found for root:semgrep."
     exit 1
 fi
 

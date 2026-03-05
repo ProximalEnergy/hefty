@@ -188,12 +188,12 @@ usage = '''
 '''
 run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-} ${usage_existing:+--existing}"
 
-[tasks."root:hardcoded_type_id_check"]
+[tasks."root:hardcoded_type_id"]
 description = "Run hardcoded type ID check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_type_id_check.sh"
 
-[tasks."root:hardcoded_name_shorts_check"]
+[tasks."root:hardcoded_name_shorts"]
 description = "Run hardcoded name shorts check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_name_shorts_check.sh"
@@ -203,7 +203,7 @@ description = "Warn on SQLAlchemy return methods in changed Python files"
 dir = "."
 run = "./_scripts/sqlalchemy_return_check.sh"
 
-[tasks."root:semgrep_check"]
+[tasks."root:semgrep"]
 description = "Run all semgrep quality checks on the monorepo"
 dir = "."
 run = "./_scripts/semgrep_check.sh"
@@ -230,7 +230,7 @@ description = "Automatically generate interfaces"
 dir = "."
 run = "./_scripts/sync_api_and_ts_types_and_enums.sh"
 
-[tasks."root:ruff_check"]
+[tasks."root:ruff"]
 description = "Run ruff linter on entire monorepo"
 dir = "."
 run = "uv run --dev ruff check core/ api/ microservices/ sql-admin/ pv-eem/"
@@ -257,7 +257,7 @@ description = "Run all quality checks for core"
 dir = "core"
 depends = [
   "core:types",
-  "core:ruff_check",
+  "core:ruff",
   "core:ruff_format",
   "core:star_syntax",
   "core:sqlalchemy",
@@ -287,7 +287,7 @@ description = "Run vulture for core"
 dir = "."
 run = "uv run vulture core/src/core --min-confidence 100"
 
-[tasks."core:ruff_check"]
+[tasks."core:ruff"]
 description = "Run ruff linter for core"
 dir = "."
 run = "uv run --dev ruff check core/"
@@ -372,7 +372,9 @@ run = '''
 echo "Generating alembic migration with description ${usage_description}"
 uv run alembic revision --autogenerate -m "${usage_description}"
 python3 _scripts/clean_alembic.py --latest
-uv run --dev ruff check --config ../pyproject.toml .
+ROOT_DIR="$(pwd)/.."
+uv run --project "${ROOT_DIR}" --dev ruff check \
+  --config "${ROOT_DIR}/pyproject.toml" .
 
 '''
 
@@ -395,7 +397,7 @@ description = "Run all quality checks for microservices"
 dir = "."
 depends = [
   "micro:types",
-  "micro:ruff_check",
+  "micro:ruff",
   "micro:ruff_format",
   "micro:star_syntax",
   "micro:sqlalchemy",
@@ -525,7 +527,7 @@ dst.write_text(re.sub(pattern, "", src, flags=re.MULTILINE))
 done
 """
 
-[tasks."micro:ruff_check"]
+[tasks."micro:ruff"]
 description = "Run ruff linter for microservices"
 dir = "."
 run = "uv run --dev ruff check microservices/"
@@ -784,7 +786,7 @@ description = "Run TypeScript check for web-app"
 dir = "web-app"
 run = "npm run typecheck"
 
-[tasks."web:prettier_check"]
+[tasks."web:prettier"]
 description = "Run Prettier check for web-app"
 dir = "web-app"
 run = "npm run prettier:check"
@@ -829,7 +831,7 @@ description = "Install dependencies for sql-admin"
 dir = "sql-admin"
 run = "uv sync"
 
-[tasks."sql-admin:ruff_check"]
+[tasks."sql-admin:ruff"]
 description = "Run ruff linter for sql-admin"
 dir = "."
 run = "uv run --dev ruff check sql-admin/"

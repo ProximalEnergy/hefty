@@ -35,7 +35,7 @@ mise run check --static
 ```bash
 mise run api:ruff       # Lint API
 mise run api:format     # Format API
-mise run core:ruff_check
+mise run core:ruff
 mise run core:ruff_format
 ```
 

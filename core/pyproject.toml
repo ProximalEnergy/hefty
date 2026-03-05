@@ -54,7 +54,6 @@ dev = [
     "pandas-stubs>=2.3.0,<3",
     "plotly>=6.3.1,<7",
     "pytest~=9.0",
-    "ruff>=0.14.0,<1",
 ]
 
 [tool.uv]
