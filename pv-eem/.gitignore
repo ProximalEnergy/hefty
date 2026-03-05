@@ -24,12 +24,18 @@ samconfig.toml
 
 # pveem generated test outputs (keep other fixtures trackable)
 /_tests/_artifacts/**/_combiner.pq
+/_tests/_artifacts/**/_combiner_*.pq
 /_tests/_artifacts/**/_interconnection.pq
+/_tests/_artifacts/**/_interconnection_*.pq
 /_tests/_artifacts/**/_inverter.pq
+/_tests/_artifacts/**/_inverter_*.pq
 /_tests/_artifacts/**/_plane_of_irradiance.pq
+/_tests/_artifacts/**/_plane_of_irradiance_*.pq
 /_tests/_artifacts/**/_plane_of_array_irradiance.pq
+/_tests/_artifacts/**/_plane_of_array_irradiance_*.pq
 /_tests/_artifacts/**/transformer.pq
 /_tests/_artifacts/**/_transformer.pq
+/_tests/_artifacts/**/_transformer_*.pq
 
 # no .DS_Store files
 .DS_Store

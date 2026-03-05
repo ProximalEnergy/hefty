@@ -1,11 +1,13 @@
 import asyncio
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
 from p02_simulation.p4_dc_iv.s02_single_diode_params import ModelSingleDiode
 from p02_simulation.p5_inverter.s00_dc_wiring_to_inverter import ModelDCWiringToInverter
+from p03_export.s00_simulation_level import SimulationLevel
 from plotly.subplots import make_subplots
 from src.main import get_expected_energy
 from src.p00_parse_input.simulation_temporal_mode import SimulationTemporalMode
@@ -16,10 +18,37 @@ from src.p02_simulation.p4_dc_iv.s06_iv_4_dc_wiring_to_combiner import (
     ModelDCWiringToCombiner,
 )
 
+from _tests.snapshot_test_helpers import (
+    build_output_file_path,
+    install_snapshot_inputs_loader_patch,
+    install_unique_export_patch,
+    remove_output_file_if_exists,
+)
+
 logger = logging.getLogger(__name__)
 
+SNAPSHOT_NAME = Path(__file__).stem
+TEST_NAME = "test_pvwatts_north_star"
+OUTPUT_NAMESPACE = f"{SNAPSHOT_NAME}_{TEST_NAME}"
+PROJECT_NAME_SHORT = "north_star"
+SIMULATION_START = "2025-08-07 00:00:00"
+SIMULATION_END = "2025-08-07 23:59:59"
+OUTPUT_FILE_PATH = build_output_file_path(
+    test_namespace=OUTPUT_NAMESPACE,
+    project_name_short=PROJECT_NAME_SHORT,
+    simulation_start=SIMULATION_START,
+    simulation_level=SimulationLevel.COMBINER,
+)
+STATIC_OUTPUT_FILE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "_artifacts"
+    / "north_star"
+    / "2025_08_07"
+    / "_combiner.pq"
+)
 
-def test_pvwatts_north_star():
+
+def test_pvwatts_north_star(monkeypatch):
     """Checks to see if a single day for a single combiner gives similar values
     PlantPredict simulation has:
         - 40% GCR
@@ -31,22 +60,33 @@ def test_pvwatts_north_star():
     pd.set_option("display.max_rows", None)
 
     # --- Constants ---
-    OUTPUT_FILE_NAME = "../../_artifacts/north_star/2025_08_07/_combiner.pq"
     PLANTPREDICT_FILE_NAME = "../../_artifacts/north_star/_plantpredict_combiner.csv"
     TIMEZONE = "America/Chicago"
     COMBINER_DEVICE_ID = 308
 
     # --- File Load ---
     os.environ["ENVIRONMENT"] = "VALIDATE"
+    install_snapshot_inputs_loader_patch(
+        monkeypatch=monkeypatch,
+        snapshot_name=SNAPSHOT_NAME,
+    )
+    install_unique_export_patch(
+        monkeypatch=monkeypatch,
+        test_namespace=OUTPUT_NAMESPACE,
+        static_output_files={
+            SimulationLevel.COMBINER: STATIC_OUTPUT_FILE_PATH,
+        },
+    )
+    remove_output_file_if_exists(output_file_path=OUTPUT_FILE_PATH)
 
     # --- Main Simulation ---
     results: dict = asyncio.run(
         get_expected_energy(
             # ARGS
-            project_name_short="north_star",
+            project_name_short=PROJECT_NAME_SHORT,
             simulation_temporal_mode=SimulationTemporalMode.WINDOW,
-            simulation_start="2025-08-07 00:00:00",
-            simulation_end="2025-08-07 23:59:59",
+            simulation_start=SIMULATION_START,
+            simulation_end=SIMULATION_END,
             # KWARGS
             sun_position_offset=0,
             use_poa_only=True,
@@ -58,18 +98,9 @@ def test_pvwatts_north_star():
             dc_wiring_to_inverter=ModelDCWiringToInverter.TARGET_STC,
         )
     )
+    assert results.get("status_code") == 200, results
 
-    if results["status_code"] != 200:
-        logger.info("%s", results)
-        raise ValueError("Simulation failed")
-
-    # Get the script's absolute directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Construct the output path
-    output_file_path = os.path.normpath(os.path.join(script_dir, OUTPUT_FILE_NAME))
-
-    simulation_outputs = pd.read_parquet(output_file_path)
+    simulation_outputs = pd.read_parquet(OUTPUT_FILE_PATH)
     logger.info("%s", list(simulation_outputs))
     simulation_outputs = simulation_outputs[
         simulation_outputs["device_id"] == COMBINER_DEVICE_ID
@@ -138,8 +169,8 @@ def test_pvwatts_north_star():
                     name=f"proximal_simulated_power (tier {tier})",
                     mode="markers"
                     if tier == 3
-                    else "lines+markers",  # Only markers for tier 3, lines+markers for
-                    # others
+                    else "lines+markers",  # Only markers for tier 3, lines+markers
+                    # for others
                     line=dict(color="blue", width=2),
                     marker=dict(
                         size=6

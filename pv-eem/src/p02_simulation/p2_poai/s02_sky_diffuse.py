@@ -12,6 +12,29 @@ from interfaces import (
 from p02_simulation._utils.data_combiner import MergeHow, merge_by_dimension
 from p02_simulation._utils.data_factorizer import factorize
 
+SKY_DIFFUSE_COLUMN_RENAMES = {
+    "poa_isotropic": "isotropic",
+    "poa_circumsolar": "circumsolar",
+    "poa_horizon": "horizon",
+}
+SKY_DIFFUSE_REQUIRED_COLUMNS = ["isotropic", "circumsolar", "horizon"]
+
+
+def normalize_sky_diffuse_components(*, sky_diffuse: pd.DataFrame) -> pd.DataFrame:
+    """Map pvlib sky diffuse component names to the expected internal names."""
+    normalized = sky_diffuse.rename(columns=SKY_DIFFUSE_COLUMN_RENAMES)
+    missing_columns = [
+        column
+        for column in SKY_DIFFUSE_REQUIRED_COLUMNS
+        if column not in normalized.columns
+    ]
+    if missing_columns:
+        raise KeyError(
+            "pvlib returned sky diffuse components without expected "
+            f"columns: {missing_columns}"
+        )
+    return normalized
+
 
 class ModelTransposition(StrEnum):
     """ModelTransposition."""
@@ -92,6 +115,7 @@ class SkyDiffuse:
 
         # Only positional indices allowed
         sky_diffuse = sky_diffuse.reset_index()
+        sky_diffuse = normalize_sky_diffuse_components(sky_diffuse=sky_diffuse)
 
         # --- MERGE ---
         outputs = pd.merge(
