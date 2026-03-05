@@ -1,4 +1,4 @@
-## Field Naming Guidlines
+## Field Naming Guidelines
 
 ```
 [Device Axis] + [Quantity] + (Unit) + (time axis)

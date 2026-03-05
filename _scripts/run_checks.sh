@@ -812,6 +812,7 @@ RUN_CORE=false
 RUN_API=false
 RUN_MICRO=false
 RUN_SQL_ADMIN=false
+RUN_KPI=false
 RUN_WEB=false
 RUN_PVEEM=false
 RUN_ROOT=false
@@ -836,7 +837,7 @@ if [ "${RUN_ALL}" = "false" ]; then
         RUN_SQL_ADMIN=true
     fi
     if diff_has '^kpi/'; then
-        :
+        RUN_KPI=true
     fi
     if diff_has '^web-app/'; then
         RUN_WEB=true
@@ -854,6 +855,7 @@ if [ "${RUN_ALL}" = "true" ]; then
     RUN_API=true
     RUN_MICRO=true
     RUN_SQL_ADMIN=true
+    RUN_KPI=true
     RUN_WEB=true
     # RUN_PVEEM=true
     RUN_ROOT=true
@@ -889,6 +891,10 @@ fi
 if [ "${RUN_SQL_ADMIN}" = "true" ]; then
     # We'll handle SQL-Admin linting in the global Ruff check
     :
+fi
+
+if [ "${RUN_KPI}" = "true" ]; then
+    add_check "KPI: Check" "mise run kpi:check"
 fi
 
 if [ "${RUN_API}" = "true" ]; then

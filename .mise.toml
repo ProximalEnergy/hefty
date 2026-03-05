@@ -584,6 +584,11 @@ description = "Check which kpi core dependency source is currently configured"
 dir = "kpi"
 run = "rg '^core = ' pyproject.toml"
 
+[tasks."kpi:check"]
+description = "Run KPI checks from repo root context"
+dir = "."
+run = "bash kpi/_scripts/check.sh"
+
 [tasks."api:check"]
 description = "Run all quality checks for api"
 dir = "api"
