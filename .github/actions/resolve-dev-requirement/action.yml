@@ -1,0 +1,83 @@
+name: Resolve Root Dev Requirement
+description: Resolve an exact dependency from root dependency-groups.
+
+inputs:
+  package-name:
+    description: Package name to resolve from dependency-groups.
+    required: true
+  dependency-group:
+    description: dependency-groups key in pyproject.toml.
+    required: false
+    default: dev
+  pyproject-path:
+    description: Path to pyproject.toml.
+    required: false
+    default: pyproject.toml
+
+outputs:
+  requirement:
+    description: Full requirement string from dependency-groups.
+    value: ${{ steps.resolve.outputs.requirement }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve requirement
+      id: resolve
+      shell: bash
+      env:
+        INPUT_PACKAGE_NAME: ${{ inputs.package-name }}
+        INPUT_DEPENDENCY_GROUP: ${{ inputs.dependency-group }}
+        INPUT_PYPROJECT_PATH: ${{ inputs.pyproject-path }}
+      run: |
+        set -euo pipefail
+
+        python - <<'PY'
+        import os
+        import re
+        import tomllib
+        from pathlib import Path
+
+        pyproject_path = Path(os.environ["INPUT_PYPROJECT_PATH"])
+        dependency_group = os.environ["INPUT_DEPENDENCY_GROUP"]
+        target_package = os.environ["INPUT_PACKAGE_NAME"]
+
+        pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+        dependency_groups = pyproject_data.get("dependency-groups", {})
+        dependencies = dependency_groups.get(dependency_group)
+
+        if not isinstance(dependencies, list):
+            raise SystemExit(
+                f"dependency group '{dependency_group}' not found in "
+                f"{pyproject_path}"
+            )
+
+        normalized_target = target_package.replace("_", "-").lower()
+
+        def requirement_name(requirement):
+            match = re.match(
+                r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)",
+                requirement,
+            )
+            if match is None:
+                return None
+            return match.group(1).replace("_", "-").lower()
+
+        requirement = next(
+            (
+                dep
+                for dep in dependencies
+                if requirement_name(dep) == normalized_target
+            ),
+            None,
+        )
+        if requirement is None:
+            raise SystemExit(
+                f"dependency '{target_package}' not found in "
+                f"{pyproject_path} group '{dependency_group}'"
+            )
+
+        output_path = Path(os.environ["GITHUB_OUTPUT"])
+        with output_path.open("a", encoding="utf-8") as output_file:
+            print(f"requirement={requirement}", file=output_file)
+        PY

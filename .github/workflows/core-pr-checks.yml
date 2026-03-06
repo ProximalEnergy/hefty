@@ -6,6 +6,7 @@ on:
     paths:
       - "core/**"
       - "_scripts/check_docstring_args.py"
+      - ".github/actions/resolve-dev-requirement/**"
       - ".github/workflows/core-pr-checks.yml"
       - ".github/actions/setup-uv-python-from-pyproject/**"
 
@@ -45,36 +46,21 @@ jobs:
         run: uv sync
 
       - name: resolve root ruff requirement
-        run: |
-          python - <<'PY' >> "${GITHUB_ENV}"
-          import tomllib
-          from pathlib import Path
-
-          root_pyproject = Path("pyproject.toml")
-          deps = tomllib.loads(root_pyproject.read_text(encoding="utf-8"))[
-              "dependency-groups"
-          ]["dev"]
-          ruff_req = next((dep for dep in deps if dep.startswith("ruff")), None)
-
-          if ruff_req is None:
-              raise SystemExit(
-                  "ruff dependency not found in root pyproject.toml"
-              )
-
-          print(f"ROOT_RUFF_REQUIREMENT={ruff_req}")
-          PY
+        id: resolve_ruff
+        uses: ./.github/actions/resolve-dev-requirement
+        with:
+          package-name: ruff
 
       - name: run ruff check from root config and version
-        working-directory: core
         run: >
-          uv run --with "${ROOT_RUFF_REQUIREMENT}" ruff check
-          --config ../pyproject.toml .
+          uv run --with "${{ steps.resolve_ruff.outputs.requirement }}" ruff check
+          --config pyproject.toml core
 
       - name: run ruff format check from root config and version
-        working-directory: core
         run: >
-          uv run --with "${ROOT_RUFF_REQUIREMENT}" ruff format --check --diff
-          --config ../pyproject.toml .
+          uv run --with "${{ steps.resolve_ruff.outputs.requirement }}" ruff
+          format --check --diff
+          --config pyproject.toml core
 
   semgrep_checks:
     runs-on: ubuntu-latest
@@ -105,29 +91,15 @@ jobs:
         run: uv sync
 
       - name: resolve root mypy requirement
-        run: |
-          python - <<'PY' >> "${GITHUB_ENV}"
-          import tomllib
-          from pathlib import Path
-
-          root_pyproject = Path("pyproject.toml")
-          deps = tomllib.loads(root_pyproject.read_text(encoding="utf-8"))[
-              "dependency-groups"
-          ]["dev"]
-          mypy_req = next((dep for dep in deps if dep.startswith("mypy")), None)
-
-          if mypy_req is None:
-              raise SystemExit(
-                  "mypy dependency not found in root pyproject.toml"
-              )
-
-          print(f"ROOT_MYPY_REQUIREMENT={mypy_req}")
-          PY
+        id: resolve_mypy
+        uses: ./.github/actions/resolve-dev-requirement
+        with:
+          package-name: mypy
 
       - name: run mypy from root config and version
         working-directory: core
         run: >
-          uv run --with "${ROOT_MYPY_REQUIREMENT}" mypy
+          uv run --with "${{ steps.resolve_mypy.outputs.requirement }}" mypy
           --config-file ../pyproject.toml src/
 
   validate-enums:

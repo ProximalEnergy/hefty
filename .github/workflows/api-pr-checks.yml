@@ -8,6 +8,7 @@ on:
       - "_scripts/check_docstring_args.py"
       - ".github/workflows/api-pr-checks.yml"
       - ".github/actions/install-hurl/**"
+      - ".github/actions/resolve-dev-requirement/**"
       - ".github/actions/setup-uv-python-from-pyproject/**"
 
 concurrency:
@@ -35,15 +36,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Run Ruff linter
-        uses: astral-sh/ruff-action@v3
+      - name: set up python
+        uses: ./.github/actions/setup-uv-python-from-pyproject
         with:
-          src: ./api
+          enable-cache: "true"
 
-      - name: Run Ruff formatter
-        uses: astral-sh/ruff-action@v3
+      - name: resolve root ruff requirement
+        id: resolve_ruff
+        uses: ./.github/actions/resolve-dev-requirement
         with:
-          args: format --check --diff ./api
+          package-name: ruff
+
+      - name: run ruff check from root config and version
+        run: >
+          uv run --with "${{ steps.resolve_ruff.outputs.requirement }}" ruff check
+          --config pyproject.toml api
+
+      - name: run ruff format check from root config and version
+        run: >
+          uv run --with "${{ steps.resolve_ruff.outputs.requirement }}" ruff
+          format --check --diff
+          --config pyproject.toml api
 
   semgrep:
     runs-on: ubuntu-latest
