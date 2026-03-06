@@ -24,7 +24,7 @@ def get_column_config(*, columns: list[str]) -> dict[str, st.column_config.Colum
         }
         if "kpi" in config:
             config["kpi"] = st.column_config.TextColumn(
-                "KPI", width="medium", pinned=True
+                "KPI", width="large", pinned=True
             )
         if "implemented" in config:
             config["implemented"] = st.column_config.CheckboxColumn(
@@ -34,7 +34,7 @@ def get_column_config(*, columns: list[str]) -> dict[str, st.column_config.Colum
     except TypeError:
         config = {col: st.column_config.Column(col, width="small") for col in columns}
         if "kpi" in config:
-            config["kpi"] = st.column_config.TextColumn("KPI", width="medium")
+            config["kpi"] = st.column_config.TextColumn("KPI", width="large")
         if "implemented" in config:
             config["implemented"] = st.column_config.CheckboxColumn(
                 "Implem.", width="small"
@@ -52,24 +52,16 @@ def get_sensor_column_config(
         }
         if "sensor_type" in config:
             config["sensor_type"] = st.column_config.TextColumn(
-                "Sensor Type", width="medium", pinned=True
+                "Sensor Type", width="large", pinned=True
             )
         return config
     except TypeError:
         config = {col: st.column_config.Column(col, width="small") for col in columns}
         if "sensor_type" in config:
             config["sensor_type"] = st.column_config.TextColumn(
-                "Sensor Type", width="medium"
+                "Sensor Type", width="large"
             )
         return config
-
-
-def get_table_height(*, row_count: int) -> int:
-    """Return dataframe height with a slightly larger max cap."""
-    min_height_px = 420
-    max_height_px = 500
-    estimated_height = 56 + max(row_count, 1) * 35
-    return max(min_height_px, min(max_height_px, estimated_height))
 
 
 def get_selected_projects(
@@ -87,7 +79,7 @@ def get_presets_file_path() -> Path:
 
 def load_presets_dict(
     *, file_path: Path
-) -> tuple[dict[str, dict[str, list[str]]], str | None]:
+) -> tuple[dict[str, dict[str, list[object]]], str | None]:
     """Load presets JSON into a dictionary."""
     if not file_path.exists():
         return {}, None
@@ -108,7 +100,7 @@ def load_presets_dict(
     if not isinstance(payload, dict):
         return {}, "Invalid presets format; using empty presets."
 
-    presets: dict[str, dict[str, list[str]]] = {}
+    presets: dict[str, dict[str, list[object]]] = {}
     for name, value in payload.items():
         if not isinstance(name, str) or not isinstance(value, dict):
             continue
@@ -118,13 +110,13 @@ def load_presets_dict(
             continue
         presets[name] = {
             "projects": [str(item) for item in projects],
-            "kpis": [str(item) for item in kpis],
+            "kpis": [int(item) if str(item).isdigit() else str(item) for item in kpis],
         }
     return presets, None
 
 
 def write_presets_dict(
-    *, file_path: Path, presets: dict[str, dict[str, list[str]]]
+    *, file_path: Path, presets: dict[str, dict[str, list[object]]]
 ) -> str | None:
     """Write presets dictionary to JSON."""
     try:
@@ -403,17 +395,23 @@ def load_kpi_matrix() -> pd.DataFrame:
         how="left",
     )
 
-    joined_df["kpi"] = joined_df["kpi_name"].fillna("Unknown KPI")
+    joined_df["kpi"] = joined_df.apply(
+        lambda row: (
+            f"{row['kpi_name']} ({int(row['kpi_type_id'])})"
+            if pd.notna(row["kpi_name"])
+            else f"Unknown KPI ({int(row['kpi_type_id'])})"
+        ),
+        axis=1,
+    )
     joined_df["implemented"] = joined_df["kpi_type_id"].isin(
         get_implemented_kpi_type_ids()
     )
     joined_df["latest_timestamp"] = pd.to_datetime(joined_df["latest_timestamp"])
 
-    matrix_df = joined_df.pivot_table(
+    matrix_df = joined_df.pivot(
         index=["kpi", "implemented", "kpi_type_id"],
         columns="project_name",
         values="latest_timestamp",
-        aggfunc="max",
     )
 
     matrix_df = matrix_df.sort_index(level=["kpi", "implemented", "kpi_type_id"])
@@ -496,16 +494,23 @@ def load_kpi_instance_status_matrix() -> pd.DataFrame:
     )
     merged_df["instance_status"] = merged_df["instance_status"].fillna("none")
 
+    merged_df["kpi"] = merged_df.apply(
+        lambda row: (
+            f"{row['kpi_name']} ({int(row['kpi_type_id'])})"
+            if pd.notna(row["kpi_name"])
+            else f"Unknown KPI ({int(row['kpi_type_id'])})"
+        ),
+        axis=1,
+    )
     matrix_df = merged_df.pivot_table(
-        index=["kpi_name", "kpi_type_id"],
+        index=["kpi", "kpi_type_id"],
         columns="project_name",
         values="instance_status",
         aggfunc="first",
     )
-    matrix_df = matrix_df.sort_index(level=["kpi_name", "kpi_type_id"])
+    matrix_df = matrix_df.sort_index(level=["kpi", "kpi_type_id"])
     matrix_df.columns.name = None
     display_df = matrix_df.reset_index().drop(columns=["kpi_type_id"])
-    display_df = display_df.rename(columns={"kpi_name": "kpi"})
     return display_df
 
 
@@ -574,7 +579,21 @@ def main() -> None:
     projects_df = load_projects()
     kpi_lookup_df = load_kpi_lookup()
     shared_project_options = projects_df["project_name"].dropna().astype(str).tolist()
-    kpi_options = sorted(kpi_lookup_df["kpi_name"].dropna().unique().tolist())
+    kpi_lookup_df = kpi_lookup_df.assign(
+        kpi_id_str=kpi_lookup_df["kpi_type_id"].astype(int).astype(str),
+        kpi_name=kpi_lookup_df["kpi_name"].astype(str),
+    )
+    kpi_id_to_name = dict(
+        zip(kpi_lookup_df["kpi_id_str"], kpi_lookup_df["kpi_name"], strict=False)
+    )
+    kpi_id_to_label = {
+        kpi_id: f"{kpi_name} ({kpi_id})" for kpi_id, kpi_name in kpi_id_to_name.items()
+    }
+    kpi_name_to_id = dict(
+        zip(kpi_lookup_df["kpi_name"], kpi_lookup_df["kpi_id_str"], strict=False)
+    )
+    kpi_label_to_id = {label: kpi_id for kpi_id, label in kpi_id_to_label.items()}
+    kpi_options = sorted(kpi_id_to_name.keys(), key=int)
 
     presets_file_path = get_presets_file_path()
     presets, presets_error = load_presets_dict(file_path=presets_file_path)
@@ -594,9 +613,18 @@ def main() -> None:
         for item in selected_preset.get("projects", [])
         if item in shared_project_options
     ]
-    preset_kpis = [
-        item for item in selected_preset.get("kpis", []) if item in kpi_options
-    ]
+    preset_kpis: list[str] = []
+    for item in selected_preset.get("kpis", []):
+        item_str = str(item)
+        if item_str in kpi_options:
+            preset_kpis.append(item_str)
+            continue
+        mapped_id = kpi_name_to_id.get(item_str)
+        if mapped_id is None:
+            mapped_id = kpi_label_to_id.get(item_str)
+        if mapped_id is not None:
+            preset_kpis.append(mapped_id)
+    preset_kpis = list(dict.fromkeys(preset_kpis))
     default_projects = (
         preset_projects if selected_preset_name else shared_project_options
     )
@@ -612,6 +640,9 @@ def main() -> None:
         "KPI",
         options=kpi_options,
         default=default_kpis,
+        format_func=lambda kpi_id: kpi_id_to_label.get(
+            kpi_id, f"Unknown KPI ({kpi_id})"
+        ),
         key=f"shared_kpis::{selected_preset_name or 'all'}",
     )
     preset_name_input = st.sidebar.text_input(
@@ -636,7 +667,7 @@ def main() -> None:
         else:
             presets[clean_name] = {
                 "projects": selected_shared_projects,
-                "kpis": selected_kpis,
+                "kpis": [int(kpi_id) for kpi_id in selected_kpis],
             }
             write_error = write_presets_dict(
                 file_path=presets_file_path,
@@ -665,20 +696,14 @@ def main() -> None:
 
     st.sidebar.caption(f"Presets file: `{presets_file_path.name}`")
 
-    selected_kpis = [
-        item for item in selected_kpis if item in set(kpi_options)
-    ]
+    selected_kpis = [item for item in selected_kpis if item in set(kpi_options)]
     selected_shared_projects = [
-        item
-        for item in selected_shared_projects
-        if item in set(shared_project_options)
+        item for item in selected_shared_projects if item in set(shared_project_options)
     ]
-    selected_kpi_ids = sorted(
-        kpi_lookup_df[kpi_lookup_df["kpi_name"].isin(selected_kpis)]["kpi_type_id"]
-        .astype(int)
-        .unique()
-        .tolist()
-    )
+    selected_kpi_ids = sorted({int(kpi_id) for kpi_id in selected_kpis})
+    selected_kpi_labels = [
+        kpi_id_to_label[kpi_id] for kpi_id in selected_kpis if kpi_id in kpi_id_to_label
+    ]
     selected_sensor_type_ids = set(
         get_sensor_type_ids_for_kpis(kpi_type_ids=selected_kpi_ids)
     )
@@ -693,20 +718,23 @@ def main() -> None:
     )
 
     with tab_instances:
-        kpi_matrix_df = load_kpi_matrix()
         kpi_status_df = load_kpi_instance_status_matrix()
-        matrix_df = kpi_matrix_df
-        filtered_df = matrix_df[matrix_df["kpi"].isin(selected_kpis)]
+        implemented_lookup = kpi_lookup_df.assign(
+            kpi=lambda df: df["kpi_name"] + " (" + df["kpi_id_str"].astype(str) + ")",
+            implemented=lambda df: df["kpi_type_id"].isin(
+                get_implemented_kpi_type_ids()
+            ),
+        )[["kpi", "implemented"]].drop_duplicates(subset=["kpi"])
+        filtered_df = (
+            kpi_status_df[kpi_status_df["kpi"].isin(selected_kpi_labels)]
+            .merge(implemented_lookup, on="kpi", how="left")
+            .fillna({"implemented": False})
+        )
         selected_projects = get_selected_projects(
             selected_projects=selected_shared_projects,
-            table_columns=matrix_df.columns.tolist(),
+            table_columns=filtered_df.columns.tolist(),
         )
-        status_filtered_df = kpi_status_df[kpi_status_df["kpi"].isin(selected_kpis)]
-        status_df = status_filtered_df.set_index("kpi").reindex(
-            filtered_df["kpi"].tolist()
-        )
-        status_df = status_df.reset_index(drop=True)
-        status_df = status_df.loc[:, selected_projects]
+        status_df = filtered_df.loc[:, selected_projects]
 
         instance_df = pd.DataFrame(
             {
@@ -732,7 +760,6 @@ def main() -> None:
         )
         st.dataframe(
             data=styled_instance_df,
-            height=get_table_height(row_count=len(instance_df)),
             width="stretch",
             hide_index=True,
             column_config=get_column_config(columns=instance_df.columns.tolist()),
@@ -741,7 +768,7 @@ def main() -> None:
     with tab_last_date:
         kpi_matrix_df = load_kpi_matrix()
         matrix_df = kpi_matrix_df
-        filtered_df = matrix_df[matrix_df["kpi"].isin(selected_kpis)]
+        filtered_df = matrix_df[matrix_df["kpi"].isin(selected_kpi_labels)]
         selected_projects = get_selected_projects(
             selected_projects=selected_shared_projects,
             table_columns=matrix_df.columns.tolist(),
@@ -758,7 +785,6 @@ def main() -> None:
 
         st.dataframe(
             data=styled_df,
-            height=get_table_height(row_count=len(date_df)),
             width="stretch",
             hide_index=True,
             column_config=get_column_config(columns=date_df.columns.tolist()),
@@ -783,7 +809,6 @@ def main() -> None:
 
         st.dataframe(
             data=display_df,
-            height=get_table_height(row_count=len(display_df)),
             width="stretch",
             hide_index=True,
             column_config=get_sensor_column_config(columns=display_df.columns.tolist()),
@@ -805,7 +830,6 @@ def main() -> None:
         )
         st.dataframe(
             data=styled_df,
-            height=get_table_height(row_count=len(display_df)),
             width="stretch",
             hide_index=True,
             column_config=get_sensor_column_config(columns=display_df.columns.tolist()),

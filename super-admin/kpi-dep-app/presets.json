@@ -1,16 +1,14 @@
 {
   "EEC Report": {
     "kpis": [
-      "BESS String Resting SOC",
-      "BESS String Energy Charged",
-      "BESS String Energy Discharged",
-      "BESS PCS Availability",
-      "BESS PCS Module Availability",
-      "BESS Project Charge Cycles",
-      "BESS Project Discharge Cycles",
-      "BESS String Availability",
-      "BESS Project Energy Charged",
-      "Project Energy Discharged"
+      30,
+      37,
+      58,
+      94,
+      96,
+      107,
+      35,
+      39
     ],
     "projects": [
       "Bexar",
