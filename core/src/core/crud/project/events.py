@@ -20,6 +20,7 @@ def get_windowed_events(
     deep: bool = False,
     include_underperformance: bool = True,
     failure_mode_ids: list[int] | None = None,
+    device_type_ids: list[int] | None = None,
 ) -> DbQuery[models.Event, Literal[False]]:
     """Query events that start before `end` and end after `start` or are ongoing.
 
@@ -29,14 +30,17 @@ def get_windowed_events(
         deep: Whether to eager-load related device data.
         include_underperformance: Include underperformance events when True.
         failure_mode_ids: Filter by a list of failure mode ids.
+        device_type_ids: Filter by a list of device type ids.
     """
     stmt = sa.select(models.Event).where(models.Event.time_start <= end)
     stmt = stmt.where(
         or_(models.Event.time_end >= start, models.Event.time_end.is_(None)),
     )
+
     options = []
     if deep:
         options.append(joinedload(models.Event.device))
+
     if not include_underperformance:
         options.append(joinedload(models.Event.failure_mode))
         stmt = stmt.where(
@@ -44,10 +48,19 @@ def get_windowed_events(
                 models.FailureMode.name_long.contains("Underperforming")
             )
         )
+
     if failure_mode_ids is not None:
         stmt = stmt.where(models.Event.failure_mode_id.in_(failure_mode_ids))
+
+    if device_type_ids is not None:
+        stmt = stmt.join(
+            models.Device, models.Event.device_id == models.Device.device_id
+        )
+        stmt = stmt.where(models.Device.device_type_id.in_(device_type_ids))
+
     if options:
         stmt = stmt.options(*options)
+
     return DbQuery(query=stmt)
 
 
