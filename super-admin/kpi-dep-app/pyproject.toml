@@ -1,0 +1,20 @@
+[project]
+name = "kpi-dep-app"
+version = "0.1.0"
+description = "Streamlit dependency app for KPI coverage"
+requires-python = ">=3.12.8,<3.13"
+dependencies = [
+    "core",
+    "kpi-pipeline",
+    "pandas~=2.3",
+    "sqlalchemy>=2.0,<3",
+    "streamlit~=1.55",
+]
+
+[tool.uv.sources]
+core = { path = "../../core", editable = true }
+kpi-pipeline = { path = "../../kpi", editable = true }
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
