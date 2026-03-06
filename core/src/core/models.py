@@ -882,6 +882,9 @@ class KPIType(Base):
     device_type_id: Mapped[int] = mapped_column(
         sa.ForeignKey("operational.device_types.device_type_id"),
     )
+    project_type_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("operational.project_types.project_type_id"),
+    )
     name_short: Mapped[str]
     name_long: Mapped[str]
     name_metric: Mapped[str]
