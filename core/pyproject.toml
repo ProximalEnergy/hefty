@@ -61,9 +61,10 @@ dev = [
 # Note: ruff and mypy configuration now lives in the root pyproject.toml
 # to unify linting logic across the monorepo
 
-[tool.pyright]
+[tool.basedpyright]
 venv = ".venv"
 venvPath = "."
+typeCheckingMode = "off"
 
 [tool.deptry]
 extend_exclude = ["_alembic_migrations/**"]
