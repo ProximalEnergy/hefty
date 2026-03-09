@@ -50,6 +50,8 @@ async def get_horizontal_bess(
     used_sensor_type_ids = project.spec.used_sensor_type_ids  # type: ignore
     if SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT in used_sensor_type_ids:
         bess_sensor_type_id = SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT
+    elif SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT in used_sensor_type_ids:
+        bess_sensor_type_id = SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT
     elif SensorTypeEnum.BESS_BANK_SOC_PERCENT in used_sensor_type_ids:
         bess_sensor_type_id = SensorTypeEnum.BESS_BANK_SOC_PERCENT
     elif SensorTypeEnum.BESS_STRING_SOC_PERCENT in used_sensor_type_ids:
@@ -77,6 +79,7 @@ async def get_horizontal_bess(
         SensorTypeEnum.PROJECT_SOC_PERCENT: "meter_soc",
         SensorTypeEnum.METER_ACTIVE_POWER: "meter_power",
         SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT: "battery",
+        SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT: "battery",
         SensorTypeEnum.BESS_BANK_SOC_PERCENT: "battery",
         SensorTypeEnum.BESS_STRING_SOC_PERCENT: "battery",
     }
@@ -343,17 +346,18 @@ async def get_vertical_controller(
     """
     SUPPORTED_DEVICE_TYPE_IDS_BY_TECHNOLOGY: dict[Literal["pv", "bess"], list[int]] = {
         "pv": [
-            2,  # "PV PCS",
-            3,  # "PV PCS Module",
-            9,  # "PV DC Combiner",
-            29,  # "Tracker Row",
+            DeviceType.PV_INVERTER,
+            DeviceType.PV_INVERTER_MODULE,
+            DeviceType.PV_DC_COMBINER,
+            DeviceType.TRACKER_ROW,
         ],
         "bess": [
-            13,  # "BESS PCS",
-            32,  # "BESS PCS Module Group",
-            33,  # "BESS PCS Module",
-            26,  # "BESS Bank",
-            27,  # "BESS String",
+            DeviceType.BESS_PCS,
+            DeviceType.BESS_PCS_MODULE_GROUP,
+            DeviceType.BESS_PCS_MODULE,
+            DeviceType.BESS_DC_SKID,
+            DeviceType.BESS_BANK,
+            DeviceType.BESS_STRING,
         ],
     }
 
@@ -503,16 +507,17 @@ async def get_vertical(
         end: Description for end.
     """
     SENSOR_TYPE_IDS_TO_LABEL: dict[int, str] = {
-        2: "Power (MW)",  # pv_inverter_ac_power
-        3: "Power (MW)",  # pv_inverter_ac_power_module
-        27: "Current (A)",  # pv_dc_combiner_current
-        24: "Position (deg)",  # tracker_row_position
-        31: "Power (MW)",  # bess_pcs_ac_power
-        121: "Power (MW)",  # bess_pcs_module_group_ac_power
-        106: "Power (MW)",  # bess_pcs_module_ac_power
-        43: "SOC",  # bess_dc_enclosure_soc
-        44: "SOC",  # bess_bank_soc
-        45: "SOC",  # bess_string_soc
+        SensorTypeEnum.PV_INVERTER_AC_POWER: "Power (MW)",
+        SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER: "Power (MW)",
+        SensorTypeEnum.PV_DC_COMBINER_CURRENT: "Current (A)",
+        SensorTypeEnum.TRACKER_POSITION: "Position (deg)",
+        SensorTypeEnum.BESS_PCS_AC_POWER: "Power (MW)",
+        SensorTypeEnum.BESS_PCS_MODULE_GROUP_AC_POWER: "Power (MW)",
+        SensorTypeEnum.BESS_PCS_MODULE_AC_POWER: "Power (MW)",
+        SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT: "SOC",
+        SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT: "SOC",
+        SensorTypeEnum.BESS_BANK_SOC_PERCENT: "SOC",
+        SensorTypeEnum.BESS_STRING_SOC_PERCENT: "SOC",  # bess_string_soc
     }
 
     # Get the tags associated with the device IDs and sensor type IDs

@@ -295,12 +295,13 @@ const SensorTypes = () => {
                       size="xs"
                       placeholder="Filter..."
                       value={columnFilters[col.key] ?? ''}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.currentTarget?.value ?? ''
                         setColumnFilters((prev) => ({
                           ...prev,
-                          [col.key]: e.currentTarget.value,
+                          [col.key]: value,
                         }))
-                      }
+                      }}
                     />
                   ) : null}
                 </Table.Th>

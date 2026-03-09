@@ -2,6 +2,7 @@ import { useGetUserType } from '@/api/admin'
 import {
   DeviceTypeEnum,
   ProjectTypeEnum,
+  SensorTypeEnum,
   UserTypeEnumEnum,
 } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
@@ -199,80 +200,128 @@ const Page = () => {
               disableQuickActions
               defaultRange="past-3-days"
             />
-            {project.data?.has_bess_enclosures && (
-              <CustomCard title="BESS DC Enclosure" style={{ flex: 1 }}>
-                <PlotlyPlot
-                  data={
-                    data.data?.bess_enclosure &&
-                    sortAndColorDevices(data.data.bess_enclosure).map((d) => ({
-                      x: d.x,
-                      y: d.y,
-                      name: d.name,
-                      line: { color: d.color },
-                    }))
-                  }
-                  layout={{
-                    yaxis: {
-                      title: { text: 'SOC (%)' },
-                      tickformat: ',.0%',
-                      range: [0, 1],
-                    },
-                  }}
-                  isLoading={data.isLoading}
-                  error={data.error}
-                />
-              </CustomCard>
-            )}
+            {/* {project.data?.has_bess_enclosures && ( */}
+            {project.data?.spec?.used_device_type_ids?.includes(
+              DeviceTypeEnum.BESS_ENCLOSURE,
+            ) &&
+              project.data?.spec?.used_sensor_type_ids?.includes(
+                SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT,
+              ) && (
+                <CustomCard title="BESS DC Enclosure" style={{ flex: 1 }}>
+                  <PlotlyPlot
+                    data={
+                      data.data?.bess_enclosure &&
+                      sortAndColorDevices(data.data.bess_enclosure).map(
+                        (d) => ({
+                          x: d.x,
+                          y: d.y,
+                          name: d.name,
+                          line: { color: d.color },
+                        }),
+                      )
+                    }
+                    layout={{
+                      yaxis: {
+                        title: { text: 'SOC (%)' },
+                        tickformat: ',.0%',
+                        range: [0, 1],
+                      },
+                    }}
+                    isLoading={data.isLoading}
+                    error={data.error}
+                  />
+                </CustomCard>
+              )}
 
-            {project.data?.has_bess_banks && (
-              <CustomCard title="BESS Bank" style={{ flex: 1 }}>
-                <PlotlyPlot
-                  data={
-                    data.data?.bess_bank &&
-                    sortAndColorDevices(data.data.bess_bank).map((d) => ({
-                      x: d.x,
-                      y: d.y,
-                      name: d.name,
-                      line: { color: d.color },
-                    }))
-                  }
-                  layout={{
-                    yaxis: {
-                      title: { text: 'SOC (%)' },
-                      tickformat: ',.0%',
-                      range: [0, 1],
-                    },
-                  }}
-                  isLoading={data.isLoading}
-                  error={data.error}
-                />
-              </CustomCard>
-            )}
+            {project.data?.spec?.used_device_type_ids?.includes(
+              DeviceTypeEnum.BESS_DC_SKID,
+            ) &&
+              project.data?.spec?.used_sensor_type_ids?.includes(
+                SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT,
+              ) && (
+                <CustomCard title="BESS DC Skid" style={{ flex: 1 }}>
+                  <PlotlyPlot
+                    data={
+                      data.data?.bess_dc_skid &&
+                      sortAndColorDevices(data.data.bess_dc_skid).map((d) => ({
+                        x: d.x,
+                        y: d.y,
+                        name: d.name,
+                        line: { color: d.color },
+                      }))
+                    }
+                    layout={{
+                      yaxis: {
+                        title: { text: 'SOC (%)' },
+                        tickformat: ',.0%',
+                        range: [0, 1],
+                      },
+                    }}
+                    isLoading={data.isLoading}
+                    error={data.error}
+                  />
+                </CustomCard>
+              )}
 
-            {project.data?.has_bess_strings && (
-              <CustomCard title="BESS String" style={{ flex: 1 }}>
-                <PlotlyPlot
-                  data={
-                    data.data?.bess_string &&
-                    sortAndColorDevices(data.data.bess_string).map((d) => ({
-                      x: d.x,
-                      y: d.y,
-                      name: d.name,
-                      line: { color: d.color },
-                    }))
-                  }
-                  layout={{
-                    yaxis: {
-                      title: { text: 'SOC (%)' },
-                      tickformat: ',.0%',
-                      range: [0, 1],
-                    },
-                  }}
-                  isLoading={data.isLoading}
-                  error={data.error}
-                />
-              </CustomCard>
-            )}
+            {project.data?.spec?.used_device_type_ids?.includes(
+              DeviceTypeEnum.BESS_BANK,
+            ) &&
+              project.data?.spec?.used_sensor_type_ids?.includes(
+                SensorTypeEnum.BESS_BANK_SOC_PERCENT,
+              ) && (
+                <CustomCard title="BESS Bank" style={{ flex: 1 }}>
+                  <PlotlyPlot
+                    data={
+                      data.data?.bess_bank &&
+                      sortAndColorDevices(data.data.bess_bank).map((d) => ({
+                        x: d.x,
+                        y: d.y,
+                        name: d.name,
+                        line: { color: d.color },
+                      }))
+                    }
+                    layout={{
+                      yaxis: {
+                        title: { text: 'SOC (%)' },
+                        tickformat: ',.0%',
+                        range: [0, 1],
+                      },
+                    }}
+                    isLoading={data.isLoading}
+                    error={data.error}
+                  />
+                </CustomCard>
+              )}
+
+            {project.data?.spec?.used_device_type_ids?.includes(
+              DeviceTypeEnum.BESS_STRING,
+            ) &&
+              project.data?.spec?.used_sensor_type_ids?.includes(
+                SensorTypeEnum.BESS_STRING_SOC_PERCENT,
+              ) && (
+                <CustomCard title="BESS String" style={{ flex: 1 }}>
+                  <PlotlyPlot
+                    data={
+                      data.data?.bess_string &&
+                      sortAndColorDevices(data.data.bess_string).map((d) => ({
+                        x: d.x,
+                        y: d.y,
+                        name: d.name,
+                        line: { color: d.color },
+                      }))
+                    }
+                    layout={{
+                      yaxis: {
+                        title: { text: 'SOC (%)' },
+                        tickformat: ',.0%',
+                        range: [0, 1],
+                      },
+                    }}
+                    isLoading={data.isLoading}
+                    error={data.error}
+                  />
+                </CustomCard>
+              )}
           </Stack>
         </Tabs.Panel>
 

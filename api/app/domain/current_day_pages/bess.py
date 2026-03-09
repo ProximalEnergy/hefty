@@ -34,6 +34,7 @@ async def get_bess_data(
     tags_df = await core.crud.project.tags.get_project_tags_v2(
         sensor_type_ids=[
             SensorType.BESS_ENCLOSURE_SOC_PERCENT,
+            SensorType.BESS_DC_SKID_SOC_PERCENT,
             SensorType.BESS_BANK_SOC_PERCENT,
             SensorType.BESS_STRING_SOC_PERCENT,
         ],
@@ -68,15 +69,16 @@ async def get_bess_data(
     return_data = {}
 
     sensor_type_id_to_name = {
-        43: "bess_enclosure",
-        44: "bess_bank",
-        45: "bess_string",
+        SensorType.BESS_ENCLOSURE_SOC_PERCENT: "bess_enclosure",
+        SensorType.BESS_DC_SKID_SOC_PERCENT: "bess_dc_skid",
+        SensorType.BESS_BANK_SOC_PERCENT: "bess_bank",
+        SensorType.BESS_STRING_SOC_PERCENT: "bess_string",
     }
 
     for sensor_type_id, tag_ids in sensor_type_id_to_tag_ids.items():
-        sensor_type_id_int = cast(int, sensor_type_id)
-        if sensor_type_id_int:
-            sensor_name = sensor_type_id_to_name[sensor_type_id_int]
+        if sensor_type_id:
+            sensor_type = SensorType(cast(int, sensor_type_id))
+            sensor_name = sensor_type_id_to_name[sensor_type]
             return_data[sensor_name] = [
                 {
                     "x": df.index.tolist(),

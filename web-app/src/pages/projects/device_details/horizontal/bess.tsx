@@ -1,4 +1,4 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetDeviceDetailsHorizontalBESS } from '@/api/v1/protected/web-application/projects/device-details/horizontal/bess'
 import CustomCard from '@/components/CustomCard'
@@ -136,7 +136,7 @@ const Page = () => {
   }
 
   return (
-    <Stack p="md" pb="xl" mih="100%">
+    <Stack p="md" h="100%">
       <PageTitle info="View all BESS PCSs and the highest level of the BESS hierarchy in a single view. Click on a single trace to zoom in to its vertical device detail view.">
         BESS Device Details
       </PageTitle>
@@ -176,6 +176,9 @@ const Page = () => {
             },
             yaxis: {
               title: { text: 'Power (MW)' },
+              range: project.data?.poi
+                ? [project.data.poi * 1.05 * -1, project.data.poi * 1.05]
+                : undefined,
             },
             yaxis2: {
               title: { text: 'State of Charge' },
@@ -184,6 +187,7 @@ const Page = () => {
               tickformat: ',.0%',
               showgrid: false,
               zeroline: false,
+              range: [-0.05, 1.05],
             },
             hovermode: 'closest',
             showlegend: false,
@@ -339,6 +343,8 @@ const Page = () => {
                       : 'State of Charge',
                 },
                 type: batteryChartType === 'heatmap' ? 'category' : undefined,
+                range:
+                  batteryChartType === 'heatmap' ? undefined : [-0.05, 1.05],
               },
               hovermode: 'closest',
             }}
@@ -357,11 +363,17 @@ function getBatteryTitle(usedSensorTypeIds: number[] | undefined) {
   if (!usedSensorTypeIds) {
     return undefined
   }
-  if (usedSensorTypeIds.includes(43)) {
-    return 'DC Enclosure'
-  } else if (usedSensorTypeIds.includes(44)) {
+  if (usedSensorTypeIds.includes(SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT)) {
+    return 'BESS DC Enclosure'
+  } else if (
+    usedSensorTypeIds.includes(SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT)
+  ) {
+    return 'BESS DC Skid'
+  } else if (usedSensorTypeIds.includes(SensorTypeEnum.BESS_BANK_SOC_PERCENT)) {
     return 'BESS Bank'
-  } else if (usedSensorTypeIds.includes(45)) {
+  } else if (
+    usedSensorTypeIds.includes(SensorTypeEnum.BESS_STRING_SOC_PERCENT)
+  ) {
     return 'BESS String'
   }
   return undefined

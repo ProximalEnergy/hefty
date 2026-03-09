@@ -21,6 +21,8 @@ interface UniqueTagType {
   project_name: string
   project_name_short: string
   sensor_type_id: number
+  device_type_id: number | null
+  device_type_name: string | null
   scada_type: string | null
   unit_scada: string | null
   unit_offset: number | null

@@ -1,5 +1,5 @@
 import { HexLoaderInline } from '@/HexLoaderInline'
-import { SensorTypeEnum } from '@/api/enumerations'
+import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetDevicesInViewport } from '@/api/v1/analytics/gis'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetRealTimeByDeviceTypeID } from '@/api/v1/protected/web-application/projects/real_time'
@@ -49,26 +49,54 @@ import { HoverInfo } from './utils'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-// Device type IDs for BESS domain
-// 13: BESS PCS, 11: BESS DC Enclosure, 27: BESS String
-const DT_BESS_PCS = 13
-const DT_BESS_DC_ENCLOSURE = 11
-const DT_BESS_STRING = 27
-
 // Zoom levels
-const ZOOM_LEVEL_1 = 20.1 // PCS and DC Enclosure (default a bit closer)
-const ZOOM_LEVEL_2 = 19 // BESS String
+const ZOOM_LEVEL_DC_ENCLOSURE = 18
+const ZOOM_LEVEL_DC_SKID = 19
+const ZOOM_LEVEL_BANK = 20
+const ZOOM_LEVEL_STRING = 20.1
 
 // --- Layer Lock Configuration ---
 // Defines the parameters for each view that can be locked
 const layerLockConfig = {
   'PCS + DC Enclosure': {
-    deviceTypeIds: [DT_BESS_PCS, DT_BESS_DC_ENCLOSURE] as number[],
-    zoom: ZOOM_LEVEL_1,
+    deviceTypeIds: [DeviceTypeEnum.BESS_PCS, DeviceTypeEnum.BESS_ENCLOSURE],
+    zoom: ZOOM_LEVEL_DC_ENCLOSURE,
+  },
+  'PCS + DC Skid': {
+    deviceTypeIds: [DeviceTypeEnum.BESS_PCS, DeviceTypeEnum.BESS_DC_SKID],
+    zoom: ZOOM_LEVEL_DC_SKID,
+  },
+  'PCS + Bank': {
+    deviceTypeIds: [DeviceTypeEnum.BESS_PCS, DeviceTypeEnum.BESS_BANK],
+    zoom: ZOOM_LEVEL_BANK,
   },
   'PCS + String': {
-    deviceTypeIds: [DT_BESS_STRING, DT_BESS_PCS] as number[],
-    zoom: ZOOM_LEVEL_2,
+    deviceTypeIds: [DeviceTypeEnum.BESS_STRING, DeviceTypeEnum.BESS_PCS],
+    zoom: ZOOM_LEVEL_STRING,
+  },
+}
+
+type LayerViewName = keyof typeof layerLockConfig
+
+const layerRequirements: Record<
+  LayerViewName,
+  { deviceTypeId: number; sensorTypeId: number }
+> = {
+  'PCS + DC Enclosure': {
+    deviceTypeId: DeviceTypeEnum.BESS_ENCLOSURE,
+    sensorTypeId: SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT,
+  },
+  'PCS + DC Skid': {
+    deviceTypeId: DeviceTypeEnum.BESS_DC_SKID,
+    sensorTypeId: SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT,
+  },
+  'PCS + Bank': {
+    deviceTypeId: DeviceTypeEnum.BESS_BANK,
+    sensorTypeId: SensorTypeEnum.BESS_BANK_SOC_PERCENT,
+  },
+  'PCS + String': {
+    deviceTypeId: DeviceTypeEnum.BESS_STRING,
+    sensorTypeId: SensorTypeEnum.BESS_STRING_SOC_PERCENT,
   },
 }
 
@@ -77,6 +105,55 @@ const COLOR_NON_COMM = '#1C7ED6'
 const OPACITY_NON_COMM = 0.5
 
 const FIT_BOUNDS_PADDING = { top: 25, bottom: 25, left: 65, right: 65 }
+
+function getViewNameForZoom({
+  zoom,
+  layerAvailability,
+}: {
+  zoom: number
+  layerAvailability: Record<LayerViewName, boolean>
+}): LayerViewName {
+  const candidateViews: LayerViewName[] =
+    zoom >= ZOOM_LEVEL_STRING
+      ? ['PCS + String', 'PCS + Bank', 'PCS + DC Skid', 'PCS + DC Enclosure']
+      : zoom >= ZOOM_LEVEL_BANK
+        ? ['PCS + Bank', 'PCS + DC Skid', 'PCS + DC Enclosure', 'PCS + String']
+        : zoom >= ZOOM_LEVEL_DC_SKID
+          ? [
+              'PCS + DC Skid',
+              'PCS + DC Enclosure',
+              'PCS + Bank',
+              'PCS + String',
+            ]
+          : [
+              'PCS + DC Enclosure',
+              'PCS + DC Skid',
+              'PCS + Bank',
+              'PCS + String',
+            ]
+
+  return (
+    candidateViews.find((viewName) => layerAvailability[viewName]) ??
+    'PCS + DC Enclosure'
+  )
+}
+
+function getHighestAvailableViewName({
+  layerAvailability,
+}: {
+  layerAvailability: Record<LayerViewName, boolean>
+}): LayerViewName {
+  return (
+    (
+      [
+        'PCS + DC Enclosure',
+        'PCS + DC Skid',
+        'PCS + Bank',
+        'PCS + String',
+      ] as LayerViewName[]
+    ).find((viewName) => layerAvailability[viewName]) ?? 'PCS + DC Enclosure'
+  )
+}
 
 function AdaptiveGisBESS() {
   const context = useContext(GISContext)
@@ -88,14 +165,13 @@ function AdaptiveGisBESS() {
     x: 0,
     y: 0,
   })
-  // Initialize to a slightly more zoomed-out value than ZOOM_LEVEL_2 so
-  // the default view corresponds to PCS + DC Enclosure
-  const [zoom, setZoom] = useState(ZOOM_LEVEL_2 - 1)
+  const [zoom, setZoom] = useState(ZOOM_LEVEL_DC_SKID - 1)
   const blankMapStyle = gisUtils.useBlankMapStyle()
   const mapRef = useRef<MapRef>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mouseDownPos = useRef<{ x: number; y: number } | null>(null)
   const initialFitDoneRef = useRef(false)
+  const initialLayerSelectionDoneRef = useRef(false)
   // Global pulse (0..1) used for heartbeat glow
   const [pulse, setPulse] = useState(0)
   // Glow defaults (non-debug)
@@ -109,7 +185,9 @@ function AdaptiveGisBESS() {
     number[] | null
   >(null)
   const [lockedZoom, setLockedZoom] = useState<number | null>(null)
-  const [lockedViewName, setLockedViewName] = useState<string | null>(null)
+  const [lockedViewName, setLockedViewName] = useState<LayerViewName | null>(
+    null,
+  )
 
   const project = useSelectProject(projectId!)
 
@@ -150,30 +228,55 @@ function AdaptiveGisBESS() {
     return { north: 40.0, east: -95.0, south: 35.0, west: -99.0 }
   }, [projectBounds])
 
-  // DC Enclosure SOC in project spec: if not assigned, only show PCS + String layer
-  const hasEnclosureSOC = useMemo(() => {
+  const layerAvailability = useMemo<Record<LayerViewName, boolean>>(() => {
+    const usedDeviceTypeIds = new Set(
+      project.data?.spec?.used_device_type_ids ?? [],
+    )
     const usedSensorTypeIds = project.data?.spec?.used_sensor_type_ids ?? []
-    return usedSensorTypeIds.includes(SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT)
-  }, [project.data?.spec?.used_sensor_type_ids])
+    return (Object.keys(layerRequirements) as LayerViewName[]).reduce(
+      (availability, layerName) => {
+        const requirement = layerRequirements[layerName]
+        availability[layerName] =
+          usedDeviceTypeIds.has(requirement.deviceTypeId) &&
+          usedSensorTypeIds.includes(requirement.sensorTypeId)
+        return availability
+      },
+      {} as Record<LayerViewName, boolean>,
+    )
+  }, [
+    project.data?.spec?.used_device_type_ids,
+    project.data?.spec?.used_sensor_type_ids,
+  ])
 
-  // Pick device types: when project has no DC Enclosure SOC, only PCS + String.
-  // Otherwise zoom-based: zoom >= ZOOM_LEVEL_2 -> Strings + PCS, else PCS + DC Enclosures.
+  const currentViewName = useMemo<LayerViewName>(() => {
+    return getViewNameForZoom({ zoom, layerAvailability })
+  }, [zoom, layerAvailability])
+
+  useEffect(() => {
+    if (initialLayerSelectionDoneRef.current || !project.data) return
+
+    const highestAvailableViewName = getHighestAvailableViewName({
+      layerAvailability,
+    })
+    setZoom(layerLockConfig[highestAvailableViewName].zoom)
+    initialLayerSelectionDoneRef.current = true
+  }, [layerAvailability, project.data])
+
+  // Pick device types based on the current zoom tier.
   const dynamicDeviceTypeIds = useMemo(() => {
-    if (!hasEnclosureSOC || zoom >= ZOOM_LEVEL_2) {
-      return [DT_BESS_STRING, DT_BESS_PCS]
-    }
-    return [DT_BESS_PCS, DT_BESS_DC_ENCLOSURE]
-  }, [zoom, hasEnclosureSOC])
+    return layerLockConfig[currentViewName].deviceTypeIds
+  }, [currentViewName])
 
-  // When project has no DC Enclosure SOC, treat "PCS + DC Enclosure" lock as off
   const effectiveIsViewLocked =
-    isViewLocked && (hasEnclosureSOC || lockedViewName !== 'PCS + DC Enclosure')
+    isViewLocked &&
+    lockedViewName !== null &&
+    layerAvailability[lockedViewName] === true
   const deviceTypeIdsToFetch = effectiveIsViewLocked
     ? (lockedDeviceTypeIds ?? dynamicDeviceTypeIds)
     : dynamicDeviceTypeIds
 
   // For power data enrichment from backend, request the power device type
-  const powerDeviceTypeIdToFetch = useMemo(() => DT_BESS_PCS, [])
+  const powerDeviceTypeIdToFetch = useMemo(() => DeviceTypeEnum.BESS_PCS, [])
 
   const viewportDevices = useGetDevicesInViewport({
     pathParams: { projectId: projectId || '-1' },
@@ -189,11 +292,15 @@ function AdaptiveGisBESS() {
   })
 
   // --- Real-time latest values via protected endpoint (fast, single-shot) ---
-  const REALTIME_SENSOR_IDS = [31, 80, 81] // ac_power, available_charge, available_discharge
+  const REALTIME_SENSOR_IDS = [
+    SensorTypeEnum.BESS_PCS_AC_POWER,
+    SensorTypeEnum.BESS_PCS_AVAILABLE_CHARGE_POWER,
+    SensorTypeEnum.BESS_PCS_AVAILABLE_DISCHARGE_POWER,
+  ]
   const pcsRealtime = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: DT_BESS_PCS,
+      deviceTypeId: DeviceTypeEnum.BESS_PCS,
     },
     queryParams: {
       sensor_type_ids: REALTIME_SENSOR_IDS,
@@ -210,30 +317,62 @@ function AdaptiveGisBESS() {
   const stringSocRealtime = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: DT_BESS_STRING,
+      deviceTypeId: DeviceTypeEnum.BESS_STRING,
     },
     queryParams: {
       sensor_type_ids: [SensorTypeEnum.BESS_STRING_SOC_PERCENT],
     },
     queryOptions: {
-      enabled: !!projectId,
+      enabled: !!projectId && layerAvailability['PCS + String'],
       refetchOnWindowFocus: false,
       refetchInterval: 30_000,
       staleTime: 15_000,
     },
   })
 
-  // Fetch BESS DC Enclosure SOC - only if available in project (hasEnclosureSOC)
+  // Fetch BESS DC Enclosure SOC only when this layer is available in the project
   const enclosureSocRealtime = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
-      deviceTypeId: DT_BESS_DC_ENCLOSURE,
+      deviceTypeId: DeviceTypeEnum.BESS_ENCLOSURE,
     },
     queryParams: {
       sensor_type_ids: [SensorTypeEnum.BESS_ENCLOSURE_SOC_PERCENT],
     },
     queryOptions: {
-      enabled: !!projectId && hasEnclosureSOC,
+      enabled: !!projectId && layerAvailability['PCS + DC Enclosure'],
+      refetchOnWindowFocus: false,
+      refetchInterval: 30_000,
+      staleTime: 15_000,
+    },
+  })
+
+  const dcSkidSocRealtime = useGetRealTimeByDeviceTypeID({
+    pathParams: {
+      projectId: projectId || '-1',
+      deviceTypeId: DeviceTypeEnum.BESS_DC_SKID,
+    },
+    queryParams: {
+      sensor_type_ids: [SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT],
+    },
+    queryOptions: {
+      enabled: !!projectId && layerAvailability['PCS + DC Skid'],
+      refetchOnWindowFocus: false,
+      refetchInterval: 30_000,
+      staleTime: 15_000,
+    },
+  })
+
+  const bankSocRealtime = useGetRealTimeByDeviceTypeID({
+    pathParams: {
+      projectId: projectId || '-1',
+      deviceTypeId: DeviceTypeEnum.BESS_BANK,
+    },
+    queryParams: {
+      sensor_type_ids: [SensorTypeEnum.BESS_BANK_SOC_PERCENT],
+    },
+    queryOptions: {
+      enabled: !!projectId && layerAvailability['PCS + Bank'],
       refetchOnWindowFocus: false,
       refetchInterval: 30_000,
       staleTime: 15_000,
@@ -245,7 +384,7 @@ function AdaptiveGisBESS() {
   const stringDevicesForFallback = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
-      device_type_ids: [DT_BESS_STRING],
+      device_type_ids: [DeviceTypeEnum.BESS_STRING],
       fields: ['device_id', 'parent_device_id'],
     },
     queryOptions: {
@@ -284,7 +423,7 @@ function AdaptiveGisBESS() {
 
     // Debug logging removed
 
-    if (hasEnclosureSOC && enclosureSocRealtime.data) {
+    if (layerAvailability['PCS + DC Enclosure'] && enclosureSocRealtime.data) {
       // Use direct enclosure SOC values from realtime endpoint
       const { device_ids, traces } = enclosureSocRealtime.data
       const socTrace = traces.find(
@@ -307,7 +446,7 @@ function AdaptiveGisBESS() {
     ) {
       // Calculate average SOC of child strings for each enclosure
       const enclosureDevices = (viewportDevices.data || []).filter(
-        (d) => d.device_type_id === DT_BESS_DC_ENCLOSURE,
+        (d) => d.device_type_id === DeviceTypeEnum.BESS_ENCLOSURE,
       )
       // Use fetched string devices for parent_device_id relationships
       const stringDevices = stringDevicesForFallback.data || []
@@ -344,12 +483,50 @@ function AdaptiveGisBESS() {
 
     return map
   }, [
-    hasEnclosureSOC,
+    layerAvailability,
     enclosureSocRealtime.data,
     viewportDevices.data,
     stringSocByDevice,
     stringDevicesForFallback.data,
   ])
+
+  const dcSkidSocByDevice = useMemo(() => {
+    const map: Record<number, number | null> = {}
+    if (!dcSkidSocRealtime.data) return map
+    const { device_ids, traces } = dcSkidSocRealtime.data
+    const socTrace = traces.find(
+      (t) => t.sensor_type_id === SensorTypeEnum.BESS_DC_SKID_SOC_PERCENT,
+    )
+    if (socTrace) {
+      socTrace.values.forEach((v, idx) => {
+        const did = device_ids[idx]
+        if (did !== undefined) {
+          const socValue = v as number | null
+          map[did] = socValue !== null ? socValue * 100 : null
+        }
+      })
+    }
+    return map
+  }, [dcSkidSocRealtime.data])
+
+  const bankSocByDevice = useMemo(() => {
+    const map: Record<number, number | null> = {}
+    if (!bankSocRealtime.data) return map
+    const { device_ids, traces } = bankSocRealtime.data
+    const socTrace = traces.find(
+      (t) => t.sensor_type_id === SensorTypeEnum.BESS_BANK_SOC_PERCENT,
+    )
+    if (socTrace) {
+      socTrace.values.forEach((v, idx) => {
+        const did = device_ids[idx]
+        if (did !== undefined) {
+          const socValue = v as number | null
+          map[did] = socValue !== null ? socValue * 100 : null
+        }
+      })
+    }
+    return map
+  }, [bankSocRealtime.data])
 
   // Build realtime lookup per device for quick access when building features
   const pcsRealtimeByDevice = useMemo(() => {
@@ -373,6 +550,7 @@ function AdaptiveGisBESS() {
   // Reset initial fit ref when projectId changes
   useEffect(() => {
     initialFitDoneRef.current = false
+    initialLayerSelectionDoneRef.current = false
   }, [projectId])
 
   // Reset map ready state when projectId changes (using a ref to avoid cascading renders)
@@ -474,12 +652,9 @@ function AdaptiveGisBESS() {
     const effectiveZoom = effectiveIsViewLocked ? (lockedZoom ?? zoom) : zoom
 
     const features: Feature[] = []
-    // When project has no DC Enclosure SOC we only show PCS + String; else use lock/zoom
-    const isStringsView =
-      !hasEnclosureSOC ||
-      (effectiveIsViewLocked
-        ? (lockedDeviceTypeIds?.includes(DT_BESS_STRING) ?? false)
-        : effectiveZoom >= ZOOM_LEVEL_2)
+    const activeViewName = effectiveIsViewLocked
+      ? (lockedViewName ?? currentViewName)
+      : currentViewName
 
     viewportDevices.data.forEach((device) => {
       const latestActualPower =
@@ -508,11 +683,11 @@ function AdaptiveGisBESS() {
         glow_intensity: adjustedIntensity,
       }
 
-      if (isStringsView) {
-        // Zoom level 2: render BESS String and PCS polygons if available
+      if (activeViewName === 'PCS + String') {
+        // Most detailed view: render BESS String and PCS polygons if available
         if (
-          (device.device_type_id === DT_BESS_STRING ||
-            device.device_type_id === DT_BESS_PCS) &&
+          (device.device_type_id === DeviceTypeEnum.BESS_STRING ||
+            device.device_type_id === DeviceTypeEnum.BESS_PCS) &&
           device.polygon &&
           Array.isArray(device.polygon.coordinates) &&
           device.polygon.coordinates.length > 0
@@ -522,7 +697,7 @@ function AdaptiveGisBESS() {
 
           // Calculate normalized AC power for PCS (per-unit: -1 = full charge, 0 = idle, 1 = full discharge)
           const pcsAcPowerNormalized =
-            device.device_type_id === DT_BESS_PCS
+            device.device_type_id === DeviceTypeEnum.BESS_PCS
               ? normalizePcsAcPower(pcsVals[31], device.capacity_ac)
               : null
 
@@ -543,10 +718,66 @@ function AdaptiveGisBESS() {
             geometry: device.polygon as GeoJSON.MultiPolygon,
           })
         }
-      } else {
-        // Zoom level 1: render PCS and DC Enclosures polygons
+      } else if (activeViewName === 'PCS + DC Skid') {
         if (
-          device.device_type_id === DT_BESS_PCS &&
+          (device.device_type_id === DeviceTypeEnum.BESS_DC_SKID ||
+            device.device_type_id === DeviceTypeEnum.BESS_PCS) &&
+          device.polygon &&
+          Array.isArray(device.polygon.coordinates) &&
+          device.polygon.coordinates.length > 0
+        ) {
+          const dcSkidSoc = dcSkidSocByDevice[device.device_id] ?? null
+          const pcsAcPowerNormalized =
+            device.device_type_id === DeviceTypeEnum.BESS_PCS
+              ? normalizePcsAcPower(pcsVals[31], device.capacity_ac)
+              : null
+
+          features.push({
+            type: 'Feature',
+            properties: {
+              ...baseProps,
+              renderType: 'polygon',
+              pcs_val_31: pcsVals[31] ?? null,
+              pcs_val_80: pcsVals[80] ?? null,
+              pcs_val_81: pcsVals[81] ?? null,
+              pcs_ac_power_normalized: pcsAcPowerNormalized,
+              soc_percent: dcSkidSoc,
+            },
+            geometry: device.polygon as GeoJSON.MultiPolygon,
+          })
+        }
+      } else if (activeViewName === 'PCS + Bank') {
+        if (
+          (device.device_type_id === DeviceTypeEnum.BESS_BANK ||
+            device.device_type_id === DeviceTypeEnum.BESS_PCS) &&
+          device.polygon &&
+          Array.isArray(device.polygon.coordinates) &&
+          device.polygon.coordinates.length > 0
+        ) {
+          const bankSoc = bankSocByDevice[device.device_id] ?? null
+          const pcsAcPowerNormalized =
+            device.device_type_id === DeviceTypeEnum.BESS_PCS
+              ? normalizePcsAcPower(pcsVals[31], device.capacity_ac)
+              : null
+
+          features.push({
+            type: 'Feature',
+            properties: {
+              ...baseProps,
+              renderType: 'polygon',
+              pcs_val_31: pcsVals[31] ?? null,
+              pcs_val_80: pcsVals[80] ?? null,
+              pcs_val_81: pcsVals[81] ?? null,
+              pcs_ac_power_normalized: pcsAcPowerNormalized,
+              soc_percent: bankSoc,
+            },
+            geometry: device.polygon as GeoJSON.MultiPolygon,
+          })
+        }
+      } else {
+        // Least detailed view: render PCS and DC Enclosures polygons
+        if (
+          device.device_type_id === DeviceTypeEnum.BESS_PCS &&
           device.polygon &&
           Array.isArray(device.polygon.coordinates) &&
           device.polygon.coordinates.length > 0
@@ -573,7 +804,7 @@ function AdaptiveGisBESS() {
           })
         }
         if (
-          device.device_type_id === DT_BESS_DC_ENCLOSURE &&
+          device.device_type_id === DeviceTypeEnum.BESS_ENCLOSURE &&
           device.polygon &&
           Array.isArray(device.polygon.coordinates) &&
           device.polygon.coordinates.length > 0
@@ -597,13 +828,15 @@ function AdaptiveGisBESS() {
   }, [
     viewportDevices.data,
     zoom,
-    hasEnclosureSOC,
     effectiveIsViewLocked,
     lockedZoom,
-    lockedDeviceTypeIds,
+    lockedViewName,
+    currentViewName,
     pcsRealtimeByDevice,
     stringSocByDevice,
     enclosureSocByDevice,
+    dcSkidSocByDevice,
+    bankSocByDevice,
   ])
 
   // Calculate bounds from actual GeoJSON data for tighter fit
@@ -658,12 +891,6 @@ function AdaptiveGisBESS() {
     else setHoverInfo({ feature: null, x: 0, y: 0 })
   }, [])
 
-  // Current view name: when no enclosure SOC or zoomed in, PCS + String; else PCS + DC Enclosure
-  const currentViewName = useMemo(() => {
-    if (!hasEnclosureSOC || zoom >= ZOOM_LEVEL_2) return 'PCS + String'
-    return 'PCS + DC Enclosure'
-  }, [zoom, hasEnclosureSOC])
-
   // --- Lock Toggle Handler ---
   const handleLockToggle = () => {
     if (effectiveIsViewLocked) {
@@ -685,7 +912,9 @@ function AdaptiveGisBESS() {
   }
 
   // --- Handler for Locking to a specific layer from the dropdown ---
-  const handleLockToLayer = (layerName: keyof typeof layerLockConfig) => {
+  const handleLockToLayer = (layerName: LayerViewName) => {
+    if (!layerAvailability[layerName]) return
+
     const config = layerLockConfig[layerName]
 
     setIsViewLocked(true)
@@ -714,7 +943,7 @@ function AdaptiveGisBESS() {
           style={{ height: '100%', width: '100%', position: 'relative' }}
         >
           {viewportDevices.isFetching &&
-            (zoom >= ZOOM_LEVEL_2 || effectiveIsViewLocked) && (
+            (zoom >= ZOOM_LEVEL_DC_SKID || effectiveIsViewLocked) && (
               <Box
                 style={{
                   position: 'absolute',
@@ -818,7 +1047,10 @@ function AdaptiveGisBESS() {
                         const deviceId = first.properties?.device_id
                         const deviceTypeId = first.properties?.device_type_id
                         // Temporarily disable navigation for DC Enclosures
-                        if (deviceId && deviceTypeId !== DT_BESS_DC_ENCLOSURE) {
+                        if (
+                          deviceId &&
+                          deviceTypeId !== DeviceTypeEnum.BESS_ENCLOSURE
+                        ) {
                           navigate(
                             `/projects/${projectId}/device-details/vertical?device_id=${deviceId}`,
                           )
@@ -849,22 +1081,12 @@ function AdaptiveGisBESS() {
                     paint={{
                       'fill-color': [
                         'case',
-                        // BESS String colored by SOC: red (low) → yellow (mid) → bright green (high)
-                        ['==', ['get', 'device_type_id'], DT_BESS_STRING],
+                        // BESS Non-PCS colored by SOC: red (low) → yellow (mid) → bright green (high)
                         [
-                          'interpolate',
-                          ['linear'],
-                          ['coalesce', ['get', 'soc_percent'], -1],
-                          0,
-                          '#D50000', // red for low SOC
-                          50,
-                          '#FFEB3B', // yellow for mid SOC
-                          100,
-                          '#00C853', // bright green for high SOC
+                          '!=',
+                          ['get', 'device_type_id'],
+                          DeviceTypeEnum.BESS_PCS,
                         ],
-
-                        // BESS DC Enclosures by SOC: red (low) → yellow (mid) → bright green (high)
-                        ['==', ['get', 'device_type_id'], DT_BESS_DC_ENCLOSURE],
                         [
                           'interpolate',
                           ['linear'],
@@ -878,7 +1100,11 @@ function AdaptiveGisBESS() {
                         ],
 
                         // PCS colored by normalized AC power: dark red (full charge, negative) → gray (idle) → dark green (full discharge, positive)
-                        ['==', ['get', 'device_type_id'], DT_BESS_PCS],
+                        [
+                          '==',
+                          ['get', 'device_type_id'],
+                          DeviceTypeEnum.BESS_PCS,
+                        ],
                         [
                           'interpolate',
                           ['linear'],
@@ -913,7 +1139,11 @@ function AdaptiveGisBESS() {
                         ['==', ['geometry-type'], 'Polygon'],
                         ['==', ['geometry-type'], 'MultiPolygon'],
                       ],
-                      ['==', ['get', 'device_type_id'], DT_BESS_PCS],
+                      [
+                        '==',
+                        ['get', 'device_type_id'],
+                        DeviceTypeEnum.BESS_PCS,
+                      ],
                     ]}
                     paint={{
                       'fill-color': '#ffffff',
@@ -960,7 +1190,11 @@ function AdaptiveGisBESS() {
                             1.5, // Modest boost
                             [
                               'case',
-                              ['>=', ['get', 'effective_zoom'], ZOOM_LEVEL_2],
+                              [
+                                '>=',
+                                ['get', 'effective_zoom'],
+                                ZOOM_LEVEL_STRING,
+                              ],
                               0.6,
                               1,
                             ],
@@ -982,7 +1216,11 @@ function AdaptiveGisBESS() {
                         ['==', ['geometry-type'], 'Polygon'],
                         ['==', ['geometry-type'], 'MultiPolygon'],
                       ],
-                      ['==', ['get', 'device_type_id'], DT_BESS_PCS],
+                      [
+                        '==',
+                        ['get', 'device_type_id'],
+                        DeviceTypeEnum.BESS_PCS,
+                      ],
                     ]}
                     layout={{
                       'line-join': 'round',
@@ -1196,31 +1434,16 @@ function AdaptiveGisBESS() {
 
             <Menu.Dropdown>
               <Menu.Label>Lock to Layer</Menu.Label>
-              {Object.keys(layerLockConfig).map((layer) => {
-                const isEnclosureLayer = layer === 'PCS + DC Enclosure'
-                const disabled = isEnclosureLayer && !hasEnclosureSOC
-                const item = (
+              {(Object.keys(layerLockConfig) as LayerViewName[])
+                .filter((layer) => layerAvailability[layer])
+                .map((layer) => (
                   <Menu.Item
                     key={layer}
-                    disabled={disabled}
-                    onClick={() =>
-                      handleLockToLayer(layer as keyof typeof layerLockConfig)
-                    }
+                    onClick={() => handleLockToLayer(layer)}
                   >
                     {layer}
                   </Menu.Item>
-                )
-                return disabled ? (
-                  <Tooltip
-                    key={layer}
-                    label="Not available: no DC Enclosure SOC data in project"
-                  >
-                    {item}
-                  </Tooltip>
-                ) : (
-                  item
-                )
-              })}
+                ))}
             </Menu.Dropdown>
           </Menu>
         </Stack>
@@ -1253,9 +1476,11 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
 
   const props = hoverInfo.feature.properties as Props
 
-  const isPCS = props.device_type_id === DT_BESS_PCS
-  const isEnclosure = props.device_type_id === DT_BESS_DC_ENCLOSURE
-  const isString = props.device_type_id === DT_BESS_STRING
+  const isPCS = props.device_type_id === DeviceTypeEnum.BESS_PCS
+  const isEnclosure = props.device_type_id === DeviceTypeEnum.BESS_ENCLOSURE
+  const isDcSkid = props.device_type_id === DeviceTypeEnum.BESS_DC_SKID
+  const isBank = props.device_type_id === DeviceTypeEnum.BESS_BANK
+  const isString = props.device_type_id === DeviceTypeEnum.BESS_STRING
 
   return (
     <Paper
@@ -1272,6 +1497,8 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
       <Text fw={700}>
         {(isPCS && 'BESS PCS') ||
           (isEnclosure && 'BESS DC Enclosure') ||
+          (isDcSkid && 'BESS DC Skid') ||
+          (isBank && 'BESS Bank') ||
           (isString && 'BESS String') ||
           'Device'}
         : {props?.name ?? 'N/A'}
@@ -1298,7 +1525,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
           </Text>
         </>
       )}
-      {(isEnclosure || isString) && (
+      {(isEnclosure || isDcSkid || isBank || isString) && (
         <Text size="sm">
           SOC:{' '}
           {props?.soc_percent !== undefined && props?.soc_percent !== null

@@ -37,12 +37,7 @@ import {
 } from '@mantine/core'
 import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
-import {
-  IconEye,
-  IconInfoCircle,
-  IconPlus,
-  IconRefresh,
-} from '@tabler/icons-react'
+import { IconInfoCircle, IconPlus, IconRefresh } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -60,6 +55,7 @@ dayjs.extend(timezone)
 
 type TagPatternRow = {
   tag_pattern: string
+  device_type_name: string | null
   sensor_type_id: number | null
   sensor_type_name_short: string | null
   sensor_type_name_long: string | null
@@ -416,6 +412,7 @@ const ProjectTagExplorer = () => {
       )
       return {
         tag_pattern: tagType.tag_pattern,
+        device_type_name: tagType.device_type_name,
         sensor_type_id: tagType.sensor_type_id,
         sensor_type_name_short: st?.name_short || null,
         sensor_type_name_long: st?.name_long || null,
@@ -442,6 +439,10 @@ const ProjectTagExplorer = () => {
         row.sensor_type_id === SensorTypeEnum.GHOST_UNKNOWN,
     )
   }, [groupedTagTypes, showOnlyUnassigned])
+  const selectedPatternRow = useMemo(() => {
+    if (!selectedTagPattern) return null
+    return groupedTagTypes.find((row) => row.tag_pattern === selectedTagPattern)
+  }, [groupedTagTypes, selectedTagPattern])
 
   const handleAssignPatternSensorType = async () => {
     if (!selectedTagPattern || !patternSensorTypeId || !projectId) return
@@ -564,6 +565,21 @@ const ProjectTagExplorer = () => {
         },
       },
       {
+        header: 'Device Type',
+        accessorKey: 'device_type_name',
+        size: 220,
+        mantineTableHeadCellProps: {
+          align: 'left',
+        },
+        mantineTableBodyCellProps: {
+          align: 'left',
+        },
+        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
+          const deviceTypeName = cell.getValue<string | null>()
+          return <Text>{deviceTypeName ?? '—'}</Text>
+        },
+      },
+      {
         header: 'Sensor Type',
         accessorKey: 'sensor_type_name_short',
         size: 180,
@@ -650,52 +666,6 @@ const ProjectTagExplorer = () => {
           align: 'center',
         },
       },
-      {
-        header: 'Example Tag ID',
-        accessorKey: 'sample_tag_id',
-        size: 120,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-        mantineTableBodyCellProps: {
-          align: 'center',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
-          const sampleTagId = cell.getValue<number>()
-          return sampleTagId || '-'
-        },
-      },
-      // Project column removed
-      {
-        header: 'Actions',
-        accessorKey: 'actions',
-        size: 120,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-        mantineTableBodyCellProps: {
-          align: 'center',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => (
-          <Group gap="xs" justify="center">
-            <Tooltip label="View details">
-              <ActionIcon
-                variant="subtle"
-                color="blue"
-                onClick={() => {
-                  setSelectedTagPattern(cell.row.original.tag_pattern)
-                  openDetails()
-                }}
-              >
-                <IconEye style={{ width: 16, height: 16 }} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        ),
-        enableSorting: false,
-        enableColumnFilter: false,
-        enableGlobalFilter: false,
-      },
     ],
     [openDetails, tagPatternAlignRight],
   )
@@ -731,14 +701,13 @@ const ProjectTagExplorer = () => {
       density: 'xs',
       columnVisibility: {
         tag_pattern: true,
+        device_type_name: true,
         sensor_type_name_short: true,
         scada_type: false,
         unit_scada: false,
         unit_offset: true,
         unit_scale: true,
         total_count: true,
-        sample_tag_id: true,
-        actions: true,
       },
       sorting: [{ id: 'total_count', desc: true }],
       globalFilter: '',
@@ -1134,6 +1103,16 @@ const ProjectTagExplorer = () => {
                   <Stack>
                     <Text size="lg">Tag Properties</Text>
 
+                    <Group gap="xs" align="center">
+                      <Text>Device Type</Text>
+                      <Tooltip label="The representative device type for this pattern.">
+                        <IconInfoCircle size={12} />
+                      </Tooltip>
+                    </Group>
+                    <Text fw={500}>
+                      {selectedPatternRow?.device_type_name ?? '—'}
+                    </Text>
+
                     {/* SCADA Unit */}
                     <Group gap="xs" align="center">
                       <Text>SCADA Unit</Text>
@@ -1302,9 +1281,7 @@ const ProjectTagExplorer = () => {
                       <Group gap="lg">
                         <Text size="sm">
                           <strong>Total Tags:</strong>{' '}
-                          {uniqueTagTypes.data?.find(
-                            (t) => t.tag_pattern === selectedTagPattern,
-                          )?.count || 0}
+                          {selectedPatternRow?.total_count || 0}
                         </Text>
                         <Text size="sm">
                           <strong>Sampled Tags:</strong>{' '}

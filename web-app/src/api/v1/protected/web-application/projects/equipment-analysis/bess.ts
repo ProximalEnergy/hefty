@@ -10,6 +10,7 @@ interface Data {
 
 interface EquipmentAnalysisBESS {
   bess_enclosure: Data[]
+  bess_dc_skid: Data[]
   bess_bank: Data[]
   bess_string: Data[]
 }

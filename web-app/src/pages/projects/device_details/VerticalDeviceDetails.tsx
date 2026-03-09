@@ -442,6 +442,12 @@ function DeviceTypeCard({
                   ? ',.0%'
                   : undefined,
             type: chartType === 'heatmap' ? 'category' : undefined,
+            range:
+              chartType === 'heatmap'
+                ? undefined
+                : deviceDetails.data?.layout.y_axis_label === 'SOC'
+                  ? [-0.05, 1.05]
+                  : undefined,
           },
           showlegend: chartType === 'line',
           hovermode: 'closest',

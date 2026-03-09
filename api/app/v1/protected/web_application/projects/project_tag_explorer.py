@@ -9,7 +9,7 @@ from core.db_query import OutputType
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import delete, select, update
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 import app.interfaces
 from app import dependencies
@@ -117,7 +117,15 @@ async def get_unique_tag_types(
         sample_ids = list(set(pattern_to_sample_id.values()))
         id_to_tag: dict[int, models.Tag] = {}
         if sample_ids:
-            tag_query = select(models.Tag).where(models.Tag.tag_id.in_(sample_ids))
+            tag_query = (
+                select(models.Tag)
+                .where(models.Tag.tag_id.in_(sample_ids))
+                .options(
+                    selectinload(models.Tag.device).selectinload(
+                        models.Device.device_type
+                    )
+                )
+            )
             tags = project_db.execute(tag_query).scalars().all()
             id_to_tag = {t.tag_id: t for t in tags}
 
@@ -132,6 +140,16 @@ async def get_unique_tag_types(
             representative_unit_scale = sample_tag.unit_scale if sample_tag else None
             representative_unit_offset = sample_tag.unit_offset if sample_tag else None
             representative_unit_scada = sample_tag.unit_scada if sample_tag else None
+            representative_device_type_id = (
+                sample_tag.device.device_type_id
+                if sample_tag and sample_tag.device
+                else None
+            )
+            representative_device_type_name = (
+                sample_tag.device.device_type.name_long
+                if sample_tag and sample_tag.device and sample_tag.device.device_type
+                else None
+            )
 
             results.append(
                 {
@@ -147,6 +165,8 @@ async def get_unique_tag_types(
                     "count": row.count,
                     "examples": [],
                     "sample_tag_id": sample_tag_id,
+                    "device_type_id": representative_device_type_id,
+                    "device_type_name": representative_device_type_name,
                 }
             )
 
@@ -363,48 +383,57 @@ async def get_tag_pattern_samples(
             end_date = pd.Timestamp.utcnow()
             start_date = end_date - pd.Timedelta(days=1)
 
-        # For each tag, get sample values from the timeseries data
-        tag_samples = []
-        for tag in sample_tags:
+        # Fetch timeseries for all sample tags in one call, then split per tag.
+        tag_ids = [tag.tag_id for tag in sample_tags]
+        timeseries_df = pd.DataFrame()
+
+        if tag_ids:
             try:
+                tags_polars = await crud_project_tags.get_project_tags_v2(
+                    tag_ids=tag_ids,
+                    include_ghost_tags=True,
+                ).get_async(
+                    output_type=OutputType.POLARS,
+                    schema=project.name_short,
+                )
                 data_timeseries_instance = await DataTimeseries(
                     project_name_short=project.name_short,
-                    filter_method=FilterMethod.TAG_IDS,
-                    filter_values=[tag.tag_id],
+                    filter_method=FilterMethod.TAG_POLARS,
+                    filter_values=tags_polars,
                     query_start=start_date,
                     query_end=end_date,
                     project_db=project_db,
                     apply_scale_and_offset=False,
                 ).get()
 
-                df = data_timeseries_instance.df.to_pandas()
-                df = df.set_index("time")
-                df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
-                df.columns = df.columns.astype(int)
-
-                # Process the DataFrame data
-                values = []
-                timestamps = []
-
-                if not df.empty and tag.tag_id in df.columns:
-                    # Get non-null values and their corresponding timestamps
-                    non_null_data = df[tag.tag_id].dropna()
-
-                    values = non_null_data.tolist()
-                    timestamps = non_null_data.index.tz_convert(
-                        project.time_zone
-                    ).tolist()
-
-                is_numeric, value_range, total_unique_values = _process_numeric_values(
-                    values=values
-                )
+                timeseries_df = data_timeseries_instance.df.to_pandas()
+                if not timeseries_df.empty and "time" in timeseries_df.columns:
+                    timeseries_df = timeseries_df.set_index("time")
+                    timeseries_df.index = pd.to_datetime(
+                        timeseries_df.index
+                    ).tz_convert(
+                        project.time_zone,
+                    )
+                    timeseries_df.columns = timeseries_df.columns.astype(int)
             except Exception as e:
-                # Continue with empty data
-                # Log error for debugging but don't fail the request
-
                 logger.warning(
-                    f"Error getting timeseries data for tag {tag.tag_id}: {e}"
+                    f"Error getting batched timeseries data for pattern "
+                    f"{tag_pattern}: {e}"
                 )
+
+        tag_samples = []
+        for tag in sample_tags:
+            values: list[Any] = []
+            timestamps: list[Any] = []
+
+            if not timeseries_df.empty and tag.tag_id in timeseries_df.columns:
+                non_null_data = timeseries_df[tag.tag_id].dropna()
+                values = non_null_data.tolist()
+                timestamps = non_null_data.index.tz_convert(project.time_zone).tolist()
+
+            is_numeric, value_range, total_unique_values = _process_numeric_values(
+                values=values
+            )
 
             tag_samples.append(
                 {

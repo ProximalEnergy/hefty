@@ -1,5 +1,9 @@
 # General
-- code lines are shorter than 88 characters 
+- code lines are shorter than 88 characters
+
+# Plans
+- Make the plan extremely concise. Sacrifice grammar for the sake of concision.
+- At the end of the plan, give me a list of unresolved questions to answer, if any.
 
 # Testing
 - if Environment Variable AGENT_ENVIRONMENT == async-offline:
