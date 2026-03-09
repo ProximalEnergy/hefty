@@ -21,7 +21,7 @@ dependencies = [
     "numpy>=1.24.0,<3",
     "pandas~=2.3",
     # Added strict constraint to avoid breaking change in polars/polars#24027.
-    "polars==1.37.1",
+    "polars==1.38.1",
     "psycopg2-binary>=2.9.11,<3",
     "pyarrow~=23.0",
     "python-dateutil>=2.9.0,<3",

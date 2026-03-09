@@ -57,6 +57,7 @@
     {
       matchFileNames: ["sql-admin/**"],
       groupName: "sql-admin",
+      reviewers: ["davidthemathman"],
     },
     {
       matchFileNames: ["pv-eem/**"],
