@@ -15,6 +15,7 @@ with psycopg2.connect(
                 INSERT INTO operational.kpi_types (
                     kpi_type_id,
                     device_type_id,
+                    project_type_id,
                     name_short,
                     name_long,
                     name_metric,
@@ -23,10 +24,11 @@ with psycopg2.connect(
                     aggregation_method,
                     doc_url
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (kpi_type_id)
                 DO UPDATE SET
                     device_type_id = EXCLUDED.device_type_id,
+                    project_type_id = EXCLUDED.project_type_id,
                     name_short = EXCLUDED.name_short,
                     name_long = EXCLUDED.name_long,
                     name_metric = EXCLUDED.name_metric,
@@ -38,6 +40,7 @@ with psycopg2.connect(
                 (
                     row["kpi_type_id"],
                     row["device_type_id"],
+                    row["project_type_id"],
                     row["name_short"],
                     row["name_long"],
                     row["name_metric"],
