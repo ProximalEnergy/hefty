@@ -66,12 +66,12 @@ async def get_or_create_notification_preference(
         project_id: Project ID.
         notification_type_id: Notification type ID.
     """
-    # Try to get existing preference
+    # Try to get existing preference (use same session so object stays attached)
     preference = await get_user_notification_preference(
         user_id=user_id,
         project_id=project_id,
         notification_type_id=notification_type_id,
-    ).get_async(output_type=OutputType.SQLALCHEMY)
+    ).get_async(executor=db, output_type=OutputType.SQLALCHEMY)
 
     if preference is not None:
         return preference
