@@ -230,3 +230,7 @@ def reconstruct_accumulator(
         .cumsum(dim=Time.TIME_5MIN_UTC.value)
         .shift({Time.TIME_5MIN_UTC.value: 1}, fill_value=0)
     )
+
+
+def event_change_to_in_event(*, x: xr.DataArray) -> xr.DataArray:
+    return x.cumsum(dim=Time.TIME_5MIN_UTC.value) > 0

@@ -1,53 +1,34 @@
+import kpi_pipeline.services.calc as calc
+import kpi_pipeline.services.process as process
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate import Validate
-from kpi_pipeline.services.calc import (
-    CalcProcess,
-    LinearCombinationCalc,
-    OrListCalc,
-    ProcessCalc,
-    QuotientCalc,
-    SelectCalc,
-)
-from kpi_pipeline.services.process import (
-    CastTypeProcess,
-    ClampProcess,
-    DiffProcess,
-    FilterToRangeProcess,
-    FromRateOfChangeToTotalProcess,
-    IsChargingProcess,
-    IsDischargingProcess,
-    IsIdlingProcess,
-    ProcessList,
-    RestingSocProcess,
-    ScaleOffsetProcess,
-)
 from kpi_pipeline.services.schema import AddCalculationsSchema
 
 
 def _c_rate(power: str, energy_capacity: str) -> Field:
     return Field(
-        QuotientCalc(numerator_var=power, denominator_var=energy_capacity),
+        calc.QuotientCalc(numerator_var=power, denominator_var=energy_capacity),
     )
 
 
 def _dod(soc: str) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=soc),
-            process=ScaleOffsetProcess(scale=-1, offset=1),
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=soc),
+            process=process.ScaleOffsetProcess(scale=-1, offset=1),
         )
     )
 
 
 def _energy_accumulator(field: str) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=field),
-            process=ProcessList(
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=field),
+            process=process.ProcessList(
                 steps=[
-                    DiffProcess(),
-                    ClampProcess(min_value=0),
+                    process.DiffProcess(),
+                    process.ClampProcess(min_value=0),
                 ],
             ),
         ),
@@ -56,12 +37,12 @@ def _energy_accumulator(field: str) -> Field:
 
 def _time_hours(filter_field) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=filter_field),
-            process=ProcessList(
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=filter_field),
+            process=process.ProcessList(
                 steps=[
-                    CastTypeProcess(dtype="float64"),
-                    FromRateOfChangeToTotalProcess(time_unit_seconds=3600),
+                    process.CastTypeProcess(dtype="float64"),
+                    process.FromRateOfChangeToTotalProcess(time_unit_seconds=3600),
                 ],
             ),
         ),
@@ -70,12 +51,12 @@ def _time_hours(filter_field) -> Field:
 
 def _c_rate_charging(c_rate_field) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=c_rate_field),
-            process=ProcessList(
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=c_rate_field),
+            process=process.ProcessList(
                 steps=[
-                    FilterToRangeProcess(max_value=-0.01),
-                    ScaleOffsetProcess(scale=-1),
+                    process.FilterToRangeProcess(max_value=-0.01),
+                    process.ScaleOffsetProcess(scale=-1),
                 ]
             ),
         ),
@@ -84,9 +65,9 @@ def _c_rate_charging(c_rate_field) -> Field:
 
 def _c_rate_discharging(c_rate_field) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=c_rate_field),
-            process=FilterToRangeProcess(min_value=0.01),
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=c_rate_field),
+            process=process.FilterToRangeProcess(min_value=0.01),
         ),
     )
 
@@ -108,9 +89,11 @@ class CalculateBESS(AddCalculationsSchema):
     )
 
     bess_string_degradation_5m = Field(
-        CalcProcess(
-            calc=SelectCalc(var=Validate.bess_string_soh_5m.var),
-            process=ProcessList(steps=[DiffProcess(), ScaleOffsetProcess(scale=-1)]),
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=Validate.bess_string_soh_5m.var),
+            process=process.ProcessList(
+                steps=[process.DiffProcess(), process.ScaleOffsetProcess(scale=-1)]
+            ),
         ),
     )
 
@@ -152,7 +135,7 @@ class CalculateBESS(AddCalculationsSchema):
     )
 
     bess_string_energy_kwh_5m = Field(
-        LinearCombinationCalc(
+        calc.LinearCombinationCalc(
             vars=[
                 bess_string_energy_charged_kwh_5m.var,
                 bess_string_energy_discharged_kwh_5m.var,
@@ -168,23 +151,23 @@ class CalculateBESS(AddCalculationsSchema):
     # PCS
 
     bess_pcs_is_charging_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=bess_pcs_c_rate_5m.var,
-            process=IsChargingProcess(),
+            process=process.IsChargingProcess(),
         )
     )
 
     bess_pcs_is_discharging_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=bess_pcs_c_rate_5m.var,
-            process=IsDischargingProcess(),
+            process=process.IsDischargingProcess(),
         )
     )
 
     bess_pcs_is_idling_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=bess_pcs_c_rate_5m.var,
-            process=IsIdlingProcess(),
+            process=process.IsIdlingProcess(),
         )
     )
 
@@ -192,7 +175,7 @@ class CalculateBESS(AddCalculationsSchema):
     # PCS Module
 
     bess_pcs_module_is_offline_5m = Field(
-        OrListCalc(
+        calc.OrListCalc(
             vars=[
                 Download.status.bess_pcs_module_offline_status_5m.var,
                 Download.status.bess_pcs_module_offline_alarm_5m.var,
@@ -203,53 +186,53 @@ class CalculateBESS(AddCalculationsSchema):
     # Project
 
     project_is_charging_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=project_c_rate_5m.var,
-            process=IsChargingProcess(),
+            process=process.IsChargingProcess(),
         )
     )
 
     project_is_discharging_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=project_c_rate_5m.var,
-            process=IsDischargingProcess(),
+            process=process.IsDischargingProcess(),
         )
     )
 
     project_is_idling_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=project_c_rate_5m.var,
-            process=IsIdlingProcess(),
+            process=process.IsIdlingProcess(),
         )
     )
 
     #########################################################
 
     bess_bank_resting_soc_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=Validate.bess_bank_soc_5m.var,
-            process=RestingSocProcess(threshold=0.01),
+            process=process.RestingSocProcess(threshold=0.01),
         )
     )
 
     bess_block_resting_soc_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=Validate.bess_block_soc_5m.var,
-            process=RestingSocProcess(threshold=0.01),
+            process=process.RestingSocProcess(threshold=0.01),
         )
     )
 
     project_resting_soc_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=Validate.project_soc_5m.var,
-            process=RestingSocProcess(threshold=0.01),
+            process=process.RestingSocProcess(threshold=0.01),
         )
     )
 
     bess_string_resting_soc_5m = Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=Validate.bess_string_soc_5m.var,
-            process=RestingSocProcess(threshold=0.01),
+            process=process.RestingSocProcess(threshold=0.01),
         )
     )
 
@@ -272,3 +255,10 @@ class CalculateBESS(AddCalculationsSchema):
     bess_pcs_c_rate_discharging_5m = _c_rate_discharging(bess_pcs_c_rate_5m.var)
 
     project_c_rate_discharging_5m = _c_rate_discharging(project_c_rate_5m.var)
+
+    bess_pcs_module_offline_in_event_5m = Field(
+        calc.ProcessCalc(
+            var=Download.events.bess_pcs_module_offline_event_change_5m.var,
+            process=process.EventChangeToInEventProcess(),
+        )
+    )

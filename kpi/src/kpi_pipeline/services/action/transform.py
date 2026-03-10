@@ -5,6 +5,7 @@ from kpi_pipeline.base.models import (
     ContextModel,
     DeviceAttributeModel,
     ExpectedEnergyModel,
+    OfflineEventModel,
     ProjectAttributeModel,
     SensorModel,
     StatusModel,
@@ -32,6 +33,7 @@ from kpi_pipeline.services.calc import CalcProcess, SelectCalc
 from kpi_pipeline.services.downloader import (
     DeviceAttributesDownloader,
     ExpectedEnergyDownloader,
+    OfflineEventDownloader,
     ProjectAttributesDownloader,
     StatusTimeSeriesDownloader,
     TimeSeriesDownloader,
@@ -392,6 +394,12 @@ class DownloadStatusTimeSeriesTransform(
     DownloadTransformAbstract[StatusModel], TransformProtocol
 ):
     _downloader_class = StatusTimeSeriesDownloader
+
+
+class DownloadOfflineEventTransform(
+    DownloadTransformAbstract[OfflineEventModel], TransformProtocol
+):
+    _downloader_class = OfflineEventDownloader
 
 
 @transform

@@ -1,4 +1,5 @@
 from kpi_pipeline.config.step_01_download.device_attributes import DownloadDeviceAttrs
+from kpi_pipeline.config.step_01_download.events import DownloadEvents
 from kpi_pipeline.config.step_01_download.expected_energy import DownloadExpectedEnergy
 from kpi_pipeline.config.step_01_download.project_attributes import DownloadProjAttrs
 from kpi_pipeline.config.step_01_download.statuses import DownloadStatus
@@ -12,3 +13,4 @@ class Download(SchemaMergeSchema):
     time_series = DownloadTimeSeries
     status = DownloadStatus
     expected_energy = DownloadExpectedEnergy
+    events = DownloadEvents

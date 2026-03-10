@@ -1,12 +1,17 @@
-from typing import Callable, Type, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 import xarray as xr
-from pydantic import BaseModel
-
 from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.models import ContextModel, CoordCombinerModel
 from kpi_pipeline.base.protocols import ProcessProtocol
-from kpi_pipeline.domain.bess import is_charging, is_discharging, is_idling, resting_soc
+from kpi_pipeline.domain.bess import (
+    event_change_to_in_event,
+    is_charging,
+    is_discharging,
+    is_idling,
+    resting_soc,
+)
 from kpi_pipeline.domain.general import (
     accumulator_differences,
     availability,
@@ -25,11 +30,12 @@ from kpi_pipeline.infra.utils import (
     cast_type,
     fillna,
 )
+from pydantic import BaseModel
 
 ProcessType = TypeVar("ProcessType", bound=ProcessProtocol)
 
 
-def process(cls: Type[ProcessType]) -> Type[ProcessType]:
+def process(cls: type[ProcessType]) -> type[ProcessType]:
     if not issubclass(cls, ProcessProtocol):
         raise TypeError(f"{cls} is not a ProcessProtocol")
     return cls
@@ -37,8 +43,8 @@ def process(cls: Type[ProcessType]) -> Type[ProcessType]:
 
 def domain_process(
     domain_function: Callable,
-) -> Callable[[Type[ProcessType]], Type[ProcessType]]:
-    def decorator(cls: Type[ProcessType]) -> Type[ProcessType]:
+) -> Callable[[type[ProcessType]], type[ProcessType]]:
+    def decorator(cls: type[ProcessType]) -> type[ProcessType]:
         problems = verify_process_function_alignment(cls, domain_function)
         if problems:
             error_msg = "Process function alignment issues:\n" + "\n".join(
@@ -290,3 +296,9 @@ class RemoveFlatLiningProcess(BaseModel):
         return remove_flat_lining(
             x=x, time_combiner=coord_combiner(self.time_combiner_model, context)
         )
+
+
+@domain_process(event_change_to_in_event)
+class EventChangeToInEventProcess(BaseModel):
+    def __call__(self, *, x: xr.DataArray, context: ContextModel) -> xr.DataArray:
+        return event_change_to_in_event(x=x)

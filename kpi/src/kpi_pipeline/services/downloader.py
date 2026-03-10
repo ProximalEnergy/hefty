@@ -9,6 +9,7 @@ from core.crud.operational.sensor_types import get_sensor_types
 from core.crud.project.data_expected import get_project_data_expected
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.devices import get_project_devices
+from core.crud.project.events import get_windowed_events
 from core.crud.project.tags import get_project_tags_v2
 from core.database import with_db
 from core.db_query import OutputType
@@ -19,6 +20,7 @@ from kpi_pipeline.base.models import (
     ContextModel,
     DeviceAttributeModel,
     ExpectedEnergyModel,
+    OfflineEventModel,
     ProjectAttributeModel,
     SensorModel,
     StatusModel,
@@ -425,3 +427,58 @@ class StatusTimeSeriesDownloader(
         ).astype(bool)
 
         return failure_df_grouped
+
+
+@dataclass
+class OfflineEventDownloader(
+    TimeSeriesDownloaderAbstract[OfflineEventModel],
+    DownloaderProtocol[OfflineEventModel],
+):
+    map: dict[str, OfflineEventModel]
+    data_raw: pd.DataFrame
+
+    @classmethod
+    def from_download(
+        cls, map: dict[str, OfflineEventModel], context: ContextModel
+    ) -> Self:
+        start = context.start_time_local()
+        end = context.end_time_local()
+        events = get_windowed_events(
+            start=start,
+            end=end,
+            deep=False,
+            include_underperformance=False,
+            failure_mode_ids=None,
+            device_type_ids=list(
+                set(model.device_type.value for model in map.values())
+            ),
+        )
+
+        df_events = events.get(
+            schema=context.project.name_short, output_type=OutputType.PANDAS
+        )
+        # only keep the necessary columns
+        df_events = df_events[["device_id", "time_start", "time_end", "device_type_id"]]
+        # clip start time to the start of the context
+        df_events["time_start"] = df_events["time_start"].clip(lower=start)  # type: ignore[call-overload]
+        # if time end is after end of context, set it to NaN
+        df_events["time_end"] = df_events["time_end"].where(  # type: ignore[call-overload]
+            df_events["time_end"] <= end, pd.NaT
+        )
+        return cls(map=map, data_raw=df_events)
+
+    def device_type(self, model: OfflineEventModel) -> DeviceType:
+        return model.device_type
+
+    def filtered_pandas(self, model: OfflineEventModel) -> pd.DataFrame:
+        filtered = self.data_raw.loc[
+            self.data_raw.device_type_id == model.device_type.value
+        ]
+        start = filtered.assign(present=1.0).pivot_table(
+            index="time_start", columns="device_id", values="present", aggfunc="sum"
+        )
+        end = filtered.assign(present=-1.0).pivot_table(
+            index="time_end", columns="device_id", values="present", aggfunc="sum"
+        )
+        event_change_status = start.add(end, fill_value=0)
+        return event_change_status

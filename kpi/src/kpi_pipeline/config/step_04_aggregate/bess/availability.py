@@ -85,7 +85,7 @@ class AggregateBESSAvailability(AddCalculationsSchema):
 
     bess_pcs_module_availability_d = Field(
         calc.ProcessCalc(
-            var=Calculate.bess_pcs_module_is_offline_5m.var,
+            var=Calculate.bess_pcs_module_offline_in_event_5m.var,
             process=process.ProcessList(
                 steps=[
                     process.AvailabilityProcess(
@@ -98,7 +98,7 @@ class AggregateBESSAvailability(AddCalculationsSchema):
 
     project_bess_pcs_module_availability_d = Field(
         calc.ProcessCalc(
-            var=Calculate.bess_pcs_module_is_offline_5m.var,
+            var=Calculate.bess_pcs_module_offline_in_event_5m.var,
             process=process.ProcessList(
                 steps=[
                     process.AvailabilityProcess(

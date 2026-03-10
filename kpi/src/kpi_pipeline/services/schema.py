@@ -1,11 +1,9 @@
-from typing import Type
-
 import xarray as xr
-
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import (
     DeviceAttributeModel,
     ExpectedEnergyModel,
+    OfflineEventModel,
     ProjectAttributeModel,
     SensorModel,
     StatusModel,
@@ -21,6 +19,7 @@ from kpi_pipeline.base.schema import SchemaAbstract, TransformFieldSchemaAbstrac
 from kpi_pipeline.services.action.transform import (
     DownloadDeviceAttributesTransform,
     DownloadExpectedEnergyTransform,
+    DownloadOfflineEventTransform,
     DownloadProjectAttributesTransform,
     DownloadStatusTimeSeriesTransform,
     DownloadTimeSeriesTransform,
@@ -71,8 +70,8 @@ transform_field_schema = Implements[SchemaProtocol[xr.Dataset, Field]].decorator
 class DownloadSchemaAbstract[V](
     TransformFieldSchemaAbstract[DataDownloadModelProtocol]
 ):
-    _transform: Type[DownloadTransformAbstract]
-    _allowed_field_value_type: Type[DataDownloadModelProtocol]
+    _transform: type[DownloadTransformAbstract]
+    _allowed_field_value_type: type[DataDownloadModelProtocol]
 
     @classmethod
     def _export(cls, scope: str | None = None) -> TransformProtocol:
@@ -107,6 +106,12 @@ class DownloadExpectedEnergySchema(DownloadSchemaAbstract[ExpectedEnergyModel]):
 class DownloadStatusTimeSeriesSchema(DownloadSchemaAbstract[StatusModel]):
     _allowed_field_value_type = StatusModel
     _transform = DownloadStatusTimeSeriesTransform
+
+
+@transform_field_schema
+class DownloadOfflineEventSchema(DownloadSchemaAbstract[OfflineEventModel]):
+    _allowed_field_value_type = OfflineEventModel
+    _transform = DownloadOfflineEventTransform
 
 
 @transform_field_schema

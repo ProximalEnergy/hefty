@@ -88,6 +88,16 @@ class PvLibModel(BaseModel):
     offset: float | None = None
 
 
+@data_download_model
+class OfflineEventModel(BaseModel):
+    device_type: DeviceType
+    project_level: bool = False
+    dtype: DataType = DataType.FLOAT
+    fill_value: Any | None = None
+    scale: float | None = None
+    offset: float | None = None
+
+
 # 1. Define the reusable coercion function
 def to_finite_float(value: Any) -> Any:
     """Converts NaN, Inf, and non-numeric values to None. Returns finite numeric values unchanged."""
