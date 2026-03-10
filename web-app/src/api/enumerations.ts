@@ -533,6 +533,7 @@ export const SensorTypeEnum = {
   METER_CURRENT_PHASE_A: 213,
   METER_CURRENT_PHASE_B: 214,
   METER_CURRENT_PHASE_C: 215,
+  BESS_MV_CIRCUIT_METER_CONSUMED_ENERGY: 216,
 } as const;
 
 export const TimeIntervalEnum = {
