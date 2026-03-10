@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 import classes from './DataStatus.module.css'
+import { StatusIconWrapper } from './StatusIconWrapper'
 
 dayjs.extend(duration)
 
@@ -91,23 +92,29 @@ const DataStatus = ({
     }
   }
 
+  const statusColor = color === 'green' ? 'green' : 'red'
+
   return (
-    <Tooltip label={label} disabled={isLoading || !label}>
-      <Box
-        w={size}
-        h={size}
-        onClick={handleClick}
-        style={{ cursor: projectId ? 'pointer' : 'default' }}
-      >
-        <Indicator
-          size={size}
-          offset={size / 2}
-          processing={!isLoading && !!label}
-          color={color}
-          classNames={classes}
-        />
-      </Box>
-    </Tooltip>
+    <StatusIconWrapper label="DATA" color={statusColor}>
+      <Tooltip label={label} disabled={isLoading || !label}>
+        <Box
+          w={size}
+          h={size}
+          onClick={handleClick}
+          style={{
+            cursor: projectId ? 'pointer' : 'default',
+          }}
+        >
+          <Indicator
+            size={size}
+            offset={size / 2}
+            processing={!isLoading && !!label}
+            color={color}
+            classNames={classes}
+          />
+        </Box>
+      </Tooltip>
+    </StatusIconWrapper>
   )
 }
 

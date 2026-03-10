@@ -147,18 +147,16 @@ async def get_events(
     if device_ids:
         device_query = crud_get_project_devices(
             device_ids=device_ids,
-            deep=True,
+            deep=False,
         )
-        devices = await device_query.get_async(
+        devices_df = await device_query.get_async(
             schema=project_name_short,
-            output_type=OutputType.SQLALCHEMY,
+            output_type=OutputType.POLARS,
         )
-        if devices:
+        if devices_df is not None and not devices_df.is_empty():
             device_map = {
-                device.device_id: interfaces.Device.model_validate(
-                    device, from_attributes=True
-                )
-                for device in devices
+                int(device["device_id"]): interfaces.Device.model_validate(device)
+                for device in devices_df.to_dicts()
             }
 
     # Create mappings

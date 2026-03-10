@@ -1,9 +1,9 @@
 import { AppShell, Burger, Group } from '@mantine/core'
 import { Link } from 'react-router'
 
-import { DataStatusContainer } from './DataStatus'
 import Logo from './Logo'
 import ProjectDropdown from './ProjectDropdown'
+import { ProjectStatusIcons } from './ProjectStatusIcons'
 import SpotlightButton from './SpotlightButton'
 import ThemeToggle from './ThemeToggle'
 import UserAlerts from './UserAlerts'
@@ -35,7 +35,7 @@ const Header = ({
           <Logo />
         </Link>
         <div style={{ flex: 1 }}></div>
-        <DataStatusContainer />
+        <ProjectStatusIcons />
         <ProjectDropdown />
         <UserAlerts />
         <SpotlightButton />

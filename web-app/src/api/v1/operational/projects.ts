@@ -239,7 +239,7 @@ export const useGetProjects = ({
   })
 }
 
-export const useSelectProject = (projectId: string) => {
+export const useSelectProject = (projectId: string | undefined) => {
   const { data: projects, ...rest } = useGetProjects({
     queryParams: {},
     queryOptions: { enabled: !!projectId },
