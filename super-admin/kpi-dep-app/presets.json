@@ -94,6 +94,26 @@
       "Crane"
     ]
   },
+  "BESS Waterfall": {
+    "kpis": [
+      37,
+      58,
+      96,
+      107,
+      35,
+      39,
+      41,
+      87,
+      88,
+      111,
+      112,
+      93
+    ],
+    "projects": [
+      "Bexar",
+      "Headcamp"
+    ]
+  },
   "EEC Report": {
     "kpis": [
       30,
@@ -103,7 +123,8 @@
       96,
       107,
       35,
-      39
+      39,
+      41
     ],
     "projects": [
       "Bexar",
