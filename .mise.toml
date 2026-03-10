@@ -131,6 +131,7 @@ usage = '''
   flag "--static" help="Skip non-static tests"
   flag "--all" help="Run all checks without diff filtering"
   flag "--offline" help="Skip checks that need network access"
+  flag "--all-warnings" help="Run warning checks for all areas"
   flag "--quiet" help="Keep reduced output (default behavior)"
   flag "--verbose" help="Show full output for successful checks"
 '''
@@ -144,6 +145,9 @@ if [ "${usage_static:-false}" = "true" ]; then
 fi
 if [ "${usage_offline:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --offline"
+fi
+if [ "${usage_all_warnings:-false}" = "true" ]; then
+  ALL_ARGS="${ALL_ARGS} --all-warnings"
 fi
 if [ "${usage_quiet:-false}" = "true" ]; then
   ALL_ARGS="${ALL_ARGS} --quiet"

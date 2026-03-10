@@ -9,6 +9,7 @@ SKIP_TESTS=false
 RUN_ALL=false
 OFFLINE=false
 QUIET=true
+ALL_WARNINGS=false
 ASYNC_OFFLINE=false
 if [ "${AGENT_ENVIRONMENT}" = "async-offline" ]; then
     ASYNC_OFFLINE=true
@@ -25,6 +26,10 @@ for arg in "$@"; do
             ;;
         --offline)
             OFFLINE=true
+            shift
+            ;;
+        --all-warnings)
+            ALL_WARNINGS=true
             shift
             ;;
         --quiet)
@@ -818,6 +823,10 @@ RUN_PVEEM=false
 RUN_ROOT=false
 CORE_CHANGED=false
 
+RUN_CORE_WARNINGS=false
+RUN_WEB_WARNINGS=false
+RUN_GLOBAL_WARNINGS=false
+
 if [ "${RUN_ALL}" = "false" ]; then
     if [ -n "${DIFF_FILES}" ]; then
         RUN_ROOT=true
@@ -861,9 +870,33 @@ if [ "${RUN_ALL}" = "true" ]; then
     RUN_ROOT=true
 fi
 
+if [ "${RUN_CORE}" = "true" ] || [ "${ALL_WARNINGS}" = "true" ]; then
+    RUN_CORE_WARNINGS=true
+fi
+
+if [ "${RUN_WEB}" = "true" ] || [ "${ALL_WARNINGS}" = "true" ]; then
+    RUN_WEB_WARNINGS=true
+fi
+
+if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] \
+    || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] \
+    || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ] \
+    || [ "${ALL_WARNINGS}" = "true" ]; then
+    RUN_GLOBAL_WARNINGS=true
+fi
+
 # Register all checks
 if [ "${RUN_CORE}" = "true" ]; then
-    if [ "${CORE_CHANGED}" != "true" ]; then
+    add_check "Core: Type Checking (mypy)" "mise run core:types"
+    add_db_check "Core: Enum Validation" "mise run core:enum"
+    add_check "Core: Unused Import Check" "mise run core:deptry"
+    add_check "Core: Dead Code Check" "mise run core:vulture"
+    add_check "Core: Docstring Args Check" "mise run core:docstring_args"
+fi
+
+if [ "${RUN_CORE_WARNINGS}" = "true" ]; then
+    if [ "${CORE_CHANGED}" != "true" ] \
+        && [ "${ALL_WARNINGS}" != "true" ]; then
         add_skipped_warning_check \
             "Core: Version" \
             "check_core_version" \
@@ -876,11 +909,6 @@ if [ "${RUN_CORE}" = "true" ]; then
     else
         add_warning_check "Core: Version" "check_core_version"
     fi
-    add_check "Core: Type Checking (mypy)" "mise run core:types"
-    add_db_check "Core: Enum Validation" "mise run core:enum"
-    add_check "Core: Unused Import Check" "mise run core:deptry"
-    add_check "Core: Dead Code Check" "mise run core:vulture"
-    add_check "Core: Docstring Args Check" "mise run core:docstring_args"
 fi
 
 if [ "${RUN_MICRO}" = "true" ]; then
@@ -931,9 +959,16 @@ if [ "${RUN_ROOT}" = "true" ]; then
 fi
 
 # Global Checks (Run if any project changed)
-if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
+if [ "${RUN_GLOBAL_WARNINGS}" = "true" ]; then
+    SQLALCHEMY_RETURN_CHECK_CMD="mise run root:sqlalchemy_return"
+    if [ "${ALL_WARNINGS}" = "true" ]; then
+        SQLALCHEMY_RETURN_CHECK_CMD+=" -- --all-files"
+    fi
     add_warning_check "Global: SQLAlchemy Return Methods" \
-        "mise run root:sqlalchemy_return"
+        "${SQLALCHEMY_RETURN_CHECK_CMD}"
+fi
+
+if [ "${RUN_ROOT}" = "true" ] || [ "${RUN_CORE}" = "true" ] || [ "${RUN_API}" = "true" ] || [ "${RUN_MICRO}" = "true" ] || [ "${RUN_SQL_ADMIN}" = "true" ] || [ "${RUN_WEB}" = "true" ]; then
     add_check "Global: Semgrep" "mise run root:semgrep"
     add_check "Global: Ruff Linting" "mise run root:ruff"
     add_check "Global: Ruff Formatting" "mise run root:ruff_format"
@@ -944,8 +979,15 @@ if [ "${RUN_WEB}" = "true" ]; then
     add_check "Web-App: Prettier Check" "mise run web:prettier"
     add_check "Web-App: Knip" "mise run web:knip"
     add_check "Web-App: Linting" "mise run web:lint"
+fi
+
+if [ "${RUN_WEB_WARNINGS}" = "true" ]; then
+    WEB_JSX_CALCS_CHECK_CMD="mise run web:jsx_calcs"
+    if [ "${ALL_WARNINGS}" = "true" ]; then
+        WEB_JSX_CALCS_CHECK_CMD+=" -- --all-files"
+    fi
     add_warning_check "Web-App: JSX Calculations" \
-        "mise run web:jsx_calcs"
+        "${WEB_JSX_CALCS_CHECK_CMD}"
 fi
 
 # Run all registered checks
