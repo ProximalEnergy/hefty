@@ -266,7 +266,7 @@ const PowerPlotBESS = () => {
     // Get current time to filter out future timestamps
     const now = dayjs()
 
-    // Aggregate charge power: sum all PCS values, divide by -1000, clip to -poi
+    // Aggregate charge power: sum all PCS values, negate, clip to -poi
     if (chargeTraces.length > 0) {
       const poi = projectDetails.poi
       const firstTrace = chargeTraces[0]
@@ -291,7 +291,7 @@ const PowerPlotBESS = () => {
           return null
         }
         const sum = values.reduce<number>((acc, v) => acc + (v || 0), 0)
-        const mw = sum / -1000
+        const mw = -sum
         return Math.max(mw, -poi)
       })
 
@@ -306,7 +306,7 @@ const PowerPlotBESS = () => {
       }
     }
 
-    // Aggregate discharge power: sum all PCS values, divide by 1000, clip to poi
+    // Aggregate discharge power: sum all PCS values, clip to poi
     if (dischargeTraces.length > 0) {
       const poi = projectDetails.poi
       const firstTrace = dischargeTraces[0]
@@ -331,8 +331,7 @@ const PowerPlotBESS = () => {
           return null
         }
         const sum = values.reduce<number>((acc, v) => acc + (v || 0), 0)
-        const mw = sum / 1000
-        return Math.min(mw, poi)
+        return Math.min(sum, poi)
       })
 
       // Only add trace if there's at least one non-null value

@@ -243,7 +243,7 @@ async def get_portfolio_home_short_term(
                 poi_value = projects_df.loc[project_id]["poi"]  # type: ignore
                 poi = pd.to_numeric(poi_value, errors="coerce")
                 max_charge_power = (
-                    (df_project[max_charge_columns].sum(axis=1) / -1_000)
+                    (-df_project[max_charge_columns].sum(axis=1))
                     .clip(lower=-poi)
                     .tolist()
                 )
@@ -256,7 +256,8 @@ async def get_portfolio_home_short_term(
                 poi_value = projects_df.loc[project_id]["poi"]  # type: ignore
                 poi = pd.to_numeric(poi_value, errors="coerce")
                 max_discharge_power = (
-                    (df_project[max_discharge_columns].sum(axis=1) / 1_000)
+                    df_project[max_discharge_columns]
+                    .sum(axis=1)
                     .clip(upper=poi)
                     .tolist()
                 )
