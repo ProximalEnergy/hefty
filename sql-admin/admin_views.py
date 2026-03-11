@@ -115,9 +115,8 @@ class DeviceAdmin(ModelView, model=Device):
 
     category = "Project Schema"
 
-    # READ-ONLY MODE - No modifications allowed
     can_create = False
-    can_edit = False
+    can_edit = True
     can_delete = False
 
     column_list = [
@@ -127,7 +126,11 @@ class DeviceAdmin(ModelView, model=Device):
         Device.device_type,
         Device.logical,
     ]
-    column_searchable_list = [Device.name_short, Device.name_long]
+    column_searchable_list = [
+        Device.name_short,
+        Device.name_long,
+        "device_type.name_long",
+    ]
     column_sortable_list = [
         Device.device_id,
         Device.name_short,
@@ -135,7 +138,12 @@ class DeviceAdmin(ModelView, model=Device):
     ]
     column_default_sort = [(Device.device_id, False)]
 
-    form_excluded_columns = [Device.device_id]  # Auto-generated
+    form_excluded_columns = [
+        Device.device_id,  # Auto-generated
+        Device.device_id_path,  # LTree - no sqladmin converter
+        Device.point,  # Geography - no sqladmin converter
+        Device.polygon,  # Geography - no sqladmin converter
+    ]
 
 
 class SensorTypeAdmin(ModelView, model=SensorType):
