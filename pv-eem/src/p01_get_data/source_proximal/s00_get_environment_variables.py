@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 
-def get_environment_variables() -> tuple[str, str, str, str, str]:
+def get_environment_variables() -> tuple[str, str, str]:
     """Load runtime environment variables from the project .env file."""
     # Environment Variables
     load_dotenv()
@@ -23,21 +23,6 @@ def get_environment_variables() -> tuple[str, str, str, str, str]:
         case _:
             pass
 
-    # QC on AWS Environment Variables
-    aws_access_key_id: str | None = os.getenv("AWS_ACCESS_KEY_ID")
-    match aws_access_key_id:
-        case None:
-            raise ValueError("AWS_ACCESS_KEY_ID is missing from .env file")
-        case _:
-            pass
-
-    aws_secret_access_key: str | None = os.getenv("AWS_SECRET_ACCESS_KEY")
-    match aws_secret_access_key:
-        case None:
-            raise ValueError("AWS_SECRET_ACCESS_KEY is missing from .env file")
-        case _:
-            pass
-
     aws_s3_bucket_name: str | None = os.getenv("AWS_S3_BUCKET_NAME")
     match aws_s3_bucket_name:
         case None:
@@ -48,7 +33,5 @@ def get_environment_variables() -> tuple[str, str, str, str, str]:
     return (
         environment,
         database_url,
-        aws_access_key_id,
-        aws_secret_access_key,
         aws_s3_bucket_name,
     )

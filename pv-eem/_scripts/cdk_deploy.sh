@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -u
+set -eu
 set -o pipefail
 
 LOG_FILE="$(mktemp -t cdk-deploy-log.XXXXXX)"
@@ -8,6 +8,10 @@ ARGS=()
 skip_next=0
 pending_context=0
 has_image_tag=0
+has_runtime_environment=0
+
+echo "[cdk-deploy] Pushing image before deploy"
+bash _scripts/push_image.sh
 
 for arg in "$@"; do
   if [[ "${skip_next}" -eq 1 ]]; then
@@ -18,6 +22,9 @@ for arg in "$@"; do
   if [[ "${pending_context}" -eq 1 ]]; then
     if [[ "${arg}" == imageTag=* ]]; then
       has_image_tag=1
+    fi
+    if [[ "${arg}" == runtimeEnvironment=* ]]; then
+      has_runtime_environment=1
     fi
     pending_context=0
     ARGS+=("${arg}")
@@ -43,6 +50,9 @@ for arg in "$@"; do
     if [[ "${arg#*=}" == imageTag=* ]]; then
       has_image_tag=1
     fi
+    if [[ "${arg#*=}" == runtimeEnvironment=* ]]; then
+      has_runtime_environment=1
+    fi
     ARGS+=("${arg}")
     continue
   fi
@@ -64,6 +74,11 @@ if [[ "${has_image_tag}" -eq 0 ]]; then
 
   ARGS+=(-c "imageTag=${image_tag}")
   echo "[cdk-deploy] Defaulting imageTag to ${image_tag}"
+fi
+
+if [[ "${has_runtime_environment}" -eq 0 ]]; then
+  ARGS+=(-c "runtimeEnvironment=PROD")
+  echo "[cdk-deploy] Defaulting runtimeEnvironment to PROD"
 fi
 
 ARGS+=(--require-approval never)

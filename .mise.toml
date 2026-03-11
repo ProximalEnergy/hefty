@@ -942,12 +942,12 @@ dir = "pv-eem"
 run = "bash _scripts/push_image.sh"
 
 [tasks."pveem:cdk-deploy"]
-description = "Deploy the CDK app in _cdk/ for pv-eem"
+description = "Push image, then deploy pv-eem to PROD unless overridden"
 dir = "pv-eem"
 run = "bash _scripts/cdk_deploy.sh"
 
 [tasks."pveem:deploy"]
-description = "Run checks and then deploy CDK for pv-eem"
+description = "Run checks, then call pveem:cdk-deploy"
 dir = "pv-eem"
 run = "bash _scripts/deploy.sh"
 

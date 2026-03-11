@@ -57,8 +57,6 @@ async def from_proximal_db(
     (
         ENVIRONMENT,
         DATABASE_URL,
-        AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY,
         AWS_S3_BUCKET_NAME,
     ) = get_environment_variables()
 

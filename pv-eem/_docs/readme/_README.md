@@ -5,18 +5,16 @@ Deployment flow for the expected energy simulation.
 
 ## Deploy
 ### Local
-- `mise run pveem:push-image`
+- `mise run pveem:cdk-deploy`
+- Pushes the Docker image to ECR before deploying.
 - Reads the version from `pyproject.toml`.
 - Reads the pinned `core==...` dependency from `pyproject.toml`.
-- Pushes the Docker image to ECR with both `<version>` and `latest` tags.
+- Pushes the image with both `<version>` and `latest` tags.
 - Publishes a single ARM64 image manifest that Lambda accepts.
-- `mise run pveem:cdk-deploy`
 - Defaults the CDK `imageTag` context to the same `pyproject.toml` version.
+- Defaults the CDK `runtimeEnvironment` context to `PROD`.
 - `mise run pveem:deploy`
-- Runs checks, pushes the image, then deploys CDK with
-  `runtimeEnvironment=PROD`.
-- If the current Lambda only has a `latest` tag, `pveem:deploy` performs the
-  one-time semver tag migration automatically.
+- Runs checks, then calls `pveem:cdk-deploy`.
 
 ### Docker
 - Image tags include both the `pyproject.toml` version and `latest`.
@@ -32,7 +30,7 @@ Deployment flow for the expected energy simulation.
 - Override the default image tag if needed:
   `mise run pveem:cdk-deploy -- -c imageTag=0.16.6`
 - Override the Lambda runtime environment if needed:
-  `mise run pveem:cdk-deploy -- -c runtimeEnvironment=PROD`
+  `mise run pveem:cdk-deploy -- -c runtimeEnvironment=DEV`
 
 ## Legacy SAM Cleanup
 Use `pv-eem/_docs/readme/_README_DEPLOY.md` for the one-time checklist to

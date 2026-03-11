@@ -8,20 +8,19 @@ Run tests before deploying. There are no tests in CI/CD.
 
 ## Deploy
 ### Local flow
-- Run `mise run pveem:push-image`.
-- The script reads `pyproject.toml` and pushes the image to ECR with both
+- Run `mise run pveem:cdk-deploy`.
+- That command pushes the image before deploying CDK.
+- The push reads `pyproject.toml` and pushes the image to ECR with both
   `<version>` and `latest` tags.
 - The Docker build validates the pinned `core==...` dependency in
   `pyproject.toml` and installs that exact version from AWS CodeArtifact.
 - The script builds a single ARM64 image locally and then pushes plain tags to
   ECR so Lambda gets a compatible manifest.
-- Run `mise run pveem:cdk-deploy`.
 - Unless you override it, CDK deploys the same `<version>` tag from
   `pyproject.toml`.
-- Run `mise run pveem:deploy` to do checks, image push, and CDK deploy in one
-  command.
-- If the deployed Lambda only exposes `latest`, `pveem:deploy` treats that as
-  a one-time migration case and still publishes the semver tag.
+- Unless you override it, CDK deploys with `runtimeEnvironment=PROD`.
+- Run `mise run pveem:deploy` to do checks and then the PROD deploy flow in
+  one command.
 
 ### Docker
 - Source `../_scripts/auth_aws_codeartifact.sh` before building or pushing.
@@ -46,6 +45,8 @@ Run tests before deploying. There are no tests in CI/CD.
 - `mise run pveem:cdk-deploy`
 - Optionally pass an image tag:
   `mise run pveem:cdk-deploy -- -c imageTag=0.16.6`
+- Optionally pass a different runtime environment:
+  `mise run pveem:cdk-deploy -- -c runtimeEnvironment=DEV`
 
 ## One-Time SAM Decommission
 Run this after CDK Lambda `pv-eem` is deployed and stable.

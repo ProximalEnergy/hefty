@@ -44,11 +44,9 @@ def _get_database_url() -> str:
     return database_url
 
 
-def _get_project(*, database_url: str) -> Project:
-    engine = get_db_engine(database_url=database_url)
-    return Project(
+async def _get_project() -> Project:
+    return await Project.create(
         project_name_short=PROJECT_NAME_SHORT,
-        engine=engine,
     )
 
 
@@ -57,9 +55,8 @@ async def _get_live_met_data_row_count(
     database_url: str,
 ) -> int:
     engine = get_db_engine(database_url=database_url)
-    project = Project(
+    project = await Project.create(
         project_name_short=PROJECT_NAME_SHORT,
-        engine=engine,
     )
     met_data = await get_met_data(
         time_zone=project.time_zone,
@@ -93,7 +90,7 @@ async def _run_live_test() -> dict[str, object]:
 
 async def _async_main() -> int:
     database_url = _get_database_url()
-    project = _get_project(database_url=database_url)
+    project = await _get_project()
     print(
         "Running pv-eem live test for "
         f"{PROJECT_NAME_SHORT} in {project.time_zone}"
