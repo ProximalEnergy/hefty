@@ -2696,13 +2696,12 @@ export interface paths {
         };
         /**
          * Get Llm Event Losses
-         * @description todo
+         * @description Get LLM event losses for a project.
          *
          *     Args:
-         *         db: Operational database
-         *         project_id: Description for project_id.
-         *         start: Description for start.
-         *         end: Description for end.
+         *         project: Project
+         *         start: Start time
+         *         end: End time
          */
         get: operations["get_llm_event_losses_v1_operational_projects__project_id__events_llm_event_losses_get"];
         put?: never;

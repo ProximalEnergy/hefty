@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import logging
-import traceback
 import uuid
 from collections.abc import Sequence
 from typing import Annotated, Any, Literal
@@ -12,10 +11,14 @@ import pandas as pd
 import sentry_sdk
 from core.crud.operational.device_types import get_device_types
 from core.crud.operational.failure_modes import get_failure_modes
+from core.crud.operational.root_causes import get_root_causes as core_get_root_causes
 from core.crud.project import event_losses as core_event_losses
 from core.crud.project import events as core_events
 from core.crud.project.data_timeseries import DataTimeseries, FilterMethod
 from core.crud.project.devices import get_project_devices as crud_get_project_devices
+from core.crud.project.event_losses import get_event_losses
+from core.crud.project.events import get_windowed_events
+from core.crud.project.tags import get_project_tags_v2
 from core.db_query import OutputType
 from core.enumerations import DeviceType, EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
@@ -23,7 +26,6 @@ from sqlalchemy import insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-import core
 from app import interfaces, utils
 from app._crud.operational.failure_modes import get_root_causes
 from app._crud.operational.failure_modes import (
@@ -780,7 +782,7 @@ async def get_uptime(
 
     if project.project_type_id != ProjectType.BESS:
         # Get POA data efficiently for daylight hours calculation
-        tags_df = await core.crud.project.tags.get_project_tags_v2(
+        tags_df = await get_project_tags_v2(
             sensor_type_ids=[SensorType.MET_STATION_POA],
         ).get_async(
             schema=project.name_short,
@@ -1101,7 +1103,7 @@ async def get_event_trace_tags(
                     "has been notified."
                 ),
             )
-    tags_df = await core.crud.project.tags.get_project_tags_v2(
+    tags_df = await get_project_tags_v2(
         device_ids=device_ids,
         sensor_type_ids=sensor_type_ids,
         deep=True,
@@ -1116,106 +1118,75 @@ async def get_event_trace_tags(
 
 @router.get("/llm-event-losses")
 async def get_llm_event_losses(
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-    project_id: uuid.UUID,
+    project: Annotated[models.Project, Depends(get_project_api)],
     start: datetime.datetime | None = None,
     end: datetime.datetime | None = None,
 ):
-    """todo
+    """Get LLM event losses for a project.
 
     Args:
-        db: Operational database
-        project_id: Description for project_id.
-        start: Description for start.
-        end: Description for end.
+        project: Project
+        start: Start time
+        end: End time
     """
+
+    if start is None or end is None:
+        start = pd.Timestamp.now(tz=project.time_zone).normalize()
+        end = start + pd.Timedelta(days=1)
+
     try:
-        if isinstance(start, str):
-            start = datetime.datetime.fromisoformat(start.replace("Z", "+00:00"))
-        if isinstance(end, str):
-            end = datetime.datetime.fromisoformat(end.replace("Z", "+00:00"))
+        start = pd.Timestamp(start).tz_localize(project.time_zone)
+        end = pd.Timestamp(end).tz_localize(project.time_zone)
+    except TypeError:
+        start = pd.Timestamp(start).tz_convert(project.time_zone)
+        end = pd.Timestamp(end).tz_convert(project.time_zone)
 
-        project_name_short = get_project_name_short(project_id=project_id)
-        if not project_name_short:
-            raise HTTPException(status_code=404, detail="Project not found")
+    events_df = await get_windowed_events(start=start, end=end).get_async(
+        output_type=OutputType.PANDAS, schema=project.name_short
+    )
 
-        event_data_query = core_events.get_events_with_device_info(
-            time_end_gte=start,
-            time_end_lt=end,
-            open=False,
-        )
-        event_data_df = await event_data_query.get_async(
-            schema=project_name_short,
-            output_type=OutputType.POLARS,
-        )
-        if event_data_df is None or event_data_df.is_empty():
-            return {"data": pd.DataFrame().to_dict("tight")}
-        event_data = event_data_df.to_dicts()
+    failure_modes_df = await get_failure_modes(
+        failure_mode_ids=events_df["failure_mode_id"].unique().tolist()
+    ).get_async(output_type=OutputType.PANDAS, schema=project.name_short)
+    failure_modes_dict = failure_modes_df.set_index("failure_mode_id")[
+        "name_long"
+    ].to_dict()
 
-        event_ids = [int(event["event_id"]) for event in event_data]
-        event_losses = await core_event_losses.get_event_losses(
-            event_ids=event_ids,
-            time_gte=start,
-            time_lt=end,
-        ).get_async(
-            schema=project_name_short,
-            output_type=OutputType.SQLALCHEMY,
-        )
+    root_causes_df = await core_get_root_causes(
+        root_cause_ids=events_df["root_cause_id"].unique().tolist()
+    ).get_async(output_type=OutputType.PANDAS, schema=project.name_short)
+    root_causes_dict = root_causes_df.set_index("root_cause_id")["name_long"].to_dict()
 
-        failure_modes = await get_failure_modes().get_async(
-            output_type=OutputType.SQLALCHEMY,
-        )
-        failure_mode_map = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
+    events_df["failure_mode"] = events_df["failure_mode_id"].map(failure_modes_dict)
+    events_df["root_cause"] = (
+        events_df["root_cause_id"].map(root_causes_dict).fillna("Unknown")
+    )
 
-        root_causes = await get_root_causes(db=db)
-        root_cause_map = {rc.root_cause_id: rc.name_long for rc in root_causes}
+    event_losses_df = await get_event_losses(
+        event_ids=events_df["event_id"].unique().tolist(), time_gte=start, time_lt=end
+    ).get_async(output_type=OutputType.PANDAS, schema=project.name_short)
 
-        event_losses_dict: dict[int, list[models.EventLoss]] = {}
-        for loss in event_losses:
-            if loss.event_id not in event_losses_dict:
-                event_losses_dict[loss.event_id] = []
-            event_losses_dict[loss.event_id].append(loss)
+    loss_cols = ["time", "event_loss_type_id", "loss"]
+    losses_dict = (
+        event_losses_df.groupby("event_id")[loss_cols]
+        .apply(lambda x: x.to_dict(orient="records"))
+        .to_dict()
+    )
+    events_df["losses"] = events_df["event_id"].map(losses_dict)
 
-        df = pd.DataFrame(
-            [
-                {
-                    "event_id": d["event_id"],
-                    "time_start": d["time_start"],
-                    "time_end": d["time_end"],
-                    "device_id": d["device_id"],
-                    "failure_mode": failure_mode_map.get(
-                        d["failure_mode_id"],
-                        "Unknown",
-                    ),
-                    "root_cause": root_cause_map.get(
-                        d["root_cause_id"] or -1,
-                        "Unknown",
-                    ),
-                    "losses": event_losses_dict.get(d["event_id"], []),
-                }
-                for d in event_data
-            ],
-        )
+    out_df = events_df[
+        [
+            "event_id",
+            "time_start",
+            "time_end",
+            "device_id",
+            "failure_mode",
+            "root_cause",
+            "losses",
+        ]
+    ]
 
-        df = df.sort_values(by="time_start")
-
-        df["losses"] = df["losses"].apply(
-            lambda losses: [
-                {
-                    "time": loss.time,
-                    "loss": loss.loss,
-                    "event_loss_type_id": loss.event_loss_type_id,
-                }
-                for loss in losses
-            ],
-        )
-
-        return {"data": df.to_dict("tight")}
-
-    except Exception as e:
-        error_trace = traceback.format_exc()
-        logging.error(f"Error in get_llm_event_losses: {str(e)}\n{error_trace}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    return {"data": out_df.to_dict("tight")}
 
 
 @router.post("/bulk-create", response_model=interfaces.BulkCreateEventsResponse)
