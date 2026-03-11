@@ -1,15 +1,30 @@
-import { useUpdateSelfClerkTheme } from '@/api/admin'
+import {
+  useGetCompaniesWithProjects,
+  useUpdateSelfClerkTheme,
+} from '@/api/admin'
 import { useGetProjects } from '@/api/v1/operational/projects'
-import { Box, Button, Group, Select, Stack, Text, Title } from '@mantine/core'
+import {
+  Box,
+  Button,
+  Group,
+  Loader,
+  Select,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
+
+const PROXIMAL_NAME_SHORT = 'proximal'
 
 const CompanyView = () => {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const projects = useGetProjects({ personalPortfolio: false })
+  const companiesQuery = useGetCompaniesWithProjects()
   const updateThemeMutation = useUpdateSelfClerkTheme()
 
   const [, setExcludedProjectIds] = useLocalStorage<string[]>({
@@ -17,96 +32,63 @@ const CompanyView = () => {
     defaultValue: [],
   })
 
-  const companies = {
-    Proximal: {
-      theme: 'proximal',
-      projects: [],
-    },
-    DESRI: {
-      theme: 'desri',
-      projects: ['north_star', 'sigurd'],
-    },
-    Excelsior: {
-      theme: 'excelsior',
-      projects: [
-        'bexar',
-        'continental_v2',
-        'falfurrias',
-        'gregory',
-        'headcamp',
-        'mason',
-        'monte_cristo',
-        'muenster',
-        'palacios',
-        'sinton_pirate',
-      ],
-    },
-    LydianEnergy: {
-      theme: 'lydian_energy',
-      projects: ['headcamp'],
-    },
-    McCarthy: {
-      theme: 'mccarthy',
-      projects: [
-        'assembly_1',
-        'assembly_2',
-        'assembly_3',
-        'bonnybrooke',
-        'centennial_flats',
-        'double_black_diamond',
-        'fiddlers_canyon_1',
-        'fiddlers_canyon_2',
-        'fiddlers_canyon_3',
-        'lancaster',
-        'milford_2',
-        'rosamond_south_1',
-        'serrano',
-        'sun_pond',
-        'snipesville_2',
-        'south_milford',
-        'sun_streams_3',
-        'sun_streams_4',
-      ],
-    },
-  }
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null,
+  )
+
+  const selectData = useMemo(() => {
+    if (!companiesQuery.data) return []
+
+    return companiesQuery.data.map((company) => ({
+      value: company.company_id,
+      label: company.name_long,
+    }))
+  }, [companiesQuery.data])
+
+  const selectedCompany = useMemo(() => {
+    if (!selectedCompanyId || !companiesQuery.data) return null
+    return companiesQuery.data.find((c) => c.company_id === selectedCompanyId)
+  }, [selectedCompanyId, companiesQuery.data])
 
   const handleClickProxy = async () => {
-    if (selectedCompany && projects.data) {
-      const companyData = companies[selectedCompany as keyof typeof companies]
-      const companyProjectNames: string[] = companyData.projects
+    if (!selectedCompany || !projects.data) return
 
-      let projectsToExclude: string[]
+    const isProximal =
+      selectedCompany.name_short.toLowerCase() === PROXIMAL_NAME_SHORT
 
-      if (companyProjectNames.length === 0) {
-        // Proximal option: include all projects (exclude none)
-        projectsToExclude = []
-      } else {
-        // Other companies: exclude all projects not in the company's project list
-        projectsToExclude = projects.data
-          .filter(
-            (project) => !companyProjectNames.includes(project.name_short),
-          )
-          .map((project) => project.project_id)
-      }
+    let projectsToExclude: string[]
 
-      // Update the excluded project IDs
-      setExcludedProjectIds(projectsToExclude)
-
-      // Invalidate the personal portfolio cache
-      queryClient.removeQueries({
-        queryKey: ['getProjectsPersonal'],
-      })
-
-      // Update the user's theme in Clerk
-      try {
-        await updateThemeMutation.mutateAsync({ theme: companyData.theme })
-        // Redirect to portfolio on success
-        navigate('/portfolio')
-      } catch (error) {
-        console.error('Failed to update theme:', error)
-      }
+    if (isProximal) {
+      projectsToExclude = []
+    } else {
+      const companyProjectIdSet = new Set(selectedCompany.project_ids)
+      projectsToExclude = projects.data
+        .filter((project) => !companyProjectIdSet.has(project.project_id))
+        .map((project) => project.project_id)
     }
+
+    setExcludedProjectIds(projectsToExclude)
+
+    queryClient.removeQueries({
+      queryKey: ['getProjectsPersonal'],
+    })
+
+    const theme = selectedCompany.name_short.toLowerCase()
+    try {
+      await updateThemeMutation.mutateAsync({ theme })
+      navigate('/portfolio')
+    } catch (error) {
+      console.error('Failed to update theme:', error)
+    }
+  }
+
+  if (companiesQuery.isLoading) {
+    return (
+      <Stack p="md" align="center">
+        <Loader />
+        <Text>Loading companies...</Text>
+      </Stack>
+    )
   }
 
   return (
@@ -123,13 +105,15 @@ const CompanyView = () => {
         <Box style={{ flex: 1 }} />
       </Group>
       <Select
-        data={Object.keys(companies)}
+        data={selectData}
         placeholder="Select a company"
-        onChange={(value) => setSelectedCompany(value)}
+        onChange={(value) => setSelectedCompanyId(value)}
+        searchable
       />
       <Button
         onClick={() => handleClickProxy()}
         loading={updateThemeMutation.isPending}
+        disabled={!selectedCompany}
       >
         Proxy to Company
       </Button>

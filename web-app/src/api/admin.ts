@@ -242,6 +242,31 @@ export const useGetCompanies = ({
   })
 }
 
+type CompanyWithProjects = Company & {
+  project_ids: string[]
+}
+
+export const useGetCompaniesWithProjects = ({
+  queryOptions = {},
+}: {
+  queryOptions?: Partial<UseQueryOptions>
+} = {}) => {
+  const axiosConfig = {
+    url: `/v1/admin/companies/with-projects`,
+  }
+
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  }
+
+  return useCustomQuery<CompanyWithProjects[]>({
+    axiosConfig,
+    queryName: 'getCompaniesWithProjects',
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
 export const useGetCompanyTeams = ({
   queryOptions = {},
 }: {

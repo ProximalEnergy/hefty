@@ -6,8 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dependencies, interfaces
 from app._crud.admin.companies import create_company as crud_create_company
+from app._crud.admin.companies import get_companies as crud_get_companies
 from app._crud.admin.companies import (
-    get_companies as crud_get_companies,
+    get_companies_with_projects as crud_get_companies_with_projects,
 )
 
 router = APIRouter(prefix="/companies", tags=["companies"])
@@ -48,3 +49,28 @@ async def get_companies(
         name_shorts=name_shorts,
     )
     return companies
+
+
+@router.get(
+    "/with-projects",
+    response_model=list[interfaces.CompanyWithProjects],
+)
+async def get_companies_with_projects(
+    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
+    user_data: Annotated[
+        interfaces.UserData, Depends(dependencies.get_user_data_async)
+    ],
+):
+    """Get companies with aggregated project IDs accessible to the user.
+
+    Returns all companies that have at least one user with project access.
+    Project lists are filtered to those the requesting user can also access.
+
+    Args:
+        db: Async database session.
+        user_data: Authenticated user data from dependency.
+    """
+    return await crud_get_companies_with_projects(
+        db=db,
+        user_id=user_data.user_id,
+    )

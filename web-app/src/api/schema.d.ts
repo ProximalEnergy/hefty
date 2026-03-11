@@ -353,6 +353,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/companies/with-projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Companies With Projects
+         * @description Get companies with aggregated project IDs accessible to the user.
+         *
+         *     Returns all companies that have at least one user with project access.
+         *     Project lists are filtered to those the requesting user can also access.
+         *
+         *     Args:
+         *         db: Async database session.
+         *         user_data: Authenticated user data from dependency.
+         */
+        get: operations["get_companies_with_projects_v1_admin_companies_with_projects_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/teams": {
         parameters: {
             query?: never;
@@ -8419,6 +8446,23 @@ export interface components {
             vector_store_id: string;
         };
         /**
+         * CompanyWithProjects
+         * @description Company model with associated project IDs from user_projects.
+         */
+        CompanyWithProjects: {
+            /** Name Short */
+            name_short: string;
+            /** Name Long */
+            name_long: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Project Ids */
+            project_ids: string[];
+        };
+        /**
          * Contract
          * @description Contract model.
          */
@@ -12583,6 +12627,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Company"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_companies_with_projects_v1_admin_companies_with_projects_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyWithProjects"][];
                 };
             };
             /** @description Validation Error */

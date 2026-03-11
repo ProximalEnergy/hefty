@@ -1442,6 +1442,12 @@ class Company(CompanyCreate):
     company_id: uuid.UUID
 
 
+class CompanyWithProjects(Company):
+    """Company model with associated project IDs from user_projects."""
+
+    project_ids: list[uuid.UUID]
+
+
 # --- Admin Teams ---
 class TeamCreate(BaseModel):
     """Teamcreate model."""

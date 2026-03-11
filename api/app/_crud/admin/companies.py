@@ -1,11 +1,71 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import interfaces
 from core import models
+
+
+async def get_companies_with_projects(
+    *,
+    db: AsyncSession,
+    user_id: str,
+) -> list[interfaces.CompanyWithProjects]:
+    """Return companies with aggregated project IDs from user_projects.
+
+    Returns all companies that have at least one user with at least one project.
+    The project_ids for each company is the union of all projects accessible by
+    any user in that company. Only includes projects that the requesting user
+    also has access to.
+
+    Args:
+        db: Async SQLAlchemy session.
+        user_id: The requesting user's ID, to filter to accessible projects.
+    """
+    user_accessible_projects_subquery = (
+        select(models.UserProject.operational_project_id)
+        .where(models.UserProject.user_id == user_id)
+        .subquery()
+    )
+
+    query = (
+        select(
+            models.Company.company_id,
+            models.Company.name_short,
+            models.Company.name_long,
+            func.array_agg(
+                func.distinct(models.UserProject.operational_project_id)
+            ).label("project_ids"),
+        )
+        .join(models.User, models.Company.company_id == models.User.company_id)
+        .join(models.UserProject, models.User.user_id == models.UserProject.user_id)
+        .where(
+            models.UserProject.operational_project_id.in_(
+                select(user_accessible_projects_subquery)
+            )
+        )
+        .group_by(
+            models.Company.company_id,
+            models.Company.name_short,
+            models.Company.name_long,
+        )
+        .order_by(models.Company.name_short)
+    )
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    return [
+        interfaces.CompanyWithProjects(
+            company_id=row.company_id,
+            name_short=row.name_short,
+            name_long=row.name_long,
+            project_ids=row.project_ids or [],
+        )
+        for row in rows
+    ]
 
 
 async def get_companies(
