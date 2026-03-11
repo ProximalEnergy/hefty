@@ -923,10 +923,7 @@ uv run --project . --with "${mypy_requirement}" \
 description = "Run ruff lint checks for pv-eem"
 dir = "."
 run = """
-uv run --project . --dev ruff check \
-  --config pyproject.toml \
-  --config "src = ['pv-eem', 'pv-eem/src']" \
-  pv-eem/
+uv run --dev ruff check pv-eem/
 """
 
 [tasks."pveem:pytest"]
