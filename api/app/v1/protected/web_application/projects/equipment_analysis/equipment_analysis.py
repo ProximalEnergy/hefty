@@ -9,7 +9,6 @@ from core.db_query import OutputType
 from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, HTTPException
 from natsort import natsorted
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -279,7 +278,6 @@ async def get_heatmap(
 
 @router.get("/sunburst-data")
 async def get_sunburst_data(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project_id,
     mode: str = "events",
@@ -357,20 +355,33 @@ async def get_sunburst_data(
     if 0 in hierarchy.keys():
         hierarchy.pop(0)
 
-    device_types = await core.crud.operational.device_types.get_device_types(db=db)
+    device_types_df = (
+        await core.crud.operational.device_types.get_device_types().get_async(
+            output_type=OutputType.POLARS
+        )
+    )
+    device_type_id_to_name_long = (
+        dict(
+            zip(
+                device_types_df["device_type_id"].to_list(),
+                device_types_df["name_long"].to_list(),
+                strict=True,
+            )
+        )
+        if not device_types_df.is_empty()
+        else {}
+    )
     device_names = {}
     for device in devices:
         device_id = device["device_id"]
-        device_type = [
-            x for x in device_types if x.device_type_id == device["device_type_id"]
-        ][0]
+        dt_name = device_type_id_to_name_long.get(device["device_type_id"], "")
         name_long = device.get("name_long")
         if pd.isna(name_long):
             name_long = None
         if name_long is not None:
-            device_names[device_id] = f"{device_type.name_long} {name_long}"
+            device_names[device_id] = f"{dt_name} {name_long}"
         else:
-            device_names[device_id] = str(device_type.name_long)
+            device_names[device_id] = dt_name
 
     labels = []
     parents = []

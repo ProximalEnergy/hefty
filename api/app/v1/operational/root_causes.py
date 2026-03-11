@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from core.crud.operational.device_types import get_device_types
+from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,14 +42,20 @@ async def get_root_causes(
         root_cause_ids=root_cause_ids,
         device_type_ids=device_type_ids,
     )
-    device_types = await get_device_types(
-        db=db,
+    device_types_df = await get_device_types(
         device_type_ids=device_type_ids,
+    ).get_async(output_type=OutputType.POLARS)
+    device_types_zip = (
+        dict(
+            zip(
+                device_types_df["device_type_id"].to_list(),
+                device_types_df["name_long"].to_list(),
+                strict=True,
+            )
+        )
+        if not device_types_df.is_empty()
+        else {}
     )
-    device_types_zip = {
-        device_type.device_type_id: device_type.name_long
-        for device_type in device_types
-    }
     root_cause_to_name_full = {
         root_cause.root_cause_id: device_types_zip[root_cause.device_type_id]
         + " "

@@ -3,11 +3,9 @@ from typing import Annotated
 from core.crud.operational.device_types import get_device_type as crud_get_device_type
 from core.crud.operational.device_types import get_device_types as crud_get_device_types
 from core.db_query import OutputType
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Query
 
 from app import interfaces, utils
-from app.dependencies import get_async_db
 
 DESCRIPTION_404 = "Device type not found"
 
@@ -21,7 +19,6 @@ async def get_device_types(
     device_type_ids: Annotated[list[int], Query()] = [],
     name_short: str = "",
     name_long: str = "",
-    db: AsyncSession = Depends(get_async_db),
 ):
     """todo
 
@@ -31,12 +28,14 @@ async def get_device_types(
         name_long: Description for name_long.
         db: Description for db.
     """
-    return await crud_get_device_types(
-        db=db,
+    df = await crud_get_device_types(
         device_type_ids=device_type_ids,
         name_short=name_short,
         name_long=name_long,
-    )
+    ).get_async(output_type=OutputType.POLARS)
+    if df.is_empty():
+        return []
+    return [interfaces.DeviceType.model_validate(d) for d in df.to_dicts()]
 
 
 @router.get(

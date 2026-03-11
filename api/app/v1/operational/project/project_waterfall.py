@@ -9,7 +9,6 @@ from core.crud.project.event_losses import get_event_losses_aggregated
 from core.db_query import OutputType
 from core.enumerations import EventLossType, ProjectType, SensorType
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -49,7 +48,6 @@ def df_from_objects(
 
 @router.get("")
 async def get_project_waterfall(
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
     level: str = "device_type",
@@ -185,13 +183,13 @@ async def get_project_waterfall(
         device_type_ids = (
             df_events["device_type_id"].dropna().unique().astype(int).tolist()
         )
-        data_device_types = await crud_get_device_types(
-            db=db,
+        df_device_types = await crud_get_device_types(
             device_type_ids=device_type_ids,
-        )
-        df_device_types = df_from_objects(
-            objects=data_device_types,
-            index_col="device_type_id",
+        ).get_async(output_type=OutputType.PANDAS)
+        df_device_types = (
+            df_device_types.set_index("device_type_id")
+            if not df_device_types.empty
+            else pd.DataFrame(columns=["name_short", "name_long", "description"])
         )
         grouped_losses = (
             df_events[["device_type_id", "loss"]].groupby("device_type_id").sum()

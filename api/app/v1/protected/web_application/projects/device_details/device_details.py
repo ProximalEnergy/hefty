@@ -13,7 +13,6 @@ from core.enumerations import SensorType as SensorTypeEnum
 from fastapi import APIRouter, Depends, HTTPException, Query
 from natsort import natsorted
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -328,7 +327,6 @@ async def get_single_by_device_id(
 )
 async def get_vertical_controller(
     device_id: int,
-    db: Annotated[AsyncSession, Depends(dependencies.get_async_db)],
     project_db: Annotated[Session, Depends(dependencies.get_project_db)],
     project: Annotated[models.Project, Depends(dependencies.get_project_api)],
 ):
@@ -432,13 +430,20 @@ async def get_vertical_controller(
     except Exception as e:
         logging.error(f"Error getting project spec: {e}")
 
-    device_types: list[models.DeviceType] = await crud_get_device_types(
-        db=db,
+    device_types_df = await crud_get_device_types(
         device_type_ids=device_type_ids,
+    ).get_async(output_type=OutputType.POLARS)
+    device_type_id_to_name_long: dict[int, str] = (
+        dict(
+            zip(
+                device_types_df["device_type_id"].to_list(),
+                device_types_df["name_long"].to_list(),
+                strict=True,
+            )
+        )
+        if not device_types_df.is_empty()
+        else {}
     )
-    device_type_id_to_name_long: dict[int, str] = {
-        dt.device_type_id: dt.name_long for dt in device_types
-    }
 
     # Get the child devices associated with the block
     child_devices_df = await core.crud.project.devices.get_project_devices(

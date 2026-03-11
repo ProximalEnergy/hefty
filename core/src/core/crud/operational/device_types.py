@@ -1,7 +1,6 @@
 from typing import Literal
 
 import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import models
 from core.db_query import DbQuery
@@ -24,27 +23,18 @@ def get_device_type(
     return DbQuery(query=stmt, is_scalar=True)
 
 
-async def get_device_types(
+def get_device_types(
     *,
-    db: AsyncSession,
     device_type_ids: list[int] = [],
     name_short: str = "",
     name_long: str = "",
-):
-    """
-    Retrieve a list of device types from the database based on the provided filters.
+) -> DbQuery[models.DeviceType, Literal[False]]:
+    """Retrieve device types from the database based on provided filters.
 
     Args:
-        db (AsyncSession): The database session to use for the query.
-        device_type_ids (list[int], optional): A list of device type IDs to filter the
-             results. Defaults to an empty list.
-        name_short (str, optional): A short name to filter the device types.
-             Defaults to an empty string.
-        name_long (str, optional): A long name to filter the device types.
-             Defaults to an empty string.
-
-    Returns:
-        list[models.DeviceType]: A list of device types matching the specified criteria.
+        device_type_ids: Device type IDs to filter results.
+        name_short: Short name to filter device types.
+        name_long: Long name to filter device types.
     """
     stmt = sa.select(models.DeviceType)
 
@@ -55,5 +45,4 @@ async def get_device_types(
     if name_long:
         stmt = stmt.where(models.DeviceType.name_long == name_long)
 
-    result = await db.execute(stmt)
-    return result.scalars().all()
+    return DbQuery(query=stmt)

@@ -2525,17 +2525,16 @@ export interface paths {
         };
         /**
          * Get Events
-         * @description todo
+         * @description Retrieve a list of events for a project with optional filters.
          *
          *     Args:
-         *         db: Description for db.
-         *         project_id: Description for project_id.
-         *         device_id: Description for device_id.
-         *         time_end_gte: Description for time_end_gte.
-         *         time_end_lt: Description for time_end_lt.
-         *         open: Description for open.
-         *         event_ids: Description for event_ids.
-         *         open_at: Description for open_at.
+         *         project_id: UUID of the project to retrieve events for.
+         *         device_id: Filter events by device ID.
+         *         time_end_gte: Filter events ending at or after this datetime.
+         *         time_end_lt: Filter events ending before this datetime.
+         *         open: Include only open events (default True).
+         *         event_ids: Filter to specific event IDs.
+         *         open_at: Filter events that were open at this datetime.
          */
         get: operations["get_events_v1_operational_projects__project_id__events_get"];
         put?: never;
@@ -2555,21 +2554,20 @@ export interface paths {
         };
         /**
          * Get Paginated Events
-         * @description todo
+         * @description Retrieve paginated events for a project with sorting and filtering.
          *
          *     Args:
-         *         project_id: Description for project_id.
-         *         page: Description for page.
-         *         page_size: Description for page_size.
-         *         sort_column: Description for sort_column.
-         *         sort_direction: Description for sort_direction.
-         *         open: Description for open.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         device_type_ids: Description for device_type_ids.
-         *         device_ids: Description for device_ids.
-         *         project_db: Description for project_db.
-         *         db: Description for db.
+         *         project_id: UUID of the project to retrieve events for.
+         *         page: Page number for pagination.
+         *         page_size: Number of events per page (default 20).
+         *         sort_column: Column to sort by (default time_start).
+         *         sort_direction: Sort direction, asc or desc (default desc).
+         *         open: Include only open events (default True).
+         *         start: Filter events starting at or after this datetime.
+         *         end: Filter events starting before this datetime.
+         *         device_type_ids: Filter to specific device type IDs.
+         *         device_ids: Filter to specific device IDs.
+         *         project_db: Project database session.
          */
         get: operations["get_paginated_events_v1_operational_projects__project_id__events_paginated_events_get"];
         put?: never;
@@ -2590,12 +2588,12 @@ export interface paths {
         get?: never;
         /**
          * Update Event Root Cause
-         * @description todo
+         * @description Update the root cause assigned to an event.
          *
          *     Args:
-         *         root_cause: Description for root_cause.
-         *         event_id: Description for event_id.
-         *         project_db: Description for project_db.
+         *         root_cause: Root cause update payload containing the new root cause ID.
+         *         event_id: ID of the event to update.
+         *         project_db: Project database session.
          */
         put: operations["update_event_root_cause_v1_operational_projects__project_id__events__event_id__root_cause_put"];
         post?: never;
@@ -2614,12 +2612,11 @@ export interface paths {
         };
         /**
          * Get Event Devices
-         * @description todo
+         * @description Retrieve unique device types and devices that have associated events.
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         db: Description for db.
-         *         project_id: Description for project_id.
+         *         project_db: Project database session.
+         *         project_id: UUID of the project to query.
          */
         get: operations["get_event_devices_v1_operational_projects__project_id__events_event_devices_get"];
         put?: never;
@@ -2639,19 +2636,17 @@ export interface paths {
         };
         /**
          * Get Events Summary
-         * @description Generate a summary of events with associated device/failure/root-cause and
-         *     loss info.
+         * @description Generate a summary of events with device, failure mode, root cause, and loss.
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         db: Description for db.
-         *         open: Description for open.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         device_type_ids: Description for device_type_ids.
-         *         device_ids: Description for device_ids.
-         *         project_id: Description for project_id.
-         *         project: Description for project.
+         *         project_db: Project database session for loss queries.
+         *         open: Include only open events (default True).
+         *         start: Filter events starting at or after this datetime.
+         *         end: Filter events starting before this datetime.
+         *         device_type_ids: Filter to specific device type IDs.
+         *         device_ids: Filter to specific device IDs.
+         *         project_id: UUID of the project (optional if project is provided).
+         *         project: Project model from dependency injection.
          */
         get: operations["get_events_summary_v1_operational_projects__project_id__events_get_events_summary_get"];
         put?: never;
@@ -2671,15 +2666,13 @@ export interface paths {
         };
         /**
          * Get Uptime
-         * @description Calculate uptime metrics for a project based on
-         *     active Events within an analysis window.
+         * @description Calculate uptime metrics for a project based on active events.
          *
          *     Args:
-         *         start: The start of the analysis window.
-         *         end: The end of the analysis window.
-         *         project_db: The project database session.
-         *         db: The database session.
-         *         project: The project model.
+         *         start: Start of the analysis window.
+         *         end: End of the analysis window.
+         *         project_db: Project database session.
+         *         project: Project model from dependency injection.
          */
         get: operations["get_uptime_v1_operational_projects__project_id__events_uptime_get"];
         put?: never;
@@ -2699,11 +2692,11 @@ export interface paths {
         };
         /**
          * Get Event Trace Tags
-         * @description todo
+         * @description Retrieve sensor tags relevant to event tracing for a specific device.
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         device_id: Description for device_id.
+         *         project_db: Project database session.
+         *         device_id: ID of the device to retrieve trace tags for.
          */
         get: operations["get_event_trace_tags_v1_operational_projects__project_id__events_event_trace_tags_get"];
         put?: never;
@@ -2761,10 +2754,10 @@ export interface paths {
          *       'proximal_pv_dc_capacity'.
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         db: Description for db.
-         *         project_id: Description for project_id.
-         *         payload: Description for payload.
+         *         project_db: Project database session for event creation.
+         *         db: Operational database session for event loss type validation.
+         *         project_id: UUID of the project to create events for.
+         *         payload: Bulk event creation request containing items and metadata.
          */
         post: operations["bulk_create_events_v1_operational_projects__project_id__events_bulk_create_post"];
         delete?: never;
@@ -2782,12 +2775,11 @@ export interface paths {
         };
         /**
          * Get Event Anomalies
-         * @description Get all drone anomalies associated with a specific event.
-         *         Anomalies are linked to events via the event_id column.
+         * @description Retrieve all drone anomalies associated with a specific event.
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         event_id: Description for event_id.
+         *         project_db: Project database session.
+         *         event_id: ID of the event to retrieve anomalies for.
          */
         get: operations["get_event_anomalies_v1_operational_projects__project_id__events__event_id__anomalies_get"];
         put?: never;
@@ -2807,11 +2799,11 @@ export interface paths {
         };
         /**
          * Get Event Losses Summary
-         * @description todo
+         * @description Retrieve a summary of losses for an event including totals and daily averages.
          *
          *     Args:
-         *         project_id: The UUID of the project
-         *         event_id: Description for event_id.
+         *         project_id: UUID of the project containing the event.
+         *         event_id: ID of the event to retrieve loss summary for.
          */
         get: operations["get_event_losses_summary_v1_operational_projects__project_id__events_event_losses_summary_get"];
         put?: never;

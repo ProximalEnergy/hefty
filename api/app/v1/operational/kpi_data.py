@@ -11,7 +11,6 @@ from core.crud.operational.device_types import get_device_types
 from core.database import get_db
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -23,7 +22,6 @@ from app._dependencies.filtering import (
 )
 from app.dependencies import (
     check_project_access_async,
-    get_async_db,
     get_project_api,
     get_project_db,
     get_user_data_async,
@@ -232,7 +230,6 @@ async def get_kpi_excel(
     kpi_type_id: int,
     start: datetime.date,
     end: datetime.date,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     sync_db: Annotated[Session, Depends(get_db)],
     project_db: Annotated[Session, Depends(get_project_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
@@ -274,16 +271,22 @@ async def get_kpi_excel(
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         devices_df = devices_df.copy()
         devices_df["name_long"] = devices_df["name_long"].fillna("")
-        device_types = await get_device_types(
-            db=db,
+        device_types_df = await get_device_types(
             device_type_ids=np.unique(
                 devices_df["device_type_id"].astype(int),
             ).tolist(),
+        ).get_async(output_type=OutputType.POLARS)
+        device_types_dict = (
+            dict(
+                zip(
+                    device_types_df["device_type_id"].to_list(),
+                    device_types_df["name_long"].to_list(),
+                    strict=True,
+                )
+            )
+            if not device_types_df.is_empty()
+            else {}
         )
-        device_types_dict = {
-            device_type.device_type_id: device_type.name_long
-            for device_type in device_types
-        }
         device_id_to_name_full = {
             int(device["device_id"]): (
                 f"{device_types_dict[int(device['device_type_id'])]} "

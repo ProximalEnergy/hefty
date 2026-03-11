@@ -11,7 +11,6 @@ from core.enumerations import DeviceType, SensorType
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -41,7 +40,6 @@ async def utility_expected(
     start: datetime.datetime,
     end: datetime.datetime,
     warranted_degradation: Annotated[bool, Query()] = False,
-    db: AsyncSession = Depends(dependencies.get_async_db),
     project_db: Session = Depends(dependencies.get_project_db),
     project: models.Project = Depends(dependencies.get_project_api),
 ):
@@ -64,14 +62,20 @@ async def utility_expected(
     parent_devices = get_recursive_parents(db=project_db, device_id=device_id)
 
     # Add device name full to all devices
-    device_types = await get_device_types(
-        db=db,
+    device_types_df = await get_device_types(
         device_type_ids=[x.device_type_id for x in parent_devices],
+    ).get_async(output_type=OutputType.POLARS)
+    device_type_id_to_name_long = (
+        dict(
+            zip(
+                device_types_df["device_type_id"].to_list(),
+                device_types_df["name_long"].to_list(),
+                strict=True,
+            )
+        )
+        if not device_types_df.is_empty()
+        else {}
     )
-    device_type_id_to_name_long = {
-        device_type.device_type_id: device_type.name_long
-        for device_type in device_types
-    }
     for device in parent_devices:
         if not device.name_long:
             device.name_long = ""

@@ -7,7 +7,6 @@ from core.db_query import OutputType
 from core.enumerations import DeviceType
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 import core
@@ -15,7 +14,7 @@ from app import utils
 from app._dependencies.filtering import (
     filter_start_datetime_or_none_to_date_access_start_time,
 )
-from app.dependencies import get_project_api, get_project_db, get_project_db_async
+from app.dependencies import get_project_api, get_project_db
 
 router = APIRouter(
     prefix="/events",
@@ -98,7 +97,6 @@ async def get_meta_analysis(
     ] = None,
     end: datetime.datetime | None = None,
     project_db: Session = Depends(get_project_db),
-    project_db_async: AsyncSession = Depends(get_project_db_async),
     project: models.Project = Depends(get_project_api),
 ):
     # -----------------------
@@ -321,19 +319,16 @@ async def get_meta_analysis(
     # -----------------------
     # Device type names
     # -----------------------
-    device_types_result = await core.crud.operational.device_types.get_device_types(
-        db=project_db_async,
+    device_types_df = await core.crud.operational.device_types.get_device_types(
         device_type_ids=agg_types["device_type_id"].unique().tolist(),
+    ).get_async(
+        output_type=OutputType.PANDAS,
     )
-    device_types = pd.DataFrame(
-        [
-            {
-                "device_type_id": device_type.device_type_id,
-                "name_long": device_type.name_long,
-            }
-            for device_type in device_types_result
-        ]
-    ).set_index("device_type_id")
+    device_types = (
+        device_types_df[["device_type_id", "name_long"]].set_index("device_type_id")
+        if not device_types_df.empty
+        else pd.DataFrame(columns=["name_long"]).rename_axis("device_type_id")
+    )
 
     # -----------------------
     # Build response

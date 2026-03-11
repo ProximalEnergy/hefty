@@ -27,7 +27,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from app import interfaces, utils
-from app._crud.operational.failure_modes import get_root_causes
 from app._crud.operational.failure_modes import (
     update_event_root_cause as crud_update_event_root_cause,
 )
@@ -51,10 +50,10 @@ router = APIRouter(prefix="/events", tags=["project_events"])
 
 
 def _none_if_nan(x: Any) -> float | None:  # nosemgrep: python-enforce-keyword-only-args
-    """todo
+    """Convert a value to float, returning None if the value is NaN or invalid.
 
     Args:
-        x: Description for x.
+        x: Value to convert, can be any numeric type or NaN.
     """
     if x is None:
         return None
@@ -73,7 +72,6 @@ def _dtype_name_long(v: Any) -> str | None:
 
 @router.get("", response_model=list[interfaces.Event])
 async def get_events(
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_id: uuid.UUID,
     device_id: int | None = None,
     time_end_gte: datetime.datetime | None = None,
@@ -82,17 +80,16 @@ async def get_events(
     event_ids: Annotated[list[int] | None, Query()] = None,
     open_at: datetime.datetime | None = None,
 ) -> list[interfaces.Event] | None:
-    """todo
+    """Retrieve a list of events for a project with optional filters.
 
     Args:
-        db: Description for db.
-        project_id: Description for project_id.
-        device_id: Description for device_id.
-        time_end_gte: Description for time_end_gte.
-        time_end_lt: Description for time_end_lt.
-        open: Description for open.
-        event_ids: Description for event_ids.
-        open_at: Description for open_at.
+        project_id: UUID of the project to retrieve events for.
+        device_id: Filter events by device ID.
+        time_end_gte: Filter events ending at or after this datetime.
+        time_end_lt: Filter events ending before this datetime.
+        open: Include only open events (default True).
+        event_ids: Filter to specific event IDs.
+        open_at: Filter events that were open at this datetime.
     """
     if device_id == -1:
         return None
@@ -130,13 +127,15 @@ async def get_events(
     )
 
     # Fetch Failure Modes and Root Causes
-    failure_modes_task = get_failure_modes(failure_mode_ids=failure_mode_ids).get_async(
-        output_type=OutputType.SQLALCHEMY
-    )
+    failure_modes_task = get_failure_modes(
+        failure_mode_ids=failure_mode_ids,
+    ).get_async(output_type=OutputType.PANDAS)
 
-    root_causes_task = get_root_causes(db=db, root_cause_ids=root_cause_ids)
+    root_causes_task = core_get_root_causes(
+        root_cause_ids=root_cause_ids,
+    ).get_async(output_type=OutputType.PANDAS)
 
-    failure_modes, root_causes = await asyncio.gather(
+    failure_modes_df, root_causes_df = await asyncio.gather(
         failure_modes_task, root_causes_task
     )
 
@@ -161,26 +160,39 @@ async def get_events(
                 for device in devices_df.to_dicts()
             }
 
-    # Create mappings
-    failure_mode_map = {
-        fm.failure_mode_id: interfaces.FailureMode(
-            failure_mode_id=fm.failure_mode_id,
-            device_type_id=fm.device_type_id,
-            name_short=fm.name_short,
-            name_long=fm.name_long,
+    # Create mappings from DataFrames
+    def _fm_row_to_model(row: pd.Series) -> interfaces.FailureMode:
+        return interfaces.FailureMode(
+            failure_mode_id=int(row["failure_mode_id"]),
+            device_type_id=int(row["device_type_id"]),
+            name_short=str(row["name_short"]) if pd.notna(row["name_short"]) else "",
+            name_long=str(row["name_long"]) if pd.notna(row["name_long"]) else "",
         )
-        for fm in failure_modes
-    }
 
-    root_cause_map = {
-        rc.root_cause_id: interfaces.RootCause(
-            root_cause_id=rc.root_cause_id,
-            device_type_id=rc.device_type_id,
-            name_short=rc.name_short,
-            name_long=rc.name_long,
+    def _rc_row_to_model(row: pd.Series) -> interfaces.RootCause:
+        return interfaces.RootCause(
+            root_cause_id=int(row["root_cause_id"]),
+            device_type_id=int(row["device_type_id"]),
+            name_short=str(row["name_short"]) if pd.notna(row["name_short"]) else "",
+            name_long=str(row["name_long"]) if pd.notna(row["name_long"]) else "",
         )
-        for rc in root_causes
-    }
+
+    failure_mode_map = (
+        {
+            int(row["failure_mode_id"]): _fm_row_to_model(row)
+            for _, row in failure_modes_df.iterrows()
+        }
+        if not failure_modes_df.empty
+        else {}
+    )
+    root_cause_map = (
+        {
+            int(row["root_cause_id"]): _rc_row_to_model(row)
+            for _, row in root_causes_df.iterrows()
+        }
+        if not root_causes_df.empty
+        else {}
+    )
 
     # Process the results using a more efficient approach
     result: list[interfaces.Event] = []
@@ -222,24 +234,21 @@ async def get_paginated_events(
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     device_ids: Annotated[list[int] | None, Query()] = None,
     project_db: Session = Depends(get_project_db),
-    db: AsyncSession = Depends(get_async_db),
 ) -> list[interfaces.PaginatedEvent]:
-    # Get paginated events with single query
-    """todo
+    """Retrieve paginated events for a project with sorting and filtering.
 
     Args:
-        project_id: Description for project_id.
-        page: Description for page.
-        page_size: Description for page_size.
-        sort_column: Description for sort_column.
-        sort_direction: Description for sort_direction.
-        open: Description for open.
-        start: Description for start.
-        end: Description for end.
-        device_type_ids: Description for device_type_ids.
-        device_ids: Description for device_ids.
-        project_db: Description for project_db.
-        db: Description for db.
+        project_id: UUID of the project to retrieve events for.
+        page: Page number for pagination.
+        page_size: Number of events per page (default 20).
+        sort_column: Column to sort by (default time_start).
+        sort_direction: Sort direction, asc or desc (default desc).
+        open: Include only open events (default True).
+        start: Filter events starting at or after this datetime.
+        end: Filter events starting before this datetime.
+        device_type_ids: Filter to specific device type IDs.
+        device_ids: Filter to specific device IDs.
+        project_db: Project database session.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
@@ -277,10 +286,9 @@ async def get_paginated_events(
         int(e["root_cause_id"]) for e in event_objs if e["root_cause_id"] is not None
     ]
 
-    root_causes = await get_root_causes(
-        db=db,
+    root_causes = await core_get_root_causes(
         root_cause_ids=root_cause_ids or [],
-    )
+    ).get_async(output_type=OutputType.SQLALCHEMY)
 
     root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
 
@@ -297,9 +305,8 @@ async def get_paginated_events(
     device_type_ids_only = devices_df["device_type_id"].dropna().astype(int).tolist()
 
     device_types = await get_device_types(
-        db=db,
         device_type_ids=device_type_ids_only or [],
-    )
+    ).get_async(output_type=OutputType.SQLALCHEMY)
 
     device_type_dict = {dt.device_type_id: dt for dt in device_types}
 
@@ -435,12 +442,12 @@ async def update_event_root_cause(
     event_id: Annotated[int, Path(title="The ID of the event to update")],
     project_db: AsyncSession = Depends(get_project_db_async),
 ):
-    """todo
+    """Update the root cause assigned to an event.
 
     Args:
-        root_cause: Description for root_cause.
-        event_id: Description for event_id.
-        project_db: Description for project_db.
+        root_cause: Root cause update payload containing the new root cause ID.
+        event_id: ID of the event to update.
+        project_db: Project database session.
     """
     if root_cause.root_cause_id != -1:
         return await crud_update_event_root_cause(
@@ -459,16 +466,13 @@ async def update_event_root_cause(
 @router.get("/event-devices")
 async def get_event_devices(
     project_db: Annotated[Session, Depends(get_project_db)],
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_id: uuid.UUID,
 ):
-    # First get all device IDs that have events in a single query
-    """todo
+    """Retrieve unique device types and devices that have associated events.
 
     Args:
-        project_db: Description for project_db.
-        db: Description for db.
-        project_id: Description for project_id.
+        project_db: Project database session.
+        project_id: UUID of the project to query.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
@@ -498,9 +502,8 @@ async def get_event_devices(
 
     device_type_ids = devices_df["device_type_id"].dropna().astype(int).tolist()
     device_types = await get_device_types(
-        db=db,
         device_type_ids=device_type_ids,
-    )
+    ).get_async(output_type=OutputType.SQLALCHEMY)
     device_type_names = {
         device_type.device_type_id: device_type.name_long
         for device_type in device_types
@@ -541,8 +544,7 @@ async def get_event_devices(
 @router.get("/get-events-summary", response_model=list[interfaces.EventSummary])
 async def get_events_summary(
     project_db: Annotated[Session, Depends(get_project_db)],
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-    *,
+    project: Annotated[models.Project, Depends(get_project_api)],
     open: bool = True,
     start: Annotated[
         datetime.datetime | None,
@@ -552,21 +554,18 @@ async def get_events_summary(
     device_type_ids: Annotated[list[int] | None, Query()] = None,
     device_ids: Annotated[list[int] | None, Query()] = None,
     project_id: uuid.UUID | None = None,
-    project: Annotated[models.Project, Depends(get_project_api)],
 ) -> list[interfaces.EventSummary]:
-    """Generate a summary of events with associated device/failure/root-cause and
-    loss info.
+    """Generate a summary of events with device, failure mode, root cause, and loss.
 
     Args:
-        project_db: Description for project_db.
-        db: Description for db.
-        open: Description for open.
-        start: Description for start.
-        end: Description for end.
-        device_type_ids: Description for device_type_ids.
-        device_ids: Description for device_ids.
-        project_id: Description for project_id.
-        project: Description for project.
+        project_db: Project database session for loss queries.
+        open: Include only open events (default True).
+        start: Filter events starting at or after this datetime.
+        end: Filter events starting before this datetime.
+        device_type_ids: Filter to specific device type IDs.
+        device_ids: Filter to specific device IDs.
+        project_id: UUID of the project (optional if project is provided).
+        project: Project model from dependency injection.
     """
 
     # Time zone (same behavior: only use project's tz if project_id is provided)
@@ -616,7 +615,9 @@ async def get_events_summary(
     failure_modes_task = failure_modes_query.get_async(
         output_type=OutputType.SQLALCHEMY,
     )
-    root_causes_task = get_root_causes(db=db, root_cause_ids=root_cause_ids)
+    root_causes_task = core_get_root_causes(root_cause_ids=root_cause_ids).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
     # Run loss query in parallel with other async calls
     losses_task = asyncio.to_thread(
         core_event_losses.get_event_losses_summary_in_sql,
@@ -637,13 +638,11 @@ async def get_events_summary(
     def process_losses_data(
         *, losses_rows: Any, events_list: list
     ) -> dict[int, dict[str, float | None]]:
-        # Convert Row objects to dicts for proper DataFrame column names
-        # SQLAlchemy Row objects use _mapping attribute (2.0+) or _asdict() (older)
-        """todo
+        """Process SQL loss rows and compute daily averages for each event.
 
         Args:
-            losses_rows: Description for losses_rows.
-            events_list: Description for events_list.
+            losses_rows: SQLAlchemy Row objects containing aggregated loss data.
+            events_list: List of event dictionaries with time_start and time_end.
         """
         try:
             losses_dicts = [dict(row._mapping) for row in losses_rows]
@@ -757,18 +756,15 @@ async def get_uptime(
     start: datetime.datetime,
     end: datetime.datetime,
     project_db: Annotated[Session, Depends(get_project_db)],
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project: Annotated[models.Project, Depends(get_project_api)],
 ):
-    """Calculate uptime metrics for a project based on
-    active Events within an analysis window.
+    """Calculate uptime metrics for a project based on active events.
 
     Args:
-        start: The start of the analysis window.
-        end: The end of the analysis window.
-        project_db: The project database session.
-        db: The database session.
-        project: The project model.
+        start: Start of the analysis window.
+        end: End of the analysis window.
+        project_db: Project database session.
+        project: Project model from dependency injection.
     """
     events = await core_events.get_windowed_events(
         start=start, end=end, include_underperformance=False
@@ -903,7 +899,9 @@ async def get_uptime(
     device_dict = devices_df.set_index("device_id").to_dict(orient="index")
 
     device_type_ids = list(set(devices_df["device_type_id"].tolist()))
-    device_types = await get_device_types(db=db, device_type_ids=device_type_ids)
+    device_types = await get_device_types(device_type_ids=device_type_ids).get_async(
+        output_type=OutputType.SQLALCHEMY
+    )
     device_type_dict = {dt.device_type_id: dt for dt in device_types}
 
     # Prepare result
@@ -983,11 +981,11 @@ async def get_event_trace_tags(
     project_db: Annotated[Session, Depends(get_project_db)],
     device_id: int,
 ):
-    """todo
+    """Retrieve sensor tags relevant to event tracing for a specific device.
 
     Args:
-        project_db: Description for project_db.
-        device_id: Description for device_id.
+        project_db: Project database session.
+        device_id: ID of the device to retrieve trace tags for.
     """
     project_schema = utils.get_project_schema(project_db=project_db)
     device_df = await crud_get_project_devices(device_ids=[device_id]).get_async(
@@ -1207,10 +1205,10 @@ async def bulk_create_events(
       'proximal_pv_dc_capacity'.
 
     Args:
-        project_db: Description for project_db.
-        db: Description for db.
-        project_id: Description for project_id.
-        payload: Description for payload.
+        project_db: Project database session for event creation.
+        db: Operational database session for event loss type validation.
+        project_id: UUID of the project to create events for.
+        payload: Bulk event creation request containing items and metadata.
     """
     # Ensure event_loss_type id exists (id 3 requested by frontend)
     loss_type_id = EventLossType.PROXIMAL_PV_DC_CAPACITY
@@ -1430,12 +1428,11 @@ async def get_event_anomalies(
     project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
     event_id: int = Path(..., description="Event ID to get anomalies for"),
 ):
-    """Get all drone anomalies associated with a specific event.
-        Anomalies are linked to events via the event_id column.
+    """Retrieve all drone anomalies associated with a specific event.
 
     Args:
-        project_db: Description for project_db.
-        event_id: Description for event_id.
+        project_db: Project database session.
+        event_id: ID of the event to retrieve anomalies for.
     """
     try:
         anomalies = await crud_get_anomalies_by_event_id(
@@ -1454,11 +1451,11 @@ async def get_event_losses_summary(
     project_id: uuid.UUID,
     event_id: int,
 ) -> dict[str, float | None]:
-    """todo
+    """Retrieve a summary of losses for an event including totals and daily averages.
 
     Args:
-        project_id: The UUID of the project
-        event_id: Description for event_id.
+        project_id: UUID of the project containing the event.
+        event_id: ID of the event to retrieve loss summary for.
     """
     project_name_short = get_project_name_short(project_id=project_id)
     if not project_name_short:
