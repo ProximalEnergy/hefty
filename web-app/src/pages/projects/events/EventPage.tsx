@@ -174,14 +174,13 @@ const EventHeader = ({
               to={`/projects/${projectId}/device-details/tracker-row/${event?.device_id}`}
               style={{ color: 'inherit' }}
             >
-              {event?.device?.device_type?.name_long} {event?.device?.name_long}
+              {event?.device_name_full}
             </Link>{' '}
             {' Event'}
           </>
         ) : (
           <>
-            {event?.device?.device_type?.name_long} {event?.device?.name_long}{' '}
-            {' Event'}
+            {event?.device_name_full} {' Event'}
           </>
         )}
       </Title>
