@@ -1,18 +1,19 @@
 [project]
 name = "pv-expected-energy"
-version = "0.16.7"
+version = "0.16.13"
 description = "PV Expected Energy Model for Proximal Energy"
-readme = "README.md"
-requires-python = ">=3.11.10,<3.12"
+readme = "_README.md"
+requires-python = ">=3.12.8,<3.13"
 dependencies = [
-    "boto3~=1.38.0", # for reading pyproject.toml version
-    "polars~=1.31.0", # for database read interactions (faster than pandas)
+    "boto3~=1.41", # for reading pyproject.toml version
+    "core==0.3.117",
+    "polars==1.38.1", # for database read interactions (faster than pandas)
     "psycopg2-binary~=2.9.10", # used under the hood by sqlalchemy
-    "pvlib~=0.14.0", # main performance modeling library
-    "pyarrow~=20.0.0", # needed for polars database connection
-    "python-dotenv~=1.0.1", # environment variables
-    "s3fs~=2025.12.0", # needed for s3 connection
-    "sentry-sdk~=2.30.0",
+    "pvlib~=0.15", # main performance modeling library
+    "pyarrow~=23.0", # needed for polars database connection
+    "python-dotenv~=1.2", # environment variables
+    "s3fs~=2026.2", # needed for s3 connection
+    "sentry-sdk~=2.52",
     "solarfactors~=1.6",
     "sqlalchemy~=2.0.36", # for database interactions
     "tomli~=2.4", # needed to read version from pyproject.toml
@@ -20,18 +21,28 @@ dependencies = [
 
 [dependency-groups]
 dev = [ # for debugging
-    "aws-cdk-lib~=2.210.0",
+    "aws-cdk-lib~=2.237",
     "connectorx~=0.4.0", # shortcut for database access
     "dill~=0.4.0",
-    "geopandas~=1.0.1", # commissioning maps to GCR's
-    "ipykernel~=6.31", # for reading electrical diagrams
+    "geopandas~=1.1", # commissioning maps to GCR's
+    "ipykernel~=7.2", # for reading electrical diagrams
+    "json5~=0.12", # for reading project_configs.json5 in CDK code
     "matplotlib~=3.10.5",
     "memray~=1.19",
-    "pandas-stubs~=2.3.0.250703",
-    "plotly~=5.24.1", # graphing test results
-    "pymupdf~=1.25.3", # for verification plots
-    "pytest~=8.3.3", # for testing
+    "pandas-stubs~=2.3.3",
+    "plotly~=6.5", # graphing test results
+    "pymupdf~=1.26", # for verification plots
+    "pytest~=9.0", # for testing
 ]
+
+[tool.uv.sources]
+core = { path = "../core", editable = true }
+
+[[tool.uv.index]]
+name = "proximal-package-index"
+url = """https://proximal-code-artifact-domain-016997484973.\
+d.codeartifact.us-east-2.amazonaws.com/pypi/proximal-hub/simple/"""
+explicit = true
 
 # REMOVE ALL DEPENDENCIES FROM SOLARFACTORS
 # (removes dep on matplotlib which needs gcc to compile)
@@ -51,6 +62,6 @@ venvPath = "."
 venv = ".venv"
 include = ["src", "_tests"]
 exclude = ["**/__pycache__", "**/.venv"]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 extraPaths = ["src"]
-executionEnvironments = [{ root = ".", pythonVersion = "3.11" }]
+executionEnvironments = [{ root = ".", pythonVersion = "3.12" }]

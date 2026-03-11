@@ -1,3 +1,4 @@
+// Project configuration list for scheduled simulations.
 [
   {
     "project_name_short": "double_black_diamond",
@@ -40,16 +41,16 @@
     "degradation": "warranted",
     "use_poa_only": false
   },
-  {
-    "project_name_short": "sun_pond",
-    "single_diode_model": "DESOTO",
-    "degradation": "warranted",
-    "use_poa_only": false
-  },
-  {
-    "project_name_short": "sun_pond",
-    "single_diode_model": "DESOTO",
-    "degradation": "none",
-    "use_poa_only": false
-  }
+  //{
+  //  "project_name_short": "sun_pond",
+  //  "single_diode_model": "DESOTO",
+  //  "degradation": "warranted",
+  //  "use_poa_only": false
+  //},
+  //{
+  //  "project_name_short": "sun_pond",
+  //  "single_diode_model": "DESOTO",
+  //  "degradation": "none",
+  //  "use_poa_only": false
+  //}
 ]

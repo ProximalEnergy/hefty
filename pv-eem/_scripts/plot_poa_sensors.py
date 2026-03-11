@@ -34,7 +34,7 @@ def plot_poa_sensors(
     """
     # --- Get database connection ---
     load_dotenv()
-    db_connection_string = os.getenv("DB_URI_PROD")
+    db_connection_string = os.getenv("DATABASE_URL")
     if db_connection_string is None:
         raise ValueError("no connection string found in .env file")
 

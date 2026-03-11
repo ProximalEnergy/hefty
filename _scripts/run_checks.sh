@@ -860,13 +860,14 @@ if [ "${RUN_ALL}" = "false" ]; then
 fi
 
 if [ "${RUN_ALL}" = "true" ]; then
+    CORE_CHANGED=true
     RUN_CORE=true
     RUN_API=true
     RUN_MICRO=true
     RUN_SQL_ADMIN=true
     RUN_KPI=true
     RUN_WEB=true
-    # RUN_PVEEM=true
+    RUN_PVEEM=true
     RUN_ROOT=true
 fi
 

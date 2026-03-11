@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 import polars as pl
-import sqlalchemy
+from core.db_query import DbQuery, OutputType
 from interfaces import ModuleEquipmentSeries
 from sqlalchemy import bindparam, text
 
@@ -64,8 +64,8 @@ class Module:
     @classmethod
     async def get_module_data(
         cls,
+        *,
         unique_module_ids: pd.Series,
-        engine: sqlalchemy.engine.Engine,
     ) -> "Module":
         """Get all of the relevant module data from the pv_modules table
         Args:
@@ -109,16 +109,18 @@ class Module:
             FROM operational.pv_modules
             WHERE pv_module_id IN :module_ids
         """
-        ).bindparams(bindparam("module_ids", expanding=True))
-
-        with engine.connect() as conn:
-            modules = pl.read_database(
-                query=module_query,
-                connection=conn,
-                execute_options={
-                    "parameters": {"module_ids": unique_module_ids.tolist()}
-                },
+        ).bindparams(
+            bindparam(
+                "module_ids",
+                value=unique_module_ids.tolist(),
+                expanding=True,
             )
+        )
+
+        modules: pl.DataFrame = await DbQuery(query=module_query).get_async(
+            schema=None,
+            output_type=OutputType.POLARS,
+        )
         modules_pd = modules.to_pandas()
 
         if modules_pd.empty:

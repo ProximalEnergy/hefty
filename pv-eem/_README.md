@@ -21,10 +21,12 @@ Expected energy calculations for PV systems in Proximal
 ## Getting Started
 - install uv for python package management:  `brew install uv`
   - uv is useful in this project because it allows you to differentiate between real dependencies and dependencies only needed for development.  By installing only real dependencies in the docker container, we can ensure faster cold starts.
-  - Do not rely on the `requirements.txt` file to install dependencies since it is only used for production deployments.  Instead rely on the pyproject.toml file and uv.
+  - `pyproject.toml` and `uv.lock` are the dependency source of truth.
+  - local `uv sync` uses editable `core` from `../core`.
 - install ruff for linting: `brew install ruff`
   - There are no strict linting rules for this project, but ruff still helps to keep the code relatively clean.
 - Test locally by using `docker compose up`
+  - source `../_scripts/auth_aws_codeartifact.sh` first
   - local docker container: `docker build -f Dockerfile -t pv-expected-energy .`
   - expose port 8080
   - mount aws volume
@@ -45,7 +47,7 @@ Expected energy calculations for PV systems in Proximal
 
 ### Used in local environment only
 ( The production environment uses an IAM role instead )
-- DB_URI_PROD: connection string to prod database
+- DATABASE_URL: connection string for the target database
 - AWS_ACCESS_KEY_ID: string
 - AWS_SECRET_ACCESS_KEY: string
 - AWS_S3_REGION: string
@@ -57,9 +59,11 @@ Expected energy calculations for PV systems in Proximal
 
 
 ## Useful Commands:
-  - `uv pip compile pyproject.toml -o requirements.txt` creates a requirements.txt file without any of the dev dependencies.
+  - `uv export --frozen --no-dev` shows the locked runtime dependency set.
   - `docker compose -f .docker-compose.yml up --build` will build the docker image and run it locally.
-  - `act` is a github action runner which runs locally as a cli tool.  This is useful for testing github actions locally before pushing them up to github.  I have not figured out how to use act with AWS secrets, so at this point it is only really useful for testing non-AWS sections of the deployment.
+  - production Docker builds install the pinned `core==...` from
+    `pyproject.toml` via AWS CodeArtifact.
+  - `requirements.txt` and `requirements-dev.txt` are not used in this repo.
 
 
 ## Notes on Production Runs [Prod]

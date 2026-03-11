@@ -6,21 +6,28 @@
 - `-k *`: run tests with filenames that match `*`
 Run tests before deploying. There are no tests in CI/CD.
 
-## [PROD]
-### Github Actions
-There is a workflow in `.github/workflows/deploy.yml`.
-The general flow is:
-- Trigger on a version tag pushed to a commit.
-  - GitHub Actions normalizes tag names from `.` to `-` for image tags.
-- Verify the tag version matches `pyproject.toml`.
-- Build a Docker image from that commit and push it to ECR.
-- Deploy CDK in `events/`, including Lambda `pv-eem` and EventBridge rules.
-
+## Deploy
+### Local flow
+- Run `mise run pveem:push-image`.
+- The script reads `pyproject.toml` and pushes the image to ECR with both
+  `<version>` and `latest` tags.
+- The Docker build validates the pinned `core==...` dependency in
+  `pyproject.toml` and installs that exact version from AWS CodeArtifact.
+- The script builds a single ARM64 image locally and then pushes plain tags to
+  ECR so Lambda gets a compatible manifest.
+- Run `mise run pveem:cdk-deploy`.
+- Unless you override it, CDK deploys the same `<version>` tag from
+  `pyproject.toml`.
+- Run `mise run pveem:deploy` to do checks, image push, and CDK deploy in one
+  command.
+- If the deployed Lambda only exposes `latest`, `pveem:deploy` treats that as
+  a one-time migration case and still publishes the semver tag.
 
 ### Docker
-- The docker image is tagged with the git tag name and latest.
+- Source `../_scripts/auth_aws_codeartifact.sh` before building or pushing.
+- The docker image is tagged with the `pyproject.toml` version and latest.
 - ECR stores image history so older versions can be deployed again.
-- It is recommended to test with docker compose before PROD deploys.
+- It is recommended to test with docker compose before deployment.
 - Docker is required because src plus dependencies is too large for ZIP Lambdas.
 
 ### Docker Gotchas
@@ -31,12 +38,14 @@ The general flow is:
 ### AWS Gotchas
 - AWS blocks updates when a stack is in `ROLLBACK_COMPLETE`.
 - Delete the failed CloudFormation stack before redeploying.
+- If Lambda says `The image manifest, config or layer media type ... is not
+  supported`, repush the image with `mise run pveem:push-image` before
+  redeploying.
 
-## [Stage]
 ### CDK
 - `mise run pveem:cdk-deploy`
 - Optionally pass an image tag:
-  `mise run pveem:cdk-deploy -- -c imageTag=v0-16-6`
+  `mise run pveem:cdk-deploy -- -c imageTag=0.16.6`
 
 ## One-Time SAM Decommission
 Run this after CDK Lambda `pv-eem` is deployed and stable.

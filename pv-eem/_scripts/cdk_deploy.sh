@@ -6,10 +6,21 @@ set -o pipefail
 LOG_FILE="$(mktemp -t cdk-deploy-log.XXXXXX)"
 ARGS=()
 skip_next=0
+pending_context=0
+has_image_tag=0
 
 for arg in "$@"; do
   if [[ "${skip_next}" -eq 1 ]]; then
     skip_next=0
+    continue
+  fi
+
+  if [[ "${pending_context}" -eq 1 ]]; then
+    if [[ "${arg}" == imageTag=* ]]; then
+      has_image_tag=1
+    fi
+    pending_context=0
+    ARGS+=("${arg}")
     continue
   fi
 
@@ -22,8 +33,38 @@ for arg in "$@"; do
     continue
   fi
 
+  if [[ "${arg}" == "-c" || "${arg}" == "--context" ]]; then
+    pending_context=1
+    ARGS+=("${arg}")
+    continue
+  fi
+
+  if [[ "${arg}" == --context=* ]]; then
+    if [[ "${arg#*=}" == imageTag=* ]]; then
+      has_image_tag=1
+    fi
+    ARGS+=("${arg}")
+    continue
+  fi
+
   ARGS+=("${arg}")
 done
+
+if [[ "${has_image_tag}" -eq 0 ]]; then
+  image_tag="$(
+    grep '^version = "' pyproject.toml |
+      head -n 1 |
+      sed 's/version = "\(.*\)"/\1/'
+  )"
+
+  if [[ -z "${image_tag}" ]]; then
+    echo "[cdk-deploy] Could not read version from pyproject.toml."
+    exit 1
+  fi
+
+  ARGS+=(-c "imageTag=${image_tag}")
+  echo "[cdk-deploy] Defaulting imageTag to ${image_tag}"
+fi
 
 ARGS+=(--require-approval never)
 echo "[cdk-deploy] Enforcing approval mode: never"
@@ -33,9 +74,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[cdk-deploy] Running: cd events && uv run cdk deploy ${ARGS[*]}"
+echo "[cdk-deploy] Running: cd _cdk && uv run cdk deploy ${ARGS[*]}"
 
-if (cd events && uv run cdk deploy "${ARGS[@]}") 2>&1 | tee "${LOG_FILE}"; then
+if (cd _cdk && uv run cdk deploy "${ARGS[@]}") 2>&1 | tee "${LOG_FILE}"; then
   exit 0
 fi
 
@@ -51,6 +92,12 @@ fi
 if grep -qi "bootstrap stack version" "${LOG_FILE}"; then
   echo "[cdk-deploy] Hint: CDK bootstrap may be missing for this account/region."
   echo "[cdk-deploy] Run: cdk bootstrap aws://<account>/<region>"
+fi
+
+if grep -qi "image manifest, config or layer media type" "${LOG_FILE}"; then
+  echo "[cdk-deploy] Hint: the ECR tag is not Lambda-compatible."
+  echo "[cdk-deploy] Rebuild and repush with: mise run pveem:push-image"
+  echo "[cdk-deploy] Then delete the ROLLBACK_COMPLETE stack and redeploy."
 fi
 
 if grep -qi "requires approval" "${LOG_FILE}"; then

@@ -56,7 +56,7 @@ async def from_proximal_db(
     # --- Environment Variables ---
     (
         ENVIRONMENT,
-        DB_URI,
+        DATABASE_URL,
         AWS_ACCESS_KEY_ID,
         AWS_SECRET_ACCESS_KEY,
         AWS_S3_BUCKET_NAME,
@@ -74,19 +74,15 @@ async def from_proximal_db(
     )
 
     # --- Database Engine ---
-    engine = get_db_engine(DB_URI)
+    engine = get_db_engine(database_url=DATABASE_URL)
 
     # --- Project Data ---
-    project: Project = Project(
+    project: Project = await Project.create(
         project_name_short=project_name_short,
-        engine=engine,
     )
 
     # --- Async Block 1  ---
     try:
-        # TODO: get_met_data/get_met_soiling currently execute sync SQLAlchemy/psycopg2
-        # queries inside async functions. Move DB I/O into run_in_executor (or migrate
-        # to SQLAlchemy async engine) to avoid blocking the event loop.
         async with asyncio.TaskGroup() as tg:
             met_data_raw_task: Task[pl.DataFrame] = tg.create_task(
                 get_met_data(
@@ -196,19 +192,16 @@ async def from_proximal_db(
         racking_task = tg.create_task(
             Racking.get_racking_data(
                 unique_racking_ids=unique_racking_ids,
-                engine=engine,
             )
         )
         inverters_task = tg.create_task(
             Inverter.get_inverter_data(
                 unique_inverter_ids=unique_pcs_ids,
-                engine=engine,
             )
         )
         modules_task = tg.create_task(
             Module.get_module_data(
                 unique_module_ids=unique_module_ids,
-                engine=engine,
             )
         )
 

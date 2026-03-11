@@ -1,4 +1,4 @@
-import plotly.graph_objects as go  # type: ignore[import-not-found]
+import plotly.graph_objects as go
 
 
 def plot(results):

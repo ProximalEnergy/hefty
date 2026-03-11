@@ -2,10 +2,10 @@ import sqlalchemy
 from sqlalchemy.pool import NullPool
 
 
-def get_db_engine(DB_URI):
+def get_db_engine(*, database_url: str):
     """Run get_db_engine."""
     engine = sqlalchemy.create_engine(
-        DB_URI,
+        database_url,
         connect_args={
             "application_name": "PV_EEM",
             "options": "-c application_name=PV_EEM",

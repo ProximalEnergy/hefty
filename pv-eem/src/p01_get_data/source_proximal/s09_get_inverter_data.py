@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 import polars as pl
-import sqlalchemy
+from core.db_query import DbQuery, OutputType
 from interfaces import InverterEquipmentSeries
 from sqlalchemy import bindparam, text
 
@@ -49,9 +49,9 @@ class Inverter:
     @classmethod
     async def get_inverter_data(
         cls,
+        *,
         unique_inverter_ids: pd.Series,
-        engine: sqlalchemy.engine.Engine,
-    ):
+    ) -> "Inverter":
         """Get all of the relevant tracker data from the tracker table
         Args:
             * unique_inverter_ids:  polars dataframe column filtered for
@@ -60,20 +60,45 @@ class Inverter:
         inverter_query = text(
             """
             SELECT
-                *
+                inverter_id,
+                manufacturer,
+                model,
+                voltage_mpp_min,
+                voltage_mpp_max,
+                voltage_start_up,
+                voltage_min,
+                voltage_max,
+                current_max,
+                power_max_at_reference_temp,
+                reference_temp,
+                voltage_nominal_efficiency,
+                efficiency_at_low_voltage,
+                efficiency_at_mid_voltage,
+                efficiency_at_high_voltage,
+                power_start_up,
+                power_ac_nominal,
+                power_dc_nominal,
+                voltage_dc_nominal,
+                c0,
+                c1,
+                c2,
+                c3,
+                night_tare
             FROM operational.inverters
             WHERE inverter_id IN :inverter_ids
         """
-        ).bindparams(bindparam("inverter_ids", expanding=True))
-
-        with engine.connect() as conn:
-            inverters = pl.read_database(
-                query=inverter_query,
-                connection=conn,
-                execute_options={
-                    "parameters": {"inverter_ids": unique_inverter_ids.tolist()}
-                },
+        ).bindparams(
+            bindparam(
+                "inverter_ids",
+                value=unique_inverter_ids.tolist(),
+                expanding=True,
             )
+        )
+
+        inverters: pl.DataFrame = await DbQuery(query=inverter_query).get_async(
+            schema=None,
+            output_type=OutputType.POLARS,
+        )
         inverters_pd = inverters.to_pandas()
 
         if inverters_pd.empty:

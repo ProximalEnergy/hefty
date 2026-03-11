@@ -25,11 +25,13 @@ from sqlalchemy import (
 )
 from sqlalchemy import Boolean as sa_Boolean
 from sqlalchemy import exc as sa_exc
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session
 
-from core import models, settings
+from core import settings
+from core.crud.project.query_metadata_cache import (
+    get_project_query_metadata_cached,
+)
 from core.crud.project.tags import get_project_tags_v2
-from core.database import with_db_async
 from core.db_query import DbQuery, OutputType
 from core.enumerations import (
     AggregationMethod,
@@ -218,6 +220,25 @@ class DataTimeseries:
         ensure_full_range: bool = True,
         apply_scale_and_offset: bool = True,
     ) -> None:
+        """Initialize a timeseries query configuration.
+
+        Args:
+            project_name_short: Project short name used for metadata resolution.
+            filter_method: Strategy used to resolve tag filters.
+            filter_values: Tag IDs or lookup table matching `filter_method`.
+            query_start: Inclusive query start timestamp.
+            query_end: Exclusive query end timestamp.
+            project_db: Database session for project metadata and queries.
+            max_lookback_period: Optional lookback window for backfilling.
+            freq: Output aggregation interval.
+            aggregation_method: Aggregation to apply per interval.
+            pagination_limit: Maximum rows to fetch per page.
+            pagination_offset: Offset applied to paginated queries.
+            dangerous_pagination_override: Allow pagination without guardrails.
+            ffill_limit: Max periods to forward fill when backfilling.
+            ensure_full_range: Backfill missing timestamps across the range.
+            apply_scale_and_offset: Apply tag scale and offset metadata.
+        """
         # Initialize all fields from parameters
         # (dataclass fields with defaults are initialized automatically)
         self.project_name_short = project_name_short
@@ -440,7 +461,11 @@ class DataTimeseries:
         *,
         context: _ProviderContext,
     ) -> pl.DataFrame:
-        """Fetch lookback data for the configured provider."""
+        """Fetch lookback data for the configured provider.
+
+        Args:
+            context: Provider-specific query context.
+        """
         match context.provider:
             case ProjectDatabaseProvider.TIMESCALE:
                 if context.table_name is None:
@@ -458,7 +483,11 @@ class DataTimeseries:
         *,
         context: _ProviderContext,
     ) -> pl.DataFrame:
-        """Fetch a single page for the configured provider."""
+        """Fetch a single page for the configured provider.
+
+        Args:
+            context: Provider-specific query context.
+        """
         match context.provider:
             case ProjectDatabaseProvider.TIMESCALE:
                 if context.table_name is None:
@@ -1216,36 +1245,9 @@ class DataTimeseries:
         Result: Sets _time_zone, _data_cagg_interval, _project_id_int, and
         _database_provider.
         """
-        # Step 1: Build SQLAlchemy query to fetch project metadata
-        # Purpose: Only load the specific fields we need (performance optimization)
-        # Result: Query object that will fetch time_zone, data_cagg_interval,
-        #         project_id_int, and database_provider for the project
-        stmt = (
-            select(models.Project)
-            .options(
-                load_only(
-                    models.Project.time_zone,
-                    models.Project.data_cagg_interval,
-                    models.Project.project_id_int,
-                    models.Project.database_provider,
-                )
-            )
-            .where(models.Project.name_short == self.project_name_short)
+        project = await get_project_query_metadata_cached(
+            project_name_short=self.project_name_short
         )
-
-        # Step 2: Execute query and get single result
-        # Result: Project model instance or None if not found
-        async with with_db_async(schema=None) as operational_db:
-            result = await operational_db.execute(stmt)
-            project = result.scalar_one_or_none()
-
-        # Step 3: Validate project exists
-        # Result: Raises error if project not found, otherwise continues
-        if project is None:
-            raise ValueError(f"Project not found: {self.project_name_short}")
-
-        # Step 4: Store project metadata in instance attributes
-        # Result: All internal state needed for query execution is now set
         # - _time_zone: Used for timezone conversion and query range cleaning
         # - _data_cagg_interval: Determines which table to query (raw vs cagg)
         # - _project_id_int: Used for ClickHouse queries (project filtering)
@@ -1666,6 +1668,15 @@ class DataTimeseries:
         return "time"
 
     def _ensure_time_column(self, *, df: pl.DataFrame, time_col: str) -> pl.DataFrame:
+        """Ensure the DataFrame contains a normalized time column.
+
+        Args:
+            df: DataFrame to normalize.
+            time_col: Expected time column name.
+
+        Returns:
+            DataFrame with a timezone-normalized time column.
+        """
         if time_col not in df.columns:
             df = self._empty_time_frame(time_col=time_col)
         return self._normalize_time_column(df=df, time_col=time_col)
@@ -1676,6 +1687,15 @@ class DataTimeseries:
         df: pl.DataFrame,
         time_col: str,
     ) -> pl.DataFrame:
+        """Normalize the time column to microseconds in the project timezone.
+
+        Args:
+            df: DataFrame to normalize.
+            time_col: Name of the time column to inspect.
+
+        Returns:
+            DataFrame with the normalized time column.
+        """
         time_dtype = df.schema[time_col]
         if isinstance(time_dtype, pl.Null):
             return df.with_columns(
@@ -1698,6 +1718,14 @@ class DataTimeseries:
         return df
 
     def _build_full_range_frame(self, *, time_col: str) -> pl.DataFrame:
+        """Build a full time range DataFrame for the current query window.
+
+        Args:
+            time_col: Column name to use for generated timestamps.
+
+        Returns:
+            DataFrame containing the complete expected time range.
+        """
         interval_td = pd.Timedelta(self.freq.value).to_pytimedelta()
         full_range = pl.datetime_range(
             start=self.query_start,

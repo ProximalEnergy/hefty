@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 import polars as pl
-import sqlalchemy
+from core.db_query import DbQuery, OutputType
 from interfaces import RackingEquipmentSeries
 from sqlalchemy import bindparam, text
 
@@ -25,9 +25,9 @@ class Racking:
     @classmethod
     async def get_racking_data(
         cls,
+        *,
         unique_racking_ids: pd.Series,
-        engine: sqlalchemy.engine.Engine,
-    ):
+    ) -> "Racking":
         """Get all of the relevant tracker data from the tracker table
         Args:
             * unique_tracker_ids:  polars dataframe column filtered for
@@ -48,16 +48,18 @@ class Racking:
             FROM operational.rackings
             WHERE racking_id IN :racking_ids
         """
-        ).bindparams(bindparam("racking_ids", expanding=True))
-
-        with engine.connect() as conn:
-            rackings = pl.read_database(
-                query=racking_query,
-                connection=conn,
-                execute_options={
-                    "parameters": {"racking_ids": unique_racking_ids.tolist()}
-                },
+        ).bindparams(
+            bindparam(
+                "racking_ids",
+                value=unique_racking_ids.tolist(),
+                expanding=True,
             )
+        )
+
+        rackings: pl.DataFrame = await DbQuery(query=racking_query).get_async(
+            schema=None,
+            output_type=OutputType.POLARS,
+        )
         rackings_pd = rackings.to_pandas()
 
         if rackings_pd.empty:

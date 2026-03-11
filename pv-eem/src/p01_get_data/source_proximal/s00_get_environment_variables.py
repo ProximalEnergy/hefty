@@ -4,61 +4,51 @@ from dotenv import load_dotenv
 
 
 def get_environment_variables() -> tuple[str, str, str, str, str]:
-    """Loads the database uri from project .env file"""
+    """Load runtime environment variables from the project .env file."""
     # Environment Variables
     load_dotenv()
 
     # QC on environment
-    ENVIRONMENT: str | None = os.getenv("ENVIRONMENT")
-    match ENVIRONMENT:
+    environment: str | None = os.getenv("ENVIRONMENT")
+    match environment:
         case "DEV" | "STAGE" | "PROD" | "VALIDATE":
             pass
         case _:
             raise ValueError("ENVIRONMENT must be DEV, STAGE, PROD, or VALIDATE")
 
-    # Switch on Environment
-    DB_URI: str | None
-    match ENVIRONMENT:
-        case "PROD":
-            DB_URI = os.getenv("DB_URI_PROD")
-        case "DEV" | "STAGE" | "VALIDATE":
-            DB_URI = os.getenv("DB_URI_DEV")
-        case _:
-            raise ValueError("DB_URI_PROD or DB_URI_DEV in .env file cannot be None")
-
-    # Error handling
-    match DB_URI:
+    database_url: str | None = os.getenv("DATABASE_URL")
+    match database_url:
         case None:
-            raise ValueError("DB_URI_PROD or DB_URI_DEV in .env file cannot be None")
+            raise ValueError("DATABASE_URL is missing from .env file")
         case _:
             pass
 
     # QC on AWS Environment Variables
-    AWS_ACCESS_KEY_ID: str | None = os.getenv("AWS_ACCESS_KEY_ID")
-    match AWS_ACCESS_KEY_ID:
+    aws_access_key_id: str | None = os.getenv("AWS_ACCESS_KEY_ID")
+    match aws_access_key_id:
         case None:
             raise ValueError("AWS_ACCESS_KEY_ID is missing from .env file")
         case _:
             pass
 
-    AWS_SECRET_ACCESS_KEY: str | None = os.getenv("AWS_SECRET_ACCESS_KEY")
-    match AWS_SECRET_ACCESS_KEY:
+    aws_secret_access_key: str | None = os.getenv("AWS_SECRET_ACCESS_KEY")
+    match aws_secret_access_key:
         case None:
             raise ValueError("AWS_SECRET_ACCESS_KEY is missing from .env file")
         case _:
             pass
 
-    AWS_S3_BUCKET_NAME: str | None = os.getenv("AWS_S3_BUCKET_NAME")
-    match AWS_S3_BUCKET_NAME:
+    aws_s3_bucket_name: str | None = os.getenv("AWS_S3_BUCKET_NAME")
+    match aws_s3_bucket_name:
         case None:
             raise ValueError("AWS_S3_BUCKET_NAME is missing from .env file")
         case _:
             pass
 
     return (
-        ENVIRONMENT,
-        DB_URI,
-        AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY,
-        AWS_S3_BUCKET_NAME,
+        environment,
+        database_url,
+        aws_access_key_id,
+        aws_secret_access_key,
+        aws_s3_bucket_name,
     )

@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        CODEARTIFACT_TOKEN: ${AWS_CODEARTIFACT_TOKEN}
     ports:
       - "9000:8080"
     # mounts AWS credentials from local

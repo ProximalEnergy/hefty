@@ -500,7 +500,18 @@ else:
   mypy_config="${ROOT_MYPY_CONFIG}"
   cleanup_config=false
   if [ "${service_has_sqlalchemy}" != "true" ]; then
-    mypy_config="$(mktemp "${TMPDIR:-/tmp}/micro-mypy.XXXXXX.toml")"
+    mypy_config="$(
+      python3 -c '
+import tempfile
+
+with tempfile.NamedTemporaryFile(
+    prefix="micro-mypy.",
+    suffix=".toml",
+    delete=False,
+) as temp_file:
+    print(temp_file.name)
+'
+    )"
     cleanup_config=true
     python3 -c '
 import pathlib
@@ -874,45 +885,74 @@ run = "uv run _scripts/generate_pveem_env_from_parameter_store.py"
 [tasks."pveem:check"]
 description = "Run project quality checks for pv-eem"
 dir = "pv-eem"
-depends = ["pveem:types", "pveem:ruff", "pveem:pytest"]
+run = """
+mise run pveem:version-check && \
+mise run pveem:types && \
+mise run pveem:ruff && \
+mise run pveem:pytest
+"""
+
+[tasks."pveem:version-check"]
+description = "Ensure local pv-eem version exceeds deployed Lambda version"
+dir = "pv-eem"
+run = "uv run python _scripts/check_deployed_version.py"
 
 [tasks."pveem:types"]
 description = "Run mypy type checks for pv-eem"
 dir = "pv-eem"
 run = """
-ROOT_DIR="$(pwd)/.."
-uv run --project "${ROOT_DIR}" --directory . --dev \
-  --with-editable "${ROOT_DIR}/pv-eem" \
+mypy_requirement="$(
+  python3 - <<'PY'
+import tomllib
+from pathlib import Path
+
+root_project = tomllib.load(Path("../pyproject.toml").open("rb"))
+for dependency in root_project["dependency-groups"]["dev"]:
+    if dependency.startswith("mypy"):
+        print(dependency, end="")
+        break
+else:
+    raise SystemExit("mypy dependency not found in root pyproject.toml")
+PY
+)"
+uv run --project . --with "${mypy_requirement}" \
   mypy --config-file ../pyproject.toml src/
 """
 
 [tasks."pveem:ruff"]
 description = "Run ruff lint checks for pv-eem"
-dir = "pv-eem"
-run = "uv run --project .. --dev ruff check --config ../pyproject.toml ."
+dir = "."
+run = """
+uv run --project . --dev ruff check \
+  --config pyproject.toml \
+  --config "src = ['pv-eem', 'pv-eem/src']" \
+  pv-eem/
+"""
 
 [tasks."pveem:pytest"]
 description = "Run test suite for pv-eem"
 dir = "pv-eem"
 run = "uv run pytest"
 
+[tasks."pveem:live_test"]
+description = "Run a live sun_pond pv-eem sanity check"
+dir = "pv-eem"
+run = "uv run python _scripts/live_test.py"
+
+[tasks."pveem:push-image"]
+description = "Build pv-eem image and push latest plus pyproject version tags"
+dir = "pv-eem"
+run = "bash _scripts/push_image.sh"
+
 [tasks."pveem:cdk-deploy"]
-description = "Deploy the CDK app in events/ for pv-eem"
+description = "Deploy the CDK app in _cdk/ for pv-eem"
 dir = "pv-eem"
 run = "bash _scripts/cdk_deploy.sh"
 
 [tasks."pveem:deploy"]
 description = "Run checks and then deploy CDK for pv-eem"
 dir = "pv-eem"
-depends = ["pveem:check", "pveem:cdk-deploy"]
-
-[tasks."pveem:freeze"]
-description = "Export pinned runtime requirements for pv-eem"
-dir = "pv-eem"
-run = """
-uv export --frozen --no-emit-workspace --no-dev --no-editable \
-  -o requirements.txt --no-hashes
-"""
+run = "bash _scripts/deploy.sh"
 
 [tasks."pveem:bump-patch"]
 description = "Bump project version (patch) for pv-eem"
@@ -928,67 +968,3 @@ run = "uv version --bump minor"
 description = "Bump project version (major) for pv-eem"
 dir = "pv-eem"
 run = "uv version --bump major"
-
-[tasks."pveem:git-add"]
-description = "Stage all changes for pv-eem"
-dir = "pv-eem"
-run = "git add ."
-
-[tasks."pveem:git-commit-release"]
-description = "Create release commit for pv-eem"
-dir = "pv-eem"
-run = "git commit -m 'Release'"
-
-[tasks."pveem:git-push"]
-description = "Push branch to origin for pv-eem"
-dir = "pv-eem"
-run = "git push"
-
-[tasks."pveem:git-tag"]
-description = "Tag current version and push tag for pv-eem"
-dir = "pv-eem"
-run = """
-VERSION=$(python -c "import tomli; \
-  print(tomli.load(open('pyproject.toml', 'rb'))['project']['version'])")
-git tag "v$VERSION"
-git push origin "v$VERSION"
-"""
-
-[tasks."pveem:release-patch"]
-description = "Run checks and create a patch release for pv-eem"
-dir = "pv-eem"
-depends = [
-  "pveem:check",
-  "pveem:freeze",
-  "pveem:bump-patch",
-  "pveem:git-add",
-  "pveem:git-commit-release",
-  "pveem:git-push",
-  "pveem:git-tag",
-]
-
-[tasks."pveem:release-minor"]
-description = "Run checks and create a minor release for pv-eem"
-dir = "pv-eem"
-depends = [
-  "pveem:check",
-  "pveem:freeze",
-  "pveem:bump-minor",
-  "pveem:git-add",
-  "pveem:git-commit-release",
-  "pveem:git-push",
-  "pveem:git-tag",
-]
-
-[tasks."pveem:release-major"]
-description = "Run checks and create a major release for pv-eem"
-dir = "pv-eem"
-depends = [
-  "pveem:check",
-  "pveem:freeze",
-  "pveem:bump-major",
-  "pveem:git-add",
-  "pveem:git-commit-release",
-  "pveem:git-push",
-  "pveem:git-tag",
-]

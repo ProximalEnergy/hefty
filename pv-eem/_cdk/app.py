@@ -1,10 +1,11 @@
 import aws_cdk as cdk
-from events_stack import EventsStack
+from pveem_stack import PVEEMStack
 
 app = cdk.App()
-EventsStack(
+PVEEMStack(
     app,
-    "EventsStack",
+    "PVEEMStack",
+    stack_name="PVEEMStack",
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.

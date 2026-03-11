@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
-import pandas as pd
 import polars as pl
-import sqlalchemy
-from sqlalchemy import text
+from core.db_query import DbQuery, OutputType
+from sqlalchemy import bindparam, text
 
 
 @dataclass(init=False, slots=True)
@@ -20,13 +19,23 @@ class Project:
     elevation: float
     cod: str
 
-    def __init__(
-        self,
+    @classmethod
+    async def create(
+        cls,
+        *,
         project_name_short: str,
-        engine: sqlalchemy.engine.Engine,
-    ):
-        # --- Execution ---
-        # Get all PV and PV+Storage projects
+    ) -> "Project":
+        """Load project metadata and build a project instance.
+
+        Args:
+            project_name_short: Project short name to load.
+
+        Returns:
+            Hydrated project metadata instance.
+
+        Raises:
+            ValueError: If the project is missing or `cod` is null.
+        """
         query_project = text(
             """
             SELECT
@@ -41,33 +50,33 @@ class Project:
                 p.cod
             FROM operational.projects AS p
             WHERE p.name_short = :project_name_short
-        """
-        )
-        # Database Call
-        with engine.connect() as conn:
-            project_polars: pl.DataFrame = pl.read_database(
-                query=query_project,
-                connection=conn,
-                execute_options={
-                    "parameters": {"project_name_short": project_name_short}
-                },
+            """
+        ).bindparams(
+            bindparam(
+                "project_name_short",
+                value=project_name_short,
             )
+        )
+        project_polars: pl.DataFrame = await DbQuery(query=query_project).get_async(
+            schema=None,
+            output_type=OutputType.POLARS,
+        )
 
-        # --- QA ---
         if project_polars.is_empty():
             raise ValueError(f"Project '{project_name_short}' not found in database")
-        if project_polars.row(0, named=True)["cod"] is None:
+
+        project = project_polars.row(0, named=True)
+        if project["cod"] is None:
             raise ValueError("cod in operational.projects must not be null")
 
-        # Convert to pandas
-        project: pd.DataFrame = project_polars.to_pandas()
-
-        self.name_short = project.iloc[0]["name_short"]
-        self.name_long = project.iloc[0]["name_long"]
-        self.data_table = project.iloc[0]["data_table"]
-        self.time_zone = project.iloc[0]["time_zone"]
-        self.poi_limit = project.iloc[0]["poi"]
-        self.longitude = project.iloc[0]["longitude"]
-        self.latitude = project.iloc[0]["latitude"]
-        self.elevation = project.iloc[0]["elevation"]
-        self.cod = project.iloc[0]["cod"]
+        obj = cls.__new__(cls)
+        obj.name_short = str(project["name_short"])
+        obj.name_long = str(project["name_long"])
+        obj.data_table = str(project["data_table"])
+        obj.time_zone = str(project["time_zone"])
+        obj.poi_limit = float(project["poi"])
+        obj.longitude = float(project["longitude"])
+        obj.latitude = float(project["latitude"])
+        obj.elevation = float(project["elevation"])
+        obj.cod = str(project["cod"])
+        return obj

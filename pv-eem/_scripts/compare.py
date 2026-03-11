@@ -15,7 +15,7 @@ query_date = "2025-05-01"
 
 # --- Environment ---
 load_dotenv()
-db_connection_string = os.getenv("DB_URI_PROD")
+db_connection_string = os.getenv("DATABASE_URL")
 match db_connection_string:
     case None:
         raise ValueError("no connection string found in .env file")
