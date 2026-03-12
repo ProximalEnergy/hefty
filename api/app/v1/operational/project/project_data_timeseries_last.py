@@ -47,8 +47,8 @@ async def get_data_timeseries_last(
         return []
 
     # Perform unit scale and offset transformations
-    scale = df["unit_scale"].fillna(1.0)
-    offset = df["unit_offset"].fillna(0.0)
+    scale = df["unit_scale"].fillna(1.0).infer_objects(copy=False)
+    offset = df["unit_offset"].fillna(0.0).infer_objects(copy=False)
 
     for col in ["value_integer", "value_bigint", "value_real", "value_double"]:
         if col in df.columns:
