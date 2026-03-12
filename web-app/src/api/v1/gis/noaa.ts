@@ -141,40 +141,61 @@ export const useGetHailForecastPolygons = ({
 }
 
 export const useGetTornadoOutlook = ({
+  arcgis_layer_id,
   queryOptions = {},
 }: {
+  arcgis_layer_id: number
   queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcWxOutlooksEndpointUrl,
-    arcgis_layer_id: 3,
+    arcgis_layer_id,
     queryKey: 'getTornadoOutlook',
     queryOptions,
   })
 }
 
 export const useGetWindOutlook = ({
+  arcgis_layer_id,
   queryOptions = {},
 }: {
+  arcgis_layer_id: number
   queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcWxOutlooksEndpointUrl,
-    arcgis_layer_id: 7,
+    arcgis_layer_id,
     queryKey: 'getWindOutlook',
     queryOptions,
   })
 }
 
 export const useGetFireOutlook = ({
+  arcgis_layer_id,
   queryOptions = {},
 }: {
+  arcgis_layer_id: number
   queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
 }) => {
   return useGetSPCForecastPolygons({
     endpointUrl: spcFireWxEndpointUrl,
-    arcgis_layer_id: 1,
+    arcgis_layer_id,
     queryKey: 'getFireOutlook',
+    queryOptions,
+  })
+}
+
+export const useGetThunderstormOutlook = ({
+  arcgis_layer_id,
+  queryOptions = {},
+}: {
+  arcgis_layer_id: number
+  queryOptions?: Partial<UseQueryOptions<GeoJsonFeatureCollection>>
+}) => {
+  return useGetSPCForecastPolygons({
+    endpointUrl: spcWxOutlooksEndpointUrl,
+    arcgis_layer_id,
+    queryKey: 'getThunderstormOutlook',
     queryOptions,
   })
 }

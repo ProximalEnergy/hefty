@@ -6,6 +6,7 @@ import {
   getTemperatureTileUrl,
   useGetFireOutlook,
   useGetHailForecastPolygons,
+  useGetThunderstormOutlook,
   useGetTornadoOutlook,
   useGetWindOutlook,
 } from '@/api/v1/gis/noaa'
@@ -132,44 +133,81 @@ const ProjectMarker = ({
   )
 }
 
-const DAY_1_OPACITY = 0.6
-const DAY_2_OPACITY = 0.3
 const FILL_OUTLINE_COLOR = '#000000'
 
-const HAIL_COLOR = {
-  5: '#C6A294',
-  15: '#FFFF00',
-  30: '#FF0000',
-  45: '#FF00C5',
-  60: '#A80084',
-  default: '#000000',
+const HAIL_BASE = '#1565C0'
+const TORNADO_BASE = '#39FF14'
+const WIND_BASE = '#7B1FA2'
+const FIRE_BASE = '#D32F2F'
+const THUNDERSTORM_BASE = '#FFB300'
+
+type ForecastDay = 'tomorrow' | 'day-after'
+
+const LAYER_IDS: Record<
+  ForecastDay,
+  {
+    hail: number
+    tornado: number
+    wind: number
+    fire: number
+    thunderstorm: number
+  }
+> = {
+  tomorrow: {
+    hail: 5,
+    tornado: 3,
+    wind: 7,
+    fire: 1,
+    thunderstorm: 1,
+  },
+  'day-after': {
+    hail: 13,
+    tornado: 11,
+    wind: 15,
+    fire: 4,
+    thunderstorm: 9,
+  },
 }
 
-const TORNADO_COLOR = {
-  2: '#008B00',
-  5: '#8B4513',
-  10: '#FFC800',
-  15: '#FF0000',
-  30: '#FF00FF',
-  45: '#912EFF',
-  60: '#00C8FF',
-  default: '#000000',
+const HAIL_OPACITY: Record<number, number> = {
+  5: 0.25,
+  15: 0.4,
+  30: 0.55,
+  45: 0.7,
+  60: 0.9,
 }
 
-const WIND_COLOR = {
-  5: '#C6A294',
-  15: '#FFFF00',
-  30: '#FF0000',
-  45: '#FF00C5',
-  60: '#A80084',
-  default: '#000000',
+const TORNADO_OPACITY: Record<number, number> = {
+  2: 0.2,
+  5: 0.3,
+  10: 0.45,
+  15: 0.55,
+  30: 0.7,
+  45: 0.8,
+  60: 0.95,
 }
 
-const FIRE_COLOR = {
-  5: '#FFC800',
-  8: '#FF0000',
-  10: '#FF00FF',
-  default: '#000000',
+const WIND_OPACITY: Record<number, number> = {
+  5: 0.25,
+  15: 0.4,
+  30: 0.55,
+  45: 0.7,
+  60: 0.9,
+}
+
+const FIRE_OPACITY: Record<number, number> = {
+  5: 0.35,
+  8: 0.6,
+  10: 0.9,
+}
+
+const THUNDERSTORM_OPACITY: Record<number, number> = {
+  2: 0.2,
+  3: 0.35,
+  4: 0.5,
+  5: 0.65,
+  6: 0.8,
+  8: 0.95,
 }
 
 const tileUrl = (tile: string): string => {
@@ -199,15 +237,15 @@ interface HoverInfo {
 const getLayerName = (layerId: string | null): string => {
   switch (layerId) {
     case 'hail-layer':
-      return 'Hail Forecast (Day 1)'
-    case 'hail-day2-layer':
-      return 'Hail Forecast (Day 2)'
+      return 'Hail Forecast'
     case 'tornado-layer':
       return 'Tornado Outlook'
     case 'wind-layer':
       return 'Wind Outlook'
     case 'fire-layer':
       return 'Fire Outlook'
+    case 'thunderstorm-layer':
+      return 'Thunderstorm Outlook'
     default:
       return 'Unknown Layer'
   }
@@ -222,7 +260,6 @@ const formatValue = (
 
   switch (layerId) {
     case 'hail-layer':
-    case 'hail-day2-layer':
     case 'tornado-layer':
     case 'wind-layer':
       return `${dn}%`
@@ -230,6 +267,14 @@ const formatValue = (
       if (dn === 5) return 'Elevated'
       if (dn === 8) return 'Critical'
       if (dn === 10) return 'Extreme'
+      return `${dn}`
+    case 'thunderstorm-layer':
+      if (dn === 2) return 'TSTM'
+      if (dn === 3) return 'Marginal'
+      if (dn === 4) return 'Slight'
+      if (dn === 5) return 'Enhanced'
+      if (dn === 6) return 'Moderate'
+      if (dn === 8) return 'High'
       return `${dn}`
     default:
       return `${dn}`
@@ -258,27 +303,27 @@ const PortfolioMap = () => {
       return
     }
 
-    // Process all features and extract their layer IDs
-    const featuresWithLayers: FeatureWithLayer[] = features
-      .map((feature) => {
-        // Try to get layer ID from the feature's layer property
-        // In Mapbox GL JS, features from queryRenderedFeatures have a layer property
-        const mapboxFeature = feature as MapboxFeature
-        const layerId =
-          mapboxFeature?.layer?.id || mapboxFeature?.sourceLayer || null
+    const byLayer = new Map<string, FeatureWithLayer>()
+    for (const feature of features) {
+      const f = feature as MapboxFeature
+      const layerId = f?.layer?.id || f?.sourceLayer || null
+      if (!layerId) continue
 
-        if (layerId) {
-          return {
-            feature: feature as Feature,
-            layerId: layerId,
-          }
-        }
-        return null
-      })
-      .filter((item): item is FeatureWithLayer => item !== null)
+      const dn = (feature.properties?.dn as number) ?? -Infinity
+      const existing = byLayer.get(layerId)
+      const existingDn =
+        (existing?.feature.properties?.dn as number) ?? -Infinity
+
+      if (!existing || dn > existingDn) {
+        byLayer.set(layerId, {
+          feature: feature as Feature,
+          layerId,
+        })
+      }
+    }
 
     setHoverInfo({
-      features: featuresWithLayers,
+      features: Array.from(byLayer.values()),
       x,
       y,
     })
@@ -296,12 +341,12 @@ const PortfolioMap = () => {
     key: 'show-precipitation',
     defaultValue: true,
   })
+  const [forecastDay, setForecastDay] = useLocalStorage<ForecastDay>({
+    key: 'forecast-day',
+    defaultValue: 'tomorrow',
+  })
   const [showHail, setShowHail] = useLocalStorage({
     key: 'show-hail',
-    defaultValue: false,
-  })
-  const [showHailDay2, setShowHailDay2] = useLocalStorage({
-    key: 'show-hail-day2',
     defaultValue: false,
   })
   const [showTornado, setShowTornado] = useLocalStorage({
@@ -314,6 +359,10 @@ const PortfolioMap = () => {
   })
   const [showFire, setShowFire] = useLocalStorage({
     key: 'show-fire',
+    defaultValue: false,
+  })
+  const [showThunderstorm, setShowThunderstorm] = useLocalStorage({
+    key: 'show-thunderstorm',
     defaultValue: false,
   })
   const [showWindspeed, setShowWindspeed] = useLocalStorage({
@@ -549,35 +598,40 @@ const PortfolioMap = () => {
     }
   }, [isSuperadmin, showDemo, _setShowDemo])
 
+  const layerIds = LAYER_IDS[forecastDay]
+
   const { data: hailData } = useGetHailForecastPolygons({
-    arcgis_layer_id: 5, // Day 1
+    arcgis_layer_id: layerIds.hail,
     queryOptions: {
       enabled: showHail,
     },
   })
 
-  const { data: hailDay2Data } = useGetHailForecastPolygons({
-    arcgis_layer_id: 13, // Day 2
-    queryOptions: {
-      enabled: showHailDay2,
-    },
-  })
-
   const { data: tornadoData } = useGetTornadoOutlook({
+    arcgis_layer_id: layerIds.tornado,
     queryOptions: {
       enabled: showTornado,
     },
   })
 
   const { data: windData } = useGetWindOutlook({
+    arcgis_layer_id: layerIds.wind,
     queryOptions: {
       enabled: showWind,
     },
   })
 
   const { data: fireData } = useGetFireOutlook({
+    arcgis_layer_id: layerIds.fire,
     queryOptions: {
       enabled: showFire,
+    },
+  })
+
+  const { data: thunderstormData } = useGetThunderstormOutlook({
+    arcgis_layer_id: layerIds.thunderstorm,
+    queryOptions: {
+      enabled: showThunderstorm,
     },
   })
 
@@ -639,43 +693,53 @@ const PortfolioMap = () => {
   const hasFavoritedProjects =
     userProjects?.some((up) => up.is_favorited) || false
   const showFavoritesWarning = showFavorites && !hasFavoritedProjects
-  const showHailLegend = showHail || showHailDay2
+  const showHailLegend = showHail
   const showTornadoLegend = showTornado
   const showWindLegend = showWind
   const showFireLegend = showFire
+  const showThunderstormLegend = showThunderstorm
   const showWindspeedLegend = showWindspeed
   const showTemperatureLegend = showTemperature
 
   const hailLegendItems = [
-    { value: 5, color: HAIL_COLOR[5], label: '5%' },
-    { value: 15, color: HAIL_COLOR[15], label: '15%' },
-    { value: 30, color: HAIL_COLOR[30], label: '30%' },
-    { value: 45, color: HAIL_COLOR[45], label: '45%' },
-    { value: 60, color: HAIL_COLOR[60], label: '60%' },
+    { label: '5%', opacity: HAIL_OPACITY[5] },
+    { label: '15%', opacity: HAIL_OPACITY[15] },
+    { label: '30%', opacity: HAIL_OPACITY[30] },
+    { label: '45%', opacity: HAIL_OPACITY[45] },
+    { label: '60%', opacity: HAIL_OPACITY[60] },
   ]
 
   const tornadoLegendItems = [
-    { value: 2, color: TORNADO_COLOR[2], label: '2%' },
-    { value: 5, color: TORNADO_COLOR[5], label: '5%' },
-    { value: 10, color: TORNADO_COLOR[10], label: '10%' },
-    { value: 15, color: TORNADO_COLOR[15], label: '15%' },
-    { value: 30, color: TORNADO_COLOR[30], label: '30%' },
-    { value: 45, color: TORNADO_COLOR[45], label: '45%' },
-    { value: 60, color: TORNADO_COLOR[60], label: '60%' },
+    { label: '2%', opacity: TORNADO_OPACITY[2] },
+    { label: '5%', opacity: TORNADO_OPACITY[5] },
+    { label: '10%', opacity: TORNADO_OPACITY[10] },
+    { label: '15%', opacity: TORNADO_OPACITY[15] },
+    { label: '30%', opacity: TORNADO_OPACITY[30] },
+    { label: '45%', opacity: TORNADO_OPACITY[45] },
+    { label: '60%', opacity: TORNADO_OPACITY[60] },
   ]
 
   const windLegendItems = [
-    { value: 5, color: WIND_COLOR[5], label: '5%' },
-    { value: 15, color: WIND_COLOR[15], label: '15%' },
-    { value: 30, color: WIND_COLOR[30], label: '30%' },
-    { value: 45, color: WIND_COLOR[45], label: '45%' },
-    { value: 60, color: WIND_COLOR[60], label: '60%' },
+    { label: '5%', opacity: WIND_OPACITY[5] },
+    { label: '15%', opacity: WIND_OPACITY[15] },
+    { label: '30%', opacity: WIND_OPACITY[30] },
+    { label: '45%', opacity: WIND_OPACITY[45] },
+    { label: '60%', opacity: WIND_OPACITY[60] },
   ]
 
   const fireLegendItems = [
-    { value: 5, color: FIRE_COLOR[5], label: 'Elevated' },
-    { value: 8, color: FIRE_COLOR[8], label: 'Critical' },
-    { value: 10, color: FIRE_COLOR[10], label: 'Extreme' },
+    { label: 'Elevated', opacity: FIRE_OPACITY[5] },
+    { label: 'Critical', opacity: FIRE_OPACITY[8] },
+    { label: 'Extreme', opacity: FIRE_OPACITY[10] },
+  ]
+
+  const thunderstormLegendItems = [
+    { label: 'TSTM', opacity: THUNDERSTORM_OPACITY[2] },
+    { label: 'Marginal', opacity: THUNDERSTORM_OPACITY[3] },
+    { label: 'Slight', opacity: THUNDERSTORM_OPACITY[4] },
+    { label: 'Enhanced', opacity: THUNDERSTORM_OPACITY[5] },
+    { label: 'Moderate', opacity: THUNDERSTORM_OPACITY[6] },
+    { label: 'High', opacity: THUNDERSTORM_OPACITY[8] },
   ]
 
   // Temperature legend - OpenWeatherMap temp_new color stops (in °C)
@@ -923,10 +987,10 @@ const PortfolioMap = () => {
         mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
         interactiveLayerIds={[
           ...(showHail ? ['hail-layer'] : []),
-          ...(showHailDay2 ? ['hail-day2-layer'] : []),
           ...(showTornado ? ['tornado-layer'] : []),
           ...(showWind ? ['wind-layer'] : []),
           ...(showFire ? ['fire-layer'] : []),
+          ...(showThunderstorm ? ['thunderstorm-layer'] : []),
         ]}
         onMouseMove={onHover}
         onMouseLeave={onMouseLeave}
@@ -985,6 +1049,36 @@ const PortfolioMap = () => {
             />
           </Source>
         )}
+        {showThunderstorm && thunderstormData && (
+          <Source id="thunderstorm-data" type="geojson" data={thunderstormData}>
+            <Layer
+              id="thunderstorm-layer"
+              type="fill"
+              source="thunderstorm-data"
+              paint={{
+                'fill-color': THUNDERSTORM_BASE,
+                'fill-opacity': [
+                  'match',
+                  ['get', 'dn'],
+                  2,
+                  0.2,
+                  3,
+                  0.35,
+                  4,
+                  0.5,
+                  5,
+                  0.65,
+                  6,
+                  0.8,
+                  8,
+                  0.95,
+                  0.2,
+                ],
+                'fill-outline-color': FILL_OUTLINE_COLOR,
+              }}
+            />
+          </Source>
+        )}
         {showHail && hailData && (
           <Source id="hail-data" type="geojson" data={hailData}>
             <Layer
@@ -992,82 +1086,22 @@ const PortfolioMap = () => {
               type="fill"
               source="hail-data"
               paint={{
-                'fill-color': [
+                'fill-color': HAIL_BASE,
+                'fill-opacity': [
                   'match',
                   ['get', 'dn'],
                   5,
-                  HAIL_COLOR[5],
+                  0.25,
                   15,
-                  HAIL_COLOR[15],
+                  0.4,
                   30,
-                  HAIL_COLOR[30],
+                  0.55,
                   45,
-                  HAIL_COLOR[45],
+                  0.7,
                   60,
-                  HAIL_COLOR[60],
-                  HAIL_COLOR.default,
+                  0.9,
+                  0.25,
                 ],
-                'fill-opacity': DAY_1_OPACITY,
-                'fill-outline-color': FILL_OUTLINE_COLOR,
-              }}
-            />
-          </Source>
-        )}
-        {showHailDay2 && hailDay2Data && (
-          <Source id="hail-day2-data" type="geojson" data={hailDay2Data}>
-            <Layer
-              id="hail-day2-layer"
-              type="fill"
-              source="hail-day2-data"
-              paint={{
-                'fill-color': [
-                  'match',
-                  ['get', 'dn'],
-                  5,
-                  HAIL_COLOR[5],
-                  15,
-                  HAIL_COLOR[15],
-                  30,
-                  HAIL_COLOR[30],
-                  45,
-                  HAIL_COLOR[45],
-                  60,
-                  HAIL_COLOR[60],
-                  HAIL_COLOR.default,
-                ],
-                'fill-opacity': DAY_2_OPACITY,
-                'fill-outline-color': FILL_OUTLINE_COLOR,
-              }}
-            />
-          </Source>
-        )}
-        {showTornado && tornadoData && (
-          <Source id="tornado-data" type="geojson" data={tornadoData}>
-            <Layer
-              id="tornado-layer"
-              type="fill"
-              source="tornado-data"
-              paint={{
-                'fill-color': [
-                  'match',
-                  ['get', 'dn'],
-                  2,
-                  TORNADO_COLOR[2],
-                  5,
-                  TORNADO_COLOR[5],
-                  10,
-                  TORNADO_COLOR[10],
-                  15,
-                  TORNADO_COLOR[15],
-                  30,
-                  TORNADO_COLOR[30],
-                  45,
-                  TORNADO_COLOR[45],
-                  60,
-                  TORNADO_COLOR[60],
-                  TORNADO_COLOR.default,
-                ],
-                'fill-opacity': DAY_1_OPACITY,
                 'fill-outline-color': FILL_OUTLINE_COLOR,
               }}
             />
@@ -1080,22 +1114,54 @@ const PortfolioMap = () => {
               type="fill"
               source="wind-data"
               paint={{
-                'fill-color': [
+                'fill-color': WIND_BASE,
+                'fill-opacity': [
                   'match',
                   ['get', 'dn'],
                   5,
-                  WIND_COLOR[5],
+                  0.25,
                   15,
-                  WIND_COLOR[15],
+                  0.4,
                   30,
-                  WIND_COLOR[30],
+                  0.55,
                   45,
-                  WIND_COLOR[45],
+                  0.7,
                   60,
-                  WIND_COLOR[60],
-                  WIND_COLOR.default,
+                  0.9,
+                  0.25,
                 ],
-                'fill-opacity': DAY_1_OPACITY,
+                'fill-outline-color': FILL_OUTLINE_COLOR,
+              }}
+            />
+          </Source>
+        )}
+        {showTornado && tornadoData && (
+          <Source id="tornado-data" type="geojson" data={tornadoData}>
+            <Layer
+              id="tornado-layer"
+              type="fill"
+              source="tornado-data"
+              paint={{
+                'fill-color': TORNADO_BASE,
+                'fill-opacity': [
+                  'match',
+                  ['get', 'dn'],
+                  2,
+                  0.2,
+                  5,
+                  0.3,
+                  10,
+                  0.45,
+                  15,
+                  0.55,
+                  30,
+                  0.7,
+                  45,
+                  0.8,
+                  60,
+                  0.95,
+                  0.2,
+                ],
                 'fill-outline-color': FILL_OUTLINE_COLOR,
               }}
             />
@@ -1108,18 +1174,18 @@ const PortfolioMap = () => {
               type="fill"
               source="fire-data"
               paint={{
-                'fill-color': [
+                'fill-color': FIRE_BASE,
+                'fill-opacity': [
                   'match',
                   ['get', 'dn'],
                   5,
-                  FIRE_COLOR[5],
+                  0.35,
                   8,
-                  FIRE_COLOR[8],
+                  0.6,
                   10,
-                  FIRE_COLOR[10],
-                  FIRE_COLOR.default,
+                  0.9,
+                  0.35,
                 ],
-                'fill-opacity': DAY_1_OPACITY,
                 'fill-outline-color': FILL_OUTLINE_COLOR,
               }}
             />
@@ -1263,14 +1329,7 @@ const PortfolioMap = () => {
                 <Switch
                   checked={showHail}
                   onChange={(event) => setShowHail(event.currentTarget.checked)}
-                  label="Hail Forecast (Day 1)"
-                />
-                <Switch
-                  checked={showHailDay2}
-                  onChange={(event) =>
-                    setShowHailDay2(event.currentTarget.checked)
-                  }
-                  label="Hail Forecast (Day 2)"
+                  label="Hail Forecast"
                 />
                 <Switch
                   checked={showTornado}
@@ -1292,10 +1351,38 @@ const PortfolioMap = () => {
                   onClick={(e) => e.stopPropagation()}
                   label="Fire Outlook"
                 />
+                <Switch
+                  checked={showThunderstorm}
+                  onChange={(event) =>
+                    setShowThunderstorm(event.currentTarget.checked)
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                  label="Thunderstorm Outlook"
+                />
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>
         </Accordion>
+
+        <Box onMouseDown={(e) => e.stopPropagation()} data-segmented-control>
+          <SegmentedControl
+            value={forecastDay}
+            onChange={(v) => setForecastDay(v as ForecastDay)}
+            data={[
+              {
+                label: 'Tomorrow',
+                value: 'tomorrow',
+              },
+              {
+                label: 'Day After',
+                value: 'day-after',
+              },
+            ]}
+            size="xs"
+            fullWidth
+            color={theme.primaryColor}
+          />
+        </Box>
 
         <div
           style={{
@@ -1312,7 +1399,7 @@ const PortfolioMap = () => {
                   <Stack gap="xs">
                     <Group gap={2} align="center">
                       <Text size="sm" fw={500}>
-                        Hail Forecast Probability
+                        Hail Probability
                       </Text>
                       <HoverCard shadow="md">
                         <HoverCard.Target>
@@ -1345,12 +1432,13 @@ const PortfolioMap = () => {
                       </HoverCard>
                     </Group>
                     {hailLegendItems.map((item) => (
-                      <Group key={item.value} gap="xs" align="center">
+                      <Group key={item.label} gap="xs" align="center">
                         <div
                           style={{
                             width: '16px',
                             height: '16px',
-                            backgroundColor: item.color,
+                            backgroundColor: HAIL_BASE,
+                            opacity: item.opacity,
                             border: '1px solid #000',
                             borderRadius: '2px',
                           }}
@@ -1400,12 +1488,13 @@ const PortfolioMap = () => {
                       </HoverCard>
                     </Group>
                     {tornadoLegendItems.map((item) => (
-                      <Group key={item.value} gap="xs" align="center">
+                      <Group key={item.label} gap="xs" align="center">
                         <div
                           style={{
                             width: '16px',
                             height: '16px',
-                            backgroundColor: item.color,
+                            backgroundColor: TORNADO_BASE,
+                            opacity: item.opacity,
                             border: '1px solid #000',
                             borderRadius: '2px',
                           }}
@@ -1456,12 +1545,13 @@ const PortfolioMap = () => {
                       </HoverCard>
                     </Group>
                     {windLegendItems.map((item) => (
-                      <Group key={item.value} gap="xs" align="center">
+                      <Group key={item.label} gap="xs" align="center">
                         <div
                           style={{
                             width: '16px',
                             height: '16px',
-                            backgroundColor: item.color,
+                            backgroundColor: WIND_BASE,
+                            opacity: item.opacity,
                             border: '1px solid #000',
                             borderRadius: '2px',
                           }}
@@ -1511,12 +1601,69 @@ const PortfolioMap = () => {
                       </HoverCard>
                     </Group>
                     {fireLegendItems.map((item) => (
-                      <Group key={item.value} gap="xs" align="center">
+                      <Group key={item.label} gap="xs" align="center">
                         <div
                           style={{
                             width: '16px',
                             height: '16px',
-                            backgroundColor: item.color,
+                            backgroundColor: FIRE_BASE,
+                            opacity: item.opacity,
+                            border: '1px solid #000',
+                            borderRadius: '2px',
+                          }}
+                        />
+                        <Text size="xs">{item.label}</Text>
+                      </Group>
+                    ))}
+                  </Stack>
+                </Card.Section>
+              </Card>
+            )}
+            {showThunderstormLegend && (
+              <Card withBorder shadow="sm" radius="md" px="sm">
+                <Card.Section inheritPadding py="sm">
+                  <Stack gap="xs">
+                    <Group gap={2} align="center">
+                      <Text size="sm" fw={500}>
+                        Thunderstorm Outlook
+                      </Text>
+                      <HoverCard shadow="md">
+                        <HoverCard.Target>
+                          <ActionIcon size="xs" variant="transparent">
+                            <IconInfoCircle size={16} stroke={1.5} />
+                          </ActionIcon>
+                        </HoverCard.Target>
+                        <HoverCard.Dropdown maw="300px">
+                          <Stack gap="xs">
+                            <Text size="sm">
+                              Categorical outlook risk levels are provided by
+                              NOAA&apos;s Storm Prediction Center and indicate
+                              the overall severe weather threat level for the
+                              forecast period.
+                            </Text>
+                            <Anchor
+                              href="https://www.spc.noaa.gov/products/outlook/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="sm"
+                            >
+                              <Group gap="xs" align="center">
+                                <Text>Learn more at NOAA SPC</Text>
+                                <IconExternalLink size={14} />
+                              </Group>
+                            </Anchor>
+                          </Stack>
+                        </HoverCard.Dropdown>
+                      </HoverCard>
+                    </Group>
+                    {thunderstormLegendItems.map((item) => (
+                      <Group key={item.label} gap="xs" align="center">
+                        <div
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: THUNDERSTORM_BASE,
+                            opacity: item.opacity,
                             border: '1px solid #000',
                             borderRadius: '2px',
                           }}
