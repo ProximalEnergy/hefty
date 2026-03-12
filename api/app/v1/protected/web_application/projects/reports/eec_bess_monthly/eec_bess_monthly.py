@@ -1,18 +1,21 @@
 import asyncio
 import datetime
+import math
 import os
 import shutil
 import tempfile
+import uuid
 from collections.abc import Callable
 from html import escape
 from pathlib import Path
-from typing import cast
-from zoneinfo import ZoneInfo
+from typing import Any, Literal, cast
 
 import aiohttp
 import boto3
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+from app.logger import logger
 from core.crud.operational.contract_kpis import (
     get_contract_kpis as crud_get_contract_kpis,
 )
@@ -20,6 +23,7 @@ from core.crud.operational.failure_modes import (
     get_failure_modes as crud_get_failure_modes,
 )
 from core.crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
+from core.crud.operational.projects import get_projects as crud_get_projects
 from core.crud.operational.qse_integrations import (
     get_qse_integration_by_project_id as crud_get_qse_integration_by_project_id,
 )
@@ -30,6 +34,7 @@ from core.crud.project.devices import (
 )
 from core.crud.project.tags import get_project_tags_v2 as crud_get_project_tags_v2
 from core.db_query import OutputType
+from core.domain.kpis.rte import get_project_rte as core_get_project_rte
 from core.enumerations import DeviceType, KPIType, SensorType, TimeInterval
 from pydantic import BaseModel
 from reportlab.lib import colors
@@ -54,11 +59,11 @@ from scipy.stats import linregress
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+import core
 from core import models
 
 from .chart_utils import create_stacked_bar_chart, create_waterfall_chart
 from .report_utils import (
-    PLACEHOLDER_PNG_BYTES,
     calc_delta_percentage,
     format_change_text,
     format_change_text_reversed,
@@ -96,6 +101,7 @@ class BESSMonthlyReportRequest(BaseModel):
     strategies: list[BESSMonthlyReportStrategy]
     operational_commentary: str | None = None
     smart_bidder_metrics: dict[str, BESSMonthlySmartBidderMetric] | None = None
+    included_projects: list[str] = []
 
 
 # ---------------------------------------------------------------------------
@@ -118,14 +124,6 @@ ASSETS = {
     "client_logo": os.path.join(RESOURCES_DIR, "excelsior_logo.png"),
     "placeholder": os.path.join(RESOURCES_DIR, "placeholder_logo.png"),
 }
-
-# ---------------------------------------------------------------------------
-# Placeholder images
-# ---------------------------------------------------------------------------
-
-# Executive KPI Index (radar) chart PNG bytes. Replace with real bytes once the
-# radar chart generation is implemented.
-radar_png = PLACEHOLDER_PNG_BYTES
 
 # ---------------------------------------------------------------------------
 # Style system
@@ -444,13 +442,14 @@ def section_revenue_breakdown_with_table(
     flows = [img, Spacer(1, 0.20 * inch)]
 
     # Aggregate daily data by month
-    series_monthly = rev_breakdown_df.set_index("index").sum()
+    series_monthly = rev_breakdown_df.sum()
 
     # Create table with months as rows and services as columns
     # Prepare data: months as rows, service types as columns
     service_columns = [
         "Real-Time Energy",
         "Day-Ahead Energy",
+        "Virtual Trades",
         "Ancillary Services",
         "Misc Charges",
         "Net Profit",
@@ -479,7 +478,7 @@ def section_revenue_breakdown_with_table(
         )
     }
 
-    for key, value in series_monthly.items():
+    for key, value in series_monthly[service_labels].items():
         formatted_value = col_format[key]
         row_data.append(Paragraph(formatted_value, value_style))
 
@@ -860,24 +859,22 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
             _delta_str("Total Revenue"),
         ],
         [
-            "Total Energy Delivered",
+            "Total Energy Discharged",
             format_energy_value(
-                value=_cell_float("Total Energy Delivered", "This Month")
+                value=_cell_float("Total Energy Discharged", "This Month")
             ),
             format_energy_value(
-                value=_cell_float("Total Energy Delivered", "Expected")
+                value=_cell_float("Total Energy Discharged", "Expected")
             ),
-            _delta_str("Total Energy Delivered"),
+            _delta_str("Total Energy Discharged"),
         ],
         [
-            "Average Capacity Factor",
-            format_percentage_value(
-                value=_cell_float("Average Capacity Factor", "This Month")
+            "Total Energy Charged",
+            format_energy_value(
+                value=_cell_float("Total Energy Charged", "This Month")
             ),
-            format_percentage_value(
-                value=_cell_float("Average Capacity Factor", "Expected")
-            ),
-            _delta_str("Average Capacity Factor"),
+            format_energy_value(value=_cell_float("Total Energy Charged", "Expected")),
+            _delta_str("Total Energy Charged"),
         ],
         [
             "Capacity-Weighted Availability",
@@ -991,6 +988,16 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
         parent=cell_style,
         alignment=2,
     )
+    italic_cell_style = ParagraphStyle(
+        "tbx_cell_italic",
+        parent=cell_style,
+        fontName="Helvetica-Oblique",
+    )
+    italic_right_style = ParagraphStyle(
+        "tbx_right_italic",
+        parent=right_style,
+        fontName="Helvetica-Oblique",
+    )
 
     def format_or_dash(
         *, value: float | None, formatter: Callable[[float], str]
@@ -1002,6 +1009,8 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
     realized_intraday_value = monthly_tbx.get("realized_intraday_value")
     tb1_raw = monthly_tbx.get("1")
     tb2_raw = monthly_tbx.get("2")
+    tb_project_raw = monthly_tbx.get("project_tbx_value")
+    tb_project_label = monthly_tbx.get("project_tbx_label")
     tb4_raw = monthly_tbx.get("4")
 
     realized_val = format_or_dash(
@@ -1009,6 +1018,10 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
     )
     tb1_val = format_or_dash(value=tb1_raw, formatter=format_dollar_per_kw_value)
     tb2_val = format_or_dash(value=tb2_raw, formatter=format_dollar_per_kw_value)
+    tb_project_val = format_or_dash(
+        value=tb_project_raw,
+        formatter=format_dollar_per_kw_value,
+    )
     tb4_val = format_or_dash(value=tb4_raw, formatter=format_dollar_per_kw_value)
 
     def safe_pct_capture(*, expected: float | None, actual: float | None) -> str:
@@ -1018,6 +1031,10 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
 
     tb1_delta = safe_pct_capture(expected=tb1_raw, actual=realized_intraday_value)
     tb2_delta = safe_pct_capture(expected=tb2_raw, actual=realized_intraday_value)
+    tb_project_delta = safe_pct_capture(
+        expected=tb_project_raw,
+        actual=realized_intraday_value,
+    )
     tb4_delta = safe_pct_capture(expected=tb4_raw, actual=realized_intraday_value)
 
     table_rows = [
@@ -1027,24 +1044,32 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
             Paragraph("TB Capture", header_style),
         ],
         [
-            Paragraph("Realized Intraday Value", cell_style),
+            Paragraph("Realized Value", cell_style),
             Paragraph(realized_val, right_style),
             Paragraph("—", right_style),
         ],
         [
-            Paragraph("TB-1", cell_style),
-            Paragraph(tb1_val, right_style),
-            Paragraph(tb1_delta, right_style),
+            Paragraph(
+                tb_project_label or "TB-Project",  # fallback safety
+                cell_style,
+            ),
+            Paragraph(tb_project_val, right_style),
+            Paragraph(tb_project_delta, right_style),
         ],
         [
-            Paragraph("TB-2", cell_style),
-            Paragraph(tb2_val, right_style),
-            Paragraph(tb2_delta, right_style),
+            Paragraph("TB-1", italic_cell_style),
+            Paragraph(tb1_val, italic_right_style),
+            Paragraph(tb1_delta, italic_right_style),
         ],
         [
-            Paragraph("TB-4", cell_style),
-            Paragraph(tb4_val, right_style),
-            Paragraph(tb4_delta, right_style),
+            Paragraph("TB-2", italic_cell_style),
+            Paragraph(tb2_val, italic_right_style),
+            Paragraph(tb2_delta, italic_right_style),
+        ],
+        [
+            Paragraph("TB-4", italic_cell_style),
+            Paragraph(tb4_val, italic_right_style),
+            Paragraph(tb4_delta, italic_right_style),
         ],
     ]
 
@@ -1060,6 +1085,123 @@ def section_tbx_comparison(*, doc, styles, monthly_tbx: dict[str, float]):
     table.setStyle(table_style)
 
     return [title, Spacer(1, 0.10 * inch), table, Spacer(1, 0.20 * inch)]
+
+
+def build_portfolio_kpi_table_rows(
+    *,
+    df: pd.DataFrame | None,
+    styles,
+    selected_project: str | None,
+) -> list[list[Paragraph]]:
+    """Build table rows for portfolio KPI comparison."""
+
+    if df is None or df.empty:
+        return []
+
+    header_style = ParagraphStyle(
+        "radar_header",
+        parent=styles["body"],
+        fontName="Helvetica-Bold",
+        alignment=1,
+    )
+    left_style = ParagraphStyle(
+        "radar_left",
+        parent=styles["body"],
+        alignment=0,
+    )
+    right_style = ParagraphStyle(
+        "radar_right",
+        parent=styles["body"],
+        alignment=2,
+    )
+
+    column_order = list(df.columns)
+
+    header_row = [
+        Paragraph("<b>Project</b>", header_style),
+        *[Paragraph(f"<b>{column}</b>", header_style) for column in column_order],
+    ]
+    table_rows: list[list[Paragraph]] = [header_row]
+
+    for project_name, row in df.iterrows():
+        display_name = (
+            f"<b>{project_name}</b>"
+            if selected_project is not None and project_name == selected_project
+            else project_name
+        )
+        row_cells = [Paragraph(display_name, left_style)]
+        for column in column_order:
+            value = row.get(column)
+            if pd.isna(value):
+                formatted_value = "—"
+            elif (
+                column == "Availability (%)"
+                or column == "RTE (%)"
+                or column == "Balance of Strings"
+            ):
+                formatted_value = format_percentage_value(value=value)
+            elif column == "Energy Yield (MWh/MW)":
+                formatted_value = f"{value:.2f}"
+            elif column == "Net $ / MWh Delivered":
+                formatted_value = f"${value:,.0f}"
+            else:
+                formatted_value = f"{value:.2f}"
+            row_cells.append(Paragraph(formatted_value, right_style))
+        table_rows.append(row_cells)
+
+    return table_rows
+
+
+def section_portfolio_kpi_comparison(
+    *,
+    doc,
+    styles,
+    radar_chart_bytes: bytes,
+    radar_table_rows: list[list[Paragraph]] | None,
+):
+    """Create the portfolio KPI comparison section."""
+
+    title = Paragraph("<b>Portfolio KPI Comparison</b>", styles["h2_center"])
+    radar_image = load_image_from_source(radar_chart_bytes)
+    radar_image = img_fit_by_width(
+        img=radar_image,
+        target_w=doc.width * 0.6,
+    )
+    radar_image.hAlign = "CENTER"
+
+    flowables: list = [
+        title,
+        Spacer(1, 0.12 * inch),
+        radar_image,
+    ]
+
+    if radar_table_rows:
+        table = Table(
+            radar_table_rows,
+            colWidths=[
+                doc.width * 0.22,
+                doc.width * 0.145,
+                doc.width * 0.145,
+                doc.width * 0.145,
+                doc.width * 0.145,
+            ],
+            hAlign="LEFT",
+        )
+        table_style = tstyle_gridded_table(
+            header_bg=colors.lightgrey,
+            row_bg_alt=colors.HexColor("#F7F7F7"),
+        )
+        table.setStyle(table_style)
+        table.hAlign = "CENTER"
+        flowables.extend(
+            [
+                Spacer(1, 0.16 * inch),
+                table,
+            ]
+        )
+
+    flowables.append(Spacer(1, 0.24 * inch))
+    return flowables
 
 
 def section_events_overview(*, doc, styles, image_bytes, rollup_rows, event_table):
@@ -1307,7 +1449,7 @@ def section_no_events_overview(
 def section_generation_and_consumption_overview(
     *, doc, styles, generation_hourly, consumption_hourly
 ):
-    """Create generation and consumption overview section.
+    """Create net energy flow overview section.
 
     Args:
         doc: Document template.
@@ -1316,7 +1458,7 @@ def section_generation_and_consumption_overview(
         consumption_hourly: DataFrame with consumption hourly data.
     """
     title = Paragraph(
-        "<para align='center'>Generation & Consumption Overview</para>",
+        "<para align='center'>Net Energy Flow</para>",
         styles["h2_center"],
     )
     section_elements = [
@@ -1324,128 +1466,147 @@ def section_generation_and_consumption_overview(
         Spacer(1, 0.12 * inch),
     ]
 
-    def build_table(label: str, df: pd.DataFrame | None, *, highlight: str):
-        heading = Paragraph(f"<b>{label}</b>", styles["body_center"])
-        if df is None or df.empty:
-            return [
+    heading = Paragraph("<b>Net Energy Flow (MWh)</b>", styles["body_center"])
+
+    if (
+        generation_hourly is None
+        or generation_hourly.empty
+        or consumption_hourly is None
+        or consumption_hourly.empty
+    ):
+        section_elements.extend(
+            [
                 heading,
                 Spacer(1, 0.05 * inch),
                 Paragraph("No data available.", styles["body_center"]),
                 Spacer(1, 0.15 * inch),
+                PageBreak(),
             ]
-
-        df_sorted = df.sort_index()
-        columns = list(df_sorted.columns)
-        numeric_block = df_sorted[columns].to_numpy(dtype=float, copy=True)
-        numeric_vals = numeric_block[~np.isnan(numeric_block)]
-        min_val = float(np.nanmin(numeric_vals)) if numeric_vals.size else None
-        max_val = float(np.nanmax(numeric_vals)) if numeric_vals.size else None
-
-        if highlight == "green":
-            target_rgb = (0.72, 0.9, 0.72)
-        else:
-            target_rgb = (0.96, 0.75, 0.75)
-
-        def format_col(*, col_val):
-            try:
-                col_int = int(col_val)
-            except (TypeError, ValueError):
-                return str(col_val)
-            return f"{col_int:02d}:00"
-
-        def format_idx(*, idx_val):
-            if isinstance(idx_val, (datetime.datetime, datetime.date)):
-                return pd.Timestamp(idx_val).strftime("%b %d")
-            return str(idx_val)
-
-        def format_val(*, raw_val):
-            if pd.isna(raw_val):
-                return "—"
-            return f"{raw_val:.2f}"
-
-        table_data = [
-            ["Date"] + [format_col(col_val=col) for col in columns],
-        ]
-        for idx_val, row in df_sorted.iterrows():
-            row_values = [format_val(raw_val=row[col]) for col in columns]
-            table_data.append([format_idx(idx_val=idx_val)] + row_values)
-
-        col_count = len(table_data[0])
-        col_width = doc.width / col_count if col_count else doc.width
-        tbl = Table(
-            table_data,
-            colWidths=[col_width] * col_count,
-            hAlign="CENTER",
         )
-        tbl.setStyle(
-            TableStyle(
-                [
-                    ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
-                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                    ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
-                    ("ALIGN", (0, 1), (0, -1), "LEFT"),
-                    ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 6),
-                    ("FONT", (0, 1), (-1, -1), "Helvetica", 6),
-                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 1.5),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 1.5),
-                    ("TOPPADDING", (0, 0), (-1, -1), 0.8),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0.8),
-                ]
-            )
+        return section_elements
+
+    gen_df = generation_hourly.sort_index()
+    cons_df = consumption_hourly.sort_index()
+
+    # Align indexes/columns and compute net = generation - consumption,
+    # with consumption represented as negative values.
+    gen_aligned, cons_aligned = gen_df.align(cons_df, join="outer")
+    cons_negative = -cons_aligned
+    net_df = gen_aligned.add(cons_negative, fill_value=0.0)
+
+    net_df = net_df.reindex(sorted(net_df.columns), axis=1)
+
+    columns = list(net_df.columns)
+    numeric_block = net_df[columns].to_numpy(dtype=float, copy=True)
+    numeric_vals = numeric_block[~np.isnan(numeric_block)]
+
+    if numeric_vals.size:
+        min_val = float(np.nanmin(numeric_vals))
+        max_val = float(np.nanmax(numeric_vals))
+    else:
+        min_val = None
+        max_val = None
+
+    def format_col(*, col_val):
+        try:
+            col_int = int(col_val)
+        except (TypeError, ValueError):
+            return str(col_val)
+        return f"{col_int:02d}:00"
+
+    def format_idx(*, idx_val):
+        if isinstance(idx_val, (datetime.datetime, datetime.date)):
+            return pd.Timestamp(idx_val).strftime("%b %d")
+        return str(idx_val)
+
+    def format_val(*, raw_val):
+        if pd.isna(raw_val):
+            return "—"
+        return f"{raw_val:.2f}"
+
+    table_data = [
+        ["Date"] + [format_col(col_val=col) for col in columns],
+    ]
+    for idx_val, row in net_df.iterrows():
+        row_values = [format_val(raw_val=row[col]) for col in columns]
+        table_data.append([format_idx(idx_val=idx_val)] + row_values)
+
+    col_count = len(table_data[0])
+    col_width = doc.width / col_count if col_count else doc.width
+    tbl = Table(
+        table_data,
+        colWidths=[col_width] * col_count,
+        hAlign="CENTER",
+    )
+    tbl.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.black),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (0, 1), (0, -1), "LEFT"),
+                ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 6),
+                ("FONT", (0, 1), (-1, -1), "Helvetica", 6),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 1.5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 1.5),
+                ("TOPPADDING", (0, 0), (-1, -1), 0.8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0.8),
+            ]
         )
+    )
 
-        if min_val is not None and max_val is not None:
-            span = max(max_val - min_val, 1e-9)
+    if min_val is not None and max_val is not None:
+        # Diverging color scale: negatives -> red, positives -> green, zero -> white.
+        neg_extent = abs(min_val) if min_val < 0 else 0.0
+        pos_extent = max_val if max_val > 0 else 0.0
 
-            def compute_color(*, val: float):
-                if pd.isna(val):
-                    return None
-                frac = (val - min_val) / span if span else 1.0
-                frac = max(0.0, min(frac, 1.0))
-                r = 1 - frac * (1 - target_rgb[0])
-                g = 1 - frac * (1 - target_rgb[1])
-                b = 1 - frac * (1 - target_rgb[2])
-                return colors.Color(r, g, b)
+        def interpolate_color(
+            *, base_rgb: tuple[float, float, float], frac: float
+        ) -> colors.Color:
+            frac_clamped = max(0.0, min(frac, 1.0))
+            r = 1 - frac_clamped * (1 - base_rgb[0])
+            g = 1 - frac_clamped * (1 - base_rgb[1])
+            b = 1 - frac_clamped * (1 - base_rgb[2])
+            return colors.Color(r, g, b)
 
-            style_updates = []
-            for row_idx, idx_val in enumerate(df_sorted.index, start=1):
-                for col_idx, col in enumerate(columns, start=1):
-                    raw_value = df_sorted.at[idx_val, col]
-                    numeric_value = float(pd.to_numeric(raw_value, errors="coerce"))
-                    color = compute_color(val=numeric_value)
-                    if color is not None:
-                        style_updates.append(
-                            (
-                                "BACKGROUND",
-                                (col_idx, row_idx),
-                                (col_idx, row_idx),
-                                color,
-                            )
-                        )
-            if style_updates:
-                tbl.setStyle(TableStyle(style_updates))
+        green_rgb = (0.72, 0.9, 0.72)
+        red_rgb = (0.96, 0.75, 0.75)
 
-        return [
+        style_updates: list[tuple] = []
+        for row_idx, idx_val in enumerate(net_df.index, start=1):
+            for col_idx, col in enumerate(columns, start=1):
+                raw_value = net_df.at[idx_val, col]
+                numeric_value = float(pd.to_numeric(raw_value, errors="coerce"))
+                if pd.isna(numeric_value) or numeric_value == 0:
+                    continue
+                if numeric_value > 0 and pos_extent > 0:
+                    frac = numeric_value / pos_extent
+                    color = interpolate_color(base_rgb=green_rgb, frac=frac)
+                elif numeric_value < 0 and neg_extent > 0:
+                    frac = abs(numeric_value) / neg_extent
+                    color = interpolate_color(base_rgb=red_rgb, frac=frac)
+                else:
+                    continue
+                style_updates.append(
+                    (
+                        "BACKGROUND",
+                        (col_idx, row_idx),
+                        (col_idx, row_idx),
+                        color,
+                    )
+                )
+
+        if style_updates:
+            tbl.setStyle(TableStyle(style_updates))
+
+    section_elements.extend(
+        [
             heading,
             Spacer(1, 0.05 * inch),
             tbl,
             Spacer(1, 0.18 * inch),
         ]
-
-    section_elements.extend(
-        build_table(
-            "Generation (MWh)",
-            generation_hourly,
-            highlight="green",
-        )
-    )
-    section_elements.extend(
-        build_table(
-            "Consumption (MWh)",
-            consumption_hourly,
-            highlight="red",
-        )
     )
     section_elements.append(PageBreak())
     return section_elements
@@ -1475,6 +1636,9 @@ async def build_report(
     event_table: pd.DataFrame | None = None,
     monthly_tbx: dict[str, float] | None = None,
     current_soh: float | None = None,
+    radar_table_df: pd.DataFrame | None = None,
+    radar_selected_project: str | None = None,
+    radar_chart_bytes: bytes | None = None,
 ):
     """Build and save the complete PDF report.
 
@@ -1496,6 +1660,9 @@ async def build_report(
         event_table: Optional DataFrame with detailed event loss data.
         monthly_tbx: Optional dictionary of TBX values.
         current_soh: Optional current SOH.
+        radar_table_df: Optional dataframe containing raw KPI comparison values.
+        radar_selected_project: Optional project name to highlight in comparison table.
+        radar_chart_bytes: Optional radar chart image bytes.
     """
     styles = build_styles()
 
@@ -1581,8 +1748,24 @@ async def build_report(
     else:
         elements += section_tbx_comparison(doc=doc, styles=styles, monthly_tbx={})
 
-    # 7) Executive KPI Index
-    # elements += section_full_width_image(doc, radar_png, styles)
+    if radar_chart_bytes is not None:
+        radar_table_rows = (
+            build_portfolio_kpi_table_rows(
+                df=radar_table_df,
+                styles=styles,
+                selected_project=radar_selected_project,
+            )
+            if radar_table_df is not None
+            else None
+        )
+        elements.append(PageBreak())
+        elements += section_portfolio_kpi_comparison(
+            doc=doc,
+            styles=styles,
+            radar_chart_bytes=radar_chart_bytes,
+            radar_table_rows=radar_table_rows,
+        )
+
     elements.append(PageBreak())
 
     # 8) Generation and Consumption Overview
@@ -1649,183 +1832,200 @@ async def get_tps_data(
     *,
     project: models.Project,
     parent_element_identifier: str,
-    start: datetime.datetime,
-    end: datetime.datetime,
+    start_dt: datetime.date,
+    end_dt: datetime.date,
     token: str,
 ):
-    """Fetch TPS (Third-Party Settlement) data from API.
+    """
+    Get TPS data from the PTP API.
 
     Args:
         project: Project model instance.
-        parent_element_identifier: TPS element identifier.
-        start: Start datetime.
-        end: End datetime.
+        parent_element_identifier: Parent element identifier.
+        start_dt: Start date.
+        end_dt: End date.
         token: API authentication token.
 
     Returns:
-        Tuple containing:
-            - Daily summed DataFrame.
-            - TPS element display name.
-            - Generation hourly pivot DataFrame.
-            - Consumption hourly pivot DataFrame.
-
-    Note:
-        Uses blocking HTTP requests. Consider using httpx for async requests.
+        Tuple of (revenue breakdown DataFrame, generation hourly DataFrame,
+        consumption hourly DataFrame).
     """
-    headers = {"Authorization": f"Bearer {token}"}
-    url = "https://api.ptp.energy/v1/markets/ERCOTNodal/endpoints/Battery-Settlement-Details"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as response:
-            response_meta = await response.json()
-    identifiers = [
-        x["identifier"]
-        for x in response_meta["data"]["elements"]
-        if (
-            x["parentElementIdentifier"] == parent_element_identifier
-            or x["identifier"] == parent_element_identifier
-        )
+    DA_fields = ["DAES", "DAESAMT", "DAEP", "DAEPAMT"]
+    ancillary_fields_da = [
+        "PCRUAMT",
+        "PCRDAMT",
+        "PCRRAMT",
+        "PCNSAMT",
+        "PCECRAMT",
     ]
-    tps_name = [
-        x
-        for x in response_meta["data"]["elements"]
-        if x["identifier"] == parent_element_identifier
-    ][0]["name"]
-    df = pd.DataFrame()
+    ancillary_fields_rt = [
+        "RTRUIMBAMT",
+        "RTRDIMBAMT",
+        "RTRRIMBAMT",
+        "RTNSIMBAMT",
+        "RTECRIMBAMT",
+    ]
 
-    start_zoned = datetime.datetime.combine(
-        start, datetime.time.min, tzinfo=ZoneInfo(project.time_zone)
-    ).isoformat()
-    end_zoned = datetime.datetime.combine(
-        end, datetime.time.min, tzinfo=ZoneInfo(project.time_zone)
-    ).isoformat()
+    start = pd.Timestamp(start_dt, tz=project.time_zone)
+    end = pd.Timestamp(end_dt, tz=project.time_zone)
+    headers = {"Authorization": f"Bearer {token}"}
 
-    for element in identifiers:
-        params = {
-            "begin": start_zoned,
-            "end": end_zoned,
-            "elements": [element],
-        }
-        async with aiohttp.ClientSession() as session:
+    virtual_url = (
+        "https://api.ptp.energy/ptp/ERCOTNodal/Virtual-Settlement-Data/query-columnar"
+    )
+    virtual_params = {
+        "begin": start.tz_convert("UTC").strftime("%Y-%m-%d %H:%M:%S"),
+        "end": end.tz_convert("UTC").strftime("%Y-%m-%d %H:%M:%S"),
+        "elementQueryMode": "byParentAndFilter",
+        "elementIdentifiers": [parent_element_identifier],
+    }
+    generator_url = (
+        "https://api.ptp.energy/ptp/ERCOTNodal/Generator-Settlement-Data/query-columnar"
+    )
+    generator_params = {
+        "begin": start.tz_convert("UTC").strftime("%Y-%m-%d %H:%M:%S"),
+        "end": end.tz_convert("UTC").strftime("%Y-%m-%d %H:%M:%S"),
+        "elementQueryMode": "byParentAndFilter",
+        "elementIdentifiers": [parent_element_identifier],
+    }
+
+    async def _fetch_json(
+        *,
+        session: aiohttp.ClientSession,
+        url: str,
+        request_params: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        try:
             async with session.get(
-                f"{url}/data", headers=headers, params=params
+                url, headers=headers, params=request_params
             ) as response:
-                response_data = await response.json()
+                status = response.status
+                payload = cast(dict[str, Any], await response.json())
+        except aiohttp.ClientError as exc:
+            logger.warning("Failed to fetch TPS data from %s: %s", url, exc)
+            return None
+        if status >= 400:
+            logger.warning("TPS data request to %s failed with status %s", url, status)
+            return None
+        return payload
 
-        data_points = response_data.get("data", [])
-        if not data_points:
-            continue
-
-        data = data_points[0]
-        element_name = data["element"]
-
-        df_element = pd.DataFrame()
-
-        for dp in data["dataPoints"]:
-            temp = pd.DataFrame(dp["values"])
-
-            temp["intervalStartUtc"] = pd.to_datetime(
-                temp["intervalStartUtc"], utc=True
-            )
-            temp["intervalEndUtc"] = pd.to_datetime(temp["intervalEndUtc"], utc=True)
-
-            # assumes temp["data"] is like [{"value": "..."}] and you want the first one
-            temp["data"] = temp["data"].map(lambda x: float(x[0]["value"]))
-
-            temp = temp.set_index("intervalStartUtc").drop(columns=["intervalEndUtc"])
-
-            key_name = dp["keyName"]
-
-            # Make a 2-level MultiIndex column: (element, keyName)
-            temp.columns = pd.MultiIndex.from_tuples(
-                [(element_name, key_name)],
-                names=["element", "keyName"],
-            )
-
-            df_element = pd.concat([df_element, temp], axis=1)
-
-        df = pd.concat([df, df_element], axis=1)
-
-    if df.empty:
-        return (
-            pd.DataFrame(),
-            tps_name,
-            pd.DataFrame(),
-            pd.DataFrame(),
+    async with aiohttp.ClientSession() as session:
+        virtual_payload = await _fetch_json(
+            session=session,
+            url=virtual_url,
+            request_params=virtual_params,
+        )
+        generator_payload = await _fetch_json(
+            session=session,
+            url=generator_url,
+            request_params=generator_params,
         )
 
-    localized_index = pd.to_datetime(df.index, utc=True)
-    localized_index = localized_index.tz_convert(project.time_zone)
-    df.index = localized_index
-    df.index.name = "intervalStartLocal"
-    generation_series = df.get((tps_name, "RT_Generation_Qty"))
-    consumption_series = df.get((tps_name, "RT_Consumption_Qty"))
-
-    if generation_series is not None:
-        generation_hourly = pivot_to_daily_hourly(s=generation_series)
+    virtual_data = cast(dict[str, Any], (virtual_payload or {}).get("data", {}))
+    daily_dfs: list[pd.DataFrame] = []
+    elements = cast(list[dict[str, Any]], virtual_data.get("Elements", []))
+    if not elements:
+        virtual_series = pd.Series()
     else:
-        generation_hourly = pd.DataFrame()
+        for element in elements:
+            daily_start = pd.Timestamp(element["GoLiveDate"], tz=project.time_zone)
+            daily_end = pd.Timestamp(
+                element["ExpirationDate"], tz=project.time_zone
+            ) + pd.Timedelta(days=1)
+            daily_df = pd.DataFrame(
+                index=virtual_data["IntervalEndUtc"], data=element["DataPoints"]
+            )
+            daily_df.index = pd.to_datetime(daily_df.index)
+            daily_df.index = daily_df.index.tz_convert(project.time_zone)
+            daily_df = daily_df.loc[daily_start:daily_end]
+            daily_dfs.append(daily_df)
+        df_virtuals = pd.concat(daily_dfs).sort_index()
+        df_virtuals = df_virtuals.drop(columns=["Settlement_Point"])
+        df_virtuals = df_virtuals.groupby(level=0).sum()
+        df_virtuals.index = pd.to_datetime(df_virtuals.index) - pd.Timedelta(minutes=15)
+        DA_fields_present = df_virtuals.columns.intersection(DA_fields)
+        df_virtuals[DA_fields_present] /= 4
+        df_virtuals = df_virtuals.fillna(0)
+        virtual_series = (
+            -df_virtuals.loc[:, df_virtuals.columns.str.contains("AMT")]
+            .groupby(pd.Grouper(freq="D"))
+            .sum()
+            .sum(axis=1)
+        )
 
-    if consumption_series is not None:
-        consumption_hourly = pivot_to_daily_hourly(s=consumption_series)
-    else:
-        consumption_hourly = pd.DataFrame()
+    if generator_payload is None:
+        raise ValueError("Failed to fetch generator settlement data.")
+    generator_data = generator_payload.get("data")
+    if generator_data is None:
+        raise ValueError("Missing generator settlement response data.")
+    generator_elements = generator_data.get("Elements", [])
+    if not generator_elements:
+        raise ValueError("Generator settlement response missing elements.")
+    element = generator_elements[0]
+    df_all = pd.DataFrame(
+        index=generator_data["IntervalStartUtc"],
+        data=element["DataPoints"],
+    )
+    df_all.index = pd.to_datetime(df_all.index)
+    df_all.index = df_all.index.tz_convert(project.time_zone)
+    df_all = df_all.drop(columns=["RESOURCE_ID", "SETTLEMENT_POINT"])
 
-    daily_index = localized_index.normalize()
-    df_sums = df.groupby(daily_index).sum()
-    df_sums.index = [idx.date() for idx in df_sums.index]
+    df_daily = df_all.groupby(pd.Grouper(freq="D")).sum()
+    ancillary_series = -(
+        (df_daily[ancillary_fields_da] / 4).sum(axis=1)
+        + (df_daily[ancillary_fields_rt]).sum(axis=1)
+    )
 
-    return df_sums, tps_name, generation_hourly, consumption_hourly
+    rev_breakdown_df = pd.DataFrame(index=df_daily.index)
+    rev_breakdown_df["Day-Ahead Energy"] = (
+        -df_daily[["DAESAMT", "DAEPAMT"]].sum(axis=1) / 4
+    )
+    rev_breakdown_df["Real-Time Energy"] = -df_daily[["RTEIAMT"]].sum(axis=1)
+    rev_breakdown_df["Misc Charges"] = -df_daily[
+        ["BPDAMT", "SPDAMT", "RTRDASIAMT"]
+    ].sum(axis=1)
+    rev_breakdown_df["Virtual Trades"] = virtual_series
+    rev_breakdown_df["Ancillary Services"] = ancillary_series
+    rev_breakdown_df["Net Profit"] = rev_breakdown_df.sum(axis=1)
+
+    meter = df_all["TWTG"]
+    hourly_gen = meter[meter >= 0].resample("1h").sum()
+    hourly_cons = meter[meter <= 0].resample("1h").sum()
+    df_hr_gen = hourly_gen.to_frame(name="value").assign(
+        date=lambda x: pd.to_datetime(x.index).date,
+        hour=lambda x: pd.to_datetime(x.index).hour,
+    )
+    df_hr_cons = hourly_cons.to_frame(name="value").assign(
+        date=lambda x: pd.to_datetime(x.index).date,
+        hour=lambda x: pd.to_datetime(x.index).hour,
+    )
+    generation_hourly = df_hr_gen.pivot(index="date", columns="hour", values="value")
+    consumption_hourly = df_hr_cons.pivot(
+        index="date", columns="hour", values="value"
+    ).abs()
+
+    return rev_breakdown_df, generation_hourly, consumption_hourly
 
 
-async def generate_tps_metrics(
+async def generate_revenue_breakdown_chart(
     *,
-    tps_data: pd.DataFrame,
-    tps_name: str,
+    rev_breakdown_df: pd.DataFrame,
 ):
     """Generate revenue breakdown chart and metrics from TPS data.
 
     Args:
-        tps_data: DataFrame with TPS settlement data.
-        tps_name: Name of the TPS element.
+        rev_breakdown_df: DataFrame with revenue breakdown data.
 
     Returns:
-        Tuple of (chart_bytes, report_df, other_metrics_dict).
+        Tuple of (chart_bytes, report_df).
     """
-    df_report = pd.DataFrame(index=tps_data.index)
-    element_frame = tps_data.get(tps_name, pd.DataFrame())
-
-    def _safe_series(column_name: str) -> pd.Series:
-        column = element_frame.get(column_name)
-        if column is None:
-            return pd.Series(0, index=tps_data.index)
-        return column
-
-    df_report["Real-Time Energy"] = _safe_series("RT_Energy_Amt")
-    df_report["Day-Ahead Energy"] = _safe_series("DA_Energy_Amt")
-
-    ancillary_columns = [
-        "DA_ECRS_Amt",
-        "DA_RRS_Amt",
-        "DA_NS_Amt",
-        "DA_Reg_Down_Amt",
-        "DA_Reg_Up_Amt",
-    ]
-    df_report["Ancillary Services"] = pd.DataFrame(
-        {col: _safe_series(col) for col in ancillary_columns}
-    ).sum(axis=1)
-
-    misc_columns = ["BP_Dev_Amt", "RT_Reliability_Deployment_Imbalance_Amt"]
-    df_report["Misc Charges"] = pd.DataFrame(
-        {col: _safe_series(col) for col in misc_columns}
-    ).sum(axis=1)
-    df_report["Net Profit"] = df_report.sum(axis=1)
 
     # Separate columns (excluding Net Profit for bars)
-    bar_columns = [col for col in df_report.columns if col != "Net Profit"]
+    bar_columns = [col for col in rev_breakdown_df.columns if col != "Net Profit"]
 
     # Create chart using utility function
     fig = create_stacked_bar_chart(
-        df=df_report,
+        df=rev_breakdown_df,
         bar_columns=bar_columns,
         line_column="Net Profit",
         title="Revenue Breakdown by Type",
@@ -1834,13 +2034,7 @@ async def generate_tps_metrics(
     )
 
     rev_breakdown_by_type_bytes = fig.to_image(format="png")
-    rev_breakdown_df = df_report.reset_index(drop=False)
-    other_tps_data = {
-        "Total Delivered Energy": (
-            _safe_series("RT_Generation_Qty") - _safe_series("RT_Consumption_Qty")
-        ).sum()
-    }
-    return rev_breakdown_by_type_bytes, rev_breakdown_df, other_tps_data
+    return rev_breakdown_by_type_bytes
 
 
 async def get_tbx(
@@ -1892,30 +2086,75 @@ async def get_tbx(
     work["date"] = work["intervalEndingLocal"].dt.date
     work["hour"] = work["intervalEndingLocal"].dt.hour
     grouped = work.groupby(["date", "hour"])["value"].mean()
+    project_tbx = round(
+        project.capacity_bess_energy_bol_dc / project.capacity_bess_power_ac, 1
+    )
+
+    def _partial_cycle_sum(
+        *, values: np.ndarray, count: float, select: Literal["bottom", "top"]
+    ) -> float:
+        """Return the partial sum for fractional cycle counts on sorted arrays."""
+        if count <= 0:
+            return 0.0
+        sorted_values = np.sort(values)
+        whole = int(count)
+        frac = count - whole
+        total = 0.0
+
+        if select == "bottom":
+            if whole > 0:
+                total += float(sorted_values[:whole].sum())
+            if frac > 0 and whole < len(sorted_values):
+                total += float(sorted_values[whole] * frac)
+        else:
+            if whole > 0:
+                total += float(sorted_values[-whole:].sum())
+            if frac > 0:
+                index = len(sorted_values) - whole - 1
+                if index >= 0:
+                    total += float(sorted_values[index] * frac)
+        return total
+
     daily_tbx = pd.DataFrame()
-    for x in [1, 2, 4]:
+    cycle_sizes = [1.0, project_tbx, 2.0, 4.0]
+    seen_cycle_sizes: set[float] = set()
+    ordered_cycle_sizes: list[float] = []
+    for size in cycle_sizes:
+        if size not in seen_cycle_sizes:
+            ordered_cycle_sizes.append(size)
+            seen_cycle_sizes.add(size)
+
+    for x in ordered_cycle_sizes:
         for date in work["date"].unique():
             arr = grouped.loc[date].to_numpy()
-            arr.sort()
-            bottom = arr[:x].sum()
-            top = arr[-x:].sum()
+            bottom = _partial_cycle_sum(values=arr, count=x, select="bottom")
+            top = _partial_cycle_sum(values=arr, count=x, select="top")
             tbx = (top - bottom) / 1000
-            daily_tbx.loc[date, f"{x}"] = tbx
+            daily_tbx.loc[date, f"{x:g}"] = tbx
     daily_tbx.index = pd.to_datetime(daily_tbx.index)
     daily_tbx = daily_tbx.sort_index()
     monthly_tbx = daily_tbx.groupby(pd.Grouper(freq="ME")).sum()
     monthly_records = monthly_tbx.to_dict(orient="records")
+    project_tbx_key = f"{project_tbx:g}"
+
     if not monthly_records:
+        project_label = f"TB-{project_tbx_key}"
         return {
             "1": 0.0,
+            project_tbx_key: 0.0,
             "2": 0.0,
             "4": 0.0,
             "realized_intraday_value": 0.0,
+            "project_tbx_value": 0.0,
+            "project_tbx_label": project_label,
         }
     tbx_dict = monthly_records[0]
+    project_label = f"TB-{project_tbx_key}"
     if project.poi is None or project.poi == 0:
         tbx_dict["realized_intraday_value"] = 0
     tbx_dict["realized_intraday_value"] = total_profit / project.poi / 1000
+    tbx_dict["project_tbx_value"] = tbx_dict.get(project_tbx_key, 0.0)
+    tbx_dict["project_tbx_label"] = project_label
     return tbx_dict
 
 
@@ -1927,7 +2166,6 @@ async def get_tbx(
 async def get_tps_element_identifier(
     *,
     project: models.Project,
-    db: AsyncSession,
 ) -> str:
     """Get TPS element identifier for a project.
 
@@ -1945,7 +2183,6 @@ async def get_tps_element_identifier(
         project_id=project.project_id,
     )
     qse_integration = await qse_integration_query.get_async(
-        executor=db,
         output_type=OutputType.SQLALCHEMY,
     )
     if qse_integration is None:
@@ -2081,6 +2318,8 @@ async def get_kpi_data(
         KPIType.BESS_STRING_SOH.value,
         KPIType.BESS_STRING_RESTING_SOC_PERCENT.value,
         KPIType.PROJECT_AVERAGE_SOC_PERCENT.value,
+        KPIType.PROJECT_ENERGY_DISCHARGED.value,
+        KPIType.BESS_PROJECT_ENERGY_CHARGED.value,
     ]
     kpi_data_query = crud_get_kpi_data(
         start=start,
@@ -2125,6 +2364,264 @@ async def get_kpi_data(
     )
 
     return sums, means, stats, degradation["degradation_rate_pct_per_year"]
+
+
+async def create_radar_chart(
+    *,
+    project_id: uuid.UUID,
+    start: datetime.date,
+    end: datetime.date,
+    tps_token: str,
+    included_projects: list[str],
+) -> tuple[bytes | None, pd.DataFrame | None, str | None]:
+    """Create a radar chart for a project.
+
+    Args:
+        project_id: The ID of the project.
+        start: The start date.
+        end: The end date.
+        tps_token: The TPS token.
+        included_projects: The list of project IDs to include in the radar chart.
+
+    Returns:
+        Tuple of (radar chart bytes, dataframe, project name).
+    """
+    if str(project_id) not in included_projects:
+        included_projects.append(str(project_id))
+    included_projects_uuid = [uuid.UUID(project_id) for project_id in included_projects]
+    kpi_type_ids = [
+        KPIType.BESS_STRING_ENERGY_DISCHARGED,
+        KPIType.BESS_PCS_AVAILABILITY,
+        KPIType.BESS_PCS_MODULE_AVAILABILITY,
+        KPIType.BESS_STRING_AVAILABILITY,
+        KPIType.BESS_BANK_AVAILABILITY,
+        KPIType.BESS_STRING_RESTING_SOC_PERCENT,
+        KPIType.PROJECT_ENERGY_DISCHARGED,
+    ]
+    df = await crud_get_kpi_data(
+        kpi_type_ids=[kpi_type.value for kpi_type in kpi_type_ids],
+        start=start,
+        end=end,
+        project_ids=included_projects_uuid,
+    ).get_async(output_type=core.db_query.OutputType.PANDAS)
+    projects = await crud_get_projects(project_ids=included_projects_uuid).get_async(
+        output_type=core.db_query.OutputType.PANDAS
+    )
+    project_lookup = projects.set_index("project_id")
+
+    # Net $ / MWh Delivered:
+    dollars_per_mwh = (
+        df[df["kpi_type_id"] == KPIType.PROJECT_ENERGY_DISCHARGED][
+            ["project_id", "project_data"]
+        ]
+        .groupby("project_id")
+        .sum()
+        .rename(columns={"project_data": "mwh"})
+    )
+    for i in projects.index:
+        project_model = models.Project(**projects.loc[i])
+        try:
+            tps_element_identifier = await get_tps_element_identifier(
+                project=project_model
+            )
+            rev_breakdown = (
+                await get_tps_data(
+                    project=project_model,
+                    parent_element_identifier=tps_element_identifier,
+                    start_dt=start,
+                    end_dt=end,
+                    token=tps_token,
+                )
+            )[0]
+            dollars_per_mwh.loc[project_model.project_id, "dollars"] = rev_breakdown[
+                "Net Profit"
+            ].sum()
+        except KeyError:
+            dollars_per_mwh.loc[project_model.project_id, "dollars"] = np.nan
+
+    dollars_per_mwh["dollars_per_mwh"] = (
+        dollars_per_mwh["dollars"] / dollars_per_mwh["mwh"]
+    )
+
+    # Energy Yield (MWh / MW)
+    energy_discharged = (
+        df[df["kpi_type_id"] == KPIType.PROJECT_ENERGY_DISCHARGED][
+            ["project_id", "project_data"]
+        ]
+        .groupby("project_id")
+        .sum()
+    )
+    poi_dict = project_lookup["poi"].to_dict()
+    energy_discharged = energy_discharged.rename(columns={"project_data": "mwh"})
+    energy_discharged["mw"] = energy_discharged.index.map(poi_dict)
+    energy_discharged["energy_yield"] = (
+        energy_discharged["mwh"] / energy_discharged["mw"]
+    )
+
+    # Availability %
+    availability = (
+        df[
+            df["kpi_type_id"].isin(
+                [
+                    KPIType.BESS_PCS_AVAILABILITY.value,
+                    KPIType.BESS_PCS_MODULE_AVAILABILITY.value,
+                    KPIType.BESS_STRING_AVAILABILITY.value,
+                    KPIType.BESS_BANK_AVAILABILITY.value,
+                ]
+            )
+        ][["project_id", "project_data"]]
+        .groupby("project_id")
+        .mean()
+        .rename(columns={"project_data": "availability"})
+    )
+
+    # Measure of Imbalance (100% = perfectly balanced)
+    imbalance = df[df["kpi_type_id"] == KPIType.BESS_STRING_RESTING_SOC_PERCENT].copy()
+    imbalance["device_values"] = imbalance["device_data_json"].map(
+        lambda x: [v for v in x["device_values"].values()]
+    )
+    imbalance["std"] = imbalance["device_values"].map(
+        lambda x: np.nanstd([v for v in x if v is not None])
+    )
+    upper_limit = 1
+    lower_limit = 0
+    d = upper_limit - lower_limit
+    imbalance["N"] = imbalance["device_values"].map(lambda x: len(x))
+    imbalance["k"] = imbalance["N"].map(lambda x: math.floor(x / 2))
+    imbalance["max_possible_std"] = (
+        d * np.sqrt(imbalance["k"] * (imbalance["N"] - imbalance["k"])) / imbalance["N"]
+    )
+    imbalance["relative_std"] = imbalance["std"] / imbalance["max_possible_std"]
+    imbalance["balance_of_strings"] = 1 - imbalance["relative_std"]
+    imbalance = (
+        imbalance[["project_id", "balance_of_strings"]].groupby("project_id").mean()
+    )
+
+    # RTE
+    rte_dict = await core_get_project_rte(
+        project_ids=projects["project_id"].tolist(),
+        start=start,
+        end=end,
+    )
+    if rte_dict:
+        rte_df = pd.DataFrame.from_dict(
+            rte_dict, orient="index", columns=["round_trip_efficiency"]
+        )
+        rte_df.index.name = "project"
+    else:
+        rte_df = pd.DataFrame()
+
+    # Combine KPIs
+    raw_metrics = pd.concat(
+        [
+            energy_discharged["energy_yield"],
+            availability["availability"],
+            imbalance,
+            dollars_per_mwh["dollars_per_mwh"],
+            rte_df,
+        ],
+        axis=1,
+    )
+
+    numeric_cols = raw_metrics.select_dtypes(include="number").columns.tolist()
+    if not numeric_cols:
+        raise ValueError("No numeric KPI columns available for radar chart.")
+
+    normalized = raw_metrics.copy()
+    mean_values = normalized.loc[:, numeric_cols].mean(numeric_only=True)
+    normalized.loc["mean", numeric_cols] = mean_values
+    normalized.loc[:, numeric_cols] = (
+        normalized.loc[:, numeric_cols].div(mean_values) * 100.0
+    )
+    normalized = normalized.drop(index="mean")
+
+    if project_id not in normalized.index:
+        raise KeyError(f"Project '{project_id}' is not present in aggregated KPI data.")
+
+    proj_values = normalized.loc[project_id, numeric_cols].astype(float).fillna(100.0)  # type: ignore
+    display_names = {
+        "energy_yield": "Energy Yield (MWh/MW)",
+        "availability": "Availability (%)",
+        "balance_of_strings": "Balance of Strings",
+        "dollars_per_mwh": "Net $ / MWh Delivered",
+        "round_trip_efficiency": "RTE (%)",
+    }
+
+    theta_labels = [
+        display_names.get(column, column.replace("_", " ").title())
+        for column in numeric_cols
+    ]
+    closed_values = proj_values.tolist() + [proj_values.iloc[0]]
+    closed_theta = theta_labels + [theta_labels[0]]
+    reference_values = [100.0] * len(closed_theta)
+
+    project_names = project_lookup["name_long"].to_dict()
+    project_name = project_names.get(project_id, str(project_id))
+
+    raw_metrics = raw_metrics.rename(columns=display_names)
+    raw_metrics.index = raw_metrics.index.map(
+        lambda idx: project_names.get(idx, str(idx))
+    )
+    portfolio_mean = raw_metrics.mean(numeric_only=True)
+    portfolio_mean.name = "Portfolio Mean"
+    raw_metrics = pd.concat([raw_metrics, portfolio_mean.to_frame().T], axis=0)
+
+    ordered_projects = [
+        project_name,
+        *(
+            idx
+            for idx in raw_metrics.index
+            if idx not in {project_name, "Portfolio Mean"}
+        ),
+        "Portfolio Mean",
+    ]
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    ordered_unique: list[str] = []
+    for idx in ordered_projects:
+        if idx in raw_metrics.index and idx not in seen:
+            ordered_unique.append(idx)
+            seen.add(idx)
+    raw_metrics = raw_metrics.loc[ordered_unique]
+
+    max_value = max(max(closed_values), 100.0)
+    radial_max = max(120.0, float(np.ceil(max_value / 10.0) * 10.0))
+    tickvals = list(np.arange(0, radial_max + 1, 20.0))
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatterpolar(
+            r=reference_values,
+            theta=closed_theta,
+            name="Portfolio Mean (100)",
+            line=dict(color="#1f77b4", dash="dash"),
+            fill="none",
+        )
+    )
+    fig.add_trace(
+        go.Scatterpolar(
+            r=closed_values,
+            theta=closed_theta,
+            name=str(project_name),
+            fill="toself",
+            fillcolor="rgba(255, 127, 14, 0.2)",
+            line=dict(width=2, color="#ff7f0e"),
+            marker=dict(size=6),
+        )
+    )
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(range=[0, radial_max], tickvals=tickvals),
+            angularaxis=dict(rotation=90, direction="clockwise"),
+        ),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5),
+        margin=dict(t=80, b=80, l=40, r=40),
+        width=700,
+        height=700,
+    )
+
+    image_bytes = bytes(fig.to_image(format="png", width=700, height=700, scale=2))
+    return image_bytes, raw_metrics, project_name
 
 
 async def build_event_data(
@@ -2381,7 +2878,6 @@ async def generate_executive_summary(
     rev_breakdown_df: pd.DataFrame,
     expected_values: dict[str, float] | None = None,
     total_availability: float,
-    capacity_factor: float,
     degradation_rate: float,
     deg_rate_expected: float,
     request: BESSMonthlyReportRequest,
@@ -2394,7 +2890,6 @@ async def generate_executive_summary(
         expected_values: Optional dictionary of expected values. If None,
             uses hardcoded defaults (should be replaced with real data).
         total_availability: Total availability.
-        capacity_factor: Capacity factor.
         degradation_rate: Degradation rate.
         deg_rate_expected: Expected degradation rate.
         request: Request data including month, strategies, and commentary.
@@ -2406,7 +2901,7 @@ async def generate_executive_summary(
     defaults = {
         "total_revenue": 0,
         "total_energy_delivered": 0,
-        "average_capacity_factor": 0.25,
+        "total_energy_charged": 0,
         "capacity_weighted_availability": 0.98,
         "degradation_rate": 0.0040,
         "forecast_accuracy": 0.80,
@@ -2425,8 +2920,8 @@ async def generate_executive_summary(
     executive_summary_df = pd.DataFrame(
         index=[
             "Total Revenue",
-            "Total Energy Delivered",
-            "Average Capacity Factor",
+            "Total Energy Discharged",
+            "Total Energy Charged",
             "Capacity-Weighted Availability",
             "Degradation Rate",
             "Forecast Accuracy",
@@ -2438,16 +2933,17 @@ async def generate_executive_summary(
         "Net Profit"
     ].sum()
     executive_summary_df.loc["Total Revenue", "Expected"] = defaults["total_revenue"]
-    executive_summary_df.loc["Total Energy Delivered", "This Month"] = other_tps_data[
-        "Total Delivered Energy"
+    executive_summary_df.loc["Total Energy Discharged", "This Month"] = other_tps_data[
+        "Total Energy Discharged"
     ]
-    executive_summary_df.loc["Total Energy Delivered", "Expected"] = defaults[
+    executive_summary_df.loc["Total Energy Discharged", "Expected"] = defaults[
         "total_energy_delivered"
     ]
-    # TODO: Replace hardcoded actual values with real calculations
-    executive_summary_df.loc["Average Capacity Factor", "This Month"] = capacity_factor
-    executive_summary_df.loc["Average Capacity Factor", "Expected"] = defaults[
-        "average_capacity_factor"
+    executive_summary_df.loc["Total Energy Charged", "This Month"] = other_tps_data[
+        "Total Energy Charged"
+    ]
+    executive_summary_df.loc["Total Energy Charged", "Expected"] = defaults[
+        "total_energy_charged"
     ]
     executive_summary_df.loc["Capacity-Weighted Availability", "This Month"] = (
         total_availability
@@ -2663,7 +3159,6 @@ async def upload_to_aws(
 async def generate_eec_bess_monthly_report(
     *,
     project: models.Project,
-    db: AsyncSession,
     project_db: AsyncSession,
     project_db_sync: Session,
     request: BESSMonthlyReportRequest,
@@ -2683,7 +3178,6 @@ async def generate_eec_bess_monthly_report(
     req_end = (request.month + datetime.timedelta(days=31)).replace(day=1)
     tps_element_identifier = await get_tps_element_identifier(
         project=project,
-        db=db,
     )
     temp_dir = tempfile.mkdtemp(prefix="bess_monthly_report_")
     filename = os.path.join(
@@ -2705,21 +3199,22 @@ async def generate_eec_bess_monthly_report(
 
     request.strategies = compare_to_perfect_foresight(strategies=request.strategies)
 
-    tps_data, tps_name, generation_hourly, consumption_hourly = await get_tps_data(
+    (
+        rev_breakdown_df,
+        generation_hourly,
+        consumption_hourly,
+    ) = await get_tps_data(
         project=project,
         parent_element_identifier=tps_element_identifier,
-        start=pd.Timestamp(req_start),
-        end=pd.Timestamp(req_end),
+        start_dt=req_start,
+        end_dt=req_end,
         token=tps_token,
     )
-    (
-        rev_breakdown_by_type_bytes,
-        rev_breakdown_df,
-        other_tps_data,
-    ) = await generate_tps_metrics(
-        tps_data=tps_data,
-        tps_name=tps_name,
+
+    rev_breakdown_by_type_bytes = await generate_revenue_breakdown_chart(
+        rev_breakdown_df=rev_breakdown_df,
     )
+
     monthly_tbx = await get_tbx(
         project=project,
         start=pd.Timestamp(req_start),
@@ -2727,6 +3222,25 @@ async def generate_eec_bess_monthly_report(
         token=tps_token,
         total_profit=rev_breakdown_df["Net Profit"].sum(),
     )
+    try:
+        (
+            radar_chart_bytes,
+            radar_table_df,
+            selected_project_name,
+        ) = await create_radar_chart(
+            project_id=project.project_id,
+            start=req_start,
+            end=req_end,
+            tps_token=tps_token,
+            included_projects=request.included_projects,
+        )
+    except Exception:  # pragma: no cover - logging fallback
+        logger.exception(
+            "Failed to generate radar chart for project_id=%s", project.project_id
+        )
+        radar_chart_bytes = None
+        radar_table_df = None
+        selected_project_name = None
     # Pass real PNG bytes for rev_breakdown_by_type / bess_pcs_availability
     # when available.
     kpi_sums, kpi_means, soc_stats, degradation_rate = await get_kpi_data(
@@ -2735,6 +3249,14 @@ async def generate_eec_bess_monthly_report(
         start=req_start,
         end=req_end,
     )
+    other_tps_data = {
+        "Total Energy Discharged": kpi_sums.loc[
+            KPIType.PROJECT_ENERGY_DISCHARGED.value, "project_data"
+        ],
+        "Total Energy Charged": kpi_sums.loc[
+            KPIType.BESS_PROJECT_ENERGY_CHARGED.value, "project_data"
+        ],
+    }
     (
         bess_pcs_availability_bytes,
         event_summary_metrics,
@@ -2759,17 +3281,20 @@ async def generate_eec_bess_monthly_report(
 
     if possible_capacity and possible_capacity != 0:
         total_availability = 1 - (lost_capacity_mwh / possible_capacity)
-        capacity_factor = (
-            tps_data[tps_name]["RT_Generation_Qty"].sum() / possible_capacity
-        )
     else:
         total_availability = None
-        capacity_factor = None
+    req_days = (req_end - req_start).total_seconds() / 60 / 60 / 24
+    expected_energy = project.capacity_bess_energy_bol_dc * req_days
+    expected_values = {
+        "total_energy_delivered": expected_energy,
+        "total_energy_charged": expected_energy,
+    }
+
     executive_summary_df = await generate_executive_summary(
         other_tps_data=other_tps_data,
         rev_breakdown_df=rev_breakdown_df,
+        expected_values=expected_values,
         total_availability=total_availability,
-        capacity_factor=capacity_factor,
         degradation_rate=degradation_rate,
         deg_rate_expected=deg_rate,
         request=request,
@@ -2803,6 +3328,9 @@ async def generate_eec_bess_monthly_report(
         event_table=event_table,
         monthly_tbx=monthly_tbx,
         current_soh=current_soh,
+        radar_table_df=radar_table_df,
+        radar_selected_project=selected_project_name,
+        radar_chart_bytes=radar_chart_bytes,
     )
     await upload_to_aws(local_filename=filename)
 

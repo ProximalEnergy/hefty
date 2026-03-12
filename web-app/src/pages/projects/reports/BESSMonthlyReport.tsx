@@ -1,4 +1,4 @@
-import { ReportTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, ReportTypeEnum } from '@/api/enumerations'
 import {
   useGetBucketListdir,
   useGetPresignedUrl,
@@ -8,14 +8,16 @@ import {
   type SmartBidderMetricPayload,
   useGenerateEECBESSMonthlyReport,
 } from '@/api/v1/operational/project/project_reports'
-import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetProjects, useSelectProject } from '@/api/v1/operational/projects'
 import { PageTitle } from '@/components/PageTitle'
 import { useProjectFilter } from '@/hooks/custom'
 import {
   ActionIcon,
   Button,
+  Checkbox,
   Group,
   NumberInput,
+  Paper,
   Select,
   Skeleton,
   Stack,
@@ -89,8 +91,18 @@ const BESSMonthlyReport = () => {
   const [operationalCommentary, setOperationalCommentary] = useState<string>('')
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [isFetching, setIsFetching] = useState(false)
+  const [includedProjects, setIncludedProjects] = useState<string[]>([])
 
   const project = useSelectProject(projectId!)
+  const projects = useGetProjects({
+    queryParams: { deep: false },
+    personalPortfolio: true,
+  })
+  const batteryProjects = projects.data?.filter(
+    (p) =>
+      p.project_type_id === ProjectTypeEnum.BESS ||
+      p.project_type_id === ProjectTypeEnum.PVS,
+  )
 
   const bucketList = useGetBucketListdir({
     queryParams: {
@@ -280,6 +292,7 @@ const BESSMonthlyReport = () => {
           ? operationalCommentary.trim()
           : null,
       smart_bidder_metrics: smartBidderMetrics,
+      included_projects: includedProjects,
     }
 
     await generateReport.mutateAsync({
@@ -373,7 +386,7 @@ const BESSMonthlyReport = () => {
       </Group>
 
       <Group align="flex-start">
-        <Table withTableBorder withColumnBorders flex={1}>
+        <Table withTableBorder withColumnBorders flex={2}>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>
@@ -459,7 +472,7 @@ const BESSMonthlyReport = () => {
             ))}
           </Table.Tbody>
         </Table>
-        <Stack flex={1} h="100%">
+        <Stack flex={2} h="100%">
           <Textarea
             label="Operational Commentary"
             placeholder="Enter operational commentary"
@@ -515,6 +528,53 @@ const BESSMonthlyReport = () => {
               ))}
             </Table.Tbody>
           </Table>
+        </Stack>
+        <Stack flex={1} h="100%">
+          <Paper withBorder p="md" h="100%" radius="md">
+            <Text size="sm" fw={1000}>
+              Included Projects
+            </Text>
+            {batteryProjects?.map((project) => {
+              const projectIdString = project.project_id.toString()
+
+              return (
+                <Group key={project.project_id}>
+                  <Checkbox
+                    checked={includedProjects.includes(projectIdString)}
+                    onChange={(event) => {
+                      const { checked } = event.currentTarget
+
+                      setIncludedProjects((prev) => {
+                        if (checked) {
+                          return prev.includes(projectIdString)
+                            ? prev
+                            : [...prev, projectIdString]
+                        }
+
+                        return prev.filter((id) => id !== projectIdString)
+                      })
+                    }}
+                  />
+                  <Text>{project.name_long}</Text>
+                </Group>
+              )
+            })}
+            <Group p="xs" grow>
+              <Button
+                size="compact-xs"
+                onClick={() =>
+                  setIncludedProjects(
+                    batteryProjects?.map((p) => p.project_id.toString()) || [],
+                  )
+                }
+              >
+                Include All
+              </Button>
+              <Button size="compact-xs" onClick={() => setIncludedProjects([])}>
+                Clear All
+              </Button>
+            </Group>
+          </Paper>
         </Stack>
       </Group>
       <Tooltip

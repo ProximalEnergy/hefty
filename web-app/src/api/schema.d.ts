@@ -3329,14 +3329,17 @@ export interface paths {
         };
         /**
          * Get Rte
-         * @description todo
+         * @description Get the RTE for a project using the core/domain logic.
+         *     Designed to be backward-compatible with the legacy endpoint.
          *
          *     Args:
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         level: Description for level.
+         *         project_id: The ID of the project.
+         *         start: The start date of the period.
+         *         end: The end date of the period (exclusive).
+         *         level: The level of the RTE.
+         *
+         *     Returns:
+         *         RTEResponse: The RTE for the project.
          */
         get: operations["get_rte_v1_operational_projects__project_id__kpi_data_rte_get"];
         put?: never;
@@ -7666,6 +7669,11 @@ export interface components {
             smart_bidder_metrics?: {
                 [key: string]: components["schemas"]["BESSMonthlySmartBidderMetric"];
             } | null;
+            /**
+             * Included Projects
+             * @default []
+             */
+            included_projects: string[];
         };
         /**
          * BESSMonthlyReportStrategy
@@ -16953,10 +16961,9 @@ export interface operations {
     get_rte_v1_operational_projects__project_id__kpi_data_rte_get: {
         parameters: {
             query: {
+                start: string;
                 end: string;
                 level?: string;
-                start: string;
-                project_ids?: string[] | null;
             };
             header?: {
                 authorization?: string;

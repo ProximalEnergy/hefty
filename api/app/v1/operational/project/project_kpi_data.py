@@ -2,15 +2,14 @@ import datetime
 import uuid
 from typing import Annotated, Any, Literal
 
-import numpy as np
 import pandas as pd
 from core.crud.operational.kpi_data import (
     get_project_kpi_data_agg,
     get_project_kpi_data_agg_freq,
 )
-from core.crud.operational.projects import get_projects
 from core.database import get_db
 from core.db_query import OutputType
+from core.domain.kpis.rte import get_project_rte as core_get_project_rte
 from core.enumerations import KPIType
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pandas.tseries.offsets import DateOffset
@@ -21,14 +20,12 @@ from sqlalchemy.orm import Session, aliased
 
 from app import interfaces
 from app._crud.operational.kpi_data import get_kpi_data as crud_get_kpi_data
-from app._crud.operational.kpi_data import get_kpi_data_async as crud_get_kpi_data_async
 from app._crud.operational.kpi_types import get_kpi_types as crud_get_kpi_types
 from app._crud.projects.kpi_data import (
     get_project_kpi_summary as crud_get_project_kpi_summary,
 )
 from app._dependencies.filtering import (
     filter_start_date_or_none_to_projects_data_access_start_date,
-    filter_start_date_to_projects_data_access_start_date,
 )
 from app.dependencies import (
     get_async_db,
@@ -553,93 +550,31 @@ class RTEResponse(BaseModel):
 
 @router.get("/rte")
 async def get_rte(
+    *,
     project_id: uuid.UUID,
-    db: Annotated[AsyncSession, Depends(get_async_db)],
-    start: Annotated[
-        datetime.date, Depends(filter_start_date_to_projects_data_access_start_date)
-    ],
+    start: datetime.date,
     end: datetime.date,
     level: str = "string",
 ) -> RTEResponse:
-    """todo
+    """
+    Get the RTE for a project using the core/domain logic.
+    Designed to be backward-compatible with the legacy endpoint.
 
     Args:
-        project_id: Description for project_id.
-        db: Description for db.
-        start: Description for start.
-        end: Description for end.
-        level: Description for level.
+        project_id: The ID of the project.
+        start: The start date of the period.
+        end: The end date of the period (exclusive).
+        level: The level of the RTE.
+
+    Returns:
+        RTEResponse: The RTE for the project.
     """
-    STRING_ENERGY_CHARGED_KPI_ID = 37
-    STRING_ENERGY_DISCHARGED_KPI_ID = 41
-    PROJECT_SOC_INCREASE_KPI_ID = 94
-    PROJECT_SOC_DECREASE_KPI_ID = 95
-
-    THRESHOLD = 0.2
-
     if level != "string":
         raise HTTPException(status_code=400, detail="Invalid level")
 
-    db_query = get_projects(project_ids=[project_id])
-    df_project = await db_query.get_async(output_type=OutputType.PANDAS)
-
-    if df_project.empty or pd.isna(df_project.iloc[0]["capacity_bess_energy_bol_dc"]):
-        return RTEResponse(rte=None)
-
-    capacity_bess_energy_bol_dc = df_project.iloc[0]["capacity_bess_energy_bol_dc"]
-
-    df = await crud_get_kpi_data_async(
-        db=db,
+    rte = await core_get_project_rte(
+        project_ids=[project_id],
         start=start,
         end=end,
-        project_ids=[project_id],
-        kpi_type_ids=[
-            STRING_ENERGY_CHARGED_KPI_ID,
-            STRING_ENERGY_DISCHARGED_KPI_ID,
-            PROJECT_SOC_INCREASE_KPI_ID,
-            PROJECT_SOC_DECREASE_KPI_ID,
-        ],
-        include_device_data=False,
     )
-    if df.empty:
-        return RTEResponse(rte=None)
-
-    pivot_df = df.pivot(
-        index="date",
-        columns="kpi_type_id",
-        values="project_data",
-    ).reindex(
-        columns=[
-            STRING_ENERGY_CHARGED_KPI_ID,
-            STRING_ENERGY_DISCHARGED_KPI_ID,
-            PROJECT_SOC_INCREASE_KPI_ID,
-            PROJECT_SOC_DECREASE_KPI_ID,
-        ]
-    )
-
-    energy_cols = [STRING_ENERGY_CHARGED_KPI_ID, STRING_ENERGY_DISCHARGED_KPI_ID]
-    pivot_df[energy_cols] = pivot_df[energy_cols] / capacity_bess_energy_bol_dc
-    pivot_df = pivot_df.dropna()
-
-    sum_df = pivot_df.sum(min_count=1)
-
-    charge_total = sum_df[STRING_ENERGY_CHARGED_KPI_ID]
-    if charge_total < THRESHOLD:
-        charge_total = np.nan
-    discharge_total = sum_df[STRING_ENERGY_DISCHARGED_KPI_ID]
-    if discharge_total < THRESHOLD:
-        discharge_total = np.nan
-    soc_increase_total = sum_df[PROJECT_SOC_INCREASE_KPI_ID]
-    if soc_increase_total < THRESHOLD:
-        soc_increase_total = np.nan
-    soc_decrease_total = sum_df[PROJECT_SOC_DECREASE_KPI_ID]
-    if soc_decrease_total < THRESHOLD:
-        soc_decrease_total = np.nan
-
-    charge_efficiency = soc_increase_total / charge_total
-    discharge_efficiency = discharge_total / soc_decrease_total
-    rte = charge_efficiency * discharge_efficiency
-    if rte > 1:
-        rte = np.nan
-
-    return RTEResponse(rte=rte)
+    return RTEResponse(rte=rte[project_id])

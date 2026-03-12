@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app import utils
 from app.dependencies import (
-    get_async_db,
     get_project_api,
     get_project_db,
     get_project_db_async,
@@ -37,7 +36,6 @@ from . import (
 async def post_eec_bess_monthly_report(
     *,
     project: Annotated[models.Project, Depends(get_project_api)],
-    db: Annotated[AsyncSession, Depends(get_async_db)],
     project_db: Annotated[AsyncSession, Depends(get_project_db_async)],
     project_db_sync: Annotated[Session, Depends(get_project_db)],
     request: BESSMonthlyReportRequest,
@@ -61,7 +59,6 @@ async def post_eec_bess_monthly_report(
 
     await generate_eec_bess_monthly_report(
         project=project,
-        db=db,
         project_db=project_db,
         project_db_sync=project_db_sync,
         request=request,
