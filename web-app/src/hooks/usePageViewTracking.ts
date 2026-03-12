@@ -23,7 +23,7 @@ let lastTrackedUserId: string | null = null
 export const usePageViewTracking = () => {
   const posthog = usePostHog()
   const location = useLocation()
-  const { isLoaded, isSignedIn } = useUser()
+  const { isLoaded, isSignedIn, user } = useUser()
   const {
     data: userSelf,
     isLoading,
@@ -53,6 +53,7 @@ export const usePageViewTracking = () => {
       user_id: userSelf.user_id,
       company_id: userSelf.company_id,
       user_type_id: userSelf.user_type_id,
+      name: user?.fullName,
     })
 
     posthog.group('company', String(userSelf.company_id), {
@@ -66,7 +67,7 @@ export const usePageViewTracking = () => {
     }
 
     identifiedUserId.current = userId
-  }, [isError, isLoading, posthog, userSelf])
+  }, [isError, isLoading, posthog, user?.fullName, userSelf])
 
   // Capture a pageview on route changes. We keep both a component-scoped and
   // module-scoped dedupe key to avoid duplicate events from rerenders/remounts.
