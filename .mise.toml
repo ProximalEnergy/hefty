@@ -802,9 +802,9 @@ dir = "web-app"
 run = "npm run typecheck"
 
 [tasks."web:prettier"]
-description = "Run Prettier check for web-app"
+description = "Run Prettier write mode for web-app"
 dir = "web-app"
-run = "npm run prettier:check"
+run = "npm run prettier"
 
 [tasks."web:knip"]
 description = "Run Knip for web-app"
