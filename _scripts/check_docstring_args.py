@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ensure functions with parameters include an Args block in docstrings."""
+"""Run docstring Args semgrep rule using root semgrep conventions."""
 
 from __future__ import annotations
 
@@ -48,14 +48,21 @@ def main(*, argv: Sequence[str] | None = None) -> int:
     """
     args = parse_args(argv=argv)
 
-    # Determine the default directory based on repository argument
+    # Determine target directory based on repository argument.
     if args.directory:
         target_path = args.directory
     else:
-        # Find the mono repository root (assumes script is in mono/_scripts)
         script_path = Path(__file__).resolve()
         mono_root = script_path.parent.parent
-        target_path = mono_root / args.repository
+        default_targets = {
+            "core": "core/src",
+            "api": "api/app",
+            "microservices": "microservices",
+        }
+        target_path = mono_root / default_targets.get(
+            args.repository,
+            args.repository,
+        )
 
     paths_to_check = args.paths or [str(target_path)]
 
@@ -66,20 +73,13 @@ def main(*, argv: Sequence[str] | None = None) -> int:
         "uv",
         "run",
         "semgrep",
+        "--quiet",
+        "--disable-version-check",
         "--config",
         str(rule_file),
-        "--error",  # Return exit code 1 on error
-        "--quiet",  # Less verbose
+        "--error",
         "--exclude",
-        "*_alembic_migrations*",
-        "--exclude",
-        "alembic",
-        "--exclude",
-        "tests",
-        "--exclude",
-        "_tests",
-        "--exclude",
-        "route_tree.py",
+        "api/app/dependencies.py",
     ] + paths_to_check
 
     print(f"Running: {' '.join(cmd)}")

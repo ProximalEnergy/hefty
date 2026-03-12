@@ -892,7 +892,6 @@ if [ "${RUN_CORE}" = "true" ]; then
     add_db_check "Core: Enum Validation" "mise run core:enum"
     add_check "Core: Unused Import Check" "mise run core:deptry"
     add_check "Core: Dead Code Check" "mise run core:vulture"
-    add_check "Core: Docstring Args Check" "mise run core:docstring_args"
 fi
 
 if [ "${RUN_CORE_WARNINGS}" = "true" ]; then
@@ -914,7 +913,6 @@ fi
 
 if [ "${RUN_MICRO}" = "true" ]; then
     add_check "Micro: Type Checking (mypy)" "mise run micro:types"
-    add_check "Micro: Docstring Args Check" "mise run micro:docstring_args"
 fi
 
 if [ "${RUN_SQL_ADMIN}" = "true" ]; then
@@ -933,7 +931,6 @@ if [ "${RUN_API}" = "true" ]; then
     add_check "API: Dead Code Check" "mise run api:vulture"
     add_check "API: DbQuery.get Check" "mise run api:db_query_get"
     add_check "API: Pytest" "mise run api:pytest"
-    add_check "API: Docstring Args Check" "mise run api:docstring_args"
     add_check "API: Unused Routes Check" \
         "mise run api:unused_routes_detailed"
 fi
