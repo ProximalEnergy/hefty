@@ -1,13 +1,14 @@
-# SQLAdmin Application for Proximal Energy
+# Starlette Admin Application for Proximal Energy
 
-A SQLAdmin application for FastAPI that provides a web-based admin interface for managing the Proximal Energy core database.
+A Starlette Admin application for FastAPI that provides a web-based admin
+interface for managing the Proximal Energy core database.
 
 ## Features
 
 - Web-based admin interface for core database tables
 - Integration with existing core database and models
 - Searchable and sortable columns
-- Most tables are read-only; KPI Instances allow full CRUD and Device Models allow create/edit
+- Mirrors the old SQLAdmin page set, grouping, and CRUD permissions
 - Supports targeting specific project schemas via `SQL_ADMIN_SCHEMA` or CLI argument
 
 ## Prerequisites
@@ -31,7 +32,8 @@ A SQLAdmin application for FastAPI that provides a web-based admin interface for
 
 ## Usage
 
-Once running, navigate to `http://localhost:8001/admin` to access the admin interface.
+Once running, navigate to `http://localhost:8001/admin` to access the admin
+interface.
 
 ### Schema Selection
 
@@ -49,29 +51,36 @@ uv run python main.py project_name_short
 
 The application provides admin interfaces for:
 
-### Admin Schema (Read-Only)
+### Admin Schema
 
 - **Companies** - Company management
 - **Users** - User management
 
 ### Operational Schema
 
-- **Projects** - Project management (Read-Only)
-- **Project Types** - Project type definitions (Read-Only)
-- **Sensor Types** - Sensor type definitions (Read-Only)
-- **Device Models** - Device model catalog (Create/Edit enabled, Delete disabled)
-- **KPI Instances** - KPI instance management (Create/Edit/Delete enabled)
+- **Projects** - Project management
+- **Project Types** - Project type definitions
+- **Sensor Types** - Sensor type definitions
+- **Device Models** - Device model catalog
+- **KPI Types** - KPI type management
+- **KPI Instances** - KPI instance management
 
-### Project Schema (Read-Only)
+### Project Schema
 
 - **Devices** - Device management
-- **Tags** - Data tag management
+- **Tags** - Tag management
 - **Events** - Event management
+
+> Note: Models with PostGIS/LTREE columns use explicit supported field lists so
+> the old SQLAdmin pages still render in Starlette Admin.
 
 ## Port Configuration
 
-The SQLAdmin application runs on port **8001** to avoid conflicts with the main API (port 8000).
+The Starlette Admin application runs on port **8001** to avoid conflicts with
+the main API (port 8000).
 
 ## Database Configuration
 
-The application uses the same PostgreSQL database as your main API. Make sure your `.env` file contains the correct `DATABASE_URL` pointing to your PostgreSQL instance.
+The application uses the same PostgreSQL database as your main API. Make sure
+your `.env` file contains the correct `DATABASE_URL` pointing to your
+PostgreSQL instance.

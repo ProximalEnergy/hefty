@@ -1,9 +1,16 @@
-"""SQLAdmin configuration and views for core models."""
+"""Starlette Admin configuration for core SQLAlchemy models."""
+
+from __future__ import annotations
+
+import copy
+import uuid
+from typing import Any, ClassVar
 
 from core.models import (
     Company,
     Device,
     DeviceModel,
+    DeviceType,
     Event,
     KPIInstance,
     KPIType,
@@ -13,329 +20,507 @@ from core.models import (
     Tag,
     User,
 )
-from sqladmin import Admin, ModelView
+from sqlalchemy import String, cast, or_
+from starlette.datastructures import FormData
+from starlette.requests import Request
+from starlette_admin import DropDown
+from starlette_admin._types import RequestAction
+from starlette_admin.contrib.sqla import Admin, ModelView
+from starlette_admin.fields import BaseField, IntegerField, StringField
 
 
-class CompanyAdmin(ModelView, model=Company):
-    """Admin view for Company model."""
+class UUIDField(StringField):
+    """Parse UUID form values eagerly instead of relying on DB coercion."""
 
-    name_plural = "Companies"
-    category = "Admin Schema"
+    async def parse_form_data(
+        self,
+        request: Request,
+        form_data: FormData,
+        action: RequestAction,
+    ) -> uuid.UUID | None:
+        value = await super().parse_form_data(request, form_data, action)
+        if value in (None, ""):
+            return None
+        try:
+            return uuid.UUID(str(value))
+        except (TypeError, ValueError):
+            return None
 
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
 
-    column_list = [
-        Company.company_id,
-        Company.name_short,
-        Company.name_long,
+class SQLAdminParityView(ModelView):
+    """Restore the old SQLAdmin view permissions and search behavior."""
+
+    allow_create: ClassVar[bool] = True
+    allow_edit: ClassVar[bool] = True
+    allow_delete: ClassVar[bool] = True
+    list_fields: ClassVar[tuple[str, ...]] = ()
+    list_query_joins: ClassVar[tuple[Any, ...]] = ()
+    search_columns: ClassVar[tuple[Any, ...]] = ()
+
+    def __init__(self, model: type[Any]):
+        self.fields = [
+            copy.deepcopy(field) if isinstance(field, BaseField) else field
+            for field in self.fields
+        ]
+        if self.list_fields:
+            field_names = [
+                field.name if isinstance(field, BaseField) else field
+                for field in self.fields
+            ]
+            self.exclude_fields_from_list = [
+                field_name
+                for field_name in field_names
+                if field_name not in self.list_fields
+            ]
+        super().__init__(model)
+
+    def can_create(self, request: Request) -> bool:
+        return self.allow_create
+
+    def can_edit(self, request: Request) -> bool:
+        return self.allow_edit
+
+    def can_delete(self, request: Request) -> bool:
+        return self.allow_delete
+
+    def get_list_query(self):
+        stmt = super().get_list_query()
+        for join_attr in self.list_query_joins:
+            stmt = stmt.outerjoin(join_attr)
+        return stmt
+
+    def get_count_query(self):
+        stmt = super().get_count_query()
+        for join_attr in self.list_query_joins:
+            stmt = stmt.outerjoin(join_attr)
+        return stmt
+
+    def get_search_query(self, request: Request, term: str):
+        if not self.search_columns:
+            return super().get_search_query(request, term)
+        clauses = [
+            cast(column, String).ilike(f"%{term}%") for column in self.search_columns
+        ]
+        return or_(*clauses)
+
+
+class CompanyView(SQLAdminParityView):
+    label = "Companies"
+    allow_create = False
+    allow_edit = False
+    allow_delete = False
+    fields = [
+        "company_id",
+        "name_short",
+        "name_long",
     ]
-    column_searchable_list = [Company.name_short, Company.name_long]
-    column_sortable_list = [Company.company_id, Company.name_short]
-    column_default_sort = [(Company.name_short, False)]
+    list_fields = (
+        "company_id",
+        "name_short",
+        "name_long",
+    )
+    searchable_fields = ["name_short", "name_long"]
+    sortable_fields = ["company_id", "name_short"]
+    fields_default_sort = ["name_short"]
+    search_columns = (Company.name_short, Company.name_long)
 
-    form_excluded_columns = [Company.company_id]  # Auto-generated UUID
 
-
-class UserAdmin(ModelView, model=User):
-    """Admin view for User model."""
-
-    category = "Admin Schema"
-
-    can_create = True
-    can_edit = True
-    can_delete = True
-
-    column_list = [
-        User.user_id,
-        User.name_long,
-        User.user_type_id,
-        User.company_id,
+class UserView(SQLAdminParityView):
+    label = "Users"
+    fields = [
+        "user_id",
+        "name_long",
+        IntegerField("user_type_id"),
+        UUIDField("company_id"),
+        "api_key",
     ]
-    column_searchable_list = [User.user_id, User.name_long]
-    column_sortable_list = [User.user_id, User.name_long]
-    column_default_sort = [(User.name_long, False)]
+    list_fields = (
+        "user_id",
+        "name_long",
+        "user_type_id",
+        "company_id",
+    )
+    exclude_fields_from_create = ["user_id"]
+    exclude_fields_from_edit = ["user_id"]
+    searchable_fields = ["user_id", "name_long"]
+    sortable_fields = ["user_id", "name_long"]
+    fields_default_sort = ["name_long"]
+    search_columns = (User.user_id, User.name_long)
 
-    form_excluded_columns = [User.user_id]  # Clerk user ID
 
-
-class ProjectAdmin(ModelView, model=Project):
-    """Admin view for Project model."""
-
-    category = "Operational Schema"
-
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
-
-    column_list = [
-        Project.project_id,
-        Project.name_short,
-        Project.name_long,
-        Project.project_type_id,
-        Project.project_status_type_id,
-        Project.cod,
+class ProjectView(SQLAdminParityView):
+    label = "Projects"
+    allow_create = False
+    allow_edit = False
+    allow_delete = False
+    fields = [
+        UUIDField("project_id"),
+        "project_id_int",
+        IntegerField("project_type_id"),
+        IntegerField("project_status_type_id"),
+        "name_short",
+        "name_long",
+        "data_table",
+        "data_interval",
+        "data_cagg_interval",
+        "data_receive_schedule",
+        "commencement_of_construction_date",
+        "financial_close_date",
+        "notice_to_proceed_date",
+        "mechanical_completion_date",
+        "substantial_completion_date",
+        "interconnection_approval_date",
+        "performance_test_completion_date",
+        "cod",
+        "placed_in_service_date",
+        "first_realtime_data_received_date",
+        "first_data_backfilled_date",
+        "address",
+        "image_url",
+        "elevation",
+        "time_zone",
+        "interconnecting_iso",
+        "interconnecting_utility",
+        "interconnecting_node_code",
+        "interconnecting_substation",
+        "interconnecting_voltage",
+        "poi",
+        "capacity_dc",
+        "capacity_ac",
+        "capacity_bess_power_ac",
+        "capacity_bess_energy_bol_dc",
+        "has_event_integration",
+        "has_expected_energy_integration",
+        "has_report_integration",
+        "has_quality_integration",
+        "has_block_layout",
+        "has_pv_pcs_layout",
+        "has_tracker_layout",
+        "has_pv_dc_combiner_layout",
+        "has_met_stations",
+        "has_pv_pcs_modules",
+        "has_pv_dc_combiners",
+        "has_trackers",
+        "has_bess_blocks",
+        "has_bess_pcss",
+        "has_bess_enclosures",
+        "has_bess_banks",
+        "has_bess_strings",
+        "has_backtracking",
+        "has_real_time_data",
+        "ppa",
+        "spec",
+        "gsheet_id",
+        "last_updated",
+        StringField("last_updated_by"),
+        UUIDField("owner"),
+        "database_provider",
     ]
-    column_searchable_list = [Project.name_short, Project.name_long]
-    column_sortable_list = [
-        Project.project_id,
-        Project.name_short,
-        Project.cod,
+    list_fields = (
+        "project_id",
+        "name_short",
+        "name_long",
+        "project_type_id",
+        "project_status_type_id",
+        "cod",
+    )
+    searchable_fields = ["name_short", "name_long"]
+    sortable_fields = ["project_id", "name_short", "cod"]
+    fields_default_sort = ["name_short"]
+    search_columns = (Project.name_short, Project.name_long)
+
+
+class ProjectTypeView(SQLAdminParityView):
+    label = "Project Types"
+    allow_create = False
+    allow_edit = False
+    allow_delete = False
+    fields = [
+        "project_type_id",
+        "name_short",
+        "name_long",
     ]
-    column_default_sort = [(Project.name_short, False)]
+    list_fields = (
+        "project_type_id",
+        "name_short",
+        "name_long",
+    )
+    searchable_fields = ["name_short", "name_long"]
+    sortable_fields = ["project_type_id", "name_short"]
+    fields_default_sort = ["name_short"]
+    search_columns = (ProjectType.name_short, ProjectType.name_long)
 
-    form_excluded_columns = [Project.project_id]  # Auto-generated UUID
 
-
-class ProjectTypeAdmin(ModelView, model=ProjectType):
-    """Admin view for ProjectType model."""
-
-    category = "Operational Schema"
-
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
-
-    column_list = [
-        ProjectType.project_type_id,
-        ProjectType.name_short,
-        ProjectType.name_long,
+class DeviceView(SQLAdminParityView):
+    label = "Devices"
+    allow_create = False
+    allow_delete = False
+    fields = [
+        "device_id",
+        "name_short",
+        "name_long",
+        StringField(
+            "device_type",
+            label="Device type",
+            exclude_from_create=True,
+            exclude_from_edit=True,
+        ),
+        "logical",
+        IntegerField("device_type_id"),
+        IntegerField("device_model_id"),
+        IntegerField("cec_pv_inverter_id"),
+        IntegerField("cec_pv_module_id"),
+        IntegerField("pv_module_id"),
+        IntegerField("parent_device_id"),
+        "capacity_dc",
+        "capacity_ac",
+        "capacity_energy_dc",
     ]
-    column_searchable_list = [ProjectType.name_short, ProjectType.name_long]
-    column_sortable_list = [ProjectType.project_type_id, ProjectType.name_short]
-    column_default_sort = [(ProjectType.name_short, False)]
+    list_fields = (
+        "device_id",
+        "name_short",
+        "name_long",
+        "device_type",
+        "logical",
+    )
+    exclude_fields_from_edit = ["device_id"]
+    searchable_fields = ["name_short", "name_long", "device_type"]
+    sortable_fields = ["device_id", "name_short", "device_type"]
+    sortable_field_mapping = {"device_type": Device.device_type_id}
+    fields_default_sort = ["device_id"]
+    list_query_joins = (Device.device_type,)
+    search_columns = (Device.name_short, Device.name_long, DeviceType.name_long)
 
 
-class DeviceAdmin(ModelView, model=Device):
-    """Admin view for Device model."""
-
-    category = "Project Schema"
-
-    can_create = False
-    can_edit = True
-    can_delete = False
-
-    column_list = [
-        Device.device_id,
-        Device.name_short,
-        Device.name_long,
-        Device.device_type,
-        Device.logical,
+class SensorTypeView(SQLAdminParityView):
+    label = "Sensor Types"
+    allow_create = False
+    allow_edit = False
+    allow_delete = False
+    fields = [
+        "sensor_type_id",
+        IntegerField("device_type_id"),
+        "name_short",
+        "name_long",
+        "name_metric",
+        "unit",
+        "description",
     ]
-    column_searchable_list = [
-        Device.name_short,
-        Device.name_long,
-        "device_type.name_long",
-    ]
-    column_sortable_list = [
-        Device.device_id,
-        Device.name_short,
-        Device.device_type_id,
-    ]
-    column_default_sort = [(Device.device_id, False)]
-
-    form_excluded_columns = [
-        Device.device_id,  # Auto-generated
-        Device.device_id_path,  # LTree - no sqladmin converter
-        Device.point,  # Geography - no sqladmin converter
-        Device.polygon,  # Geography - no sqladmin converter
-    ]
+    list_fields = (
+        "sensor_type_id",
+        "name_short",
+        "name_long",
+    )
+    searchable_fields = ["name_short", "name_long"]
+    sortable_fields = ["sensor_type_id", "name_short"]
+    fields_default_sort = ["name_short"]
+    search_columns = (SensorType.name_short, SensorType.name_long)
 
 
-class SensorTypeAdmin(ModelView, model=SensorType):
-    """Admin view for SensorType model."""
-
-    category = "Operational Schema"
-
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
-
-    column_list = [
-        SensorType.sensor_type_id,
-        SensorType.name_short,
-        SensorType.name_long,
-    ]
-    column_searchable_list = [SensorType.name_short, SensorType.name_long]
-    column_sortable_list = [
-        SensorType.sensor_type_id,
-        SensorType.name_short,
-    ]
-    column_default_sort = [(SensorType.name_short, False)]
-
-
-class DeviceModelAdmin(ModelView, model=DeviceModel):
-    """Admin view for DeviceModel model."""
-
-    # Permissions
-    can_delete = False
-
-    # Metadata
+class DeviceModelView(SQLAdminParityView):
     name = "Device Model"
-    name_plural = "Device Models"
-    category = "Operational Schema"
-
-    # List page
-    column_list = "__all__"
-    column_searchable_list = [DeviceModel.brand, DeviceModel.model]
-    column_sortable_list = [c for c in DeviceModel.__table__.columns]
-    column_default_sort = [(DeviceModel.device_model_id, False)]
-
-    # Form options
-    form_excluded_columns = [DeviceModel.device_model_id]  # Auto-generated
-
-
-class TagAdmin(ModelView, model=Tag):
-    """Admin view for Tag model."""
-
-    category = "Project Schema"
-
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
-
-    column_list = [
-        Tag.tag_id,
-        Tag.name_short,
-        Tag.name_long,
-        Tag.name_scada,
-        Tag.device_id,
-        Tag.sensor_type,
-        Tag.in_tsdb,
+    label = "Device Models"
+    allow_delete = False
+    fields = [
+        "device_model_id",
+        IntegerField("device_type_id"),
+        "brand",
+        "model",
     ]
-    column_searchable_list = [Tag.name_short, Tag.name_long, Tag.name_scada]
-    column_sortable_list = [
-        Tag.tag_id,
-        Tag.name_short,
-        Tag.device_id,
-        Tag.sensor_type_id,
+    exclude_fields_from_create = ["device_model_id"]
+    exclude_fields_from_edit = ["device_model_id"]
+    searchable_fields = ["brand", "model"]
+    sortable_fields = ["device_model_id", "device_type_id", "brand", "model"]
+    fields_default_sort = ["device_model_id"]
+    search_columns = (DeviceModel.brand, DeviceModel.model)
+
+
+class TagView(SQLAdminParityView):
+    label = "Tags"
+    allow_create = False
+    allow_edit = False
+    allow_delete = False
+    fields = [
+        "tag_id",
+        "name_short",
+        "name_long",
+        "name_scada",
+        IntegerField("device_id"),
+        StringField(
+            "sensor_type",
+            label="Sensor type",
+            exclude_from_create=True,
+            exclude_from_edit=True,
+        ),
+        "in_tsdb",
+        IntegerField("sensor_type_id"),
+        IntegerField("pg_data_type_id"),
+        IntegerField("data_type_id"),
+        "scada_id",
+        "scada_type",
+        "unit_scada",
+        "unit_offset",
+        "unit_scale",
+        IntegerField("status_lookup_id"),
     ]
-    column_default_sort = [(Tag.tag_id, False)]
+    list_fields = (
+        "tag_id",
+        "name_short",
+        "name_long",
+        "name_scada",
+        "device_id",
+        "sensor_type",
+        "in_tsdb",
+    )
+    searchable_fields = ["name_short", "name_long", "name_scada"]
+    sortable_fields = ["tag_id", "name_short", "device_id", "sensor_type"]
+    sortable_field_mapping = {"sensor_type": Tag.sensor_type_id}
+    fields_default_sort = ["tag_id"]
+    search_columns = (Tag.name_short, Tag.name_long, Tag.name_scada)
 
-    form_excluded_columns = [Tag.tag_id]  # Auto-generated
 
-
-class KPITypeAdmin(ModelView, model=KPIType):
-    """Admin view for KPIType model."""
-
+class KPITypeView(SQLAdminParityView):
     name = "KPI Type"
-    name_plural = "KPI Types"
-
-    category = "Operational Schema"
-
-    can_create = True
-    can_edit = True
-    can_delete = True
-
-    column_list = [
-        KPIType.kpi_type_id,
-        KPIType.name_long,
-        KPIType.device_type_id,
-        KPIType.unit,
-        KPIType.aggregation_method,
-        KPIType.critical_low,
-        KPIType.warning_low,
-        KPIType.warning_high,
-        KPIType.critical_high,
+    label = "KPI Types"
+    fields = [
+        "kpi_type_id",
+        IntegerField("device_type_id"),
+        IntegerField("project_type_id"),
+        "name_short",
+        "name_long",
+        "name_metric",
+        "description",
+        "unit",
+        "aggregation_method",
+        "doc_url",
+        "critical_low",
+        "warning_low",
+        "warning_high",
+        "critical_high",
     ]
-    column_searchable_list = [
-        KPIType.name_short,
-        KPIType.name_long,
-        KPIType.name_metric,
+    list_fields = (
+        "kpi_type_id",
+        "name_long",
+        "device_type_id",
+        "unit",
+        "aggregation_method",
+        "critical_low",
+        "warning_low",
+        "warning_high",
+        "critical_high",
+    )
+    searchable_fields = ["name_short", "name_long", "name_metric"]
+    sortable_fields = [
+        "kpi_type_id",
+        "name_short",
+        "name_long",
+        "device_type_id",
     ]
-    column_sortable_list = [
-        KPIType.kpi_type_id,
-        KPIType.name_short,
-        KPIType.name_long,
-        KPIType.device_type_id,
-    ]
-    column_default_sort = [(KPIType.name_short, False)]
-
-    form_excluded_columns = []  # Allow editing all fields including thresholds
+    fields_default_sort = ["name_short"]
+    search_columns = (KPIType.name_short, KPIType.name_long, KPIType.name_metric)
 
 
-class KPIInstanceAdmin(ModelView, model=KPIInstance):
-    """Admin view for KPIInstance model."""
-
+class KPIInstanceView(SQLAdminParityView):
     name = "KPI Instance"
-    name_plural = "KPI Instances"
-
-    category = "Operational Schema"
-
-    can_create = True
-    can_edit = True
-    can_delete = True
-
-    column_list = [
-        KPIInstance.project,
-        KPIInstance.kpi_type,
-        KPIInstance.is_visible,
+    label = "KPI Instances"
+    form_include_pk = True
+    fields = [
+        StringField(
+            "project",
+            label="Project",
+            exclude_from_create=True,
+            exclude_from_edit=True,
+        ),
+        StringField(
+            "kpi_type",
+            label="KPI type",
+            exclude_from_create=True,
+            exclude_from_edit=True,
+        ),
+        "is_visible",
+        UUIDField("project_id"),
+        IntegerField("kpi_type_id"),
     ]
-    column_searchable_list = [KPIInstance.project_id, KPIInstance.kpi_type_id]
-    column_sortable_list = [KPIInstance.project_id, KPIInstance.kpi_type_id]
-    column_default_sort = [(KPIInstance.project_id, False)]
+    list_fields = (
+        "project",
+        "kpi_type",
+        "is_visible",
+    )
+    exclude_fields_from_edit = ["project_id", "kpi_type_id"]
+    searchable_fields = ["project", "kpi_type"]
+    sortable_fields = ["project", "kpi_type"]
+    sortable_field_mapping = {
+        "project": KPIInstance.project_id,
+        "kpi_type": KPIInstance.kpi_type_id,
+    }
+    fields_default_sort = ["project"]
+    search_columns = (KPIInstance.project_id, KPIInstance.kpi_type_id)
 
-    form_excluded_columns = [KPIInstance.project_id, KPIInstance.kpi_type_id]
 
-
-class EventAdmin(ModelView, model=Event):
-    """Admin view for Event model."""
-
-    category = "Project Schema"
-
-    # READ-ONLY MODE - No modifications allowed
-    can_create = False
-    can_edit = False
-    can_delete = False
-
-    column_list = [
-        Event.event_id,
-        Event.device_id,
-        Event.failure_mode_id,
-        Event.root_cause_id,
-        Event.time_start,
-        Event.time_end,
-        Event.time_detected,
-        Event.loss_total_financial,
+class EventView(SQLAdminParityView):
+    label = "Events"
+    allow_create = False
+    allow_edit = False
+    allow_delete = False
+    fields = [
+        "event_id",
+        IntegerField("device_id"),
+        IntegerField("failure_mode_id"),
+        IntegerField("root_cause_id"),
+        "time_start",
+        "time_end",
+        "time_detected",
+        "time_last_analyzed",
+        "loss_total_financial",
+        "loss_daily_financial",
+        "version",
     ]
-    column_sortable_list = [
-        Event.event_id,
-        Event.device_id,
-        Event.time_start,
-        Event.time_end,
-    ]
-    column_default_sort = [(Event.time_start, True)]
+    list_fields = (
+        "event_id",
+        "device_id",
+        "failure_mode_id",
+        "root_cause_id",
+        "time_start",
+        "time_end",
+        "time_detected",
+        "loss_total_financial",
+    )
+    searchable_fields = []
+    sortable_fields = ["event_id", "device_id", "time_start", "time_end"]
+    fields_default_sort = [("time_start", True)]
 
-    form_excluded_columns = [Event.event_id]  # Auto-generated
 
-
-def setup_admin_views(admin: Admin) -> None:
-    """Set up all admin views for core models.
-
-    Args:
-        admin: SQLAdmin instance used to register model views.
-    """
-    # Core business models
-    admin.add_view(CompanyAdmin)
-    admin.add_view(UserAdmin)
-    admin.add_view(ProjectAdmin)
-    admin.add_view(ProjectTypeAdmin)
-
-    # Device and sensor models
-    admin.add_view(DeviceAdmin)
-    admin.add_view(DeviceModelAdmin)
-    admin.add_view(SensorTypeAdmin)
-    admin.add_view(TagAdmin)
-    admin.add_view(KPITypeAdmin)
-    admin.add_view(KPIInstanceAdmin)
-
-    # Data models (with performance considerations)
-
-    # Event models
-    admin.add_view(EventAdmin)
+def setup_admin_views(*, admin: Admin) -> None:
+    """Register Starlette Admin views with the old SQLAdmin surface area."""
+    admin.add_view(
+        DropDown(
+            "Admin Schema",
+            views=[
+                CompanyView(Company),
+                UserView(User),
+            ],
+        )
+    )
+    admin.add_view(
+        DropDown(
+            "Operational Schema",
+            views=[
+                ProjectView(Project),
+                ProjectTypeView(ProjectType),
+                DeviceModelView(DeviceModel),
+                SensorTypeView(SensorType),
+                KPITypeView(KPIType),
+                KPIInstanceView(KPIInstance),
+            ],
+        )
+    )
+    admin.add_view(
+        DropDown(
+            "Project Schema",
+            views=[
+                DeviceView(Device),
+                TagView(Tag),
+                EventView(Event),
+            ],
+        )
+    )
