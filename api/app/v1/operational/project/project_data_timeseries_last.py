@@ -1,8 +1,8 @@
 from typing import Annotated
 
+import pandas as pd
 from core.db_query import OutputType
 from fastapi import APIRouter, Depends, Query
-import pandas as pd
 from sqlalchemy.orm import Session
 
 import core

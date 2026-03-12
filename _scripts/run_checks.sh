@@ -11,11 +11,15 @@ OFFLINE=false
 QUIET=true
 ALL_WARNINGS=false
 ASYNC_OFFLINE=false
+CODEX_CONTEXT_MODE="none"
+CODEX_PROMPT="Fix the selected failed checks in this repo. Apply the "\
+"smallest safe changes in the working tree so the checks pass. Do not "\
+"only describe the fix; apply it. If blocked, explain briefly."
 if [ "${AGENT_ENVIRONMENT}" = "async-offline" ]; then
     ASYNC_OFFLINE=true
 fi
-for arg in "$@"; do
-    case $arg in
+while [ "$#" -gt 0 ]; do
+    case "$1" in
         --static)
             SKIP_TESTS=true
             shift
@@ -40,8 +44,46 @@ for arg in "$@"; do
             QUIET=false
             shift
             ;;
+        --codex-context)
+            if [ "$#" -gt 1 ] && [ "${2#-}" = "$2" ]; then
+                CODEX_CONTEXT_MODE="$2"
+                shift 2
+            else
+                CODEX_CONTEXT_MODE="all"
+                shift
+            fi
+            ;;
+        --codex-context=*)
+            CODEX_CONTEXT_MODE="${1#*=}"
+            shift
+            ;;
+        --codex-prompt)
+            if [ "$#" -lt 2 ]; then
+                echo "Missing value for --codex-prompt" >&2
+                exit 2
+            fi
+            CODEX_PROMPT="$2"
+            shift 2
+            ;;
+        --codex-prompt=*)
+            CODEX_PROMPT="${1#*=}"
+            shift
+            ;;
+        *)
+            shift
+            ;;
     esac
 done
+
+case "${CODEX_CONTEXT_MODE}" in
+    none|errors|warnings|all)
+        ;;
+    *)
+        echo "Invalid --codex-context value: ${CODEX_CONTEXT_MODE}" >&2
+        echo "Use one of: none, errors, warnings, all" >&2
+        exit 2
+        ;;
+esac
 
 # Colors for output
 RED='\033[0;31m'
@@ -163,38 +205,163 @@ cleanup_run_all_checks() {
     fi
 }
 
-prompt_show_failure_logs() {
+codex_cli_available() {
+    command -v codex >/dev/null 2>&1
+}
+
+prompt_failure_action() {
     local show_logs_input
+    local allow_errors="${1:-false}"
+    local allow_warnings="${2:-false}"
+    local allow_codex="${3:-false}"
+    local prompt_body
+    local prompt_text
+    local valid_input_text
+    local -a prompt_options=()
+    local -a valid_inputs=()
+
+    if [ "$allow_errors" = "true" ]; then
+        prompt_options+=("(e)rrors")
+        valid_inputs+=("e")
+    fi
+    if [ "$allow_warnings" = "true" ]; then
+        prompt_options+=("(w)arnings")
+        valid_inputs+=("w")
+    fi
+    if [ "$allow_errors" = "true" ] && [ "$allow_warnings" = "true" ]; then
+        prompt_options+=("(a)ll")
+        valid_inputs+=("a")
+    fi
+
+    prompt_options+=("(n)one")
+    valid_inputs+=("n")
+
+    if [ "$allow_codex" = "true" ]; then
+        prompt_options+=("(c)odex")
+        valid_inputs+=("c")
+    fi
+
+    printf -v prompt_body '%s/' "${prompt_options[@]}"
+    prompt_body="${prompt_body%/}"
+    prompt_text="Failure action? [${prompt_body}]: "
+
+    printf -v valid_input_text '%s, ' "${valid_inputs[@]}"
+    valid_input_text="${valid_input_text%, }"
 
     while true; do
-        read -r -p \
-            'Show failure logs? [(e)rrors/(w)arnings/(a)ll/(n)one]: ' \
-            show_logs_input
+        read -r -p "$prompt_text" show_logs_input
         show_logs_input=$(
             printf '%s' "$show_logs_input" | tr '[:upper:]' '[:lower:]'
         )
         case "$show_logs_input" in
             e|errors)
-                echo "errors"
-                return 0
+                if [ "$allow_errors" = "true" ]; then
+                    echo "errors"
+                    return 0
+                fi
                 ;;
             w|warnings)
-                echo "warnings"
-                return 0
+                if [ "$allow_warnings" = "true" ]; then
+                    echo "warnings"
+                    return 0
+                fi
                 ;;
             a|all)
-                echo "all"
-                return 0
+                if [ "$allow_errors" = "true" ] \
+                    && [ "$allow_warnings" = "true" ]; then
+                    echo "all"
+                    return 0
+                fi
                 ;;
             n|none)
                 echo "none"
                 return 0
                 ;;
+            c|codex)
+                if [ "$allow_codex" = "true" ]; then
+                    echo "codex"
+                    return 0
+                fi
+                ;;
             *)
-                echo "Please enter e, w, a, or n."
+                echo "Please enter one of: ${valid_input_text}."
                 ;;
         esac
     done
+}
+
+send_failures_to_codex() {
+    local codex_mode="$1"
+    local codex_context_file
+    local log_file
+    local i
+    local -a selected_codex_indices=()
+
+    if ! codex_cli_available; then
+        echo ""
+        echo "codex CLI not found; skipping Codex context handoff."
+        return 1
+    fi
+
+    case "${codex_mode}" in
+        errors)
+            selected_codex_indices=("${failed_error_indices[@]}")
+            ;;
+        warnings)
+            selected_codex_indices=("${failed_warning_indices[@]}")
+            ;;
+        all)
+            selected_codex_indices=(
+                "${failed_error_indices[@]}"
+                "${failed_warning_indices[@]}"
+            )
+            ;;
+        *)
+            echo ""
+            echo "Invalid Codex context mode: ${codex_mode}"
+            return 1
+            ;;
+    esac
+
+    if [ "${#selected_codex_indices[@]}" -eq 0 ]; then
+        echo ""
+        echo "No matching failures for Codex handoff."
+        return 1
+    fi
+
+    codex_context_file="${RUN_CHECKS_LOG_DIR}/codex_context.txt"
+    {
+        echo "run_checks codex context"
+        echo "mode: ${codex_mode}"
+        echo ""
+        for i in "${selected_codex_indices[@]}"; do
+            echo "---"
+            echo "check: ${CHECKS_NAME[$i]}"
+            echo "command: ${CHECKS_CMD[$i]}"
+            echo "severity: ${CHECKS_SEVERITY[$i]}"
+            echo ""
+            log_file="${RUN_CHECKS_LOG_DIR}/check_${i}.log"
+            if [ -f "$log_file" ]; then
+                cat "$log_file"
+            else
+                echo "No log file found for this check."
+            fi
+            echo ""
+        done
+    } >"${codex_context_file}"
+
+    echo ""
+    echo "Running Codex fix attempt..."
+    {
+        echo "${CODEX_PROMPT}"
+        echo ""
+        echo "Use this check output context:"
+        echo ""
+        cat "${codex_context_file}"
+    } | codex exec \
+        --full-auto \
+        -C "$(pwd)" \
+        - || true
 }
 
 count_errors_in_log() {
@@ -323,7 +490,7 @@ get_finished_check_ui_label() {
     local elapsed_label
 
     if [ -n "$skip_reason" ]; then
-        echo "$(get_check_ui_label "$check_index")"
+        echo "$(get_compact_check_ui_label "$check_index")"
         return
     fi
 
@@ -332,7 +499,7 @@ get_finished_check_ui_label() {
     fi
 
     elapsed_label=$(format_elapsed_seconds "$elapsed_seconds")
-    echo "$(get_check_ui_label "$check_index") (${error_count}${count_suffix}, \
+    echo "$(get_compact_check_ui_label "$check_index") (${error_count}${count_suffix}, \
 ${elapsed_label})"
 }
 
@@ -384,7 +551,7 @@ init_check_ui_lines_up() {
             render_check_ui_line \
                 "${YELLOW}" \
                 "●" \
-                "$(get_check_ui_label "$i")"
+                "$(get_compact_check_ui_label "$i")"
             line_no=$((line_no + 1))
             CHECKS_UI_LINES_UP[$i]="$line_no"
         done
@@ -401,7 +568,7 @@ init_check_ui_lines_up() {
             render_check_ui_line \
                 "${YELLOW}" \
                 "●" \
-                "$(get_check_ui_label "$i")"
+                "$(get_compact_check_ui_label "$i")"
             line_no=$((line_no + 1))
             CHECKS_UI_LINES_UP[$i]="$line_no"
         done
@@ -465,11 +632,21 @@ get_check_ui_label() {
     local skip_reason="${CHECKS_SKIP_REASON[$check_index]:-}"
     local check_label="${CHECKS_CMD[$check_index]}"
 
+    check_label="${check_label#mise run }"
+
     if [ -n "$skip_reason" ]; then
         check_label="${check_label} (skipped: ${skip_reason})"
     fi
 
     echo "$check_label"
+}
+
+get_compact_check_ui_label() {
+    local check_index="$1"
+    local check_label
+
+    check_label=$(get_check_ui_label "$check_index")
+    echo "${check_label//hardcoded/static}"
 }
 
 # Function to run all registered checks
@@ -492,6 +669,10 @@ run_all_checks() {
     local error_count
     local show_logs_mode="none"
     local check_started_at
+    local allow_prompt_errors="false"
+    local allow_prompt_warnings="false"
+    local allow_prompt_codex="false"
+    local interactive_codex_mode=""
 
     if [ "$total_checks" -eq 0 ]; then
         echo -e "${GREEN}No checks were scheduled.${NC}"
@@ -653,8 +834,37 @@ run_all_checks() {
     fi
 
     if [ -t 0 ]; then
+        if [ "${#failed_error_indices[@]}" -gt 0 ]; then
+            allow_prompt_errors="true"
+        fi
+        if [ "${#failed_warning_indices[@]}" -gt 0 ]; then
+            allow_prompt_warnings="true"
+        fi
+        if [ "${CODEX_CONTEXT_MODE}" = "none" ] && codex_cli_available; then
+            if [ "$allow_prompt_errors" = "true" ] \
+                && [ "$allow_prompt_warnings" = "true" ]; then
+                allow_prompt_codex="true"
+                interactive_codex_mode="all"
+            elif [ "$allow_prompt_errors" = "true" ]; then
+                allow_prompt_codex="true"
+                interactive_codex_mode="errors"
+            elif [ "$allow_prompt_warnings" = "true" ]; then
+                allow_prompt_codex="true"
+                interactive_codex_mode="warnings"
+            fi
+        fi
+
         echo ""
-        show_logs_mode=$(prompt_show_failure_logs)
+        show_logs_mode=$(
+            prompt_failure_action \
+                "$allow_prompt_errors" \
+                "$allow_prompt_warnings" \
+                "$allow_prompt_codex"
+        )
+        if [ "$show_logs_mode" = "codex" ] \
+            && [ -n "$interactive_codex_mode" ]; then
+            send_failures_to_codex "$interactive_codex_mode"
+        fi
         if [ "$show_logs_mode" = "errors" ] \
             || [ "$show_logs_mode" = "all" ]; then
             echo ""
@@ -694,6 +904,10 @@ run_all_checks() {
     elif [ "${QUIET}" = "true" ]; then
         echo ""
         echo "Rerun with --verbose to see full output from failing checks."
+    fi
+
+    if [ "${CODEX_CONTEXT_MODE}" != "none" ]; then
+        send_failures_to_codex "${CODEX_CONTEXT_MODE}"
     fi
 
     if [ "${#failed_error_indices[@]}" -gt 0 ]; then
