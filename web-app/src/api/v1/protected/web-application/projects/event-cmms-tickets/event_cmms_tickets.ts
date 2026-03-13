@@ -1,5 +1,5 @@
+import { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
-import { Event } from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
 import { useAuth } from '@clerk/clerk-react'
 import {
@@ -9,38 +9,23 @@ import {
 } from '@tanstack/react-query'
 import axios from 'axios'
 
-export interface EventCMMSTicket {
-  event_cmms_ticket_id: number
-  event_id: number
-  cmms_ticket_id: number
-  created_by_user_id: string
-  created_at: string
-}
-
-interface EventWithScore extends Event {
-  score: number
-}
+const URL_GET_EVENT_CMMS_TICKETS =
+  '/v1/protected/web-application/projects/{project_id}/event-cmms-tickets'
+type GetEventCMMSTickets = Endpoint<typeof URL_GET_EVENT_CMMS_TICKETS, 'get'>
+export type EventCMMSTicket =
+  GetEventCMMSTickets['Response'] extends (infer Item)[] ? Item : never
 
 export const useGetEventCMMSTickets = ({
   pathParams,
   queryParams,
   queryOptions = {},
 }: {
-  pathParams: {
-    projectId: string
-  }
-  queryParams: {
-    event_cmms_ticket_ids?: number[]
-    event_ids?: number[]
-    cmms_ticket_ids?: number[]
-    created_by_user_ids?: string[]
-    created_at_gte?: string
-    created_at_lte?: string
-  }
+  pathParams: { project_id: GetEventCMMSTickets['PathParams']['project_id'] }
+  queryParams?: GetEventCMMSTickets['QueryParams']
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/event-cmms-tickets`,
+    url: URL_GET_EVENT_CMMS_TICKETS,
   }
 
   const defaultQueryOptions = {
@@ -48,7 +33,7 @@ export const useGetEventCMMSTickets = ({
     staleTime: 1000 * 60,
   }
 
-  return useCustomQuery<EventCMMSTicket[]>({
+  return useCustomQuery<GetEventCMMSTickets['Response']>({
     axiosConfig,
     queryName: 'getEventCMMSTickets',
     pathParams,
@@ -57,24 +42,23 @@ export const useGetEventCMMSTickets = ({
   })
 }
 
+const URL_GET_SUGGESTED_EVENTS =
+  '/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/suggested-events'
+type GetSuggestedEvents = Endpoint<typeof URL_GET_SUGGESTED_EVENTS, 'get'>
+
 export const useGetSuggestedEvents = ({
   pathParams,
   queryParams,
   queryOptions = {},
 }: {
   pathParams: {
-    projectId: string
+    project_id: GetSuggestedEvents['PathParams']['project_id']
   }
-  queryParams: {
-    cmms_ticket_id: string
-    cmms_integration_id: number
-    cmms_device_id?: number
-    source_created_at?: string
-  }
+  queryParams?: GetSuggestedEvents['QueryParams']
   queryOptions?: Partial<UseQueryOptions>
 }) => {
   const axiosConfig = {
-    url: `/v1/protected/web-application/projects/${pathParams.projectId}/event-cmms-tickets/suggested-events`,
+    url: URL_GET_SUGGESTED_EVENTS,
   }
 
   const defaultQueryOptions = {
@@ -82,11 +66,44 @@ export const useGetSuggestedEvents = ({
     staleTime: 1000 * 60,
   }
 
-  return useCustomQuery<EventWithScore[]>({
+  return useCustomQuery<GetSuggestedEvents['Response']>({
     axiosConfig,
     queryName: 'getSuggestedEvents',
     pathParams,
     queryParams: queryParams,
+    queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+const URL_GET_SUGGESTED_TICKETS =
+  '/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/suggested-tickets'
+type GetSuggestedTickets = Endpoint<typeof URL_GET_SUGGESTED_TICKETS, 'get'>
+
+export const useGetSuggestedTickets = ({
+  pathParams,
+  queryParams,
+  queryOptions = {},
+}: {
+  pathParams: {
+    project_id: GetSuggestedTickets['PathParams']['project_id']
+  }
+  queryParams?: GetSuggestedTickets['QueryParams']
+  queryOptions?: Partial<UseQueryOptions>
+}) => {
+  const axiosConfig = {
+    url: URL_GET_SUGGESTED_TICKETS,
+  }
+
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60,
+  }
+
+  return useCustomQuery<GetSuggestedTickets['Response']>({
+    axiosConfig,
+    queryName: 'getSuggestedTickets',
+    pathParams,
+    queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
   })
 }

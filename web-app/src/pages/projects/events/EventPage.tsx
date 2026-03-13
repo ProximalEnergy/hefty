@@ -53,6 +53,7 @@ import { Link, useLocation, useParams } from 'react-router'
 import { AdaptiveGisMap } from '../gis/adaptive-gis'
 import { PCSGISMap } from '../gis/pcs-gis'
 import DeviceEventsTimeline from './DeviceEventsTimeline'
+import EventCMMSLinks from './components/EventCMMSLinks'
 
 // Types
 interface EventTraceTag {
@@ -197,6 +198,7 @@ const EventHeader = ({
           : 'ONGOING'}
       </Group>
     </Badge>
+    <EventCMMSLinks event={event} />
     <Text>
       {'Failure Mode: '}
       {event?.failure_mode?.name_long}

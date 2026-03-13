@@ -43,7 +43,7 @@ const TicketFirstModal = ({
     return { cmms_ticket_ids: [numericTicketId] }
   }, [numericTicketId])
   const eventCMMSTickets = useGetEventCMMSTickets({
-    pathParams: { projectId: projectId },
+    pathParams: { project_id: projectId },
     queryParams: eventTicketsQueryParams,
     queryOptions: {
       enabled: opened && canMutate,
@@ -57,11 +57,11 @@ const TicketFirstModal = ({
     return map
   }, [eventCMMSTickets.data])
   const suggestedEvents = useGetSuggestedEvents({
-    pathParams: { projectId: projectId },
+    pathParams: { project_id: projectId },
     queryParams: {
-      cmms_ticket_id: String(ticket.cmms_ticket_id),
+      cmms_ticket_id: ticket.cmms_ticket_id,
       cmms_integration_id: ticket.cmms_integration_id,
-      cmms_device_id: Number(ticket.cmms_device_id) || undefined,
+      cmms_device_id: ticket.cmms_device_id || undefined,
       source_created_at: ticket.source_created_at || undefined,
     },
   })
@@ -191,8 +191,8 @@ const TicketFirstModal = ({
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} fullScreen={true}>
-      <Stack w="100%" h="100%">
+    <Modal opened={opened} onClose={onClose} size="100%" fullScreen={false}>
+      <Stack w="100%" h="80vh">
         <Group w="100%" h="100%" align="flex-start" style={{ flex: 1 }}>
           <Stack w="100%" h="100%" style={{ flex: 1 }}>
             <Title order={2}>Selected Ticket</Title>

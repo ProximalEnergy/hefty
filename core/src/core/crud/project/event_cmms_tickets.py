@@ -326,3 +326,223 @@ async def get_suggested_events_with_score_from_ticket(
 
     # Convert score to int defensively
     return [(row[0], int(row[1] or 0)) for row in rows]
+
+
+async def get_suggested_tickets_with_score_from_event(
+    *,
+    event: models.Event,
+    cmms_integration_id: int,
+    project: models.Project,
+    project_db: AsyncSession,
+    limit: int = 10,
+) -> list[tuple[models.CMMSTicket, int]]:
+    """
+    Get suggested CMMS tickets from an event, with a computed score.
+
+    Args:
+        event: The source event to match tickets against.
+        cmms_integration_id: The CMMS integration identifier.
+        project: The project associated with the event.
+        project_db: Async database session scoped to the project schema.
+        limit: Maximum number of results to return.
+
+    Returns:
+        list[tuple[models.CMMSTicket, int]] where each tuple is (ticket, score)
+    """
+    ct = models.CMMSTicket
+    cd = models.CMMSDevice
+    d = models.Device
+
+    event_device_id = event.device_id
+    if event_device_id is None:
+        return []
+
+    device_ids: set[int] = {event_device_id}
+    parent_child_ids: set[int] = set()
+    other_ids: set[int] = set()
+
+    desc_cols = ["device_id", "device_id_path"]
+    descendent_devices_df = pd.DataFrame(columns=desc_cols)
+    ancestor_devices_df = pd.DataFrame(columns=desc_cols)
+    event_device_path: str | None = None
+
+    desc_query = crud_devices.get_project_devices(
+        device_id_descendent_of=event_device_id
+    )
+    desc_df = await desc_query.get_async(
+        output_type=OutputType.PANDAS, schema=project.name_short
+    )
+    if desc_df is not None:
+        descendent_devices_df = desc_df
+
+    if not descendent_devices_df.empty:
+        path_vals = descendent_devices_df.loc[
+            descendent_devices_df["device_id"] == event_device_id,
+            "device_id_path",
+        ].values
+        if len(path_vals) > 0:
+            event_device_path = str(path_vals[0])
+
+    if event_device_path is not None:
+        ancestor_query = crud_devices.get_project_devices(
+            device_id_path_ancestor_of=event_device_path
+        )
+        ancestor_df = await ancestor_query.get_async(
+            output_type=OutputType.PANDAS, schema=project.name_short
+        )
+        if ancestor_df is not None:
+            ancestor_devices_df = ancestor_df
+
+    if not descendent_devices_df.empty:
+        device_ids.update(descendent_devices_df["device_id"].astype(int).tolist())
+    if not ancestor_devices_df.empty:
+        device_ids.update(ancestor_devices_df["device_id"].astype(int).tolist())
+
+    if event_device_path is not None:
+        parent_device_id: int | None = None
+        parts = event_device_path.split(".")
+        if len(parts) >= 2:
+            try:
+                parent_device_id = int(parts[-2])
+            except ValueError:
+                parent_device_id = None
+
+        ticket_depth = len(parts)
+        prefix = f"{event_device_path}."
+        child_device_ids: set[int] = set()
+        if (
+            not descendent_devices_df.empty
+            and "device_id_path" in descendent_devices_df
+        ):
+            path_series = descendent_devices_df["device_id_path"].astype(str)
+            child_mask = path_series.str.startswith(prefix)
+            child_df = descendent_devices_df.loc[child_mask].copy()
+            if not child_df.empty:
+                depth_series = (
+                    child_df["device_id_path"].astype(str).str.count(r"\.") + 1
+                )
+                child_df = child_df.loc[depth_series == (ticket_depth + 1)]
+                if not child_df.empty:
+                    child_device_ids = set(child_df["device_id"].astype(int).tolist())
+
+        parent_child_ids = set(child_device_ids)
+        if parent_device_id is not None:
+            parent_child_ids.add(parent_device_id)
+            device_ids.add(parent_device_id)
+
+    if device_ids:
+        other_ids = set(device_ids)
+        other_ids.discard(event_device_id)
+        other_ids -= parent_child_ids
+
+    total_score_expr: ClauseElement = sa.literal(0)
+    where_conditions: list = [ct.cmms_integration_id == cmms_integration_id]
+
+    event_start_dt = cast(datetime.datetime, event.time_start)
+    event_start_ts = pd.Timestamp(event_start_dt)
+    if event_start_ts.tzinfo is None:
+        event_start_local = event_start_ts.tz_localize(project.time_zone)
+    else:
+        event_start_local = event_start_ts.tz_convert(project.time_zone)
+
+    if event.time_end is not None:
+        event_end_dt = cast(datetime.datetime, event.time_end)
+        event_end_ts = pd.Timestamp(event_end_dt)
+        if event_end_ts.tzinfo is None:
+            event_end_local = event_end_ts.tz_localize(project.time_zone)
+        else:
+            event_end_local = event_end_ts.tz_convert(project.time_zone)
+    else:
+        event_end_local = pd.Timestamp.now(tz=project.time_zone)
+
+    buffer = pd.Timedelta(days=3)
+    event_window_start = event_start_local - buffer
+    event_window_end = event_end_local + buffer
+
+    event_start_literal = sa.literal(event_start_local.to_pydatetime())
+    event_end_literal = sa.literal(event_end_local.to_pydatetime())
+    window_start_dt = event_window_start.to_pydatetime()
+    window_end_dt = event_window_end.to_pydatetime()
+
+    ticket_ts = ct.source_created_at
+    within_event_window = sa.and_(
+        ticket_ts >= event_start_literal,
+        ticket_ts <= event_end_literal,
+    )
+
+    seconds_24h = 24 * 60 * 60
+    near_start = (
+        sa.func.abs(sa.extract("epoch", ticket_ts - event_start_literal)) <= seconds_24h
+    )
+    near_end = (
+        sa.func.abs(sa.extract("epoch", event_end_literal - ticket_ts)) <= seconds_24h
+    )
+
+    time_score = sa.case(
+        (within_event_window, sa.literal(50)),
+        (sa.or_(near_start, near_end), sa.literal(20)),
+        else_=sa.literal(0),
+    )
+    total_score_expr = total_score_expr + time_score
+
+    where_conditions.extend(
+        [
+            ct.source_created_at <= window_end_dt,
+            ct.source_created_at >= window_start_dt,
+        ]
+    )
+
+    parent_child_list = sorted(parent_child_ids)
+    other_list = sorted(other_ids)
+    device_score = sa.case(
+        (cd.device_id == sa.literal(event_device_id), sa.literal(100)),
+        (
+            cd.device_id.in_(parent_child_list)
+            if parent_child_list
+            else sa.literal(False),
+            sa.literal(50),
+        ),
+        (
+            cd.device_id.in_(other_list) if other_list else sa.literal(False),
+            sa.literal(10),
+        ),
+        else_=sa.literal(0),
+    )
+    total_score_expr = total_score_expr + device_score
+
+    if device_ids:
+        device_list = sorted(device_ids)
+        where_conditions.append(cd.device_id.in_(device_list))
+
+    tracker_penalty_types = [
+        DeviceType.TRACKER_ROW.value,
+        DeviceType.TRACKER_ZONE.value,
+    ]
+    tracker_penalty = sa.case(
+        (d.device_type_id.in_(tracker_penalty_types), sa.literal(-20)),
+        else_=sa.literal(0),
+    )
+    total_score_expr = total_score_expr + tracker_penalty
+
+    total_score = total_score_expr.label("score")
+
+    stmt = (
+        sa.select(ct, total_score)
+        .join(
+            cd,
+            sa.and_(
+                cd.cmms_device_id == ct.cmms_device_id,
+                cd.cmms_integration_id == ct.cmms_integration_id,
+            ),
+        )
+        .join(d, d.device_id == cd.device_id)
+    )
+    if where_conditions:
+        stmt = stmt.where(*where_conditions)
+    stmt = stmt.order_by(total_score.desc(), ct.source_created_at.desc()).limit(limit)
+
+    res = await project_db.execute(stmt)
+    rows = res.all()  # list[Row] where each row = (CMMSTicket, score)
+
+    # Convert score to int defensively
+    return [(row[0], int(row[1] or 0)) for row in rows]

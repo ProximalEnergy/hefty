@@ -87,11 +87,23 @@ const CMMSTicketCard = ({
   project = undefined,
   withBorder = true,
   eventCMMSTickets = undefined,
+  isLinked = true,
+  onLink,
+  onUnlink,
+  isLinking = false,
+  isUnlinking = false,
+  canLink = false,
 }: {
   ticket: CMMSTicket
   project?: Project
   withBorder?: boolean
   eventCMMSTickets?: EventCMMSTicket[]
+  isLinked?: boolean
+  onLink?: () => void
+  onUnlink?: () => void
+  isLinking?: boolean
+  isUnlinking?: boolean
+  canLink?: boolean
 }) => {
   const { projectId } = useParams()
   const [opened, setOpened] = useState(false)
@@ -99,6 +111,34 @@ const CMMSTicketCard = ({
   const providerLabel = provider ? provider.toUpperCase() : 'UNKNOWN'
   const providerText = provider ?? 'Unknown'
   const providerColor = getProviderColor(provider)
+  const hasExternalLinkHandlers =
+    typeof onLink === 'function' || typeof onUnlink === 'function'
+  const actionLabel = isLinked ? 'Unlink Ticket' : 'Link Ticket'
+  const actionLoading = hasExternalLinkHandlers
+    ? isLinked
+      ? isUnlinking
+      : isLinking
+    : false
+  const actionDisabled = hasExternalLinkHandlers
+    ? isLinked
+      ? !onUnlink || isUnlinking
+      : !onLink || isLinking
+    : false
+  const canShowActionButton = canLink
+  const handleActionClick = () => {
+    if (!canShowActionButton) {
+      return
+    }
+    if (!hasExternalLinkHandlers) {
+      setOpened(true)
+      return
+    }
+    if (isLinked) {
+      onUnlink?.()
+      return
+    }
+    onLink?.()
+  }
   return (
     <>
       <Card
@@ -194,7 +234,7 @@ const CMMSTicketCard = ({
                 </Group>
               )}
             </Stack>
-            <Stack h="100%" align="flex-end">
+            <Stack h="100%" align="flex-end" gap="xs">
               <Badge
                 color={getStatusColor(ticket.status || '')}
                 size="lg"
@@ -202,6 +242,19 @@ const CMMSTicketCard = ({
               >
                 {ticket.status}
               </Badge>
+              {canShowActionButton && (
+                <Button
+                  size="xs"
+                  variant="light"
+                  color="gray"
+                  onClick={handleActionClick}
+                  loading={actionLoading}
+                  disabled={actionDisabled}
+                  type="button"
+                >
+                  {actionLabel}
+                </Button>
+              )}
               {eventCMMSTickets &&
                 !!project &&
                 project.has_event_integration && (

@@ -1579,6 +1579,8 @@ class CMMSPermission(BaseModel):
     company_id: uuid.UUID
     can_view: bool
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PVRackings(BaseModel):
     """Pvrackings model."""

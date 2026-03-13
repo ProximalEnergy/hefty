@@ -36,7 +36,7 @@ const Page = () => {
     return tickets.data?.data.map((ticket) => ticket.cmms_ticket_id) ?? []
   }, [tickets.data])
   const eventCMMSTickets = useGetEventCMMSTickets({
-    pathParams: { projectId: projectId || '' },
+    pathParams: { project_id: projectId || '' },
     queryParams: { cmms_ticket_ids: cmmsTicketIds },
     queryOptions: { enabled: !!projectId && cmmsTicketIds.length > 0 },
   })

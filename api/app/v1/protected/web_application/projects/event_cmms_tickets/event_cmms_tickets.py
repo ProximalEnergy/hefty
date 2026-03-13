@@ -3,8 +3,9 @@ from typing import Annotated, Any, cast
 
 import core.models as models
 from core.crud.project import event_cmms_tickets as crud_event_cmms_tickets
+from core.crud.project import events as crud_events
 from core.db_query import OutputType
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,16 +29,20 @@ class _EventWithScore(interfaces.Event):
     score: int
 
 
+class _TicketWithScore(interfaces.CMMSTicket):
+    score: int
+
+
 @router.get("", response_model=list[interfaces.EventCMMSTicket])
 async def get_event_cmms_tickets(
     *,
     project: models.Project = Depends(get_project_api),
-    event_cmms_ticket_ids: list[int] | None = None,
-    event_ids: list[int] | None = None,
-    cmms_ticket_ids: list[int] | None = None,
-    created_by_user_ids: list[str] | None = None,
-    created_at_gte: datetime.datetime | None = None,
-    created_at_lte: datetime.datetime | None = None,
+    event_cmms_ticket_ids: Annotated[list[int] | None, Query()] = None,
+    event_ids: Annotated[list[int] | None, Query()] = None,
+    cmms_ticket_ids: Annotated[list[int] | None, Query()] = None,
+    created_by_user_ids: Annotated[list[str] | None, Query()] = None,
+    created_at_gte: Annotated[datetime.datetime | None, Query()] = None,
+    created_at_lte: Annotated[datetime.datetime | None, Query()] = None,
 ):
     """Get event-CMMS ticket relationships by various filters.
 
@@ -138,4 +143,41 @@ async def get_suggested_events_from_ticket(
             score=score,
         )
         for (ev, score) in rows
+    ]
+
+
+@router.get("/suggested-tickets", response_model=list[_TicketWithScore])
+async def get_suggested_tickets_from_event(
+    *,
+    project: models.Project = Depends(get_project_api),
+    project_db: AsyncSession = Depends(get_project_db_async),
+    event_id: int = Query(...),
+    cmms_integration_id: int = Query(...),
+):
+    """Get suggested CMMS tickets for an event."""
+    events = await crud_events.get_events_by_id(
+        event_ids=[event_id],
+    ).get_async(
+        schema=project.name_short,
+        output_type=OutputType.SQLALCHEMY,
+    )
+    if not events:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    rows = await crud_event_cmms_tickets.get_suggested_tickets_with_score_from_event(
+        event=events[0],
+        cmms_integration_id=cmms_integration_id,
+        project=project,
+        project_db=project_db,
+        limit=10,
+    )
+    if not rows:
+        return []
+
+    return [
+        _TicketWithScore(
+            **interfaces.CMMSTicket.model_validate(ticket.__dict__).__dict__,
+            score=score,
+        )
+        for (ticket, score) in rows
     ]

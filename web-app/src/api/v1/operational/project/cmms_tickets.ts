@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { UseQueryOptions } from '@tanstack/react-query'
 
 const URL_GET_CMMS_TICKETS =
-  '/v1/operational/projects/{project_id}/cmms-tickets/v2' as const
+  '/v1/operational/projects/{project_id}/cmms-tickets/v2'
 type GetCMMSTickets = Endpoint<typeof URL_GET_CMMS_TICKETS, 'get'>
 type ExtractTicket<T> = T extends { data: Array<infer Item> } ? Item : never
 

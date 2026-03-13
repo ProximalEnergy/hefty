@@ -2162,6 +2162,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/cmms-permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Cmms Permissions
+         * @description Get CMMS permissions for the project for the current user's company.
+         *
+         *     Args:
+         *         project_id: Operational project identifier used to scope CMMS permissions.
+         *         user: Authenticated user context containing company membership.
+         */
+        get: operations["get_cmms_permissions_v1_operational_projects__project_id__cmms_permissions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/cmms-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Cmms Tickets
+         * @deprecated
+         * @description Pulls the first 50 tickets for each CMMS provider.
+         *
+         *         Parameters:
+         *         -----------
+         *         project_id : UUID
+         *             The project identifier
+         *         db : AsyncSession
+         *             Database session
+         *         project_db : AsyncSession
+         *             Project database session
+         *         user : interfaces.UserData
+         *             To get the company id
+         *         device_ids : Optional[List[int]]
+         *             The list of device ids to filter the tickets by
+         *         device_type_ids : Optional[List[int]]
+         *             The list of device type ids to filter the tickets by
+         *
+         *     Args:
+         *         project_id: Operational project identifier for scoping CMMS data.
+         *         db: Primary application database session used for permissions lookup.
+         *         project_db: Project-level async session for ticket and device queries.
+         *         user: Authenticated user context containing company membership.
+         *         start: Optional ISO date string to filter tickets created after this time.
+         *         end: Optional ISO date string limiting tickets created before this time.
+         *         device_ids: Optional list of project device IDs to filter matching tickets.
+         *         device_type_ids: Optional list of device type IDs to filter matching tickets.
+         */
+        get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/cmms-tickets/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Cmms Tickets V2
+         * @description Get the CMMS tickets for a project.
+         *
+         *     Args:
+         *         project: The project to get the CMMS tickets for.
+         *         user: The user to get the CMMS tickets for.
+         *         cmms_ticket_ids: The list of CMMS ticket ids to filter by.
+         *         cmms_integration_ids: The list of CMMS integration ids to filter by.
+         *         max_results: The maximum number of tickets to return.
+         *         device_ids: The list of device ids to filter by.
+         *         device_type_ids: The list of device type ids to filter by.
+         *         include_json_raw: Whether to include the raw JSON data in the response.
+         */
+        get: operations["get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/contracts": {
         parameters: {
             query?: never;
@@ -2516,6 +2616,512 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Documents
+         * @description todo
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         *         user: Description for user.
+         */
+        get: operations["get_project_documents_v1_operational_projects__project_id__documents_get"];
+        put?: never;
+        /**
+         * Upload Project Document
+         * @description todo
+         *
+         *     Args:
+         *         db: Description for db.
+         *         user: Description for user.
+         *         project: Description for project.
+         *         file: Description for file.
+         */
+        post: operations["upload_project_document_v1_operational_projects__project_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/documents/search-contract/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Contract Content
+         * @description Search for relevant contract content using OpenAI's Responses API.
+         *
+         *     Uses vector stores for efficient retrieval of relevant contract information.
+         *     Returns the most relevant chunks of text based on the query.
+         *
+         *     Args:
+         *         document_id: Description for document_id.
+         *         project_id: Description for project_id.
+         *         query: Description for query.
+         *         vector_store_id: Description for vector_store_id.
+         *         db: Description for db.
+         */
+        post: operations["search_contract_content_v1_operational_projects__project_id__documents_search_contract__document_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Project Document
+         * @description todo
+         *
+         *     Args:
+         *         document_id: Description for document_id.
+         *         db: Description for db.
+         */
+        delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/drone-inspections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Db Inspections
+         * @description Get a list of historical inspections from the database for a given project.
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         */
+        get: operations["get_db_inspections_v1_operational_projects__project_id__drone_inspections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/drone-inspections/zeitview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Zeitview Inspections
+         * @description Get a list of historical inspections from Zeitview for a given project.
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         project_db: Description for project_db.
+         */
+        get: operations["get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/drone-inspections/{inspection_uuid}/anomalies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Db Anomalies
+         * @description Get a list of anomalies from the database for a given inspection.
+         *
+         *     Args:
+         *         inspection_uuid: Description for inspection_uuid.
+         *         db: Description for db.
+         */
+        get: operations["get_db_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/drone-inspections/{inspection_uuid}/anomalies/zeitview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Zeitview Anomalies
+         * @description Fetch anomalies from Zeitview and store them in the database
+         *     incrementally. Can resume from where it left off if interrupted.
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         inspection_uuid: Description for inspection_uuid.
+         *         project_db: Description for project_db.
+         */
+        post: operations["sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-message-reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Message Reactions
+         * @description Get all reactions for a specific event message or all reactions for an event.
+         *
+         *         Path Parameters:
+         *             project_id: The project ID (required to determine schema)
+         *         Query Parameters:
+         *             event_message_id: The ID of the message to get reactions for (optional)
+         *             event_id: The ID of the event to get all reactions for (optional)
+         *
+         *         Returns:
+         *             List of reactions for the message(s)
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         event_message_id: Description for event_message_id.
+         *         event_id: Description for event_id.
+         */
+        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
+        put?: never;
+        /**
+         * Toggle Event Message Reaction
+         * @description Toggle a reaction on a message (add if not exists, remove if exists).
+         *
+         *     Request Body:
+         *         event_message_id: The ID of the message
+         *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
+         *             'question_mark', etc.)
+         *
+         *     Returns:
+         *         The created reaction (if added) or the deleted reaction info (if removed)
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         reaction: Description for reaction.
+         *         user_data: Description for user_data.
+         */
+        post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Messages
+         * @description Get all non-deleted messages for a specific event.
+         *
+         *         Query Parameters:
+         *             event_id: The ID of the event to get messages for
+         *
+         *         Returns:
+         *             List of event messages, ordered by created_at (ascending)
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         event_id: Description for event_id.
+         */
+        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
+        put?: never;
+        /**
+         * Create Event Message
+         * @description Create a new event message.
+         *
+         *         - Extracts @mentions from the message body
+         *         - Stores mentions as comma-separated usernames
+         *         - Sends email notifications in the background to:
+         *             - First message: all company users
+         *             - Subsequent messages: users who have posted (excluding muted users)
+         *
+         *         Request Body:
+         *             event_id: The ID of the event
+         *             body: The message content (may contain @mentions)
+         *
+         *         Returns:
+         *             The created event message
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         project_id: Description for project_id.
+         *         message: Description for message.
+         *         background_tasks: Description for background_tasks.
+         *         user_data: Description for user_data.
+         *         api_prod: Description for api_prod.
+         */
+        post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_message_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Event Message
+         * @description Update an existing event message.
+         *
+         *         Validates:
+         *         - User owns the message
+         *         - Message exists and is not deleted
+         *
+         *         Request Body:
+         *             body: The updated message content (may contain @mentions)
+         *
+         *         Returns:
+         *             The updated event message
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_message_id: Description for event_message_id.
+         *         message: Description for message.
+         *         user_data: Description for user_data.
+         */
+        put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
+        post?: never;
+        /**
+         * Delete Event Message
+         * @description Delete an existing event message (soft delete).
+         *
+         *         Validates:
+         *         - User owns the message
+         *         - Message exists
+         *
+         *         Returns:
+         *             The deleted event message (with deleted_at set)
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         event_message_id: Description for event_message_id.
+         *         user_data: Description for user_data.
+         */
+        delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Toggle Event Chat Mute
+         * @description Toggle mute status for an event chat.
+         *
+         *         Returns:
+         *             {"muted": bool} - True if muted, False if unmuted
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         event_id: Description for event_id.
+         *         user_data: Description for user_data.
+         */
+        post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Chat Mute Status
+         * @description Get mute status for an event chat.
+         *
+         *         Returns:
+         *             {"muted": bool} - True if muted, False if not muted
+         *
+         *     Args:
+         *         project_db: Project-scoped DB session (event_chat_mutes in project schema).
+         *         event_id: Description for event_id.
+         *         user_data: Description for user_data.
+         */
+        get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{event_message_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Event Message Image
+         * @description Upload an image for an event message.
+         *
+         *         Validates:
+         *         - User has access to the event (via message ownership or event access)
+         *         - File is a valid image type (jpeg, png, gif, webp)
+         *         - File size is within limit (10MB)
+         *
+         *         Returns:
+         *             {
+         *                 "event_message_image_id": UUID,
+         *                 "s3_key": str,
+         *                 "filename": str,
+         *                 "content_type": str,
+         *                 "file_size": int,
+         *                 "presigned_url": str
+         *             }
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_id: Description for event_id.
+         *         event_message_id: Description for event_message_id.
+         *         file: Description for file.
+         */
+        post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{image_id}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Message Image Url
+         * @description Get a presigned URL for an event message image.
+         *
+         *         Validates user has access to the event before generating URL.
+         *
+         *         Returns:
+         *             {"presigned_url": str, "s3_key": str}
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_id: Description for event_id.
+         *         image_id: Description for image_id.
+         */
+        get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/event-messages/{event_id}/messages/{event_message_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event Message Images
+         * @description Get all images for an event message with presigned URLs.
+         *
+         *         Returns:
+         *             List of image objects with presigned URLs
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_schema: Description for project_schema.
+         *         event_id: Description for event_id.
+         *         event_message_id: Description for event_message_id.
+         */
+        get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/events": {
         parameters: {
             query?: never;
@@ -2854,325 +3460,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/event-message-reactions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Message Reactions
-         * @description Get all reactions for a specific event message or all reactions for an event.
-         *
-         *         Path Parameters:
-         *             project_id: The project ID (required to determine schema)
-         *         Query Parameters:
-         *             event_message_id: The ID of the message to get reactions for (optional)
-         *             event_id: The ID of the event to get all reactions for (optional)
-         *
-         *         Returns:
-         *             List of reactions for the message(s)
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         event_message_id: Description for event_message_id.
-         *         event_id: Description for event_id.
-         */
-        get: operations["get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get"];
-        put?: never;
-        /**
-         * Toggle Event Message Reaction
-         * @description Toggle a reaction on a message (add if not exists, remove if exists).
-         *
-         *     Request Body:
-         *         event_message_id: The ID of the message
-         *         reaction_type: The type of reaction ('thumbs_up', 'eyes',
-         *             'question_mark', etc.)
-         *
-         *     Returns:
-         *         The created reaction (if added) or the deleted reaction info (if removed)
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project_schema: Description for project_schema.
-         *         reaction: Description for reaction.
-         *         user_data: Description for user_data.
-         */
-        post: operations["toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Messages
-         * @description Get all non-deleted messages for a specific event.
-         *
-         *         Query Parameters:
-         *             event_id: The ID of the event to get messages for
-         *
-         *         Returns:
-         *             List of event messages, ordered by created_at (ascending)
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         event_id: Description for event_id.
-         */
-        get: operations["get_event_messages_v1_operational_projects__project_id__event_messages_get"];
-        put?: never;
-        /**
-         * Create Event Message
-         * @description Create a new event message.
-         *
-         *         - Extracts @mentions from the message body
-         *         - Stores mentions as comma-separated usernames
-         *         - Sends email notifications in the background to:
-         *             - First message: all company users
-         *             - Subsequent messages: users who have posted (excluding muted users)
-         *
-         *         Request Body:
-         *             event_id: The ID of the event
-         *             body: The message content (may contain @mentions)
-         *
-         *         Returns:
-         *             The created event message
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project_schema: Description for project_schema.
-         *         project_id: Description for project_id.
-         *         message: Description for message.
-         *         background_tasks: Description for background_tasks.
-         *         user_data: Description for user_data.
-         *         api_prod: Description for api_prod.
-         */
-        post: operations["create_event_message_v1_operational_projects__project_id__event_messages_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_message_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Event Message
-         * @description Update an existing event message.
-         *
-         *         Validates:
-         *         - User owns the message
-         *         - Message exists and is not deleted
-         *
-         *         Request Body:
-         *             body: The updated message content (may contain @mentions)
-         *
-         *         Returns:
-         *             The updated event message
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project_schema: Description for project_schema.
-         *         event_message_id: Description for event_message_id.
-         *         message: Description for message.
-         *         user_data: Description for user_data.
-         */
-        put: operations["update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put"];
-        post?: never;
-        /**
-         * Delete Event Message
-         * @description Delete an existing event message (soft delete).
-         *
-         *         Validates:
-         *         - User owns the message
-         *         - Message exists
-         *
-         *         Returns:
-         *             The deleted event message (with deleted_at set)
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         event_message_id: Description for event_message_id.
-         *         user_data: Description for user_data.
-         */
-        delete: operations["delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Toggle Event Chat Mute
-         * @description Toggle mute status for an event chat.
-         *
-         *         Returns:
-         *             {"muted": bool} - True if muted, False if unmuted
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         event_id: Description for event_id.
-         *         user_data: Description for user_data.
-         */
-        post: operations["toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/mute-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Chat Mute Status
-         * @description Get mute status for an event chat.
-         *
-         *         Returns:
-         *             {"muted": bool} - True if muted, False if not muted
-         *
-         *     Args:
-         *         project_db: Project-scoped DB session (event_chat_mutes in project schema).
-         *         event_id: Description for event_id.
-         *         user_data: Description for user_data.
-         */
-        get: operations["get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{event_message_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Upload Event Message Image
-         * @description Upload an image for an event message.
-         *
-         *         Validates:
-         *         - User has access to the event (via message ownership or event access)
-         *         - File is a valid image type (jpeg, png, gif, webp)
-         *         - File size is within limit (10MB)
-         *
-         *         Returns:
-         *             {
-         *                 "event_message_image_id": UUID,
-         *                 "s3_key": str,
-         *                 "filename": str,
-         *                 "content_type": str,
-         *                 "file_size": int,
-         *                 "presigned_url": str
-         *             }
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project_schema: Description for project_schema.
-         *         event_id: Description for event_id.
-         *         event_message_id: Description for event_message_id.
-         *         file: Description for file.
-         */
-        post: operations["upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/images/{image_id}/url": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Message Image Url
-         * @description Get a presigned URL for an event message image.
-         *
-         *         Validates user has access to the event before generating URL.
-         *
-         *         Returns:
-         *             {"presigned_url": str, "s3_key": str}
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project_schema: Description for project_schema.
-         *         event_id: Description for event_id.
-         *         image_id: Description for image_id.
-         */
-        get: operations["get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/event-messages/{event_id}/messages/{event_message_id}/images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Event Message Images
-         * @description Get all images for an event message with presigned URLs.
-         *
-         *         Returns:
-         *             List of image objects with presigned URLs
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project_schema: Description for project_schema.
-         *         event_id: Description for event_id.
-         *         event_message_id: Description for event_message_id.
-         */
-        get: operations["get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/kpi-data/agg-freq": {
         parameters: {
             query?: never;
@@ -3418,6 +3705,213 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/pv-budgeted/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Pv Budgeted Series
+         * @description todo
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         */
+        get: operations["list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get"];
+        put?: never;
+        /**
+         * Create Pv Budgeted Series
+         * @description todo
+         *
+         *     Args:
+         *         payload: Description for payload.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         *         user_data: Description for user_data.
+         */
+        post: operations["create_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Data
+         * @description todo
+         *
+         *     Args:
+         *         pv_budgeted_series_id: Description for pv_budgeted_series_id.
+         *         project_db: Description for project_db.
+         *         start: Description for start.
+         *         end: Description for end.
+         */
+        get: operations["get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/series/{pv_budgeted_series_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Pv Budgeted Series
+         * @description todo
+         *
+         *     Args:
+         *         pv_budgeted_series_id: Description for pv_budgeted_series_id.
+         *         project_db: Description for project_db.
+         */
+        delete: operations["delete_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series__pv_budgeted_series_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-budgeted/data/bulk-upsert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Upsert Pv Budgeted Data
+         * @description todo
+         *
+         *     Args:
+         *         payload: Description for payload.
+         *         project_db: Description for project_db.
+         *         project_id: Description for project_id.
+         *         user_data: Description for user_data.
+         */
+        post: operations["bulk_upsert_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_bulk_upsert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/pv-expected": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Expected Power
+         * @description todo
+         *
+         *     Args:
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_ids: Description for device_ids.
+         *         expected_metric_ids: Description for expected_metric_ids.
+         *         highest_priority_only: Description for highest_priority_only.
+         *         cutoff_now: Description for cutoff_now.
+         */
+        get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/qc/combiner-swaps/validate-combiner-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Validate Combiner Data
+         * @description This function is used in combiner swaps functionality to figure out
+         *         if there is enough good combiner data.
+         *
+         *     Args:
+         *         start: Description for start.
+         *         end: Description for end.
+         *         device_ids: Description for device_ids.
+         *         project: Description for project.
+         *         project_db: Description for project_db.
+         *         user_data: Description for user_data.
+         *         _access: Description for _access.
+         */
+        get: operations["validate_combiner_data_v1_operational_projects__project_id__qc_combiner_swaps_validate_combiner_data_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/projects/{project_id}/report-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Reports Instances
+         * @description todo
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         is_superadmin: Description for is_superadmin.
+         *         user: Description for user.
+         *         report_type_ids: Description for report_type_ids.
+         *         deep: Description for deep.
+         */
+        get: operations["get_project_reports_instances_v1_operational_projects__project_id__report_instances_get"];
+        /**
+         * Bulk Update Project Report Instances
+         * @description Bulk update report instances for a project.
+         *         Only accessible by superadmins.
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         data: Description for data.
+         *         db: Description for db.
+         */
+        put: operations["bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/reports/pcs-apparent-vs-voltage": {
         parameters: {
             query?: never;
@@ -3477,43 +3971,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/report-instances": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Reports Instances
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         is_superadmin: Description for is_superadmin.
-         *         user: Description for user.
-         *         report_type_ids: Description for report_type_ids.
-         *         deep: Description for deep.
-         */
-        get: operations["get_project_reports_instances_v1_operational_projects__project_id__report_instances_get"];
-        /**
-         * Bulk Update Project Report Instances
-         * @description Bulk update report instances for a project.
-         *         Only accessible by superadmins.
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         data: Description for data.
-         *         db: Description for db.
-         */
-        put: operations["bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/operational/projects/{project_id}/solar/position": {
         parameters: {
             query?: never;
@@ -3535,68 +3992,6 @@ export interface paths {
          *                               daytime status, and next sunrise time.
          */
         get: operations["get_solar_position_v1_operational_projects__project_id__solar_position_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/tags/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Tags
-         * @description todo
-         *
-         *     Args:
-         *         tag_ids: Description for tag_ids.
-         *         in_tsdb: Description for in_tsdb.
-         *         device_ids: Description for device_ids.
-         *         sensor_type_ids: Description for sensor_type_ids.
-         *         device_type_ids: Description for device_type_ids.
-         *         sensor_type_name_shorts: Description for sensor_type_name_shorts.
-         *         data_type_ids: Description for data_type_ids.
-         *         name_short: Description for name_short.
-         *         name_long: Description for name_long.
-         *         name_scada: Description for name_scada.
-         *         deep: Description for deep.
-         *         include_ghost_tags: Description for include_ghost_tags.
-         *         has_sensor_type_id: Description for has_sensor_type_id.
-         *         project_schema: Description for project_schema.
-         */
-        get: operations["get_project_tags_v1_operational_projects__project_id__tags__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/tags/regex": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Tags By Regex
-         * @description todo
-         *
-         *     Args:
-         *         regex: Description for regex.
-         *         limit: Description for limit.
-         *         deep: Description for deep.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3752,7 +4147,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/pv-budgeted/series": {
+    "/v1/operational/projects/{project_id}/tags/": {
         parameters: {
             query?: never;
             header?: never;
@@ -3760,130 +4155,26 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Pv Budgeted Series
+         * Get Project Tags
          * @description todo
          *
          *     Args:
-         *         project_db: Description for project_db.
-         *         project_id: Description for project_id.
-         */
-        get: operations["list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get"];
-        put?: never;
-        /**
-         * Create Pv Budgeted Series
-         * @description todo
-         *
-         *     Args:
-         *         payload: Description for payload.
-         *         project_db: Description for project_db.
-         *         project_id: Description for project_id.
-         *         user_data: Description for user_data.
-         */
-        post: operations["create_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/pv-budgeted/data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Data
-         * @description todo
-         *
-         *     Args:
-         *         pv_budgeted_series_id: Description for pv_budgeted_series_id.
-         *         project_db: Description for project_db.
-         *         start: Description for start.
-         *         end: Description for end.
-         */
-        get: operations["get_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/pv-budgeted/series/{pv_budgeted_series_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete Pv Budgeted Series
-         * @description todo
-         *
-         *     Args:
-         *         pv_budgeted_series_id: Description for pv_budgeted_series_id.
-         *         project_db: Description for project_db.
-         */
-        delete: operations["delete_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series__pv_budgeted_series_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/pv-budgeted/data/bulk-upsert": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Bulk Upsert Pv Budgeted Data
-         * @description todo
-         *
-         *     Args:
-         *         payload: Description for payload.
-         *         project_db: Description for project_db.
-         *         project_id: Description for project_id.
-         *         user_data: Description for user_data.
-         */
-        post: operations["bulk_upsert_pv_budgeted_data_v1_operational_projects__project_id__pv_budgeted_data_bulk_upsert_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/pv-expected": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Expected Power
-         * @description todo
-         *
-         *     Args:
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         *         start: Description for start.
-         *         end: Description for end.
+         *         tag_ids: Description for tag_ids.
+         *         in_tsdb: Description for in_tsdb.
          *         device_ids: Description for device_ids.
-         *         expected_metric_ids: Description for expected_metric_ids.
-         *         highest_priority_only: Description for highest_priority_only.
-         *         cutoff_now: Description for cutoff_now.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         device_type_ids: Description for device_type_ids.
+         *         sensor_type_name_shorts: Description for sensor_type_name_shorts.
+         *         data_type_ids: Description for data_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         name_scada: Description for name_scada.
+         *         deep: Description for deep.
+         *         include_ghost_tags: Description for include_ghost_tags.
+         *         has_sensor_type_id: Description for has_sensor_type_id.
+         *         project_schema: Description for project_schema.
          */
-        get: operations["get_expected_power_v1_operational_projects__project_id__pv_expected_get"];
+        get: operations["get_project_tags_v1_operational_projects__project_id__tags__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3892,7 +4183,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/projects/{project_id}/documents": {
+    "/v1/operational/projects/{project_id}/tags/regex": {
         parameters: {
             query?: never;
             header?: never;
@@ -3900,185 +4191,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Documents
+         * Get Tags By Regex
          * @description todo
          *
          *     Args:
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         *         user: Description for user.
-         */
-        get: operations["get_project_documents_v1_operational_projects__project_id__documents_get"];
-        put?: never;
-        /**
-         * Upload Project Document
-         * @description todo
-         *
-         *     Args:
-         *         db: Description for db.
-         *         user: Description for user.
-         *         project: Description for project.
-         *         file: Description for file.
-         */
-        post: operations["upload_project_document_v1_operational_projects__project_id__documents_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/documents/search-contract/{document_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Search Contract Content
-         * @description Search for relevant contract content using OpenAI's Responses API.
-         *
-         *     Uses vector stores for efficient retrieval of relevant contract information.
-         *     Returns the most relevant chunks of text based on the query.
-         *
-         *     Args:
-         *         document_id: Description for document_id.
-         *         project_id: Description for project_id.
-         *         query: Description for query.
-         *         vector_store_id: Description for vector_store_id.
-         *         db: Description for db.
-         */
-        post: operations["search_contract_content_v1_operational_projects__project_id__documents_search_contract__document_id__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/documents/{document_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete Project Document
-         * @description todo
-         *
-         *     Args:
-         *         document_id: Description for document_id.
-         *         db: Description for db.
-         */
-        delete: operations["delete_project_document_v1_operational_projects__project_id__documents__document_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/cmms-tickets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Cmms Tickets
-         * @deprecated
-         * @description Pulls the first 50 tickets for each CMMS provider.
-         *
-         *         Parameters:
-         *         -----------
-         *         project_id : UUID
-         *             The project identifier
-         *         db : AsyncSession
-         *             Database session
-         *         project_db : AsyncSession
-         *             Project database session
-         *         user : interfaces.UserData
-         *             To get the company id
-         *         device_ids : Optional[List[int]]
-         *             The list of device ids to filter the tickets by
-         *         device_type_ids : Optional[List[int]]
-         *             The list of device type ids to filter the tickets by
-         *
-         *     Args:
-         *         project_id: Operational project identifier for scoping CMMS data.
-         *         db: Primary application database session used for permissions lookup.
-         *         project_db: Project-level async session for ticket and device queries.
-         *         user: Authenticated user context containing company membership.
-         *         start: Optional ISO date string to filter tickets created after this time.
-         *         end: Optional ISO date string limiting tickets created before this time.
-         *         device_ids: Optional list of project device IDs to filter matching tickets.
-         *         device_type_ids: Optional list of device type IDs to filter matching tickets.
-         */
-        get: operations["get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/cmms-tickets/v2": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Cmms Tickets V2
-         * @description Get the CMMS tickets for a project.
-         *
-         *     Args:
-         *         project: The project to get the CMMS tickets for.
-         *         user: The user to get the CMMS tickets for.
-         *         cmms_ticket_ids: The list of CMMS ticket ids to filter by.
-         *         cmms_integration_ids: The list of CMMS integration ids to filter by.
-         *         max_results: The maximum number of tickets to return.
-         *         device_ids: The list of device ids to filter by.
-         *         device_type_ids: The list of device type ids to filter by.
-         *         include_json_raw: Whether to include the raw JSON data in the response.
-         */
-        get: operations["get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/qc/combiner-swaps/validate-combiner-data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Validate Combiner Data
-         * @description This function is used in combiner swaps functionality to figure out
-         *         if there is enough good combiner data.
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         device_ids: Description for device_ids.
-         *         project: Description for project.
+         *         regex: Description for regex.
+         *         limit: Description for limit.
+         *         deep: Description for deep.
          *         project_db: Description for project_db.
-         *         user_data: Description for user_data.
-         *         _access: Description for _access.
          */
-        get: operations["validate_combiner_data_v1_operational_projects__project_id__qc_combiner_swaps_validate_combiner_data_get"];
+        get: operations["get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4109,104 +4231,6 @@ export interface paths {
         get: operations["get_project_waterfall_v1_operational_projects__project_id__waterfall_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/drone-inspections": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Db Inspections
-         * @description Get a list of historical inspections from the database for a given project.
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         */
-        get: operations["get_db_inspections_v1_operational_projects__project_id__drone_inspections_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/drone-inspections/zeitview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Zeitview Inspections
-         * @description Get a list of historical inspections from Zeitview for a given project.
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         project_db: Description for project_db.
-         */
-        get: operations["get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/drone-inspections/{inspection_uuid}/anomalies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Db Anomalies
-         * @description Get a list of anomalies from the database for a given inspection.
-         *
-         *     Args:
-         *         inspection_uuid: Description for inspection_uuid.
-         *         db: Description for db.
-         */
-        get: operations["get_db_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/drone-inspections/{inspection_uuid}/anomalies/zeitview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Sync Zeitview Anomalies
-         * @description Fetch anomalies from Zeitview and store them in the database
-         *     incrementally. Can resume from where it left off if interrupted.
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         inspection_uuid: Description for inspection_uuid.
-         *         project_db: Description for project_db.
-         */
-        post: operations["sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6538,6 +6562,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/suggested-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Suggested Tickets From Event
+         * @description Get suggested CMMS tickets for an event.
+         */
+        get: operations["get_suggested_tickets_from_event_v1_protected_web_application_projects__project_id__event_cmms_tickets_suggested_tickets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/web-application/projects/{project_id}/events/meta": {
         parameters: {
             query?: never;
@@ -7800,17 +7844,6 @@ export interface components {
             /** Screenshot */
             screenshot?: string | null;
         };
-        /** Body_get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get */
-        Body_get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get: {
-            /** Event Cmms Ticket Ids */
-            event_cmms_ticket_ids?: number[] | null;
-            /** Event Ids */
-            event_ids?: number[] | null;
-            /** Cmms Ticket Ids */
-            cmms_ticket_ids?: number[] | null;
-            /** Created By User Ids */
-            created_by_user_ids?: string[] | null;
-        };
         /** Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post */
         Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post: {
             /**
@@ -8153,6 +8186,21 @@ export interface components {
         CMMSMetadata: {
             /** Integration Configured */
             integration_configured: boolean;
+        };
+        /**
+         * CMMSPermission
+         * @description Cmmspermission model.
+         */
+        CMMSPermission: {
+            /** Cmms Integration Id */
+            cmms_integration_id: number;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Can View */
+            can_view: boolean;
         };
         /**
          * CMMSResponse
@@ -11922,6 +11970,59 @@ export interface components {
             /** Score */
             score: number;
         };
+        /** _TicketWithScore */
+        _TicketWithScore: {
+            /** Cmms Ticket Id */
+            cmms_ticket_id: number;
+            /** Cmms Integration Id */
+            cmms_integration_id: number;
+            /**
+             * Db Created At
+             * Format: date-time
+             */
+            db_created_at: string;
+            /**
+             * Db Updated At
+             * Format: date-time
+             */
+            db_updated_at: string;
+            /** Key */
+            key: string;
+            /** Source Id */
+            source_id: number;
+            /** Source Created At */
+            source_created_at?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Summary Long */
+            summary_long?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Status Change At */
+            status_change_at?: string | null;
+            /** Priority */
+            priority?: string | null;
+            /** Reporter */
+            reporter?: string | null;
+            /** Assigned To */
+            assigned_to?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Cmms Device Id */
+            cmms_device_id?: string | null;
+            /** Cmms Device Name */
+            cmms_device_name?: string | null;
+            /** Link */
+            link?: string | null;
+            /** Json Raw */
+            json_raw?: {
+                [key: string]: unknown;
+            } | null;
+            /** Score */
+            score: number;
+        };
         /**
          * KPIType
          * @description Kpitype model.
@@ -15342,6 +15443,118 @@ export interface operations {
             };
         };
     };
+    get_cmms_permissions_v1_operational_projects__project_id__cmms_permissions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CMMSPermission"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get: {
+        parameters: {
+            query?: {
+                device_ids?: number[] | null;
+                device_type_ids?: number[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CMMSResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get: {
+        parameters: {
+            query?: {
+                cmms_ticket_ids?: number[] | null;
+                cmms_integration_ids?: number[] | null;
+                max_results?: number | null;
+                device_ids?: number[] | null;
+                device_type_ids?: number[] | null;
+                include_json_raw?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CMMSTicketV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_contracts_v1_operational_projects__project_id__contracts_get: {
         parameters: {
             query?: never;
@@ -15836,6 +16049,706 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_documents_v1_operational_projects__project_id__documents_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_project_document_v1_operational_projects__project_id__documents_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_project_document_v1_operational_projects__project_id__documents_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_contract_content_v1_operational_projects__project_id__documents_search_contract__document_id__post: {
+        parameters: {
+            query: {
+                query: string;
+                vector_store_id: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                document_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractSearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_document_v1_operational_projects__project_id__documents__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                document_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_db_inspections_v1_operational_projects__project_id__drone_inspections_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneInspection"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZeitviewInspection"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_db_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                inspection_uuid: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneAnomaly"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+                inspection_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
+        parameters: {
+            query?: {
+                event_message_id?: number | null;
+                event_id?: number | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessageReaction"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMessageReactionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessageReaction"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_messages_v1_operational_projects__project_id__event_messages_get: {
+        parameters: {
+            query: {
+                event_id: number;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_event_message_v1_operational_projects__project_id__event_messages_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMessageUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMessage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                image_id: string;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                event_id: number;
+                event_message_id: number;
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             /** @description Validation Error */
@@ -16348,421 +17261,6 @@ export interface operations {
             };
         };
     };
-    get_event_message_reactions_v1_operational_projects__project_id__event_message_reactions_get: {
-        parameters: {
-            query?: {
-                event_message_id?: number | null;
-                event_id?: number | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessageReaction"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    toggle_event_message_reaction_v1_operational_projects__project_id__event_message_reactions_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EventMessageReactionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessageReaction"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_messages_v1_operational_projects__project_id__event_messages_get: {
-        parameters: {
-            query: {
-                event_id: number;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessage"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_event_message_v1_operational_projects__project_id__event_messages_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EventMessageCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_event_message_v1_operational_projects__project_id__event_messages__event_message_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EventMessageUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_event_message_v1_operational_projects__project_id__event_messages__event_message_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventMessage"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    toggle_event_chat_mute_v1_operational_projects__project_id__event_messages__event_id__mute_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_chat_mute_status_v1_operational_projects__project_id__event_messages__event_id__mute_status_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_event_message_image_v1_operational_projects__project_id__event_messages__event_id__images__event_message_id__post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_message_image_url_v1_operational_projects__project_id__event_messages__event_id__images__image_id__url_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                image_id: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_event_message_images_v1_operational_projects__project_id__event_messages__event_id__messages__event_message_id__images_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                event_id: number;
-                event_message_id: number;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_project_aggregated_kpi_data_freq_v1_operational_projects__project_id__kpi_data_agg_freq_get: {
         parameters: {
             query: {
@@ -17146,448 +17644,6 @@ export interface operations {
             };
         };
     };
-    get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    dc_amperage_report_v2_v1_operational_projects__project_id__reports_dc_amperage_report_v2_get: {
-        parameters: {
-            query: {
-                start: string;
-                min_poa: number;
-                max_poa_1d: number;
-                max_poa_std: number;
-                rolling_window: number;
-                use_poa_1d: boolean;
-                use_poa_std: boolean;
-                resample_rate?: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_reports_instances_v1_operational_projects__project_id__report_instances_get: {
-        parameters: {
-            query?: {
-                deep?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": number[] | null;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportInstance"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReportInstancesBulkUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportInstance"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_solar_position_v1_operational_projects__project_id__solar_position_get: {
-        parameters: {
-            query?: {
-                timestamp?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SolarPositionResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_tags_v1_operational_projects__project_id__tags__get: {
-        parameters: {
-            query?: {
-                tag_ids?: number[];
-                in_tsdb?: boolean | null;
-                device_ids?: number[];
-                sensor_type_ids?: number[];
-                device_type_ids?: number[];
-                sensor_type_name_shorts?: string[];
-                data_type_ids?: number[];
-                name_short?: string;
-                name_long?: string;
-                name_scada?: string;
-                /** @description Load all related objects. */
-                deep?: boolean;
-                include_ghost_tags?: boolean;
-                has_sensor_type_id?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Tag"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get: {
-        parameters: {
-            query: {
-                regex: string;
-                limit?: number;
-                /** @description Load all related objects. */
-                deep?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TagV1"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    interpret_v1_operational_projects__project_id__status_interpret_get: {
-        parameters: {
-            query?: {
-                status_tags?: number[];
-                status_values?: unknown[];
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                device_ids?: number[] | null;
-                tag_ids?: number[] | null;
-                device_type_ids?: number[] | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["core__enumerations__SensorType"][] | null;
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get: {
-        parameters: {
-            query?: {
-                device_type_ids?: number[] | null;
-                sensor_type_ids?: number[] | null;
-                tag_ids?: number[] | null;
-                device_ids?: number[] | null;
-                alert_only?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeviceStatus"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_status_time_series_js_v1_operational_projects__project_id__status_time_series_js_get: {
-        parameters: {
-            query: {
-                device_ids: number[];
-                end: string;
-                start: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StatusTimeSeries"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_pv_budgeted_series_v1_operational_projects__project_id__pv_budgeted_series_get: {
         parameters: {
             query?: never;
@@ -17812,229 +17868,6 @@ export interface operations {
             };
         };
     };
-    get_project_documents_v1_operational_projects__project_id__documents_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Document"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    upload_project_document_v1_operational_projects__project_id__documents_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_project_document_v1_operational_projects__project_id__documents_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Document"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    search_contract_content_v1_operational_projects__project_id__documents_search_contract__document_id__post: {
-        parameters: {
-            query: {
-                query: string;
-                vector_store_id: string;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                document_id: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ContractSearchResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_project_document_v1_operational_projects__project_id__documents__document_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                document_id: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Message"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_cmms_tickets_v1_operational_projects__project_id__cmms_tickets_get: {
-        parameters: {
-            query?: {
-                device_ids?: number[] | null;
-                device_type_ids?: number[] | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CMMSResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_cmms_tickets_v2_v1_operational_projects__project_id__cmms_tickets_v2_get: {
-        parameters: {
-            query?: {
-                cmms_ticket_ids?: number[] | null;
-                cmms_integration_ids?: number[] | null;
-                max_results?: number | null;
-                device_ids?: number[] | null;
-                device_type_ids?: number[] | null;
-                include_json_raw?: boolean;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CMMSTicketV2"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     validate_combiner_data_v1_operational_projects__project_id__qc_combiner_swaps_validate_combiner_data_get: {
         parameters: {
             query: {
@@ -18073,12 +17906,89 @@ export interface operations {
             };
         };
     };
-    get_project_waterfall_v1_operational_projects__project_id__waterfall_get: {
+    get_project_reports_instances_v1_operational_projects__project_id__report_instances_get: {
         parameters: {
             query?: {
-                level?: string;
-                start?: string | null;
-                end?: string | null;
+                deep?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": number[] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportInstance"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_update_project_report_instances_v1_operational_projects__project_id__report_instances_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportInstancesBulkUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportInstance"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pcs_apparent_vs_voltage_v1_operational_projects__project_id__reports_pcs_apparent_vs_voltage_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
             };
             header?: {
                 authorization?: string;
@@ -18111,9 +18021,18 @@ export interface operations {
             };
         };
     };
-    get_db_inspections_v1_operational_projects__project_id__drone_inspections_get: {
+    dc_amperage_report_v2_v1_operational_projects__project_id__reports_dc_amperage_report_v2_get: {
         parameters: {
-            query?: never;
+            query: {
+                start: string;
+                min_poa: number;
+                max_poa_1d: number;
+                max_poa_std: number;
+                rolling_window: number;
+                use_poa_1d: boolean;
+                use_poa_std: boolean;
+                resample_rate?: string;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -18131,7 +18050,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneInspection"][];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -18145,9 +18064,11 @@ export interface operations {
             };
         };
     };
-    get_zeitview_inspections_v1_operational_projects__project_id__drone_inspections_zeitview_get: {
+    get_solar_position_v1_operational_projects__project_id__solar_position_get: {
         parameters: {
-            query?: never;
+            query?: {
+                timestamp?: string | null;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -18165,7 +18086,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ZeitviewInspection"][];
+                    "application/json": components["schemas"]["SolarPositionResponse"];
                 };
             };
             /** @description Validation Error */
@@ -18179,15 +18100,17 @@ export interface operations {
             };
         };
     };
-    get_db_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_get: {
+    interpret_v1_operational_projects__project_id__status_interpret_get: {
         parameters: {
-            query?: never;
+            query?: {
+                status_tags?: number[];
+                status_values?: unknown[];
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
             };
             path: {
-                inspection_uuid: string;
                 project_id: string;
             };
             cookie?: never;
@@ -18200,7 +18123,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneAnomaly"][];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -18214,16 +18137,66 @@ export interface operations {
             };
         };
     };
-    sync_zeitview_anomalies_v1_operational_projects__project_id__drone_inspections__inspection_uuid__anomalies_zeitview_post: {
+    get_status_time_series_python_v1_operational_projects__project_id__status_time_series_python_get: {
         parameters: {
-            query?: never;
+            query: {
+                start: string;
+                end: string;
+                device_ids?: number[] | null;
+                tag_ids?: number[] | null;
+                device_type_ids?: number[] | null;
+                schema?: string | null;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
             };
             path: {
                 project_id: string;
-                inspection_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["core__enumerations__SensorType"][] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_last_known_statuses_v1_operational_projects__project_id__status_last_known_statuses_get: {
+        parameters: {
+            query?: {
+                device_type_ids?: number[] | null;
+                sensor_type_ids?: number[] | null;
+                tag_ids?: number[] | null;
+                device_ids?: number[] | null;
+                alert_only?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
             };
             cookie?: never;
         };
@@ -18235,9 +18208,171 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["DeviceStatus"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_status_time_series_js_v1_operational_projects__project_id__status_time_series_js_get: {
+        parameters: {
+            query: {
+                device_ids: number[];
+                end: string;
+                start: string;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusTimeSeries"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_tags_v1_operational_projects__project_id__tags__get: {
+        parameters: {
+            query?: {
+                tag_ids?: number[];
+                in_tsdb?: boolean | null;
+                device_ids?: number[];
+                sensor_type_ids?: number[];
+                device_type_ids?: number[];
+                sensor_type_name_shorts?: string[];
+                data_type_ids?: number[];
+                name_short?: string;
+                name_long?: string;
+                name_scada?: string;
+                /** @description Load all related objects. */
+                deep?: boolean;
+                include_ghost_tags?: boolean;
+                has_sensor_type_id?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tag"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tags_by_regex_v1_operational_projects__project_id__tags_regex_get: {
+        parameters: {
+            query: {
+                regex: string;
+                limit?: number;
+                /** @description Load all related objects. */
+                deep?: boolean;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagV1"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_waterfall_v1_operational_projects__project_id__waterfall_get: {
+        parameters: {
+            query?: {
+                level?: string;
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -21707,6 +21842,10 @@ export interface operations {
     get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get: {
         parameters: {
             query?: {
+                event_cmms_ticket_ids?: number[] | null;
+                event_ids?: number[] | null;
+                cmms_ticket_ids?: number[] | null;
+                created_by_user_ids?: string[] | null;
                 created_at_gte?: string | null;
                 created_at_lte?: string | null;
             };
@@ -21719,11 +21858,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["Body_get_event_cmms_tickets_v1_protected_web_application_projects__project_id__event_cmms_tickets_get"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -21844,6 +21979,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["_EventWithScore"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_suggested_tickets_from_event_v1_protected_web_application_projects__project_id__event_cmms_tickets_suggested_tickets_get: {
+        parameters: {
+            query: {
+                event_id: number;
+                cmms_integration_id: number;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_TicketWithScore"][];
                 };
             };
             /** @description Validation Error */

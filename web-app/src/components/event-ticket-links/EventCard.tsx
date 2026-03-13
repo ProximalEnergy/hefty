@@ -19,14 +19,16 @@ const EventCard = ({
   onUnlink,
   isLinking = false,
   isUnlinking = false,
+  canLink = true,
 }: {
   event: Event
   projectId: string
-  isLinked: boolean
+  isLinked?: boolean
   onLink?: () => void
   onUnlink?: () => void
   isLinking?: boolean
   isUnlinking?: boolean
+  canLink?: boolean
 }) => {
   const isLoading = isLinked ? isUnlinking : isLinking
   const isDisabled = isLinked ? !onUnlink || isUnlinking : !onLink || isLinking
@@ -57,28 +59,32 @@ const EventCard = ({
             <Badge size="lg" color={event.time_end === null ? 'red' : 'green'}>
               {event.time_end === null ? 'Open' : 'Closed'}
             </Badge>
-            <ActionIcon
-              variant="transparent"
-              onClick={() => {
-                window.open(
-                  `/projects/${projectId}/events/event/?eventId=${event.event_id}`,
-                  '_blank',
-                )
-              }}
-            >
-              <IconExternalLink size={16} />
-            </ActionIcon>
+            {canLink && (
+              <ActionIcon
+                variant="transparent"
+                onClick={() => {
+                  window.open(
+                    `/projects/${projectId}/events/event/?eventId=${event.event_id}`,
+                    '_blank',
+                  )
+                }}
+              >
+                <IconExternalLink size={16} />
+              </ActionIcon>
+            )}
           </Group>
-          <Button
-            size="xs"
-            variant="light"
-            color="gray"
-            onClick={isLinked ? onUnlink : onLink}
-            loading={isLoading}
-            disabled={isDisabled}
-          >
-            {isLinked ? 'Unlink Event' : 'Link Event'}
-          </Button>
+          {canLink && (
+            <Button
+              size="xs"
+              variant="light"
+              color="gray"
+              onClick={isLinked ? onUnlink : onLink}
+              loading={isLoading}
+              disabled={isDisabled}
+            >
+              {isLinked ? 'Unlink Event' : 'Link Event'}
+            </Button>
+          )}
         </Stack>
       </Group>
     </Card>
