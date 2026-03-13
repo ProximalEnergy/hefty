@@ -14,6 +14,7 @@ from kpi_pipeline.domain.bess import (
 )
 from kpi_pipeline.domain.general import (
     accumulator_differences,
+    agg_first,
     availability,
     clamp,
     diff,
@@ -302,3 +303,13 @@ class RemoveFlatLiningProcess(BaseModel):
 class EventChangeToInEventProcess(BaseModel):
     def __call__(self, *, x: xr.DataArray, context: ContextModel) -> xr.DataArray:
         return event_change_to_in_event(x=x)
+
+
+@domain_process(agg_first)
+class AggFirstProcess(BaseModel):
+    time_combiner_model: CoordCombinerModel
+
+    def __call__(self, *, x: xr.DataArray, context: ContextModel) -> xr.DataArray:
+        return agg_first(
+            x=x, time_combiner=coord_combiner(self.time_combiner_model, context)
+        )

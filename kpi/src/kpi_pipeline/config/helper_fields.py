@@ -5,6 +5,7 @@ from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import CoordCombinerModel
 from kpi_pipeline.services.calc import CalcProcess, ProcessCalc, SelectCalc
 from kpi_pipeline.services.process import (
+    AggFirstProcess,
     AggregateProcess,
     ProcessList,
 )
@@ -86,4 +87,15 @@ def _5min_to_daily(
         low_res_time_axis=Time.DATE_LOCAL,
         child_device_axis=child_device_axis,
         parent_device_axis=parent_device_axis,
+    )
+
+
+def _agg_first(
+    var: str,
+) -> Field:
+    return Field(
+        ProcessCalc(
+            var=var,
+            process=AggFirstProcess(time_combiner_model=_5min_to_daily()),
+        )
     )

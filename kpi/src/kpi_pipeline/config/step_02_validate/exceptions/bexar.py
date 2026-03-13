@@ -16,14 +16,43 @@ class ValidateBexar(Validate):
     meter_total_consumed_energy_kwh_5m = Field(
         calc.ReconstructAccumulatorCalc(
             total_energy_kw_5m_var=Download.time_series.meter_total_consumed_energy_kwh_5m.var,
-            power_capacity_kw_var=Download.project_attributes.project_power_capacity_kw.var,
-            modulo=65_536,  # 16-bit unsigned integer
+            modulus=65_536,  # 16-bit unsigned integer
+            max_positive_step=150_000,
         )
     )
     meter_total_delivered_energy_kwh_5m = Field(
         calc.ReconstructAccumulatorCalc(
             total_energy_kw_5m_var=Download.time_series.meter_total_delivered_energy_kwh_5m.var,
-            power_capacity_kw_var=Download.project_attributes.project_power_capacity_kw.var,
-            modulo=65_536,  # 16-bit unsigned integer
+            modulus=65_536,  # 16-bit unsigned integer
+            max_positive_step=150_000,
+        )
+    )
+    bess_circuit_total_energy_charged_kwh_5m = Field(
+        calc.ReconstructAccumulatorCalc(
+            total_energy_kw_5m_var=Download.time_series.bess_circuit_total_energy_charged_kwh_5m.var,
+            modulus=65_536,  # 16-bit unsigned integer
+            max_positive_step=40_000,
+        )
+    )
+    bess_circuit_total_energy_discharged_kwh_5m = Field(
+        calc.ReconstructAccumulatorCalc(
+            total_energy_kw_5m_var=Download.time_series.bess_circuit_total_energy_discharged_kwh_5m.var,
+            modulus=65_536,  # 16-bit unsigned integer
+            max_positive_step=40_000,
+        )
+    )
+
+    bess_string_total_energy_charged_kwh_5m = Field(
+        calc.ReconstructAccumulatorCalc(
+            total_energy_kw_5m_var=Download.time_series.bess_string_total_energy_charged_kwh_5m.var,
+            modulus=6_553.6,  # 16-bit signed integer
+            max_positive_step=500,
+        )
+    )
+    bess_string_total_energy_discharged_kwh_5m = Field(
+        calc.ReconstructAccumulatorCalc(
+            total_energy_kw_5m_var=Download.time_series.bess_string_total_energy_discharged_kwh_5m.var,
+            modulus=6_553.6,  # 16-bit signed integer
+            max_positive_step=500,
         )
     )

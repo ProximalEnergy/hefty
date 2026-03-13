@@ -52,6 +52,18 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         device_var=Aggregate.bess_block_avg_resting_soc_d.var,
         version="1.0.0",
     ),
+    KPIType.BESS_CIRCUIT_ENERGY_CHARGED: KPIMetadata(
+        project_var=Aggregate.project_energy_charged_circuit_kwh_d.var,
+        device_var=Aggregate.bess_circuit_energy_charged_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
+    KPIType.BESS_CIRCUIT_ENERGY_DISCHARGED: KPIMetadata(
+        project_var=Aggregate.project_energy_discharged_circuit_kwh_d.var,
+        device_var=Aggregate.bess_circuit_energy_discharged_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
     # deprecating bess enclosure KPIS
     # - KPIType.BESS_DC_ENCLOSURE_AVERAGE_SOC_PERCENT
     # - KPIType.BESS_DC_ENCLOSURE_CYCLE_COUNT
@@ -98,6 +110,18 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         version="1.0.0",
         scale=0.001,
     ),
+    KPIType.BESS_PCS_ENERGY_CHARGED_DC: KPIMetadata(
+        project_var=Aggregate.project_energy_charged_pcs_kwh_d.var,
+        device_var=Aggregate.bess_pcs_energy_charged_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
+    KPIType.BESS_PCS_ENERGY_DISCHARGED_DC: KPIMetadata(
+        project_var=Aggregate.project_energy_discharged_pcs_kwh_d.var,
+        device_var=Aggregate.bess_pcs_energy_discharged_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
     KPIType.BESS_PCS_HOURS_CHARGING: KPIMetadata(
         project_var=Aggregate.project_total_pcs_time_charging_hours_d.var,
         device_var=Aggregate.bess_pcs_total_time_charging_hours_d.var,
@@ -124,6 +148,18 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         device_var=Aggregate.bess_pcs_module_availability_d.var,
         version="1.0.0",
     ),
+    KPIType.BESS_PCS_MODULE_ENERGY_CHARGED: KPIMetadata(
+        project_var=Aggregate.project_energy_charged_pcs_module_kwh_d.var,
+        device_var=Aggregate.bess_pcs_module_energy_charged_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
+    KPIType.BESS_PCS_MODULE_ENERGY_DISCHARGED: KPIMetadata(
+        project_var=Aggregate.project_energy_discharged_pcs_module_kwh_d.var,
+        device_var=Aggregate.bess_pcs_module_energy_discharged_kwh_d.var,
+        version="1.0.0",
+        scale=0.001,
+    ),
     # KPIType.BESS_PCS_MODULE_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
     #     project_var=Aggregate.project_maximum_continuous_discharge_across_pcs_modules_kwh_d.var,
     #     device_var=Aggregate.bess_pcs_module_maximum_continuous_discharge_kwh_d.var,
@@ -149,6 +185,11 @@ kpi_map: dict[KPIType, KPIMetadata] = {
     KPIType.BESS_PROJECT_ENERGY_CHARGED: KPIMetadata(
         project_var=Aggregate.meter_consumed_energy_kwh_d.var,
         version="1.0.1",
+        scale=0.001,
+    ),
+    KPIType.BESS_PROJECT_ENERGY_CHARGED_NO_AUX: KPIMetadata(
+        project_var=Aggregate.meter_consumed_energy_no_aux_kwh_d.var,
+        version="1.0.0",
         scale=0.001,
     ),
     KPIType.BESS_PROJECT_HOURS_CHARGING: KPIMetadata(

@@ -321,6 +321,20 @@ def diff(
     return x.shift({time_dim.value: -1}) - x
 
 
+def cumsum(
+    x: xr.DataArray, time_dim: Time = Time.TIME_5MIN_UTC, skipna: bool = True
+) -> xr.DataArray:
+    """
+    Inverse of diff(): at each time stamp, the value is the sum of all
+    differences before that stamp (first stamp is 0). Preserves the time axis.
+    For diff output [1, 1, NaN], returns [0, 1, 2].
+    """
+    dim = time_dim.value
+    shifted = x.cumsum(dim=dim, skipna=skipna).shift({dim: 1})
+    shifted.loc[{dim: shifted.coords[dim][0]}] = 0
+    return shifted
+
+
 def all_not_null_mask(*arrays: xr.DataArray) -> xr.DataArray:
     return functools.reduce(operator.and_, [array.notnull() for array in arrays])
 
@@ -364,3 +378,7 @@ def or_list(
     if len(arrays) == 0:
         return xr.DataArray(False)
     return functools.reduce(operator.or_, arrays)
+
+
+def agg_first(*, x: xr.DataArray, time_combiner: CoordCombinerProtocol) -> xr.DataArray:
+    return time_combiner.group(x).first()

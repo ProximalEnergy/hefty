@@ -839,12 +839,12 @@ class SqueezeFillEnergyAccumulatorCalc(CalcBase):
 @domain_calc(reconstruct_accumulator)
 class ReconstructAccumulatorCalc(CalcBase):
     total_energy_kw_5m_var: str
-    power_capacity_kw_var: str
-    modulo: float
+    modulus: float
+    max_positive_step: float | None = None
 
     def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
         return reconstruct_accumulator(
             total_energy_kw_5m=select(dataset, self.total_energy_kw_5m_var),
-            power_capacity_kw=select(dataset, self.power_capacity_kw_var),
-            modulo=self.modulo,
+            modulus=self.modulus,
+            max_positive_step=self.max_positive_step,
         )

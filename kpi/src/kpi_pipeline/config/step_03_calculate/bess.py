@@ -134,6 +134,14 @@ class CalculateBESS(AddCalculationsSchema):
         Validate.bess_pcs_module_total_energy_charged_kwh_5m.var
     )
 
+    bess_circuit_energy_charged_kwh_5m = _energy_accumulator(
+        Validate.bess_circuit_total_energy_charged_kwh_5m.var
+    )
+
+    bess_circuit_energy_discharged_kwh_5m = _energy_accumulator(
+        Validate.bess_circuit_total_energy_discharged_kwh_5m.var
+    )
+
     bess_string_energy_kwh_5m = Field(
         calc.LinearCombinationCalc(
             vars=[

@@ -2,16 +2,16 @@ from typing import Self
 
 import pandas as pd
 import xarray as xr
-from core import models
 from core.crud.project.devices import get_project_devices
 from core.db_query import OutputType
 from core.enumerations import DeviceType
-from pydantic import ConfigDict, validate_call
-
 from kpi_pipeline.base.enums import (
     supported_devices,
 )
 from kpi_pipeline.infra.device_grouper import DeviceTreeProtocol
+from pydantic import ConfigDict, validate_call
+
+from core import models
 
 arbitrary_types = ConfigDict(arbitrary_types_allowed=True)
 

@@ -1,14 +1,15 @@
 from core.enumerations import DeviceType
 
 import kpi_pipeline.services.calc as calc
-from kpi_pipeline.base.enums import Aggregation
+import kpi_pipeline.services.process as process
+from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.config.helper_fields import (
     _5min_to_daily,
+    _agg_first,
     _aggregate,
     _device_aggregate,
 )
-from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate import Validate
 from kpi_pipeline.config.step_03_calculate import Calculate
 from kpi_pipeline.services.schema import AddCalculationsSchema
@@ -21,43 +22,68 @@ class AggregateBESSEnergy(AddCalculationsSchema):
     # Aggregates energy metrics from 5-minute to daily by summing or accumulating
     # energy charged, discharged, and auxiliary energy consumption
 
+    project_total_aux_energy_kwh_d = _agg_first(
+        var=Validate.project_total_aux_energy_kwh_5m.var,
+    )
+
     project_energy_aux_meter_kwh_d = Field(
-        calc.AccumulateEnergyThenFilterByCapacityCalc(
-            data_var=Download.time_series.project_total_aux_energy_kwh_5m.var,
-            time_combiner_model=_5min_to_daily(),
-            capacity_var=Validate.project_energy_capacity_kwh.var,
-            min_capacity_factor=-1.0,
-            max_capacity_factor=1.0,
+        calc.ProcessCalc(
+            var=project_total_aux_energy_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
         )
     )
 
-    meter_consumed_energy_kwh_d = _aggregate(
-        var=Calculate.meter_consumed_energy_kwh_5m.var,
-        agg=Aggregation.SUM,
+    bess_string_total_energy_charged_kwh_d = _agg_first(
+        var=Validate.bess_string_total_energy_charged_kwh_5m.var,
+    )
+
+    bess_string_total_energy_discharged_kwh_d = _agg_first(
+        var=Validate.bess_string_total_energy_discharged_kwh_5m.var,
     )
 
     bess_string_energy_charged_kwh_d = Field(
-        calc.AccumulateEnergyThenFilterByCapacityCalc(
-            data_var=Download.time_series.bess_string_total_energy_charged_kwh_5m.var,
-            time_combiner_model=_5min_to_daily(),
-            capacity_var=Validate.bess_string_energy_capacity_kwh.var,
-            min_capacity_factor=-1.0,
-            max_capacity_factor=1.0,
+        calc.ProcessCalc(
+            var=bess_string_total_energy_charged_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
         )
     )
 
-    meter_delivered_energy_kwh_d = _aggregate(
-        var=Calculate.meter_delivered_energy_kwh_5m.var,
-        agg=Aggregation.SUM,
+    bess_string_energy_discharged_kwh_d = Field(
+        calc.ProcessCalc(
+            var=bess_string_total_energy_discharged_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
+        )
     )
 
-    bess_string_energy_discharged_kwh_d = Field(
-        calc.AccumulateEnergyThenFilterByCapacityCalc(
-            data_var=Download.time_series.bess_string_total_energy_discharged_kwh_5m.var,
-            time_combiner_model=_5min_to_daily(),
-            capacity_var=Validate.bess_string_energy_capacity_kwh.var,
-            min_capacity_factor=-1.0,
-            max_capacity_factor=1.0,
+    meter_total_delivered_energy_kwh_d = _agg_first(
+        var=Validate.meter_total_delivered_energy_kwh_5m.var,
+    )
+
+    meter_total_consumed_energy_kwh_d = _agg_first(
+        var=Validate.meter_total_consumed_energy_kwh_5m.var,
+    )
+
+    meter_delivered_energy_kwh_d = Field(
+        calc.ProcessCalc(
+            var=meter_total_delivered_energy_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
+        )
+    )
+
+    meter_consumed_energy_kwh_d = Field(
+        calc.ProcessCalc(
+            var=meter_total_consumed_energy_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
+        )
+    )
+
+    meter_consumed_energy_no_aux_kwh_d = Field(
+        calc.LinearCombinationCalc(
+            vars=[
+                meter_consumed_energy_kwh_d.var,
+                project_energy_aux_meter_kwh_d.var,
+            ],
+            coefficients=[1, -1],
         )
     )
 
@@ -71,6 +97,74 @@ class AggregateBESSEnergy(AddCalculationsSchema):
         var=bess_string_energy_discharged_kwh_d.var,
         agg=Aggregation.SUM,
         child_device_axis=DeviceType.BESS_STRING,
+    )
+
+    bess_pcs_energy_charged_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_energy_charged_kwh_5m.var,
+        agg=Aggregation.SUM,
+    )
+    project_energy_charged_pcs_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_energy_charged_kwh_5m.var,
+        agg=Aggregation.SUM,
+        child_device_axis=DeviceType.BESS_PCS,
+    )
+    bess_pcs_energy_discharged_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_energy_discharged_kwh_5m.var,
+        agg=Aggregation.SUM,
+    )
+    project_energy_discharged_pcs_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_energy_discharged_kwh_5m.var,
+        agg=Aggregation.SUM,
+        child_device_axis=DeviceType.BESS_PCS,
+    )
+
+    bess_pcs_module_energy_charged_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_module_energy_charged_kwh_5m.var,
+        agg=Aggregation.SUM,
+    )
+    project_energy_charged_pcs_module_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_module_energy_charged_kwh_5m.var,
+        agg=Aggregation.SUM,
+        child_device_axis=DeviceType.BESS_PCS_MODULE,
+    )
+    bess_pcs_module_energy_discharged_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_module_energy_discharged_kwh_5m.var,
+        agg=Aggregation.SUM,
+    )
+    project_energy_discharged_pcs_module_kwh_d = _aggregate(
+        var=Calculate.bess_pcs_module_energy_discharged_kwh_5m.var,
+        agg=Aggregation.SUM,
+        child_device_axis=DeviceType.BESS_PCS_MODULE,
+    )
+
+    bess_circuit_total_energy_charged_kwh_d = _agg_first(
+        var=Validate.bess_circuit_total_energy_charged_kwh_5m.var,
+    )
+    bess_circuit_total_energy_discharged_kwh_d = _agg_first(
+        var=Validate.bess_circuit_total_energy_discharged_kwh_5m.var,
+    )
+
+    bess_circuit_energy_charged_kwh_d = Field(
+        calc.ProcessCalc(
+            var=bess_circuit_total_energy_charged_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
+        )
+    )
+    bess_circuit_energy_discharged_kwh_d = Field(
+        calc.ProcessCalc(
+            var=bess_circuit_total_energy_discharged_kwh_d.var,
+            process=process.DiffProcess(time_dim=Time.DATE_LOCAL),
+        )
+    )
+    project_energy_charged_circuit_kwh_d = _device_aggregate(
+        var=bess_circuit_energy_charged_kwh_d.var,
+        agg=Aggregation.SUM,
+        child_device_axis=DeviceType.BESS_MV_CIRCUIT_METER,
+    )
+    project_energy_discharged_circuit_kwh_d = _device_aggregate(
+        var=bess_circuit_energy_discharged_kwh_d.var,
+        agg=Aggregation.SUM,
+        child_device_axis=DeviceType.BESS_MV_CIRCUIT_METER,
     )
 
     bess_string_avg_c_rate_d = Field(

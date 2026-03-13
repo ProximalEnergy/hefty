@@ -41,3 +41,10 @@ class DownloadDevAttrsBESS(DownloadDeviceAttributesSchema):
             source_field_name=Device.capacity_ac.name,
         ),
     )
+
+    bess_mv_circuit_power_capacity_kw = Field(
+        DeviceAttributeModel(
+            device_type=DeviceType.BESS_MV_CIRCUIT_METER,
+            source_field_name=Device.capacity_ac.name,
+        ),
+    )

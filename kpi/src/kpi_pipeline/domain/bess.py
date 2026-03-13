@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.protocols import CoordCombinerProtocol
-from kpi_pipeline.domain.general import diff, filter_by_capacity
+from kpi_pipeline.domain.general import cumsum, diff, filter_by_capacity
 
 
 def resting_soc(*, x: xr.DataArray, threshold: float = 0.01) -> xr.DataArray:
@@ -204,32 +204,27 @@ def squeeze_fill_energy_accumulator(
     return energy_ffill.where(np.abs(energy_diff) <= max_step_energy)
 
 
-def mod_difference(*, x: xr.DataArray, modulo: float) -> xr.DataArray:
-    """
-    Take the step-by-step difference of increasing cyclic values.
-    """
-    epsilon = 1e-6
-    difference = diff(x, time_dim=Time.TIME_5MIN_UTC)
-    # the epsilon shift is to prevent very tiny negative numbers from becoming
-    # very large positive numbers.
-    return (difference + epsilon) % modulo - epsilon
-
-
 def reconstruct_accumulator(
-    *, total_energy_kw_5m: xr.DataArray, power_capacity_kw: xr.DataArray, modulo: float
+    *,
+    total_energy_kw_5m: xr.DataArray,
+    modulus: float,
+    max_positive_step: float | None = None,
 ) -> xr.DataArray:
     """
     Turns a cycling accumulation into an increasing monotonic function.
     Importantly, jumps from high value that roll over the the low value
     are captured properly rather than just assuming they are zero.
+    If max_positive_step is provided, any positive jumps greater than
+    max_positive_step are set to zero.
     """
-    difference = mod_difference(x=total_energy_kw_5m, modulo=modulo)
-    max_power_step = power_capacity_kw / 12
-    return (
-        difference.where(difference <= max_power_step)
-        .cumsum(dim=Time.TIME_5MIN_UTC.value)
-        .shift({Time.TIME_5MIN_UTC.value: 1}, fill_value=0)
-    )
+    bfilled = total_energy_kw_5m.bfill(dim=Time.TIME_5MIN_UTC.value)
+    max_negative_step = 1e-6
+    difference = (
+        (diff(bfilled, time_dim=Time.TIME_5MIN_UTC) + max_negative_step) % modulus
+    ) - max_negative_step
+    if max_positive_step is not None:
+        difference = difference.where(difference < max_positive_step)
+    return cumsum(difference, time_dim=Time.TIME_5MIN_UTC)
 
 
 def event_change_to_in_event(*, x: xr.DataArray) -> xr.DataArray:

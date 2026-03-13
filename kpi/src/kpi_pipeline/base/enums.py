@@ -38,6 +38,8 @@ supported_devices: list[DeviceType] = [
     DeviceType.PV_INVERTER,
     DeviceType.MET_STATION,
     DeviceType.TRACKER_ROW,
+    DeviceType.BESS_MV_CIRCUIT_METER,
+    DeviceType.BESS_PCS_MODULE_GROUP,
     DeviceType.PV_INVERTER_MODULE,
     DeviceType.BESS_BLOCK,
     DeviceType.BESS_ENCLOSURE,

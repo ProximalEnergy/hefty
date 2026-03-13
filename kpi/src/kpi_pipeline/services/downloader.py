@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Self
 
 import pandas as pd
@@ -56,8 +56,8 @@ async def _async_get_data_timeseries(
     return await DataTimeseries(
         project_name_short=project_name_short,
         query_start=start,
-        query_end=end,
-        max_lookback_period=TimeOffset.ONE_HOUR,
+        query_end=end + timedelta(minutes=5),
+        max_lookback_period=TimeOffset.TWENTY_FOUR_HOURS,
         project_db=project_db,
         filter_method=FilterMethod.TAG_POLARS,
         filter_values=tags_chunk,

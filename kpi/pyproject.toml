@@ -108,3 +108,4 @@ plugins = ["pydantic.mypy"]
 
 [tool.basedpyright]
 typeCheckingMode = "off"
+extraPaths = ["../core/src"]

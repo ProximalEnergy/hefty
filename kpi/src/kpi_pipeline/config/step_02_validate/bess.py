@@ -1,37 +1,23 @@
+import kpi_pipeline.services.calc as calc
+import kpi_pipeline.services.process as process
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate.utils import _capacity
-from kpi_pipeline.services.calc import (
-    CalcProcess,
-    FilterByCapacityCalc,
-    ProcessCalc,
-    SelectCalc,
-)
-from kpi_pipeline.services.process import (
-    FilterToRangeProcess,
-    ProcessList,
-    VerifyWithinRangeProcess,
-)
 from kpi_pipeline.services.schema import AddCalculationsSchema
 
 
 def _energy_accumulator_validation(field: str) -> Field:
-    return Field(
-        CalcProcess(
-            calc=SelectCalc(var=field),
-            process=FilterToRangeProcess(min_value=0, left_inclusive=False),
-        )
-    )
+    return Field(calc.ProcessCalc(var=field, process=process.BackwardFillProcess()))
 
 
 def _soc(field: str) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=field),
-            process=ProcessList(
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=field),
+            process=process.ProcessList(
                 steps=[
-                    VerifyWithinRangeProcess(min_value=0, max_value=1),
-                    FilterToRangeProcess(
+                    process.VerifyWithinRangeProcess(min_value=0, max_value=1),
+                    process.FilterToRangeProcess(
                         min_value=0.0, max_value=1.0, left_inclusive=False
                     ),
                 ]
@@ -42,12 +28,12 @@ def _soc(field: str) -> Field:
 
 def _soh(var: str) -> Field:
     return Field(
-        ProcessCalc(
+        calc.ProcessCalc(
             var=var,
-            process=ProcessList(
+            process=process.ProcessList(
                 steps=[
-                    VerifyWithinRangeProcess(min_value=0, max_value=1),
-                    FilterToRangeProcess(min_value=0.2, max_value=1),
+                    process.VerifyWithinRangeProcess(min_value=0, max_value=1),
+                    process.FilterToRangeProcess(min_value=0.2, max_value=1),
                 ]
             ),
         )
@@ -56,27 +42,27 @@ def _soh(var: str) -> Field:
 
 def _temperature(field: str) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=field),
-            process=FilterToRangeProcess(min_value=1, max_value=150),
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=field),
+            process=process.FilterToRangeProcess(min_value=1, max_value=150),
         ),
     )
 
 
 def _voltage(field: str) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=field),
-            process=FilterToRangeProcess(min_value=0, max_value=8),
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=field),
+            process=process.FilterToRangeProcess(min_value=0, max_value=8),
         ),
     )
 
 
 def _current(field: str) -> Field:
     return Field(
-        CalcProcess(
-            calc=SelectCalc(var=field),
-            process=FilterToRangeProcess(min_value=-1000, max_value=1000),
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=field),
+            process=process.FilterToRangeProcess(min_value=-1000, max_value=1000),
         ),
     )
 
@@ -120,6 +106,16 @@ class ValidateBESS(AddCalculationsSchema):
     meter_total_delivered_energy_kwh_5m = _energy_accumulator_validation(
         Download.time_series.meter_total_delivered_energy_kwh_5m.var
     )
+    bess_circuit_total_energy_charged_kwh_5m = _energy_accumulator_validation(
+        Download.time_series.bess_circuit_total_energy_charged_kwh_5m.var
+    )
+    bess_circuit_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
+        Download.time_series.bess_circuit_total_energy_discharged_kwh_5m.var
+    )
+
+    project_total_aux_energy_kwh_5m = _energy_accumulator_validation(
+        Download.time_series.project_total_aux_energy_kwh_5m.var
+    )
     bess_pcs_power_capacity_kw = _capacity(
         Download.device_attributes.bess_pcs_power_capacity_kw.var
     )
@@ -160,7 +156,7 @@ class ValidateBESS(AddCalculationsSchema):
     # Power validation
 
     bess_pcs_power_kw_5m = Field(
-        FilterByCapacityCalc(
+        calc.FilterByCapacityCalc(
             data_var=Download.time_series.bess_pcs_power_kw_5m.var,
             capacity_var=Download.device_attributes.bess_pcs_power_capacity_kw.var,
             min_capacity_factor=-1.0,
@@ -169,7 +165,7 @@ class ValidateBESS(AddCalculationsSchema):
     )
 
     bess_string_power_kw_5m = Field(
-        FilterByCapacityCalc(
+        calc.FilterByCapacityCalc(
             data_var=Download.time_series.bess_string_power_kw_5m.var,
             capacity_var=Download.device_attributes.bess_string_power_capacity_kw.var,
             min_capacity_factor=-1.0,

@@ -78,6 +78,20 @@ class DownloadTimeSeriesDataBESS(DownloadTimeSeriesSchema):
         ),
     )
 
+    bess_circuit_total_energy_charged_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.BESS_MV_CIRCUIT_METER_CONSUMED_ENERGY,
+            scale=1000,
+        ),
+    )
+
+    bess_circuit_total_energy_discharged_kwh_5m = Field(
+        SensorModel(
+            sensor_type=SensorType.BESS_MV_CIRCUIT_METER_DELIVERED_ENERGY,
+            scale=1000,
+        ),
+    )
+
     project_power_kw_5m = Field(
         SensorModel(
             sensor_type=SensorType.METER_ACTIVE_POWER,
