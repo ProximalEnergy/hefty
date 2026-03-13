@@ -313,7 +313,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
                   {' '}
                   {[
                     stats.pcsEventsCount > 0 &&
-                      `PV PCS (${stats.pcsEventsCount})`,
+                      `PV Inverter (${stats.pcsEventsCount})`,
                     stats.pvBlockEventsCount > 0 &&
                       `PV Block (${stats.pvBlockEventsCount})`,
                     stats.pvCircuitEventsCount > 0 &&

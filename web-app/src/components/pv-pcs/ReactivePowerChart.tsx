@@ -220,7 +220,7 @@ export const ReactivePowerChart = ({
         onRelayout={handleRelayout}
         isLoading={realtimeData.isLoading}
         error={realtimeData.error}
-        noDataMessage="No data available. Required sensor types: PV PCS Reactive Power (optional: PV PCS Reactive Power Setpoint)"
+        noDataMessage="No data available. Required sensor types: PV Inverter Reactive Power (optional: PV Inverter Reactive Power Setpoint)"
       />
     </CustomCard>
   )

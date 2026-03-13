@@ -423,7 +423,7 @@ async def get_vertical_controller(
             project.spec.used_sensor_type_ids  # type: ignore[attr-defined]
         )
         if spec_used_sensor_type_ids is not None:
-            # If we do not have PV PCS Module Power tags, remove the PV PCS
+            # If we do not have PV Inverter Module Power tags, remove the PV Inverter
             # Module device type
             if 3 not in spec_used_sensor_type_ids and 3 in device_type_ids:
                 device_type_ids.remove(3)

@@ -81,7 +81,7 @@ const Page = ({
     sensorTypeIds: string[]
   }[] = [
     {
-      label: 'PV PCS',
+      label: 'PV Inverter',
       deviceId: '2',
       sensorTypeIds: [
         String(SensorTypeEnum.PV_INVERTER_AC_POWER),
@@ -89,7 +89,7 @@ const Page = ({
       ],
     },
     {
-      label: 'PV PCS Module',
+      label: 'PV Inverter Module',
       deviceId: '3',
       sensorTypeIds: [String(SensorTypeEnum.PV_INVERTER_MODULE_AC_POWER)],
     },
@@ -425,9 +425,9 @@ const Page = ({
   const largeYAxisTitle = (() => {
     switch (deviceTypeId) {
       case DeviceTypeEnum.PV_INVERTER_MODULE:
-        return 'PV PCS'
+        return 'PV Inverter'
       case DeviceTypeEnum.PV_DC_COMBINER:
-        return 'PV PCS'
+        return 'PV Inverter'
       case DeviceTypeEnum.BESS_STRING:
         return 'BESS PCS'
       case DeviceTypeEnum.TRACKER_ROW:
@@ -448,7 +448,7 @@ const Page = ({
       case DeviceTypeEnum.PV_INVERTER:
         return (
           <Stack gap="xs">
-            <Text fw={600}>Understanding PV PCS Power Output</Text>
+            <Text fw={600}>Understanding PV Inverter Power Output</Text>
             <Text size="sm">
               This chart displays the real-time power output of each PV
               Inverter.
@@ -499,9 +499,10 @@ const Page = ({
       case DeviceTypeEnum.PV_INVERTER_MODULE:
         return (
           <Stack gap="xs">
-            <Text fw={600}>Understanding PV PCS Module Performance</Text>
+            <Text fw={600}>Understanding PV Inverter Module Performance</Text>
             <Text size="sm">
-              This chart shows the power output of individual PV PCS modules.
+              This chart shows the power output of individual PV Inverter
+              modules.
             </Text>
             <Text size="sm">
               <Text component="span" fw={500}>

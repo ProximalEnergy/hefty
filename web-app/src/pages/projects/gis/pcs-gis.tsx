@@ -478,7 +478,7 @@ function TitleCard({
       <Paper p="xs" withBorder>
         <Stack gap="xs">
           <Title order={3} lh={1}>
-            PV PCS GIS
+            PV Inverter GIS
           </Title>
           {as_of && (
             <Text lh={1}>

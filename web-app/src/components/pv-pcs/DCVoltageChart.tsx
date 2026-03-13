@@ -193,7 +193,7 @@ export const DCVoltageChart = ({ realtimeData }: DCVoltageChartProps) => {
             ? moduleRealtimeData.error
             : realtimeData.error
         }
-        noDataMessage="No data available. Required sensor types: PV PCS DC Voltage, PV PCS Module DC Voltage"
+        noDataMessage="No data available. Required sensor types: PV Inverter DC Voltage, PV Inverter Module DC Voltage"
       />
     </CustomCard>
   )

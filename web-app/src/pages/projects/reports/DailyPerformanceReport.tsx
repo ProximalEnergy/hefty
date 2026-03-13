@@ -1705,7 +1705,7 @@ const Page: React.FC = () => {
       (kpi: OperationalKPIData) =>
         kpi.kpi_type_id === KPITypeEnum.PV_INVERTER_MODULE_ENERGY_PRODUCTION,
     )
-    // PV+Storage: prefer PV PCS energy; fall back to POI for chart only when no PV PCS data
+    // PV+Storage: prefer PV Inverter energy; fall back to POI for chart only when no PV Inverter data
     const generationKpi = isPvs
       ? (pvPcsKpi ?? pvPcsModuleKpi ?? poiKpi)
       : poiKpi
@@ -2921,9 +2921,10 @@ const Page: React.FC = () => {
                     <Text component="span" fw={500}>
                       PV+Storage:
                     </Text>{' '}
-                    Actual energy is PV PCS Energy (PV-only, excludes storage).
-                    If PV PCS data is not available, the chart falls back to POI
-                    energy so the Actual series still displays.
+                    Actual energy is PV Inverter Energy (PV-only, excludes
+                    storage). If PV Inverter data is not available, the chart
+                    falls back to POI energy so the Actual series still
+                    displays.
                   </Text>
                 )}
               </Stack>

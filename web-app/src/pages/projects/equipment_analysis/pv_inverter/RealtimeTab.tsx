@@ -57,7 +57,7 @@ const RealtimeTab = () => {
   // Only include expected power values if the project has expected energy integration
   const hasExpectedIntegration = project.data?.has_expected_energy_integration
 
-  // Get all PV PCS devices for CMMS tickets
+  // Get all PV Inverter devices for CMMS tickets
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
@@ -95,7 +95,7 @@ const RealtimeTab = () => {
     },
   })
 
-  // Get active events for PV PCS devices
+  // Get active events for PV Inverter devices
   const activeEvents = useGetEventsSummary({
     pathParams: { projectId: projectId || '-1' },
     queryParams: {
@@ -174,7 +174,7 @@ const RealtimeTab = () => {
     },
   })
 
-  // Get CMMS tickets for PV PCS devices
+  // Get CMMS tickets for PV Inverter devices
   const cmmsTickets = useGetCMMSTickets({
     pathParams: { project_id: projectId || '-1' },
     queryParams: {

@@ -51,7 +51,7 @@ Availability formulas live in Excel, so users can adjust _Available Min_ or _Irr
 
 ## Module Availability (when reported)
 
-If the project provides _PV PCS Module AC Power_:
+If the project provides _PV Inverter Module AC Power_:
 
 1. **Repeat Steps 1-4** using module-level power.
 2. **Add sheets** – **Module Availability** and **Module Power** – mirroring the inverter sheets.

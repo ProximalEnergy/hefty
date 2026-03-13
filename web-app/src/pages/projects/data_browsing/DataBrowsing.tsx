@@ -197,7 +197,7 @@ const DataBrowsing = () => {
     const expectedPowerSensorTypes = {
       2: {
         sensor_type_id: -2,
-        name_long: 'PV PCS Expected Power',
+        name_long: 'PV Inverter Expected Power',
         name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
@@ -373,7 +373,7 @@ const DataBrowsing = () => {
     const expectedPowerSensorTypes = {
       2: {
         sensor_type_id: -2,
-        name_long: 'PV PCS Expected Power',
+        name_long: 'PV Inverter Expected Power',
         name_metric: 'Expected Power',
         unit: 'MW',
       } as unknown as SensorType,
@@ -922,7 +922,7 @@ const DataBrowsing = () => {
                       </Text>
                       <Text size="xs" mb={8}>
                         Display tags with their full descriptive names (e.g.,
-                        &quot;PV PCS Device Name Power&quot;). This format
+                        &quot;PV Inverter Device Name Power&quot;). This format
                         includes device type, device name, and sensor type for
                         easy identification.
                       </Text>

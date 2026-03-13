@@ -391,7 +391,7 @@ export const ActivePowerChart = ({
             onRelayout={handleRelayout}
             isLoading={realtimeData.isLoading || pcsExpectedPower.isLoading}
             error={realtimeData.error || pcsExpectedPower.error}
-            noDataMessage="No data available. Required sensor types: PV PCS AC Power (optional: PV PCS AC Power Setpoint)"
+            noDataMessage="No data available. Required sensor types: PV Inverter AC Power (optional: PV Inverter AC Power Setpoint)"
           />
         </div>
         <div

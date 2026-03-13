@@ -80,10 +80,10 @@ const DEVICE_TYPE_CONFIG: Record<
   },
   2: {
     icon: '/icon_pv_pcs.svg',
-    displayName: 'PV PCS',
+    displayName: 'PV Inverter',
     order: 3,
     category: 'pv',
-    powerTooltip: 'Total PV PCS AC Power output',
+    powerTooltip: 'Total PV Inverter AC Power output',
     sensorTypes: { pcs: [2, 136, 144] },
   },
   9: {

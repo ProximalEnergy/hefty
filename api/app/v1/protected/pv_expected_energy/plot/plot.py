@@ -111,7 +111,7 @@ async def utility_expected(
         multiplier = 1_000.0
         expected_device_ids = [1]
         pv_dc_combiner = False
-    # PV PCS
+    # PV Inverter
     elif device["device_type_id"] == DeviceType.PV_INVERTER:
         sensor_type_ids = [SensorType.PV_INVERTER_AC_POWER]
         expected_metric_id_clean = 9 if not warranted_degradation else 3
@@ -138,7 +138,7 @@ async def utility_expected(
             device_id_path_ancestor_of=device["device_id_path"],
         ).get_async(output_type=OutputType.PANDAS, schema=project_schema)
         if device_pv_inverter_df.empty:
-            raise HTTPException(status_code=404, detail="PV PCS device not found")
+            raise HTTPException(status_code=404, detail="PV Inverter device not found")
         device_pv_inverter = device_pv_inverter_df.to_dict("records")[0]
 
         devices_pv_inverter_modules_df = (
@@ -160,8 +160,8 @@ async def utility_expected(
         )
 
         ## Kind of a hacky workaround:
-        ## If there are no tags for PV PCS Module Voltage,
-        ## try using PV PCS DC Voltage instead.
+        ## If there are no tags for PV Inverter Module Voltage,
+        ## try using PV Inverter DC Voltage instead.
         if tags_pv_inverter_module_voltage.empty:
             tags_pv_inverter_module_voltage = (
                 await core.crud.project.tags.get_project_tags_v2(

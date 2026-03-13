@@ -28,7 +28,7 @@ def pv_dc_combiner_module_excess_degradation(
     module_to_pcs_combiner: CoordCombinerProtocol,
     final_time_combiner: CoordCombinerProtocol,
     pv_inverter_ac_power_setpoint_kw_5m: xr.DataArray | None = None,
-    # todo: for north star use pv pcs voltage
+    # todo: for north star use pv inverter voltage
     pv_inverter_voltage_v_5m: xr.DataArray | None = None,
     min_poa: float = 250.0,
     max_poa_1d: float = 20.0,

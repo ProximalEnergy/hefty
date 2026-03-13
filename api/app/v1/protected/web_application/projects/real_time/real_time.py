@@ -441,7 +441,7 @@ async def _calculate_dc_combiner_power_sum(
         if pd.notna(device_dict[dev_id]["parent_device_id"])
     }
 
-    # Get PV PCS Modules for voltage data
+    # Get PV Inverter Modules for voltage data
     parent_device_ids_query: list[int | None] = [
         parent_id for parent_id in parent_pcs_ids
     ]

@@ -227,7 +227,7 @@ const PCSEquipmentAnalysis = () => {
   const [modalActiveTab, setModalActiveTab] = useState<string>('overview')
   const modalContentRef = useRef<HTMLDivElement>(null)
 
-  // Get all PV PCS devices for header
+  // Get all PV Inverter devices for header
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
     filters: {
@@ -666,7 +666,7 @@ const PCSEquipmentAnalysis = () => {
 
   return (
     <Stack p="md" h="100%">
-      <PageTitle>PV PCS Performance</PageTitle>
+      <PageTitle>PV Inverter Performance</PageTitle>
 
       {/* Common Header - Visible across all tabs */}
       <Stack gap="md">
@@ -1773,8 +1773,8 @@ const PCSEquipmentAnalysis = () => {
           <Tabs.Panel value="long-term" pt="md">
             <Text c="dimmed">
               This tab and page are still under development and are only visible
-              to superadmins. The long-term PV PCS performance view needs to be
-              created.
+              to superadmins. The long-term PV Inverter performance view needs
+              to be created.
             </Text>
           </Tabs.Panel>
         )}

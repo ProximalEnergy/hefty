@@ -302,7 +302,7 @@ const DcFieldRootCauseSelection = ({
   }
 
   // For DC Field events, allow root causes for DC Field (device_type_id 30)
-  // and related device types like PV PCS (2) and PV DC Combiner (9)
+  // and related device types like PV Inverter (2) and PV DC Combiner (9)
   const rootCauseDeviceTypes = [30, 2, 9]
   const shownRootCauses = showAllCauses
     ? rootCauses?.data

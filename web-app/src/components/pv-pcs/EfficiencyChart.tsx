@@ -481,7 +481,7 @@ export const EfficiencyChart = ({ devices }: EfficiencyChartProps) => {
           moduleDcPowerTimeSeries.error ||
           pcsModuleDevices.error
         }
-        noDataMessage="No data available. Required sensor types: PV PCS AC Power, PV PCS DC Power (or PV PCS Module AC Power, PV PCS Module DC Power as fallback)"
+        noDataMessage="No data available. Required sensor types: PV Inverter AC Power, PV Inverter DC Power (or PV Inverter Module AC Power, PV Inverter Module DC Power as fallback)"
       />
     </CustomCard>
   )

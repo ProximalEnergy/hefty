@@ -87,7 +87,7 @@ export const ACVoltageChart = ({ realtimeData }: ACVoltageChartProps) => {
         }}
         isLoading={realtimeData.isLoading}
         error={realtimeData.error}
-        noDataMessage="No data available. Required sensor types: PV PCS Voltage LL AB (optional: PV PCS Voltage LL BC, PV PCS Voltage LL CA)"
+        noDataMessage="No data available. Required sensor types: PV Inverter Voltage LL AB (optional: PV Inverter Voltage LL BC, PV Inverter Voltage LL CA)"
       />
     </CustomCard>
   )

@@ -1652,13 +1652,13 @@ const ProjectTagExplorer = () => {
               />
             </Tooltip>
             <Tooltip
-              label="Device comes first, then a full name for the sensor type. Each word starts with a capital letter. Example: PV PCS AC Power, Tracker Position"
+              label="Device comes first, then a full name for the sensor type. Each word starts with a capital letter. Example: PV Inverter AC Power, Tracker Position"
               position="top"
               multiline
             >
               <TextInput
                 label="Long Name"
-                placeholder="e.g., PV PCS AC Power"
+                placeholder="e.g., PV Inverter AC Power"
                 required
                 {...createSensorTypeForm.getInputProps('name_long')}
                 onChange={(event) => {

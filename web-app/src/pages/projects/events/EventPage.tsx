@@ -527,10 +527,10 @@ const Page = () => {
 
   // If project.has_pv_dc_combiners is true, and we are on a PV DC Combiner (device_type_id 9) event,
   // allow root causes for DC Field (device_type_id 30).
-  // If project.has_pv_dc_combiners is false, and we are on a PV PCS (device_type_id 2) event,
+  // If project.has_pv_dc_combiners is false, and we are on a PV Inverter (device_type_id 2) event,
   // allow root causes for DC Field (device_type_id 30)
-  // If we are on a PV PCS Module (device_type_id 3) event,
-  // allow root causes for PV PCS (device_type_id 2)
+  // If we are on a PV Inverter Module (device_type_id 3) event,
+  // allow root causes for PV Inverter (device_type_id 2)
   const rootCauseDeviceTypes: number[] = [event?.device?.device_type_id || -1]
   if (
     project.data?.has_pv_dc_combiners &&

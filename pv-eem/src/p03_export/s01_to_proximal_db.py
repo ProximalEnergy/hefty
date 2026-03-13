@@ -25,7 +25,7 @@ class ExpectedMetricId(Enum):
     PV_DC_COMBINER_POWER_BASE = 7  # [ ] [ ]
     PV_DC_COMBINER_POWER_SOILING = 8  # [v] [ ]
 
-    # PV PCS Power (type_id=2) combinations
+    # PV Inverter Power (type_id=2) combinations
     PV_PCS_POWER_DEGRADATION = 3  # [ ] [v]
     PV_PCS_POWER_SOILING_DEGRADATION = 4  # [v] [v]
     PV_PCS_POWER_BASE = 9  # [ ] [ ]
@@ -72,7 +72,7 @@ def upload_to_proximal_db(
                 ExpectedMetricId.PV_DC_COMBINER_POWER_SOILING_DEGRADATION.value
             )
 
-        # PV PCS Power (INVERTER)
+        # PV Inverter Power (INVERTER)
         case (SimulationLevel.INVERTER, False, False):
             value_column_name = "p_mp"
             expected_metric_id = ExpectedMetricId.PV_PCS_POWER_BASE.value

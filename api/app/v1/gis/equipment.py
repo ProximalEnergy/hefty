@@ -859,7 +859,7 @@ async def utility_expected(
                 detail="Could not determine parent PCS IDs for the given combiners.",
             )
 
-        # DB Call 1: Fetch all relevant PV PCS Modules using parent IDs
+        # DB Call 1: Fetch all relevant PV Inverter Modules using parent IDs
         all_pcs_modules_df = await core.crud.project.devices.get_project_devices(
             device_type_ids=[DeviceType.PV_INVERTER_MODULE],
             parent_device_ids=[typing.cast(int, pid) for pid in parent_pcs_ids],
@@ -889,7 +889,7 @@ async def utility_expected(
             # handles empty cases
             raise HTTPException(
                 status_code=404,
-                detail="Could not find PV PCS Modules for parent PCS devices.",
+                detail="Could not find PV Inverter Modules for parent PCS devices.",
             )
 
         # DB Call for current tags (combiners)
