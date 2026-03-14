@@ -3,7 +3,7 @@ import { Project } from '@/api/v1/operational/projects'
 import { evaluateFilterCriteria } from '@/hooks/custom'
 import { ProjectFilterCriteria } from '@/providers/ProjectDropdownContext'
 
-export const isDisabled = (
+const isDisabled = (
   projectId: string,
   filterCriteria: ProjectFilterCriteria | null,
   project: Project,
@@ -27,4 +27,38 @@ export const isDisabled = (
 
   // If no filter criteria is provided and the project is not the current project, enable the project
   return false
+}
+
+export const resolveProjectNavigationPath = (
+  newProjectId: string,
+  currentProjectId: string | undefined,
+  projects: Project[] | undefined,
+  reportInstances: ReportInstance[] | undefined,
+  filterCriteria: ProjectFilterCriteria | null | undefined,
+): string => {
+  const selectedProject = projects?.find(
+    (project) => project.project_id === newProjectId,
+  )
+
+  const shouldNavigateToProjectHome =
+    !!selectedProject &&
+    !!reportInstances &&
+    !!filterCriteria &&
+    !!currentProjectId &&
+    isDisabled(
+      currentProjectId,
+      filterCriteria,
+      selectedProject,
+      reportInstances,
+    )
+
+  if (shouldNavigateToProjectHome || !currentProjectId) {
+    return `/projects/${newProjectId}`
+  }
+
+  const updatedPath = location.pathname.replace(
+    /projects\/[^/]+/,
+    `projects/${newProjectId}`,
+  )
+  return `${updatedPath}${location.search}`
 }

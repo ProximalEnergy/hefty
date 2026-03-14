@@ -4,7 +4,7 @@ import {
 } from '@/api/v1/operational/kpi_instances'
 import { useGetProjects } from '@/api/v1/operational/projects'
 import { useGetReportInstances } from '@/api/v1/operational/report_instances'
-import { isDisabled } from '@/pages/layout/header/ProjectDropdown.utils'
+import { resolveProjectNavigationPath } from '@/pages/layout/header/ProjectDropdown.utils'
 import { useProjectDropdown } from '@/providers/ProjectDropdownContext'
 import {
   Spotlight,
@@ -169,15 +169,15 @@ export function ProjectSpotlight() {
   const reportInstances = useGetReportInstances({})
 
   const onClick = (newProjectId: string) => {
-    if (!projectId) {
-      navigate(`/projects/${newProjectId}`)
-    } else {
-      const updatedPath = location.pathname.replace(
-        /projects\/[^/]+/,
-        `projects/${newProjectId}`,
-      )
-      navigate(`${updatedPath}${location.search}`)
-    }
+    navigate(
+      resolveProjectNavigationPath(
+        newProjectId,
+        projectId,
+        projects.data,
+        reportInstances.data,
+        filterCriteria,
+      ),
+    )
   }
 
   if (!isProjectDropdownEnabled) {
@@ -188,15 +188,7 @@ export function ProjectSpotlight() {
 
   const actions: SpotlightActionData[] = dataLoaded
     ? projects.data
-        .filter(
-          (project) =>
-            !isDisabled(
-              projectId || '',
-              filterCriteria,
-              project,
-              reportInstances.data,
-            ),
-        )
+        .filter((project) => project.project_id !== projectId)
         .map((project) => ({
           id: `project-${project.project_id}`,
           label: project.name_long,

@@ -6,7 +6,7 @@ import { useDidUpdate, useOs } from '@mantine/hooks'
 import { useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
-import { isDisabled } from './ProjectDropdown.utils'
+import { resolveProjectNavigationPath } from './ProjectDropdown.utils'
 
 const ProjectDropdown = () => {
   // Detect if the user is on macOS
@@ -43,11 +43,19 @@ const ProjectDropdown = () => {
   }
 
   const handleSelectChange = (newProjectId: string | null) => {
-    const updatedPath = location.pathname.replace(
-      /projects\/[^/]+/,
-      `projects/${newProjectId}`,
+    if (!newProjectId) {
+      return
+    }
+
+    navigate(
+      resolveProjectNavigationPath(
+        newProjectId,
+        projectId,
+        projects.data,
+        reportInstances.data,
+        filterCriteria,
+      ),
     )
-    navigate(`${updatedPath}${location.search}`)
   }
 
   const selectDataLoaded = projects.data && reportInstances.data
@@ -70,12 +78,7 @@ const ProjectDropdown = () => {
                 .map((project) => ({
                   value: String(project.project_id),
                   label: project.name_long,
-                  disabled: isDisabled(
-                    projectId,
-                    filterCriteria,
-                    project,
-                    reportInstances.data,
-                  ),
+                  disabled: project.project_id === projectId,
                 }))
             : []
         }
