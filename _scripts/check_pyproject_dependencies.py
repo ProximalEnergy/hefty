@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 import tomllib
 from pathlib import Path
@@ -109,13 +110,11 @@ def has_upper_bound(
 
 def check_pyproject(*, path: Path, errors: list[str]) -> None:
     try:
-        content = path.read_bytes()
+        with path.open("rb") as file_handle:
+            data = tomllib.load(file_handle)
     except FileNotFoundError:
         errors.append(f"{path} not found")
         return
-
-    try:
-        data = tomllib.loads(content.decode())
     except tomllib.TOMLDecodeError as exc:
         errors.append(f"{path} is not valid TOML: {exc}")
         return
@@ -155,11 +154,38 @@ def check_pyproject(*, path: Path, errors: list[str]) -> None:
 
 
 def discover_pyprojects(*, root: Path) -> list[Path]:
+    try:
+        output = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(root),
+                "grep",
+                "--untracked",
+                "-l",
+                "",
+                "--",
+                "pyproject.toml",
+                "**/pyproject.toml",
+            ],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.SubprocessError:
+        return discover_pyprojects_via_walk(root=root)
+
+    paths = [root / rel for rel in output.splitlines() if rel]
+    return sorted(paths)
+
+
+def discover_pyprojects_via_walk(*, root: Path) -> list[Path]:
     paths: list[Path] = []
-    for path in root.rglob("pyproject.toml"):
-        if any(part in SKIP_DIRS for part in path.parts):
-            continue
-        paths.append(path)
+    for current_root, dir_names, file_names in root.walk(top_down=True):
+        dir_names[:] = [
+            dir_name for dir_name in dir_names if dir_name not in SKIP_DIRS
+        ]
+        if "pyproject.toml" in file_names:
+            paths.append(current_root / "pyproject.toml")
     return sorted(paths)
 
 

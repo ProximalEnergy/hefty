@@ -227,7 +227,7 @@ echo "No package.json or package-lock.json found in the root directory."
 [tasks."root:pyproject_dependencies"]
 description = "Check for undeclared or mismatched dependencies in pyproject.toml"
 dir = "."
-run = "uv run python _scripts/check_pyproject_dependencies.py"
+run = "uv run --no-sync python _scripts/check_pyproject_dependencies.py"
 
 [tasks."root:codegen"]
 description = "Automatically generate interfaces"
