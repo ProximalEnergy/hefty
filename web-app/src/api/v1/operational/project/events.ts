@@ -3,7 +3,7 @@ import { useCustomQuery } from '@/hooks/api'
 import { Tag } from '@/hooks/projectTags'
 import * as types from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
   useMutation,

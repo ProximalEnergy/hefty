@@ -8,7 +8,7 @@ import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfoli
 import { NoData, PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
 import { useTipsPersonalPortfolio } from '@/components/Tips'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   Box,
   Group,
@@ -134,103 +134,104 @@ function PortfolioHome() {
     (project) =>
       project.project_status_type_id === ProjectStatusTypeId.ARCHIVED,
   )
-
   return (
     <Box p="md">
-      <Tabs
-        value={activeTab}
-        onChange={(value) => {
-          if (value) {
-            const newParams = new URLSearchParams(searchParams)
-            newParams.set('tab', value)
-            setSearchParams(newParams)
-          }
-        }}
-        variant="default"
-      >
-        <Tabs.List>
-          <Tabs.Tab value="active">Active ({activeProjects.length})</Tabs.Tab>
-          {isUserSuperadmin && (
-            <Tabs.Tab value="onboarding">
-              Onboarding ({onboardingProjects.length})
-            </Tabs.Tab>
-          )}
-          {isUserSuperadmin && (
-            <Tabs.Tab value="archived">
-              Archived ({archivedProjects.length})
-            </Tabs.Tab>
-          )}
-          {isUserSuperadmin && (
-            <Tabs.Tab
-              value="create"
-              onClick={() => navigate('/portfolio/create-project')}
-            >
-              Create New Project
-            </Tabs.Tab>
-          )}
-        </Tabs.List>
+      <Stack gap="md">
+        <Tabs
+          value={activeTab}
+          onChange={(value) => {
+            if (value) {
+              const newParams = new URLSearchParams(searchParams)
+              newParams.set('tab', value)
+              setSearchParams(newParams)
+            }
+          }}
+          variant="default"
+        >
+          <Tabs.List>
+            <Tabs.Tab value="active">Active ({activeProjects.length})</Tabs.Tab>
+            {isUserSuperadmin && (
+              <Tabs.Tab value="onboarding">
+                Onboarding ({onboardingProjects.length})
+              </Tabs.Tab>
+            )}
+            {isUserSuperadmin && (
+              <Tabs.Tab value="archived">
+                Archived ({archivedProjects.length})
+              </Tabs.Tab>
+            )}
+            {isUserSuperadmin && (
+              <Tabs.Tab
+                value="create"
+                onClick={() => navigate('/portfolio/create-project')}
+              >
+                Create New Project
+              </Tabs.Tab>
+            )}
+          </Tabs.List>
 
-        {/* Project Search */}
-        <Stack pt="md">
-          <Group justify="space-between" align="center">
-            <Title order={4} size="h5">
-              Project Search
-            </Title>
-            <SegmentedControl
-              value={timeParam}
-              data={[
-                { label: '24 hours', value: '24h' },
-                { label: '30 days', value: '30d' },
-              ]}
-              onChange={(value) => {
-                const newParams = new URLSearchParams(searchParams)
-                newParams.set('time', value)
-                setSearchParams(newParams)
-              }}
+          {/* Project Search */}
+          <Stack pt="md">
+            <Group justify="space-between" align="center">
+              <Title order={4} size="h5">
+                Project Search
+              </Title>
+              <SegmentedControl
+                value={timeParam}
+                data={[
+                  { label: '24 hours', value: '24h' },
+                  { label: '30 days', value: '30d' },
+                ]}
+                onChange={(value) => {
+                  const newParams = new URLSearchParams(searchParams)
+                  newParams.set('time', value)
+                  setSearchParams(newParams)
+                }}
+              />
+            </Group>
+            <TextInput
+              placeholder="Search by project name"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.currentTarget.value)}
             />
-          </Group>
-          <TextInput
-            placeholder="Search by project name"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.currentTarget.value)}
-          />
-        </Stack>
+          </Stack>
 
-        {/* Active Projects Section */}
-        <Tabs.Panel value="active">
-          <ActiveProjectsTab
-            projects={projects.data}
-            portfolioHomeData={portfolioHome.data}
-            projectDataLastUpdated={projectDataLastUpdated.data}
-            userProjects={userProjects.data || []}
-            searchTerm={debouncedSearchTerm}
-            time={timeParam as '24h' | '30d'}
-          />
-        </Tabs.Panel>
-
-        {/* Projects Under Commissioning Section */}
-        {isUserSuperadmin && (
-          <Tabs.Panel value="onboarding">
-            <OnboardingProjectsTab
-              projects={projects.data || []}
-              searchTerm={debouncedSearchTerm}
-            />
-          </Tabs.Panel>
-        )}
-
-        {/* Archived Projects Section */}
-        {isUserSuperadmin && (
-          <Tabs.Panel value="archived">
-            <ArchivedProjectsTab
+          {/* Active Projects Section */}
+          <Tabs.Panel value="active">
+            <ActiveProjectsTab
               projects={projects.data}
               portfolioHomeData={portfolioHome.data}
               projectDataLastUpdated={projectDataLastUpdated.data}
+              userProjects={userProjects.data || []}
               searchTerm={debouncedSearchTerm}
               time={timeParam as '24h' | '30d'}
             />
           </Tabs.Panel>
-        )}
-      </Tabs>
+
+          {/* Projects Under Commissioning Section */}
+          {isUserSuperadmin && (
+            <Tabs.Panel value="onboarding">
+              <OnboardingProjectsTab
+                projects={projects.data || []}
+                searchTerm={debouncedSearchTerm}
+              />
+            </Tabs.Panel>
+          )}
+
+          {/* Archived Projects Section */}
+          {isUserSuperadmin && (
+            <Tabs.Panel value="archived">
+              <ArchivedProjectsTab
+                projects={projects.data}
+                portfolioHomeData={portfolioHome.data}
+                projectDataLastUpdated={projectDataLastUpdated.data}
+                searchTerm={debouncedSearchTerm}
+                time={timeParam as '24h' | '30d'}
+              />
+            </Tabs.Panel>
+          )}
+        </Tabs>
+      </Stack>
     </Box>
   )
 }

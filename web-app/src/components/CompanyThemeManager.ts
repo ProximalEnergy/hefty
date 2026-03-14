@@ -1,7 +1,7 @@
 import { KnownMantineColor } from '@/contexts/ThemeContext'
 import { useTheme } from '@/contexts/ThemeContext.utils'
 import { CustomColors } from '@/utils/themes'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import { useEffect } from 'react'
 
 const COMPANY_THEME_CONFIG: Record<string, KnownMantineColor | CustomColors> = {

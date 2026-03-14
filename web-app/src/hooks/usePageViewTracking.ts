@@ -1,5 +1,5 @@
 import { useGetUserSelf } from '@/api/v1/admin/users'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import { usePostHog } from '@posthog/react'
 import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router'

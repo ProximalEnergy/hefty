@@ -2,7 +2,7 @@ import type * as types from '@/api/schema'
 import type { Endpoint } from '@/api/utils'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
   useMutation,

@@ -1,7 +1,7 @@
 import type * as types from '@/api/schema'
 import { useCustomQuery } from '@/hooks/api'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { UseQueryOptions, useMutation } from '@tanstack/react-query'
 
 export type PVBudgetedSeries = types.components['schemas']['PVBudgetedSeries']

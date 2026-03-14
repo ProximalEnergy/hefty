@@ -3,7 +3,7 @@ import {
   useEnsureVectorStore,
 } from '@/api/v1/ai/voice-chat'
 import { baseURL } from '@/urlConfig'
-import { useAuth, useUser } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/react'
 import {
   ActionIcon,
   Badge,

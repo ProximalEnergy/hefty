@@ -1,5 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import { useClerk, useUser } from '@clerk/clerk-react'
+import { useClerk, useUser } from '@clerk/react'
 import { Avatar, Menu, UnstyledButton, rem } from '@mantine/core'
 import {
   IconBuilding,

@@ -7,7 +7,7 @@ import {
 import { useSelectProject } from '@/api/v1/operational/projects'
 import ConfirmationModal from '@/components/modals/ConfirmationModal'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import {
   ActionIcon,
   Button,

@@ -1,6 +1,6 @@
 import { ProjectTypeEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { useAuth, useUser } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/react'
 import {
   ActionIcon,
   Box,
@@ -75,10 +75,17 @@ const INITIAL_QUESTION_OPTIONS: {
   },
 ]
 
+const environment = import.meta.env.VITE_ENVIRONMENT
+const chatUrlOverride = import.meta.env.VITE_CHAT_WS_URL?.trim()
+
 let url: string
-if (import.meta.env.VITE_ENVIRONMENT === 'PRODUCTION') {
-  url = 'wss://chat.proximal.energy/ws'
-} else if (import.meta.env.VITE_ENVIRONMENT === 'STAGING') {
+if (chatUrlOverride) {
+  url = chatUrlOverride
+} else if (
+  environment === 'PRODUCTION' ||
+  environment === 'STAGING' ||
+  environment === 'SANDBOX'
+) {
   url = 'wss://chat.proximal.energy/ws'
 } else {
   url = 'ws://127.0.0.1:8001/ws'

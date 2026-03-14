@@ -5,18 +5,22 @@ applications:
       phases:
         preBuild:
           commands:
-            - nvm use 22
-            - rm -rf node_modules package-lock.json
-            - npm install
+            - curl -LsSf https://mise.run | sh
+            - $HOME/.local/bin/mise install node pnpm
+            - rm -rf node_modules
+            - >-
+              $HOME/.local/bin/mise exec --
+              env PNPM_STORE_DIR=.pnpm-store pnpm install --frozen-lockfile
             - 'echo "{\"version\": \"$(git rev-parse HEAD)\"}" > ./public/version.json'
         build:
           commands:
             - export NODE_OPTIONS=--max_old_space_size=10240
-            - npm run build
+            - $HOME/.local/bin/mise exec -- pnpm run build
       artifacts:
         baseDirectory: dist
         files:
           - "**/*"
       cache:
         paths:
+          - .pnpm-store/**/*
           - node_modules/**/*

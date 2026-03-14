@@ -1,4 +1,4 @@
-import { SignIn as ClerkSignIn } from '@clerk/clerk-react'
+import { SignIn as ClerkSignIn } from '@clerk/react'
 import { Center } from '@mantine/core'
 import { useQueryClient } from '@tanstack/react-query'
 

@@ -18,7 +18,7 @@ import { useGetQSEAccess } from '@/api/v1/protected/web-application/projects/fin
 import { useCreateFeedbackMutation } from '@/hooks/api'
 import * as types from '@/hooks/types'
 import { getCompanyLogoUrl } from '@/utils/cdn'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   ActionIcon,
   AppShell,

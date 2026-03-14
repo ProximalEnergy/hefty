@@ -6,7 +6,7 @@ This project uses `tsc` as the type checker.
 
 Useful commands:
 
-- `npx tsc`: Checks for type problems in the repository
+- `pnpm exec tsc`: Checks for type problems in the repository
 
 ## Prettier
 
@@ -14,9 +14,9 @@ This project uses `prettier` as the formatter. It is saved as a development depe
 
 Useful commands:
 
-- `npm install --save-dev prettier@version`: Install a particular version
-- `npx prettier --check .`: Show which files have formatting warnings
-- `npx prettier --write .`: Fix all files that have formatting warnings
+- `pnpm add --save-dev prettier@version`: Install a particular version
+- `pnpm exec prettier --check .`: Show which files have formatting warnings
+- `pnpm exec prettier --write .`: Fix all files that have formatting warnings
 
 ### Caveats
 

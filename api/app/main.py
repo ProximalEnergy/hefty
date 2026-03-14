@@ -104,6 +104,7 @@ app.add_middleware(
         "http://127.0.0.1:4173",  # Local Preview Build
         "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
         "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
+        "https://sandbox.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Sandbox
     ],
     allow_credentials=True,
     allow_methods=["*"],

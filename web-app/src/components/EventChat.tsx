@@ -14,7 +14,7 @@ import {
   useUploadEventMessageImage,
 } from '@/api/v1/operational/event_messages'
 import { formatRelativeTime } from '@/utils/relativeTime'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   Badge,
   Group,

@@ -3,7 +3,7 @@ import { ProjectType } from '@/api/v1/operational/project_types'
 import { useCustomQuery } from '@/hooks/api'
 import { MultiPolygon, Point } from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { readLocalStorageValue } from '@mantine/hooks'
 import {
   UseQueryOptions,

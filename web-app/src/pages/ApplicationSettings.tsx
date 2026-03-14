@@ -17,7 +17,7 @@ import { Teams as AdminTeams } from '@/components/admin/Teams'
 import { GISContext } from '@/contexts/GISContext'
 import { useUpdateReportSubscription } from '@/hooks/api'
 import type { UserSubscription } from '@/hooks/types'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   Accordion,
   ActionIcon,

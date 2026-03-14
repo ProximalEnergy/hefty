@@ -29,17 +29,17 @@ jobs:
   # Job 0: Detect what changed
   detect-changes:
     runs-on: ubuntu-latest
-    # Only run if triggered by push, workflow_dispatch (on staging/main), or if workflow_run completed successfully
+    # Only run if triggered by push, workflow_dispatch (on staging/main/sandbox), or if workflow_run completed successfully
     # Note: workflow_run works even when triggered by automated actions (schedule/workflow_dispatch)
     # because those are not considered "workflow-triggered" events that would be blocked
     # For workflow_run: ensure it completed successfully and ran on main branch
     # We use head_branch check instead of branches filter because scheduled workflows
     # can have issues with branch filters, but head_branch is reliably set to 'main'
     # for scheduled workflows that run on the default branch
-    # For workflow_dispatch: only allow staging or main branches
+    # For workflow_dispatch: only allow staging, main, or sandbox branches
     if: |
       github.event_name == 'push' || 
-      (github.event_name == 'workflow_dispatch' && (github.ref_name == 'staging' || github.ref_name == 'main')) ||
+      (github.event_name == 'workflow_dispatch' && (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox')) ||
       (github.event_name == 'workflow_run' && 
        github.event.workflow_run.conclusion == 'success' && 
        github.event.workflow_run.head_branch == 'main')
@@ -483,10 +483,10 @@ jobs:
   deploy-web-app:
     needs: [publish-core, deploy-api, detect-changes]
     runs-on: ubuntu-latest
-    # Only deploy web-app if API deploy succeeded and branch is staging or main
+    # Only deploy web-app if API deploy succeeded and branch is staging/main/sandbox
     if: |
       !cancelled() &&
-      (github.ref_name == 'staging' || github.ref_name == 'main') &&
+      (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox') &&
       needs.publish-core.result != 'failure' &&
       (needs.deploy-api.result == 'success' || (needs.deploy-api.result == 'skipped' && needs.detect-changes.outputs.web-app == 'true'))
 
@@ -502,6 +502,8 @@ jobs:
             WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_MAIN }}"
           elif [ "$BRANCH" = "staging" ]; then
             WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_STAGING }}"
+          elif [ "$BRANCH" = "sandbox" ]; then
+            WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_SANDBOX }}"
           else
             echo "No Amplify webhook configured for branch '$BRANCH'"
             exit 1

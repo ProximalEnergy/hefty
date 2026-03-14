@@ -1,4 +1,4 @@
-import { UserProfile, useUser } from '@clerk/clerk-react'
+import { UserProfile, useUser } from '@clerk/react'
 import { Center, Modal } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect } from 'react'

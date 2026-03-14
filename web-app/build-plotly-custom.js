@@ -9,11 +9,11 @@ const __dirname = dirname(__filename)
 const plotlyDir = path.join(__dirname, 'node_modules', 'plotly.js')
 try {
   // Navigate to Plotly.js directory and install dependencies
-  execSync('npm install', { stdio: 'inherit', cwd: plotlyDir })
+  execSync('pnpm install', { stdio: 'inherit', cwd: plotlyDir })
 
   // Create a custom Plotly.js bundle
   execSync(
-    'npm run custom-bundle -- --traces scatter,bar,waterfall,heatmap,sunburst,icicle,box,histogram',
+    'pnpm run custom-bundle -- --traces scatter,bar,waterfall,heatmap,sunburst,icicle,box,histogram',
     {
       stdio: 'inherit',
       cwd: plotlyDir,

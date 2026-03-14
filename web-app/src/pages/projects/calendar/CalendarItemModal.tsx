@@ -8,7 +8,7 @@ import {
   useGetCalendarEventCategories,
   useUpdateCalendarEvent,
 } from '@/api/v1/operational/calendar'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   Button,
   Checkbox,

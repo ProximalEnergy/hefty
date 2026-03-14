@@ -4,14 +4,14 @@
 
 The plotly.js package is very large when built with all plot types. To help reduce the size, a custom bundle can be built specifying only the required plot types. This is performed during build using the `build-plotly-custom.js` file.
 
-**IMPORTANT** - Any trace types used in the application must be specified in the `"npm run custom-bundle -- --traces <trace,types,with,comma,separator>"` command.
+**IMPORTANT** - Any trace types used in the application must be specified in the `"pnpm run custom-bundle -- --traces <trace,types,with,comma,separator>"` command.
 
 If you are having trouble with adding new trace types, try uninstalling the `plotly.js` package, re-installing, and then building the custom bundle again.
 
 ```shell
-npm uninstall plotly.js
-npm install plotly.js
-npx node build-plotly-custom.js
+pnpm remove plotly.js
+pnpm add plotly.js
+pnpm exec node build-plotly-custom.js
 ```
 
 ## References

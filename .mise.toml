@@ -1,6 +1,7 @@
 
 [tools]
 node = "24.13.0"
+pnpm = "10.13.1"
 uv = "latest"
 gh = "latest"
 awscli = "latest"
@@ -20,8 +21,8 @@ mise install && \
 uv sync --directory core && \
 mise run api:switch-core && \
 uv sync --directory api && \
-cd web-app && npm ci && npx node build-plotly-custom.js && \
-cd .. && \
+mise run web:install && \
+mise run web:plotly && \
 aws configure && \
 (gh auth status >/dev/null 2>&1 || gh auth login) && \
 mise run api:get_env && \
@@ -42,15 +43,15 @@ mise install && \
 uv sync --directory core && \
 mise run api:switch-core && \
 uv sync --directory api && \
-cd web-app && npm ci && npx node build-plotly-custom.js && \
-cd .. && \
+mise run web:install && \
+mise run web:plotly && \
 mise run sql-admin:install
 echo "Async agent setup complete"
 """
 
-[tasks.upgrade-node-npm]
-description = "Upgrade Node.js and npm to the latest versions"
-run = "mise install node@latest npm@latest"
+[tasks.upgrade-node-pnpm]
+description = "Upgrade Node.js and pnpm to the latest versions"
+run = "mise install node@latest pnpm@latest"
 
 [tasks.sync-deps]
 description = "Install and sync all dependencies across the monorepo"
@@ -61,16 +62,16 @@ uv sync --directory core && \
 mise run api:switch-core && \
 uv sync --directory api && \
 uv sync --directory kpi && \
-cd web-app && npm ci && npx node build-plotly-custom.js && \
-cd .. && \
+mise run web:install && \
+mise run web:plotly && \
 mise run sql-admin:install
 """
 
 [tasks.sync-deps-if-lock-changed]
-description = "Run sync-deps when lockfiles have changed"
+description = "Run sync-deps when dependency manifests change"
 run = """
 LOCKFILE_PATTERN='^(uv\\.lock|core/uv\\.lock|api/uv\\.lock|sql-admin/uv\\.lock|\
-web-app/package-lock\\.json)$'
+web-app/package\\.json|web-app/pnpm-lock\\.yaml)$'
 
 BASE_REF=""
 if git show-ref --verify --quiet refs/remotes/origin/dev; then
@@ -91,7 +92,7 @@ CHANGED_FILES="$(
 if echo "${CHANGED_FILES}" | grep -E -q "${LOCKFILE_PATTERN}"; then
   mise run sync-deps
 else
-  echo "No lockfile changes detected; skipping sync-deps."
+  echo "No dependency manifest changes detected; skipping sync-deps."
 fi
 """
 
@@ -122,7 +123,7 @@ run = "./_scripts/prepare_pr.sh"
 [tasks.preview]
 description = "Run API and web-app preview servers concurrently"
 depends = ["sync", "api:switch-core"]
-run = ["mise run install", "mise run web:build", "./_scripts/run_preview.sh"]
+run = ["mise run web:install", "mise run web:build", "./_scripts/run_preview.sh"]
 
 [tasks.check]
 description = "Run quality checks based on the diff vs dev"
@@ -165,7 +166,7 @@ mise run core:deptry && \
 mise run api:deptry && \
 mise run web:knip && \
 uv tree --outdated && \
-npm outdated
+cd web-app && pnpm outdated
 """
 
 [tasks.sync]
@@ -213,15 +214,16 @@ dir = "."
 run = "./_scripts/semgrep_check.sh"
 
 [tasks."root:no_package_json"]
-description = "Fail when package.json or package-lock.json exists at repo root"
+description = "Fail when JS manifests or lockfiles exist at repo root"
 dir = "."
 run = """
-if [ -f package.json ] || [ -f package-lock.json ]; then
-  echo "Error: package.json or package-lock.json found in the root directory."
+if [ -f package.json ] || [ -f package-lock.json ] || \
+  [ -f pnpm-lock.yaml ]; then
+  echo "Error: JS manifest or lockfile found in the root directory."
   echo "These files should not exist at the monorepo root."
   exit 1
 fi
-echo "No package.json or package-lock.json found in the root directory."
+echo "No JS manifests or lockfiles found in the root directory."
 """
 
 [tasks."root:pyproject_dependencies"]
@@ -776,20 +778,30 @@ run = "uv run python _scripts/route_tree.py"
 # WEB-APP TASKS (runs in ./web-app directory)
 # =============================================================================
 
+[tasks."web:install"]
+description = "Install web-app dependencies with pnpm"
+dir = "web-app"
+run = "pnpm install --frozen-lockfile"
+
+[tasks."web:plotly"]
+description = "Build custom Plotly bundle for web-app"
+dir = "web-app"
+run = "node build-plotly-custom.js"
+
 [tasks."web:dev"]
 description = "Run web-app development server"
 dir = "web-app"
-run = "npm run dev"
+run = "pnpm run dev"
 
 [tasks."web:build"]
 description = "Build web-app for production"
 dir = "web-app"
-run = "npm run build"
+run = "pnpm run build"
 
 [tasks."web:preview"]
 description = "Preview production build of web-app"
 dir = "web-app"
-run = "npm run preview"
+run = "pnpm run preview"
 
 [tasks."web:get_env"]
 description = "Generate .env file from AWS Systems Manager Parameter Store"
@@ -799,28 +811,28 @@ run = "uv run ../web-app/_scripts/generate_env_from_parameter_store.py"
 [tasks."web:typecheck"]
 description = "Run TypeScript check for web-app"
 dir = "web-app"
-run = "npm run typecheck"
+run = "pnpm run typecheck"
 
 [tasks."web:prettier"]
-description = "Run Prettier write mode for web-app"
+description = "Run Prettier for web-app"
 dir = "web-app"
-run = "npm run prettier"
+run = "pnpm run prettier"
 
 [tasks."web:knip"]
 description = "Run Knip for web-app"
 dir = "web-app"
-run = "npm run knip"
+run = "pnpm run knip"
 
 [tasks."web:check"]
 description = "Run TypeScript, Prettier, Knip, and oxlint checks for web-app"
 dir = "web-app"
 depends = ["web:default-query-options-no-explicit-type"]
-run = "npm run check && npm run lint"
+run = "pnpm run check && pnpm run lint"
 
 [tasks."web:lint"]
 description = "Run oxlint for web-app"
 dir = "web-app"
-run = "npm run lint"
+run = "pnpm run lint"
 
 [tasks."web:jsx_calcs"]
 description = "Detect arithmetic calculations in changed web-app JSX/TSX files"

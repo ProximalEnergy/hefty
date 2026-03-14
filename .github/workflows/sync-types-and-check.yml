@@ -56,15 +56,17 @@ jobs:
         run: uv sync --locked
         working-directory: api
 
-      - name: Set up Node.js
+      - name: Set up mise
         if: steps.check-changes.outputs.changes_detected == 'true'
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+        uses: jdx/mise-action@v2
+
+      - name: Install Node.js and pnpm
+        if: steps.check-changes.outputs.changes_detected == 'true'
+        run: mise install node pnpm
 
       - name: Install web-app dependencies
         if: steps.check-changes.outputs.changes_detected == 'true'
-        run: npm ci
+        run: PNPM_STORE_DIR=.pnpm-store mise run web:install
         working-directory: web-app
 
       - name: Run sync script

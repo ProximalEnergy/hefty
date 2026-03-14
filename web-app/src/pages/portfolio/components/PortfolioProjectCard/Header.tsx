@@ -3,7 +3,7 @@ import { useUpdateProjectFavorite } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { projectDescription } from '@/utils/projectDescription'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   ActionIcon,
   Card,

@@ -1,5 +1,5 @@
 import { getCompanyLogoUrl } from '@/utils/cdn'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import { Image, Stack, Title, useComputedColorScheme } from '@mantine/core'
 import { useEffect } from 'react'
 

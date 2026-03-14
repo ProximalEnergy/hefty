@@ -9,14 +9,14 @@
     "lint": "oxlint --deny-warnings --report-unused-disable-directives",
     "lint:github": "oxlint --deny-warnings --report-unused-disable-directives --format=github",
     "preview": "vite preview",
-    "typecheck": "npx tsc --noEmit",
-    "prettier": "npx prettier --write --log-level warn .",
-    "prettier:check": "npx prettier --check --log-level warn .",
-    "knip": "npx knip",
-    "check": "npm run typecheck && npm run prettier:check && npm run knip"
+    "typecheck": "pnpm exec tsc --noEmit",
+    "prettier": "pnpm exec prettier --write --log-level warn .",
+    "prettier:check": "pnpm exec prettier --check --log-level warn .",
+    "knip": "pnpm exec knip",
+    "check": "pnpm run typecheck && pnpm run prettier:check && pnpm run knip"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.24.1",
+    "@clerk/react": "^6.1.0",
     "@clerk/themes": "^2.4.46",
     "@dnd-kit/core": "^6.0.8",
     "@dnd-kit/sortable": "^10.0.0",
@@ -80,6 +80,7 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/chroma-js": "^3.1.2",
+    "@types/geojson": "^7946.0.16",
     "@types/lodash": "^4.17.16",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.9.2",
@@ -121,5 +122,6 @@
     ],
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true
-  }
+  },
+  "packageManager": "pnpm@10.13.1"
 }

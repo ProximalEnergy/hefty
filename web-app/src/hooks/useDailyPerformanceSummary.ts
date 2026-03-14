@@ -4,7 +4,7 @@ import type {
   DailyPerformanceSummaryResponse,
 } from '@/api/v1/ai/daily_performance_summary'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 

@@ -2,7 +2,7 @@ import { GISProvider } from '@/contexts/GISContext'
 // Pages
 import { ProjectDropdownProvider } from '@/providers/ProjectDropdownProvider'
 import { themes } from '@/utils/themes'
-import { ClerkProvider, useUser } from '@clerk/clerk-react'
+import { ClerkProvider, useUser } from '@clerk/react'
 import { dark } from '@clerk/themes'
 import {
   CSSVariablesResolver,

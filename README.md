@@ -6,6 +6,7 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 
 ## Mise
 - `brew install mise`:  Install the mise task runner
+- `mise install`:  Install repo-managed tools, including Node.js and pnpm
 - `mise tasks`:  Discover mise tasks
 - `mise run dev`:  Run api and web-app servers together.
 - `mise run check`:  Check all folders in mono-repo
@@ -20,6 +21,7 @@ Mono-repo containing the api and web-ui, in the future we can add more services/
 # Onboarding
 ## Setup
 - brew install mise
+- mise install
 - mise run onboarding
 
 ## PR's

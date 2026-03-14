@@ -33,7 +33,7 @@ echo "Installing semgrep..."
 "$HOME/.local/bin/uv" tool install semgrep --force
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "Node.js not found. Install Node.js before running npm commands."
+  echo "Node.js not found. Install Node.js before running web-app commands."
 fi
 
 if [ -d "$ROOT_DIR" ]; then
@@ -44,8 +44,8 @@ if [ -d "$ROOT_DIR" ]; then
   uv sync --directory core
   python3 _scripts/switch_core_source.py
   uv sync --directory api
-  cd web-app && npm ci && npx node build-plotly-custom.js
-  cd ..
+  mise run web:install
+  mise run web:plotly
   cd sql-admin && uv sync
   cd ..
 else

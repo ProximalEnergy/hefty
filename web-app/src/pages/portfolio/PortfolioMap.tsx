@@ -19,7 +19,7 @@ import Attribution from '@/components/gis/Attribution'
 import { WeatherHoverCard } from '@/components/portfolio/WeatherHoverCard'
 import { GISContext } from '@/contexts/GISContext'
 import * as gisUtils from '@/utils/GIS'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import {
   Accordion,
   ActionIcon,

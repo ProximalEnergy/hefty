@@ -36,26 +36,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Node.js
-        id: setup-node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install tools
+        run: mise install node pnpm
 
       - name: Cache dependencies
         id: cache-deps
         uses: actions/cache@v5
         with:
           path: |
-            ~/.npm
+            web-app/.pnpm-store
             ~/.cache/node-gyp
             web-app/node_modules
           key: >-
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-${{
-            hashFiles('web-app/package-lock.json', 'web-app/build-plotly-custom.js') }}
+            pnpm-${{ runner.os }}-${{
+            hashFiles('.mise.toml', 'web-app/package.json',
+            'web-app/build-plotly-custom.js') }}
           restore-keys: |
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-
-            npm-${{ runner.os }}-
+            pnpm-${{ runner.os }}-
 
       - name: Install system dependencies for canvas
         run: |
@@ -64,17 +64,14 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: npm ci
-        working-directory: web-app
+        run: PNPM_STORE_DIR=.pnpm-store mise run web:install
 
       - name: Build custom Plotly bundle
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: node build-plotly-custom.js
-        working-directory: web-app
+        run: mise run web:plotly
 
       - name: TypeScript Check
-        run: npx tsc --noEmit
-        working-directory: web-app
+        run: mise run web:typecheck
 
       - name: Upload diagnostics
         if: failure()
@@ -89,34 +86,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Node.js
-        id: setup-node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24 # Match the other jobs
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install tools
+        run: mise install node pnpm
 
       - name: Cache dependencies
         id: cache-prettier-deps
         uses: actions/cache@v5
         with:
           path: |
-            ~/.npm
+            web-app/.pnpm-store
             web-app/node_modules
           key: >-
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-${{
-            hashFiles('web-app/package-lock.json') }}
+            pnpm-${{ runner.os }}-${{
+            hashFiles('.mise.toml', 'web-app/package.json') }}
           restore-keys: |
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-
-            npm-${{ runner.os }}-
+            pnpm-${{ runner.os }}-
 
       - name: Install dependencies
         if: steps.cache-prettier-deps.outputs.cache-hit != 'true'
-        run: npm ci
-        working-directory: web-app
+        run: PNPM_STORE_DIR=.pnpm-store mise run web:install
 
       - name: Run Prettier check
-        run: npx prettier --check .
-        working-directory: web-app
+        run: mise run web:prettier
 
   knip_checker:
     runs-on: ubuntu-latest
@@ -124,34 +118,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Node.js
-        id: setup-node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install tools
+        run: mise install node pnpm
 
       - name: Cache dependencies
         id: cache-knip-deps
         uses: actions/cache@v5
         with:
           path: |
-            ~/.npm
+            web-app/.pnpm-store
             web-app/node_modules
           key: >-
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-${{
-            hashFiles('web-app/package-lock.json') }}
+            pnpm-${{ runner.os }}-${{
+            hashFiles('.mise.toml', 'web-app/package.json') }}
           restore-keys: |
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-
-            npm-${{ runner.os }}-
+            pnpm-${{ runner.os }}-
 
       - name: Install dependencies
         if: steps.cache-knip-deps.outputs.cache-hit != 'true'
-        run: npm ci
-        working-directory: web-app
+        run: PNPM_STORE_DIR=.pnpm-store mise run web:install
 
       - name: Run Knip check
-        run: npx knip
-        working-directory: web-app
+        run: mise run web:knip
 
   oxlint:
     runs-on: ubuntu-latest
@@ -159,31 +150,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Node.js
-        id: setup-node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Install tools
+        run: mise install node pnpm
 
       - name: Cache dependencies
         id: cache-oxlint-deps
         uses: actions/cache@v5
         with:
           path: |
-            ~/.npm
+            web-app/.pnpm-store
             web-app/node_modules
           key: >-
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-${{
-            hashFiles('web-app/package-lock.json') }}
+            pnpm-${{ runner.os }}-${{
+            hashFiles('.mise.toml', 'web-app/package.json') }}
           restore-keys: |
-            npm-${{ runner.os }}-${{ steps.setup-node.outputs.node-version }}-
-            npm-${{ runner.os }}-
+            pnpm-${{ runner.os }}-
 
       - name: Install dependencies
         if: steps.cache-oxlint-deps.outputs.cache-hit != 'true'
-        run: npm ci
-        working-directory: web-app
+        run: PNPM_STORE_DIR=.pnpm-store mise run web:install
 
       - name: Run oxlint check
-        run: npm run lint:github
-        working-directory: web-app
+        run: mise exec -C web-app -- pnpm run lint:github

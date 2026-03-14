@@ -7,7 +7,7 @@ import {
   useGetPortfolioCalendarEvents,
 } from '@/api/v1/protected/web-application/portfolio/calendar'
 import { PageTitle } from '@/components/PageTitle'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import type { CalendarApi, EventApi, EventClickArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'

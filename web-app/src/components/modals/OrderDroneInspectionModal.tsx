@@ -6,7 +6,7 @@ import {
   useOrderDroneInspection,
 } from '@/api/v1/operational/drone_integrations'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/react'
 import {
   Alert,
   Button,

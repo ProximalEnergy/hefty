@@ -2,7 +2,7 @@ import type { operations } from '@/api/schema'
 import { KPIType } from '@/api/v1/operational/kpi_types'
 import * as types from '@/hooks/types'
 import { baseURL } from '@/urlConfig'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
   useMutation,

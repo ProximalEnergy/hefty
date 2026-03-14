@@ -1,7 +1,7 @@
 import { useGetProjectContracts } from '@/api/v1/operational/project/contracts'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useCreateFeedbackMutation } from '@/hooks/api'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import {
   Button,
   Modal,
