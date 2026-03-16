@@ -18,7 +18,7 @@ dev = [
     "mypy==1.19.1",
     "pandas-stubs~=2.3",
     "pyarrow-stubs>=20.0.0.20250928,<21",
-    "ruff==0.15.0",
+    "ruff==0.15.1",
     "semgrep>=1.107.0,<2",
     "sqlalchemy>=2.0.45,<3",
     "types-psycopg2>=2.9.21.20250318,<3",
