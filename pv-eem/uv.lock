@@ -478,7 +478,7 @@ dev = [
     { name = "alembic", specifier = ">=1.16.1,<2" },
     { name = "basedpyright", specifier = ">=1.31.4,<2" },
     { name = "deptry", specifier = ">=0.23.1,<1" },
-    { name = "fastapi", specifier = "~=0.128.0" },
+    { name = "fastapi", specifier = "~=0.134.0" },
     { name = "packaging", specifier = "~=26.0" },
     { name = "pandas-stubs", specifier = ">=2.3.0,<3" },
     { name = "plotly", specifier = ">=6.3.1,<7" },

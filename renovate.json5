@@ -8,6 +8,7 @@
   schedule: ["* 5-12 * * 1"],
   timezone: "America/Los_Angeles",
   description: "Schedule Monday at 5 AM Pacific",
+  ignorePaths: ["**/requirements.txt"],
   packageRules: [
     // =========== Don't Upgrade Python ============
     {
