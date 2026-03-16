@@ -98,6 +98,7 @@ app.add_middleware(
     allow_origins=[
         "https://app.proximal.energy",  # Production
         "https://staging.d1waz5kiczd3n9.amplifyapp.com",  # Staging
+        "https://demo.app.proximal.energy",  # Demo
         "http://localhost:5173",  # Local development
         "http://127.0.0.1:5173",  # Local development
         "http://localhost:4173",  # Local Preview Build
@@ -105,7 +106,6 @@ app.add_middleware(
         "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
         "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
         "https://sandbox.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Sandbox
-        "https://demo.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Demo
     ],
     allow_credentials=True,
     allow_methods=["*"],
