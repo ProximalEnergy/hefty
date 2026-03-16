@@ -105,6 +105,7 @@ app.add_middleware(
         "https://main.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Prod
         "https://staging.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Staging
         "https://sandbox.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Sandbox
+        "https://demo.diyg9kphy7rh8.amplifyapp.com",  # Mono Repo Demo
     ],
     allow_credentials=True,
     allow_methods=["*"],

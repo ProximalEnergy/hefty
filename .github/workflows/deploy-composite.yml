@@ -7,6 +7,7 @@ on:
       - staging
       - main
       - sandbox
+      - demo
     paths:
       - "core/src/core/**"
       - "core/pyproject.toml"
@@ -38,10 +39,10 @@ jobs:
     # for scheduled workflows that run on the default branch
     # For workflow_dispatch: only allow staging, main, or sandbox branches
     if: |
-      github.event_name == 'push' || 
-      (github.event_name == 'workflow_dispatch' && (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox')) ||
-      (github.event_name == 'workflow_run' && 
-       github.event.workflow_run.conclusion == 'success' && 
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox' || github.ref_name == 'demo')) ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main')
     outputs:
       core: ${{ github.event_name == 'workflow_dispatch' && steps.override.outputs.core || steps.filter.outputs.core }}
@@ -133,7 +134,9 @@ jobs:
     needs: detect-changes
     runs-on: ubuntu-latest
     # Only run if core files changed
-    if: needs.detect-changes.outputs.core == 'true'
+    if: |
+      needs.detect-changes.outputs.core == 'true' &&
+      (github.ref_name == 'dev' || github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'demo')
     outputs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
@@ -181,6 +184,19 @@ jobs:
               RC_NUM=$((EXISTING_RCS + 1))
             fi
             VERSION="${BASE_VERSION}rc${RC_NUM}"
+
+          elif [ "$BRANCH" = "demo" ]; then
+            RELEASE_TYPE="alpha"
+            VERSION_SUFFIX="a"
+            PRERELEASE="true"
+
+            EXISTING_ALPHAS=$(git tag -l "core-v${BASE_VERSION}a*" | sed -E "s/.*a([0-9]+)$/\1/" | sort -n | tail -1)
+            if [ -z "$EXISTING_ALPHAS" ]; then
+              ALPHA_NUM=1
+            else
+              ALPHA_NUM=$((EXISTING_ALPHAS + 1))
+            fi
+            VERSION="${BASE_VERSION}a${ALPHA_NUM}"
 
           elif [ "$BRANCH" = "main" ]; then
             RELEASE_TYPE="stable"
@@ -283,7 +299,7 @@ jobs:
     if: |
       !cancelled() &&
       (needs.publish-core.result == 'success' || (needs.publish-core.result == 'skipped' && needs.detect-changes.outputs.api == 'true')) &&
-      (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox')
+      (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox' || github.ref_name == 'demo')
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
 
@@ -314,6 +330,12 @@ jobs:
             echo "VERSION_PREFIX=sandbox" >> $GITHUB_ENV
             echo "CORE_VERSION_CONSTRAINT=rc" >> $GITHUB_ENV
             echo "environment=sandbox" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH" = "demo" ]; then
+            echo "ENVIRONMENT=demo" >> $GITHUB_ENV
+            echo "ENV_NAME=${{ vars.DEMO_ELASTIC_BEANSTALK_ENV_NAME }}" >> $GITHUB_ENV
+            echo "VERSION_PREFIX=demo" >> $GITHUB_ENV
+            echo "CORE_VERSION_CONSTRAINT=alpha" >> $GITHUB_ENV
+            echo "environment=demo" >> $GITHUB_OUTPUT
           fi
 
       - name: Configure AWS credentials for CodeArtifact
@@ -361,6 +383,10 @@ jobs:
             # Find latest RC version
             LATEST_VERSION=$(echo "$VERSIONS" | grep 'rc' | sort -V | tail -1)
             echo "Latest RC version: $LATEST_VERSION"
+          elif [ "$CONSTRAINT" = "alpha" ]; then
+            # Find latest alpha version
+            LATEST_VERSION=$(echo "$VERSIONS" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+a[0-9]+$' | sort -V | tail -1)
+            echo "Latest alpha version: $LATEST_VERSION"
           else
             echo "Unknown constraint: $CONSTRAINT"
             exit 1
@@ -486,7 +512,7 @@ jobs:
     # Only deploy web-app if API deploy succeeded and branch is staging/main/sandbox
     if: |
       !cancelled() &&
-      (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox') &&
+      (github.ref_name == 'staging' || github.ref_name == 'main' || github.ref_name == 'sandbox' || github.ref_name == 'demo') &&
       needs.publish-core.result != 'failure' &&
       (needs.deploy-api.result == 'success' || (needs.deploy-api.result == 'skipped' && needs.detect-changes.outputs.web-app == 'true'))
 
@@ -504,6 +530,8 @@ jobs:
             WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_STAGING }}"
           elif [ "$BRANCH" = "sandbox" ]; then
             WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_SANDBOX }}"
+          elif [ "$BRANCH" = "demo" ]; then
+            WEBHOOK_URL="${{ secrets.AMPLIFY_WEBHOOK_URL_DEMO }}"
           else
             echo "No Amplify webhook configured for branch '$BRANCH'"
             exit 1
