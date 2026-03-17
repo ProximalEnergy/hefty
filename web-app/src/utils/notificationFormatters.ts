@@ -24,10 +24,12 @@ const formattersByName: Record<
 
 /**
  * Helper function to get notification type name_long from data structure.
- * Looks for 'weather_type' or 'notification_type' field (or other fields as needed) that contains
- * the name_long value matching admin.notification_types.name_long.
+ * Looks for 'weather_type' or 'notification_type' fields that contain the
+ * name_long value matching admin.notification_types.name_long.
  */
-function getNotificationTypeName(data: NotificationData): string | undefined {
+export function getNotificationTypeName(
+  data: NotificationData | null,
+): string | undefined {
   if (
     typeof data === 'object' &&
     data !== null &&

@@ -8,7 +8,10 @@ import {
   useMarkNotificationAsUnread,
 } from '@/api/v1/admin/notifications'
 import { useGetProjects } from '@/api/v1/operational/projects'
-import { formatNotification } from '@/utils/notificationFormatters'
+import {
+  formatNotification,
+  getNotificationTypeName,
+} from '@/utils/notificationFormatters'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import {
   ActionIcon,
@@ -49,14 +52,61 @@ interface NotificationsPanelProps {
   onClose: () => void
 }
 
+const WEATHER_ALERT_TYPES = new Set(['hail', 'fire', 'tornado', 'wind'])
+
+const getWeatherAlertDate = (
+  data: Record<string, unknown> | null,
+  createdAt: string,
+): Date | null => {
+  if (!data || typeof data.day !== 'string') {
+    return null
+  }
+
+  const dayMatch = data.day.match(/day(\d+)/)
+  const dayOffset = dayMatch ? parseInt(dayMatch[1], 10) : 0
+  const createdDate = new Date(createdAt)
+  if (Number.isNaN(createdDate.getTime())) {
+    return null
+  }
+
+  const targetDate = new Date(createdDate)
+  targetDate.setUTCDate(targetDate.getUTCDate() + dayOffset)
+  targetDate.setUTCHours(23, 59, 59, 999)
+  return targetDate
+}
+
+const isPastWeatherNotification = (
+  notification: NotificationPage['notifications'][number],
+): boolean => {
+  const data =
+    typeof notification.data === 'object' && notification.data !== null
+      ? (notification.data as Record<string, unknown>)
+      : null
+  const typeName = getNotificationTypeName(data)
+  if (!typeName || !WEATHER_ALERT_TYPES.has(typeName)) {
+    return false
+  }
+
+  const weatherDate = getWeatherAlertDate(data, notification.created_at)
+  if (!weatherDate) {
+    return false
+  }
+
+  return weatherDate.getTime() < Date.now()
+}
+
 const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
+  const { mutate: markNotificationAsRead } = useMarkNotificationAsRead()
+  const autoReadIdsRef = useRef(new Set<number>())
   const {
     data: notificationsPages,
     isLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteNotifications({ pageSize: 20 })
+  } = useInfiniteNotifications({
+    pageSize: 20,
+  })
   const { data: projects, isLoading: projectsLoading } = useGetProjects({
     queryParams: { deep: true },
     personalPortfolio: false, // Get all projects user has access to, not just personal portfolio
@@ -67,7 +117,6 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
   })
   const isDark = colorScheme === 'dark'
   const navigate = useNavigate()
-  const markAsReadMutation = useMarkNotificationAsRead()
   const markAsUnreadMutation = useMarkNotificationAsUnread()
   const markAllAsReadMutation = useMarkAllNotificationsAsRead()
   const deleteNotificationMutation = useDeleteNotification()
@@ -127,6 +176,26 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
     threshold: 0,
     rootMargin: '200px',
   })
+
+  useEffect(() => {
+    notificationsPages?.pages.forEach((page) => {
+      page.notifications.forEach((notification) => {
+        const isUnread = (notification as { state?: string }).state === 'unread'
+        const shouldAutoMarkRead =
+          isUnread && isPastWeatherNotification(notification)
+        if (!shouldAutoMarkRead) {
+          return
+        }
+
+        if (autoReadIdsRef.current.has(notification.notification_id)) {
+          return
+        }
+
+        autoReadIdsRef.current.add(notification.notification_id)
+        markNotificationAsRead(notification.notification_id)
+      })
+    })
+  }, [markNotificationAsRead, notificationsPages])
 
   useEffect(() => {
     setIntersectionRoot(viewportRef.current)
@@ -270,28 +339,12 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
 
               // Determine notification icon using name_long from data structure
               // (matches admin.notification_types.name_long values)
-              const getNotificationTypeName = () => {
-                if (
-                  typeof notification.data === 'object' &&
-                  notification.data !== null
-                ) {
-                  if (
-                    'weather_type' in notification.data &&
-                    typeof notification.data.weather_type === 'string'
-                  ) {
-                    return notification.data.weather_type.toLowerCase()
-                  }
-                  if (
-                    'notification_type' in notification.data &&
-                    typeof notification.data.notification_type === 'string'
-                  ) {
-                    return notification.data.notification_type.toLowerCase()
-                  }
-                }
-                return undefined
-              }
-
-              const typeName = getNotificationTypeName()
+              const data =
+                typeof notification.data === 'object' &&
+                notification.data !== null
+                  ? (notification.data as Record<string, unknown>)
+                  : null
+              const typeName = getNotificationTypeName(data)
               const isHailAlert = typeName === 'hail'
               const isFireAlert = typeName === 'fire'
               const isTornadoAlert = typeName === 'tornado'
@@ -335,7 +388,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
                   onClick={async () => {
                     // Mark notification as read when clicked
                     if (isUnread) {
-                      markAsReadMutation.mutate(notification.notification_id)
+                      markNotificationAsRead(notification.notification_id)
                     }
 
                     // Handle calendar reminder notifications - navigate to calendar with item ID
@@ -448,7 +501,7 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
                                 leftSection={<IconMail size={16} />}
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  markAsReadMutation.mutate(
+                                  markNotificationAsRead(
                                     notification.notification_id,
                                   )
                                 }}
