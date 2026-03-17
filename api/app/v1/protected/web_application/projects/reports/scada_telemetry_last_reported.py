@@ -24,7 +24,8 @@ async def get_scada_telemetry_last_reported(
     """Generate Excel report with tag reporting status.
 
     Returns Excel binary with:
-    - Summary sheet: aggregates (total, reporting, never reported, ghost count)
+    - Summary sheet: Report Generated, Project Name, Non-Ghost/Ghost tag
+      counts, and Fresh/Stale/Never for each (6 rows).
     - Data sheet: all tags with last reported time, status, ghost indicator
 
     Args:
@@ -76,48 +77,55 @@ async def get_scada_telemetry_last_reported(
         .alias("Status"),
     )
 
-    # Calculate summary statistics
+    # Calculate summary statistics (non-ghost vs ghost, then status breakdown)
+    not_ghost = ~pl.col("Ghost")
     summary_counts = df.select(
-        total_tags=pl.len(),
-        tags_never_reported=pl.col("Status").eq("Never").sum(),
+        non_ghost_tags=not_ghost.sum(),
         ghost_tags=pl.col("Ghost").sum(),
-        fresh_tags=pl.col("Status").eq("Fresh").sum(),
-        stale_tags=pl.col("Status").eq("Stale").sum(),
+        non_ghost_fresh=(not_ghost & (pl.col("Status") == "Fresh")).sum(),
+        non_ghost_stale=(not_ghost & (pl.col("Status") == "Stale")).sum(),
+        non_ghost_never=(not_ghost & (pl.col("Status") == "Never")).sum(),
+        ghost_fresh=(pl.col("Ghost") & (pl.col("Status") == "Fresh")).sum(),
+        ghost_stale=(pl.col("Ghost") & (pl.col("Status") == "Stale")).sum(),
+        ghost_never=(pl.col("Ghost") & (pl.col("Status") == "Never")).sum(),
     ).row(0)
     (
-        total_tags,
-        tags_never_reported,
+        non_ghost_tags,
         ghost_tags,
-        fresh_tags,
-        stale_tags,
+        non_ghost_fresh,
+        non_ghost_stale,
+        non_ghost_never,
+        ghost_fresh,
+        ghost_stale,
+        ghost_never,
     ) = summary_counts
-    tags_reporting = total_tags - tags_never_reported
 
-    # Create summary DataFrame
-    summary_df = pl.DataFrame(
-        {
-            "Metric": [
-                "Report Generated",
-                "Project Name",
-                "Total Tags",
-                "Tags Reporting",
-                "Tags Never Reporting",
-                "Ghost Tags",
-                "Fresh Tags",
-                "Stale Tags",
-            ],
-            "Value": [
-                now_utc.isoformat(),
-                project.name_long,
-                str(total_tags),
-                str(tags_reporting),
-                str(tags_never_reported),
-                str(ghost_tags),
-                str(fresh_tags),
-                str(stale_tags),
-            ],
-        }
-    )
+    # Summary rows: first two are text, rest are integers (written as numbers in
+    # Excel with number format to avoid "Number Stored as Text" warning).
+    summary_metrics = [
+        "Report Generated",
+        "Project Name",
+        "Non-Ghost Tags",
+        "Non-Ghost Fresh",
+        "Non-Ghost Stale",
+        "Non-Ghost Never",
+        "Ghost Tags",
+        "Ghost Fresh",
+        "Ghost Stale",
+        "Ghost Never",
+    ]
+    summary_values: list[str | int] = [
+        now_utc.strftime("%Y-%m-%d %H:%M UTC"),
+        project.name_long,
+        non_ghost_tags,
+        non_ghost_fresh,
+        non_ghost_stale,
+        non_ghost_never,
+        ghost_tags,
+        ghost_fresh,
+        ghost_stale,
+        ghost_never,
+    ]
 
     # Select and rename columns for data sheet
     data_df = df.select(
@@ -132,8 +140,6 @@ async def get_scada_telemetry_last_reported(
     # Generate Excel file using polars
     excel_buffer = BytesIO()
 
-    # Convert to pandas for Excel writing (xlsxwriter via pandas)
-    summary_pd = summary_df.to_pandas()
     data_pd = data_df.to_pandas()
     natsort_key = natsort_keygen()
     data_pd = data_pd.sort_values(
@@ -145,23 +151,38 @@ async def get_scada_telemetry_last_reported(
     last_reported = last_reported.dt.tz_convert(project.time_zone)
     data_pd["Last Reported"] = last_reported.dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
+    def _autofit_columns(*, worksheet, dataframe):
+        for idx, col in enumerate(dataframe.columns):
+            series = dataframe[col]
+            max_len = max(series.astype(str).map(len).max(), len(str(series.name))) + 2
+            worksheet.set_column(idx, idx, max_len)
+
     with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
-        summary_pd.to_excel(writer, sheet_name="Summary", index=False)
+        book = writer.book
+        num_fmt = book.add_format({"num_format": "#,##0"})
+        summary_ws = book.add_worksheet("Summary")
+        # Write Summary sheet row by row so numeric cells are write_number (not
+        # text), avoiding "Number Stored as Text" warning in Excel.
+        for row_idx, (metric, value) in enumerate(
+            zip(summary_metrics, summary_values, strict=True)
+        ):
+            summary_ws.write_string(row_idx, 0, metric)
+            if row_idx < 2:
+                summary_ws.write_string(row_idx, 1, str(value))
+            else:
+                summary_ws.write_number(row_idx, 1, value, num_fmt)
+        width_metric = max(len(m) for m in summary_metrics) + 2
+        width_val = (
+            max(
+                len(str(v)) if isinstance(v, str) else len(f"{v:,}")
+                for v in summary_values
+            )
+            + 2
+        )
+        summary_ws.set_column(0, 0, width_metric)
+        summary_ws.set_column(1, 1, width_val, num_fmt)
+
         data_pd.to_excel(writer, sheet_name="Data", index=False)
-
-        # Auto-fit columns for Summary sheet
-        def _autofit_columns(*, worksheet, dataframe):
-            for idx, col in enumerate(dataframe.columns):
-                series = dataframe[col]
-                max_len = (
-                    max(series.astype(str).map(len).max(), len(str(series.name))) + 2
-                )
-                worksheet.set_column(idx, idx, max_len)
-
-        summary_worksheet = writer.sheets["Summary"]
-        _autofit_columns(worksheet=summary_worksheet, dataframe=summary_pd)
-
-        # Auto-fit columns for Data sheet
         data_worksheet = writer.sheets["Data"]
         _autofit_columns(worksheet=data_worksheet, dataframe=data_pd)
 

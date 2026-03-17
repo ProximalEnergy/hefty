@@ -6908,7 +6908,8 @@ export interface paths {
          * @description Generate Excel report with tag reporting status.
          *
          *     Returns Excel binary with:
-         *     - Summary sheet: aggregates (total, reporting, never reported, ghost count)
+         *     - Summary sheet: Report Generated, Project Name, Non-Ghost/Ghost tag
+         *       counts, and Fresh/Stale/Never for each (6 rows).
          *     - Data sheet: all tags with last reported time, status, ghost indicator
          *
          *     Args:

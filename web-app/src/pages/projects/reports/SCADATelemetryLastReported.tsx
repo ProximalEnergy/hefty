@@ -56,8 +56,9 @@ const Page = () => {
           <Text span fw={600}>
             Summary:
           </Text>{' '}
-          Aggregate statistics (total tags, reporting, never reported, ghost
-          count)
+          Report timestamp, project name, then counts for non-ghost tags
+          (total, Fresh, Stale, Never) and ghost tags (total, Fresh, Stale,
+          Never).
         </List.Item>
         <List.Item>
           <Text span fw={600}>
