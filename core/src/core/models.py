@@ -1484,6 +1484,54 @@ class SensorType(Base):
         return self.name_long
 
 
+class UserProjectLabel(Base):
+    __tablename__ = "user_project_labels"
+
+    user_project_label_id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("admin.users.user_id", ondelete="CASCADE")
+    )
+    name: Mapped[str] = mapped_column(sa.String(64))
+    color: Mapped[str] = mapped_column(sa.String(7), server_default="#adb5bd")
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        server_default=sa.func.now(),
+    )
+
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "user_id",
+            "name",
+            name="uq_user_project_labels_user_id_name",
+        ),
+        {"schema": "operational"},
+    )
+
+
+class ProjectLabel(Base):
+    __tablename__ = "project_labels"
+
+    user_project_label_id: Mapped[int] = mapped_column(
+        sa.ForeignKey(
+            "operational.user_project_labels.user_project_label_id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        sa.ForeignKey(
+            "operational.projects.project_id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    )
+
+    __table_args__ = {"schema": "operational"}
+
+
 ##### END OPERATIONAL SCHEMA #####
 
 
