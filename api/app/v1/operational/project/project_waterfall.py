@@ -104,7 +104,7 @@ async def get_project_waterfall(
             return []
         case ProjectType.PVS:
             meter_tags_df = await core.crud.project.tags.get_project_tags_v2(
-                sensor_type_ids=[SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER],
+                sensor_type_ids=[SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER],
                 deep=True,
             ).get_async(
                 output_type=OutputType.POLARS,

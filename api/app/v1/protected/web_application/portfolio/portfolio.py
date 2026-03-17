@@ -280,7 +280,7 @@ async def get_portfolio_home_short_term(
                         c
                         for c in df_project.columns
                         if c[1]
-                        == core.enumerations.SensorType.PV_MV_CIRCUIT_METER_ACTIVE_POWER
+                        == core.enumerations.SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER  # noqa: E501
                     ]  # pv_mv_circuit_meter_active_power
                     meter_total = (
                         df_project.loc[
