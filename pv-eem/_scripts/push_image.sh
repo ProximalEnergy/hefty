@@ -8,6 +8,28 @@ MONO_ROOT="$(cd "${PROJECT_ROOT}/.." && pwd)"
 PYPROJECT_PATH="${PROJECT_ROOT}/pyproject.toml"
 ECR_REPOSITORY="${PVEEM_ECR_REPOSITORY:-pv-expected-energy/simulation}"
 
+ensure_docker() {
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    echo "[push-image] Docker is not running. Opening Docker Desktop."
+    open -a Docker
+
+    for _ in {1..30}; do
+      if docker info >/dev/null 2>&1; then
+        return 0
+      fi
+      sleep 2
+    done
+  fi
+
+  echo "[push-image] Docker is unavailable."
+  echo "[push-image] Start Docker and try again."
+  return 1
+}
+
 version_tag="$(
   grep '^version = "' "${PYPROJECT_PATH}" |
     head -n 1 |
@@ -44,6 +66,8 @@ fi
 registry="${account_id}.dkr.ecr.${aws_region}.amazonaws.com"
 image_repo_uri="${registry}/${ECR_REPOSITORY}"
 local_image_name="pv-expected-energy-simulation:${version_tag}"
+
+ensure_docker
 
 echo "[push-image] Logging in to ${registry}"
 aws ecr get-login-password --region "${aws_region}" |

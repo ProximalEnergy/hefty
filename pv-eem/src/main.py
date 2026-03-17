@@ -1,13 +1,12 @@
 import asyncio
 import logging
-import os
 import traceback
 from typing import Any, cast
 
 import psycopg2
 import sentry_sdk
+from _utils.environment_variables import load_environment_variables
 from _utils.logger import setup_logger
-from dotenv import load_dotenv
 from p00_parse_input.s00_parse_input import ParsedInputs
 from p00_parse_input.simulation_temporal_mode import SimulationTemporalMode
 from p01_get_data.class_simulation_inputs import SimulationInputs
@@ -42,9 +41,9 @@ def before_send(event, hint):
 # Only initialize Sentry if:
 # 1. Environment is PROD
 # 2. Running in AWS Lambda (not locally
-load_dotenv()
-ENVIRONMENT = os.getenv("ENVIRONMENT")
-is_aws_lambda = os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+ENVIRONMENT_VARIABLES = load_environment_variables()
+ENVIRONMENT = ENVIRONMENT_VARIABLES.environment
+is_aws_lambda = ENVIRONMENT_VARIABLES.is_aws_lambda
 
 if ENVIRONMENT == "PROD" and is_aws_lambda:
     sentry_sdk.init(

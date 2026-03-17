@@ -3,7 +3,7 @@ import json
 import urllib3
 
 
-def send_notification(webhook_url, message):
+def send_notification(*, webhook_url: str, message: str):
     """Send notification to Google Chat using webhook"""
     http = urllib3.PoolManager()
 

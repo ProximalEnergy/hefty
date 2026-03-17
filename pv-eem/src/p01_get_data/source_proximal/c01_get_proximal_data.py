@@ -54,11 +54,10 @@ async def from_proximal_db(
     """Run from_proximal_db."""
     logging.info("... Get Data")
     # --- Environment Variables ---
-    (
-        ENVIRONMENT,
-        DATABASE_URL,
-        AWS_S3_BUCKET_NAME,
-    ) = get_environment_variables()
+    env_vars = get_environment_variables()
+    environment = env_vars.require_environment()
+    database_url = env_vars.require_database_url()
+    aws_s3_bucket_name = env_vars.require_aws_s3_bucket_name()
 
     # --- Simulation Config ---
     simulation_config = SimulationConfig.initialize_with_overrides(**config_overrides)
@@ -68,11 +67,11 @@ async def from_proximal_db(
         simulation_temporal_mode=simulation_temporal_mode.value,
         simulation_start=simulation_start,
         simulation_end=simulation_end,
-        ENVIRONMENT=ENVIRONMENT,
+        ENVIRONMENT=environment,
     )
 
     # --- Database Engine ---
-    engine = get_db_engine(database_url=DATABASE_URL)
+    engine = get_db_engine(database_url=database_url)
 
     # --- Project Data ---
     project: Project = await Project.create(
@@ -88,7 +87,7 @@ async def from_proximal_db(
                     project_name_short=project.name_short,
                     project_data_table_name=project.data_table,
                     engine=engine,
-                    ENVIRONMENT=ENVIRONMENT,
+                    ENVIRONMENT=environment,
                     simulation_temporal_mode=simulation_temporal_mode,
                     simulation_start=simulation_start,
                     simulation_end=simulation_end,
@@ -100,7 +99,7 @@ async def from_proximal_db(
                     project_name_short=project_name_short,
                     project_data_table_name=project.data_table,
                     engine=engine,
-                    ENVIRONMENT=ENVIRONMENT,
+                    ENVIRONMENT=environment,
                     simulation_temporal_mode=simulation_temporal_mode,
                     simulation_start=simulation_start,
                     simulation_end=simulation_end,
@@ -110,7 +109,7 @@ async def from_proximal_db(
             system_task: Task[System] = tg.create_task(
                 System.create(
                     project_name_short=project_name_short,
-                    AWS_S3_BUCKET_NAME=AWS_S3_BUCKET_NAME,
+                    AWS_S3_BUCKET_NAME=aws_s3_bucket_name,
                 )
             )
             version_task: Task[str] = tg.create_task(get_simulation_version())
@@ -167,7 +166,7 @@ async def from_proximal_db(
     ].reset_index()
 
     # --- VALIDATION ---
-    if ENVIRONMENT == "VALIDATE":
+    if environment == "VALIDATE":
         # Perform validation checks here
         target_met_station = "05"
         logging.info(
@@ -241,5 +240,5 @@ async def from_proximal_db(
         inverters=inverters,
         axis_azimuth=axis_azimuth,
         SIMULATION_TEMPORAL_MODE=simulation_temporal_mode,
-        ENVIRONMENT=ENVIRONMENT,
+        ENVIRONMENT=environment,
     )

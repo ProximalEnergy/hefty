@@ -1,29 +1,12 @@
-import os
+from _utils.environment_variables import (
+    EnvironmentVariables,
+    load_environment_variables,
+)
 
-from dotenv import load_dotenv
 
-
-def get_environment_variables() -> dict[str, str]:
-    # Environment Variables
+def get_environment_variables() -> EnvironmentVariables:
     """Run get_environment_variables."""
-    load_dotenv()
-
-    # QC on environment
-    WEBHOOK_URL: str | None = os.getenv("WEBHOOK_URL")
-    match WEBHOOK_URL:
-        case str():
-            pass
-        case _:
-            raise ValueError("WEBHOOK_URL must be a string")
-
-    ENVIRONMENT: str | None = os.getenv("ENVIRONMENT")
-    match ENVIRONMENT:
-        case str():
-            pass
-        case _:
-            raise ValueError("ENVIRONMENT must be a string")
-
-    return {
-        "WEBHOOK_URL": WEBHOOK_URL,
-        "ENVIRONMENT": ENVIRONMENT,
-    }
+    env_vars = load_environment_variables()
+    env_vars.require_environment()
+    env_vars.require_webhook_url()
+    return env_vars

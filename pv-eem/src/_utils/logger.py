@@ -1,9 +1,8 @@
 import logging
-import os
 import sys
 import warnings
 
-from dotenv import load_dotenv
+from _utils.environment_variables import load_environment_variables
 
 
 def setup_logger(
@@ -18,9 +17,8 @@ def setup_logger(
 
     # Create logger
     logger = logging.getLogger()
-    load_dotenv()
     if environment is None:
-        environment = os.getenv("ENVIRONMENT")
+        environment = load_environment_variables().environment
 
     match environment:
         case "PROD" | "DEV" | "VALIDATE":
