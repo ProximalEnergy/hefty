@@ -227,7 +227,7 @@ def _get_clerk_url_jwks() -> str:
 def _get_clerk_application() -> Literal["development", "production"]:
     """Return the Clerk application name for the current environment."""
     environment = settings.ENVIRONMENT
-    if environment == "production":
+    if environment in ["production", "demo"]:
         return "production"
     else:
         return "development"

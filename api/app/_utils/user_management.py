@@ -322,7 +322,7 @@ async def update_clerk_user_demo_mode(
         demo_mode (bool): Set to True to enable demo mode, False to disable.
         vite_environment (str): The environment to use.
     """
-    if vite_environment == "PRODUCTION":
+    if vite_environment in ["PRODUCTION", "DEMO"]:
         clerk_secret_key = settings.CLERK_SECRET_KEY
     elif vite_environment in ["STAGING", "DEV"]:
         clerk_secret_key = settings.CLERK_SECRET_KEY_DEVELOPMENT
