@@ -8,7 +8,7 @@ dependencies = [
     "aiohttp>=3.13.3,<4",
     "boto3>=1.38,<2",
     "botocore~=1.42",
-    "clerk-backend-api~=4.2.0",
+    "clerk-backend-api~=5.0",
     "core",
     "fastapi~=0.134",
     "fastapi-mcp==0.4.0",
