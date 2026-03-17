@@ -279,7 +279,7 @@ async def update_clerk_user_theme(*, user_id: str, theme: str, vite_environment:
         theme (str): The theme to update the user to.
         vite_environment (str): The environment to use.
     """
-    if vite_environment == "PRODUCTION":
+    if vite_environment in ["PRODUCTION", "DEMO"]:
         clerk_secret_key = settings.CLERK_SECRET_KEY
     elif vite_environment in ["STAGING", "DEV"]:
         clerk_secret_key = settings.CLERK_SECRET_KEY_DEVELOPMENT

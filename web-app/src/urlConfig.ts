@@ -11,6 +11,8 @@ if (apiBaseUrlOverride) {
   calculatedBaseURL = 'https://api.staging.proximal.energy'
 } else if (environment === 'SANDBOX') {
   calculatedBaseURL = 'https://api.sandbox.proximal.energy'
+} else if (environment === 'DEMO') {
+  calculatedBaseURL = 'https://api.demo.proximal.energy'
 } else {
   calculatedBaseURL = 'http://127.0.0.1:8000' // Default to DEV
 }
