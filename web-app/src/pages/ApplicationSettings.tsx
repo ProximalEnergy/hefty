@@ -11,8 +11,8 @@ import {
 } from '@/api/v1/admin/notification_types'
 import { useGetSubscriptions } from '@/api/v1/admin/subscriptions'
 import { useGetProjects } from '@/api/v1/operational/projects'
+import { PageLoader } from '@/components/Loading'
 import { clearTips } from '@/components/Tips'
-import RequiresUserType from '@/components/admin/RequiresUserType'
 import { Teams as AdminTeams } from '@/components/admin/Teams'
 import { GISContext } from '@/contexts/GISContext'
 import { useUpdateReportSubscription } from '@/hooks/api'
@@ -31,6 +31,7 @@ import {
   SegmentedControl,
   Stack,
   Table,
+  Tabs,
   Text,
   Title,
   Tooltip,
@@ -43,22 +44,19 @@ import {
   IconAlertCircle,
   IconAlertTriangle,
   IconBolt,
+  IconBulb,
   IconInfoCircle,
   IconMessage,
   IconNotification,
+  IconPalette,
   IconReport,
   IconTrash,
+  IconUsersGroup,
   IconX,
 } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-
-const TeamsGate = ({ children }: { children: React.ReactNode }) => (
-  <RequiresUserType requiredUserType="admin" silent>
-    {children}
-  </RequiresUserType>
-)
 
 const DemoMode = () => {
   const { user } = useUser()
@@ -130,18 +128,69 @@ const DemoMode = () => {
 }
 
 const ApplicationSettings = () => {
-  // const { user } = useUser()
+  const userType = useGetUserType({})
+  if (userType.isLoading) {
+    return <PageLoader />
+  }
+  const isAdmin =
+    userType.data?.name_short === 'admin' ||
+    userType.data?.name_short === 'superadmin'
+
   return (
     <Stack p="md">
       <Title order={1}>Application Settings</Title>
-      <TeamsGate>
-        <AdminTeams />
-      </TeamsGate>
-      <Subscriptions />
-      <PersonalPortfolio />
-      <DemoMode />
-      <Tips />
-      <GISColors />
+      <Tabs
+        defaultValue={isAdmin ? 'teams' : 'notifications'}
+        variant="outline"
+      >
+        <Tabs.List>
+          {isAdmin && (
+            <Tabs.Tab value="teams" leftSection={<IconUsersGroup size={16} />}>
+              Teams
+            </Tabs.Tab>
+          )}
+          <Tabs.Tab
+            value="notifications"
+            leftSection={<IconNotification size={16} />}
+          >
+            Notifications
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="personal-portfolio"
+            leftSection={<IconBolt size={16} />}
+          >
+            Personal Portfolio
+          </Tabs.Tab>
+          <Tabs.Tab value="tips" leftSection={<IconBulb size={16} />}>
+            Tips
+          </Tabs.Tab>
+          <Tabs.Tab value="gis-colors" leftSection={<IconPalette size={16} />}>
+            GIS Colors
+          </Tabs.Tab>
+        </Tabs.List>
+
+        {isAdmin && (
+          <Tabs.Panel value="teams" pt="md">
+            <AdminTeams />
+          </Tabs.Panel>
+        )}
+
+        <Tabs.Panel value="notifications" pt="md">
+          <Subscriptions />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="personal-portfolio" pt="md">
+          <PersonalPortfolioTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="tips" pt="md">
+          <Tips />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="gis-colors" pt="md">
+          <GISColors />
+        </Tabs.Panel>
+      </Tabs>
     </Stack>
   )
 }
@@ -164,9 +213,11 @@ function Subscriptions() {
     .map((sub: UserSubscription) => sub.operational_project_id)
 
   return (
-    <>
-      <Title order={2}>Notifications</Title>
-
+    <Stack gap="md">
+      <Text>
+        Configure your notification preferences for reports, weather alerts, and
+        event chat messages.
+      </Text>
       <Accordion multiple={true} variant="contained">
         <Accordion.Item value={'Event Chat Messages'}>
           <Accordion.Control
@@ -241,7 +292,7 @@ function Subscriptions() {
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
-    </>
+    </Stack>
   )
 }
 
@@ -755,6 +806,15 @@ function EventChatNotificationsPanel({
   )
 }
 
+function PersonalPortfolioTab() {
+  return (
+    <Stack gap="lg">
+      <PersonalPortfolio />
+      <DemoMode />
+    </Stack>
+  )
+}
+
 function PersonalPortfolio() {
   const queryClient = useQueryClient()
   const projects = useGetProjects({ personalPortfolio: false })
@@ -767,15 +827,14 @@ function PersonalPortfolio() {
   )
 
   return (
-    <>
-      <Title order={2}>Personal Portfolio</Title>
+    <Stack gap="md">
       <Text>
         Personal Portfolio lets you select a subset of projects you have access
         to and display them throughout the application. You can change your
         personal portfolio by clicking the checkboxes below.
       </Text>
       <Accordion multiple={true} variant="contained">
-        <Accordion.Item value={'Notifications'}>
+        <Accordion.Item value={'Projects'}>
           <Accordion.Control
             icon={
               <IconBolt
@@ -787,7 +846,7 @@ function PersonalPortfolio() {
             }
             disabled={!projects.data}
           >
-            Personal Portfolio
+            Select Projects
           </Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
@@ -822,28 +881,28 @@ function PersonalPortfolio() {
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
-    </>
+    </Stack>
   )
 }
 
 function Tips() {
   return (
-    <>
-      <Title order={2}>Tips</Title>
+    <Stack gap="md">
       <Text>
         Tips will help you understand how to use the application. By default,
         they will only be shown once. You can reset all tips and see them again
         by clicking the button below.
       </Text>
-      <Button onClick={clearTips}>Reset Tips</Button>
-    </>
+      <Button onClick={clearTips} w="fit-content">
+        Reset Tips
+      </Button>
+    </Stack>
   )
 }
 
 function GISColors() {
   return (
-    <>
-      <Title order={2}>GIS Colors</Title>
+    <Stack gap="md">
       <Text>
         Customize the color scales used in GIS visualizations. The two scales
         used are <span style={{ fontStyle: 'italic' }}>High to Low</span> and{' '}
@@ -855,7 +914,7 @@ function GISColors() {
       </Text>
       <ColorScalePicker localStorageKey="proximal-gis-colors-high-low" />
       <ColorScalePicker localStorageKey="proximal-gis-colors-good-bad" />
-    </>
+    </Stack>
   )
 }
 
