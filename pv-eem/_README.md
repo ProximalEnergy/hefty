@@ -48,6 +48,9 @@ Expected energy calculations for PV systems in Proximal
 ### Used in local environment only
 ( The production environment uses an IAM role instead )
 - DATABASE_URL: connection string for the target database
+- CLICKHOUSE_HOST: clickhouse host for core DataTimeseries
+- CLICKHOUSE_USER: clickhouse username for core DataTimeseries
+- CLICKHOUSE_PASSWORD: clickhouse password for core DataTimeseries
 - AWS_ACCESS_KEY_ID: string
 - AWS_SECRET_ACCESS_KEY: string
 - AWS_S3_REGION: string

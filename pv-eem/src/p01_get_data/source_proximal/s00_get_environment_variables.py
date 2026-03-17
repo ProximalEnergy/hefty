@@ -30,6 +30,27 @@ def get_environment_variables() -> tuple[str, str, str]:
         case _:
             pass
 
+    clickhouse_host: str | None = os.getenv("CLICKHOUSE_HOST")
+    match clickhouse_host:
+        case None:
+            raise ValueError("CLICKHOUSE_HOST is missing from .env file")
+        case _:
+            pass
+
+    clickhouse_user: str | None = os.getenv("CLICKHOUSE_USER")
+    match clickhouse_user:
+        case None:
+            raise ValueError("CLICKHOUSE_USER is missing from .env file")
+        case _:
+            pass
+
+    clickhouse_password: str | None = os.getenv("CLICKHOUSE_PASSWORD")
+    match clickhouse_password:
+        case None:
+            raise ValueError("CLICKHOUSE_PASSWORD is missing from .env file")
+        case _:
+            pass
+
     return (
         environment,
         database_url,
