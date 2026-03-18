@@ -20,33 +20,54 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import {
   ActionIcon,
   Badge,
+  Box,
   Button,
   Card,
   Checkbox,
   Group,
+  LoadingOverlay,
+  Select as MantineSelect,
   Modal,
   NumberInput,
+  Pagination,
   Popover,
   Select,
   Stack,
+  Table,
   Tabs,
   Text,
   TextInput,
   Title,
   Tooltip,
+  UnstyledButton,
 } from '@mantine/core'
 import { hasLength, useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
-import { IconInfoCircle, IconPlus, IconRefresh } from '@tabler/icons-react'
+import {
+  IconChevronDown,
+  IconChevronUp,
+  IconInfoCircle,
+  IconPlus,
+  IconRefresh,
+} from '@tabler/icons-react'
+import {
+  type Column,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type FilterFn,
+  type PaginationState,
+  type RowData,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import {
-  type MRT_Cell,
-  MRT_ColumnDef,
-  MantineReactTable,
-  useMantineReactTable,
-} from 'mantine-react-table'
 import React, { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
@@ -82,6 +103,414 @@ type AssignedSensorTypeRow = {
   device_type_name: string | null
 }
 
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    align?: 'left' | 'center' | 'right'
+    filterVariant?: 'text' | 'boolean'
+  }
+}
+
+const getAlignment = (
+  align?: 'left' | 'center' | 'right',
+): 'left' | 'center' | 'right' => {
+  return align ?? 'left'
+}
+
+const stringifiedFilter: FilterFn<unknown> = (row, columnId, filterValue) => {
+  const value = row.getValue(columnId)
+  const filterText = String(filterValue ?? '')
+    .trim()
+    .toLowerCase()
+
+  if (filterText.length === 0) {
+    return true
+  }
+
+  return String(value ?? '')
+    .toLowerCase()
+    .includes(filterText)
+}
+
+const booleanSelectFilter: FilterFn<unknown> = (row, columnId, filterValue) => {
+  if (filterValue !== 'true' && filterValue !== 'false') {
+    return true
+  }
+
+  return String(Boolean(row.getValue(columnId))) === filterValue
+}
+
+const toggleSort = <TData extends object>(column: Column<TData, unknown>) => {
+  const currentSort = column.getIsSorted()
+
+  if (currentSort === false) {
+    column.toggleSorting(false)
+    return
+  }
+
+  if (currentSort === 'asc') {
+    column.toggleSorting(true)
+    return
+  }
+
+  column.clearSorting()
+}
+
+const renderPatternParts = (parts: string[]) => {
+  const lastIndex = parts.length - 1
+
+  return parts.map((part, index) => {
+    const showIntToken = index < lastIndex
+
+    return (
+      <span key={index}>
+        {part}
+        {showIntToken && (
+          <Text component="span" c="blue" fw={600}>
+            [INT]
+          </Text>
+        )}
+      </span>
+    )
+  })
+}
+
+const transformSampleValue = ({
+  value,
+  patternUnitScale,
+  patternUnitOffset,
+}: {
+  value: number | string
+  patternUnitScale: number | null
+  patternUnitOffset: number | null
+}) => {
+  let transformedValue =
+    typeof value === 'string' ? Number.parseFloat(value) : value
+
+  if (patternUnitScale !== null) {
+    transformedValue = transformedValue * patternUnitScale
+  }
+
+  if (patternUnitOffset !== null) {
+    transformedValue = transformedValue + patternUnitOffset
+  }
+
+  return transformedValue
+}
+
+type TanStackMantineTableProps<TData extends object> = {
+  columns: ColumnDef<TData>[]
+  data: TData[]
+  emptyText: string
+  initialPagination: PaginationState
+  initialSorting: SortingState
+  isLoading?: boolean
+  onRowClick?: (row: TData) => void
+  searchPlaceholder?: string
+}
+
+function TanStackMantineTable<TData extends object>({
+  columns,
+  data,
+  emptyText,
+  initialPagination,
+  initialSorting,
+  isLoading = false,
+  onRowClick,
+  searchPlaceholder = 'Search all columns',
+}: TanStackMantineTableProps<TData>) {
+  const [sorting, setSorting] = useState<SortingState>(initialSorting)
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [pagination, setPagination] =
+    useState<PaginationState>(initialPagination)
+  const defaultStringFilter = useMemo(
+    () => stringifiedFilter as FilterFn<TData>,
+    [],
+  )
+
+  const table = useReactTable<TData>({
+    columns,
+    data,
+    state: {
+      sorting,
+      globalFilter,
+      columnFilters,
+      pagination,
+    },
+    defaultColumn: {
+      size: 160,
+      minSize: 80,
+      filterFn: defaultStringFilter,
+      enableColumnFilter: true,
+      enableSorting: true,
+      enableResizing: true,
+    },
+    columnResizeMode: 'onChange',
+    globalFilterFn: defaultStringFilter,
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  })
+
+  const visibleColumns = table.getVisibleLeafColumns()
+  const visibleRows = table.getRowModel().rows
+  const pageCount = Math.max(table.getPageCount(), 1)
+  const colspan = visibleColumns.length || 1
+  const currentPage = pagination.pageIndex + 1
+  const handlePageChange = (page: number) => {
+    table.setPageIndex(page - 1)
+  }
+
+  React.useEffect(() => {
+    if (pageCount === 0 && pagination.pageIndex !== 0) {
+      table.setPageIndex(0)
+      return
+    }
+
+    if (pagination.pageIndex >= pageCount && pageCount > 0) {
+      table.setPageIndex(pageCount - 1)
+    }
+  }, [pageCount, pagination.pageIndex, table])
+
+  return (
+    <Stack gap="sm">
+      <Group justify="space-between" align="flex-end">
+        <TextInput
+          label="Search"
+          placeholder={searchPlaceholder}
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.currentTarget.value)}
+          style={{ minWidth: 280 }}
+        />
+      </Group>
+
+      <Box pos="relative">
+        <LoadingOverlay visible={isLoading} zIndex={1} />
+        <Table.ScrollContainer minWidth="100%">
+          <Table
+            striped
+            highlightOnHover
+            stickyHeader
+            horizontalSpacing="sm"
+            verticalSpacing="xs"
+            fz="sm"
+            style={{ width: Math.max(table.getTotalSize(), 960) }}
+          >
+            <Table.Thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <React.Fragment key={headerGroup.id}>
+                  <Table.Tr>
+                    {headerGroup.headers.map((header) => {
+                      const align = getAlignment(
+                        header.column.columnDef.meta?.align,
+                      )
+
+                      return (
+                        <Table.Th
+                          key={header.id}
+                          style={{
+                            position: 'relative',
+                            width: header.getSize(),
+                            minWidth: header.column.columnDef.minSize,
+                            textAlign: align,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {header.isPlaceholder ? null : (
+                            <>
+                              <UnstyledButton
+                                onClick={() => toggleSort(header.column)}
+                                style={{
+                                  width: '100%',
+                                  display: 'flex',
+                                  justifyContent:
+                                    align === 'left'
+                                      ? 'flex-start'
+                                      : align === 'center'
+                                        ? 'center'
+                                        : 'flex-end',
+                                }}
+                              >
+                                <Group gap={4} wrap="nowrap">
+                                  <Text fw={600} size="sm">
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    )}
+                                  </Text>
+                                  {header.column.getIsSorted() === 'asc' && (
+                                    <IconChevronUp size={14} />
+                                  )}
+                                  {header.column.getIsSorted() === 'desc' && (
+                                    <IconChevronDown size={14} />
+                                  )}
+                                </Group>
+                              </UnstyledButton>
+                              {header.column.getCanResize() && (
+                                <Box
+                                  onDoubleClick={() =>
+                                    header.column.resetSize()
+                                  }
+                                  onMouseDown={header.getResizeHandler()}
+                                  onTouchStart={header.getResizeHandler()}
+                                  style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 0,
+                                    width: 8,
+                                    height: '100%',
+                                    cursor: 'col-resize',
+                                    userSelect: 'none',
+                                  }}
+                                />
+                              )}
+                            </>
+                          )}
+                        </Table.Th>
+                      )
+                    })}
+                  </Table.Tr>
+                  <Table.Tr>
+                    {headerGroup.headers.map((header) => {
+                      const column = header.column
+                      const filterVariant =
+                        column.columnDef.meta?.filterVariant ?? 'text'
+                      const filterValue = column.getFilterValue()
+                      const align = getAlignment(column.columnDef.meta?.align)
+
+                      return (
+                        <Table.Th
+                          key={`${header.id}-filter`}
+                          style={{
+                            width: header.getSize(),
+                            minWidth: header.column.columnDef.minSize,
+                            textAlign: align,
+                          }}
+                        >
+                          {!column.getCanFilter() ? null : filterVariant ===
+                            'boolean' ? (
+                            <MantineSelect
+                              size="xs"
+                              clearable
+                              placeholder="All"
+                              value={
+                                typeof filterValue === 'string'
+                                  ? filterValue
+                                  : null
+                              }
+                              data={[
+                                { value: 'true', label: 'Yes' },
+                                { value: 'false', label: 'No' },
+                              ]}
+                              onChange={(value) =>
+                                column.setFilterValue(value ?? undefined)
+                              }
+                            />
+                          ) : (
+                            <TextInput
+                              size="xs"
+                              placeholder="Filter"
+                              value={
+                                typeof filterValue === 'string'
+                                  ? filterValue
+                                  : ''
+                              }
+                              onChange={(event) =>
+                                column.setFilterValue(
+                                  event.currentTarget.value || undefined,
+                                )
+                              }
+                            />
+                          )}
+                        </Table.Th>
+                      )
+                    })}
+                  </Table.Tr>
+                </React.Fragment>
+              ))}
+            </Table.Thead>
+            <Table.Tbody>
+              {visibleRows.length === 0 ? (
+                <Table.Tr>
+                  <Table.Td colSpan={colspan}>
+                    <Text size="sm" c="dimmed">
+                      {emptyText}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ) : (
+                visibleRows.map((row) => (
+                  <Table.Tr
+                    key={row.id}
+                    onClick={() => onRowClick?.(row.original)}
+                    style={{
+                      cursor: onRowClick ? 'pointer' : undefined,
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const align = getAlignment(
+                        cell.column.columnDef.meta?.align,
+                      )
+
+                      return (
+                        <Table.Td
+                          key={cell.id}
+                          style={{
+                            width: cell.column.getSize(),
+                            minWidth: cell.column.columnDef.minSize,
+                            textAlign: align,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </Table.Td>
+                      )
+                    })}
+                  </Table.Tr>
+                ))
+              )}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      </Box>
+
+      <Group justify="space-between" align="center">
+        <Group gap="xs" align="center">
+          <Text size="sm">Rows per page</Text>
+          <MantineSelect
+            size="xs"
+            w={90}
+            value={String(pagination.pageSize)}
+            data={['25', '50', '100'].map((value) => ({
+              value,
+              label: value,
+            }))}
+            onChange={(value) => {
+              if (!value) return
+              table.setPageSize(Number(value))
+              table.setPageIndex(0)
+            }}
+          />
+        </Group>
+        <Pagination
+          size="sm"
+          total={pageCount}
+          value={currentPage}
+          onChange={handlePageChange}
+        />
+      </Group>
+    </Stack>
+  )
+}
+
 const ProjectTagExplorer = () => {
   const { projectId } = useParams<{ projectId: string }>()
 
@@ -89,7 +518,6 @@ const ProjectTagExplorer = () => {
   // Removed legacy sensor type filter; use table filters instead
   const [executionTime, setExecutionTime] = useState<number | null>(null)
   const [isTableRefreshing, setIsTableRefreshing] = useState(false)
-  const [showColumnHandles, setShowColumnHandles] = useState(false)
   const [tagPatternAlignRight, setTagPatternAlignRight] = useState(false)
   const [showOnlyUnassigned, setShowOnlyUnassigned] = useState(false)
   const [isDetailsModalOpen, { open: openDetails, close: closeDetails }] =
@@ -443,6 +871,134 @@ const ProjectTagExplorer = () => {
     if (!selectedTagPattern) return null
     return groupedTagTypes.find((row) => row.tag_pattern === selectedTagPattern)
   }, [groupedTagTypes, selectedTagPattern])
+  const selectedTagPatternParts = useMemo(
+    () => (selectedTagPattern ? selectedTagPattern.split('[INT]') : []),
+    [selectedTagPattern],
+  )
+  const selectedTagPatternTitle = useMemo(() => {
+    if (!selectedTagPattern) {
+      return 'Tag Pattern Details'
+    }
+
+    return (
+      <span>
+        Tag Pattern Details: {renderPatternParts(selectedTagPatternParts)}
+      </span>
+    )
+  }, [selectedTagPattern, selectedTagPatternParts])
+  const intRangeNodes = useMemo(() => {
+    if (!selectedTagPattern) return null
+
+    const nodes: React.ReactNode[] = []
+
+    for (let i = 0; i < selectedTagPatternParts.length; i++) {
+      nodes.push(selectedTagPatternParts[i])
+
+      if (i < intRanges.length) {
+        const range = intRanges[i]
+        const hasFiniteRange =
+          Number.isFinite(range.min) && Number.isFinite(range.max)
+        const rangeText = hasFiniteRange ? `${range.min}-${range.max}` : '—'
+
+        nodes.push(
+          <Text key={`range-${i}`} component="span" c="blue" fw={600}>
+            [{rangeText}]
+          </Text>,
+        )
+      }
+    }
+
+    return nodes
+  }, [intRanges, selectedTagPattern, selectedTagPatternParts])
+  const sampleTags = useMemo(
+    () => tagPatternSamples.data?.sample_tags ?? [],
+    [tagPatternSamples.data?.sample_tags],
+  )
+  const sampledTagCount = sampleTags.length
+  const numericTagCount = useMemo(
+    () => sampleTags.filter((tag) => tag.is_numeric).length,
+    [sampleTags],
+  )
+  const nonNumericTagCount = useMemo(
+    () => sampleTags.filter((tag) => !tag.is_numeric).length,
+    [sampleTags],
+  )
+  const numericTagsWithSamples = useMemo(
+    () =>
+      sampleTags.filter(
+        (tag) => tag.is_numeric && tag.sample_values.length > 0,
+      ),
+    [sampleTags],
+  )
+  const nonNumericTagsWithSamples = useMemo(
+    () =>
+      sampleTags.filter(
+        (tag) => !tag.is_numeric && tag.sample_values.length > 0,
+      ),
+    [sampleTags],
+  )
+  const timezoneName = project.data?.time_zone ?? 'UTC'
+  const selectedUnitLabel = selectedSensorTypeUnit
+    ? `Values (${selectedSensorTypeUnit})`
+    : 'Values'
+  const selectedUnitTickFormat =
+    selectedSensorTypeUnit && selectedSensorTypeUnit.toLowerCase().includes('%')
+      ? ',.0%'
+      : undefined
+  const numericTimeseriesData = useMemo(
+    () =>
+      numericTagsWithSamples.map((tag) => ({
+        x: tag.timestamps,
+        y: tag.sample_values.map((value: string | number) =>
+          transformSampleValue({
+            value,
+            patternUnitScale,
+            patternUnitOffset,
+          }),
+        ),
+        type: 'scatter' as const,
+        mode: 'lines+markers' as const,
+        name: tag.tag_name,
+        hoverlabel: { namelength: -1 },
+      })),
+    [numericTagsWithSamples, patternUnitOffset, patternUnitScale],
+  )
+  const numericHistogramData = useMemo(
+    () =>
+      numericTagsWithSamples.map((tag) => ({
+        x: tag.sample_values.map((value: string | number) =>
+          transformSampleValue({
+            value,
+            patternUnitScale,
+            patternUnitOffset,
+          }),
+        ),
+        type: 'histogram' as const,
+        name: tag.tag_name,
+        nbinsx: 20,
+        hoverlabel: { namelength: -1 },
+      })),
+    [numericTagsWithSamples, patternUnitOffset, patternUnitScale],
+  )
+  const nonNumericTagSummaries = useMemo(
+    () =>
+      nonNumericTagsWithSamples.map((tag) => {
+        const uniqueValues = Array.from(new Set(tag.sample_values))
+        const uniqueValueCount = uniqueValues.length
+        const visibleUniqueValues = uniqueValues.slice(0, 20)
+        const remainingUniqueValueCount = Math.max(uniqueValueCount - 20, 0)
+
+        return {
+          tagId: tag.tag_id,
+          tagName: tag.tag_name,
+          totalValueCount: tag.sample_values.length,
+          uniqueValueCount,
+          visibleUniqueValues,
+          remainingUniqueValueCount,
+        }
+      }),
+    [nonNumericTagsWithSamples],
+  )
 
   const handleAssignPatternSensorType = async () => {
     if (!selectedTagPattern || !patternSensorTypeId || !projectId) return
@@ -519,47 +1075,31 @@ const ProjectTagExplorer = () => {
     }
   }
 
-  const columns = useMemo<MRT_ColumnDef<TagPatternRow>[]>(
+  const columns = useMemo<ColumnDef<TagPatternRow>[]>(
     () => [
       {
         header: 'Tag Pattern',
         accessorKey: 'tag_pattern',
         size: 300,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-        mantineTableBodyCellProps: {
+        meta: {
           align: tagPatternAlignRight ? 'right' : 'left',
         },
-        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
-          const pattern = cell.getValue<string>()
+        cell: ({ getValue, row }) => {
+          const pattern = getValue<string>()
           const parts = pattern.split('[INT]')
 
           return (
             <Tooltip
               label={
-                cell.row.original.examples &&
-                cell.row.original.examples.length > 0
-                  ? `Examples: ${cell.row.original.examples.join(', ')}`
+                row.original.examples && row.original.examples.length > 0
+                  ? `Examples: ${row.original.examples.join(', ')}`
                   : 'No examples available'
               }
               disabled={
-                !cell.row.original.examples ||
-                cell.row.original.examples.length === 0
+                !row.original.examples || row.original.examples.length === 0
               }
             >
-              <Text fw={500}>
-                {parts.map((part, index) => (
-                  <span key={index}>
-                    {part}
-                    {index < parts.length - 1 && (
-                      <Text component="span" c="blue" fw={600}>
-                        [INT]
-                      </Text>
-                    )}
-                  </span>
-                ))}
-              </Text>
+              <Text fw={500}>{renderPatternParts(parts)}</Text>
             </Tooltip>
           )
         },
@@ -568,14 +1108,11 @@ const ProjectTagExplorer = () => {
         header: 'Device Type',
         accessorKey: 'device_type_name',
         size: 220,
-        mantineTableHeadCellProps: {
+        meta: {
           align: 'left',
         },
-        mantineTableBodyCellProps: {
-          align: 'left',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
-          const deviceTypeName = cell.getValue<string | null>()
+        cell: ({ getValue }) => {
+          const deviceTypeName = getValue<string | null>()
           return <Text>{deviceTypeName ?? '—'}</Text>
         },
       },
@@ -583,17 +1120,12 @@ const ProjectTagExplorer = () => {
         header: 'Sensor Type',
         accessorKey: 'sensor_type_name_short',
         size: 180,
-        mantineTableHeadCellProps: {
+        meta: {
           align: 'left',
         },
-        mantineTableBodyCellProps: {
-          align: 'left',
-        },
-        Cell: ({ cell }: { cell: MRT_Cell<TagPatternRow> }) => {
-          const nameShort = cell.getValue<string | null>()
-          const sensorTypeId = cell.row.original.sensor_type_id as
-            | number
-            | undefined
+        cell: ({ getValue, row }) => {
+          const nameShort = getValue<string | null>()
+          const sensorTypeId = row.original.sensor_type_id as number | undefined
           if (!sensorTypeId || sensorTypeId === 0) {
             return (
               <Tooltip label="Click to assign sensor type">
@@ -601,7 +1133,7 @@ const ProjectTagExplorer = () => {
                   variant="subtle"
                   color="gray"
                   onClick={() => {
-                    setSelectedTagPattern(cell.row.original.tag_pattern)
+                    setSelectedTagPattern(row.original.tag_pattern)
                     openDetails()
                   }}
                 >
@@ -618,18 +1150,10 @@ const ProjectTagExplorer = () => {
         },
       },
       {
-        header: 'SCADA Type',
-        accessorKey: 'scada_type',
-        size: 150,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-      },
-      {
         header: 'Unit SCADA',
         accessorKey: 'unit_scada',
         size: 150,
-        mantineTableHeadCellProps: {
+        meta: {
           align: 'left',
         },
       },
@@ -637,10 +1161,7 @@ const ProjectTagExplorer = () => {
         header: 'Unit Offset',
         accessorKey: 'unit_offset',
         size: 120,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-        mantineTableBodyCellProps: {
+        meta: {
           align: 'center',
         },
       },
@@ -648,10 +1169,7 @@ const ProjectTagExplorer = () => {
         header: 'Unit Scale',
         accessorKey: 'unit_scale',
         size: 120,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-        mantineTableBodyCellProps: {
+        meta: {
           align: 'center',
         },
       },
@@ -659,10 +1177,7 @@ const ProjectTagExplorer = () => {
         header: 'Total Count',
         accessorKey: 'total_count',
         size: 120,
-        mantineTableHeadCellProps: {
-          align: 'left',
-        },
-        mantineTableBodyCellProps: {
+        meta: {
           align: 'center',
         },
       },
@@ -670,61 +1185,7 @@ const ProjectTagExplorer = () => {
     [openDetails, tagPatternAlignRight],
   )
 
-  const table = useMantineReactTable({
-    columns,
-    data: filteredGroupedTagTypes,
-    state: {
-      isLoading: uniqueTagTypes.isFetching || isTableRefreshing,
-      showProgressBars: uniqueTagTypes.isFetching || isTableRefreshing,
-    },
-    enableGrouping: true,
-    enableColumnDragging: showColumnHandles,
-    enableColumnResizing: true,
-    enableColumnOrdering: showColumnHandles,
-    enableRowSelection: false,
-    enableMultiSort: showColumnHandles,
-    enableSorting: showColumnHandles,
-    enableGlobalFilter: true,
-    enableColumnFilters: true,
-    enableDensityToggle: true,
-    enableFullScreenToggle: true,
-    enableHiding: true,
-    layoutMode: 'grid',
-    mantineTableBodyRowProps: ({ row }) => ({
-      onClick: () => {
-        setSelectedTagPattern(row.original.tag_pattern)
-        openDetails()
-      },
-      style: { cursor: 'pointer' },
-    }),
-    initialState: {
-      density: 'xs',
-      columnVisibility: {
-        tag_pattern: true,
-        device_type_name: true,
-        sensor_type_name_short: true,
-        scada_type: false,
-        unit_scada: false,
-        unit_offset: true,
-        unit_scale: true,
-        total_count: true,
-      },
-      sorting: [{ id: 'total_count', desc: true }],
-      globalFilter: '',
-      showGlobalFilter: true,
-      pagination: {
-        pageSize: 50,
-        pageIndex: 0,
-      },
-    },
-    mantineTableProps: {
-      striped: true,
-      highlightOnHover: true,
-      style: { width: '100%' },
-    },
-  })
-
-  // Assigned Sensor Types table (MantineReactTable)
+  // Assigned Sensor Types table
   const assignedRows = useMemo(() => {
     return (
       sensorTypes.data?.map((st: SensorType) => ({
@@ -745,15 +1206,15 @@ const ProjectTagExplorer = () => {
     )
   }, [sensorTypes.data, groupedTagTypes, deviceTypes.data])
 
-  const assignedColumns = useMemo<MRT_ColumnDef<AssignedSensorTypeRow>[]>(
+  const assignedColumns = useMemo<ColumnDef<AssignedSensorTypeRow>[]>(
     () => [
       {
         header: 'Sensor Type',
         accessorKey: 'name_short',
         size: 220,
-        Cell: ({ cell }) => {
-          const nameShort = cell.getValue<string>()
-          const nameLong = cell.row.original.name_long as string | undefined
+        cell: ({ getValue, row }) => {
+          const nameShort = getValue<string>()
+          const nameLong = row.original.name_long as string | undefined
           return (
             <Tooltip label={nameLong} disabled={!nameLong}>
               <Text fw={500}>{nameShort}</Text>
@@ -765,10 +1226,9 @@ const ProjectTagExplorer = () => {
         header: 'Device Type',
         accessorKey: 'device_type_name',
         size: 220,
-        mantineTableHeadCellProps: { align: 'left' },
-        mantineTableBodyCellProps: { align: 'left' },
-        Cell: ({ cell }) => {
-          const dtName = cell.getValue<string | null>()
+        meta: { align: 'left' },
+        cell: ({ getValue }) => {
+          const dtName = getValue<string | null>()
           return <Text>{dtName ?? '—'}</Text>
         },
       },
@@ -781,47 +1241,24 @@ const ProjectTagExplorer = () => {
         header: 'Unit',
         accessorKey: 'unit',
         size: 120,
-        mantineTableBodyCellProps: { align: 'center' },
+        meta: { align: 'center' },
       },
       {
         header: 'Assigned in Project?',
         accessorKey: 'assigned',
         size: 200,
-        enableSorting: true,
-        mantineTableBodyCellProps: { align: 'center' },
-        Cell: ({ cell }) => (
-          <Checkbox checked={!!cell.getValue<boolean>()} readOnly />
+        filterFn: booleanSelectFilter as FilterFn<AssignedSensorTypeRow>,
+        meta: {
+          align: 'center',
+          filterVariant: 'boolean',
+        },
+        cell: ({ getValue }) => (
+          <Checkbox checked={!!getValue<boolean>()} readOnly />
         ),
       },
     ],
     [],
   )
-
-  const assignedTable = useMantineReactTable({
-    columns: assignedColumns,
-    data: assignedRows,
-    state: {
-      isLoading: sensorTypes.isLoading,
-      showProgressBars: sensorTypes.isFetching,
-    },
-    enableGrouping: true,
-    enableRowSelection: false,
-    enableColumnDragging: false,
-    enableColumnOrdering: false,
-    enableMultiSort: false,
-    enableDensityToggle: true,
-    enableGlobalFilter: true,
-    enableColumnFilters: true,
-    initialState: {
-      density: 'xs',
-      sorting: [{ id: 'assigned', desc: true }],
-      columnVisibility: {
-        device_type_id: false,
-      },
-      pagination: { pageSize: 50, pageIndex: 0 },
-    },
-    mantineTableProps: { striped: true, highlightOnHover: true },
-  })
 
   if (
     uniqueTagTypes.isLoading ||
@@ -963,12 +1400,6 @@ const ProjectTagExplorer = () => {
                   />
                   <Button
                     variant="light"
-                    onClick={() => setShowColumnHandles(!showColumnHandles)}
-                  >
-                    {showColumnHandles ? 'Hide' : 'Show'} Column Handles
-                  </Button>
-                  <Button
-                    variant="light"
                     onClick={() =>
                       setTagPatternAlignRight(!tagPatternAlignRight)
                     }
@@ -978,7 +1409,22 @@ const ProjectTagExplorer = () => {
                   </Button>
                 </Group>
               </Group>
-              <MantineReactTable table={table} />
+              <TanStackMantineTable
+                columns={columns}
+                data={filteredGroupedTagTypes}
+                emptyText="No unique tag patterns match the current filters."
+                initialPagination={{
+                  pageIndex: 0,
+                  pageSize: 50,
+                }}
+                initialSorting={[{ id: 'total_count', desc: true }]}
+                isLoading={uniqueTagTypes.isFetching || isTableRefreshing}
+                onRowClick={(row) => {
+                  setSelectedTagPattern(row.tag_pattern)
+                  openDetails()
+                }}
+                searchPlaceholder="Search tag patterns, device types, units..."
+              />
             </Stack>
           </Card>
         </Tabs.Panel>
@@ -991,7 +1437,18 @@ const ProjectTagExplorer = () => {
                 This tab summarizes sensor type availability vs. assignment in
                 this project.
               </Text>
-              <MantineReactTable table={assignedTable} />
+              <TanStackMantineTable
+                columns={assignedColumns}
+                data={assignedRows}
+                emptyText="No sensor types match the current filters."
+                initialPagination={{
+                  pageIndex: 0,
+                  pageSize: 50,
+                }}
+                initialSorting={[{ id: 'assigned', desc: true }]}
+                isLoading={sensorTypes.isFetching}
+                searchPlaceholder="Search sensor types, device types, units..."
+              />
             </Stack>
           </Card>
         </Tabs.Panel>
@@ -1001,25 +1458,7 @@ const ProjectTagExplorer = () => {
       <Modal
         opened={isDetailsModalOpen}
         onClose={closeDetails}
-        title={
-          selectedTagPattern ? (
-            <span>
-              Tag Pattern Details:{' '}
-              {selectedTagPattern?.split('[INT]').map((part, index) => (
-                <span key={index}>
-                  {part}
-                  {index < selectedTagPattern.split('[INT]').length - 1 && (
-                    <Text component="span" c="blue" fw={600}>
-                      [INT]
-                    </Text>
-                  )}
-                </span>
-              ))}
-            </span>
-          ) : (
-            'Tag Pattern Details'
-          )
-        }
+        title={selectedTagPatternTitle}
         size="100%"
       >
         <Stack gap="lg">
@@ -1058,31 +1497,7 @@ const ProjectTagExplorer = () => {
                   ) : intRanges.length > 0 ? (
                     <>
                       <Text size="sm" style={{ wordBreak: 'break-all' }}>
-                        {(() => {
-                          const parts = (selectedTagPattern || '').split(
-                            '[INT]',
-                          )
-                          const nodes: React.ReactNode[] = []
-                          for (let i = 0; i < parts.length; i++) {
-                            nodes.push(parts[i])
-                            if (i < intRanges.length) {
-                              const r = intRanges[i]
-                              const ok =
-                                Number.isFinite(r.min) && Number.isFinite(r.max)
-                              nodes.push(
-                                <Text
-                                  key={`range-${i}`}
-                                  component="span"
-                                  c="blue"
-                                  fw={600}
-                                >
-                                  [{ok ? `${r.min}-${r.max}` : '—'}]
-                                </Text>,
-                              )
-                            }
-                          }
-                          return <>{nodes}</>
-                        })()}
+                        {intRangeNodes}
                       </Text>
                       <Text size="xs" c="dimmed">
                         Based on {tagsByPattern.data?.length || 0} tags matching
@@ -1284,24 +1699,14 @@ const ProjectTagExplorer = () => {
                           {selectedPatternRow?.total_count || 0}
                         </Text>
                         <Text size="sm">
-                          <strong>Sampled Tags:</strong>{' '}
-                          {tagPatternSamples.data.sample_tags.length}
+                          <strong>Sampled Tags:</strong> {sampledTagCount}
                         </Text>
                         <Text size="sm">
-                          <strong>Numeric Tags:</strong>{' '}
-                          {
-                            tagPatternSamples.data.sample_tags.filter(
-                              (tag) => tag.is_numeric,
-                            ).length
-                          }
+                          <strong>Numeric Tags:</strong> {numericTagCount}
                         </Text>
                         <Text size="sm">
                           <strong>Non-Numeric Tags:</strong>{' '}
-                          {
-                            tagPatternSamples.data.sample_tags.filter(
-                              (tag) => !tag.is_numeric,
-                            ).length
-                          }
+                          {nonNumericTagCount}
                         </Text>
                       </Group>
                     )}
@@ -1315,244 +1720,153 @@ const ProjectTagExplorer = () => {
                     ) : tagPatternSamples.data?.sample_tags &&
                       tagPatternSamples.data.sample_tags.length > 0 ? (
                       <Stack gap="md">
-                        {(() => {
-                          const numericTags =
-                            tagPatternSamples.data.sample_tags.filter(
-                              (tag) =>
-                                tag.is_numeric && tag.sample_values.length > 0,
-                            )
-                          const nonNumericTags =
-                            tagPatternSamples.data.sample_tags.filter(
-                              (tag) =>
-                                !tag.is_numeric && tag.sample_values.length > 0,
-                            )
-                          const timezoneName = project.data?.time_zone ?? 'UTC'
+                        <>
+                          {numericTagsWithSamples.length > 0 &&
+                            project.isSuccess && (
+                              <Tabs defaultValue="timeseries">
+                                <Tabs.List>
+                                  <Tabs.Tab value="timeseries">
+                                    Timeseries
+                                  </Tabs.Tab>
+                                  <Tabs.Tab value="histogram">
+                                    Histogram
+                                  </Tabs.Tab>
+                                </Tabs.List>
 
-                          return (
-                            <>
-                              {numericTags.length > 0 && project.isSuccess && (
-                                <Tabs defaultValue="timeseries">
-                                  <Tabs.List>
-                                    <Tabs.Tab value="timeseries">
-                                      Timeseries
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="histogram">
-                                      Histogram
-                                    </Tabs.Tab>
-                                  </Tabs.List>
-
-                                  <Tabs.Panel value="timeseries" pt="xs">
-                                    <div
-                                      style={{
-                                        width: '100%',
-                                        height: '450px',
+                                <Tabs.Panel value="timeseries" pt="xs">
+                                  <div
+                                    style={{
+                                      width: '100%',
+                                      height: '450px',
+                                    }}
+                                  >
+                                    <PlotlyPlot
+                                      data={numericTimeseriesData}
+                                      xAxisTimeZone={timezoneName}
+                                      layout={{
+                                        yaxis: {
+                                          title: {
+                                            text: selectedUnitLabel,
+                                          },
+                                          tickformat: selectedUnitTickFormat,
+                                        },
                                       }}
-                                    >
-                                      <PlotlyPlot
-                                        data={numericTags.map((tag) => ({
-                                          x: tag.timestamps,
-                                          y: tag.sample_values.map(
-                                            (value: string | number) => {
-                                              let transformedValue =
-                                                typeof value === 'string'
-                                                  ? Number.parseFloat(value)
-                                                  : value
-                                              if (patternUnitScale !== null) {
-                                                transformedValue =
-                                                  transformedValue *
-                                                  patternUnitScale
-                                              }
-                                              if (patternUnitOffset !== null) {
-                                                transformedValue =
-                                                  transformedValue +
-                                                  patternUnitOffset
-                                              }
+                                    />
+                                  </div>
+                                </Tabs.Panel>
 
-                                              return transformedValue
-                                            },
-                                          ),
-                                          type: 'scatter',
-                                          mode: 'lines+markers',
-                                          name: tag.tag_name,
-                                          hoverlabel: { namelength: -1 },
-                                        }))}
-                                        xAxisTimeZone={timezoneName}
-                                        layout={{
-                                          yaxis: {
-                                            title: {
-                                              text: selectedSensorTypeUnit
-                                                ? `Values (${selectedSensorTypeUnit})`
-                                                : 'Values',
-                                            },
-                                            tickformat:
-                                              selectedSensorTypeUnit &&
-                                              selectedSensorTypeUnit
-                                                .toLowerCase()
-                                                .includes('%')
-                                                ? ',.0%'
-                                                : undefined,
+                                <Tabs.Panel value="histogram" pt="xs">
+                                  <div
+                                    style={{
+                                      width: '100%',
+                                      height: '450px',
+                                    }}
+                                  >
+                                    <PlotlyPlot
+                                      data={numericHistogramData}
+                                      layout={{
+                                        showlegend: false,
+                                        xaxis: {
+                                          title: {
+                                            text: selectedUnitLabel,
                                           },
-                                        }}
-                                      />
-                                    </div>
-                                  </Tabs.Panel>
-
-                                  <Tabs.Panel value="histogram" pt="xs">
-                                    <div
-                                      style={{
-                                        width: '100%',
-                                        height: '450px',
+                                          tickformat: selectedUnitTickFormat,
+                                        },
+                                        yaxis: {
+                                          title: { text: 'Frequency' },
+                                        },
                                       }}
+                                    />
+                                  </div>
+                                </Tabs.Panel>
+                              </Tabs>
+                            )}
+
+                          {numericTagsWithSamples.length > 0 &&
+                            !project.isSuccess && (
+                              <Card withBorder variant="light">
+                                <Text c="dimmed">
+                                  Charts unavailable: Project data not loaded
+                                </Text>
+                              </Card>
+                            )}
+
+                          {nonNumericTagSummaries.length > 0 && (
+                            <Card withBorder variant="light">
+                              <Stack gap="sm">
+                                <Text fw={500}>Non-Numeric Values</Text>
+                                <div
+                                  style={{
+                                    maxHeight: '300px',
+                                    overflowY: 'auto',
+                                    border: '1px solid #e0e0e0',
+                                    borderRadius: '4px',
+                                    padding: '8px',
+                                  }}
+                                >
+                                  {nonNumericTagSummaries.map((tag) => (
+                                    <div
+                                      key={tag.tagId}
+                                      style={{ marginBottom: '12px' }}
                                     >
-                                      <PlotlyPlot
-                                        data={numericTags.map((tag) => ({
-                                          x: tag.sample_values.map(
-                                            (value: string | number) => {
-                                              let transformedValue =
-                                                typeof value === 'string'
-                                                  ? Number.parseFloat(value)
-                                                  : value
-                                              if (patternUnitScale !== null) {
-                                                transformedValue =
-                                                  transformedValue *
-                                                  patternUnitScale
-                                              }
-                                              if (patternUnitOffset !== null) {
-                                                transformedValue =
-                                                  transformedValue +
-                                                  patternUnitOffset
-                                              }
-
-                                              return transformedValue
-                                            },
-                                          ),
-                                          type: 'histogram',
-                                          name: tag.tag_name,
-                                          nbinsx: 20,
-                                          hoverlabel: { namelength: -1 },
-                                        }))}
-                                        layout={{
-                                          showlegend: false,
-                                          xaxis: {
-                                            title: {
-                                              text: selectedSensorTypeUnit
-                                                ? `Values (${selectedSensorTypeUnit})`
-                                                : 'Values',
-                                            },
-                                            tickformat:
-                                              selectedSensorTypeUnit &&
-                                              selectedSensorTypeUnit
-                                                .toLowerCase()
-                                                .includes('%')
-                                                ? ',.0%'
-                                                : undefined,
-                                          },
-                                          yaxis: {
-                                            title: { text: 'Frequency' },
-                                          },
+                                      <Text size="sm" fw={500} c="blue">
+                                        {tag.tagName}:
+                                      </Text>
+                                      <Text
+                                        size="xs"
+                                        c="dimmed"
+                                        style={{
+                                          marginLeft: '16px',
+                                          marginBottom: '4px',
                                         }}
-                                      />
+                                      >
+                                        {tag.totalValueCount} total values,{' '}
+                                        {tag.uniqueValueCount} unique
+                                      </Text>
+                                      <Group
+                                        gap="xs"
+                                        wrap="wrap"
+                                        style={{ marginLeft: '16px' }}
+                                      >
+                                        {tag.visibleUniqueValues.map(
+                                          (value, valueIndex) => (
+                                            <Badge
+                                              key={valueIndex}
+                                              size="xs"
+                                              variant="light"
+                                              color="gray"
+                                            >
+                                              {String(value)}
+                                            </Badge>
+                                          ),
+                                        )}
+                                        {tag.remainingUniqueValueCount > 0 && (
+                                          <Text size="xs" c="dimmed">
+                                            +{tag.remainingUniqueValueCount}{' '}
+                                            more unique values...
+                                          </Text>
+                                        )}
+                                      </Group>
                                     </div>
-                                  </Tabs.Panel>
-                                </Tabs>
-                              )}
+                                  ))}
+                                </div>
+                              </Stack>
+                            </Card>
+                          )}
 
-                              {numericTags.length > 0 && !project.isSuccess && (
-                                <Card withBorder variant="light">
-                                  <Text c="dimmed">
-                                    Charts unavailable: Project data not loaded
+                          {numericTagsWithSamples.length === 0 &&
+                            nonNumericTagsWithSamples.length === 0 && (
+                              <Card withBorder variant="light">
+                                <Stack gap="sm">
+                                  <Text fw={500}>No Sample Data Available</Text>
+                                  <Text size="sm" c="dimmed">
+                                    No timeseries data was found for the
+                                    selected tags in the specified date range.
                                   </Text>
-                                </Card>
-                              )}
-
-                              {nonNumericTags.length > 0 && (
-                                <Card withBorder variant="light">
-                                  <Stack gap="sm">
-                                    <Text fw={500}>Non-Numeric Values</Text>
-                                    <div
-                                      style={{
-                                        maxHeight: '300px',
-                                        overflowY: 'auto',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: '4px',
-                                        padding: '8px',
-                                      }}
-                                    >
-                                      {nonNumericTags.map((tag) => (
-                                        <div
-                                          key={tag.tag_id}
-                                          style={{ marginBottom: '12px' }}
-                                        >
-                                          <Text size="sm" fw={500} c="blue">
-                                            {tag.tag_name}:
-                                          </Text>
-                                          <Text
-                                            size="xs"
-                                            c="dimmed"
-                                            style={{
-                                              marginLeft: '16px',
-                                              marginBottom: '4px',
-                                            }}
-                                          >
-                                            {tag.sample_values.length} total
-                                            values,{' '}
-                                            {new Set(tag.sample_values).size}{' '}
-                                            unique
-                                          </Text>
-                                          <Group
-                                            gap="xs"
-                                            wrap="wrap"
-                                            style={{ marginLeft: '16px' }}
-                                          >
-                                            {Array.from(
-                                              new Set(tag.sample_values),
-                                            )
-                                              .slice(0, 20)
-                                              .map((value, valueIndex) => (
-                                                <Badge
-                                                  key={valueIndex}
-                                                  size="xs"
-                                                  variant="light"
-                                                  color="gray"
-                                                >
-                                                  {String(value)}
-                                                </Badge>
-                                              ))}
-                                            {new Set(tag.sample_values).size >
-                                              20 && (
-                                              <Text size="xs" c="dimmed">
-                                                +
-                                                {new Set(tag.sample_values)
-                                                  .size - 20}{' '}
-                                                more unique values...
-                                              </Text>
-                                            )}
-                                          </Group>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </Stack>
-                                </Card>
-                              )}
-
-                              {numericTags.length === 0 &&
-                                nonNumericTags.length === 0 && (
-                                  <Card withBorder variant="light">
-                                    <Stack gap="sm">
-                                      <Text fw={500}>
-                                        No Sample Data Available
-                                      </Text>
-                                      <Text size="sm" c="dimmed">
-                                        No timeseries data was found for the
-                                        selected tags in the specified date
-                                        range.
-                                      </Text>
-                                    </Stack>
-                                  </Card>
-                                )}
-                            </>
-                          )
-                        })()}
+                                </Stack>
+                              </Card>
+                            )}
+                        </>
                       </Stack>
                     ) : (
                       <Text c="dimmed">
