@@ -28,9 +28,7 @@ class EnvironmentVariables:
             case "DEV" | "STAGE" | "PROD" | "VALIDATE":
                 return self.environment
             case _:
-                raise ValueError(
-                    "ENVIRONMENT must be DEV, STAGE, PROD, or VALIDATE"
-                )
+                raise ValueError("ENVIRONMENT must be DEV, STAGE, PROD, or VALIDATE")
 
     def require_database_url(self) -> str:
         """Return the database URL or raise if it is missing."""
