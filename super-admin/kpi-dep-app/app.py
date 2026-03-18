@@ -671,6 +671,7 @@ def main() -> None:
         load_projects.clear()
         load_kpi_matrix.clear()
         load_kpi_lookup.clear()
+        load_kpi_instance_status_with_ids.clear()
         load_kpi_instance_status_matrix.clear()
         load_sensor_instance_matrix.clear()
         load_sensor_last_date_matrix.clear()
