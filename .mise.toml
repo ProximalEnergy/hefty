@@ -193,13 +193,13 @@ usage = '''
 '''
 run = "./_scripts/worktree.sh ${usage_folder} ${usage_branch} ${usage_editor:-} ${usage_existing:+--existing}"
 
-[tasks."root:hardcoded_type_id"]
-description = "Run hardcoded type ID check on entire monorepo"
+[tasks."root:static_type_id"]
+description = "Run static type ID check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_type_id_check.sh"
 
-[tasks."root:hardcoded_name_shorts"]
-description = "Run hardcoded name shorts check on entire monorepo"
+[tasks."root:static_name_shorts"]
+description = "Run static name shorts check on entire monorepo"
 dir = "."
 run = "./_scripts/hardcoded_name_shorts_check.sh"
 

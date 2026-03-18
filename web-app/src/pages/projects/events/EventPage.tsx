@@ -46,7 +46,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconClock, IconInfoCircle } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { Dash } from 'plotly.js'
+import type { Dash, Layout } from 'plotly.js'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
@@ -81,6 +81,30 @@ interface StatusTimeSeriesTrace {
   name?: string | null
   x: string[]
   y: (string | null)[]
+}
+
+type EventPlotTrace = {
+  x: string[]
+  y: number[]
+  name: string
+  type: 'scatter'
+  line: { color: string; dash: Dash }
+  yaxis: string
+  hoverlabel: {
+    namelength: -1
+  }
+}
+
+type EventPlotYAxis = {
+  title: { text: string; font: { color: string } }
+  side: 'left' | 'right'
+  overlaying: string
+  showgrid: boolean
+  zeroline: boolean
+  position: number
+  anchor: 'free'
+  autoshift: boolean
+  tickformat?: string
 }
 
 // Utility function for string hashing
@@ -712,11 +736,9 @@ const Page = () => {
 
   // Filter out traces with all null or empty object values
   const statusTraces = (statusTimeSeries.data ?? []) as StatusTimeSeriesTrace[]
-  const validTraces = statusTraces
-    .filter((trace) =>
-      trace.y.some((value) => value !== null && value !== '{}'),
-    )
-    .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+  const validTraces = statusTraces.filter((trace) =>
+    trace.y.some((value) => value !== null && value !== '{}'),
+  )
 
   // Combine all unique Y values where alert == true across all valid traces
   const uniqueY = Array.from(
@@ -784,6 +806,200 @@ const Page = () => {
     },
     {} as Record<string, string>,
   )
+
+  const traceTagsWithoutStatus =
+    eventTraceTags.data?.filter((tag) => !tag.name_scada.includes('status')) ??
+    []
+
+  const traceUnits = Array.from(
+    new Set(traceTagsWithoutStatus.map((tag) => tag.sensor_type_unit ?? '')),
+  ).filter((unit) => unit !== '')
+
+  const traceYAxisTitle = traceUnits.length === 1 ? traceUnits[0] : 'Value'
+  const traceYAxisTickFormat =
+    traceUnits.length === 1 && traceUnits[0] === '%' ? ',.0%' : undefined
+
+  const tracesBySensorType = processedEventTraces?.reduce<
+    Record<number, EventPlotTrace[]>
+  >((acc, trace) => {
+    const tag = eventTraceTags.data?.find(
+      (traceTag) => traceTag.name_scada === trace.tag_name_scada,
+    )
+    if (
+      trace.sensor_type_name.includes('status') ||
+      trace.sensor_type_name.includes('alarm')
+    ) {
+      return acc
+    }
+
+    const unit = tag?.sensor_type_unit ?? ''
+    const unitIndex = stringToInt(unit)
+    const traceName =
+      event?.device?.device_type_id === DeviceTypeEnum.TRACKER_ZONE
+        ? `Average ${tag?.sensor_type_name_long} ${event?.device?.name_long}`
+        : `${tag?.sensor_type_name_long} ${tag?.device_name_long}`
+
+    if (!acc[unitIndex]) {
+      acc[unitIndex] = []
+    }
+    acc[unitIndex].push({
+      x: trace.x.filter((_, index) => trace.y[index] !== null),
+      y: trace.y.filter((value): value is number => value !== null),
+      name: traceName,
+      type: 'scatter',
+      line: {
+        color: unitColorMap[unit] || traceColorsArray[0],
+        dash:
+          tag?.sensor_type_id === SensorTypeEnum.TRACKER_SETPOINT
+            ? 'dash'
+            : 'solid',
+      },
+      yaxis: unitIndex === 0 ? 'y' : `y${unitIndex + 1}`,
+      hoverlabel: {
+        namelength: -1,
+      },
+    })
+    return acc
+  }, {})
+
+  const sensorTraces = Object.entries(tracesBySensorType ?? {}).flatMap(
+    ([, traces]) => traces,
+  )
+
+  const statusHeatmapTraces = hasStatus
+    ? [
+        {
+          x: flatX,
+          y: flatY,
+          z: flatZ,
+          type: 'heatmap' as const,
+          yaxis: 'y2',
+          showscale: false,
+          zmin: 0,
+          zmax: 1,
+          colorscale: [
+            [0, theme.colors.green[7]],
+            [1, theme.colors.red[7]],
+          ] as [number, string][],
+          customdata: flatCustomData,
+          hovertemplate:
+            'Time: %{x}<br>Status: %{customdata[0]}<extra></extra>',
+          hoverlabel: {
+            namelength: -1,
+          },
+        },
+      ]
+    : []
+
+  const trueTrackingTraces = trueTrackingData.data
+    ? [
+        {
+          x: trueTrackingData.data.times,
+          y: trueTrackingData.data.tracker_theta,
+          name: 'Ideal Tracking Angle',
+          type: 'scatter' as const,
+          line: {
+            color: theme.colors.green[7],
+            dash: 'dot' as const,
+          },
+          yaxis: 'y',
+          hoverlabel: {
+            namelength: -1,
+          },
+        },
+      ]
+    : []
+
+  const plotData = [
+    { yaxis: 'y' as const }, // Yes, we need this. No, I don't know why.
+    ...sensorTraces,
+    ...statusHeatmapTraces,
+    ...trueTrackingTraces,
+  ]
+
+  const extraYAxes = traceUnits.reduce<Record<string, EventPlotYAxis>>(
+    (acc, unit, index) => {
+      const unitIndex = stringToInt(unit)
+      const axisName = `yaxis${unitIndex + 1}`
+      const color = unitColorMap[unit] || traceColorsArray[0]
+      const placeOnLeft = index % 2 === 0
+
+      acc[axisName] = {
+        title: {
+          text: unit || 'Unitless',
+          font: { color },
+        },
+        side: placeOnLeft ? 'left' : 'right',
+        overlaying: 'y',
+        showgrid: false,
+        zeroline: false,
+        position: placeOnLeft ? 0 : 1,
+        anchor: 'free',
+        autoshift: true,
+        tickformat: unit === '%' ? ',.0%' : undefined,
+      }
+      return acc
+    },
+    {},
+  )
+
+  const plotLayout: Partial<Layout> = {
+    // annotations: annotations,
+    shapes: [
+      {
+        type: 'rect' as const,
+        x0: eventStartTime.format('YYYY-MM-DD HH:mm:ss'),
+        x1:
+          eventEndTime.isValid() && eventEndTime <= traceEnd
+            ? eventEndTime.format('YYYY-MM-DD HH:mm:ss')
+            : traceEnd.format('YYYY-MM-DD HH:mm:ss'),
+        y0: hasStatus ? 0.575 : 0,
+        y1: 1,
+        xref: 'x',
+        yref: 'paper',
+        fillcolor: 'rgba(255, 0, 0, 0.3)',
+        line: {
+          width: 0,
+        },
+      },
+    ],
+    grid: {
+      rows: hasStatus ? 2 : 1,
+      columns: 1,
+      pattern: 'independent' as const,
+    },
+    xaxis: {
+      type: 'date' as const,
+      automargin: true,
+    },
+    yaxis: {
+      title: {
+        text: traceYAxisTitle,
+        font: { color: theme.colors.blue[6] },
+      },
+      side: 'left' as const,
+      domain: hasStatus ? [0.62, 1] : [0, 1],
+      showgrid: false,
+      zeroline: false,
+      automargin: true,
+      visible: false,
+      tickformat: traceYAxisTickFormat,
+    },
+    yaxis2: {
+      domain: hasStatus ? [0, 0.34] : [0, 1],
+      range: [
+        traceStart.format('YYYY-MM-DD HH:mm:ss'),
+        traceEnd.format('YYYY-MM-DD HH:mm:ss'),
+      ],
+      title: {
+        text: 'Status',
+        font: { color: theme.colors.gray[6] },
+      },
+      showgrid: false,
+      zeroline: false,
+    },
+    ...extraYAxes,
+  }
 
   let mapComponent
   if (project.data?.project_type_id === ProjectTypeEnum.BESS) {
@@ -881,273 +1097,8 @@ const Page = () => {
             <PlotlyPlot
               isLoading={isTracesLoading && !eventTraceTags.error}
               xAxisTimeZone={projectTz}
-              data={[
-                { yaxis: 'y' }, // Yes, we need this. No, I don't know why.
-                ...(() => {
-                  // Group traces by sensor_type_id
-                  const tracesBySensorType = processedEventTraces?.reduce<
-                    Record<
-                      number,
-                      Array<{
-                        x: string[]
-                        y: number[]
-                        name: string
-                        type: 'scatter'
-                        line: { color: string; dash: Dash }
-                        yaxis: string
-                        hoverlabel: {
-                          namelength: -1
-                        }
-                      }>
-                    >
-                  >((acc, trace) => {
-                    const tag = eventTraceTags.data?.find(
-                      (tag) => tag.name_scada === trace.tag_name_scada,
-                    )
-                    if (
-                      trace.sensor_type_name.includes('status') ||
-                      trace.sensor_type_name.includes('alarm')
-                    ) {
-                      return acc
-                    }
-
-                    const unit = tag?.sensor_type_unit ?? ''
-                    const unitIndex = stringToInt(unit)
-                    if (!acc[unitIndex]) {
-                      acc[unitIndex] = []
-                    }
-                    acc[unitIndex].push({
-                      x: trace.x.filter((_, index) => trace.y[index] !== null),
-                      y: trace.y.filter(
-                        (value): value is number => value !== null,
-                      ),
-                      name:
-                        event?.device?.device_type_id ===
-                        DeviceTypeEnum.TRACKER_ZONE
-                          ? 'Average ' +
-                            tag?.sensor_type_name_long +
-                            ' ' +
-                            event?.device?.name_long
-                          : tag?.sensor_type_name_long +
-                            ' ' +
-                            tag?.device_name_long,
-                      type: 'scatter' as const,
-                      line: {
-                        color: unitColorMap[unit] || traceColorsArray[0],
-                        dash:
-                          tag?.sensor_type_id ===
-                          SensorTypeEnum.TRACKER_SETPOINT
-                            ? ('dash' as const)
-                            : ('solid' as const),
-                      },
-                      yaxis: unitIndex === 0 ? 'y' : `y${unitIndex + 1}`,
-                      hoverlabel: {
-                        namelength: -1,
-                      },
-                    })
-                    return acc
-                  }, {})
-
-                  // Flatten the grouped traces and ensure each trace has a unique y-axis
-                  const traces = Object.entries(
-                    tracesBySensorType || {},
-                  ).flatMap(([unitIndex, traces]) =>
-                    traces.map((trace) => ({
-                      ...trace,
-                      yaxis:
-                        parseInt(unitIndex) === 0
-                          ? 'y'
-                          : `y${parseInt(unitIndex) + 1}`,
-                    })),
-                  )
-
-                  // If no traces were created, return empty array
-                  return traces || []
-                })(),
-
-                ...(hasStatus
-                  ? [
-                      {
-                        x: flatX,
-                        y: flatY,
-                        z: flatZ,
-                        type: 'heatmap' as const,
-                        yaxis: 'y2',
-                        showscale: false,
-                        zmin: 0,
-                        zmax: 1,
-                        colorscale: [
-                          [0, theme.colors.green[7]],
-                          [1, theme.colors.red[7]],
-                        ] as [number, string][],
-                        customdata: flatCustomData,
-                        hovertemplate:
-                          'Time: %{x}<br>Status: %{customdata[0]}<extra></extra>',
-                        hoverlabel: {
-                          namelength: -1,
-                        },
-                      },
-                    ]
-                  : []),
-                ...(trueTrackingData.data
-                  ? [
-                      {
-                        x: trueTrackingData.data.times,
-                        y: trueTrackingData.data.tracker_theta,
-                        name: 'Ideal Tracking Angle',
-                        type: 'scatter' as const,
-                        line: {
-                          color: theme.colors.green[7],
-                          dash: 'dot' as const,
-                        },
-                        yaxis: 'y',
-                        hoverlabel: {
-                          namelength: -1,
-                        },
-                      },
-                    ]
-                  : []),
-              ]}
-              layout={{
-                // annotations: annotations,
-                shapes: [
-                  {
-                    type: 'rect',
-                    x0: eventStartTime.format('YYYY-MM-DD HH:mm:ss'),
-                    x1:
-                      eventEndTime.isValid() && eventEndTime <= traceEnd
-                        ? eventEndTime.format('YYYY-MM-DD HH:mm:ss')
-                        : traceEnd.format('YYYY-MM-DD HH:mm:ss'),
-                    y0: hasStatus ? 0.575 : 0,
-                    y1: 1,
-                    xref: 'x',
-                    yref: 'paper',
-                    fillcolor: 'rgba(255, 0, 0, 0.3)',
-                    line: {
-                      width: 0,
-                    },
-                  },
-                ],
-                grid: {
-                  rows: hasStatus ? 2 : 1,
-                  columns: 1,
-                  pattern: 'independent',
-                },
-                xaxis: {
-                  type: 'date',
-                  automargin: true,
-                },
-                // Base y-axis configuration for the main plot area
-                yaxis: {
-                  title: {
-                    text: (() => {
-                      const units = Array.from(
-                        new Set(
-                          eventTraceTags.data
-                            ?.filter(
-                              (tag) => !tag.name_scada.includes('status'),
-                            )
-                            .map((tag) => tag.sensor_type_unit ?? '') || [],
-                        ),
-                      ).filter((unit) => unit !== '')
-
-                      if (units.length === 0) {
-                        return 'Value'
-                      } else if (units.length === 1) {
-                        return units[0]
-                      } else {
-                        return 'Value'
-                      }
-                    })(),
-                    font: { color: theme.colors.blue[6] },
-                  },
-                  side: 'left',
-                  domain: hasStatus ? [0.62, 1] : [0, 1],
-                  showgrid: false,
-                  zeroline: false,
-                  automargin: true,
-                  visible: false,
-                  tickformat: (() => {
-                    const units = Array.from(
-                      new Set(
-                        eventTraceTags.data
-                          ?.filter((tag) => !tag.name_scada.includes('status'))
-                          .map((tag) => tag.sensor_type_unit ?? '') || [],
-                      ),
-                    ).filter((unit) => unit !== '')
-
-                    // Apply tickformat only if there's exactly one unit
-                    if (units.length === 1) {
-                      return units[0] === '%' ? ',.0%' : undefined
-                    }
-                    return undefined
-                  })(),
-                },
-                yaxis2: {
-                  domain: hasStatus ? [0, 0.34] : [0, 1],
-                  range: [
-                    traceStart.format('YYYY-MM-DD HH:mm:ss'),
-                    traceEnd.format('YYYY-MM-DD HH:mm:ss'),
-                  ],
-                  title: {
-                    text: 'Status',
-                    font: { color: theme.colors.gray[6] },
-                  },
-                  showgrid: false,
-                  zeroline: false,
-                },
-                // Add y-axes for each unit
-                ...(() => {
-                  const units = Array.from(
-                    new Set(
-                      eventTraceTags.data
-                        ?.filter((tag) => !tag.name_scada.includes('status'))
-                        .map((tag) => tag.sensor_type_unit ?? '') || [],
-                    ),
-                  ).filter((unit) => unit !== '') // Filter out empty units
-
-                  // If no units found, return empty object to avoid creating unnecessary axes
-                  if (units.length === 0) {
-                    return {}
-                  }
-
-                  return units.reduce<
-                    Record<
-                      string,
-                      {
-                        title: { text: string; font: { color: string } }
-                        side: 'left' | 'right'
-                        overlaying: string
-                        showgrid: boolean
-                        zeroline: boolean
-                        position: number
-                        anchor: 'free'
-                        autoshift: boolean
-                        tickformat?: string
-                      }
-                    >
-                  >((acc, unit, index) => {
-                    const unitIndex = stringToInt(unit)
-                    const axisName = `yaxis${unitIndex + 1}`
-                    const color = unitColorMap[unit] || traceColorsArray[0]
-                    acc[axisName] = {
-                      title: {
-                        text: unit || 'Unitless',
-                        font: { color },
-                      },
-                      side: index % 2 === 0 ? 'left' : 'right',
-                      overlaying: 'y',
-                      showgrid: false,
-                      zeroline: false,
-                      position: index % 2 === 0 ? 0 : 1,
-                      anchor: 'free',
-                      autoshift: true,
-                      tickformat: unit === '%' ? ',.0%' : undefined,
-                    }
-                    return acc
-                  }, {})
-                })(),
-              }}
+              data={plotData}
+              layout={plotLayout}
               error={eventTraceTags.error}
             />
           </CustomCard>

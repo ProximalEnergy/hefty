@@ -39,6 +39,12 @@ EXCLUDE_FILES=(
     "web-app/rollup-plugin-visualizer-stats.html"
 )
 
+# Folder paths to exclude from checks
+FOLDER_PATH_EXCLUDES=(
+    "api/_tests"        # Test files may contain hardcoded values for testing
+    "pv-eem/_tests"     # Test files may contain hardcoded values for testing
+)
+
 # Arrays to store patterns
 declare -a PATTERN_NAMES=()
 declare -a PATTERN_REGEXES=()
@@ -153,6 +159,11 @@ for i in "${!PATTERN_NAMES[@]}"; do
         for file in "${EXCLUDE_FILES[@]}"; do
             local_exclude_args+=("--glob" "!$file")
         done
+
+        # Exclude specific folder paths
+        for dir in "${FOLDER_PATH_EXCLUDES[@]}"; do
+            local_exclude_args+=("--glob" "!$dir/**")
+        done
         
         # Use ripgrep for faster searching
         if [ "$pattern_name" = "Hardcoded Type IDs Arrays (Python)" ]; then
@@ -178,6 +189,12 @@ for i in "${!PATTERN_NAMES[@]}"; do
         # Exclude specific files for grep
         for file in "${EXCLUDE_FILES[@]}"; do
             grep_exclude_args+=("--exclude=$file")
+        done
+
+        # Exclude specific folder paths for grep
+        for dir in "${FOLDER_PATH_EXCLUDES[@]}"; do
+            grep_exclude_args+=("--exclude-dir=$(basename "$dir")")
+            grep_exclude_args+=("--exclude-dir=$dir")
         done
         
         if [ "$pattern_name" = "Hardcoded Type IDs Arrays (Python)" ]; then
@@ -228,4 +245,3 @@ else
     echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
     exit 1
 fi
-

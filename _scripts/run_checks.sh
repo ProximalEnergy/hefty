@@ -643,10 +643,7 @@ get_check_ui_label() {
 
 get_compact_check_ui_label() {
     local check_index="$1"
-    local check_label
-
-    check_label=$(get_check_ui_label "$check_index")
-    echo "${check_label//hardcoded/static}"
+    get_check_ui_label "$check_index"
 }
 
 # Function to run all registered checks
@@ -1155,15 +1152,15 @@ if [ "${RUN_PVEEM}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
-    NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts"
+    NAME_SHORTS_CHECK_CMD="mise run root:static_name_shorts"
     if [ "${QUIET}" = "true" ]; then
-        NAME_SHORTS_CHECK_CMD="mise run root:hardcoded_name_shorts -- --quiet"
+        NAME_SHORTS_CHECK_CMD="mise run root:static_name_shorts -- --quiet"
     fi
 
     add_check "Root: No package.json" "mise run root:no_package_json"
-    add_check "Root: Hardcoded Type ID Check" \
-        "mise run root:hardcoded_type_id"
-    add_check "Root: Hardcoded Name Shorts Check" \
+    add_check "Root: Static Type ID Check" \
+        "mise run root:static_type_id"
+    add_check "Root: Static Name Shorts Check" \
         "${NAME_SHORTS_CHECK_CMD}"
     add_check "Root: Pyproject Dependency Check" \
         "mise run root:pyproject_dependencies"

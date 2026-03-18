@@ -6,6 +6,7 @@ import pandas as pd
 from core.db_query import OutputType
 from core.enumerations import SensorType
 from fastapi import APIRouter, Depends, HTTPException, Query
+from natsort import natsorted
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -282,4 +283,4 @@ async def get_status_time_series_js(
         }
         for col in wide_reindexed.columns
     ]
-    return data_out
+    return natsorted(data_out, key=lambda item: str(item["name"] or ""))

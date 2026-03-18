@@ -28,6 +28,45 @@ router = APIRouter(
 )
 
 
+def _get_sorted_horizontal_device_data(
+    *,
+    df: pd.DataFrame,
+    category: str,
+    tag_id_to_category: dict[int, str],
+    tag_id_to_device_name_long: dict[int, str | None],
+    tag_id_to_device_id: dict[int, int],
+):
+    data = [
+        {
+            "values": df[int(c)].tolist(),
+            "name": tag_id_to_device_name_long[int(c)],
+            "device_id": tag_id_to_device_id[int(c)],
+        }
+        for c in df.columns.astype(int)
+        if tag_id_to_category[int(c)] == category
+    ]
+
+    return natsorted(data, key=lambda x: x["name"])
+
+
+def _get_sorted_vertical_device_data(
+    *,
+    df: pd.DataFrame,
+    tag_id_to_device_name_long: dict[int, str],
+    tag_id_to_device_id: dict[int, int],
+):
+    data = [
+        {
+            "name": tag_id_to_device_name_long[int(c)],
+            "values": df[int(c)].tolist(),
+            "device_id": tag_id_to_device_id[int(c)],
+        }
+        for c in df.columns.astype(int)
+    ]
+
+    return natsorted(data, key=lambda x: x["name"])
+
+
 @router.get("/horizontal/bess")
 async def get_horizontal_bess(
     start: Annotated[
@@ -108,30 +147,34 @@ async def get_horizontal_bess(
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
     df.columns = df.columns.astype(int)
 
-    def _get_data(*, category: str):
-        """todo
-
-        Args:
-            category: Description for category.
-        """
-        data = [
-            {
-                "values": df[int(c)].tolist(),
-                "name": tag_id_to_device_name_long[int(c)],
-                "device_id": tag_id_to_device_id[int(c)],
-            }
-            for c in df.columns.astype(int)
-            if tag_id_to_category[int(c)] == category
-        ]
-
-        data = natsorted(data, key=lambda x: x["name"])
-
-        return data
-
-    data_meter_power = _get_data(category="meter_power")
-    data_meter_soc = _get_data(category="meter_soc")
-    data_pcs = _get_data(category="pcs")
-    data_battery = _get_data(category="battery")
+    data_meter_power = _get_sorted_horizontal_device_data(
+        df=df,
+        category="meter_power",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
+    data_meter_soc = _get_sorted_horizontal_device_data(
+        df=df,
+        category="meter_soc",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
+    data_pcs = _get_sorted_horizontal_device_data(
+        df=df,
+        category="pcs",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
+    data_battery = _get_sorted_horizontal_device_data(
+        df=df,
+        category="battery",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
 
     return {
         "times": df.index.tolist(),
@@ -220,29 +263,27 @@ async def get_horizontal_pv(
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
     df.columns = df.columns.astype(int)
 
-    def _get_data(*, category: str):
-        """todo
-
-        Args:
-            category: Description for category.
-        """
-        data = [
-            {
-                "values": df[int(c)].tolist(),
-                "name": tag_id_to_device_name_long[int(c)],
-                "device_id": tag_id_to_device_id[int(c)],
-            }
-            for c in df.columns.astype(int)
-            if tag_id_to_category[int(c)] == category
-        ]
-
-        data = natsorted(data, key=lambda x: x["name"])
-
-        return data
-
-    data_meter_power = _get_data(category="meter_power")
-    data_met = _get_data(category="met")
-    data_pcs = _get_data(category="pcs")
+    data_meter_power = _get_sorted_horizontal_device_data(
+        df=df,
+        category="meter_power",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
+    data_met = _get_sorted_horizontal_device_data(
+        df=df,
+        category="met",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
+    data_pcs = _get_sorted_horizontal_device_data(
+        df=df,
+        category="pcs",
+        tag_id_to_category=tag_id_to_category,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
 
     return {
         "times": df.index.tolist(),
@@ -565,17 +606,15 @@ async def get_vertical(
     df = df.set_index("time")
     df.index = pd.to_datetime(df.index).tz_convert(project.time_zone)
     df.columns = df.columns.astype(int)
+    data = _get_sorted_vertical_device_data(
+        df=df,
+        tag_id_to_device_name_long=tag_id_to_device_name_long,
+        tag_id_to_device_id=tag_id_to_device_id,
+    )
 
     return {
         "times": df.index.tolist(),
-        "data": [
-            {
-                "name": tag_id_to_device_name_long[int(c)],
-                "values": df[c].tolist(),
-                "device_id": tag_id_to_device_id[int(c)],
-            }
-            for c in df.columns
-        ],
+        "data": data,
         "layout": {
             "y_axis_label": SENSOR_TYPE_IDS_TO_LABEL[
                 tag_id_to_sensor_type_id[int(df.columns[0])]

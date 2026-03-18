@@ -610,13 +610,22 @@ async def get_events_summary(
         {int(e["root_cause_id"]) for e in events if e["root_cause_id"] is not None}
     )
 
+    unknown = "Unknown"
+
     # Parallelize async database calls
-    failure_modes_query = get_failure_modes(failure_mode_ids=failure_mode_ids)
-    failure_modes_task = failure_modes_query.get_async(
-        output_type=OutputType.SQLALCHEMY,
+    failure_modes_task = (
+        get_failure_modes(failure_mode_ids=failure_mode_ids).get_async(
+            output_type=OutputType.PANDAS,
+        )
+        if failure_mode_ids
+        else asyncio.sleep(0, result=pd.DataFrame())
     )
-    root_causes_task = core_get_root_causes(root_cause_ids=root_cause_ids).get_async(
-        output_type=OutputType.SQLALCHEMY
+    root_causes_task = (
+        core_get_root_causes(root_cause_ids=root_cause_ids).get_async(
+            output_type=OutputType.PANDAS,
+        )
+        if root_cause_ids
+        else asyncio.sleep(0, result=pd.DataFrame())
     )
     # Run loss query in parallel with other async calls
     losses_task = asyncio.to_thread(
@@ -627,12 +636,26 @@ async def get_events_summary(
     )
 
     # Wait for all async operations to complete
-    failure_modes, root_causes, losses = await asyncio.gather(
+    failure_modes_df, root_causes_df, losses = await asyncio.gather(
         failure_modes_task, root_causes_task, losses_task
     )
 
-    failure_mode_id_to_name = {fm.failure_mode_id: fm.name_long for fm in failure_modes}
-    root_cause_id_to_name = {rc.root_cause_id: rc.name_long for rc in root_causes}
+    failure_mode_id_to_name = (
+        failure_modes_df.set_index("failure_mode_id")["name_long"]
+        .fillna(unknown)
+        .astype(str)
+        .to_dict()
+        if not failure_modes_df.empty
+        else {}
+    )
+    root_cause_id_to_name = (
+        root_causes_df.set_index("root_cause_id")["name_long"]
+        .fillna(unknown)
+        .astype(str)
+        .to_dict()
+        if not root_causes_df.empty
+        else {}
+    )
 
     # Process losses data in thread pool (pandas operations are CPU-bound)
     def process_losses_data(
@@ -718,7 +741,6 @@ async def get_events_summary(
         process_losses_data, losses_rows=losses, events_list=events
     )
 
-    unknown = "Unknown"
     out: list[interfaces.EventSummary] = []
     for e in events:
         device_type_name = e.get("device_type_name_long") or unknown
