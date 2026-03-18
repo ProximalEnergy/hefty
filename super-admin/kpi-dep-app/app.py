@@ -3,17 +3,27 @@ from __future__ import annotations
 import json
 from datetime import date, timedelta
 from pathlib import Path
+from uuid import UUID
 
 import kpi_pipeline.config as config
 import pandas as pd
 import streamlit as st
+from core.crud import operational as op_crud
 from core.database import with_db
-from core.enumerations import KPIType
+from core.enumerations import KPIType, ProjectType
 from kpi_pipeline.config.step_05_upload import kpi_upload_action
 from kpi_pipeline.services.client import action_from_list
 from sqlalchemy import select, text
 
 from core import models
+
+STATUS_VISIBLE = "visible"
+STATUS_INVISIBLE = "invisible"
+STATUS_NONE = "none"
+
+UI_TRUE = "✅"
+UI_FALSE = "❌"
+UI_NONE = ""
 
 
 def get_column_config(*, columns: list[str]) -> dict[str, st.column_config.Column]:
@@ -285,14 +295,19 @@ def latest_times_by_tag_ids(*, schema: str, tag_ids: list[int]) -> dict[int, dat
 
 @st.cache_data(show_spinner=False)
 def load_projects() -> pd.DataFrame:
-    """Load project display and schema names."""
+    """Load project display, schema names, and project types."""
     with with_db(schema="operational") as db:
         rows = db.execute(
-            select(models.Project.name_long, models.Project.name_short).order_by(
-                models.Project.name_short
-            )
+            select(
+                models.Project.name_long,
+                models.Project.name_short,
+                models.Project.project_type_id,
+            ).order_by(models.Project.name_short)
         ).all()
-    return pd.DataFrame(rows, columns=["project_name", "project_schema"])
+    return pd.DataFrame(
+        rows,
+        columns=["project_name", "project_schema", "project_type_id"],
+    )
 
 
 def build_sensor_last_date_from_instances(
@@ -423,14 +438,15 @@ def load_kpi_matrix() -> pd.DataFrame:
 
 @st.cache_data(show_spinner=False)
 def load_kpi_lookup() -> pd.DataFrame:
-    """Load KPI lookup with IDs and display names."""
+    """Load KPI lookup with IDs, display names, and project types."""
     with with_db(schema="operational") as db:
         return pd.read_sql(
             sql=text(
                 """
                 SELECT
                     kpi_type_id,
-                    name_long AS kpi_name
+                    name_long AS kpi_name,
+                    project_type_id
                 FROM operational.kpi_types
                 ORDER BY name_long
                 """
@@ -439,9 +455,55 @@ def load_kpi_lookup() -> pd.DataFrame:
         )
 
 
+def compute_special_preset(
+    *,
+    name: str,
+    projects_df: pd.DataFrame,
+    kpi_lookup_df: pd.DataFrame,
+) -> tuple[list[str], list[str]]:
+    """Return project names and KPI ID strings for special presets."""
+    name = name.strip()
+    project_type_map = {
+        "[PV]": ProjectType.PV.value,
+        "[BESS]": ProjectType.BESS.value,
+        "[PVS]": ProjectType.PVS.value,
+    }
+    if name not in project_type_map:
+        return [], []
+
+    project_type_id = project_type_map[name]
+    if name == "[PVS]":
+        kpi_project_type_ids = {
+            ProjectType.PV.value,
+            ProjectType.BESS.value,
+            ProjectType.PVS.value,
+        }
+    else:
+        kpi_project_type_ids = {project_type_id}
+
+    project_mask = projects_df["project_type_id"] == project_type_id
+    project_names = (
+        projects_df.loc[project_mask, "project_name"]
+        .dropna()
+        .astype(str)
+        .tolist()
+    )
+
+    kpi_mask = kpi_lookup_df["project_type_id"].isin(kpi_project_type_ids)
+    kpi_ids = (
+        kpi_lookup_df.loc[kpi_mask, "kpi_type_id"]
+        .dropna()
+        .astype(int)
+        .astype(str)
+        .tolist()
+    )
+
+    return project_names, kpi_ids
+
+
 @st.cache_data(show_spinner=False)
-def load_kpi_instance_status_matrix() -> pd.DataFrame:
-    """Load KPI instance status matrix with none/invisible/visible values."""
+def load_kpi_instance_status_with_ids() -> pd.DataFrame:
+    """Load row-wise KPI instance status with IDs and tri-state values."""
     with with_db(schema="operational") as db:
         projects_df = pd.read_sql(
             sql=text(
@@ -490,9 +552,9 @@ def load_kpi_instance_status_matrix() -> pd.DataFrame:
         how="left",
     )
     merged_df["instance_status"] = merged_df["is_visible"].map(
-        {True: "visible", False: "invisible"}
+        {True: STATUS_VISIBLE, False: STATUS_INVISIBLE}
     )
-    merged_df["instance_status"] = merged_df["instance_status"].fillna("none")
+    merged_df["instance_status"] = merged_df["instance_status"].fillna(STATUS_NONE)
 
     merged_df["kpi"] = merged_df.apply(
         lambda row: (
@@ -502,6 +564,44 @@ def load_kpi_instance_status_matrix() -> pd.DataFrame:
         ),
         axis=1,
     )
+    return merged_df[
+        [
+            "kpi",
+            "kpi_type_id",
+            "project_id",
+            "project_name",
+            "instance_status",
+        ]
+    ]
+
+
+def compute_kpi_instance_diff(
+    *,
+    original: dict[tuple[UUID, int], bool],
+    current: dict[tuple[UUID, int], bool],
+) -> tuple[list[tuple[UUID, int, bool]], list[tuple[UUID, int]]]:
+    """Return upsert and delete rows between original and current states."""
+    upserts: list[tuple[UUID, int, bool]] = []
+    deletes: list[tuple[UUID, int]] = []
+
+    for key, value in current.items():
+        original_value = original.get(key)
+        if original_value is None or original_value != value:
+            project_id, kpi_type_id = key
+            upserts.append((project_id, kpi_type_id, value))
+
+    for key in original:
+        if key not in current:
+            project_id, kpi_type_id = key
+            deletes.append((project_id, kpi_type_id))
+
+    return upserts, deletes
+
+
+@st.cache_data(show_spinner=False)
+def load_kpi_instance_status_matrix() -> pd.DataFrame:
+    """Load KPI instance status matrix with none/invisible/visible values."""
+    merged_df = load_kpi_instance_status_with_ids()
     matrix_df = merged_df.pivot_table(
         index=["kpi", "kpi_type_id"],
         columns="project_name",
@@ -574,7 +674,6 @@ def main() -> None:
         load_kpi_instance_status_matrix.clear()
         load_sensor_instance_matrix.clear()
         load_sensor_last_date_matrix.clear()
-        st.rerun()
 
     projects_df = load_projects()
     kpi_lookup_df = load_kpi_lookup()
@@ -600,31 +699,43 @@ def main() -> None:
     if presets_error is not None:
         st.sidebar.warning(presets_error)
 
-    preset_names = sorted(presets)
+    special_presets = ["[BESS]", "[PV]", "[PVS]"]
+    preset_names = [*special_presets, *sorted(presets)]
     selected_preset_name = st.sidebar.selectbox(
         "Preset",
         options=["", *preset_names],
         format_func=lambda name: name or "(none)",
         key="preset_name",
     )
-    selected_preset = presets.get(selected_preset_name, {})
-    preset_projects = [
-        item
-        for item in selected_preset.get("projects", [])
-        if item in shared_project_options
-    ]
-    preset_kpis: list[str] = []
-    for item in selected_preset.get("kpis", []):
-        item_str = str(item)
-        if item_str in kpi_options:
-            preset_kpis.append(item_str)
-            continue
-        mapped_id = kpi_name_to_id.get(item_str)
-        if mapped_id is None:
-            mapped_id = kpi_label_to_id.get(item_str)
-        if mapped_id is not None:
-            preset_kpis.append(mapped_id)
-    preset_kpis = list(dict.fromkeys(preset_kpis))
+    if selected_preset_name in special_presets:
+        preset_projects, preset_kpis = compute_special_preset(
+            name=selected_preset_name,
+            projects_df=projects_df,
+            kpi_lookup_df=kpi_lookup_df,
+        )
+        preset_projects = [
+            item for item in preset_projects if item in shared_project_options
+        ]
+        preset_kpis = [item for item in preset_kpis if item in kpi_options]
+    else:
+        selected_preset = presets.get(selected_preset_name, {})
+        preset_projects = [
+            item
+            for item in selected_preset.get("projects", [])
+            if item in shared_project_options
+        ]
+        preset_kpis: list[str] = []
+        for item in selected_preset.get("kpis", []):
+            item_str = str(item)
+            if item_str in kpi_options:
+                preset_kpis.append(item_str)
+                continue
+            mapped_id = kpi_name_to_id.get(item_str)
+            if mapped_id is None:
+                mapped_id = kpi_label_to_id.get(item_str)
+            if mapped_id is not None:
+                preset_kpis.append(mapped_id)
+        preset_kpis = list(dict.fromkeys(preset_kpis))
     default_projects = (
         preset_projects if selected_preset_name else shared_project_options
     )
@@ -645,25 +756,33 @@ def main() -> None:
         ),
         key=f"shared_kpis::{selected_preset_name or 'all'}",
     )
+    is_special_preset = selected_preset_name in special_presets
     preset_name_input = st.sidebar.text_input(
         "Preset name",
         value=selected_preset_name,
         placeholder="Type preset name",
+        disabled=is_special_preset,
     )
     save_col, delete_col = st.sidebar.columns(2)
     with save_col:
-        save_clicked = st.button("Save", use_container_width=True)
+        save_clicked = st.button(
+            "Save",
+            use_container_width=True,
+            disabled=is_special_preset,
+        )
     with delete_col:
         delete_clicked = st.button(
             "Delete",
             use_container_width=True,
-            disabled=not selected_preset_name,
+            disabled=not selected_preset_name or is_special_preset,
         )
 
     if save_clicked:
         clean_name = preset_name_input.strip()
         if not clean_name:
             st.sidebar.error("Preset name is required.")
+        elif clean_name in special_presets:
+            st.sidebar.error("Cannot overwrite built-in presets.")
         else:
             presets[clean_name] = {
                 "projects": selected_shared_projects,
@@ -680,7 +799,9 @@ def main() -> None:
                 st.rerun()
 
     if delete_clicked and selected_preset_name:
-        if selected_preset_name not in presets:
+        if selected_preset_name in special_presets:
+            st.sidebar.error("Cannot delete built-in presets.")
+        elif selected_preset_name not in presets:
             st.sidebar.error("Preset not found.")
         else:
             del presets[selected_preset_name]
@@ -719,6 +840,7 @@ def main() -> None:
 
     with tab_instances:
         kpi_status_df = load_kpi_instance_status_matrix()
+        kpi_status_with_ids_df = load_kpi_instance_status_with_ids()
         implemented_lookup = kpi_lookup_df.assign(
             kpi=lambda df: df["kpi_name"] + " (" + df["kpi_id_str"].astype(str) + ")",
             implemented=lambda df: df["kpi_type_id"].isin(
@@ -747,22 +869,132 @@ def main() -> None:
                 status_df[project_col]
                 .map(
                     {
-                        "visible": "True",
-                        "invisible": "False",
-                        "none": "(None)",
+                        STATUS_VISIBLE: UI_TRUE,
+                        STATUS_INVISIBLE: UI_FALSE,
+                        STATUS_NONE: UI_NONE,
                     }
                 )
+                .fillna(UI_NONE)
                 .astype("object")
             )
-        styled_instance_df = style_instance_values(
-            df=instance_df,
-            instance_columns=selected_projects,
-        )
-        st.dataframe(
-            data=styled_instance_df,
+
+        filtered_ids_df = kpi_status_with_ids_df[
+            kpi_status_with_ids_df["kpi"].isin(selected_kpi_labels)
+        ]
+        filtered_ids_df = filtered_ids_df[
+            filtered_ids_df["project_name"].isin(selected_projects)
+        ]
+        cell_key_lookup: dict[tuple[str, str], tuple[UUID, int]] = {}
+        original_state: dict[tuple[UUID, int], bool] = {}
+        for _, row in filtered_ids_df.iterrows():
+            key = (row["project_id"], int(row["kpi_type_id"]))
+            cell_key_lookup[(str(row["kpi"]), str(row["project_name"]))] = key
+            status = str(row["instance_status"])
+            if status == STATUS_VISIBLE:
+                original_state[key] = True
+            elif status == STATUS_INVISIBLE:
+                original_state[key] = False
+
+        column_config = get_column_config(columns=instance_df.columns.tolist())
+        if "kpi" in column_config:
+            column_config["kpi"] = st.column_config.TextColumn(
+                "KPI",
+                width="large",
+                pinned=True,
+                disabled=True,
+            )
+        if "implemented" in column_config:
+            column_config["implemented"] = st.column_config.CheckboxColumn(
+                "Implem.",
+                width="small",
+                pinned=True,
+                disabled=True,
+            )
+        for project_col in selected_projects:
+            column_config[project_col] = st.column_config.SelectboxColumn(
+                project_col,
+                options=[UI_NONE, UI_FALSE, UI_TRUE],
+            )
+
+        if "kpi_editor_version" not in st.session_state:
+            st.session_state["kpi_editor_version"] = 0
+        editor_key = f"kpi_instance_editor::{st.session_state['kpi_editor_version']}"
+
+        edited_df = st.data_editor(
+            instance_df,
             width="stretch",
             hide_index=True,
-            column_config=get_column_config(columns=instance_df.columns.tolist()),
+            column_config=column_config,
+            key=editor_key,
+        )
+
+        current_state: dict[tuple[UUID, int], bool] = {}
+        for _, row in edited_df.reset_index(drop=True).iterrows():
+            kpi_label = str(row["kpi"])
+            for project_col in selected_projects:
+                cell_key = cell_key_lookup.get((kpi_label, project_col))
+                if cell_key is None:
+                    continue
+                value = str(row[project_col])
+                if value == UI_TRUE:
+                    current_state[cell_key] = True
+                elif value == UI_FALSE:
+                    current_state[cell_key] = False
+
+        upserts, deletes = compute_kpi_instance_diff(
+            original=original_state,
+            current=current_state,
+        )
+        has_changes = bool(upserts or deletes)
+
+        change_status_label = (
+            "Changes detected" if has_changes else "In sync with database"
+        )
+
+        apply_col, revert_col, _spacer_col = st.columns([1.5, 1, 6])
+
+        with apply_col:
+            if st.button(
+                "Apply KPI instance changes",
+                disabled=not has_changes,
+                help=change_status_label,
+            ):
+                try:
+                    with with_db(schema="operational") as db:
+                        op_crud.kpi_instances.bulk_upsert_kpi_instances(
+                            db=db,
+                            rows=upserts,
+                        )
+                        op_crud.kpi_instances.bulk_delete_kpi_instances(
+                            db=db,
+                            rows=deletes,
+                        )
+                except Exception as exc:
+                    st.error(f"Failed to update KPI instances: {exc}")
+                else:
+                    st.success("KPI instances updated.")
+                    load_kpi_instance_status_with_ids.clear()
+                    load_kpi_instance_status_matrix.clear()
+                    st.rerun()
+
+        with revert_col:
+            revert_help = (
+                "Revert changes to last saved state"
+                if has_changes
+                else "No changes to revert"
+            )
+            if st.button(
+                "Revert changes",
+                disabled=not has_changes,
+                help=revert_help,
+            ):
+                st.session_state["kpi_editor_version"] += 1
+                st.rerun()
+
+        caption_color = "red" if has_changes else "green"
+        st.markdown(
+            f'<span style="color: {caption_color};">{change_status_label}</span>',
+            unsafe_allow_html=True,
         )
 
     with tab_last_date:

@@ -6,7 +6,6 @@ import {
   IconChevronRight,
   IconCode,
   IconDeviceDesktopCog,
-  IconEye,
   IconGauge,
   IconHelicopter,
   IconHistory,
@@ -105,15 +104,6 @@ const UserDropdown = () => {
                   }
                 >
                   KPI Backfill
-                </Menu.Item>
-                <Menu.Item
-                  component={Link}
-                  to="/admin/kpi-instance-viewer"
-                  leftSection={
-                    <IconEye style={{ width: rem(14), height: rem(14) }} />
-                  }
-                >
-                  KPI Instance Viewer
                 </Menu.Item>
                 <Menu trigger="hover" position="right-start" withArrow>
                   <Menu.Target>

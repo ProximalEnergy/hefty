@@ -55,7 +55,6 @@ import KPIBackfill from './pages/admin/KPIBackfill'
 import ProjectTagExplorer from './pages/admin/ProjectTagExplorer'
 import SensorTypes from './pages/admin/SensorTypes'
 import UserManagement from './pages/admin/UserManagement'
-import KPIInstanceViewer from './pages/admin/kpi-instance-viewer/KPIInstanceViewer'
 import ERCOTMap from './pages/development/ercot-map'
 import DevelopmentHome from './pages/development/home'
 import Prices from './pages/development/prices'
@@ -580,14 +579,6 @@ const ClerkProviderWithRoutes = () => {
                 element={
                   <RequiresUserType requiredUserType="superadmin">
                     <KPIBackfill />
-                  </RequiresUserType>
-                }
-              />
-              <Route
-                path="kpi-instance-viewer"
-                element={
-                  <RequiresUserType requiredUserType="superadmin">
-                    <KPIInstanceViewer />
                   </RequiresUserType>
                 }
               />
