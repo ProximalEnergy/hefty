@@ -12,7 +12,7 @@
 #   - 1: Hardcoded patterns found (failure)
 #
 # Usage:
-#   ./hardcoded_name_shorts_check.sh [--quiet]
+#   ./hardcoded_name_shorts_check.sh [--verbose]
 #
 # Configuration:
 #   - FOLDER_PATH_EXCLUDES: Add folder paths to exclude from checks
@@ -51,16 +51,16 @@
 set -euo pipefail
 
 # Runtime options
-QUIET=false
+QUIET=true
 
 for arg in "$@"; do
     case "$arg" in
-        --quiet)
-            QUIET=true
+        --verbose)
+            QUIET=false
             ;;
         *)
             echo "Error: Unknown argument '$arg'" >&2
-            echo "Usage: $0 [--quiet]" >&2
+            echo "Usage: $0 [--verbose]" >&2
             exit 2
             ;;
     esac
@@ -130,6 +130,7 @@ IGNORE_COMMENT_PATTERN="noqa.*hardcoded.*name.*short|allow.*hardcoded.*name.*sho
 declare -a PATTERN_NAMES=()        # Human-readable pattern names
 declare -a PATTERN_REGEXES=()     # Regex patterns to search for
 declare -a PATTERN_DESCRIPTIONS=() # Descriptions of what each pattern checks
+declare -a PATTERN_INCLUDE_GLOBS=() # Pattern-specific file globs to include
 declare -a PATTERN_EXCLUDE_DIRS=() # Pattern-specific directory excludes
 declare -a EXCLUDE_DIRS=("${DEFAULT_EXCLUDE_DIRS[@]}")
 
@@ -138,16 +139,19 @@ declare -a EXCLUDE_DIRS=("${DEFAULT_EXCLUDE_DIRS[@]}")
 #   $1: Pattern name (human-readable)
 #   $2: Regex pattern to search for
 #   $3: Description of what the pattern checks
-#   $4+: Optional list of directories to exclude for this specific pattern
+#   $4: Optional space-separated list of file globs to include
+#   $5+: Optional list of directories to exclude for this specific pattern
 add_pattern() {
     local name="$1"
     local pattern="$2"
     local description="${3:-}"
-    local pattern_exclude_dirs=("${@:4}")
+    local include_globs="${4:-}"
+    local pattern_exclude_dirs=("${@:5}")
     
     PATTERN_NAMES+=("$name")
     PATTERN_REGEXES+=("$pattern")
     PATTERN_DESCRIPTIONS+=("$description")
+    PATTERN_INCLUDE_GLOBS+=("$include_globs")
     
     # Store pattern-specific exclude dirs as a space-separated string
     # (bash doesn't support arrays of arrays easily)
@@ -233,20 +237,24 @@ load_patterns() {
     add_pattern "Hardcoded name_shorts Arrays (Python)" \
         "\\w+_name_shorts\\s*=\\s*\\[\\s*['\"]" \
         "Checks for hardcoded name_shorts array assignments in Python (e.g., sensor_type_name_shorts=[\"pv_dc_combiner_current\"] or device_type_name_shorts=['meter_active_power'])" \
+        "*.py" \
         "_scripts"
     
     add_pattern "Hardcoded name_shorts Arrays (TypeScript/TSX)" \
         "[a-zA-Z_]*[Nn]ame_?[Ss]horts?\\s*[:=]\\s*\\[\\s*['\"]" \
-        "Checks for hardcoded nameShorts/name_shorts array assignments in TypeScript/TSX (e.g., sensorTypeNameShorts: [\"pv_dc_combiner_current\"] or device_name_shorts: ['meter_active_power'])"
+        "Checks for hardcoded nameShorts/name_shorts array assignments in TypeScript/TSX (e.g., sensorTypeNameShorts: [\"pv_dc_combiner_current\"] or device_name_shorts: ['meter_active_power'])" \
+        "*.ts *.tsx *.js"
     
     add_pattern "Hardcoded name_short Assignments (Python)" \
         "\\w*_?name_short\\s*=\\s*['\"]" \
         "Checks for hardcoded name_short string assignments in Python (e.g., name_short=\"proximal_pv_dc_capacity\" or sensor_type_name_short='meter_active_power')" \
+        "*.py" \
         "_scripts"
     
     add_pattern "Hardcoded name_short Assignments (TypeScript/TSX)" \
         "[a-zA-Z_]*[Nn]ame_?[Ss]hort\\s*[:=]\\s*['\"]" \
         "Checks for hardcoded nameShort/name_short string assignments in TypeScript/TSX (e.g., nameShort: \"proximal_pv_dc_capacity\" or sensor_type_name_short: 'meter_active_power')" \
+        "*.ts *.tsx *.js" \
         ""
 }
 
@@ -287,6 +295,7 @@ for i in "${!PATTERN_NAMES[@]}"; do
     pattern_name="${PATTERN_NAMES[$i]}"
     pattern_regex="${PATTERN_REGEXES[$i]}"
     pattern_desc="${PATTERN_DESCRIPTIONS[$i]}"
+    pattern_include_globs="${PATTERN_INCLUDE_GLOBS[$i]}"
     pattern_exclude_str="${PATTERN_EXCLUDE_DIRS[$i]}"
 
     if [ "$QUIET" != "true" ]; then
@@ -301,7 +310,15 @@ for i in "${!PATTERN_NAMES[@]}"; do
     
     if [ "$USE_RIPGREP" = true ]; then
         # Build exclude args for this pattern
+        local_include_args=()
         local_exclude_args=()
+
+        if [ -n "$pattern_include_globs" ]; then
+            read -ra pattern_includes <<< "$pattern_include_globs"
+            for glob in "${pattern_includes[@]}"; do
+                local_include_args+=("--glob" "$glob")
+            done
+        fi
         
         # Start with default excludes
         for dir in "${EXCLUDE_DIRS[@]}"; do
@@ -327,10 +344,25 @@ for i in "${!PATTERN_NAMES[@]}"; do
         done
         
         # Use ripgrep for faster searching
-        matches=$(rg -n --color=never "${local_exclude_args[@]}" "$pattern_regex" . 2>/dev/null || true)
+        matches=$(
+            rg -n --color=never \
+                "${local_include_args[@]}" \
+                "${local_exclude_args[@]}" \
+                "$pattern_regex" \
+                . 2>/dev/null || true
+        )
     else
         # Fallback to grep
+        grep_include_args=()
         grep_exclude_args=()
+
+        if [ -n "$pattern_include_globs" ]; then
+            read -ra pattern_includes <<< "$pattern_include_globs"
+            for glob in "${pattern_includes[@]}"; do
+                grep_include_args+=("--include=$glob")
+            done
+        fi
+
         for dir in "${EXCLUDE_DIRS[@]}"; do
             grep_exclude_args+=("--exclude-dir=$dir")
         done
@@ -355,7 +387,13 @@ for i in "${!PATTERN_NAMES[@]}"; do
             grep_exclude_args+=("--exclude-dir=$folder_path")
         done
         
-        matches=$(grep -rn --color=never "${grep_exclude_args[@]}" -E "$pattern_regex" . 2>/dev/null || true)
+        matches=$(
+            grep -rn --color=never \
+                "${grep_include_args[@]}" \
+                "${grep_exclude_args[@]}" \
+                -E "$pattern_regex" \
+                . 2>/dev/null || true
+        )
     fi
     
     if [ -n "$matches" ]; then

@@ -1152,16 +1152,11 @@ if [ "${RUN_PVEEM}" = "true" ]; then
 fi
 
 if [ "${RUN_ROOT}" = "true" ]; then
-    NAME_SHORTS_CHECK_CMD="mise run root:static_name_shorts"
-    if [ "${QUIET}" = "true" ]; then
-        NAME_SHORTS_CHECK_CMD="mise run root:static_name_shorts -- --quiet"
-    fi
-
     add_check "Root: No package.json" "mise run root:no_package_json"
     add_check "Root: Static Type ID Check" \
         "mise run root:static_type_id"
     add_check "Root: Static Name Shorts Check" \
-        "${NAME_SHORTS_CHECK_CMD}"
+        "mise run root:static_name_shorts"
     add_check "Root: Pyproject Dependency Check" \
         "mise run root:pyproject_dependencies"
     add_db_check "Root: Codegen" "mise run root:codegen"
