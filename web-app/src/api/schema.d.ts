@@ -2394,7 +2394,7 @@ export interface paths {
          *         project: Description for project.
          *         start: Description for start.
          *         end: Description for end.
-         *         interval: Description for interval.
+         *         interval: Pandas offset alias when defaulting ``end`` via ``ceil``.
          *         tag_ids: Description for tag_ids.
          *         sensor_type_ids: Description for sensor_type_ids.
          */
@@ -2431,7 +2431,7 @@ export interface paths {
          *         start_offset: Description for start_offset.
          *         last_offset: Description for last_offset.
          *         ffill_limit: Description for ffill_limit.
-         *         interval: Description for interval.
+         *         interval: Aggregation step passed to DataTimeseries (e.g. 1min, 5min).
          *         include_ghost_tags: Description for include_ghost_tags.
          */
         get: operations["get_project_dataframe_endpoint_v1_operational_projects__project_id__dataframe_get"];
@@ -2495,7 +2495,7 @@ export interface paths {
          *         sensor_type_ids: Description for sensor_type_ids.
          *         start: Description for start.
          *         end: Description for end.
-         *         interval: Description for interval.
+         *         interval: Aggregation step passed to DataTimeseries (e.g. 1min, 5min).
          *         ensure_full_range: Description for ensure_full_range.
          *         cutoff_now: Description for cutoff_now.
          */

@@ -62,7 +62,7 @@ async def get_project_dataframe(
         start_offset: Description for start_offset.
         last_offset: Description for last_offset.
         ffill_limit: Description for ffill_limit.
-        interval: Description for interval.
+        interval: Aggregation step passed to DataTimeseries (e.g. 1min, 5min).
         include_ghost_tags: Description for include_ghost_tags.
     """
     if (
@@ -120,6 +120,17 @@ async def get_project_dataframe(
         )
     tags = [SimpleNamespace(**row) for row in tags_df.to_dicts()]
 
+    try:
+        agg_interval = TimeInterval(interval)
+    except ValueError as exc:
+        valid_options = ", ".join(sorted(ti.value for ti in TimeInterval))
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Invalid interval '{interval}'. Valid intervals are: {valid_options}"
+            ),
+        ) from exc
+
     data_timeseries_instance = await DataTimeseries(
         project_name_short=project.name_short,
         filter_method=FilterMethod.TAG_POLARS,
@@ -127,7 +138,7 @@ async def get_project_dataframe(
         query_start=start,
         query_end=end,
         project_db=project_db,
-        freq=TimeInterval.FIVE_MINUTES,
+        freq=agg_interval,
     ).get()
 
     df = data_timeseries_instance.df.to_pandas()
@@ -199,7 +210,7 @@ async def get_llm_time_series(
         project: Description for project.
         start: Description for start.
         end: Description for end.
-        interval: Description for interval.
+        interval: Pandas offset alias when defaulting ``end`` via ``ceil``.
         tag_ids: Description for tag_ids.
         sensor_type_ids: Description for sensor_type_ids.
     """
@@ -321,7 +332,7 @@ async def get_project_dataframe_endpoint(
         start_offset: Description for start_offset.
         last_offset: Description for last_offset.
         ffill_limit: Description for ffill_limit.
-        interval: Description for interval.
+        interval: Aggregation step passed to DataTimeseries (e.g. 1min, 5min).
         include_ghost_tags: Description for include_ghost_tags.
     """
     df = await get_project_dataframe(
@@ -537,7 +548,7 @@ async def get_timeseries_v3(
         sensor_type_ids: Description for sensor_type_ids.
         start: Description for start.
         end: Description for end.
-        interval: Description for interval.
+        interval: Aggregation step passed to DataTimeseries (e.g. 1min, 5min).
         ensure_full_range: Description for ensure_full_range.
         cutoff_now: Description for cutoff_now.
     """
