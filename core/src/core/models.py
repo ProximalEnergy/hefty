@@ -283,14 +283,15 @@ class NotificationType(Base):
     __tablename__ = "notification_types"
 
     notification_type_id: Mapped[int] = mapped_column(primary_key=True)
-    name_long: Mapped[str] = mapped_column(sa.Text)
+    name_short: Mapped[str] = mapped_column(unique=True)
+    name_long: Mapped[str]
     in_app_enabled_default: Mapped[bool]
     email_enabled_default: Mapped[bool]
     in_app_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
-        mapped_column(notification_severity_enum, nullable=True)
+        mapped_column(notification_severity_enum)
     )
     email_severity_default: Mapped[enumerations.NotificationSeverity | None] = (
-        mapped_column(notification_severity_enum, nullable=True)
+        mapped_column(notification_severity_enum)
     )
 
     __table_args__ = {"schema": "admin"}
