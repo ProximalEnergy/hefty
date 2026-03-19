@@ -430,6 +430,7 @@ async def get_ptp_data(
 
     begin_str = _to_iso_utc(dt=start) if start else None
     end_str = _to_iso_utc(dt=end) if end else None
+    requested_data_points = list(data_points) if data_points else None
 
     try:
         token = await tps_token.get_token()
@@ -461,10 +462,10 @@ async def get_ptp_data(
                         if not isinstance(entry, dict):
                             continue
                         if entry.get("identifier") == primary_id:
-                            data_points = entry.get("dataPoints", [])
-                            if not isinstance(data_points, list):
+                            entry_data_points = entry.get("dataPoints", [])
+                            if not isinstance(entry_data_points, list):
                                 break
-                            for dp in data_points:
+                            for dp in entry_data_points:
                                 if not isinstance(dp, dict):
                                     continue
                                 key_name = str(dp.get("keyName", ""))
@@ -527,13 +528,13 @@ async def get_ptp_data(
                             if not isinstance(entry, dict):
                                 continue
                             entry_id = entry.get("identifier")
-                            data_points = entry.get("dataPoints", [])
-                            if not isinstance(data_points, list):
+                            entry_data_points = entry.get("dataPoints", [])
+                            if not isinstance(entry_data_points, list):
                                 continue
                             resource_id = None
 
                             # Extract Resource_ID
-                            for dp in data_points:
+                            for dp in entry_data_points:
                                 if not isinstance(dp, dict):
                                     continue
                                 if dp.get("keyName") == "Resource_ID":
@@ -555,7 +556,7 @@ async def get_ptp_data(
                                 # Check if this entry has actual COP data (not just
                                 # Resource_ID).
                                 interval_count = 0
-                                for dp in data_points:
+                                for dp in entry_data_points:
                                     if not isinstance(dp, dict):
                                         continue
                                     key_name = str(dp.get("keyName", ""))
@@ -636,7 +637,7 @@ async def get_ptp_data(
             elements=[element_id] if element_id else None,
             begin=begin_str,
             end=end_str,
-            data_points=data_points,
+            data_points=requested_data_points,
         )
 
         # For COP endpoints, filter out placeholder dates from the response
@@ -646,10 +647,10 @@ async def get_ptp_data(
                 for entry in entries:
                     if not isinstance(entry, dict):
                         continue
-                    data_points = entry.get("dataPoints", [])
-                    if not isinstance(data_points, list):
+                    entry_data_points = entry.get("dataPoints", [])
+                    if not isinstance(entry_data_points, list):
                         continue
-                    for dp in data_points:
+                    for dp in entry_data_points:
                         if not isinstance(dp, dict):
                             continue
                         values = dp.get("values", [])
