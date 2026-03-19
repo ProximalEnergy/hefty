@@ -31,7 +31,7 @@ function formatNewNotificationType(
   const formattedDate = formatAlertDate(day, createdAt)
 
   return {
-    title: `New Type Alert - ${formattedDate}`,
+    title: `New Type Risk - ${formattedDate}`,
     body: `${formattedDate} formatted message here.`,
     link: '/portfolio/map', // Optional: remove if no link needed
   }
@@ -106,9 +106,9 @@ const NotificationIcon = isFireAlert
           : IconBell
 ```
 
-## Example: Weather Alert Pattern
+## Example: Weather risk pattern
 
-The existing weather alerts (hail, fire, tornado, wind) use the `name_long`
+The existing weather risk notifications (hail, fire, tornado, wind) use the `name_long`
 pattern. Their data structure includes:
 
 - `data.weather_type` contains the `name_long` value (e.g., "hail", "tornado",

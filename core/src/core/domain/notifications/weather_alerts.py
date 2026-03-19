@@ -44,6 +44,14 @@ SEVERITY_THRESHOLDS = {
 # Valid weather types (used for validation)
 VALID_WEATHER_TYPES = {"hail", "tornado", "wind", "fire"}
 
+# User-facing labels in emails (risk wording, not NWS "alert")
+WEATHER_TYPE_EMAIL_DISPLAY = {
+    "fire": "Fire Risk",
+    "hail": "Hail Risk",
+    "tornado": "Tornado Risk",
+    "wind": "Wind Risk",
+}
+
 # Treat as "same storm" only if last notification was within this many days
 SAME_EVENT_WINDOW_DAYS = 2
 
@@ -573,9 +581,12 @@ async def _send_weather_alert_email_to_user(
     # any async/db issues. Use .format() instead of f-strings to ensure
     # all values are evaluated as plain types
     try:
-        weather_type_display = str(weather_type.capitalize())
+        weather_type_display = WEATHER_TYPE_EMAIL_DISPLAY.get(
+            weather_type,
+            f"{weather_type.capitalize()} Risk",
+        )
         label_text = "Category" if is_fire_alert else "Probability"
-        subject = f"Weather Alert: {weather_type_display} Warning for {project_name}"
+        subject = f"Weather Risk: {weather_type_display} Warning for {project_name}"
         project_url = f"https://app.proximal.energy/projects/{project_id_str}"
         html_body = f"""<html>
 <body>
@@ -604,7 +615,7 @@ async def _send_weather_alert_email_to_user(
     </p>
 
     <p style="color: #666; font-size: 12px; margin-top: 30px;">
-        You can manage your weather alert preferences in your
+        You can manage your weather risk notification preferences in your
         <a href="https://app.proximal.energy/application-settings"
         style="color: #21B8F1; text-decoration: underline;">
         Application Settings</a>.

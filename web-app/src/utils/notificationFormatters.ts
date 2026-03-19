@@ -92,7 +92,7 @@ function formatAlertDate(day: string, createdAt: string | Date): string {
 }
 
 /**
- * Formats a Hail Alert notification.
+ * Formats a Hail Risk notification.
  * Data structure: {"day": "day2", "severity": "CRITICAL", "probability": 80.0, "weather_type": "hail"}
  */
 function formatHailAlert(
@@ -110,7 +110,7 @@ function formatHailAlert(
   const formattedDate = formatAlertDate(day, createdAt)
 
   // Format title - severity will be added by the component
-  const title = `Hail Alert - ${formattedDate}`
+  const title = `Hail Risk - ${formattedDate}`
 
   // Format body
   const body = `${formattedDate} hail forecast with a ${probability}% probability.`
@@ -123,7 +123,7 @@ function formatHailAlert(
 }
 
 /**
- * Formats a Fire Alert notification.
+ * Formats a Fire Risk notification.
  * Data structure: {"day": "day1", "value": "Elevated", "severity": "info", "weather_type": "fire"}
  */
 function formatFireAlert(
@@ -135,7 +135,7 @@ function formatFireAlert(
 
   const formattedDate = formatAlertDate(day, createdAt)
 
-  const title = `Fire Alert - ${formattedDate}`
+  const title = `Fire Risk - ${formattedDate}`
   const body = `${formattedDate} fire weather outlook: ${value}.`
 
   return {
@@ -146,7 +146,7 @@ function formatFireAlert(
 }
 
 /**
- * Formats a Tornado Alert notification.
+ * Formats a Tornado Risk notification.
  * Data structure: {"day": "day1", "value": 2, "severity": "info", "weather_type": "tornado"}
  * Note: value is a percentage risk (0-100)
  */
@@ -164,7 +164,7 @@ function formatTornadoAlert(
 
   const formattedDate = formatAlertDate(day, createdAt)
 
-  const title = `Tornado Alert - ${formattedDate}`
+  const title = `Tornado Risk - ${formattedDate}`
   const body = `${formattedDate} tornado forecast with a ${probability}% risk.`
 
   return {
@@ -203,7 +203,7 @@ function formatEventChatMessage(
 }
 
 /**
- * Formats a Wind Alert notification.
+ * Formats a Wind Risk notification.
  * Data structure: {"day": "day1", "value": 15, "severity": "info", "weather_type": "wind"}
  * Note: value is a percentage risk (0-100)
  */
@@ -221,7 +221,7 @@ function formatWindAlert(
 
   const formattedDate = formatAlertDate(day, createdAt)
 
-  const title = `Wind Alert - ${formattedDate}`
+  const title = `Wind Risk - ${formattedDate}`
   const body = `${formattedDate} wind forecast with a ${probability}% risk.`
 
   return {

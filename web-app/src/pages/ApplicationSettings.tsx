@@ -215,8 +215,8 @@ function Subscriptions() {
   return (
     <Stack gap="md">
       <Text>
-        Configure your notification preferences for reports, weather alerts, and
-        event chat messages.
+        Configure your notification preferences for reports, weather risk
+        notifications, and event chat messages.
       </Text>
       <Accordion multiple={true} variant="contained">
         <Accordion.Item value={'Event Chat Messages'}>
