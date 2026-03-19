@@ -38,5 +38,20 @@
       "Headcamp",
       "Monte Cristo"
     ]
+  },
+  "Indie": {
+    "kpis": [
+      39,
+      35
+    ],
+    "projects": [
+      "Mason",
+      "Gregory",
+      "Muenster",
+      "Palacios",
+      "Falfurrias",
+      "Monte Cristo",
+      "Sinton Pirate"
+    ]
   }
 }
