@@ -62,7 +62,10 @@ uv sync --directory core && \
 mise run api:switch-core && \
 uv sync --directory api && \
 uv sync --directory kpi && \
-mise run web:install && \
+(
+  mise run web:install || \
+  mise run web:install --non-strict
+) && \
 mise run web:plotly && \
 mise run sql-admin:install
 """
@@ -781,7 +784,16 @@ run = "uv run python _scripts/route_tree.py"
 [tasks."web:install"]
 description = "Install web-app dependencies with pnpm"
 dir = "web-app"
-run = "pnpm install --frozen-lockfile"
+usage = '''
+  flag "-n --non-strict" help="Allow pnpm to update pnpm-lock.yaml"
+'''
+run = """
+if [ "${usage_non_strict:-false}" = "true" ]; then
+  pnpm install
+else
+  pnpm install --frozen-lockfile
+fi
+"""
 
 [tasks."web:plotly"]
 description = "Build custom Plotly bundle for web-app"

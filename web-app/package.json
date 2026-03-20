@@ -62,7 +62,7 @@
     "mantine-react-table": "^2.0.0-beta.9",
     "mapbox-gl": "^3.10.0",
     "markdown-it": "^14.1.0",
-    "plotly.js": "^3.3.1",
+    "plotly.js": "~3.3",
     "posthog-js": "^1.347.2",
     "qs": "^6.14.0",
     "react": "^19.2.4",
