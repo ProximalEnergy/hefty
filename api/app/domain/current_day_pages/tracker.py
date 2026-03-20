@@ -186,14 +186,14 @@ async def get_tracker_by_pv_block_id_data(
     df = df.set_index("time")
     df.columns = df.columns.astype(int)
 
-    device_id_to_name_short = dict(
+    device_id_to_name_long = dict(
         zip(
             devices_df["device_id"].astype(int),
-            devices_df["name_short"].fillna(""),
+            devices_df["name_long"].fillna(""),
         )
     )
-    tag_id_to_device_name_short = {
-        int(tag_id): device_id_to_name_short[int(device_id)]
+    tag_id_to_device_name_long = {
+        int(tag_id): device_id_to_name_long[int(device_id)]
         for tag_id, device_id in zip(tags["tag_id"], tags["device_id"])
     }
 
@@ -220,11 +220,11 @@ async def get_tracker_by_pv_block_id_data(
     return {
         "times": df.index.tolist(),
         "positions": {
-            tag_id_to_device_name_short[tag_id]: df_position[tag_id].tolist()
+            tag_id_to_device_name_long[tag_id]: df_position[tag_id].tolist()
             for tag_id in tags_ids_position
         },
         "setpoints": {
-            tag_id_to_device_name_short[tag_id]: df_setpoint[tag_id].tolist()
+            tag_id_to_device_name_long[tag_id]: df_setpoint[tag_id].tolist()
             for tag_id in tags_ids_setpoint
         },
     }
