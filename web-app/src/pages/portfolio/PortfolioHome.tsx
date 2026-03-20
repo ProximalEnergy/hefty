@@ -4,6 +4,7 @@ import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import { useGetProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { useGetProjects } from '@/api/v1/operational/projects'
+import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { NoData, PageError } from '@/components/Error'
 import { PageLoader } from '@/components/Loading'
@@ -11,6 +12,7 @@ import { useTipsPersonalPortfolio } from '@/components/Tips'
 import { useUser } from '@clerk/react'
 import {
   Box,
+  Chip,
   Group,
   SegmentedControl,
   Stack,
@@ -31,6 +33,7 @@ function PortfolioHome() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [debouncedSearchTerm] = useDebouncedValue(searchTerm, 300)
+  const [selectedLabelNames, setSelectedLabelNames] = useState<string[]>([])
   useTipsPersonalPortfolio()
 
   // Get active tab from URL params or default to 'active'
@@ -95,6 +98,35 @@ function PortfolioHome() {
     // Only run query when projects data is available
     queryOptions: { enabled: !!projects.data },
   })
+
+  const userProjectLabels = useGetUserProjectLabels()
+
+  const matchingSelectedLabels =
+    userProjectLabels.data?.filter((label) =>
+      selectedLabelNames.includes(label.name),
+    ) ?? []
+
+  const selectedLabelProjectIdCounts = new Map<string, number>()
+
+  // Intersection match: keep projects that exist in *every* selected label.
+  for (const label of matchingSelectedLabels) {
+    for (const projectId of label.project_ids) {
+      const key = String(projectId)
+      selectedLabelProjectIdCounts.set(
+        key,
+        (selectedLabelProjectIdCounts.get(key) ?? 0) + 1,
+      )
+    }
+  }
+
+  const labelFilteredProjects =
+    projects.data && selectedLabelNames.length
+      ? projects.data.filter(
+          (project) =>
+            selectedLabelProjectIdCounts.get(String(project.project_id)) ===
+            matchingSelectedLabels.length,
+        )
+      : (projects.data ?? [])
 
   // Render loading state
   if (
@@ -174,8 +206,14 @@ function PortfolioHome() {
           <Stack pt="md">
             <Group justify="space-between" align="center">
               <Title order={4} size="h5">
-                Project Search
+                Project Search:
               </Title>
+              <TextInput
+                flex={1}
+                placeholder="Search by project name"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.currentTarget.value)}
+              />
               <SegmentedControl
                 value={timeParam}
                 data={[
@@ -189,22 +227,42 @@ function PortfolioHome() {
                 }}
               />
             </Group>
-            <TextInput
-              placeholder="Search by project name"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.currentTarget.value)}
-            />
+
+            {userProjectLabels.data && userProjectLabels.data.length > 0 && (
+              <Group>
+                <Title order={4} size="h5">
+                  Filter by label:
+                </Title>
+                <Chip.Group
+                  multiple
+                  value={selectedLabelNames}
+                  onChange={setSelectedLabelNames}
+                >
+                  {userProjectLabels.data.map((label) => (
+                    <Chip
+                      key={label.name}
+                      value={label.name}
+                      color={label.color}
+                      variant="filled"
+                    >
+                      {label.name}
+                    </Chip>
+                  ))}
+                </Chip.Group>
+              </Group>
+            )}
           </Stack>
 
           {/* Active Projects Section */}
           <Tabs.Panel value="active">
             <ActiveProjectsTab
-              projects={projects.data}
+              projects={labelFilteredProjects}
               portfolioHomeData={portfolioHome.data}
               projectDataLastUpdated={projectDataLastUpdated.data}
               userProjects={userProjects.data || []}
               searchTerm={debouncedSearchTerm}
               time={timeParam as '24h' | '30d'}
+              userProjectLabels={userProjectLabels.data || []}
             />
           </Tabs.Panel>
 
@@ -212,7 +270,7 @@ function PortfolioHome() {
           {isUserSuperadmin && (
             <Tabs.Panel value="onboarding">
               <OnboardingProjectsTab
-                projects={projects.data || []}
+                projects={labelFilteredProjects || []}
                 searchTerm={debouncedSearchTerm}
               />
             </Tabs.Panel>
@@ -222,11 +280,12 @@ function PortfolioHome() {
           {isUserSuperadmin && (
             <Tabs.Panel value="archived">
               <ArchivedProjectsTab
-                projects={projects.data}
+                projects={labelFilteredProjects}
                 portfolioHomeData={portfolioHome.data}
                 projectDataLastUpdated={projectDataLastUpdated.data}
                 searchTerm={debouncedSearchTerm}
                 time={timeParam as '24h' | '30d'}
+                userProjectLabels={userProjectLabels.data || []}
               />
             </Tabs.Panel>
           )}

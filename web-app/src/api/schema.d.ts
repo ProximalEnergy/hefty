@@ -1884,6 +1884,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/contract-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Contract Categories
+         * @description todo
+         *
+         *     Args:
+         *         db: Description for db.
+         */
+        get: operations["list_contract_categories_v1_operational_contract_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/device-models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Device Models Route
+         * @description Get device models.
+         *
+         *     Args:
+         *         device_model_ids: Optional list of device model IDs to filter by.
+         *         device_type_ids: Optional list of device type IDs to filter by.
+         */
+        get: operations["get_device_models"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/device-types": {
         parameters: {
             query?: never;
@@ -1933,7 +1980,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/device-models": {
+    "/v1/operational/drone-integrations": {
         parameters: {
             query?: never;
             header?: never;
@@ -1941,17 +1988,236 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Device Models Route
-         * @description Get device models.
+         * Get Drone Integrations
+         * @description Get all drone integrations.
          *
          *     Args:
-         *         device_model_ids: Optional list of device model IDs to filter by.
-         *         device_type_ids: Optional list of device type IDs to filter by.
+         *         db: Description for db.
          */
-        get: operations["get_device_models"];
+        get: operations["get_drone_integrations__v1_operational_drone_integrations_get"];
         put?: never;
-        post?: never;
+        /**
+         * Create Drone Integration
+         * @description Create a new drone integration.
+         *
+         *     Args:
+         *         drone_integration: Description for drone_integration.
+         *         db: Description for db.
+         */
+        post: operations["create_drone_integration__v1_operational_drone_integrations_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-integrations/{drone_integration_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Drone Integration
+         * @description Update a drone integration.
+         *
+         *     Args:
+         *         drone_integration_id: Description for drone_integration_id.
+         *         drone_integration: Description for drone_integration.
+         *         db: Description for db.
+         */
+        put: operations["update_drone_integration__v1_operational_drone_integrations__drone_integration_id__put"];
+        post?: never;
+        /**
+         * Delete Drone Integration
+         * @description Delete a drone integration.
+         *
+         *     Args:
+         *         drone_integration_id: Description for drone_integration_id.
+         *         db: Description for db.
+         */
+        delete: operations["delete_drone_integration__v1_operational_drone_integrations__drone_integration_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-integrations/order-inspection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Order Drone Inspection
+         * @description Send a drone inspection order email to the provider.
+         *
+         *     Args:
+         *         request: Description for request.
+         *         user_data: Description for user_data.
+         *         db: Description for db.
+         */
+        post: operations["order_drone_inspection_v1_operational_drone_integrations_order_inspection_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-integrations/query-provider-sites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Query Provider Sites
+         * @description Query sites from a drone provider using an API key.
+         *         Currently supports Zeitview (provider_id = 0).
+         *
+         *     Args:
+         *         request: Description for request.
+         */
+        post: operations["query_provider_sites_v1_operational_drone_integrations_query_provider_sites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Drone Permissions
+         * @description Retrieve all drone permissions.
+         *
+         *     Args:
+         *         db: Description for db.
+         */
+        get: operations["get_drone_permissions__v1_operational_drone_permissions_get"];
+        put?: never;
+        /**
+         * Create Drone Permission
+         * @description Create a new drone permission.
+         *
+         *     Args:
+         *         drone_permission: Description for drone_permission.
+         *         db: Description for db.
+         */
+        post: operations["create_drone_permission__v1_operational_drone_permissions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-permissions/{drone_integration_id}/{company_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Drone Permission
+         * @description Update a drone permission.
+         *
+         *     Args:
+         *         drone_integration_id: Description for drone_integration_id.
+         *         company_id: Description for company_id.
+         *         drone_permission: Description for drone_permission.
+         *         db: Description for db.
+         */
+        put: operations["update_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__put"];
+        post?: never;
+        /**
+         * Delete Drone Permission
+         * @description Delete a drone permission.
+         *
+         *     Args:
+         *         drone_integration_id: Description for drone_integration_id.
+         *         company_id: Description for company_id.
+         *         db: Description for db.
+         */
+        delete: operations["delete_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Drone Providers
+         * @description Retrieve all drone providers.
+         *
+         *     Args:
+         *         db: Async database session.
+         */
+        get: operations["get_drone_providers__v1_operational_drone_providers_get"];
+        put?: never;
+        /**
+         * Create Drone Provider
+         * @description Create a new drone provider.
+         *
+         *     Args:
+         *         drone_provider: Payload describing the new provider.
+         *         db: Async database session.
+         */
+        post: operations["create_drone_provider__v1_operational_drone_providers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/drone-providers/{drone_provider_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Drone Provider
+         * @description Update a drone provider.
+         *
+         *     Args:
+         *         drone_provider_id: Provider identifier to update.
+         *         drone_provider: Payload of updated provider fields.
+         *         db: Async database session.
+         */
+        put: operations["update_drone_provider__v1_operational_drone_providers__drone_provider_id__put"];
+        post?: never;
+        /**
+         * Delete Drone Provider
+         * @description Delete a drone provider.
+         *
+         *     Args:
+         *         drone_provider_id: Provider identifier to delete.
+         *         db: Async database session.
+         */
+        delete: operations["delete_drone_provider__v1_operational_drone_providers__drone_provider_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1980,7 +2246,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/project-types": {
+    "/v1/operational/kpi-data": {
         parameters: {
             query?: never;
             header?: never;
@@ -1988,16 +2254,200 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Project Types
+         * Get Kpi Data
          * @description todo
          *
          *     Args:
-         *         project_type_ids: Description for project_type_ids.
-         *         name_short: Description for name_short.
-         *         name_long: Description for name_long.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         project_ids: Description for project_ids.
+         *         kpi_type_ids: Description for kpi_type_ids.
+         *         include_device_data: Description for include_device_data.
+         *         db: Description for db.
+         *         user_data: Description for user_data.
+         *         include_all_dates: Description for include_all_dates.
+         */
+        get: operations["get_kpi_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-data/{project_id}/excel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Excel
+         * @description todo
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         kpi_type_id: Description for kpi_type_id.
+         *         start: Description for start.
+         *         end: Description for end.
+         *         db: Description for db.
+         *         sync_db: Description for sync_db.
+         *         project_db: Description for project_db.
+         *         project: Description for project.
+         */
+        get: operations["get_kpi_excel_v1_operational_kpi_data__project_id__excel_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-data/{project_id}/kpi-email-alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Email Alerts
+         * @description todo
+         *
+         *     Args:
+         *         start: Description for start.
+         *         end: Description for end.
+         *         kpi_type_id: Description for kpi_type_id.
+         *         project_id: Description for project_id.
          *         db: Description for db.
          */
-        get: operations["get_project_types"];
+        get: operations["get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Instances
+         * @description todo
+         *
+         *     Args:
+         *         db: Description for db.
+         *         is_superadmin: Description for is_superadmin.
+         *         project_ids: Description for project_ids.
+         *         kpi_type_ids: Description for kpi_type_ids.
+         *         deep: Description for deep.
+         */
+        get: operations["get_kpi_instances_v1_operational_kpi_instances_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-types/by-name/{name_short}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Type By Name
+         * @description todo
+         *
+         *     Args:
+         *         name_short: Description for name_short.
+         *         db: Description for db.
+         */
+        get: operations["get_kpi_type_by_name_v1_operational_kpi_types_by_name__name_short__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Types
+         * @description todo
+         *
+         *     Args:
+         *         db: Description for db.
+         *         kpi_type_ids: Description for kpi_type_ids.
+         */
+        get: operations["get_kpi_types"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-types/{kpi_type_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Type
+         * @description todo
+         *
+         *     Args:
+         *         kpi_type_id: Description for kpi_type_id.
+         *         db: Description for db.
+         */
+        get: operations["get_kpi_type_by_id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/kpi-types/by-project/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Kpi Types By Project
+         * @description todo
+         *
+         *     Args:
+         *         project_id: Description for project_id.
+         *         db: Description for db.
+         */
+        get: operations["get_kpi_types_by_project"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4145,6 +4595,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operational/projects/{project_id}/user-project-labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Project Labels By Project Id
+         * @description Get all labels for a specific project (for the requesting user).
+         *
+         *     Args:
+         *         project: Project object to query labels for.
+         *         user: Authenticated user data.
+         */
+        get: operations["get_user_project_labels_by_project_id_v1_operational_projects__project_id__user_project_labels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operational/projects/{project_id}/waterfall": {
         parameters: {
             query?: never;
@@ -4165,6 +4639,56 @@ export interface paths {
          *         end: Description for end.
          */
         get: operations["get_project_waterfall_v1_operational_projects__project_id__waterfall_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/project-data-last-updated": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Data Last Updated Endpoint
+         * @description todo
+         *
+         *     Args:
+         *         db: Description for db.
+         *         project_ids: Description for project_ids.
+         */
+        get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/project-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Types
+         * @description todo
+         *
+         *     Args:
+         *         project_type_ids: Description for project_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         db: Description for db.
+         */
+        get: operations["get_project_types"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4252,7 +4776,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/kpi-data": {
+    "/v1/operational/pv-budgeted-data/series": {
         parameters: {
             query?: never;
             header?: never;
@@ -4260,200 +4784,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Kpi Data
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_ids: Description for project_ids.
-         *         kpi_type_ids: Description for kpi_type_ids.
-         *         include_device_data: Description for include_device_data.
-         *         db: Description for db.
-         *         user_data: Description for user_data.
-         *         include_all_dates: Description for include_all_dates.
-         */
-        get: operations["get_kpi_data"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-data/{project_id}/excel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Excel
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         kpi_type_id: Description for kpi_type_id.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         db: Description for db.
-         *         sync_db: Description for sync_db.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_kpi_excel_v1_operational_kpi_data__project_id__excel_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-data/{project_id}/kpi-email-alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Email Alerts
-         * @description todo
-         *
-         *     Args:
-         *         start: Description for start.
-         *         end: Description for end.
-         *         kpi_type_id: Description for kpi_type_id.
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         */
-        get: operations["get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-instances": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Instances
-         * @description todo
-         *
-         *     Args:
-         *         db: Description for db.
-         *         is_superadmin: Description for is_superadmin.
-         *         project_ids: Description for project_ids.
-         *         kpi_type_ids: Description for kpi_type_ids.
-         *         deep: Description for deep.
-         */
-        get: operations["get_kpi_instances_v1_operational_kpi_instances_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-types/by-name/{name_short}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Type By Name
-         * @description todo
-         *
-         *     Args:
-         *         name_short: Description for name_short.
-         *         db: Description for db.
-         */
-        get: operations["get_kpi_type_by_name_v1_operational_kpi_types_by_name__name_short__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Types
-         * @description todo
-         *
-         *     Args:
-         *         db: Description for db.
-         *         kpi_type_ids: Description for kpi_type_ids.
-         */
-        get: operations["get_kpi_types"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-types/{kpi_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Type
-         * @description todo
-         *
-         *     Args:
-         *         kpi_type_id: Description for kpi_type_id.
-         *         db: Description for db.
-         */
-        get: operations["get_kpi_type_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/kpi-types/by-project/{project_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Kpi Types By Project
-         * @description todo
+         * Get Pv Budgeted Series
+         * @description Get all budgeted series for a project.
          *
          *     Args:
          *         project_id: Description for project_id.
          *         db: Description for db.
          */
-        get: operations["get_kpi_types_by_project"];
+        get: operations["get_pv_budgeted_series"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4462,7 +4800,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/report-types": {
+    "/v1/operational/pv-budgeted-data": {
         parameters: {
             query?: never;
             header?: never;
@@ -4470,46 +4808,118 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Types
+         * Get Pv Budgeted Data
+         * @description Get PV budgeted data for a project (all series).
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         start: Start datetime
+         *         end: End datetime
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Data By Series
+         * @description Get PV budgeted data for a specific series.
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         start: Start datetime
+         *         end: End datetime
+         *         pv_budgeted_series_id: Specific series ID
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_data_by_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}/daily-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Pv Budgeted Series Daily Data
+         * @description Get daily aggregated budgeted data for a specific series within a date range.
+         *     This aggregates hourly data to daily values and applies degradation adjustment.
+         *
+         *     Args:
+         *         project_id: UUID of the project
+         *         pv_budgeted_series_id: Specific series ID to get data for
+         *         start_date: Start date for the range
+         *         end_date: End date for the range
+         *         degradation_rate: Annual degradation rate percentage (default 0.5%)
+         *         db: Database session
+         */
+        get: operations["get_pv_budgeted_series_daily_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-inverters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Inverters
          * @description todo
          *
          *     Args:
+         *         inverter_ids: Description for inverter_ids.
+         *         device_model_ids: Description for device_model_ids.
          *         db: Description for db.
          */
-        get: operations["get_report_types"];
+        get: operations["get_inverters"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/report-types/{report_type_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
         /**
-         * Get Report Type
-         * @description todo
+         * Create or update a PV inverter
+         * @description Create a new PV inverter or update an existing one.
+         *
+         *         If an inverter with the same inverter_id already exists, it will be updated.
+         *         If the inverter doesn't exist, a new one will be created.
          *
          *     Args:
-         *         report_type_id: Description for report_type_id.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         inverter: Description for inverter.
          *         db: Description for db.
          */
-        get: operations["get_report_type_by_id"];
-        put?: never;
-        post?: never;
+        post: operations["create_inverter_v1_operational_pv_inverters_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/report-instances": {
+    "/v1/operational/pv-inverters/ids": {
         parameters: {
             query?: never;
             header?: never;
@@ -4517,98 +4927,25 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Report Instances
+         * Get Inverter Ids
          * @description todo
          *
          *     Args:
-         *         is_superadmin: Description for is_superadmin.
-         *         project_ids: Description for project_ids.
-         *         report_type_ids: Description for report_type_ids.
-         *         deep: Description for deep.
-         */
-        get: operations["get_report_instances"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/root-causes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Root Causes
-         * @description Retrieve root causes with optional filtering by IDs and device types.
-         *
-         *     This endpoint returns a list of root causes, optionally filtered by
-         *     specific root cause IDs and/or device type IDs. Each root cause is enriched
-         *     with a 'name_full' field that combines the device type name and root cause
-         *     name.
-         *
-         *     Args:
-         *         db (Session): Database session dependency
-         *         root_cause_ids (List[int], optional): List of specific root cause IDs
-         *             to filter by. If empty, returns all root causes.
-         *         device_type_ids (List[int], optional): List of device type IDs to
-         *             filter by. If empty, returns root causes for all device types.
-         *
-         *     Returns:
-         *         List[dict]: List of root cause dictionaries, each containing:
-         *             - All original root cause attributes
-         *             - name_full (str): Combined string of device type name and root cause name
-         */
-        get: operations["get_root_causes"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/sensor-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Sensor Types
-         * @description todo
-         *
-         *     Args:
-         *         sensor_type_ids: Description for sensor_type_ids.
-         *         name_short: Description for name_short.
-         *         name_long: Description for name_long.
-         *         name_metric: Description for name_metric.
-         *         unit: Description for unit.
-         */
-        get: operations["get_sensor_types"];
-        put?: never;
-        /**
-         * Create Sensor Type
-         * @description Create a new sensor type. Only superadmins can create sensor types.
-         *
-         *     Args:
-         *         sensor_type: Description for sensor_type.
-         *         user_data: Description for user_data.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         inverter_manufacturer: Description for inverter_manufacturer.
+         *         inverter_model: Description for inverter_model.
          *         db: Description for db.
          */
-        post: operations["create_sensor_type"];
+        get: operations["get_inverter_ids"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/sensor-types/{sensor_type_id}": {
+    "/v1/operational/pv-inverters/manufacturers": {
         parameters: {
             query?: never;
             header?: never;
@@ -4616,24 +4953,136 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Sensor Type
+         * Get all PV inverter manufacturers from the proximal database
          * @description todo
          *
          *     Args:
-         *         sensor_type_id: Description for sensor_type_id.
-         */
-        get: operations["get_sensor_type"];
-        /**
-         * Update Sensor Type
-         * @description Update an existing sensor type. Only superadmins can update sensor types.
-         *
-         *     Args:
-         *         sensor_type_id: Description for sensor_type_id.
-         *         sensor_type: Description for sensor_type.
-         *         user_data: Description for user_data.
+         *         authorized_company_id: Description for authorized_company_id.
          *         db: Description for db.
          */
-        put: operations["update_sensor_type"];
+        get: operations["get_proximal_inverter_manufacturers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-inverters/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all PV inverter models from the proximal database, optionally filtered by a selected manufacturer
+         * @description todo
+         *
+         *     Args:
+         *         manufacturer: Description for manufacturer.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
+         */
+        get: operations["get_proximal_inverter_models_given_manufacturer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-inverters/lookup-ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get inverter IDs based on manufacturer and model pairs
+         * @description Get inverter IDs for each manufacturer and model pair.
+         *
+         *         corresponding inverter IDs in the same order. Returns None for any pairs
+         *         that don't exist in the database.
+         *
+         *         The input lists must have the same length.
+         *
+         *     Args:
+         *         authorized_company_id: Description for authorized_company_id.
+         *         manufacturers: Description for manufacturers.
+         *         models: Description for models.
+         *         db: Description for db.
+         */
+        get: operations["get_inverter_ids_by_manufacturer_and_model"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-inverters/parse-ond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Parse OND file and return inverter information
+         * @description Upload an OND file and retrieve inverter information from it.
+         *
+         *         This endpoint accepts an OND file upload, processes it using the parse_ond
+         *         function,
+         *         and returns the extracted information in JSON format.
+         *
+         *         The processing pipeline includes:
+         *         1. Reading the OND file structure
+         *         2. Formatting the data into a standardized inverter configuration
+         *         3. Calculating DC nominal power
+         *         4. Computing Sandia inverter model parameters
+         *         5. Validating the resulting configuration
+         *
+         *         Returns:
+         *             A JSON object with the following structure:
+         *             - success: Boolean indicating if parsing was successful
+         *             - message: Status message
+         *             - inverter_data: The complete inverter configuration with all parameters
+         *
+         *     Args:
+         *         file: Description for file.
+         */
+        post: operations["parse_ond_file_v1_operational_pv_inverters_parse_ond_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/pv-inverters/calculate-sandia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Calculate and update Sandia parameters for an inverter
+         * @description todo
+         *
+         *     Args:
+         *         inverter_id: Description for inverter_id.
+         *         authorized_company_id: Description for authorized_company_id.
+         *         db: Description for db.
+         */
+        put: operations["calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -4936,7 +5385,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-inverters": {
+    "/v1/operational/report-instances": {
         parameters: {
             query?: never;
             header?: never;
@@ -4944,36 +5393,25 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Inverters
+         * Get Report Instances
          * @description todo
          *
          *     Args:
-         *         inverter_ids: Description for inverter_ids.
-         *         device_model_ids: Description for device_model_ids.
-         *         db: Description for db.
+         *         is_superadmin: Description for is_superadmin.
+         *         project_ids: Description for project_ids.
+         *         report_type_ids: Description for report_type_ids.
+         *         deep: Description for deep.
          */
-        get: operations["get_inverters"];
+        get: operations["get_report_instances"];
         put?: never;
-        /**
-         * Create or update a PV inverter
-         * @description Create a new PV inverter or update an existing one.
-         *
-         *         If an inverter with the same inverter_id already exists, it will be updated.
-         *         If the inverter doesn't exist, a new one will be created.
-         *
-         *     Args:
-         *         authorized_company_id: Description for authorized_company_id.
-         *         inverter: Description for inverter.
-         *         db: Description for db.
-         */
-        post: operations["create_inverter_v1_operational_pv_inverters_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-inverters/ids": {
+    "/v1/operational/report-types": {
         parameters: {
             query?: never;
             header?: never;
@@ -4981,16 +5419,13 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Inverter Ids
+         * Get Report Types
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: Description for authorized_company_id.
-         *         inverter_manufacturer: Description for inverter_manufacturer.
-         *         inverter_model: Description for inverter_model.
          *         db: Description for db.
          */
-        get: operations["get_inverter_ids"];
+        get: operations["get_report_types"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4999,7 +5434,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-inverters/manufacturers": {
+    "/v1/operational/report-types/{report_type_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -5007,14 +5442,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get all PV inverter manufacturers from the proximal database
+         * Get Report Type
          * @description todo
          *
          *     Args:
-         *         authorized_company_id: Description for authorized_company_id.
+         *         report_type_id: Description for report_type_id.
          *         db: Description for db.
          */
-        get: operations["get_proximal_inverter_manufacturers"];
+        get: operations["get_report_type_by_id"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5023,7 +5458,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/pv-inverters/models": {
+    "/v1/operational/root-causes": {
         parameters: {
             query?: never;
             header?: never;
@@ -5031,339 +5466,72 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get all PV inverter models from the proximal database, optionally filtered by a selected manufacturer
+         * Get Root Causes
+         * @description Retrieve root causes with optional filtering by IDs and device types.
+         *
+         *     This endpoint returns a list of root causes, optionally filtered by
+         *     specific root cause IDs and/or device type IDs. Each root cause is enriched
+         *     with a 'name_full' field that combines the device type name and root cause
+         *     name.
+         *
+         *     Args:
+         *         db (Session): Database session dependency
+         *         root_cause_ids (List[int], optional): List of specific root cause IDs
+         *             to filter by. If empty, returns all root causes.
+         *         device_type_ids (List[int], optional): List of device type IDs to
+         *             filter by. If empty, returns root causes for all device types.
+         *
+         *     Returns:
+         *         List[dict]: List of root cause dictionaries, each containing:
+         *             - All original root cause attributes
+         *             - name_full (str): Combined string of device type name and root cause name
+         */
+        get: operations["get_root_causes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/sensor-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sensor Types
          * @description todo
          *
          *     Args:
-         *         manufacturer: Description for manufacturer.
-         *         authorized_company_id: Description for authorized_company_id.
-         *         db: Description for db.
+         *         sensor_type_ids: Description for sensor_type_ids.
+         *         name_short: Description for name_short.
+         *         name_long: Description for name_long.
+         *         name_metric: Description for name_metric.
+         *         unit: Description for unit.
          */
-        get: operations["get_proximal_inverter_models_given_manufacturer"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-inverters/lookup-ids": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get inverter IDs based on manufacturer and model pairs
-         * @description Get inverter IDs for each manufacturer and model pair.
-         *
-         *         corresponding inverter IDs in the same order. Returns None for any pairs
-         *         that don't exist in the database.
-         *
-         *         The input lists must have the same length.
-         *
-         *     Args:
-         *         authorized_company_id: Description for authorized_company_id.
-         *         manufacturers: Description for manufacturers.
-         *         models: Description for models.
-         *         db: Description for db.
-         */
-        get: operations["get_inverter_ids_by_manufacturer_and_model"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-inverters/parse-ond": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
+        get: operations["get_sensor_types"];
         put?: never;
         /**
-         * Parse OND file and return inverter information
-         * @description Upload an OND file and retrieve inverter information from it.
-         *
-         *         This endpoint accepts an OND file upload, processes it using the parse_ond
-         *         function,
-         *         and returns the extracted information in JSON format.
-         *
-         *         The processing pipeline includes:
-         *         1. Reading the OND file structure
-         *         2. Formatting the data into a standardized inverter configuration
-         *         3. Calculating DC nominal power
-         *         4. Computing Sandia inverter model parameters
-         *         5. Validating the resulting configuration
-         *
-         *         Returns:
-         *             A JSON object with the following structure:
-         *             - success: Boolean indicating if parsing was successful
-         *             - message: Status message
-         *             - inverter_data: The complete inverter configuration with all parameters
+         * Create Sensor Type
+         * @description Create a new sensor type. Only superadmins can create sensor types.
          *
          *     Args:
-         *         file: Description for file.
-         */
-        post: operations["parse_ond_file_v1_operational_pv_inverters_parse_ond_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-inverters/calculate-sandia": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Calculate and update Sandia parameters for an inverter
-         * @description todo
-         *
-         *     Args:
-         *         inverter_id: Description for inverter_id.
-         *         authorized_company_id: Description for authorized_company_id.
-         *         db: Description for db.
-         */
-        put: operations["calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-budgeted-data/series": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Series
-         * @description Get all budgeted series for a project.
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         db: Description for db.
-         */
-        get: operations["get_pv_budgeted_series"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-budgeted-data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Data
-         * @description Get PV budgeted data for a project (all series).
-         *
-         *     Args:
-         *         project_id: UUID of the project
-         *         start: Start datetime
-         *         end: End datetime
-         *         db: Database session
-         */
-        get: operations["get_pv_budgeted_data"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Data By Series
-         * @description Get PV budgeted data for a specific series.
-         *
-         *     Args:
-         *         project_id: UUID of the project
-         *         start: Start datetime
-         *         end: End datetime
-         *         pv_budgeted_series_id: Specific series ID
-         *         db: Database session
-         */
-        get: operations["get_pv_budgeted_data_by_series"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/pv-budgeted-data/series/{pv_budgeted_series_id}/daily-data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pv Budgeted Series Daily Data
-         * @description Get daily aggregated budgeted data for a specific series within a date range.
-         *     This aggregates hourly data to daily values and applies degradation adjustment.
-         *
-         *     Args:
-         *         project_id: UUID of the project
-         *         pv_budgeted_series_id: Specific series ID to get data for
-         *         start_date: Start date for the range
-         *         end_date: End date for the range
-         *         degradation_rate: Annual degradation rate percentage (default 0.5%)
-         *         db: Database session
-         */
-        get: operations["get_pv_budgeted_series_daily_data"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-integrations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Drone Integrations
-         * @description Get all drone integrations.
-         *
-         *     Args:
-         *         db: Description for db.
-         */
-        get: operations["get_drone_integrations__v1_operational_drone_integrations_get"];
-        put?: never;
-        /**
-         * Create Drone Integration
-         * @description Create a new drone integration.
-         *
-         *     Args:
-         *         drone_integration: Description for drone_integration.
-         *         db: Description for db.
-         */
-        post: operations["create_drone_integration__v1_operational_drone_integrations_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-integrations/{drone_integration_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Drone Integration
-         * @description Update a drone integration.
-         *
-         *     Args:
-         *         drone_integration_id: Description for drone_integration_id.
-         *         drone_integration: Description for drone_integration.
-         *         db: Description for db.
-         */
-        put: operations["update_drone_integration__v1_operational_drone_integrations__drone_integration_id__put"];
-        post?: never;
-        /**
-         * Delete Drone Integration
-         * @description Delete a drone integration.
-         *
-         *     Args:
-         *         drone_integration_id: Description for drone_integration_id.
-         *         db: Description for db.
-         */
-        delete: operations["delete_drone_integration__v1_operational_drone_integrations__drone_integration_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-integrations/order-inspection": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Order Drone Inspection
-         * @description Send a drone inspection order email to the provider.
-         *
-         *     Args:
-         *         request: Description for request.
+         *         sensor_type: Description for sensor_type.
          *         user_data: Description for user_data.
          *         db: Description for db.
          */
-        post: operations["order_drone_inspection_v1_operational_drone_integrations_order_inspection_post"];
+        post: operations["create_sensor_type"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/drone-integrations/query-provider-sites": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Query Provider Sites
-         * @description Query sites from a drone provider using an API key.
-         *         Currently supports Zeitview (provider_id = 0).
-         *
-         *     Args:
-         *         request: Description for request.
-         */
-        post: operations["query_provider_sites_v1_operational_drone_integrations_query_provider_sites_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-providers": {
+    "/v1/operational/sensor-types/{sensor_type_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -5371,145 +5539,24 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Drone Providers
-         * @description Retrieve all drone providers.
-         *
-         *     Args:
-         *         db: Async database session.
-         */
-        get: operations["get_drone_providers__v1_operational_drone_providers_get"];
-        put?: never;
-        /**
-         * Create Drone Provider
-         * @description Create a new drone provider.
-         *
-         *     Args:
-         *         drone_provider: Payload describing the new provider.
-         *         db: Async database session.
-         */
-        post: operations["create_drone_provider__v1_operational_drone_providers_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-providers/{drone_provider_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Drone Provider
-         * @description Update a drone provider.
-         *
-         *     Args:
-         *         drone_provider_id: Provider identifier to update.
-         *         drone_provider: Payload of updated provider fields.
-         *         db: Async database session.
-         */
-        put: operations["update_drone_provider__v1_operational_drone_providers__drone_provider_id__put"];
-        post?: never;
-        /**
-         * Delete Drone Provider
-         * @description Delete a drone provider.
-         *
-         *     Args:
-         *         drone_provider_id: Provider identifier to delete.
-         *         db: Async database session.
-         */
-        delete: operations["delete_drone_provider__v1_operational_drone_providers__drone_provider_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-permissions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Drone Permissions
-         * @description Retrieve all drone permissions.
-         *
-         *     Args:
-         *         db: Description for db.
-         */
-        get: operations["get_drone_permissions__v1_operational_drone_permissions_get"];
-        put?: never;
-        /**
-         * Create Drone Permission
-         * @description Create a new drone permission.
-         *
-         *     Args:
-         *         drone_permission: Description for drone_permission.
-         *         db: Description for db.
-         */
-        post: operations["create_drone_permission__v1_operational_drone_permissions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/drone-permissions/{drone_integration_id}/{company_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Drone Permission
-         * @description Update a drone permission.
-         *
-         *     Args:
-         *         drone_integration_id: Description for drone_integration_id.
-         *         company_id: Description for company_id.
-         *         drone_permission: Description for drone_permission.
-         *         db: Description for db.
-         */
-        put: operations["update_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__put"];
-        post?: never;
-        /**
-         * Delete Drone Permission
-         * @description Delete a drone permission.
-         *
-         *     Args:
-         *         drone_integration_id: Description for drone_integration_id.
-         *         company_id: Description for company_id.
-         *         db: Description for db.
-         */
-        delete: operations["delete_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/project-data-last-updated": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Data Last Updated Endpoint
+         * Get Sensor Type
          * @description todo
          *
          *     Args:
-         *         db: Description for db.
-         *         project_ids: Description for project_ids.
+         *         sensor_type_id: Description for sensor_type_id.
          */
-        get: operations["get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get"];
-        put?: never;
+        get: operations["get_sensor_type"];
+        /**
+         * Update Sensor Type
+         * @description Update an existing sensor type. Only superadmins can update sensor types.
+         *
+         *     Args:
+         *         sensor_type_id: Description for sensor_type_id.
+         *         sensor_type: Description for sensor_type.
+         *         user_data: Description for user_data.
+         *         db: Description for db.
+         */
+        put: operations["update_sensor_type"];
         post?: never;
         delete?: never;
         options?: never;
@@ -5517,7 +5564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/operational/contract-categories": {
+    "/v1/operational/user-project-labels": {
         parameters: {
             query?: never;
             header?: never;
@@ -5525,16 +5572,60 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Contract Categories
-         * @description todo
+         * Get User Project Labels
+         * @description Get project labels for the requesting user.
          *
          *     Args:
-         *         db: Description for db.
+         *         user: Authenticated user data.
          */
-        get: operations["list_contract_categories_v1_operational_contract_categories_get"];
+        get: operations["get_user_project_labels_v1_operational_user_project_labels_get"];
         put?: never;
-        post?: never;
+        /**
+         * Create User Project Label
+         * @description Create a project label for the requesting user.
+         *
+         *     Args:
+         *         user_project_label: Project label payload.
+         *         db: Database session.
+         *         user: Authenticated user data.
+         */
+        post: operations["create_user_project_label_v1_operational_user_project_labels_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operational/user-project-labels/{user_project_label_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update User Project Label
+         * @description Update a project label for the requesting user.
+         *
+         *     Args:
+         *         user_project_label_id: Existing user project label id.
+         *         user_project_label: Updated project label payload.
+         *         db: Database session.
+         *         user: Authenticated user data.
+         */
+        put: operations["update_user_project_label_v1_operational_user_project_labels__user_project_label_id__put"];
+        post?: never;
+        /**
+         * Delete User Project Label
+         * @description Delete a project label for the requesting user.
+         *
+         *     Args:
+         *         user_project_label_id: Label id to delete.
+         *         db: Database session.
+         *         user: Authenticated user data.
+         */
+        delete: operations["delete_user_project_label_v1_operational_user_project_labels__user_project_label_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -11604,6 +11695,34 @@ export interface components {
             is_favorited: boolean;
         };
         /**
+         * UserProjectLabel
+         * @description Userprojectlabel model.
+         */
+        UserProjectLabel: {
+            /** User Project Label Id */
+            user_project_label_id: number;
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string;
+            /** Color */
+            color: string;
+            /** Project Ids */
+            project_ids: string[];
+        };
+        /**
+         * UserProjectLabelCreate
+         * @description Payload for creating a user project label.
+         */
+        UserProjectLabelCreate: {
+            /** Name */
+            name: string;
+            /** Color */
+            color: string;
+            /** Project Ids */
+            project_ids: string[];
+        };
+        /**
          * UserSubscription
          * @description Usersubscription model.
          */
@@ -14820,6 +14939,73 @@ export interface operations {
             };
         };
     };
+    list_contract_categories_v1_operational_contract_categories_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractCategory"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_device_models: {
+        parameters: {
+            query?: {
+                device_model_ids?: number[];
+                device_type_ids?: number[];
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceModel"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_device_types: {
         parameters: {
             query?: {
@@ -14897,12 +15083,9 @@ export interface operations {
             };
         };
     };
-    get_device_models: {
+    get_drone_integrations__v1_operational_drone_integrations_get: {
         parameters: {
-            query?: {
-                device_model_ids?: number[];
-                device_type_ids?: number[];
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -14918,7 +15101,469 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeviceModel"][];
+                    "application/json": components["schemas"]["DroneIntegration"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_drone_integration__v1_operational_drone_integrations_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DroneIntegrationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneIntegration"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_drone_integration__v1_operational_drone_integrations__drone_integration_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                drone_integration_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DroneIntegrationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneIntegration"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_drone_integration__v1_operational_drone_integrations__drone_integration_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                drone_integration_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_drone_inspection_v1_operational_drone_integrations_order_inspection_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DroneInspectionOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    query_provider_sites_v1_operational_drone_integrations_query_provider_sites_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryProviderSitesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderSite"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_drone_permissions__v1_operational_drone_permissions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DronePermission"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_drone_permission__v1_operational_drone_permissions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DronePermissionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DronePermission"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                drone_integration_id: number;
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DronePermissionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DronePermission"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                drone_integration_id: number;
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_drone_providers__v1_operational_drone_providers_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneProvider"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_drone_provider__v1_operational_drone_providers_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DroneProviderCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneProvider"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_drone_provider__v1_operational_drone_providers__drone_provider_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                drone_provider_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DroneProviderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DroneProvider"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_drone_provider__v1_operational_drone_providers__drone_provider_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                drone_provider_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -14966,12 +15611,15 @@ export interface operations {
             };
         };
     };
-    get_project_types: {
+    get_kpi_data: {
         parameters: {
-            query?: {
-                project_type_ids?: number[];
-                name_short?: string;
-                name_long?: string;
+            query: {
+                end: string;
+                project_ids?: string[] | null;
+                kpi_type_ids?: number[];
+                include_device_data?: boolean;
+                include_all_dates?: boolean;
+                start: string;
                 schema?: string | null;
             };
             header?: {
@@ -14989,7 +15637,263 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProjectType"][];
+                    "application/json": components["schemas"]["OperationalKPIData"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_excel_v1_operational_kpi_data__project_id__excel_get: {
+        parameters: {
+            query: {
+                kpi_type_id: number;
+                start: string;
+                end: string;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                kpi_type_id: number;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_instances_v1_operational_kpi_instances_get: {
+        parameters: {
+            query?: {
+                project_ids?: string[] | null;
+                kpi_type_ids?: number[] | null;
+                deep?: boolean;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPIInstance"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_type_by_name_v1_operational_kpi_types_by_name__name_short__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                name_short: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITypeWithContracts"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_types: {
+        parameters: {
+            query?: {
+                kpi_type_ids?: number[] | null;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPIType-Output"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_type_by_id: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                kpi_type_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPIType-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_kpi_types_by_project: {
+        parameters: {
+            query?: {
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITypeWithContractInfo"][];
                 };
             };
             /** @description Validation Error */
@@ -18082,6 +18986,40 @@ export interface operations {
             };
         };
     };
+    get_user_project_labels_by_project_id_v1_operational_projects__project_id__user_project_labels_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProjectLabel"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_project_waterfall_v1_operational_projects__project_id__waterfall_get: {
         parameters: {
             query?: {
@@ -18107,6 +19045,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get: {
+        parameters: {
+            query: {
+                project_ids: string[];
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectDataLastUpdated"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_types: {
+        parameters: {
+            query?: {
+                project_type_ids?: number[];
+                name_short?: string;
+                name_long?: string;
+                schema?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectType"][];
                 };
             };
             /** @description Validation Error */
@@ -18289,409 +19298,11 @@ export interface operations {
             };
         };
     };
-    get_kpi_data: {
+    get_pv_budgeted_series: {
         parameters: {
             query: {
-                end: string;
-                project_ids?: string[] | null;
-                kpi_type_ids?: number[];
-                include_device_data?: boolean;
-                include_all_dates?: boolean;
-                start: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OperationalKPIData"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_excel_v1_operational_kpi_data__project_id__excel_get: {
-        parameters: {
-            query: {
-                kpi_type_id: number;
-                start: string;
-                end: string;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
                 project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_email_alerts_v1_operational_kpi_data__project_id__kpi_email_alerts_get: {
-        parameters: {
-            query: {
-                start: string;
-                end: string;
-                kpi_type_id: number;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_instances_v1_operational_kpi_instances_get: {
-        parameters: {
-            query?: {
-                project_ids?: string[] | null;
-                kpi_type_ids?: number[] | null;
-                deep?: boolean;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KPIInstance"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_type_by_name_v1_operational_kpi_types_by_name__name_short__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                name_short: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KPITypeWithContracts"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_types: {
-        parameters: {
-            query?: {
-                kpi_type_ids?: number[] | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KPIType-Output"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_type_by_id: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                kpi_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KPIType-Output"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_kpi_types_by_project: {
-        parameters: {
-            query?: {
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KPITypeWithContractInfo"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_report_types: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportType"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_report_type_by_id: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                report_type_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportType"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_report_instances: {
-        parameters: {
-            query?: {
-                report_type_ids?: number[] | null;
-                deep?: boolean;
-                project_ids?: string[] | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReportInstance"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_root_causes: {
-        parameters: {
-            query?: {
-                root_cause_ids?: number[];
-                device_type_ids?: number[];
+                company_id?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -18722,14 +19333,13 @@ export interface operations {
             };
         };
     };
-    get_sensor_types: {
+    get_pv_budgeted_data: {
         parameters: {
-            query?: {
-                sensor_type_ids?: number[];
-                name_short?: string;
-                name_long?: string;
-                name_metric?: string;
-                unit?: string;
+            query: {
+                project_id: string;
+                start: string;
+                end: string;
+                company_id?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -18746,7 +19356,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"][];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -18760,10 +19370,124 @@ export interface operations {
             };
         };
     };
-    create_sensor_type: {
+    get_pv_budgeted_data_by_series: {
+        parameters: {
+            query: {
+                project_id: string;
+                start: string;
+                end: string;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_budgeted_series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pv_budgeted_series_daily_data: {
+        parameters: {
+            query: {
+                project_id: string;
+                start_date: string;
+                end_date: string;
+                degradation_rate?: number;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                pv_budgeted_series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_inverters: {
         parameters: {
             query?: {
-                schema?: string | null;
+                inverter_ids?: number[];
+                device_model_ids?: number[];
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inverter"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_inverter_v1_operational_pv_inverters_post: {
+        parameters: {
+            query?: {
+                company_id?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -18774,7 +19498,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__interfaces__SensorType"];
+                "application/json": components["schemas"]["Inverter"];
             };
         };
         responses: {
@@ -18784,7 +19508,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"];
+                    "application/json": components["schemas"]["Inverter"];
                 };
             };
             /** @description Validation Error */
@@ -18798,16 +19522,18 @@ export interface operations {
             };
         };
     };
-    get_sensor_type: {
+    get_inverter_ids: {
         parameters: {
-            query?: never;
+            query?: {
+                inverter_manufacturer?: string[];
+                inverter_model?: string[];
+                company_id?: string | null;
+            };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
             };
-            path: {
-                sensor_type_id: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -18818,15 +19544,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"];
+                    "application/json": number[];
                 };
-            };
-            /** @description Sensor type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -18839,23 +19558,124 @@ export interface operations {
             };
         };
     };
-    update_sensor_type: {
+    get_proximal_inverter_manufacturers: {
         parameters: {
             query?: {
-                schema?: string | null;
+                company_id?: string | null;
             };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
             };
-            path: {
-                sensor_type_id: number;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_proximal_inverter_models_given_manufacturer: {
+        parameters: {
+            query?: {
+                manufacturer?: string | null;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_inverter_ids_by_manufacturer_and_model: {
+        parameters: {
+            query: {
+                manufacturers: string[];
+                models: string[];
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": (number | null)[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parse_ond_file_v1_operational_pv_inverters_parse_ond_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["app__interfaces__SensorType"];
+                "multipart/form-data": components["schemas"]["Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post"];
             };
         };
         responses: {
@@ -18865,15 +19685,45 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SensorType-Output"];
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
-            /** @description Sensor type not found */
-            404: {
+            /** @description Validation Error */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put: {
+        parameters: {
+            query: {
+                inverter_id: number;
+                company_id?: string | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inverter"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -19315,11 +20165,12 @@ export interface operations {
             };
         };
     };
-    get_inverters: {
+    get_report_instances: {
         parameters: {
             query?: {
-                inverter_ids?: number[];
-                device_model_ids?: number[];
+                report_type_ids?: number[] | null;
+                deep?: boolean;
+                project_ids?: string[] | null;
             };
             header?: {
                 authorization?: string;
@@ -19336,7 +20187,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inverter"][];
+                    "application/json": components["schemas"]["ReportInstance"][];
                 };
             };
             /** @description Validation Error */
@@ -19350,10 +20201,77 @@ export interface operations {
             };
         };
     };
-    create_inverter_v1_operational_pv_inverters_post: {
+    get_report_types: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportType"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_type_by_id: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                report_type_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportType"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_root_causes: {
         parameters: {
             query?: {
-                company_id?: string | null;
+                root_cause_ids?: number[];
+                device_type_ids?: number[];
             };
             header?: {
                 authorization?: string;
@@ -19362,11 +20280,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Inverter"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -19374,7 +20288,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Inverter"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -19388,12 +20302,14 @@ export interface operations {
             };
         };
     };
-    get_inverter_ids: {
+    get_sensor_types: {
         parameters: {
             query?: {
-                inverter_manufacturer?: string[];
-                inverter_model?: string[];
-                company_id?: string | null;
+                sensor_type_ids?: number[];
+                name_short?: string;
+                name_long?: string;
+                name_metric?: string;
+                unit?: string;
             };
             header?: {
                 authorization?: string;
@@ -19410,7 +20326,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": number[];
+                    "application/json": components["schemas"]["SensorType-Output"][];
                 };
             };
             /** @description Validation Error */
@@ -19424,10 +20340,10 @@ export interface operations {
             };
         };
     };
-    get_proximal_inverter_manufacturers: {
+    create_sensor_type: {
         parameters: {
             query?: {
-                company_id?: string | null;
+                schema?: string | null;
             };
             header?: {
                 authorization?: string;
@@ -19436,7 +20352,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__interfaces__SensorType"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -19444,7 +20364,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SensorType-Output"];
                 };
             };
             /** @description Validation Error */
@@ -19458,20 +20378,66 @@ export interface operations {
             };
         };
     };
-    get_proximal_inverter_models_given_manufacturer: {
+    get_sensor_type: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                sensor_type_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SensorType-Output"];
+                };
+            };
+            /** @description Sensor type not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_sensor_type: {
         parameters: {
             query?: {
-                manufacturer?: string | null;
-                company_id?: string | null;
+                schema?: string | null;
             };
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
             };
-            path?: never;
+            path: {
+                sensor_type_id: number;
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__interfaces__SensorType"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -19479,8 +20445,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SensorType-Output"];
                 };
+            };
+            /** @description Sensor type not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -19493,13 +20466,9 @@ export interface operations {
             };
         };
     };
-    get_inverter_ids_by_manufacturer_and_model: {
+    get_user_project_labels_v1_operational_user_project_labels_get: {
         parameters: {
-            query: {
-                manufacturers: string[];
-                models: string[];
-                company_id?: string | null;
-            };
+            query?: never;
             header?: {
                 authorization?: string;
                 "x-api-key"?: string;
@@ -19515,7 +20484,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": (number | null)[];
+                    "application/json": components["schemas"]["UserProjectLabel"][];
                 };
             };
             /** @description Validation Error */
@@ -19529,7 +20498,7 @@ export interface operations {
             };
         };
     };
-    parse_ond_file_v1_operational_pv_inverters_parse_ond_post: {
+    create_user_project_label_v1_operational_user_project_labels_post: {
         parameters: {
             query?: never;
             header?: {
@@ -19541,7 +20510,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_parse_ond_file_v1_operational_pv_inverters_parse_ond_post"];
+                "application/json": components["schemas"]["UserProjectLabelCreate"];
             };
         };
         responses: {
@@ -19551,9 +20520,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["UserProjectLabel"];
                 };
             };
             /** @description Validation Error */
@@ -19567,261 +20534,7 @@ export interface operations {
             };
         };
     };
-    calculate_and_update_sandia_parameters_v1_operational_pv_inverters_calculate_sandia_put: {
-        parameters: {
-            query: {
-                inverter_id: number;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Inverter"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pv_budgeted_series: {
-        parameters: {
-            query: {
-                project_id: string;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pv_budgeted_data: {
-        parameters: {
-            query: {
-                project_id: string;
-                start: string;
-                end: string;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pv_budgeted_data_by_series: {
-        parameters: {
-            query: {
-                project_id: string;
-                start: string;
-                end: string;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pv_budgeted_series_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_pv_budgeted_series_daily_data: {
-        parameters: {
-            query: {
-                project_id: string;
-                start_date: string;
-                end_date: string;
-                degradation_rate?: number;
-                company_id?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                pv_budgeted_series_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_drone_integrations__v1_operational_drone_integrations_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DroneIntegration"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_drone_integration__v1_operational_drone_integrations_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DroneIntegrationCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DroneIntegration"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_drone_integration__v1_operational_drone_integrations__drone_integration_id__put: {
+    update_user_project_label_v1_operational_user_project_labels__user_project_label_id__put: {
         parameters: {
             query?: never;
             header?: {
@@ -19829,13 +20542,13 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                drone_integration_id: number;
+                user_project_label_id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DroneIntegrationUpdate"];
+                "application/json": components["schemas"]["UserProjectLabelCreate"];
             };
         };
         responses: {
@@ -19845,7 +20558,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DroneIntegration"];
+                    "application/json": components["schemas"]["UserProjectLabel"];
                 };
             };
             /** @description Validation Error */
@@ -19859,7 +20572,7 @@ export interface operations {
             };
         };
     };
-    delete_drone_integration__v1_operational_drone_integrations__drone_integration_id__delete: {
+    delete_user_project_label_v1_operational_user_project_labels__user_project_label_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -19867,440 +20580,18 @@ export interface operations {
                 "x-api-key"?: string;
             };
             path: {
-                drone_integration_id: number;
+                user_project_label_id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    order_drone_inspection_v1_operational_drone_integrations_order_inspection_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DroneInspectionOrderRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    query_provider_sites_v1_operational_drone_integrations_query_provider_sites_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QueryProviderSitesRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProviderSite"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_drone_providers__v1_operational_drone_providers_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DroneProvider"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_drone_provider__v1_operational_drone_providers_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DroneProviderCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DroneProvider"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_drone_provider__v1_operational_drone_providers__drone_provider_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                drone_provider_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DroneProviderUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DroneProvider"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_drone_provider__v1_operational_drone_providers__drone_provider_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                drone_provider_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_drone_permissions__v1_operational_drone_permissions_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DronePermission"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_drone_permission__v1_operational_drone_permissions_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DronePermissionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DronePermission"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                drone_integration_id: number;
-                company_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DronePermissionUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DronePermission"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_drone_permission__v1_operational_drone_permissions__drone_integration_id___company_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                drone_integration_id: number;
-                company_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_data_last_updated_endpoint_v1_operational_project_data_last_updated_get: {
-        parameters: {
-            query: {
-                project_ids: string[];
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectDataLastUpdated"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_contract_categories_v1_operational_contract_categories_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ContractCategory"][];
-                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

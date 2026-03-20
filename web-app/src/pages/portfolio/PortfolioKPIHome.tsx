@@ -8,14 +8,17 @@ import {
 } from '@/api/v1/operational/kpi_data'
 import { KPIType, useGetKPITypes } from '@/api/v1/operational/kpi_types'
 import { Project, useGetProjects } from '@/api/v1/operational/projects'
+import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import { PageTitle } from '@/components/PageTitle'
 import { useTipsPortfolioKPIHome } from '@/components/Tips'
 import {
+  Chip,
   Group,
   LoadingOverlay,
   Stack,
   Table,
   Text,
+  Title,
   useComputedColorScheme,
 } from '@mantine/core'
 import { DatePickerInput, DatesProvider } from '@mantine/dates'
@@ -155,6 +158,10 @@ function pivotKpiData(rawData: OperationalKPIData[], projects: Project[]) {
 const PortfolioKPIHome = () => {
   useTipsPortfolioKPIHome()
   const projects = useGetProjects({ queryParams: { deep: true } })
+
+  const userProjectLabels = useGetUserProjectLabels()
+  const [selectedLabelNames, setSelectedLabelNames] = useState<string[]>([])
+
   const computedColorScheme = useComputedColorScheme('light')
   const headerBg =
     computedColorScheme === 'light' ? 'var(--mantine-color-white)' : undefined
@@ -209,12 +216,82 @@ const PortfolioKPIHome = () => {
     [deviceTypeGroups],
   )
 
-  const sortedPivotedData = useMemo(() => {
-    if (!sortState) {
+  const labelFilteredPivotedData = useMemo(() => {
+    if (
+      !selectedLabelNames.length ||
+      !userProjectLabels.data ||
+      userProjectLabels.data.length === 0
+    ) {
       return pivotedData
     }
 
-    const sortedRows = [...pivotedData]
+    const matchingSelectedLabels = userProjectLabels.data.filter((label) =>
+      selectedLabelNames.includes(label.name),
+    )
+
+    if (matchingSelectedLabels.length === 0) {
+      return []
+    }
+
+    const labelCount = matchingSelectedLabels.length
+    const projectIdCounts = new Map<string, number>()
+
+    for (const label of matchingSelectedLabels) {
+      const uniqueProjectIds = new Set(label.project_ids.map(String))
+      for (const projectId of uniqueProjectIds) {
+        projectIdCounts.set(
+          projectId,
+          (projectIdCounts.get(projectId) ?? 0) + 1,
+        )
+      }
+    }
+
+    return pivotedData.filter(
+      (row) => projectIdCounts.get(String(row.project_id)) === labelCount,
+    )
+  }, [pivotedData, selectedLabelNames, userProjectLabels.data])
+
+  const visibleKpiTypeIds = useMemo(() => {
+    if (labelFilteredPivotedData.length === 0) return new Set<string>()
+
+    const ids = new Set<string>()
+    for (const row of labelFilteredPivotedData) {
+      for (const kpiId of kpiTypeIds) {
+        const value = row[String(kpiId)] as number | string | null | undefined
+        if (typeof value === 'number' && value !== 0) {
+          ids.add(String(kpiId))
+        }
+      }
+    }
+
+    return ids
+  }, [kpiTypeIds, labelFilteredPivotedData])
+
+  const visibleKpiColumns = useMemo(
+    () =>
+      kpiColumns.filter(({ kpiObj }) =>
+        visibleKpiTypeIds.has(String(kpiObj.kpi_type_id)),
+      ),
+    [kpiColumns, visibleKpiTypeIds],
+  )
+
+  const visibleDeviceTypeGroups = useMemo(() => {
+    return deviceTypeGroups
+      .map(({ deviceType, kpis }) => ({
+        deviceType,
+        kpis: kpis.filter((kpiObj) =>
+          visibleKpiTypeIds.has(String(kpiObj.kpi_type_id)),
+        ),
+      }))
+      .filter(({ kpis }) => kpis.length > 0)
+  }, [deviceTypeGroups, visibleKpiTypeIds])
+
+  const sortedPivotedData = useMemo(() => {
+    if (!sortState) {
+      return labelFilteredPivotedData
+    }
+
+    const sortedRows = [...labelFilteredPivotedData]
     sortedRows.sort((a, b) => {
       if (sortState.key === 'projectName') {
         const compare = a.projectName.localeCompare(b.projectName)
@@ -241,7 +318,7 @@ const PortfolioKPIHome = () => {
     })
 
     return sortedRows
-  }, [pivotedData, sortState])
+  }, [labelFilteredPivotedData, sortState])
 
   const toggleSort = (key: string) => {
     setSortState((current) => {
@@ -258,6 +335,11 @@ const PortfolioKPIHome = () => {
     }
     return sortState.direction === 'asc' ? '↑' : '↓'
   }
+
+  const tableMinWidth = useMemo(
+    () => Math.max(900, (visibleKpiTypeIds.size + 1) * 180),
+    [visibleKpiTypeIds],
+  )
 
   const isLoading =
     projects.isLoading ||
@@ -296,14 +378,36 @@ const PortfolioKPIHome = () => {
             valueFormat="MMM DD, YYYY"
           />
         </DatesProvider>
+        {userProjectLabels.data && userProjectLabels.data.length > 0 && (
+          <Stack gap={0}>
+            <Title order={4} size="h5">
+              Filter by label:
+            </Title>
+            <Group>
+              <Chip.Group
+                multiple
+                value={selectedLabelNames}
+                onChange={setSelectedLabelNames}
+              >
+                {userProjectLabels.data.map((label) => (
+                  <Chip
+                    key={label.name}
+                    value={label.name}
+                    color={label.color}
+                    variant="filled"
+                  >
+                    {label.name}
+                  </Chip>
+                ))}
+              </Chip.Group>
+            </Group>
+          </Stack>
+        )}
       </Group>
 
       <div style={{ position: 'relative', height: '100%', width: '100%' }}>
         <LoadingOverlay visible={isLoading} />
-        <Table.ScrollContainer
-          minWidth={Math.max(900, (kpiTypeIds.length + 1) * 180)}
-          maxHeight="100%"
-        >
+        <Table.ScrollContainer minWidth={tableMinWidth} maxHeight="100%">
           <Table
             striped="odd"
             withTableBorder
@@ -342,7 +446,7 @@ const PortfolioKPIHome = () => {
                     </Text>
                   </Group>
                 </Table.Th>
-                {deviceTypeGroups.map(({ deviceType, kpis }) => (
+                {visibleDeviceTypeGroups.map(({ deviceType, kpis }) => (
                   <Table.Th
                     key={`group-${deviceType.device_type_id}`}
                     colSpan={kpis.length}
@@ -357,7 +461,7 @@ const PortfolioKPIHome = () => {
                 ))}
               </Table.Tr>
               <Table.Tr>
-                {kpiColumns.map(({ deviceType, kpiObj }) => (
+                {visibleKpiColumns.map(({ deviceType, kpiObj }) => (
                   <Table.Th
                     key={`kpi-${deviceType.device_type_id}-${kpiObj.kpi_type_id}`}
                     onClick={() => toggleSort(String(kpiObj.kpi_type_id))}
@@ -392,7 +496,7 @@ const PortfolioKPIHome = () => {
                       {row.projectName}
                     </Link>
                   </Table.Td>
-                  {kpiColumns.map(({ deviceType, kpiObj }) => (
+                  {visibleKpiColumns.map(({ deviceType, kpiObj }) => (
                     <Table.Td
                       key={`value-${row.project_id}-${deviceType.device_type_id}-${kpiObj.kpi_type_id}`}
                       style={{ whiteSpace: 'nowrap' }}

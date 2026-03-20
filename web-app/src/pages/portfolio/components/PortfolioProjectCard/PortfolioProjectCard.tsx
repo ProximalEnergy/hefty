@@ -15,6 +15,7 @@ export function PortfolioProjectCard({
   projectDataLastUpdated,
   isFavorited = false,
   time,
+  projectLabels,
 }: {
   project: NonNullable<ReturnType<typeof useSelectProject>['data']>
   portfolioHomeProject:
@@ -23,6 +24,7 @@ export function PortfolioProjectCard({
   projectDataLastUpdated?: ProjectDataLastUpdated
   isFavorited?: boolean
   time: '24h' | '30d'
+  projectLabels: { name: string; color: string }[]
 }) {
   return (
     <Link
@@ -40,6 +42,7 @@ export function PortfolioProjectCard({
           project={project}
           projectDataLastUpdated={projectDataLastUpdated}
           isFavorited={isFavorited}
+          projectLabels={projectLabels}
         />
         <Group gap="sm" h={210} mt="md">
           <Box h="100%" flex={1}>

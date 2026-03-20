@@ -80,6 +80,65 @@ def normalize_path(*, path: str) -> str:
     return normalized or "/"
 
 
+def _ts_simple_string_const_map(*, content: str) -> dict[str, str]:
+    """Map const names to string literals for simple `const x = '...'` forms."""
+    mapping: dict[str, str] = {}
+    for name, raw in re.findall(r"\bconst\s+(\w+)\s*=\s*'([^']*)'", content):
+        mapping[name] = raw
+    for name, raw in re.findall(r'\bconst\s+(\w+)\s*=\s*"([^"]*)"', content):
+        mapping[name] = raw
+    return mapping
+
+
+def _strip_leading_param_prefixes(*, path: str) -> str:
+    """Remove leading `{param}` segments from a stitched template URL."""
+    return re.sub(r"^(?:\{param\})+/?", "", path)
+
+
+def _interpolate_ts_template(*, template: str, const_map: dict[str, str]) -> str:
+    """Replace `${...}`; simple identifiers use const_map, else `{param}`."""
+
+    def repl(match: re.Match[str]) -> str:
+        inner = match.group(1).strip()
+        if re.fullmatch(r"[A-Za-z_][\w]*", inner):
+            return const_map.get(inner, "{param}")
+        return "{param}"
+
+    return re.sub(r"\$\{([^}]*)\}", repl, template)
+
+
+def _iter_ts_template_literal_bodies(*, content: str) -> Iterable[str]:
+    """Yield bodies of non-tagged template literals (skip `identifier` patterns)."""
+    i = 0
+    n = len(content)
+    id_tail = re.compile(r"[a-zA-Z0-9_$]$")
+    while i < n:
+        if content[i] != "`":
+            i += 1
+            continue
+        if i > 0 and id_tail.match(content[i - 1]):
+            i += 1
+            continue
+        buf: list[str] = []
+        j = i + 1
+        while j < n:
+            ch = content[j]
+            if ch == "\\":
+                buf.append(ch)
+                if j + 1 < n:
+                    buf.append(content[j + 1])
+                    j += 2
+                continue
+            if ch == "`":
+                yield "".join(buf)
+                i = j + 1
+                break
+            buf.append(ch)
+            j += 1
+        else:
+            break
+
+
 def get_api_paths_with_definitions(*, app: Any) -> dict[str, str]:
     """
     Get a mapping of normalized paths to their source file definitions.
@@ -155,6 +214,8 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
     """
     Extract all potential API paths from source files.
 
+    TypeScript template literals are stitched using simple `const` string maps.
+
     Args:
         roots: A list of Path objects to search in.
     """
@@ -209,6 +270,27 @@ def extract_paths_from_sources(*, roots: list[Path]) -> set[str]:
             normalized = normalize_path(path=combined)
             if normalized:
                 found_paths.add(normalized)
+
+        if path.suffix in {".ts", ".tsx"}:
+            const_map = _ts_simple_string_const_map(content=content)
+            for body in _iter_ts_template_literal_bodies(content=content):
+                if "/" not in body and "v1/" not in body:
+                    continue
+                stitched = _interpolate_ts_template(
+                    template=body,
+                    const_map=const_map,
+                )
+                stripped = _strip_leading_param_prefixes(path=stitched)
+                if stripped:
+                    normalized_tpl = normalize_path(path=stripped)
+                    if normalized_tpl and normalized_tpl != "/":
+                        found_paths.add(normalized_tpl)
+                    for piece in pattern.findall(stitched):
+                        if piece.startswith("//"):
+                            continue
+                        normalized_piece = normalize_path(path=piece)
+                        if normalized_piece and normalized_piece != "/":
+                            found_paths.add(normalized_piece)
 
         for match in pattern.findall(content):
             if match.startswith("//"):

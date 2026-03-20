@@ -9,6 +9,7 @@ import {
   useGenerateEECBESSMonthlyReport,
 } from '@/api/v1/operational/project/project_reports'
 import { useGetProjects, useSelectProject } from '@/api/v1/operational/projects'
+import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import { PageTitle } from '@/components/PageTitle'
 import { useProjectFilter } from '@/hooks/custom'
 import {
@@ -92,6 +93,9 @@ const BESSMonthlyReport = () => {
   const [selectedReport, setSelectedReport] = useState<string | null>(null)
   const [isFetching, setIsFetching] = useState(false)
   const [includedProjects, setIncludedProjects] = useState<string[]>([])
+  const [quickSelectLabelName, setQuickSelectLabelName] = useState<
+    string | null
+  >(null)
 
   const project = useSelectProject(projectId!)
   const projects = useGetProjects({
@@ -103,6 +107,22 @@ const BESSMonthlyReport = () => {
       p.project_type_id === ProjectTypeEnum.BESS ||
       p.project_type_id === ProjectTypeEnum.PVS,
   )
+  const userProjectLabels = useGetUserProjectLabels()
+
+  const handleQuickSelectChange = (value: string | null) => {
+    setQuickSelectLabelName(value)
+
+    if (!value) {
+      setIncludedProjects([])
+      return
+    }
+
+    const label = userProjectLabels.data?.find((l) => l.name === value)
+    const labelProjectIds = label?.project_ids?.map((id) => String(id)) ?? []
+
+    // Selecting a label clears any prior manual selections.
+    setIncludedProjects(labelProjectIds)
+  }
 
   const bucketList = useGetBucketListdir({
     queryParams: {
@@ -534,6 +554,22 @@ const BESSMonthlyReport = () => {
             <Text size="sm" fw={1000}>
               Included Projects
             </Text>
+            {userProjectLabels.data && userProjectLabels.data.length > 0 && (
+              <Group>
+                <Text size="sm" fw={1000}>
+                  Quick Select:
+                </Text>
+                <Select
+                  data={
+                    userProjectLabels.data?.map((label) => label.name) || []
+                  }
+                  flex={1}
+                  clearable
+                  value={quickSelectLabelName}
+                  onChange={handleQuickSelectChange}
+                />
+              </Group>
+            )}
             {batteryProjects?.map((project) => {
               const projectIdString = project.project_id.toString()
 
@@ -542,6 +578,7 @@ const BESSMonthlyReport = () => {
                   <Checkbox
                     checked={includedProjects.includes(projectIdString)}
                     onChange={(event) => {
+                      setQuickSelectLabelName(null)
                       const { checked } = event.currentTarget
 
                       setIncludedProjects((prev) => {
@@ -562,15 +599,22 @@ const BESSMonthlyReport = () => {
             <Group p="xs" grow>
               <Button
                 size="compact-xs"
-                onClick={() =>
+                onClick={() => {
+                  setQuickSelectLabelName(null)
                   setIncludedProjects(
                     batteryProjects?.map((p) => p.project_id.toString()) || [],
                   )
-                }
+                }}
               >
                 Include All
               </Button>
-              <Button size="compact-xs" onClick={() => setIncludedProjects([])}>
+              <Button
+                size="compact-xs"
+                onClick={() => {
+                  setQuickSelectLabelName(null)
+                  setIncludedProjects([])
+                }}
+              >
                 Clear All
               </Button>
             </Group>

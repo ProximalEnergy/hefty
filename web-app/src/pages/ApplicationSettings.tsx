@@ -10,7 +10,15 @@ import {
   useGetNotificationTypes,
 } from '@/api/v1/admin/notification_types'
 import { useGetSubscriptions } from '@/api/v1/admin/subscriptions'
-import { useGetProjects } from '@/api/v1/operational/projects'
+import { Project, useGetProjects } from '@/api/v1/operational/projects'
+import {
+  type UserProjectLabel,
+  type UserProjectLabelCreate,
+  useCreateUserProjectLabel,
+  useDeleteUserProjectLabel,
+  useGetUserProjectLabels,
+  useUpdateUserProjectLabel,
+} from '@/api/v1/operational/user_project_labels'
 import { PageLoader } from '@/components/Loading'
 import { clearTips } from '@/components/Tips'
 import { Teams as AdminTeams } from '@/components/admin/Teams'
@@ -21,41 +29,49 @@ import { useUser } from '@clerk/react'
 import {
   Accordion,
   ActionIcon,
+  ActionIconGroup,
   Button,
   Checkbox,
   ColorInput,
+  ColorSwatch,
   Fieldset,
   Group,
   Loader,
+  Modal,
+  MultiSelect,
   Paper,
   SegmentedControl,
   Stack,
   Table,
   Tabs,
   Text,
+  TextInput,
   Title,
   Tooltip,
   rem,
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core'
-import { useLocalStorage } from '@mantine/hooks'
+import { useDisclosure, useLocalStorage } from '@mantine/hooks'
 import {
   IconAlertCircle,
   IconAlertTriangle,
   IconBolt,
   IconBulb,
+  IconEdit,
   IconInfoCircle,
+  IconLabelImportant,
   IconMessage,
   IconNotification,
   IconPalette,
+  IconPlus,
   IconReport,
   IconTrash,
   IconUsersGroup,
   IconX,
 } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useContext, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 const DemoMode = () => {
@@ -129,7 +145,8 @@ const DemoMode = () => {
 
 const ApplicationSettings = () => {
   const userType = useGetUserType({})
-  if (userType.isLoading) {
+  const projects = useGetProjects({ personalPortfolio: false })
+  if (userType.isLoading || projects.isLoading) {
     return <PageLoader />
   }
   const isAdmin =
@@ -167,6 +184,12 @@ const ApplicationSettings = () => {
           <Tabs.Tab value="gis-colors" leftSection={<IconPalette size={16} />}>
             GIS Colors
           </Tabs.Tab>
+          <Tabs.Tab
+            value="project-labels"
+            leftSection={<IconLabelImportant size={16} />}
+          >
+            Project Labels
+          </Tabs.Tab>
         </Tabs.List>
 
         {isAdmin && (
@@ -176,11 +199,11 @@ const ApplicationSettings = () => {
         )}
 
         <Tabs.Panel value="notifications" pt="md">
-          <Subscriptions />
+          <Subscriptions projects={projects.data || []} />
         </Tabs.Panel>
 
         <Tabs.Panel value="personal-portfolio" pt="md">
-          <PersonalPortfolioTab />
+          <PersonalPortfolioTab projects={projects.data || []} />
         </Tabs.Panel>
 
         <Tabs.Panel value="tips" pt="md">
@@ -190,13 +213,16 @@ const ApplicationSettings = () => {
         <Tabs.Panel value="gis-colors" pt="md">
           <GISColors />
         </Tabs.Panel>
+
+        <Tabs.Panel value="project-labels" pt="md">
+          <ProjectLabels projects={projects.data || []} />
+        </Tabs.Panel>
       </Tabs>
     </Stack>
   )
 }
 
-function Subscriptions() {
-  const projects = useGetProjects({ personalPortfolio: false })
+function Subscriptions({ projects }: { projects: Project[] }) {
   const subscriptions = useGetSubscriptions({})
   const reportMutation = useUpdateReportSubscription()
 
@@ -229,12 +255,12 @@ function Subscriptions() {
                 }}
               />
             }
-            disabled={!projects.data}
+            disabled={!projects}
           >
             Event Chat Messages
           </Accordion.Control>
           <Accordion.Panel>
-            <EventChatNotificationsPanel projects={projects.data || []} />
+            <EventChatNotificationsPanel projects={projects || []} />
           </Accordion.Panel>
         </Accordion.Item>
         <Accordion.Item value={'Weather'}>
@@ -247,12 +273,12 @@ function Subscriptions() {
                 }}
               />
             }
-            disabled={!projects.data}
+            disabled={!projects}
           >
             Weather
           </Accordion.Control>
           <Accordion.Panel>
-            <WeatherPanel projects={projects.data || []} />
+            <WeatherPanel projects={projects || []} />
           </Accordion.Panel>
         </Accordion.Item>
         <Accordion.Item value={'Reports'}>
@@ -265,14 +291,14 @@ function Subscriptions() {
                 }}
               />
             }
-            disabled={!projects.data || !reportSubscriptions}
+            disabled={!projects || !reportSubscriptions}
           >
             Reports
           </Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
               {reportSubscriptions &&
-                projects.data
+                projects
                   ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
                   .map((project) => (
                     <Checkbox
@@ -806,18 +832,17 @@ function EventChatNotificationsPanel({
   )
 }
 
-function PersonalPortfolioTab() {
+function PersonalPortfolioTab({ projects }: { projects: Project[] }) {
   return (
     <Stack gap="lg">
-      <PersonalPortfolio />
+      <PersonalPortfolio projects={projects || []} />
       <DemoMode />
     </Stack>
   )
 }
 
-function PersonalPortfolio() {
+function PersonalPortfolio({ projects }: { projects: Project[] }) {
   const queryClient = useQueryClient()
-  const projects = useGetProjects({ personalPortfolio: false })
 
   const [excludedProjectIds, setExcludedProjectIds] = useLocalStorage<string[]>(
     {
@@ -844,13 +869,13 @@ function PersonalPortfolio() {
                 }}
               />
             }
-            disabled={!projects.data}
+            disabled={!projects}
           >
             Select Projects
           </Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
-              {projects.data
+              {projects
                 ?.sort((a, b) => a.name_long.localeCompare(b.name_long))
                 .map((project) => (
                   <Checkbox
@@ -1055,6 +1080,434 @@ function ColorScalePicker({
         </Group>
       </Stack>
     </Fieldset>
+  )
+}
+
+function ProjectLabels({ projects }: { projects: Project[] }) {
+  const [createOpened, createModal] = useDisclosure(false)
+  const [editOpened, editModal] = useDisclosure(false)
+  const [deleteOpened, deleteModal] = useDisclosure(false)
+  const [activeLabel, setActiveLabel] = useState<UserProjectLabel | null>(null)
+  const userProjectLabels = useGetUserProjectLabels()
+  const createUserProjectLabel = useCreateUserProjectLabel()
+  const updateUserProjectLabel = useUpdateUserProjectLabel()
+  const deleteUserProjectLabel = useDeleteUserProjectLabel()
+
+  const projectNameById = useMemo(
+    () =>
+      new Map(
+        projects.map(
+          (project) => [project.project_id, project.name_long] as const,
+        ),
+      ),
+    [projects],
+  )
+
+  const handleCreateProjectLabel = async (
+    labelData: UserProjectLabelCreate,
+  ) => {
+    await createUserProjectLabel.mutateAsync(labelData)
+  }
+
+  const handleOpenCreateModal = () => {
+    createUserProjectLabel.reset()
+    createModal.open()
+  }
+
+  const handleCloseCreateModal = () => {
+    createModal.close()
+  }
+
+  const handleOpenEditModal = (label: UserProjectLabel) => {
+    updateUserProjectLabel.reset()
+    setActiveLabel(label)
+    editModal.open()
+  }
+
+  const handleCloseEditModal = () => {
+    setActiveLabel(null)
+    editModal.close()
+  }
+
+  const handleUpdateProjectLabel = async (labelData: UserProjectLabel) => {
+    if (!activeLabel) return
+    await updateUserProjectLabel.mutateAsync({
+      userProjectLabelId: activeLabel.user_project_label_id,
+      labelData,
+    })
+  }
+
+  const handleOpenDeleteModal = (label: UserProjectLabel) => {
+    deleteUserProjectLabel.reset()
+    setActiveLabel(label)
+    deleteModal.open()
+  }
+
+  const handleCloseDeleteModal = () => {
+    setActiveLabel(null)
+    deleteModal.close()
+  }
+
+  const handleDeleteProjectLabel = async () => {
+    if (!activeLabel) return
+    await deleteUserProjectLabel.mutateAsync({
+      userProjectLabelId: activeLabel.user_project_label_id,
+    })
+  }
+
+  return (
+    <Stack w="100%" gap="md">
+      <Text>Create and manage project labels.</Text>
+      <Paper withBorder p="md">
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Color</Table.Th>
+              <Table.Th>Projects</Table.Th>
+              <Table.Th>Actions</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {userProjectLabels.isLoading ||
+              (userProjectLabels.isRefetching && (
+                <Table.Tr>
+                  <Table.Td colSpan={4}>
+                    <Group justify="center">
+                      <Loader size="sm" />
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            {!userProjectLabels.isLoading &&
+              !userProjectLabels.isRefetching &&
+              userProjectLabels.data?.map((label) => {
+                const projectNames = label.project_ids
+                  .map((projectId) => projectNameById.get(projectId))
+                  .filter((projectName): projectName is string => !!projectName)
+                  .sort((a, b) => a.localeCompare(b))
+
+                return (
+                  <Table.Tr key={label.user_project_label_id}>
+                    <Table.Td>{label.name}</Table.Td>
+                    <Table.Td>
+                      <ColorSwatch color={label.color} size={16} />
+                    </Table.Td>
+                    <Table.Td>
+                      {projectNames.length
+                        ? projectNames.join(', ')
+                        : 'No projects assigned'}
+                    </Table.Td>
+                    <Table.Td>
+                      <ActionIconGroup>
+                        <ActionIcon
+                          variant="transparent"
+                          color="blue"
+                          onClick={() => handleOpenEditModal(label)}
+                        >
+                          <IconEdit size={16} />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="transparent"
+                          color="red"
+                          onClick={() => handleOpenDeleteModal(label)}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </ActionIconGroup>
+                    </Table.Td>
+                  </Table.Tr>
+                )
+              })}
+            {!userProjectLabels.isLoading &&
+              !userProjectLabels.isRefetching &&
+              !userProjectLabels.data?.length && (
+                <Table.Tr>
+                  <Table.Td colSpan={4}>
+                    <Text c="dimmed">No project labels found.</Text>
+                  </Table.Td>
+                </Table.Tr>
+              )}
+          </Table.Tbody>
+        </Table>
+      </Paper>
+      <Button
+        leftSection={<IconPlus size={16} />}
+        w="fit-content"
+        onClick={handleOpenCreateModal}
+      >
+        Create New Project Label
+      </Button>
+      <CreateProjectLabelModal
+        opened={createOpened}
+        close={handleCloseCreateModal}
+        projects={projects}
+        isPending={createUserProjectLabel.isPending}
+        errorMessage={createUserProjectLabel.error?.message}
+        onCreate={handleCreateProjectLabel}
+      />
+      <EditProjectLabelModal
+        opened={editOpened}
+        close={handleCloseEditModal}
+        projects={projects}
+        initialLabel={activeLabel}
+        isPending={updateUserProjectLabel.isPending}
+        errorMessage={updateUserProjectLabel.error?.message}
+        onSave={handleUpdateProjectLabel}
+      />
+      <DeleteProjectLabelModal
+        opened={deleteOpened}
+        close={handleCloseDeleteModal}
+        labelName={activeLabel?.name}
+        isPending={deleteUserProjectLabel.isPending}
+        errorMessage={deleteUserProjectLabel.error?.message}
+        onDelete={handleDeleteProjectLabel}
+      />
+    </Stack>
+  )
+}
+
+function CreateProjectLabelModal({
+  opened,
+  close,
+  projects,
+  isPending,
+  errorMessage,
+  onCreate,
+}: {
+  opened: boolean
+  close: () => void
+  projects: Project[]
+  isPending: boolean
+  errorMessage?: string
+  onCreate: (labelData: UserProjectLabelCreate) => Promise<void>
+}) {
+  const [name, setName] = useState('')
+  const [color, setColor] = useState<string>('#adb5bd')
+  const [projectIds, setProjectIds] = useState<string[]>([])
+
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.name_long.localeCompare(b.name_long)),
+    [projects],
+  )
+
+  const isColorValid = /^#[0-9a-fA-F]{6}$/.test(color)
+  const isCreateDisabled = !name.trim() || !isColorValid || !projectIds.length
+
+  const handleClose = () => {
+    setName('')
+    setColor('#adb5bd')
+    setProjectIds([])
+    close()
+  }
+
+  const handleCreate = async () => {
+    try {
+      await onCreate({
+        name: name.trim(),
+        color,
+        project_ids: projectIds,
+      })
+      handleClose()
+    } catch {
+      // Keep modal open so user can adjust and retry.
+    }
+  }
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title="Create New Project Label"
+    >
+      <Stack gap="md">
+        <TextInput
+          label="Name"
+          placeholder="Enter label name"
+          value={name}
+          onChange={(e) => setName(e.currentTarget.value)}
+        />
+        <ColorInput
+          label="Color"
+          placeholder="Select color"
+          withEyeDropper={false}
+          value={color}
+          onChange={setColor}
+        />
+        <MultiSelect
+          label="Projects"
+          placeholder="Select projects"
+          data={sortedProjects.map((project) => ({
+            value: project.project_id,
+            label: project.name_long,
+          }))}
+          value={projectIds}
+          onChange={setProjectIds}
+          searchable
+        />
+        <Button
+          onClick={handleCreate}
+          loading={isPending}
+          disabled={isCreateDisabled || isPending}
+        >
+          Create
+        </Button>
+        {!!errorMessage && (
+          <Text size="sm" c="red">
+            {errorMessage}
+          </Text>
+        )}
+      </Stack>
+    </Modal>
+  )
+}
+
+function EditProjectLabelModal({
+  opened,
+  close,
+  projects,
+  initialLabel,
+  isPending,
+  errorMessage,
+  onSave,
+}: {
+  opened: boolean
+  close: () => void
+  projects: Project[]
+  initialLabel: UserProjectLabel | null
+  isPending: boolean
+  errorMessage?: string
+  onSave: (labelData: UserProjectLabel) => Promise<void>
+}) {
+  const [name, setName] = useState('')
+  const [color, setColor] = useState<string>('#adb5bd')
+  const [projectIds, setProjectIds] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!opened || !initialLabel) {
+      return
+    }
+    setName(initialLabel.name)
+    setColor(initialLabel.color)
+    setProjectIds(initialLabel.project_ids)
+  }, [opened, initialLabel])
+
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.name_long.localeCompare(b.name_long)),
+    [projects],
+  )
+
+  const isColorValid = /^#[0-9a-fA-F]{6}$/.test(color)
+  const isSaveDisabled = !name.trim() || !isColorValid || !projectIds.length
+
+  const handleSave = async () => {
+    try {
+      await onSave({
+        name: name.trim(),
+        color,
+        project_ids: projectIds,
+        user_project_label_id: initialLabel?.user_project_label_id ?? 0,
+        user_id: initialLabel?.user_id ?? '',
+      })
+      close()
+    } catch {
+      // Keep modal open so user can adjust and retry.
+    }
+  }
+
+  return (
+    <Modal opened={opened} onClose={close} title="Edit Project Label">
+      <Stack gap="md">
+        <TextInput
+          label="Name"
+          placeholder="Enter label name"
+          value={name}
+          onChange={(e) => setName(e.currentTarget.value)}
+        />
+        <ColorInput
+          label="Color"
+          placeholder="Select color"
+          withEyeDropper={false}
+          value={color}
+          onChange={setColor}
+        />
+        <MultiSelect
+          label="Projects"
+          placeholder="Select projects"
+          data={sortedProjects.map((project) => ({
+            value: project.project_id,
+            label: project.name_long,
+          }))}
+          value={projectIds}
+          onChange={setProjectIds}
+          searchable
+        />
+        <Button
+          onClick={handleSave}
+          loading={isPending}
+          disabled={isSaveDisabled || isPending}
+        >
+          Save Changes
+        </Button>
+        {!!errorMessage && (
+          <Text size="sm" c="red">
+            {errorMessage}
+          </Text>
+        )}
+      </Stack>
+    </Modal>
+  )
+}
+
+function DeleteProjectLabelModal({
+  opened,
+  close,
+  labelName,
+  isPending,
+  errorMessage,
+  onDelete,
+}: {
+  opened: boolean
+  close: () => void
+  labelName?: string
+  isPending: boolean
+  errorMessage?: string
+  onDelete: () => Promise<void>
+}) {
+  const handleDelete = async () => {
+    try {
+      await onDelete()
+      close()
+    } catch {
+      // Keep modal open so user can retry.
+    }
+  }
+
+  return (
+    <Modal opened={opened} onClose={close} title="Delete Project Label">
+      <Stack gap="md">
+        <Text>
+          Are you sure you want to delete{' '}
+          <Text span fw={700}>
+            {labelName}
+          </Text>
+          ?
+        </Text>
+        <Group justify="flex-end">
+          <Button variant="default" onClick={close} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDelete} loading={isPending}>
+            Delete
+          </Button>
+        </Group>
+        {!!errorMessage && (
+          <Text size="sm" c="red">
+            {errorMessage}
+          </Text>
+        )}
+      </Stack>
+    </Modal>
   )
 }
 

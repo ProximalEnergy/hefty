@@ -7,6 +7,7 @@ import {
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
 import { useGetTimeSeries } from '@/api/v1/operational/project/project_data'
+import { useGetUserProjectLabelsByProjectId } from '@/api/v1/operational/project/project_user_project_labels'
 import {
   Project,
   useGetProjects,
@@ -2255,6 +2256,7 @@ const BESSProjectHome = () => {
           </ActionIcon>
         </Group>
         <Group gap="xs">
+          <ProjectLabels projectId={projectId!} />
           <WeatherCard />
           <Card p={5} withBorder>
             <CurrentTime timezone={project.data?.time_zone} />
@@ -2500,6 +2502,26 @@ const BESSProjectHome = () => {
         projectData={project.data}
       />
     </Stack>
+  )
+}
+
+function ProjectLabels({ projectId }: { projectId: string }) {
+  const projectLabels = useGetUserProjectLabelsByProjectId({
+    pathParams: { project_id: projectId },
+  })
+
+  if (!projectLabels.data?.length) {
+    return null
+  }
+
+  return (
+    <Group>
+      {projectLabels.data.map((label) => (
+        <Badge key={label.name} color={label.color} variant="light">
+          {label.name}
+        </Badge>
+      ))}
+    </Group>
   )
 }
 

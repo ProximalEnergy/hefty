@@ -11,6 +11,7 @@ import {
   useGetProjects,
   useSelectProject,
 } from '@/api/v1/operational/projects'
+import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
@@ -27,6 +28,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Group,
   MantineTheme,
   Menu,
@@ -130,6 +132,34 @@ const Page = () => {
     (kpiInstance) => Number(kpiInstance.kpi_type_id) === Number(kpiTypeId),
   )
 
+  const startStr = start?.format('YYYY-MM-DD')
+  const endStr = end?.format('YYYY-MM-DD')
+
+  const kpiTypeToUrl = (kpiTypeIdToNavigate: number) =>
+    `/projects/${projectId}/kpis/type/${kpiTypeIdToNavigate}?start=${startStr}&end=${endStr}`
+
+  const prevKpiTypeId =
+    kpiInstanceIndex !== undefined
+      ? sortedKpiInstances?.[kpiInstanceIndex - 1]?.kpi_type_id
+      : undefined
+  const nextKpiTypeId =
+    kpiInstanceIndex !== undefined
+      ? sortedKpiInstances?.[kpiInstanceIndex + 1]?.kpi_type_id
+      : undefined
+
+  const goToPrevKpiType = () => {
+    if (prevKpiTypeId === undefined) return
+    navigate(kpiTypeToUrl(prevKpiTypeId))
+  }
+
+  const goToNextKpiType = () => {
+    if (nextKpiTypeId === undefined) return
+    navigate(kpiTypeToUrl(nextKpiTypeId))
+  }
+
+  const atMaxKPIInstanceIndex =
+    kpiInstanceIndex === (sortedKpiInstances?.length ?? 0) - 1
+
   // Query devices
   const devices = useGetDevicesV2({
     pathParams: { projectId: projectId || '-1' },
@@ -170,6 +200,17 @@ const Page = () => {
     },
   })
 
+  const userProjectLabels = useGetUserProjectLabels()
+  const [selectedLabelName, setSelectedLabelName] = useState<string | null>(
+    null,
+  )
+
+  const handleChipClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    if (event.currentTarget.value === selectedLabelName) {
+      setSelectedLabelName(null)
+    }
+  }
+
   const portfolioKpiData = useGetOperationalKPIData({
     queryParams: {
       start: startQuery || '',
@@ -184,9 +225,23 @@ const Page = () => {
     },
   })
 
-  const filteredPortfolioKpiData = portfolioKpiData.data?.filter(
-    (kpi) => kpi.project_id !== projectId,
-  )
+  const selectedLabelProjectIdSet = selectedLabelName
+    ? new Set(
+        userProjectLabels.data?.find(
+          (label) => label.name === selectedLabelName,
+        )?.project_ids ?? [],
+      )
+    : null
+
+  const filteredPortfolioKpiData = portfolioKpiData.data?.filter((kpi) => {
+    // Never include the current project in the "portfolio comparison" traces.
+    if (kpi.project_id === projectId) return false
+
+    // If a label is selected, only include projects assigned to it.
+    if (!selectedLabelProjectIdSet) return true
+
+    return selectedLabelProjectIdSet.has(kpi.project_id)
+  })
 
   const data = kpiData.data?.[0]
 
@@ -250,15 +305,7 @@ const Page = () => {
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                onClick={() =>
-                  navigate(
-                    `/projects/${projectId}/kpis/type/${
-                      sortedKpiInstances[kpiInstanceIndex - 1].kpi_type_id
-                    }?start=${start?.format('YYYY-MM-DD')}&end=${end?.format(
-                      'YYYY-MM-DD',
-                    )}`,
-                  )
-                }
+                onClick={goToPrevKpiType}
                 disabled={kpiInstanceIndex === 0}
               >
                 <IconArrowLeft />
@@ -273,11 +320,7 @@ const Page = () => {
                   {sortedKpiInstances?.map((kpiInstance) => (
                     <Link
                       key={kpiInstance.kpi_type_id}
-                      to={`/projects/${projectId}/kpis/type/${
-                        kpiInstance.kpi_type_id
-                      }?start=${start?.format('YYYY-MM-DD')}&end=${end?.format(
-                        'YYYY-MM-DD',
-                      )}`}
+                      to={kpiTypeToUrl(kpiInstance.kpi_type_id)}
                       style={{ textDecoration: 'none' }}
                     >
                       <Menu.Item key={kpiInstance.kpi_type_id}>
@@ -290,16 +333,8 @@ const Page = () => {
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                onClick={() =>
-                  navigate(
-                    `/projects/${projectId}/kpis/type/${
-                      sortedKpiInstances[kpiInstanceIndex + 1].kpi_type_id
-                    }?start=${start?.format('YYYY-MM-DD')}&end=${end?.format(
-                      'YYYY-MM-DD',
-                    )}`,
-                  )
-                }
-                disabled={kpiInstanceIndex === sortedKpiInstances.length - 1}
+                onClick={goToNextKpiType}
+                disabled={atMaxKPIInstanceIndex}
               >
                 <IconArrowRight />
               </ActionIcon>
@@ -337,6 +372,32 @@ const Page = () => {
           </Button>
         </Group>
       </Group>
+      {userProjectLabels.data && userProjectLabels.data.length > 0 && (
+        <Group>
+          <Title order={4} size="h5">
+            Compare with:
+          </Title>
+          <Chip.Group
+            multiple={false}
+            value={selectedLabelName}
+            onChange={(value) => {
+              setSelectedLabelName((prev) => (value === prev ? null : value))
+            }}
+          >
+            {userProjectLabels.data.map((label) => (
+              <Chip
+                key={label.name}
+                value={label.name}
+                color={label.color}
+                variant="filled"
+                onClick={handleChipClick}
+              >
+                {label.name}
+              </Chip>
+            ))}
+          </Chip.Group>
+        </Group>
+      )}
       {showProjectData && (
         <ProjectPlotCard
           data={data}
@@ -423,6 +484,68 @@ const SelectableChartCard = ({
 }) => {
   const computedColorScheme = useComputedColorScheme('dark')
   const { yAxisTickFormat, yAxisTitle } = YAxisConfig(kpiType)
+
+  const plotLayout =
+    plotType === 'bar'
+      ? {
+          xaxis: {
+            type: 'category' as const,
+            title: {
+              text: 'Device',
+            },
+          },
+          yaxis: {
+            ...getYAxisRangeConfig(kpiType),
+            tickformat: yAxisTickFormat,
+            title: {
+              text: yAxisTitle,
+            },
+          },
+        }
+      : plotType === 'line'
+        ? {
+            yaxis: {
+              ...getYAxisRangeConfig(kpiType),
+              tickformat: yAxisTickFormat,
+              title: {
+                text: yAxisTitle,
+              },
+            },
+          }
+        : plotType === 'box'
+          ? {
+              xaxis: {
+                type: 'category' as const,
+                title: {
+                  text: 'Date',
+                },
+                categoryorder: 'array' as const,
+                categoryarray: dates,
+                range: [-0.5, (dates?.length || 0) - 0.5],
+              },
+              yaxis: {
+                ...getYAxisRangeConfig(kpiType),
+                tickformat: yAxisTickFormat,
+                title: {
+                  text: yAxisTitle,
+                },
+              },
+            }
+          : {
+              yaxis: {
+                type: 'category' as const,
+                title: {
+                  text: 'Device',
+                },
+              },
+              margin: {
+                b: 80,
+              },
+              plot_bgcolor:
+                computedColorScheme === 'dark' ? '#2C2E33' : '#F8F9FA',
+              // Theme-aware background for null values.
+            }
+
   return (
     <>
       <CustomCard
@@ -454,67 +577,7 @@ const SelectableChartCard = ({
       >
         <PlotlyPlot
           data={parsedData}
-          layout={
-            plotType === 'bar'
-              ? {
-                  xaxis: {
-                    type: 'category',
-                    title: {
-                      text: 'Device',
-                    },
-                  },
-                  yaxis: {
-                    ...getYAxisRangeConfig(kpiType),
-                    tickformat: yAxisTickFormat,
-                    title: {
-                      text: yAxisTitle,
-                    },
-                  },
-                }
-              : plotType === 'line'
-                ? {
-                    yaxis: {
-                      ...getYAxisRangeConfig(kpiType),
-                      tickformat: yAxisTickFormat,
-                      title: {
-                        text: yAxisTitle,
-                      },
-                    },
-                  }
-                : plotType === 'box'
-                  ? {
-                      xaxis: {
-                        type: 'category',
-                        title: {
-                          text: 'Date',
-                        },
-                        categoryorder: 'array',
-                        categoryarray: dates,
-                        range: [-0.5, (dates?.length || 0) - 0.5],
-                      },
-                      yaxis: {
-                        ...getYAxisRangeConfig(kpiType),
-                        tickformat: yAxisTickFormat,
-                        title: {
-                          text: yAxisTitle,
-                        },
-                      },
-                    }
-                  : {
-                      yaxis: {
-                        type: 'category',
-                        title: {
-                          text: 'Device',
-                        },
-                      },
-                      margin: {
-                        b: 80,
-                      },
-                      plot_bgcolor:
-                        computedColorScheme === 'dark' ? '#2C2E33' : '#F8F9FA',
-                      // Theme-aware background for null values.
-                    }
-          }
+          layout={plotLayout}
           colorscale={
             // For temperature heatmaps, use custom colorscale from data
             // (undefined = use data colorscale). For all other plots, use
@@ -965,6 +1028,14 @@ function MapHoverCard({
   hoverInfo: HoverInfo
   kpiType: KPIType
 }) {
+  const hoverValue = hoverInfo.feature?.properties?.value
+  const hoverValueText =
+    hoverValue != null
+      ? kpiType.unit === '%'
+        ? `${(hoverValue * 100).toFixed(2)}%`
+        : `${hoverValue.toFixed(2)} ${kpiType.unit}`
+      : 'No Data'
+
   return (
     <Paper
       p="xs"
@@ -978,13 +1049,7 @@ function MapHoverCard({
       }}
     >
       <Text fw={700}>{hoverInfo.feature?.properties?.name}</Text>
-      <Text>
-        {hoverInfo.feature?.properties?.value != null
-          ? kpiType.unit === '%'
-            ? `${(hoverInfo.feature.properties.value * 100).toFixed(2)}%`
-            : `${hoverInfo.feature.properties.value.toFixed(2)} ${kpiType.unit}`
-          : 'No Data'}
-      </Text>
+      <Text>{hoverValueText}</Text>
     </Paper>
   )
 }

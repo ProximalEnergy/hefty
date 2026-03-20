@@ -3,6 +3,7 @@ import { useGetUserFavoriteKPITypes } from '@/api/v1/admin/user_kpi_types'
 import { useGetContractKPIs } from '@/api/v1/operational/kpi_data'
 import { useGetKPIInstances } from '@/api/v1/operational/kpi_instances'
 import { useGetKPISummaryCards } from '@/api/v1/operational/project/kpi_data'
+import { useGetUserProjectLabelsByProjectId } from '@/api/v1/operational/project/project_user_project_labels'
 import {
   Project,
   useGetProjects,
@@ -22,6 +23,7 @@ import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.util
 import { projectDescription } from '@/utils/projectDescription'
 import {
   ActionIcon,
+  Badge,
   Box,
   Button,
   Card,
@@ -939,6 +941,7 @@ const ProjectHome = () => {
           </ActionIcon>
         </Group>
         <Group gap="xs">
+          <ProjectLabels projectId={projectId!} />
           <WeatherCard />
           <Card p={5} withBorder>
             <CurrentTime timezone={project.data?.time_zone} />
@@ -1121,6 +1124,26 @@ const ProjectHome = () => {
         projectData={project.data}
       />
     </Stack>
+  )
+}
+
+function ProjectLabels({ projectId }: { projectId: string }) {
+  const projectLabels = useGetUserProjectLabelsByProjectId({
+    pathParams: { project_id: projectId },
+  })
+
+  if (!projectLabels.data?.length) {
+    return null
+  }
+
+  return (
+    <Group>
+      {projectLabels.data.map((label) => (
+        <Badge key={label.name} color={label.color} variant="light">
+          {label.name}
+        </Badge>
+      ))}
+    </Group>
   )
 }
 

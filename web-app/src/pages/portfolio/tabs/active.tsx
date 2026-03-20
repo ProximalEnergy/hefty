@@ -2,6 +2,7 @@ import { useGetUserProjects } from '@/api/v1/admin/user_projects'
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { Box, Center, SimpleGrid, Stack, Text } from '@mantine/core'
 
@@ -15,6 +16,9 @@ interface ActiveProjectsTabProps {
   userProjects: NonNullable<ReturnType<typeof useGetUserProjects>['data']>
   searchTerm: string
   time: '24h' | '30d'
+  userProjectLabels: NonNullable<
+    ReturnType<typeof useGetUserProjectLabels>['data']
+  >
 }
 
 export function ActiveProjectsTab({
@@ -24,6 +28,7 @@ export function ActiveProjectsTab({
   userProjects,
   searchTerm,
   time,
+  userProjectLabels,
 }: ActiveProjectsTabProps) {
   const activeProjects = projects
     .filter(
@@ -86,6 +91,9 @@ export function ActiveProjectsTab({
             )}
             isFavorited={favoritedMap.get(project.project_id) === true}
             time={time}
+            projectLabels={userProjectLabels.filter((label) =>
+              label.project_ids.includes(project.project_id as string),
+            )}
           />
         ))}
       </SimpleGrid>

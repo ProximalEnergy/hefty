@@ -1,6 +1,7 @@
 import { ProjectDataLastUpdated } from '@/api/v1/operational/project_data_last_updated'
 import { ProjectStatusTypeId } from '@/api/v1/operational/project_status_types'
 import { useSelectProject } from '@/api/v1/operational/projects'
+import { useGetUserProjectLabels } from '@/api/v1/operational/user_project_labels'
 import { useGetPortfolioHome } from '@/api/v1/protected/web-application/portfolio/home'
 import { Center, Paper, SimpleGrid, Text } from '@mantine/core'
 
@@ -13,6 +14,9 @@ interface ArchivedProjectsTabProps {
   projectDataLastUpdated?: ProjectDataLastUpdated[]
   searchTerm: string
   time: '24h' | '30d'
+  userProjectLabels: NonNullable<
+    ReturnType<typeof useGetUserProjectLabels>['data']
+  >
 }
 
 export function ArchivedProjectsTab({
@@ -21,6 +25,7 @@ export function ArchivedProjectsTab({
   projectDataLastUpdated,
   searchTerm,
   time,
+  userProjectLabels,
 }: ArchivedProjectsTabProps) {
   const archivedProjects = projects
     .filter(
@@ -49,6 +54,9 @@ export function ArchivedProjectsTab({
                   (data) => data.project_id === project.project_id,
                 )}
                 time={time}
+                projectLabels={userProjectLabels.filter((label) =>
+                  label.project_ids.includes(project.project_id),
+                )}
               />
             ))}
         </SimpleGrid>

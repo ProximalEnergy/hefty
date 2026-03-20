@@ -25,6 +25,7 @@ from app.v1.operational.project import (
     project_solar,
     project_status,
     project_tags,
+    project_user_project_labels,
     project_waterfall,
 )
 
@@ -55,4 +56,5 @@ router.include_router(project_reports.router)
 router.include_router(project_solar.router)
 router.include_router(project_status.router)
 router.include_router(project_tags.router)
+router.include_router(project_user_project_labels.router)
 router.include_router(project_waterfall.router)

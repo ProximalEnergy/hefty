@@ -110,6 +110,16 @@ class UserSubscriptionUpdate(BaseModel):
     subscribe: bool
 
 
+class UserProjectLabel(BaseModel):
+    """Userprojectlabel model."""
+
+    user_project_label_id: int
+    user_id: str
+    name: str
+    color: str
+    project_ids: list[uuid.UUID]
+
+
 class Notification(BaseModel):
     """Notification model."""
 

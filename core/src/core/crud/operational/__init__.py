@@ -25,6 +25,7 @@ from . import (
     report_instances,
     report_types,
     sensor_types,
+    user_project_labels,
 )
 
 __all__ = [
@@ -54,4 +55,5 @@ __all__ = [
     "report_instances",
     "report_types",
     "sensor_types",
+    "user_project_labels",
 ]
