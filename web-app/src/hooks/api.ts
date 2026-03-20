@@ -599,33 +599,6 @@ export const useGetHeatmap = ({
   })
 }
 
-export const useGetGISPCS = ({
-  pathParams,
-  queryParams = {},
-  queryOptions = {},
-}: {
-  pathParams: { projectId: string }
-  queryParams?: {
-    start?: string
-    end?: string
-  }
-  queryOptions?: Partial<UseQueryOptions>
-}) => {
-  const axiosConfig = {
-    url: `/v1/gis/${pathParams.projectId}/pcs`,
-  }
-
-  const defaultQueryOptions = {}
-
-  return useCustomQuery<types.GISPCS>({
-    axiosConfig,
-    queryName: 'getPCSPerformance',
-    pathParams,
-    queryParams,
-    queryOptions: { ...defaultQueryOptions, ...queryOptions },
-  })
-}
-
 export const useGetGISTrackerByBlock = ({
   pathParams,
   queryParams = {},

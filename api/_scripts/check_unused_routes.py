@@ -22,7 +22,6 @@ ALLOWED_UNUSED_ROUTES = {
     "/v1/operational/projects/{param}/kpi-data/agg",
     "/v1/operational/projects/{param}/kpi-data/agg-freq",
     "/v1/operational/projects/{param}/kpi-data/llm-kpis",
-    "/v1/operational/projects/{param}/dataframe",
     "/v1/operational/kpi-data/trigger-user-alert",
     "/v1/operational/kpi-data/user-triggered-alerts",
     "/v1/operational/kpi-data/{param}/kpi-email-alerts",

@@ -1,7 +1,6 @@
-import { ProjectTypeEnum } from '@/api/enumerations'
+import { ProjectTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetSolarPosition } from '@/api/v1/operational/project/project_solar'
-import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
-import type { DataTimeSeries } from '@/hooks/types'
+import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import { roundTime } from '@/utils/interval'
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
@@ -48,8 +47,8 @@ export function useRealtimePerformanceIndex(
   const includeSoiling = !['sigurd'].includes(nameShort || '')
   const includeDegradation = ['sigurd'].includes(nameShort || '')
 
-  const data = useGetMeterPowerAndExpectedPower({
-    pathParams: { projectId: projectId || '-1' },
+  const data = useGetMeterPowerAndExpectedPowerV3({
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       start: roundTime(startTime, '5min', 'down'),
       end: roundTime(endTime, '5min', 'up'),
@@ -68,7 +67,7 @@ export function useRealtimePerformanceIndex(
   })
 
   return useMemo(() => {
-    if (!data.data?.data || !projectTypeId) {
+    if (!data.data || !projectTypeId) {
       return {
         performanceIndexPct: null,
         isLoading: data.isLoading,
@@ -76,15 +75,17 @@ export function useRealtimePerformanceIndex(
       }
     }
 
-    const traces = data.data.data
+    const traces = data.data
 
-    const meterName =
+    const meterSensorTypeId =
       projectTypeId === ProjectTypeEnum.PVS
-        ? 'PV Active Power'
-        : 'Meter Active Power'
-    const meterTrace = traces.find((t: DataTimeSeries) => t.name === meterName)
+        ? SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
+        : SensorTypeEnum.METER_ACTIVE_POWER
+    const meterTrace = traces.find(
+      (t) => t.sensor_type_id === meterSensorTypeId,
+    )
     const expectedTrace = traces.find(
-      (t: DataTimeSeries) => t.name === 'Expected Power',
+      (t) => t.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER,
     )
 
     if (!meterTrace || !expectedTrace) {

@@ -279,35 +279,6 @@ export interface ForecastResponse {
   }
 }
 
-type QualityLevel = 'good' | 'warning' | 'bad'
-type QualityItem = {
-  level: QualityLevel
-  message: string
-}
-
-export interface Quality extends QualityItem {
-  details: QualityItem[]
-}
-
-export interface MeterPowerAndExpected {
-  data: DataTimeSeries[]
-  quality: Quality
-}
-
-// GIS
-export interface GISPCS {
-  as_of: string | null
-  data: {
-    [key: string]: {
-      power: number | null
-      power_exp: number | null
-      power_norm_exp: number | null
-      energy: number | null
-      red_outline: boolean
-    }
-  }
-}
-
 export interface SunburstProps {
   labels: string[]
   parents: string[]

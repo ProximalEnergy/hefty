@@ -18,7 +18,6 @@ import WeatherCard from '@/components/WeatherCard'
 import ProjectInfoModal from '@/components/modals/ProjectInfoModal'
 import PowerPlotPVZoom from '@/components/plots/PowerPlotPVZoom'
 import { AdaptiveGisMap } from '@/pages/projects/gis/adaptive-gis'
-import { PCSGISMap } from '@/pages/projects/gis/pcs-gis'
 import { getKPIThresholdbyDate } from '@/pages/projects/kpis/ProjectKPIHome.utils'
 import { projectDescription } from '@/utils/projectDescription'
 import {
@@ -918,13 +917,7 @@ const ProjectHome = () => {
   if (project.isError) return <PageError error={project.error} />
   if (project.data === undefined) return <PageError error={undefined} />
 
-  const mapComponent =
-    projectId === '3028d2ee-c924-4c6e-a133-9938926bc4b6' ||
-    projectId === '679f8f19-af11-43e0-9a60-64fc706f92a4' ? (
-      <PCSGISMap showTitleCard={false} />
-    ) : (
-      <AdaptiveGisMap />
-    )
+  const mapComponent = <AdaptiveGisMap />
 
   return (
     <Stack p="md" h="100%" ref={stackRef}>

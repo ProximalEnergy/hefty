@@ -1,7 +1,6 @@
 import { DeviceTypeEnum, SensorTypeEnum } from '@/api/enumerations'
 import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
-import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
 import {
   useGetExpectedPowerByDeviceTypeID,
   useGetRealTimeByDeviceTypeID,
@@ -15,7 +14,6 @@ import {
   IconTicket,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
 const PV_INVERTER_DEVICE_TYPE_ID = DeviceTypeEnum.PV_INVERTER
@@ -46,27 +44,6 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
-  // Get expected power at POI - update time range every 30 seconds to match refetch interval
-  const [expectedPowerTimeRange, setExpectedPowerTimeRange] = useState(() => {
-    const now = dayjs()
-    return {
-      start: now.subtract(1, 'hour').toISOString(),
-      end: now.toISOString(),
-    }
-  })
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = dayjs()
-      setExpectedPowerTimeRange({
-        start: now.subtract(1, 'hour').toISOString(),
-        end: now.toISOString(),
-      })
-    }, 30000) // Update every 30 seconds
-
-    return () => clearInterval(interval)
-  }, [])
-
   const realtimeData = useGetRealTimeByDeviceTypeID({
     pathParams: {
       projectId: projectId || '-1',
@@ -94,24 +71,6 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
       refetchOnMount: false,
       refetchOnReconnect: false,
       staleTime: 25000,
-    },
-  })
-
-  const expectedPowerData = useGetMeterPowerAndExpectedPower({
-    pathParams: { projectId: projectId || '-1' },
-    queryParams: {
-      start: expectedPowerTimeRange.start,
-      end: expectedPowerTimeRange.end,
-      include_soiling: true,
-      interval: '5min',
-    },
-    queryOptions: {
-      enabled: !!projectId,
-      refetchInterval: 30000, // Refetch every 30 seconds
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: 25000, // Consider data stale after 25 seconds
     },
   })
 
@@ -174,7 +133,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
           <IconBolt size="1.2rem" stroke={1.5} />
         </Group>
         <Text fz={32} fw={700} mt={15} component="div">
-          {expectedPowerData.isLoading && stats.poiPowerMW === null ? (
+          {stats.poiPowerMW === null ? (
             <Skeleton height={32} width="60%" />
           ) : stats.poiPowerMW !== null ? (
             <Tooltip

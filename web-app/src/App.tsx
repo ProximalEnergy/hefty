@@ -134,7 +134,6 @@ import MarketPerformance from './pages/projects/finances/MarketPerformance'
 import PTPData from './pages/projects/finances/PTPData'
 // GIS
 import BessEnclosureGIS from './pages/projects/gis/bess-enclosure-gis'
-import PCSGIS from './pages/projects/gis/pcs-gis'
 import ProjectKPIContractual from './pages/projects/kpis/ProjectKPIContractual'
 import ProjectKPITemplate from './pages/projects/kpis/ProjectKPITemplate'
 import ProjectKPIHome from './pages/projects/kpis/project-kpi-home/ProjectKPIHome'
@@ -350,7 +349,6 @@ const ClerkProviderWithRoutes = () => {
               {/* GIS */}
               <Route path="gis">
                 <Route path="bess-enclosure" element={<BessEnclosureGIS />} />
-                <Route path="pv-pcs" element={<PCSGIS />} />
               </Route>
 
               {/* Current Day */}

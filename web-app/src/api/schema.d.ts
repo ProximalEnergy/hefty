@@ -1612,34 +1612,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/gis/{project_id}/pcs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Pcs
-         * @description todo
-         *
-         *     Args:
-         *         project_id: Description for project_id.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         db: Description for db.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         */
-        get: operations["get_pcs_v1_gis__project_id__pcs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/gis/{project_id}/tracker-by-block/{block_id}": {
         parameters: {
             query?: never;
@@ -2399,42 +2371,6 @@ export interface paths {
          *         sensor_type_ids: Description for sensor_type_ids.
          */
         get: operations["get_llm_time_series_v1_operational_projects__project_id__llm_time_series_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/operational/projects/{project_id}/dataframe": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Project Dataframe Endpoint
-         * @description todo
-         *
-         *     Args:
-         *         tag_ids: Description for tag_ids.
-         *         sensor_type_name_shorts: Description for sensor_type_name_shorts.
-         *         device_ids: Description for device_ids.
-         *         start: Description for start.
-         *         end: Description for end.
-         *         project_db: Description for project_db.
-         *         project: Description for project.
-         *         fillna_zero: Description for fillna_zero.
-         *         get_last: Description for get_last.
-         *         start_offset: Description for start_offset.
-         *         last_offset: Description for last_offset.
-         *         ffill_limit: Description for ffill_limit.
-         *         interval: Aggregation step passed to DataTimeseries (e.g. 1min, 5min).
-         *         include_ghost_tags: Description for include_ghost_tags.
-         */
-        get: operations["get_project_dataframe_endpoint_v1_operational_projects__project_id__dataframe_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7247,7 +7183,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/protected/system/{project_id}/meter-power-and-expected-power-v2": {
+    "/v1/protected/system/{project_id}/meter-power-and-expected-power-v3": {
         parameters: {
             query?: never;
             header?: never;
@@ -7255,7 +7191,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Meter Power And Expected Power V2
+         * Get Meter Power And Expected Power V3
          * @description Return meter and expected power traces for a project.
          *
          *     Args:
@@ -7269,7 +7205,7 @@ export interface paths {
          *         include_degradation: Whether to include degradation-adjusted expectation.
          *         interval: Resampling interval used for tag retrieval (e.g., "5min").
          */
-        get: operations["get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get"];
+        get: operations["get_meter_power_and_expected_power_v3_v1_protected_system__project_id__meter_power_and_expected_power_v3_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9963,6 +9899,20 @@ export interface components {
         Message: {
             /** Message */
             message: string;
+        };
+        /**
+         * MeterPowerAndExpectedPowerV3Trace
+         * @description Meter and expected power traces for a project.
+         */
+        MeterPowerAndExpectedPowerV3Trace: {
+            /** X */
+            x: string[];
+            /** Y */
+            y: (number | null)[];
+            /** Sensor Type Id */
+            sensor_type_id: number;
+            /** Name */
+            name: string;
         };
         /**
          * MultiPolygon
@@ -14479,44 +14429,6 @@ export interface operations {
             };
         };
     };
-    get_pcs_v1_gis__project_id__pcs_get: {
-        parameters: {
-            query?: {
-                start?: string | null;
-                end?: string | null;
-                schema?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_tracker_by_block_v1_gis__project_id__tracker_by_block__block_id__get: {
         parameters: {
             query: {
@@ -15609,53 +15521,6 @@ export interface operations {
                 tag_ids?: number[] | null;
                 sensor_type_ids?: number[] | null;
                 start?: string | null;
-            };
-            header?: {
-                authorization?: string;
-                "x-api-key"?: string;
-            };
-            path: {
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_project_dataframe_endpoint_v1_operational_projects__project_id__dataframe_get: {
-        parameters: {
-            query?: {
-                tag_ids?: number[];
-                sensor_type_name_shorts?: string[];
-                device_ids?: number[];
-                start?: string | null;
-                end?: string | null;
-                fillna_zero?: boolean;
-                get_last?: boolean;
-                start_offset?: string;
-                last_offset?: string;
-                ffill_limit?: number | null;
-                interval?: string;
-                include_ghost_tags?: boolean;
             };
             header?: {
                 authorization?: string;
@@ -22773,7 +22638,7 @@ export interface operations {
             };
         };
     };
-    get_meter_power_and_expected_power_v2_v1_protected_system__project_id__meter_power_and_expected_power_v2_get: {
+    get_meter_power_and_expected_power_v3_v1_protected_system__project_id__meter_power_and_expected_power_v3_get: {
         parameters: {
             query?: {
                 start?: string | null;
@@ -22801,7 +22666,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MeterPowerAndExpectedPowerV3Trace"][];
                 };
             };
             /** @description Validation Error */

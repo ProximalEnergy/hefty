@@ -51,7 +51,6 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import { AdaptiveGisMap } from '../gis/adaptive-gis'
-import { PCSGISMap } from '../gis/pcs-gis'
 import DeviceEventsTimeline from './DeviceEventsTimeline'
 import EventCMMSLinks from './components/EventCMMSLinks'
 
@@ -1004,11 +1003,6 @@ const Page = () => {
   let mapComponent
   if (project.data?.project_type_id === ProjectTypeEnum.BESS) {
     mapComponent = <BESSEnclosureGIS showTitleCard={false} />
-  } else if (
-    projectId === '3028d2ee-c924-4c6e-a133-9938926bc4b6' ||
-    projectId === '679f8f19-af11-43e0-9a60-64fc706f92a4'
-  ) {
-    mapComponent = <PCSGISMap showTitleCard={false} />
   } else {
     mapComponent = <AdaptiveGisMap />
   }

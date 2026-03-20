@@ -19,7 +19,7 @@ import {
   useGetPVBudgetedSeries,
   useGetPVBudgetedSeriesDailyData,
 } from '@/api/v1/operational/pv_budgeted_data'
-import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
+import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import AICard from '@/components/AICard'
 import CustomCard from '@/components/CustomCard'
 import { ColorBar, MapSettings } from '@/components/GIS'
@@ -33,7 +33,7 @@ import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
 import { useProjectFilter } from '@/hooks/custom'
-import type { DataTimeSeries, Device, EventSummary } from '@/hooks/types'
+import type { Device, EventSummary } from '@/hooks/types'
 import * as gisUtils from '@/utils/GIS'
 import {
   ActionIcon,
@@ -132,8 +132,8 @@ const DailyEnergyComparison = ({
   const includeDegradation = ['sigurd'].includes(project.data?.name_short || '')
 
   // Use the same hook as PowerPlotPVZoom for power data
-  const powerData = useGetMeterPowerAndExpectedPower({
-    pathParams: { projectId: projectId || '-1' },
+  const powerData = useGetMeterPowerAndExpectedPowerV3({
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       start: startTime || '',
       end: endTime || '',
@@ -156,13 +156,15 @@ const DailyEnergyComparison = ({
   // Color map similar to PowerPlotPVZoom
   const colorMap = useMemo<Record<string, string>>(
     () => ({
-      'Meter Active Power': theme.colors.green[7],
-      'Power Expected at Full Health': theme.colors.orange[7],
-      'PPC Active Power Setpoint': theme.colors.blue[7],
-      'PV Active Power': theme.colors.cyan[7],
-      'BESS Active Power': theme.colors.yellow[7],
-      'Interconnection Limit': theme.colors.gray[7],
-      'Budgeted Avg (+-15 days)': theme.colors.violet[7],
+      [SensorTypeEnum.METER_ACTIVE_POWER]: theme.colors.green[7],
+      [SensorTypeEnum.PV_EXPECTED_POWER]: theme.colors.orange[7],
+      [SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT]: theme.colors.blue[7],
+      [SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER]:
+        theme.colors.cyan[7],
+      [SensorTypeEnum.BESS_MV_CIRCUIT_METER_ACTIVE_POWER]:
+        theme.colors.yellow[7],
+      [-1]: theme.colors.gray[7],
+      [-2]: theme.colors.violet[7],
     }),
     [theme],
   )
@@ -236,16 +238,18 @@ const DailyEnergyComparison = ({
 
   // Process plot data similar to PowerPlotPVZoom
   const plotData = useMemo(() => {
-    if (!powerData.data?.data) return []
+    if (!powerData.data) return []
 
-    return powerData.data.data.map((d: DataTimeSeries) => {
+    return powerData.data.map((d) => {
       const numericY = d.y.map((val: number | null) =>
         val === null ? null : parseFloat(String(val)),
       )
 
-      // Transform name if it's "Expected Power" from backend
+      // Transform name for PV Expected Power
       const displayName =
-        d.name === 'Expected Power' ? 'Power Expected at Full Health' : d.name
+        d.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER
+          ? 'Power Expected at Full Health'
+          : d.name
 
       // Convert timestamps to project timezone for display
       const convertedTimestamps = d.x.map((timestamp: string) => {
@@ -256,9 +260,12 @@ const DailyEnergyComparison = ({
       })
 
       // Determine mode and fill based on trace name
-      const isMeterPower = displayName === 'Meter Active Power'
-      const isSetpoint = displayName === 'PPC Active Power Setpoint'
-      const isExpectedPower = displayName === 'Power Expected at Full Health'
+      const isMeterPower =
+        d.sensor_type_id === SensorTypeEnum.METER_ACTIVE_POWER
+      const isSetpoint =
+        d.sensor_type_id === SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT
+      const isExpectedPower =
+        d.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER
       const mode: 'lines' | 'lines+markers' =
         isMeterPower || isSetpoint || isExpectedPower
           ? 'lines'
@@ -277,9 +284,7 @@ const DailyEnergyComparison = ({
         },
         fill: fill,
         line: {
-          color:
-            colorMap[displayName as keyof typeof colorMap] ||
-            theme.colors.gray[7],
+          color: colorMap[d.sensor_type_id] || theme.colors.gray[7],
           width: 2,
         },
         marker: {
@@ -299,18 +304,16 @@ const DailyEnergyComparison = ({
     if (
       plotData.length > 0 &&
       project.data?.poi &&
-      powerData.data?.data &&
-      powerData.data.data.length > 0
+      powerData.data &&
+      powerData.data.length > 0
     ) {
       // Convert timestamps for interconnection limit
-      const limitTimestamps = powerData.data.data[0].x.map(
-        (timestamp: string) => {
-          return dayjs
-            .utc(timestamp)
-            .tz(project.data?.time_zone || 'UTC')
-            .format()
-        },
-      )
+      const limitTimestamps = powerData.data[0].x.map((timestamp: string) => {
+        return dayjs
+          .utc(timestamp)
+          .tz(project.data?.time_zone || 'UTC')
+          .format()
+      })
 
       finalData.push({
         x: limitTimestamps,
@@ -321,7 +324,7 @@ const DailyEnergyComparison = ({
         connectgaps: true,
         fill: 'none' as const,
         line: {
-          color: colorMap['Interconnection Limit'],
+          color: colorMap[-1],
           width: 2,
           dash: 'dash',
         } as { color: string; width: number; dash: string },
@@ -337,11 +340,7 @@ const DailyEnergyComparison = ({
     }
 
     // Add budgeted series average if available
-    if (
-      averageBudgetedHourly &&
-      powerData.data?.data &&
-      powerData.data.data.length > 0
-    ) {
+    if (averageBudgetedHourly && powerData.data && powerData.data.length > 0) {
       const budgetedTimestamps: string[] = []
       const budgetedY: number[] = []
 
@@ -377,7 +376,7 @@ const DailyEnergyComparison = ({
         connectgaps: true,
         fill: 'none' as const,
         line: {
-          color: colorMap['Budgeted Avg (+-15 days)'],
+          color: colorMap[-2],
           width: 2,
           dash: 'dot',
         } as { color: string; width: number; dash: string },

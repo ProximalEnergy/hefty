@@ -3,7 +3,7 @@ import { useGetCMMSTickets } from '@/api/v1/operational/project/cmms_tickets'
 import { useGetEventsSummary } from '@/api/v1/operational/project/events'
 import { useGetSolarPosition } from '@/api/v1/operational/project/project_solar'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
+import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import {
   useGetExpectedPowerByDeviceTypeID,
   useGetRealTimeByDeviceTypeID,
@@ -30,7 +30,9 @@ const findLatestExpectedPower = (series?: DataTimeSeries[]) => {
   let value: number | null = null
   let timestamp: string | null = null
 
-  const expectedTrace = series?.find((trace) => trace.name === 'Expected Power')
+  const expectedTrace = series?.find(
+    (trace) => trace.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER,
+  )
   if (
     expectedTrace &&
     expectedTrace.y &&
@@ -156,8 +158,8 @@ const RealtimeTab = () => {
   }, [])
 
   // Preserve previous expected power value during refetches
-  const expectedPowerData = useGetMeterPowerAndExpectedPower({
-    pathParams: { projectId: projectId || '-1' },
+  const expectedPowerData = useGetMeterPowerAndExpectedPowerV3({
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       start: expectedPowerTimeRange.start,
       end: expectedPowerTimeRange.end,
@@ -211,6 +213,33 @@ const RealtimeTab = () => {
       staleTime: 15000,
     },
   })
+
+  const [preservedExpectedPower, setPreservedExpectedPower] = useState<{
+    mw: number | null
+    timestamp: string | null
+  }>({ mw: null, timestamp: null })
+
+  const latestExpectedPower = useMemo(() => {
+    return findLatestExpectedPower(expectedPowerData.data as DataTimeSeries[])
+  }, [expectedPowerData.data])
+
+  // Preserve last known expected power while the time-window query refetches.
+  // Without this, `expectedPowerMW` can flicker to null between refetches.
+  useEffect(() => {
+    if (latestExpectedPower.value !== null) {
+      setPreservedExpectedPower({
+        mw: latestExpectedPower.value,
+        timestamp: latestExpectedPower.timestamp,
+      })
+    }
+  }, [latestExpectedPower.value, latestExpectedPower.timestamp])
+
+  // Clear expected power at night so we don't show a stale daytime value.
+  useEffect(() => {
+    if (solarPosition.data && !solarPosition.data.is_daytime) {
+      setPreservedExpectedPower({ mw: null, timestamp: null })
+    }
+  }, [solarPosition.data])
 
   // Get realtime meter data for POI Power (same endpoint as PCS Power for up-to-date readings)
   const meterRealtimeData = useGetRealTimeByDeviceTypeID({
@@ -350,13 +379,8 @@ const RealtimeTab = () => {
       }
     }
 
-    // Get expected power at POI (still from expectedPowerData for comparison)
-    const { value: expectedPowerMW, timestamp: expectedPowerTimestamp } =
-      findLatestExpectedPower(expectedPowerData.data?.data)
-
-    // Preserve previous value during refetches - use previous value if current data is null/loading
-    const finalExpectedPowerMW = expectedPowerMW
-    const finalExpectedPowerTimestamp = expectedPowerTimestamp
+    const finalExpectedPowerMW = preservedExpectedPower.mw
+    const finalExpectedPowerTimestamp = preservedExpectedPower.timestamp
 
     // Calculate cumulative expected PCS power (sum of all PCS devices' expected power)
     // Use the same timestamp as POI Power Expected since they come from the same data source
@@ -399,7 +423,9 @@ const RealtimeTab = () => {
           ? finalExpectedPowerMW.toFixed(2)
           : null,
       expectedPowerTimestamp: hasExpectedIntegration
-        ? finalExpectedPowerTimestamp
+        ? finalExpectedPowerMW !== null
+          ? finalExpectedPowerTimestamp
+          : null
         : null,
       cumulativePCSPowerMW: totalPowerMW.toFixed(2),
       cumulativePCSPowerTimestamp,
@@ -429,12 +455,13 @@ const RealtimeTab = () => {
     pvCircuitEvents.data,
     pvBlockEvents.data,
     cmmsTickets.data,
-    expectedPowerData.data,
     pcsExpectedPower.data,
     devices.data,
     solarPosition.data,
     meterRealtimeData.data,
     hasExpectedIntegration,
+    preservedExpectedPower.mw,
+    preservedExpectedPower.timestamp,
   ])
 
   // Calculate max capacity_ac from devices (convert from kWac to MWac)

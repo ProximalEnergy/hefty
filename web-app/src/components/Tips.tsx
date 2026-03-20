@@ -31,22 +31,6 @@ const useTips = ({
   }, [hasVisited, setHasVisited, currentVersion, notification])
 }
 
-export const useTipsPCSGIS = () => {
-  const id = 'pcs-gis'
-
-  useTips({
-    key: id,
-    currentVersion: 2,
-    notification: {
-      id: id,
-      title: 'PCS GIS',
-      message:
-        'You can view live power output or aggregated energy generation. By default, the map shows live power. Select a date range to view aggregated energy generation. Clear the date range to return to live power.',
-      autoClose: false,
-    },
-  })
-}
-
 export const useTipsPersonalPortfolio = () => {
   const id = 'personal-portfolio'
 

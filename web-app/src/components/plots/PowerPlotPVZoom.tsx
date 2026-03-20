@@ -1,4 +1,8 @@
-import { EventLossTypeEnum, ProjectTypeEnum } from '@/api/enumerations'
+import {
+  EventLossTypeEnum,
+  ProjectTypeEnum,
+  SensorTypeEnum,
+} from '@/api/enumerations'
 import {
   type EventLosses5Min,
   type EventLosses5MinGroup,
@@ -6,32 +10,23 @@ import {
   useGetEventLosses5Min,
 } from '@/api/v1/operational/project/events'
 import { useSelectProject } from '@/api/v1/operational/projects'
-import { useGetMeterPowerAndExpectedPower } from '@/api/v1/protected/pv-expected-energy/plot/plot'
+import { useGetMeterPowerAndExpectedPowerV3 } from '@/api/v1/protected/system'
 import CustomCard from '@/components/CustomCard'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
-import { DataTimeSeries, Quality } from '@/hooks/types'
+import { DataTimeSeries } from '@/hooks/types'
 import { getInterval, roundTime } from '@/utils/interval'
 import {
   Badge,
   Button,
   Group,
-  HoverCard,
-  List,
   Menu,
-  Space,
-  Text,
-  ThemeIcon,
   Tooltip,
-  rem,
   useMantineTheme,
 } from '@mantine/core'
 import {
   IconArrowLeft,
   IconArrowRight,
   IconCaretDown,
-  IconCheck,
-  IconExclamationMark,
-  IconLetterQ,
 } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
@@ -196,13 +191,14 @@ const PowerPlotPVZoom = () => {
   }
 
   // Color map based on the names returned by the specific hook
-  const colorMap: Record<string, string> = {
-    'Meter Active Power': theme.colors.green[7],
-    'Power Expected at Full Health': theme.colors.orange[7],
-    'PPC Active Power Setpoint': theme.colors.blue[7], // Add setpoint color
-    'PV Active Power': theme.colors.cyan[7], // Adjusted PV color for distinction
-    'BESS Active Power': theme.colors.yellow[7],
-    'Interconnection Limit': theme.colors.gray[7],
+  const colorMap: Record<number, string> = {
+    [SensorTypeEnum.METER_ACTIVE_POWER]: theme.colors.green[7],
+    [SensorTypeEnum.PV_EXPECTED_POWER]: theme.colors.orange[7],
+    [SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT]: theme.colors.blue[7], // Add setpoint color
+    [SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER]:
+      theme.colors.cyan[7], // Adjusted PV color for distinction
+    [SensorTypeEnum.BESS_MV_CIRCUIT_METER_ACTIVE_POWER]: theme.colors.yellow[7],
+    [-1]: theme.colors.gray[7],
   }
 
   const project = useSelectProject(projectId!)
@@ -241,17 +237,15 @@ const PowerPlotPVZoom = () => {
   const includeSoiling = !['sigurd'].includes(project.data?.name_short || '')
   const includeDegradation = ['sigurd'].includes(project.data?.name_short || '')
 
-  // Use the updated useGetMeterPowerAndExpectedPower hook
-  const data = useGetMeterPowerAndExpectedPower({
-    pathParams: { projectId: projectId || '-1' },
+  // Use the updated useGetMeterPowerAndExpectedPowerV3 hook
+  const meterAndExpectedPower = useGetMeterPowerAndExpectedPowerV3({
+    pathParams: { project_id: projectId || '-1' },
     queryParams: {
       // Pass start and end times
       start: roundTime(startTime, interval, 'down'),
       end: roundTime(endTime, interval, 'up'),
       interval: interval,
-      // Determine include_storage based on project type if needed
       include_storage: project.data?.project_type_id === ProjectTypeEnum.PVS,
-      // TODO: Replace 'false' with the correct condition based on project data
       include_setpoint: true, // Placeholder - set based on actual project properties
       include_soiling: includeSoiling,
       include_degradation: includeDegradation,
@@ -278,21 +272,23 @@ const PowerPlotPVZoom = () => {
 
   // Calculate performance index from meter and expected power traces
   const performanceIndex = (() => {
-    if (!data.data?.data) return undefined
+    if (!meterAndExpectedPower.data) return undefined
 
     let meterTrace: DataTimeSeries | undefined
     switch (project.data?.project_type_id) {
       case ProjectTypeEnum.PV:
-        meterTrace = data.data?.data?.find(
-          (trace: DataTimeSeries) => trace.name === 'Meter Active Power',
-        )
+        meterTrace = meterAndExpectedPower.data.find(
+          (trace) => trace.sensor_type_id === SensorTypeEnum.METER_ACTIVE_POWER,
+        ) as DataTimeSeries | undefined
         break
       case ProjectTypeEnum.BESS:
         return undefined
       case ProjectTypeEnum.PVS:
-        meterTrace = data.data?.data?.find(
-          (trace: DataTimeSeries) => trace.name === 'PV Active Power',
-        )
+        meterTrace = meterAndExpectedPower.data.find(
+          (trace) =>
+            trace.sensor_type_id ===
+            SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER,
+        ) as DataTimeSeries | undefined
         break
       default:
         return undefined
@@ -308,9 +304,9 @@ const PowerPlotPVZoom = () => {
       }
     }
 
-    const expectedTrace = data.data.data.find(
-      (trace: DataTimeSeries) => trace.name === 'Expected Power',
-    )
+    const expectedTrace = meterAndExpectedPower.data.find(
+      (trace) => trace.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER,
+    ) as DataTimeSeries | undefined
 
     if (!meterTrace || !expectedTrace) return undefined
 
@@ -425,22 +421,22 @@ const PowerPlotPVZoom = () => {
 
   const projectTimeZone = project.data?.time_zone ?? 'UTC'
 
-  const baseSeriesName = useMemo(() => {
+  const baseSeriesSensorTypeId = useMemo(() => {
     switch (project.data?.project_type_id) {
       case ProjectTypeEnum.PV:
-        return 'Meter Active Power'
+        return SensorTypeEnum.METER_ACTIVE_POWER
       case ProjectTypeEnum.PVS:
-        return 'PV Active Power'
+        return SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
       default:
         return null
     }
   }, [project.data?.project_type_id])
 
   const baseSeries =
-    baseSeriesName && data.data?.data
-      ? data.data.data.find(
-          (trace: DataTimeSeries) => trace.name === baseSeriesName,
-        )
+    baseSeriesSensorTypeId && meterAndExpectedPower.data
+      ? (meterAndExpectedPower.data.find(
+          (trace) => trace.sensor_type_id === baseSeriesSensorTypeId,
+        ) as DataTimeSeries | undefined)
       : undefined
 
   const baseTimesNormalized =
@@ -475,20 +471,27 @@ const PowerPlotPVZoom = () => {
     alignedLossValues !== null &&
     alignedLossValues.some((value) => value !== null)
 
-  const plotData = data.data?.data.map((d: DataTimeSeries) => {
+  const plotData = meterAndExpectedPower.data?.map((trace) => {
+    const d = trace as DataTimeSeries
     const numericY = d.y.map((val: number | null) =>
       val === null ? null : parseFloat(String(val)),
     )
 
-    // Transform name if it's "Expected Power" from backend
+    // Transform name for PV Expected Power
     const displayName =
-      d.name === 'Expected Power' ? 'Power Expected at Full Health' : d.name
+      d.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER
+        ? 'Power Expected at Full Health'
+        : d.name
 
     // Determine mode and fill based on trace name
-    const isMeterPower = displayName === 'Meter Active Power'
-    const isSetpoint = displayName === 'PPC Active Power Setpoint'
-    const isExpectedPower = displayName === 'Power Expected at Full Health' // Check for Expected Power
-    const isPvActivePower = displayName === 'PV Active Power'
+    const isMeterPower = d.sensor_type_id === SensorTypeEnum.METER_ACTIVE_POWER
+    const isSetpoint =
+      d.sensor_type_id === SensorTypeEnum.PPC_ACTIVE_POWER_SETPOINT
+    const isExpectedPower =
+      d.sensor_type_id === SensorTypeEnum.PV_EXPECTED_POWER
+    const isPvActivePower =
+      d.sensor_type_id ===
+      SensorTypeEnum.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER
     const isStackBase =
       (project.data?.project_type_id === ProjectTypeEnum.PV && isMeterPower) ||
       (project.data?.project_type_id === ProjectTypeEnum.PVS && isPvActivePower)
@@ -509,9 +512,7 @@ const PowerPlotPVZoom = () => {
       },
       fill: fill, // Use determined fill
       line: {
-        color:
-          colorMap[displayName as keyof typeof colorMap] ||
-          theme.colors.gray[7],
+        color: colorMap[d.sensor_type_id] || theme.colors.gray[7],
         width: 2,
       },
       stackgroup,
@@ -529,10 +530,10 @@ const PowerPlotPVZoom = () => {
   if (
     plotData &&
     project.data?.poi &&
-    data.data?.data &&
-    data.data.data.length > 0
+    meterAndExpectedPower.data &&
+    meterAndExpectedPower.data.length > 0
   ) {
-    const firstTrace = data.data.data[0]
+    const firstTrace = meterAndExpectedPower.data[0]
     plotData.push({
       x: firstTrace.x,
       y: Array(firstTrace.x.length).fill(project.data.poi),
@@ -540,7 +541,7 @@ const PowerPlotPVZoom = () => {
       type: 'scatter' as const,
       mode: 'lines',
       line: {
-        color: colorMap['Interconnection Limit'],
+        color: colorMap[-1],
         width: 2,
         dash: 'dash',
       },
@@ -577,10 +578,6 @@ const PowerPlotPVZoom = () => {
   return (
     <CustomCard
       title="Meter Power"
-      // Quality data might be available again at data.data.quality
-      quality={
-        data.data?.quality && <QualityCard quality={data.data.quality} />
-      }
       style={{ flex: 2 }}
       headerChildren={
         <Group wrap="nowrap">
@@ -671,56 +668,11 @@ const PowerPlotPVZoom = () => {
         }
         onRelayout={handleRelayout}
         // Use the loading state from the hook
-        isLoading={data.isLoading || project.isLoading}
-        error={data.error}
+        isLoading={meterAndExpectedPower.isLoading || project.isLoading}
+        error={meterAndExpectedPower.error}
         config={{ responsive: true, scrollZoom: true }}
       />
     </CustomCard>
-  )
-}
-
-function QualityCard({ quality }: { quality: Quality }) {
-  const theme = useMantineTheme() // Need theme here too
-  const colorMap = {
-    good: theme.colors.green[7],
-    warning: theme.colors.yellow[7],
-    bad: theme.colors.red[7],
-  }
-
-  const iconMap = {
-    good: <IconCheck style={{ width: rem(16), height: rem(16) }} />,
-    warning: (
-      <IconExclamationMark style={{ width: rem(16), height: rem(16) }} />
-    ),
-    bad: <IconExclamationMark style={{ width: rem(16), height: rem(16) }} />,
-  }
-
-  return (
-    <HoverCard shadow="md">
-      <HoverCard.Target>
-        <ThemeIcon color={colorMap[quality.level]} size={20} radius="xl">
-          <IconLetterQ style={{ width: rem(16), height: rem(16) }} />
-        </ThemeIcon>
-      </HoverCard.Target>
-      <HoverCard.Dropdown>
-        <Text>{quality.message}</Text>
-        <Space h="xs" />
-        <List spacing="xs" size="sm" center>
-          {quality.details.map((detail, i) => (
-            <List.Item
-              key={i}
-              icon={
-                <ThemeIcon color={colorMap[detail.level]} size={20} radius="xl">
-                  {iconMap[detail.level]}
-                </ThemeIcon>
-              }
-            >
-              {detail.message}
-            </List.Item>
-          ))}
-        </List>
-      </HoverCard.Dropdown>
-    </HoverCard>
   )
 }
 
