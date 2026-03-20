@@ -516,9 +516,6 @@ const SelectableChartCard = ({
           ? {
               xaxis: {
                 type: 'category' as const,
-                title: {
-                  text: 'Date',
-                },
                 categoryorder: 'array' as const,
                 categoryarray: dates,
                 range: [-0.5, (dates?.length || 0) - 0.5],
@@ -703,7 +700,7 @@ const DevicePlotCard = ({
               orientation: 'h',
               x: 0.5,
               xanchor: 'center',
-              y: -0.25,
+              y: -0.1,
               yanchor: 'top',
               len: 0.6,
               thickness: 12,

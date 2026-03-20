@@ -180,36 +180,36 @@ const calculateDeviceTypeIds = (zoom: number): number[] => {
 
 const calculatePowerDeviceTypeId = (zoom: number): number => {
   if (zoom >= VERY_HIGH_ZOOM) {
-    return 29 // Tracker
+    return DeviceTypeEnum.TRACKER_ROW
   } else if (zoom >= HIGH_ZOOM) {
-    return 9 // Combiner
+    return DeviceTypeEnum.PV_DC_COMBINER
   } else {
-    return 2 // PCS
+    return DeviceTypeEnum.PV_INVERTER
   }
 }
 
 // --- Mapping for Locked View Name ---
 const viewNameMapping: { [key: number]: string } = {
-  2: 'PCS',
-  9: 'DC Combiner',
-  29: 'Tracker',
+  2: 'PV Inverter',
+  9: 'PV DC Combiner',
+  29: 'Tracker Row',
 }
 
 // --- Layer Lock Configuration ---
 // Defines the parameters for each view that can be locked
 const layerLockConfig = {
-  PCS: {
+  'PV Inverter': {
     powerTypeId: DeviceTypeEnum.PV_INVERTER,
     // Use the function to stay consistent with dynamic calculations
     deviceTypeIds: calculateDeviceTypeIds(LOW_ZOOM),
     zoom: LOW_ZOOM,
   },
-  'DC Combiner': {
+  'PV DC Combiner': {
     powerTypeId: DeviceTypeEnum.PV_DC_COMBINER,
     deviceTypeIds: calculateDeviceTypeIds(HIGH_ZOOM),
     zoom: HIGH_ZOOM,
   },
-  Tracker: {
+  'Tracker Row': {
     powerTypeId: DeviceTypeEnum.TRACKER_ROW,
     deviceTypeIds: calculateDeviceTypeIds(VERY_HIGH_ZOOM),
     zoom: VERY_HIGH_ZOOM,
@@ -1194,9 +1194,9 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
   // Determine device type string
   let deviceTypeString = 'Device'
   if (props?.device_type_id === DeviceTypeEnum.PV_INVERTER) {
-    deviceTypeString = 'PCS'
+    deviceTypeString = 'PV Inverter'
   } else if (props?.device_type_id === DeviceTypeEnum.PV_DC_COMBINER) {
-    deviceTypeString = 'Combiner' // Or DC Combiner?
+    deviceTypeString = 'PV DC Combiner'
   } else if (props?.device_type_id === DeviceTypeEnum.MET_STATION) {
     deviceTypeString = 'Met Station'
   } else if (props?.device_type_id === DeviceTypeEnum.TRACKER_ROW) {
@@ -1217,7 +1217,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
     >
       <Text fw={700}>
         {/* Use determined device type and name */}
-        {deviceTypeString}: {props?.name ?? 'N/A'}
+        {deviceTypeString} {props?.name ?? 'N/A'}
       </Text>
       {/* Show tracker angle if it's a tracker row */}
       {props?.device_type_id === DeviceTypeEnum.TRACKER_ROW && (
@@ -1250,7 +1250,7 @@ function CustomHoverCard({ hoverInfo }: { hoverInfo: HoverInfo }) {
               {props?.ratio_label ?? 'Actual/Expected'}:{' '}
               {props?.actual_vs_expected !== undefined &&
               props?.actual_vs_expected !== null
-                ? props.actual_vs_expected.toFixed(1) + ' %'
+                ? props.actual_vs_expected.toFixed(1) + '%'
                 : 'No Data'}
             </Text>
             <Text size="sm">

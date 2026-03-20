@@ -7,6 +7,7 @@ import BlockDropdown from '@/components/BlockDropdown'
 import CustomCard from '@/components/CustomCard'
 import { MapSettings } from '@/components/GIS'
 import { PageLoader } from '@/components/Loading'
+import { PageTitle } from '@/components/PageTitle'
 import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerInput'
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import Attribution from '@/components/gis/Attribution'
@@ -37,7 +38,6 @@ import {
   Stack,
   Table,
   Text,
-  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineTheme,
@@ -486,7 +486,7 @@ const Page = () => {
 
   return (
     <Stack p="md">
-      <Title order={1}>Combiner Current Day</Title>
+      <PageTitle>PV DC Combiner Performance</PageTitle>
       <Group>
         <BlockDropdown
           data={blockDropdown.data}

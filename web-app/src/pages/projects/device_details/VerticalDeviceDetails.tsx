@@ -247,8 +247,8 @@ const VerticalDeviceDetails = () => {
 
   return (
     <Stack p="md" h={isFillMode ? '100%' : undefined} gap="md">
-      <PageTitle info="View all device details under a single vertical. Add related devices using the + buttons. Click on any device trace to zoom in to its individual device details page.">
-        Vertical Device Details
+      <PageTitle info="View all data under a single device vertical. Add related devices using the + buttons. Click on any device trace to zoom in to its individual page.">
+        StackTrace - Vertical
       </PageTitle>
       <Group>
         <AdvancedDatePicker

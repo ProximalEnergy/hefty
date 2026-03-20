@@ -1,5 +1,5 @@
 import { CMMSTicket } from '@/api/v1/operational/project/cmms_tickets'
-import { Card, Text, ThemeIcon, rem } from '@mantine/core'
+import { Card, Group, Text, ThemeIcon, rem } from '@mantine/core'
 import { IconInfoCircle } from '@tabler/icons-react'
 
 import CMMSTicketCard from './CMMSTicketCard'
@@ -29,8 +29,8 @@ const PlaceholderTicket = () => {
     <Card>
       <CMMSTicketCard ticket={placeholderTicket} withBorder={false} />
       <Card.Section withBorder inheritPadding py="md" mt="md">
-        <Text c="dimmed" component="div">
-          <ThemeIcon variant="transparent" size="lg" c="dimmed">
+        <Group align="center" gap="xs">
+          <ThemeIcon variant="transparent" size="md" c="dimmed">
             <IconInfoCircle
               style={{
                 width: rem(24),
@@ -38,9 +38,12 @@ const PlaceholderTicket = () => {
               }}
             />
           </ThemeIcon>
-          This is a placeholder ticket. To integrate your CMMS with Proximal,
-          please reach out to support via the feedback icon in the bottom left.
-        </Text>
+          <Text c="dimmed">
+            This is a placeholder ticket. To integrate your CMMS with Proximal,
+            please reach out to support via the feedback icon in the bottom
+            left.
+          </Text>
+        </Group>
       </Card.Section>
     </Card>
   )

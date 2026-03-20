@@ -59,7 +59,7 @@ const CardTitle = ({
                 <IconInfoCircle
                   size={iconSize}
                   stroke={iconStroke}
-                  style={{ cursor: 'help' }}
+                  style={{ cursor: 'help', display: 'block' }}
                 />
               </HoverCard.Target>
               <HoverCard.Dropdown maw="50%">

@@ -820,7 +820,7 @@ const Page = ({
       categoryorder: 'array',
       categoryarray: naturalSort(xvals),
       title: {
-        text: deviceTypeName ? `${deviceTypeName} Device Name` : 'Device Name',
+        text: deviceTypeName ? `${deviceTypeName}` : 'Device Name',
       },
     },
     yaxis: {

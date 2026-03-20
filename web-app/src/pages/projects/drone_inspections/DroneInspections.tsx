@@ -530,7 +530,7 @@ const DroneInspections: React.FC = () => {
                             {
                               title: 'DC Power Loss',
                               icon: 'pcs',
-                              value: `${selectedInspection.total_power_loss_kw?.toFixed(2)} kW (${selectedInspection.total_power_loss_percent?.toFixed(2)}%)`,
+                              value: `${selectedInspection.total_power_loss_kw?.toLocaleString()} kW (${selectedInspection.total_power_loss_percent?.toFixed(2)}%)`,
                               description:
                                 'Total DC power loss identified during inspection',
                             },
@@ -538,7 +538,7 @@ const DroneInspections: React.FC = () => {
                               title: 'Affected Modules',
                               icon: 'events',
                               value:
-                                selectedInspection.total_affected_modules?.toString() ||
+                                selectedInspection.total_affected_modules?.toLocaleString() ||
                                 '0',
                               description:
                                 'Number of modules with detected anomalies',
@@ -553,7 +553,7 @@ const DroneInspections: React.FC = () => {
                                       a.remediation_category ===
                                       'Remediation Recommended',
                                   )
-                                  .length.toString() ?? '0',
+                                  .length.toLocaleString() ?? '0',
                               description:
                                 'Anomalies that require immediate attention and remediation',
                             },

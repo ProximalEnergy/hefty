@@ -85,7 +85,7 @@ const Page = () => {
         deviceId = customdata as string | number
       }
     } else if (pcsChartType === 'heatmap') {
-      // Heatmap: use the y value (PCS name) to find the device_id
+      // Heatmap: use the y value (PV Inverter name) to find the device_id
       const pcsName = points[0].y as string
       const pcs = deviceDetails.data?.pcs.find((p) => p.name === pcsName)
       deviceId = pcs?.device_id
@@ -100,8 +100,8 @@ const Page = () => {
 
   return (
     <Stack p="md" h="100%">
-      <PageTitle info="See project, met station, and PCS data in a single view. Click on a single PCS trace to zoom in to its vertical device detail view.">
-        PV Device Details
+      <PageTitle info="See project, met station, and PV Inverter data in a single view. Click on a single PV Inverter trace to zoom in to its vertical device detail view.">
+        StackTrace - PV
       </PageTitle>
       <AdvancedDatePicker
         defaultRange="past-3-days"
@@ -163,7 +163,7 @@ const Page = () => {
         />
       </CustomCard>
       <CustomCard
-        title="PCS"
+        title="PV Inverter"
         style={{ flex: 1, minHeight: '250px' }}
         headerChildren={
           <SegmentedControl
@@ -221,7 +221,8 @@ const Page = () => {
             },
             yaxis: {
               title: {
-                text: pcsChartType === 'heatmap' ? 'PCS' : 'AC Power (MW)',
+                text:
+                  pcsChartType === 'heatmap' ? 'PV Inverter' : 'AC Power (MW)',
               },
               type: pcsChartType === 'heatmap' ? 'category' : undefined,
             },
