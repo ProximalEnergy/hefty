@@ -21,6 +21,17 @@ def _dod(soc: str) -> Field:
     )
 
 
+def _fill_energy_accumulator(field: str) -> Field:
+    return Field(
+        calc.ProcessCalc(
+            var=field,
+            process=process.ProcessList(
+                steps=[process.ForwardFillProcess(), process.BackwardFillProcess()],
+            ),
+        )
+    )
+
+
 def _energy_accumulator(field: str) -> Field:
     return Field(
         calc.CalcProcess(
@@ -103,43 +114,80 @@ class CalculateBESS(AddCalculationsSchema):
 
     bess_string_dod_5m = _dod(Validate.bess_string_soc_5m.var)
 
-    meter_consumed_energy_kwh_5m = _energy_accumulator(
-        Validate.meter_total_consumed_energy_kwh_5m.var
+    ##
+    # backfill and forward fill the energy accumulators to remove NaNs
+    #
+
+    # meter
+
+    meter_total_consumed_energy_filled_5m = _fill_energy_accumulator(
+        Download.time_series.meter_total_consumed_energy_kwh_5m.var
     )
 
-    meter_delivered_energy_kwh_5m = _energy_accumulator(
-        Validate.meter_total_delivered_energy_kwh_5m.var
+    meter_total_delivered_energy_filled_5m = _fill_energy_accumulator(
+        Download.time_series.meter_total_delivered_energy_kwh_5m.var
     )
+
+    # pcs module
+
+    bess_pcs_module_total_energy_charged_filled_5m = _fill_energy_accumulator(
+        Download.time_series.bess_pcs_module_total_energy_charged_kwh_5m.var
+    )
+
+    bess_pcs_module_total_energy_discharged_filled_5m = _fill_energy_accumulator(
+        Download.time_series.bess_pcs_module_total_energy_discharged_kwh_5m.var
+    )
+
+    ##
+    # Calculate energy on a 5-minute level (not totals)
+    #
+
+    meter_consumed_energy_kwh_5m = Field(
+        calc.DiffAndFilterCalc(
+            energy_total_var=meter_total_consumed_energy_filled_5m.var,
+            power_capacity_var=Validate.project_power_capacity_kw.var,
+            max_capacity_factor=1 / 12,  # 12 steps per hour
+        )
+    )
+
+    meter_delivered_energy_kwh_5m = Field(
+        calc.DiffAndFilterCalc(
+            energy_total_var=meter_total_delivered_energy_filled_5m.var,
+            power_capacity_var=Validate.project_power_capacity_kw.var,
+            max_capacity_factor=1 / 12,  # 12 steps per hour
+        )
+    )
+
     bess_string_energy_charged_kwh_5m = _energy_accumulator(
-        Validate.bess_string_total_energy_charged_kwh_5m.var
+        Download.time_series.bess_string_total_energy_charged_kwh_5m.var
     )
 
     bess_string_energy_discharged_kwh_5m = _energy_accumulator(
-        Validate.bess_string_total_energy_discharged_kwh_5m.var
+        Download.time_series.bess_string_total_energy_discharged_kwh_5m.var
     )
 
     bess_pcs_energy_charged_kwh_5m = _energy_accumulator(
-        Validate.bess_pcs_total_energy_charged_kwh_5m.var
+        Download.time_series.bess_pcs_total_energy_charged_kwh_5m.var
     )
 
     bess_pcs_energy_discharged_kwh_5m = _energy_accumulator(
-        Validate.bess_pcs_total_energy_discharged_kwh_5m.var
+        Download.time_series.bess_pcs_total_energy_discharged_kwh_5m.var
     )
 
     bess_pcs_module_energy_discharged_kwh_5m = _energy_accumulator(
-        Validate.bess_pcs_module_total_energy_discharged_kwh_5m.var
+        Download.time_series.bess_pcs_module_total_energy_discharged_kwh_5m.var
     )
 
     bess_pcs_module_energy_charged_kwh_5m = _energy_accumulator(
-        Validate.bess_pcs_module_total_energy_charged_kwh_5m.var
+        Download.time_series.bess_pcs_module_total_energy_charged_kwh_5m.var
     )
 
     bess_circuit_energy_charged_kwh_5m = _energy_accumulator(
-        Validate.bess_circuit_total_energy_charged_kwh_5m.var
+        Download.time_series.bess_circuit_total_energy_charged_kwh_5m.var
     )
 
     bess_circuit_energy_discharged_kwh_5m = _energy_accumulator(
-        Validate.bess_circuit_total_energy_discharged_kwh_5m.var
+        Download.time_series.bess_circuit_total_energy_discharged_kwh_5m.var
     )
 
     bess_string_energy_kwh_5m = Field(

@@ -115,7 +115,7 @@ def discharging_cycles_from_soc(
 
 def maximum_continuous_discharge(
     *,
-    total_energy_discharged_kwh_5m: xr.DataArray,
+    energy_discharged_kwh_5m: xr.DataArray,
     energy_charged_kwh_5m: xr.DataArray,
     time_combiner: CoordCombinerProtocol,
     energy_capacity_kwh: xr.DataArray | None = None,
@@ -131,11 +131,12 @@ def maximum_continuous_discharge(
 
     Validation is performed to make sure that the total energy discharged
     is not greater than the energy capacity.
-
-    total_energy_discharged_kwh is expected to be
-    increasing monotonically
     """
     EPSILON = 1e-6
+
+    total_energy_discharged_kwh_5m = cumsum(
+        energy_discharged_kwh_5m, time_dim=Time.TIME_5MIN_UTC
+    )
 
     total_discharged_while_charging = total_energy_discharged_kwh_5m.where(
         energy_charged_kwh_5m > EPSILON
@@ -229,3 +230,18 @@ def reconstruct_accumulator(
 
 def event_change_to_in_event(*, x: xr.DataArray) -> xr.DataArray:
     return x.cumsum(dim=Time.TIME_5MIN_UTC.value) > 0
+
+
+def energy_efficiency(
+    *,
+    energy_source_kwh: xr.DataArray,
+    energy_sink_kwh: xr.DataArray,
+    energy_capacity_kwh: xr.DataArray,
+    min_source_energy_capacity_factor: float = 0.0,
+    max_efficiency: float = 1.0,
+) -> xr.DataArray:
+    source_filtered = energy_source_kwh.where(
+        energy_source_kwh > min_source_energy_capacity_factor * energy_capacity_kwh
+    )
+    efficiency = energy_sink_kwh / source_filtered
+    return efficiency.where(efficiency <= max_efficiency)

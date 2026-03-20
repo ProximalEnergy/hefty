@@ -6,10 +6,6 @@ from kpi_pipeline.config.step_02_validate.utils import _capacity
 from kpi_pipeline.services.schema import AddCalculationsSchema
 
 
-def _energy_accumulator_validation(field: str) -> Field:
-    return Field(calc.ProcessCalc(var=field, process=process.BackwardFillProcess()))
-
-
 def _soc(field: str) -> Field:
     return Field(
         calc.CalcProcess(
@@ -70,58 +66,71 @@ def _current(field: str) -> Field:
 class ValidateBESS(AddCalculationsSchema):
     _update = True
 
+    ##########################
+    # Energy Capacity
+    ##########################
+
+    # project
+
     project_energy_capacity_kwh = _capacity(
         Download.project_attributes.project_energy_capacity_kwh.var
     )
+
+    # pcs
+
     bess_pcs_energy_capacity_kwh = _capacity(
         Download.device_attributes.bess_pcs_energy_capacity_kwh.var
     )
+
+    # pcs module
+
     bess_pcs_module_energy_capacity_kwh = _capacity(
         Download.device_attributes.bess_pcs_module_energy_capacity_kwh.var
     )
+
+    # string
+
     bess_string_energy_capacity_kwh = _capacity(
         Download.device_attributes.bess_string_energy_capacity_kwh.var
     )
-    bess_pcs_total_energy_charged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_pcs_total_energy_charged_kwh_5m.var
-    )
-    bess_string_total_energy_charged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_string_total_energy_charged_kwh_5m.var
-    )
-    bess_pcs_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_pcs_total_energy_discharged_kwh_5m.var
-    )
-    bess_pcs_module_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_pcs_module_total_energy_discharged_kwh_5m.var
-    )
-    bess_pcs_module_total_energy_charged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_pcs_module_total_energy_charged_kwh_5m.var
-    )
-    bess_string_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_string_total_energy_discharged_kwh_5m.var
-    )
-    meter_total_consumed_energy_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.meter_total_consumed_energy_kwh_5m.var
-    )
-    meter_total_delivered_energy_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.meter_total_delivered_energy_kwh_5m.var
-    )
-    bess_circuit_total_energy_charged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_circuit_total_energy_charged_kwh_5m.var
-    )
-    bess_circuit_total_energy_discharged_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.bess_circuit_total_energy_discharged_kwh_5m.var
+
+    #############################
+    # Power Capacity
+    #############################
+
+    # project
+
+    project_power_capacity_kw = _capacity(
+        Download.project_attributes.project_power_capacity_kw.var
     )
 
-    project_total_aux_energy_kwh_5m = _energy_accumulator_validation(
-        Download.time_series.project_total_aux_energy_kwh_5m.var
+    # circuit
+
+    bess_mv_circuit_meter_power_capacity_kw = _capacity(
+        Download.device_attributes.bess_mv_circuit_meter_power_capacity_kw.var
     )
+
+    # pcs
+
     bess_pcs_power_capacity_kw = _capacity(
         Download.device_attributes.bess_pcs_power_capacity_kw.var
     )
+
+    # pcs module
+
+    bess_pcs_module_power_capacity_kw = _capacity(
+        Download.device_attributes.bess_pcs_module_power_capacity_kw.var
+    )
+
+    # string
+
     bess_string_power_capacity_kw = _capacity(
         Download.device_attributes.bess_string_power_capacity_kw.var
     )
+
+    #############################
+    # Temperature
+    #############################
 
     bess_string_min_module_temp_c_5m = _temperature(
         Download.time_series.bess_string_min_module_temp_c_5m.var

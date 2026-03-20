@@ -204,6 +204,14 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         project_var=Aggregate.project_total_time_idling_hours_d.var,
         version="1.0.0",
     ),
+    KPIType.BESS_PROJECT_METER_TO_PCS_MODULE_CHARGE_EFFICIENCY: KPIMetadata(
+        project_var=Aggregate.project_meter_to_pcs_module_charge_efficiency_d.var,
+        version="1.0.0",
+    ),
+    KPIType.BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY: KPIMetadata(
+        project_var=Aggregate.project_pcs_module_to_meter_discharge_efficiency_d.var,
+        version="1.0.0",
+    ),
     KPIType.BESS_STRING_AVERAGE_C_RATE: KPIMetadata(
         project_var=Aggregate.project_avg_string_c_rate_d.var,
         device_var=Aggregate.bess_string_avg_c_rate_d.var,

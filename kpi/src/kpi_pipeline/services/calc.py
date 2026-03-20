@@ -1,8 +1,9 @@
 from collections.abc import Callable
+from enum import Enum
 from typing import Any
 
 import xarray as xr
-from kpi_pipeline.base.enums import DataType
+from kpi_pipeline.base.enums import DataType, Time
 from kpi_pipeline.base.models import ContextModel, CoordCombinerModel
 from kpi_pipeline.base.protocols import CalcProtocol, Implements, ProcessProtocol
 from kpi_pipeline.domain.bess import (
@@ -14,6 +15,7 @@ from kpi_pipeline.domain.bess import (
     daily_average_c_rate,
     daily_average_c_rate_charging,
     discharging_cycles_from_soc,
+    energy_efficiency,
     maximum_continuous_discharge,
     reconstruct_accumulator,
     squeeze_fill_energy_accumulator,
@@ -21,6 +23,7 @@ from kpi_pipeline.domain.bess import (
 from kpi_pipeline.domain.general import (
     accumulate_energy_then_filter_by_capacity,
     accumulate_energy_then_verify_by_capacity,
+    diff_and_filter,
     filter_by_capacity,
     or_list,
     verify_by_capacity,
@@ -55,6 +58,8 @@ from pydantic import BaseModel, ConfigDict
 
 
 def _field_is_input(field: str, value: Any) -> bool:
+    if isinstance(value, Enum):
+        return False
     return isinstance(value, str) and (field != "output_dtype")
 
 
@@ -528,16 +533,14 @@ class DischargingCyclesFromSocCalc(CalcBase):
 
 @domain_calc(maximum_continuous_discharge)
 class MaximumContinuousDischargeCalc(CalcBase):
-    total_energy_discharged_kwh_5m_var: str
+    energy_discharged_kwh_5m_var: str
     energy_charged_kwh_5m_var: str
     time_combiner_model: CoordCombinerModel
     energy_capacity_kwh_var: str | None = None
 
     def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
         return maximum_continuous_discharge(
-            total_energy_discharged_kwh_5m=select(
-                dataset, self.total_energy_discharged_kwh_5m_var
-            ),
+            energy_discharged_kwh_5m=select(dataset, self.energy_discharged_kwh_5m_var),
             energy_charged_kwh_5m=select(dataset, self.energy_charged_kwh_5m_var),
             time_combiner=coord_combiner(self.time_combiner_model, context),
             energy_capacity_kwh=optional(dataset, self.energy_capacity_kwh_var),
@@ -847,4 +850,40 @@ class ReconstructAccumulatorCalc(CalcBase):
             total_energy_kw_5m=select(dataset, self.total_energy_kw_5m_var),
             modulus=self.modulus,
             max_positive_step=self.max_positive_step,
+        )
+
+
+@domain_calc(diff_and_filter)
+class DiffAndFilterCalc(CalcBase):
+    energy_total_var: str
+    modulus: float | None = None
+    power_capacity_var: str | None = None
+    max_capacity_factor: float | None = None
+    time_dim: Time = Time.TIME_5MIN_UTC
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return diff_and_filter(
+            energy_total=select(dataset, self.energy_total_var),
+            modulus=self.modulus,
+            power_capacity=optional(dataset, self.power_capacity_var),
+            max_capacity_factor=self.max_capacity_factor,
+            time_dim=self.time_dim,
+        )
+
+
+@domain_calc(energy_efficiency)
+class EnergyEfficiencyCalc(CalcBase):
+    energy_source_kwh_var: str
+    energy_sink_kwh_var: str
+    energy_capacity_kwh_var: str
+    min_source_energy_capacity_factor: float = 0.0
+    max_efficiency: float = 1.0
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return energy_efficiency(
+            energy_source_kwh=select(dataset, self.energy_source_kwh_var),
+            energy_sink_kwh=select(dataset, self.energy_sink_kwh_var),
+            energy_capacity_kwh=select(dataset, self.energy_capacity_kwh_var),
+            min_source_energy_capacity_factor=self.min_source_energy_capacity_factor,
+            max_efficiency=self.max_efficiency,
         )

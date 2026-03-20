@@ -141,6 +141,29 @@ def accumulate_energy_then_filter_by_capacity(
     )
 
 
+def diff_and_filter(
+    *,
+    energy_total: xr.DataArray,
+    modulus: float | None = None,
+    power_capacity: xr.DataArray | None = None,
+    max_capacity_factor: float | None = None,
+    time_dim: Time = Time.TIME_5MIN_UTC,
+) -> xr.DataArray:
+    x = diff(energy_total, time_dim=time_dim)
+    epsilon = 1e-6
+    upper_bound = None
+    if power_capacity is not None and max_capacity_factor is not None:
+        upper_bound = max_capacity_factor * power_capacity
+    if modulus is None:
+        x = x.where(x > -epsilon)
+    else:
+        x = ((x + epsilon) % modulus) - epsilon
+
+    if upper_bound is not None:
+        x = x.where(x <= upper_bound)
+    return x
+
+
 def clamp(
     *, x: xr.DataArray, min_value: float | None = None, max_value: float | None = None
 ) -> xr.DataArray:
@@ -381,4 +404,6 @@ def or_list(
 
 
 def agg_first(*, x: xr.DataArray, time_combiner: CoordCombinerProtocol) -> xr.DataArray:
-    return time_combiner.group(x).first()
+    return time_combiner.group(
+        x.bfill(dim=time_combiner.get_high_res_time_axis().value)
+    ).first()

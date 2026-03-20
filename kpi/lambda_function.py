@@ -70,12 +70,24 @@ def lambda_handler(event, context):
         else config.validate_per_project["base"]
     )
 
+    calculation = (
+        config.calculate_per_project[project.name_short]
+        if project.name_short in config.calculate_per_project
+        else config.calculate_per_project["base"]
+    )
+
+    aggregate = (
+        config.aggregate_per_project[project.name_short]
+        if project.name_short in config.aggregate_per_project
+        else config.aggregate_per_project["base"]
+    )
+
     kpi_pipeline = action_from_list(
         [
             config.Download.export(),
             validation.export(),
-            config.Calculate.export(),
-            config.Aggregate.export(),
+            calculation.export(),
+            aggregate.export(),
             config.kpi_upload_action,
         ]
     )
