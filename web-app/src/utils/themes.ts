@@ -189,6 +189,18 @@ export const themes = {
     '#256756',
     '#236151',
   ],
+  'doral-renewables-blue': [
+    '#E6EEEE',
+    '#C5D7D7',
+    '#A4C1C1',
+    '#84AAAA',
+    '#639494',
+    '#427D7D',
+    '#226767',
+    '#015050',
+    '#014C4C',
+    '#014848',
+  ],
 } satisfies Record<string, StringArray10 & MantineColorsTuple>
 
 // Extract the keys from the themes object

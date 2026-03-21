@@ -8,6 +8,7 @@ const COMPANY_THEME_CONFIG: Record<string, KnownMantineColor | CustomColors> = {
   catl: 'blue',
   cleanamps_energy: 'cleanamps-energy-green',
   desri: 'desri-blue',
+  doral_renewables: 'doral-renewables-blue',
   excelsior: 'excelsior-blue',
   first_solar: 'red',
   goshe_energy_storage: 'goshe-energy-storage-blue',

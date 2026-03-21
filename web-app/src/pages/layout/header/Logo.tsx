@@ -163,6 +163,10 @@ const Logo = () => {
         )
       case 'sable_point_energy':
         return <SablePointEnergyLogo />
+      case 'doral_renewables':
+        return (
+          <Image src={getCompanyLogoUrl('logo_doral_renewables.svg')} h="70%" />
+        )
     }
   }
 
