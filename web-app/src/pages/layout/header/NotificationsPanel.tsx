@@ -1,3 +1,4 @@
+import { NotificationTypeEnum } from '@/api/enumerations'
 import {
   type NotificationPage,
   useDeleteAllNotifications,
@@ -8,10 +9,7 @@ import {
   useMarkNotificationAsUnread,
 } from '@/api/v1/admin/notifications'
 import { useGetProjects } from '@/api/v1/operational/projects'
-import {
-  formatNotification,
-  getNotificationTypeName,
-} from '@/utils/notificationFormatters'
+import { formatNotification } from '@/utils/notificationFormatters'
 import { formatRelativeTime } from '@/utils/relativeTime'
 import {
   ActionIcon,
@@ -52,7 +50,12 @@ interface NotificationsPanelProps {
   onClose: () => void
 }
 
-const WEATHER_ALERT_TYPES = new Set(['hail', 'fire', 'tornado', 'wind'])
+const WEATHER_NOTIFICATION_TYPE_IDS = new Set<number>([
+  NotificationTypeEnum.HAIL,
+  NotificationTypeEnum.FIRE,
+  NotificationTypeEnum.TORNADO,
+  NotificationTypeEnum.WIND,
+])
 
 const getWeatherAlertDate = (
   data: Record<string, unknown> | null,
@@ -78,14 +81,13 @@ const getWeatherAlertDate = (
 const isPastWeatherNotification = (
   notification: NotificationPage['notifications'][number],
 ): boolean => {
+  if (!WEATHER_NOTIFICATION_TYPE_IDS.has(notification.notification_type_id)) {
+    return false
+  }
   const data =
     typeof notification.data === 'object' && notification.data !== null
       ? (notification.data as Record<string, unknown>)
       : null
-  const typeName = getNotificationTypeName(data)
-  if (!typeName || !WEATHER_ALERT_TYPES.has(typeName)) {
-    return false
-  }
 
   const weatherDate = getWeatherAlertDate(data, notification.created_at)
   if (!weatherDate) {
@@ -337,20 +339,15 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
               const severityColor = getSeverityColor(notification.severity)
               const severityLabel = capitalizeSeverity(notification.severity)
 
-              // Determine notification icon using name_long from data structure
-              // (matches admin.notification_types.name_long values)
-              const data =
-                typeof notification.data === 'object' &&
-                notification.data !== null
-                  ? (notification.data as Record<string, unknown>)
-                  : null
-              const typeName = getNotificationTypeName(data)
-              const isHailAlert = typeName === 'hail'
-              const isFireAlert = typeName === 'fire'
-              const isTornadoAlert = typeName === 'tornado'
-              const isWindAlert = typeName === 'wind'
-              const isCalendarReminder = typeName === 'calendar reminder'
-              const isEventChatMessage = typeName === 'event_chat_message'
+              const tid = notification.notification_type_id
+              const isHailAlert = tid === NotificationTypeEnum.HAIL
+              const isFireAlert = tid === NotificationTypeEnum.FIRE
+              const isTornadoAlert = tid === NotificationTypeEnum.TORNADO
+              const isWindAlert = tid === NotificationTypeEnum.WIND
+              const isCalendarReminder =
+                tid === NotificationTypeEnum.CALENDAR_REMINDER
+              const isEventChatMessage =
+                tid === NotificationTypeEnum.EVENT_CHAT_MESSAGE
 
               const NotificationIcon = isFireAlert
                 ? IconFlame

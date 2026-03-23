@@ -95,6 +95,7 @@ All paths are correct and relative to the build context.
 **Note:** The lambda only depends on `core`, not `api/app`. All calendar notifications functionality is in `core`:
 
 - Notification CRUD: `core.crud.admin.notifications`
+- Notification type IDs: `core.enumerations.NotificationType` (no DB lookup by name)
 - Notification utilities: `core.utils.notifications`
 - Calendar notifications domain: `core.domain.notifications.calendar_notifications`
 

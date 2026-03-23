@@ -11,7 +11,6 @@ import boto3
 from core.crud.admin.notifications import (
     create_notification,
     create_notification_state,
-    get_notification_type_by_name,
 )
 from core.crud.admin.users import get_users
 from core.crud.operational.projects import get_projects
@@ -613,18 +612,9 @@ async def send_notifications_for_message(
     }
     event_chat_recipient_ids -= muted_user_ids
 
-    notification_type_query = get_notification_type_by_name(
-        name_long="event_chat_message"
+    event_chat_notification_type_id = (
+        enumerations.NotificationType.EVENT_CHAT_MESSAGE.value
     )
-    notification_type = await notification_type_query.get_async(
-        output_type=OutputType.SQLALCHEMY
-    )
-    if not notification_type:
-        logger.warning(
-            "Notification type 'event_chat_message' not found, skipping "
-            "event chat notifications"
-        )
-        return
 
     if is_first_message:
         # First message: apply notification preferences
@@ -634,7 +624,7 @@ async def send_notifications_for_message(
         ) = await determine_notification_recipients(
             db=db,
             project_id=str(project_id),
-            notification_type_id=notification_type.notification_type_id,
+            notification_type_id=event_chat_notification_type_id,
             severity=enumerations.NotificationSeverity.INFO,
         )
 
@@ -700,7 +690,7 @@ async def send_notifications_for_message(
     notification = await create_notification(
         db=db,
         project_id=project_id,
-        notification_type_id=notification_type.notification_type_id,
+        notification_type_id=event_chat_notification_type_id,
         data={
             "notification_type": "event_chat_message",
             "event_id": event_id,

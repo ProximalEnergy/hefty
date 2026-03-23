@@ -7,24 +7,6 @@ from core import enumerations, models
 from core.db_query import DbQuery
 
 
-def get_notification_type_by_name(
-    *,
-    name_long: str,
-) -> DbQuery[models.NotificationType, Literal[True]]:
-    """Get a notification type by its long name.
-
-    Args:
-        name_long: Long name of the notification type.
-
-    Returns:
-        DbQuery for Notification type model.
-    """
-    stmt = select(models.NotificationType).where(
-        models.NotificationType.name_long == name_long
-    )
-    return DbQuery(query=stmt, is_scalar=True)
-
-
 def get_recent_notification(
     *,
     project_id: Any,

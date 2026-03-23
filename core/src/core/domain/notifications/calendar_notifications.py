@@ -16,7 +16,6 @@ from core import enumerations, models
 from core.crud.admin.notifications import (
     create_notification,
     create_notification_state,
-    get_notification_type_by_name,
 )
 from core.crud.operational.calendar import (
     get_calendar_item_exceptions,
@@ -154,20 +153,9 @@ async def check_calendar_notifications(
                         exceptions_map[exc.calendar_item_id] = set()
                     exceptions_map[exc.calendar_item_id].add(exc.exception_date)
 
-            # Get notification type
-            notification_type_query = get_notification_type_by_name(
-                name_long="calendar reminder"
+            calendar_notification_type_id = (
+                enumerations.NotificationType.CALENDAR_REMINDER.value
             )
-            notification_type = await notification_type_query.get_async(
-                output_type=OutputType.SQLALCHEMY
-            )
-            if not notification_type:
-                error_msg = (
-                    "Notification type 'calendar reminder' not found in database"
-                )
-                logger.error(error_msg)
-                summary["errors"].append(error_msg)
-                return summary
 
             # Ensure current time is UTC-aware
             today = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -179,7 +167,7 @@ async def check_calendar_notifications(
                         db=db,
                         calendar_item=calendar_item,
                         exceptions_map=exceptions_map,
-                        notification_type=notification_type,
+                        notification_type_id=calendar_notification_type_id,
                         today=today,
                         api_prod=api_prod,
                         summary=summary,
@@ -216,7 +204,7 @@ async def _process_calendar_item(
     db: AsyncSession,
     calendar_item: models.CalendarItem,
     exceptions_map: dict[UUID, set[date]],
-    notification_type: models.NotificationType,
+    notification_type_id: int,
     today: datetime,
     api_prod: bool,  # noqa: ARG001
     summary: CalendarNotificationsSummary,
@@ -227,7 +215,7 @@ async def _process_calendar_item(
         db: Database session.
         calendar_item: Calendar item to process.
         exceptions_map: Map of calendar_item_id to cancelled exception dates.
-        notification_type: Notification type model.
+        notification_type_id: admin.notification_types id (calendar reminder).
         today: Today's date (UTC, midnight).
         api_prod: Whether running in production.
         summary: Summary dictionary to update.
@@ -328,7 +316,7 @@ async def _process_calendar_item(
     ) = await determine_notification_recipients(
         db=db,
         project_id=str(calendar_item.project_id),
-        notification_type_id=notification_type.notification_type_id,
+        notification_type_id=notification_type_id,
         severity=enumerations.NotificationSeverity.WARNING,
     )
 
@@ -352,7 +340,7 @@ async def _process_calendar_item(
     notification = await create_notification(
         db=db,
         project_id=calendar_item.project_id,
-        notification_type_id=notification_type.notification_type_id,
+        notification_type_id=notification_type_id,
         data={
             "notification_type": "calendar reminder",
             "calendar_item_id": str(calendar_item.calendar_item_id),

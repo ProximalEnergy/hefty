@@ -668,6 +668,20 @@ class NotificationSeverity(StrEnum):
     CRITICAL = "critical"
 
 
+class NotificationType(BaseIntEnum):
+    _db_table = nonmember("admin.notification_types")  # type: ignore[misc,assignment]
+    _db_id_column = nonmember("notification_type_id")  # type: ignore[misc,assignment]
+    _db_name_column = nonmember("name_short")  # type: ignore[misc,assignment]
+
+    HAIL = 1
+    FIRE = 2
+    TORNADO = 3
+    WIND = 4
+    CALENDAR_REMINDER = 5
+    EVENT_CHAT_MESSAGE = 6
+    KPI_THRESHOLD = 7
+
+
 class NotificationChannel(StrEnum):
     EMAIL = "email"
     IN_APP = "in_app"

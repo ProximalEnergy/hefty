@@ -234,6 +234,16 @@ export const NotificationStateEnum = {
   DELETED: "deleted",
 } as const;
 
+export const NotificationTypeEnum = {
+  HAIL: 1,
+  FIRE: 2,
+  TORNADO: 3,
+  WIND: 4,
+  CALENDAR_REMINDER: 5,
+  EVENT_CHAT_MESSAGE: 6,
+  KPI_THRESHOLD: 7,
+} as const;
+
 export const OutputTypeEnum = {
   PANDAS: "pandas",
   POLARS: "polars",

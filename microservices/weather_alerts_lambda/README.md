@@ -95,6 +95,7 @@ All paths are correct and relative to the build context.
 **Note:** The lambda now only depends on `core`, not `api/app`. All weather alerts functionality has been moved to `core`:
 
 - Notification CRUD: `core.crud.admin.notifications`
+- Notification type IDs: `core.enumerations.NotificationType` (no DB lookup by name)
 - Notification utilities: `core.utils.notifications`
 - Weather alerts domain: `core.domain.notifications.weather_alerts`
 - NWS provider: `core.domain.gis.providers.nws`

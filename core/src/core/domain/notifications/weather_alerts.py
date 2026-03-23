@@ -15,7 +15,6 @@ from core import enumerations, models
 from core.crud.admin.notifications import (
     create_notification,
     create_notification_state,
-    get_notification_type_by_name,
     get_recent_notification,
 )
 from core.crud.admin.users import get_users as get_users_crud
@@ -41,8 +40,13 @@ SEVERITY_THRESHOLDS = {
     enumerations.NotificationSeverity.CRITICAL: 100.0,
 }
 
-# Valid weather types (used for validation)
-VALID_WEATHER_TYPES = {"hail", "tornado", "wind", "fire"}
+# NWS / summary / payload keys -> notification enum (DB notification_type_id)
+VALID_WEATHER_TYPES: dict[str, enumerations.NotificationType] = {
+    "hail": enumerations.NotificationType.HAIL,
+    "tornado": enumerations.NotificationType.TORNADO,
+    "wind": enumerations.NotificationType.WIND,
+    "fire": enumerations.NotificationType.FIRE,
+}
 
 # User-facing labels in emails (risk wording, not NWS "alert")
 WEATHER_TYPE_EMAIL_DISPLAY = {
@@ -264,6 +268,11 @@ async def _check_project_against_polygons(
         api_prod: Whether running in production.
         summary: Summary dictionary to update.
     """
+    notification_type = VALID_WEATHER_TYPES.get(weather_type)
+    if notification_type is None:
+        logger.warning(f"Unknown weather type: {weather_type}")
+        return
+    notification_type_id = notification_type.value
     # Extract project coordinates from point
     if not project.point:
         logger.info(f"Project {project.project_id} has no point data, skipping")
@@ -340,25 +349,12 @@ async def _check_project_against_polygons(
         severity = probability_to_severity(probability=max_probability)
         display_value = max_probability  # probability percentage
 
-    # Get notification type (weather_type is the same as the database name_long value)
-    if weather_type not in VALID_WEATHER_TYPES:
-        logger.warning(f"Unknown weather type: {weather_type}")
-        return
-
-    notification_type_query = get_notification_type_by_name(name_long=weather_type)
-    notification_type = await notification_type_query.get_async(
-        output_type=OutputType.SQLALCHEMY
-    )
-    if not notification_type:
-        logger.warning(f"Notification type '{weather_type}' not found in database")
-        return
-
     # Check if we should create a notification.
     # Create if: no previous notification, or last one is outside same-event
     # window (new event), or severity increased within the window.
     recent_notification_query = get_recent_notification(
         project_id=project.project_id,
-        notification_type_id=notification_type.notification_type_id,
+        notification_type_id=notification_type_id,
     )
     recent_notification = await recent_notification_query.get_async(
         output_type=OutputType.SQLALCHEMY
@@ -406,7 +402,7 @@ async def _check_project_against_polygons(
     ) = await determine_notification_recipients(
         db=db,
         project_id=str(project.project_id),
-        notification_type_id=notification_type.notification_type_id,
+        notification_type_id=notification_type_id,
         severity=severity,
     )
 
@@ -441,7 +437,7 @@ async def _check_project_against_polygons(
         notification = await create_notification(
             db=db,
             project_id=project.project_id,
-            notification_type_id=notification_type.notification_type_id,
+            notification_type_id=notification_type_id,
             data={
                 "weather_type": weather_type,
                 "value": display_value,

@@ -1,3 +1,5 @@
+import { NotificationTypeEnum } from '@/api/enumerations'
+
 interface NotificationData {
   [key: string]: unknown
 }
@@ -8,70 +10,31 @@ interface FormattedNotification {
   link?: string
 }
 
-// Map of name_long (from admin.notification_types.name_long) to formatter functions
-// Add new notification types by adding entries here with the name_long value
-const formattersByName: Record<
-  string,
-  (data: NotificationData, createdAt: string | Date) => FormattedNotification
-> = {
-  hail: formatHailAlert,
-  fire: formatFireAlert,
-  tornado: formatTornadoAlert,
-  wind: formatWindAlert,
-  event_chat_message: formatEventChatMessage,
-  'calendar reminder': formatCalendarReminder,
+type NotificationFormatterFn = (
+  data: NotificationData,
+  createdAt: string | Date,
+) => FormattedNotification
+
+const formatters: Partial<Record<number, NotificationFormatterFn>> = {
+  [NotificationTypeEnum.HAIL]: formatHailAlert,
+  [NotificationTypeEnum.FIRE]: formatFireAlert,
+  [NotificationTypeEnum.TORNADO]: formatTornadoAlert,
+  [NotificationTypeEnum.WIND]: formatWindAlert,
+  [NotificationTypeEnum.CALENDAR_REMINDER]: formatCalendarReminder,
+  [NotificationTypeEnum.EVENT_CHAT_MESSAGE]: formatEventChatMessage,
 }
 
-/**
- * Helper function to get notification type name_long from data structure.
- * Looks for 'weather_type' or 'notification_type' fields that contain the
- * name_long value matching admin.notification_types.name_long.
- */
-export function getNotificationTypeName(
-  data: NotificationData | null,
-): string | undefined {
-  if (
-    typeof data === 'object' &&
-    data !== null &&
-    'weather_type' in data &&
-    typeof data.weather_type === 'string'
-  ) {
-    return data.weather_type.toLowerCase()
-  }
-  if (
-    typeof data === 'object' &&
-    data !== null &&
-    'notification_type' in data &&
-    typeof data.notification_type === 'string'
-  ) {
-    return data.notification_type.toLowerCase()
-  }
-  return undefined
-}
-
-/**
- * Formats notification data into a title and body based on the notification type.
- * Each notification type has its own formatter function.
- *
- * Looks up formatter by name_long value from the notification data structure.
- * The name_long must match the value in admin.notification_types.name_long.
- */
 export function formatNotification(
-  _notificationTypeId: number,
+  notificationTypeId: number,
   data: NotificationData,
   createdAt: string | Date,
 ): FormattedNotification {
-  // Find formatter by name_long from data structure
-  const typeName = getNotificationTypeName(data)
-  if (typeName && typeName in formattersByName) {
-    return formattersByName[typeName](data, createdAt)
-  }
-
-  // Default formatter if no specific formatter is found
-  return {
-    title: 'Notification',
-    body: JSON.stringify(data),
-  }
+  return (
+    formatters[notificationTypeId]?.(data, createdAt) ?? {
+      title: 'Notification',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
