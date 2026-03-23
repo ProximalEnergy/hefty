@@ -351,6 +351,7 @@ class Notification(Base):
         sa.DateTime(timezone=True),
         nullable=True,
     )
+    is_active: Mapped[bool] = mapped_column(server_default="true")
 
     __table_args__ = {"schema": "admin"}
 
