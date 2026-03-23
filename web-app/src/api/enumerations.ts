@@ -242,6 +242,8 @@ export const NotificationTypeEnum = {
   CALENDAR_REMINDER: 5,
   EVENT_CHAT_MESSAGE: 6,
   KPI_THRESHOLD: 7,
+  DATA_CONNECTION_OUTAGE: 8,
+  PROJECT_CAPACITY_REDUCTION: 9,
 } as const;
 
 export const OutputTypeEnum = {

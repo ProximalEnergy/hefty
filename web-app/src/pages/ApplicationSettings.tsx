@@ -1,5 +1,8 @@
 import { useGetUserType, useUpdateSelfClerkDemoMode } from '@/api/admin'
-import { NotificationSeverityEnum } from '@/api/enumerations'
+import {
+  NotificationSeverityEnum,
+  NotificationTypeEnum,
+} from '@/api/enumerations'
 import {
   type NotificationPreference,
   useGetNotificationPreferences,
@@ -315,6 +318,24 @@ function Subscriptions({ projects }: { projects: Project[] }) {
                     />
                   ))}
             </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value={'Capacity Reduction'}>
+          <Accordion.Control
+            icon={
+              <IconAlertTriangle
+                style={{
+                  width: rem(20),
+                  height: rem(20),
+                }}
+              />
+            }
+            disabled={!projects}
+          >
+            Capacity Reduction
+          </Accordion.Control>
+          <Accordion.Panel>
+            <CapacityReductionNotificationsPanel projects={projects || []} />
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
@@ -818,6 +839,278 @@ function EventChatNotificationsPanel({
                             }
                           }}
                           data={getEventChatControlData()}
+                        />
+                      </Group>
+                    </Stack>
+                  </Table.Td>
+                </Table.Tr>
+              )
+            })}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
+    </Stack>
+  )
+}
+
+function CapacityReductionNotificationsPanel({
+  projects,
+}: {
+  projects: Array<{ project_id: string; name_long: string }>
+}) {
+  const theme = useMantineTheme()
+  const colorScheme = useComputedColorScheme()
+  const notificationTypes = useGetNotificationTypes({})
+  const preferences = useGetNotificationPreferences({})
+  const updateMutation = useUpdateNotificationPreference()
+
+  const capacityNotificationType = useMemo(() => {
+    const types = notificationTypes.data
+    if (!types) return undefined
+    return types.find(
+      (t) =>
+        t.notification_type_id ===
+        NotificationTypeEnum.PROJECT_CAPACITY_REDUCTION,
+    )
+  }, [notificationTypes.data])
+
+  const preferencesMap = useMemo(() => {
+    const map = new Map<string, NotificationPreference>()
+    preferences.data?.forEach((pref) => {
+      map.set(`${pref.project_id}-${pref.notification_type_id}`, pref)
+    })
+    return map
+  }, [preferences.data])
+
+  const getPreference = (
+    projectId: string,
+    notificationTypeId: number,
+  ): NotificationPreference | null => {
+    const key = `${projectId}-${notificationTypeId}`
+    return preferencesMap.get(key) || null
+  }
+
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.name_long.localeCompare(b.name_long)),
+    [projects],
+  )
+
+  const getSeverityControlData = () => {
+    const isDark = colorScheme === 'dark'
+    const iconSize = 14
+
+    return [
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconX
+              size={iconSize}
+              color={isDark ? theme.colors.gray[5] : theme.colors.gray[7]}
+            />
+            <span>OFF</span>
+          </span>
+        ),
+        value: 'OFF',
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconInfoCircle
+              size={iconSize}
+              color={isDark ? theme.colors.blue[4] : theme.colors.blue[6]}
+            />
+            <span>INFO</span>
+          </span>
+        ),
+        value: NotificationSeverityEnum.INFO.toUpperCase(),
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconAlertTriangle
+              size={iconSize}
+              color={isDark ? theme.colors.yellow[4] : theme.colors.yellow[6]}
+            />
+            <span>WARNING</span>
+          </span>
+        ),
+        value: NotificationSeverityEnum.WARNING.toUpperCase(),
+      },
+      {
+        label: (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <IconAlertCircle
+              size={iconSize}
+              color={isDark ? theme.colors.red[4] : theme.colors.red[6]}
+            />
+            <span>CRITICAL</span>
+          </span>
+        ),
+        value: NotificationSeverityEnum.CRITICAL.toUpperCase(),
+      },
+    ]
+  }
+
+  if (notificationTypes.isLoading || preferences.isLoading) {
+    return <Loader />
+  }
+
+  if (!capacityNotificationType) {
+    return (
+      <Text size="sm" c="dimmed">
+        Capacity reduction notification type is not configured.
+      </Text>
+    )
+  }
+
+  return (
+    <Stack gap="md">
+      <Stack gap={0}>
+        <Text size="sm" c="dimmed">
+          Control capacity reduction notifications per project. Capacity
+          reduction calculations are derived from project Events.
+        </Text>
+        <Text size="sm" c="dimmed">
+          INFO alerts are sent when the project is below 98% capacity.
+        </Text>
+        <Text size="sm" c="dimmed">
+          WARNING alerts are sent when the project is below 95% capacity.
+        </Text>
+        <Text size="sm" c="dimmed">
+          CRITICAL alerts are sent when the project is below 90% capacity.
+        </Text>
+      </Stack>
+      <Table.ScrollContainer minWidth={800}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Project Name</Table.Th>
+              <Table.Th>
+                <Group gap={4}>
+                  Capacity Reduction
+                  <Tooltip label="Notifications for capacity reduction alerts">
+                    <ActionIcon size="xs" variant="transparent" color="gray">
+                      <IconInfoCircle size={14} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+              </Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedProjects.map((project) => {
+              const preference = getPreference(
+                project.project_id,
+                capacityNotificationType.notification_type_id,
+              )
+              const inAppEnabled =
+                preference?.in_app_enabled ??
+                capacityNotificationType.in_app_enabled_default
+              const emailEnabled =
+                preference?.email_enabled ??
+                capacityNotificationType.email_enabled_default
+              const inAppSeverity =
+                preference?.in_app_min_severity ??
+                capacityNotificationType.in_app_severity_default ??
+                'info'
+              const emailSeverity =
+                preference?.email_min_severity ??
+                capacityNotificationType.email_severity_default ??
+                'info'
+
+              return (
+                <Table.Tr key={project.project_id}>
+                  <Table.Td>{project.name_long}</Table.Td>
+                  <Table.Td>
+                    <Stack gap="xs">
+                      <Group gap="xs" align="center">
+                        <Text size="xs" w={50}>
+                          in-app:
+                        </Text>
+                        <SegmentedControl
+                          size="xs"
+                          value={
+                            inAppEnabled ? inAppSeverity.toUpperCase() : 'OFF'
+                          }
+                          onChange={(value) => {
+                            if (value === 'OFF') {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  capacityNotificationType.notification_type_id,
+                                in_app_enabled: false,
+                              })
+                            } else {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  capacityNotificationType.notification_type_id,
+                                in_app_enabled: true,
+                                in_app_min_severity: value?.toLowerCase() as
+                                  | 'info'
+                                  | 'warning'
+                                  | 'critical',
+                              })
+                            }
+                          }}
+                          data={getSeverityControlData()}
+                        />
+                      </Group>
+                      <Group gap="xs" align="center">
+                        <Text size="xs" w={50}>
+                          email:
+                        </Text>
+                        <SegmentedControl
+                          size="xs"
+                          value={
+                            emailEnabled ? emailSeverity.toUpperCase() : 'OFF'
+                          }
+                          onChange={(value) => {
+                            if (value === 'OFF') {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  capacityNotificationType.notification_type_id,
+                                email_enabled: false,
+                              })
+                            } else {
+                              updateMutation.mutate({
+                                project_id: project.project_id,
+                                notification_type_id:
+                                  capacityNotificationType.notification_type_id,
+                                email_enabled: true,
+                                email_min_severity: value?.toLowerCase() as
+                                  | 'info'
+                                  | 'warning'
+                                  | 'critical',
+                              })
+                            }
+                          }}
+                          data={getSeverityControlData()}
                         />
                       </Group>
                     </Stack>
