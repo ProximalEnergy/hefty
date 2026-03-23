@@ -203,63 +203,6 @@ async def determine_notification_recipients(
     return users_to_notify_in_app, users_to_notify_email
 
 
-async def create_pending_notification_states(*, summary: dict) -> None:
-    """Create notification states for notifications created with default settings.
-
-    Args:
-        summary: Summary dictionary containing pending states data.
-    """
-    async with AsyncSessionLambda() as db:
-        try:
-            for pending_state in summary["_pending_states"]:
-                notification_id = pending_state["notification_id"]
-                project_id = pending_state["project_id"]
-
-                # Get users with access to this project via user_projects table
-                stmt = (
-                    select(models.User)
-                    .join(
-                        models.UserProject,
-                        models.User.user_id == models.UserProject.user_id,
-                    )
-                    .where(models.UserProject.operational_project_id == project_id)
-                )
-                result = await db.execute(stmt)
-                users_raw = result.scalars().all()
-                users = [(user,) for user in users_raw]  # Convert to tuple format
-
-                if users:
-                    # Create notification state for each user
-                    for user_tuple in users:
-                        user = user_tuple[0]
-                        try:
-                            await create_notification_state(
-                                db=db,
-                                notification_id=notification_id,
-                                user_id=user.user_id,
-                                channel=enumerations.NotificationChannel.IN_APP,
-                            )
-                            logger.info(
-                                f"Created pending in-app notification state for "
-                                f"user {user.user_id} on notification {notification_id}"
-                            )
-                        except Exception as e:
-                            logger.error(
-                                f"Failed to create pending notification state for "
-                                f"user {user.user_id} on notification "
-                                f"{notification_id}: {str(e)}"
-                            )
-                            summary["errors"].append(
-                                f"Failed to create pending notification state for "
-                                f"user {user.user_id}: {str(e)}"
-                            )
-        except Exception as e:
-            logger.warning(f"Failed to create pending notification states: {e}")
-        finally:
-            # Clean up the temporary data
-            summary.pop("_pending_states", None)
-
-
 async def ensure_notification_states_exist() -> None:
     """Ensure all notifications have appropriate notification states created.
 
