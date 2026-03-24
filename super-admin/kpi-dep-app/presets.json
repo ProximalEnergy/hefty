@@ -53,5 +53,38 @@
       "Monte Cristo",
       "Sinton Pirate"
     ]
+  },
+  "SOC Balance": {
+    "kpis": [
+      118,
+      119,
+      120,
+      121
+    ],
+    "projects": [
+      "Mason",
+      "Gregory",
+      "Muenster",
+      "Palacios",
+      "Falfurrias",
+      "Monte Cristo",
+      "Sinton Pirate",
+      "Milton",
+      "Lyssy",
+      "Medina Lake",
+      "Hearn Road",
+      "Goodwin",
+      "Laureles",
+      "Utopia",
+      "Gears Harris",
+      "Hidden Valley",
+      "Carrizo Springs",
+      "Leaky",
+      "Medina",
+      "Escondido",
+      "Continental",
+      "Bexar",
+      "Headcamp"
+    ]
   }
 }
