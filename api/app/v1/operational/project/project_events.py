@@ -1112,6 +1112,10 @@ async def get_event_trace_tags(
                 SensorType.BESS_PCS_MODULE_STATUS,
                 SensorType.BESS_PCS_MODULE_ALARM,
             ]
+        case DeviceType.PROJECT:
+            sensor_type_ids = [
+                SensorType.METER_ACTIVE_POWER,
+            ]
         case _:
             sentry_sdk.capture_exception(
                 ValueError(f"Device type {device['device_type_id']} not supported.")
