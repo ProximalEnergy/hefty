@@ -9,11 +9,8 @@ import {
   useMarkNotificationAsUnread,
 } from '@/api/v1/admin/notifications'
 import { useGetProjects } from '@/api/v1/operational/projects'
-import { formatNotification } from '@/utils/notificationFormatters'
-import { formatRelativeTime } from '@/utils/relativeTime'
 import {
   ActionIcon,
-  Avatar,
   Drawer,
   Group,
   Loader,
@@ -22,33 +19,25 @@ import {
   Stack,
   Text,
   Title,
-  Tooltip,
-  useComputedColorScheme,
-  useMantineTheme,
 } from '@mantine/core'
 import { useIntersection } from '@mantine/hooks'
 import {
   IconBell,
-  IconCalendar,
-  IconCloudRain,
   IconDots,
-  IconFlame,
-  IconMail,
-  IconMessage,
   IconSettings,
-  IconTornado,
   IconTrash,
-  IconWind,
 } from '@tabler/icons-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 
-import classes from './NotificationsPanel.module.css'
+import NotificationsEntry from './NotificationsEntry'
 
 interface NotificationsPanelProps {
   opened: boolean
   onClose: () => void
 }
+
+type Notification = NotificationPage['notifications'][number]
 
 const WEATHER_NOTIFICATION_TYPE_IDS = new Set<number>([
   NotificationTypeEnum.HAIL,
@@ -111,50 +100,25 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
   })
   const { data: projects, isLoading: projectsLoading } = useGetProjects({
     queryParams: { deep: true },
-    personalPortfolio: false, // Get all projects user has access to, not just personal portfolio
+    personalPortfolio: false,
   })
-  const theme = useMantineTheme()
-  const colorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  })
-  const isDark = colorScheme === 'dark'
-  const navigate = useNavigate()
   const markAsUnreadMutation = useMarkNotificationAsUnread()
   const markAllAsReadMutation = useMarkAllNotificationsAsRead()
   const deleteNotificationMutation = useDeleteNotification()
   const deleteAllNotificationsMutation = useDeleteAllNotifications()
 
-  // Create a map of project_id to project name
-  // Normalize UUIDs to lowercase for consistent matching
   const projectMap = useMemo(() => {
-    if (!projects || projects.length === 0) return new Map<string, string>()
+    if (!projects || projects.length === 0) {
+      return new Map<string, string>()
+    }
+
     const map = new Map<string, string>()
     projects.forEach((project) => {
-      // Normalize project_id to lowercase string for consistent comparison
       const normalizedId = String(project.project_id).toLowerCase().trim()
       map.set(normalizedId, project.name_long)
     })
     return map
   }, [projects])
-
-  // Get severity color
-  const getSeverityColor = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'critical':
-        return '#fa5252' // red
-      case 'warning':
-        return '#fab005' // yellow/orange
-      case 'info':
-        return '#339af0' // blue
-      default:
-        return '#868e96' // gray
-    }
-  }
-
-  // Capitalize first letter of severity
-  const capitalizeSeverity = (severity: string) => {
-    return severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase()
-  }
 
   const handleMarkAllAsRead = () => {
     markAllAsReadMutation.mutate()
@@ -163,7 +127,8 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
   const handleDeleteAll = () => {
     if (
       window.confirm(
-        'Are you sure you want to delete all notifications? This action cannot be undone.',
+        'Are you sure you want to delete all notifications? ' +
+          'This action cannot be undone.',
       )
     ) {
       deleteAllNotificationsMutation.mutate()
@@ -206,7 +171,6 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
   useEffect(() => {
     const isIntersecting = entry?.isIntersecting ?? false
 
-    // Only trigger if we've transitioned from not intersecting to intersecting
     if (
       isIntersecting &&
       !lastIntersectingRef.current &&
@@ -223,6 +187,23 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
     const pages = (notificationsPages?.pages ?? []) as NotificationPage[]
     return pages.flatMap((page) => page.notifications)
   }, [notificationsPages])
+
+  const getProjectName = (notification: Notification): string => {
+    const normalizedProjectId = String(notification.project_id)
+      .toLowerCase()
+      .trim()
+    const projectName = projectMap.get(normalizedProjectId)
+
+    if (projectName) {
+      return projectName
+    }
+
+    if (projectsLoading) {
+      return 'Loading...'
+    }
+
+    return 'Unknown Project'
+  }
 
   return (
     <Drawer
@@ -309,262 +290,16 @@ const NotificationsPanel = ({ opened, onClose }: NotificationsPanelProps) => {
             </Text>
           ) : (
             notifications.map((notification) => {
-              const formatted = formatNotification(
-                notification.notification_type_id,
-                notification.data as Record<string, unknown>,
-                notification.created_at,
-              )
-              // Normalize project_id to lowercase string for consistent comparison
-              const normalizedProjectId = String(notification.project_id)
-                .toLowerCase()
-                .trim()
-              // Try map first, then fallback to direct find (in case map hasn't populated yet)
-              let projectName = projectMap.get(normalizedProjectId)
-              if (!projectName && projects && projects.length > 0) {
-                const project = projects.find(
-                  (p) =>
-                    String(p.project_id).toLowerCase().trim() ===
-                    normalizedProjectId,
-                )
-                projectName = project?.name_long
-              }
-              // If still not found and projects are loading, show loading state
-              if (!projectName && projectsLoading) {
-                projectName = 'Loading...'
-              } else if (!projectName) {
-                projectName = 'Unknown Project'
-              }
-              const isUnread =
-                (notification as { state?: string }).state === 'unread'
-              const severityColor = getSeverityColor(notification.severity)
-              const severityLabel = capitalizeSeverity(notification.severity)
-
-              const tid = notification.notification_type_id
-              const isHailAlert = tid === NotificationTypeEnum.HAIL
-              const isFireAlert = tid === NotificationTypeEnum.FIRE
-              const isTornadoAlert = tid === NotificationTypeEnum.TORNADO
-              const isWindAlert = tid === NotificationTypeEnum.WIND
-              const isCalendarReminder =
-                tid === NotificationTypeEnum.CALENDAR_REMINDER
-              const isEventChatMessage =
-                tid === NotificationTypeEnum.EVENT_CHAT_MESSAGE
-
-              const NotificationIcon = isFireAlert
-                ? IconFlame
-                : isHailAlert
-                  ? IconCloudRain
-                  : isTornadoAlert
-                    ? IconTornado
-                    : isWindAlert
-                      ? IconWind
-                      : isCalendarReminder
-                        ? IconCalendar
-                        : isEventChatMessage
-                          ? IconMessage
-                          : IconBell
-
-              const primaryText = 'var(--mantine-primary-color-light-color)'
-              const avatarBg = isDark
-                ? theme.colors.dark[5]
-                : 'var(--mantine-color-gray-1)'
-              const dotBorder = isDark
-                ? `2px solid ${theme.colors.dark[7]}`
-                : '2px solid white'
-
               return (
-                <Group
+                <NotificationsEntry
                   key={notification.notification_id}
-                  align="flex-start"
-                  gap="sm"
-                  p="md"
-                  className={`${classes.notificationItem} ${
-                    isUnread
-                      ? classes.notificationItemUnread
-                      : classes.notificationItemRead
-                  }`}
-                  onClick={async () => {
-                    // Mark notification as read when clicked
-                    if (isUnread) {
-                      markNotificationAsRead(notification.notification_id)
-                    }
-
-                    // Handle calendar reminder notifications - navigate to calendar with item ID
-                    if (isCalendarReminder) {
-                      const calendarItemId =
-                        notification.data &&
-                        typeof notification.data === 'object' &&
-                        'calendar_item_id' in notification.data
-                          ? String(notification.data.calendar_item_id)
-                          : null
-
-                      if (calendarItemId) {
-                        // Navigate to portfolio calendar with calendar item ID as query parameter
-                        navigate(
-                          `/portfolio/calendar?calendarItemId=${calendarItemId}`,
-                        )
-                        onClose() // Close the notifications panel
-                      } else {
-                        // Fall back to navigation if we don't have the required data
-                        if (formatted.link) {
-                          window.location.href = formatted.link
-                        }
-                      }
-                    } else if (isEventChatMessage && formatted.link) {
-                      // Event chat: in-app navigation to event page
-                      navigate(formatted.link)
-                      onClose()
-                    } else if (formatted.link) {
-                      // Other notifications: full navigation
-                      window.location.href = formatted.link
-                    }
-                  }}
-                >
-                  {/* Icon with severity color overlay */}
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <Avatar
-                      size={58}
-                      radius="xl"
-                      color="gray"
-                      style={{
-                        backgroundColor: avatarBg,
-                      }}
-                    >
-                      <NotificationIcon size={24} />
-                    </Avatar>
-                    {/* Severity color overlay on bottom right */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: -2,
-                        right: -2,
-                        width: 16,
-                        height: 16,
-                        borderRadius: '50%',
-                        backgroundColor: severityColor,
-                        border: dotBorder,
-                      }}
-                    />
-                  </div>
-
-                  {/* Notification content */}
-                  <Stack
-                    gap={4}
-                    style={{ flex: 1, minWidth: 0, position: 'relative' }}
-                  >
-                    <Group gap="xs" align="flex-start" wrap="nowrap">
-                      <Text
-                        size="sm"
-                        fw={isUnread ? 700 : 400}
-                        style={{
-                          flex: 1,
-                          color: isUnread ? primaryText : undefined,
-                        }}
-                      >
-                        {severityLabel} {formatted.title} - {projectName}
-                      </Text>
-                      {/* Unread dot indicator */}
-                      {isUnread && (
-                        <div
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: theme.primaryColor,
-                            flexShrink: 0,
-                            marginTop: 4,
-                          }}
-                        />
-                      )}
-                    </Group>
-                    {/* Menu icon on hover - positioned absolutely to not affect layout */}
-                    <div className={classes.menuIconContainer}>
-                      <Menu position="bottom-end" withinPortal>
-                        <Menu.Target>
-                          <ActionIcon
-                            variant="subtle"
-                            size="xl"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                            }}
-                          >
-                            <IconDots size={22} />
-                          </ActionIcon>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                          {isUnread ? (
-                            // Options for unread notifications
-                            <>
-                              <Menu.Item
-                                leftSection={<IconMail size={16} />}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  markNotificationAsRead(
-                                    notification.notification_id,
-                                  )
-                                }}
-                              >
-                                Mark as read
-                              </Menu.Item>
-                              <Menu.Item
-                                leftSection={<IconTrash size={16} />}
-                                color="red"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  deleteNotificationMutation.mutate(
-                                    notification.notification_id,
-                                  )
-                                }}
-                              >
-                                Delete
-                              </Menu.Item>
-                            </>
-                          ) : (
-                            // Options for read notifications
-                            <>
-                              <Menu.Item
-                                leftSection={<IconMail size={16} />}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  markAsUnreadMutation.mutate(
-                                    notification.notification_id,
-                                  )
-                                }}
-                              >
-                                Mark as unread
-                              </Menu.Item>
-                              <Menu.Item
-                                leftSection={<IconTrash size={16} />}
-                                color="red"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  deleteNotificationMutation.mutate(
-                                    notification.notification_id,
-                                  )
-                                }}
-                              >
-                                Delete
-                              </Menu.Item>
-                            </>
-                          )}
-                        </Menu.Dropdown>
-                      </Menu>
-                    </div>
-                    <Text size="sm" c="dimmed" fw={isUnread ? 500 : 400}>
-                      {formatted.body}
-                    </Text>
-                    <Tooltip
-                      label={formatRelativeTime(notification.created_at).full}
-                    >
-                      <Text
-                        size="xs"
-                        c="dimmed"
-                        style={{ width: 'fit-content' }}
-                      >
-                        {formatRelativeTime(notification.created_at).relative}
-                      </Text>
-                    </Tooltip>
-                  </Stack>
-                </Group>
+                  notification={notification}
+                  projectName={getProjectName(notification)}
+                  onClose={onClose}
+                  onMarkAsRead={markNotificationAsRead}
+                  onMarkAsUnread={markAsUnreadMutation.mutate}
+                  onDelete={deleteNotificationMutation.mutate}
+                />
               )
             })
           )}

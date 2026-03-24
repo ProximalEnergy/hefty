@@ -10,9 +10,17 @@ interface FormattedNotification {
   link?: string
 }
 
+/** Optional fields from the parent notification for formatters that need them. */
+interface FormatNotificationContext {
+  severity?: string
+  projectName?: string
+  projectId?: string
+}
+
 type NotificationFormatterFn = (
   data: NotificationData,
   createdAt: string | Date,
+  context?: FormatNotificationContext,
 ) => FormattedNotification
 
 const formatters: Partial<Record<number, NotificationFormatterFn>> = {
@@ -22,15 +30,18 @@ const formatters: Partial<Record<number, NotificationFormatterFn>> = {
   [NotificationTypeEnum.WIND]: formatWindAlert,
   [NotificationTypeEnum.CALENDAR_REMINDER]: formatCalendarReminder,
   [NotificationTypeEnum.EVENT_CHAT_MESSAGE]: formatEventChatMessage,
+  [NotificationTypeEnum.PROJECT_CAPACITY_REDUCTION]:
+    formatProjectCapacityReduction,
 }
 
 export function formatNotification(
   notificationTypeId: number,
   data: NotificationData,
   createdAt: string | Date,
+  context?: FormatNotificationContext,
 ): FormattedNotification {
   return (
-    formatters[notificationTypeId]?.(data, createdAt) ?? {
+    formatters[notificationTypeId]?.(data, createdAt, context) ?? {
       title: 'Notification',
       body: JSON.stringify(data),
     }
@@ -41,6 +52,14 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
+})
+
+const createdAtDetailFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
 })
 
 function formatAlertDate(day: string, createdAt: string | Date): string {
@@ -61,6 +80,7 @@ function formatAlertDate(day: string, createdAt: string | Date): string {
 function formatHailAlert(
   data: NotificationData,
   createdAt: string | Date,
+  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const probability =
@@ -92,6 +112,7 @@ function formatHailAlert(
 function formatFireAlert(
   data: NotificationData,
   createdAt: string | Date,
+  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const value = String(data.value || '')
@@ -116,6 +137,7 @@ function formatFireAlert(
 function formatTornadoAlert(
   data: NotificationData,
   createdAt: string | Date,
+  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const probability =
@@ -145,6 +167,7 @@ function formatTornadoAlert(
 function formatEventChatMessage(
   data: NotificationData,
   _createdAt: string | Date,
+  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const senderName = String(data.sender_name ?? 'Someone')
   const eventId = String(data.event_id ?? '')
@@ -173,6 +196,7 @@ function formatEventChatMessage(
 function formatWindAlert(
   data: NotificationData,
   createdAt: string | Date,
+  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const day = String(data.day || '')
   const probability =
@@ -210,6 +234,7 @@ function formatWindAlert(
 function formatCalendarReminder(
   data: NotificationData,
   _createdAt: string | Date,
+  _context?: FormatNotificationContext,
 ): FormattedNotification {
   const title = String(data.title || 'Calendar Event')
   const description = String(data.description || '')
@@ -236,5 +261,54 @@ function formatCalendarReminder(
     title: `Calendar Reminder: ${title}`,
     body,
     link: '/portfolio/calendar',
+  }
+}
+
+/**
+ * Formats a Project Capacity Reduction notification.
+ * Data (flexible): capacity_reduction (e.g. "50%"), event_count,
+ * plus optional context from the API row: severity, projectName, projectId.
+ *
+ * List row title is built by the UI as
+ * ``{severityLabel} {title} - {projectName}``; keep title here to "Capacity Reduction"
+ * only so that line reads e.g. "Critical Capacity Reduction - Snipesville 2".
+ */
+function formatProjectCapacityReduction(
+  data: NotificationData,
+  createdAt: string | Date,
+  context?: FormatNotificationContext,
+): FormattedNotification {
+  const capacityReduction = String(
+    data.capacity_reduction ?? data.capacityReduction ?? '',
+  ).trim()
+  const reductionLine = capacityReduction
+    ? `${capacityReduction} reduction in capacity`
+    : 'Reduction in capacity'
+
+  const rawCount = data.event_count ?? data.eventCount
+  const eventCount =
+    typeof rawCount === 'number'
+      ? rawCount
+      : parseInt(String(rawCount ?? '0'), 10) || 0
+  const eventNoun = eventCount === 1 ? 'event' : 'events'
+
+  const created = new Date(createdAt)
+  const createdDisplay = Number.isNaN(created.getTime())
+    ? String(createdAt)
+    : createdAtDetailFormatter.format(created)
+
+  const body = [
+    `${reductionLine} from ${eventCount} ${eventNoun}.`,
+    `Created at ${createdDisplay}.`,
+  ].join('\n')
+
+  const projectId = context?.projectId ?? String(data.project_id ?? '')
+  const link =
+    projectId !== '' ? `/projects/${projectId}/events` : '/portfolio/map'
+
+  return {
+    title: 'Capacity Reduction',
+    body,
+    link,
   }
 }

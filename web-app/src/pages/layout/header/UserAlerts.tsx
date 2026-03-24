@@ -68,6 +68,14 @@ const UserAlerts = () => {
                 latestNotification.notification_type_id,
                 latestNotification.data as Record<string, unknown>,
                 latestNotification.created_at,
+                {
+                  severity: latestNotification.severity,
+                  projectId: latestNotification.project_id,
+                  projectName: String(
+                    (latestNotification.data as Record<string, unknown>)
+                      ?.project_name_long ?? '',
+                  ),
+                },
               )
 
               // Get severity color
