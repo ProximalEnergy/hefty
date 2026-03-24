@@ -263,7 +263,9 @@ async def get_status_time_series_js(
         labels = (
             facts["description"].astype("string")
             + ": "
-            + facts["resolved_state"].astype("string")
+            + (facts["resolved_state"].combine_first(facts["observed_bool"])).astype(
+                "string"
+            )
         )
         cell_text = labels.groupby([facts["time"], facts["tag_id"]]).agg(", ".join)
         wide = cell_text.unstack("tag_id")
