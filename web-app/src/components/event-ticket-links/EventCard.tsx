@@ -1,4 +1,4 @@
-import { Event } from '@/hooks/types'
+import type { EventFirstModalEvent } from '@/hooks/types'
 import {
   ActionIcon,
   Badge,
@@ -21,7 +21,7 @@ const EventCard = ({
   isUnlinking = false,
   canLink = true,
 }: {
-  event: Event
+  event: EventFirstModalEvent
   projectId: string
   isLinked?: boolean
   onLink?: () => void

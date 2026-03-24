@@ -2,7 +2,7 @@ import { useCustomQuery } from '@/hooks/api'
 import * as types from '@/hooks/types'
 import { UseQueryOptions } from '@tanstack/react-query'
 
-interface EnrichedEvent extends types.Event {
+export interface EnrichedEvent extends types.Event {
   loss_daily_financial: number | null
 }
 

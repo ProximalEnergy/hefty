@@ -25,6 +25,12 @@ class _CreateEventCMMSTicketRequest(BaseModel):
     cmms_ticket_id: int
 
 
+class _EventIdsLookupBody(BaseModel):
+    """Large event-id lists belong in the body, not repeated query params."""
+
+    event_ids: list[int]
+
+
 class _EventWithScore(interfaces.Event):
     score: int
 
@@ -69,6 +75,26 @@ async def get_event_cmms_tickets(
     records = cast(list[dict[str, Any]], event_cmms_tickets.to_dict(orient="records"))
     event_cmms_tickets_models = [models.EventCMMSTicket(**record) for record in records]
     return event_cmms_tickets_models
+
+
+@router.post("/by-event-ids", response_model=list[interfaces.EventCMMSTicket])
+async def lookup_event_cmms_tickets_by_event_ids(
+    *,
+    project: models.Project = Depends(get_project_api),
+    body: _EventIdsLookupBody,
+):
+    """Return event–CMMS links for many events (body), avoiding huge GET URLs."""
+    unique_ids = list(dict.fromkeys(body.event_ids))
+    if not unique_ids:
+        return []
+    event_cmms_tickets_query = crud_event_cmms_tickets.get_event_cmms_tickets(
+        event_ids=unique_ids,
+    )
+    event_cmms_tickets = await event_cmms_tickets_query.get_async(
+        schema=project.name_short, output_type=OutputType.PANDAS
+    )
+    records = cast(list[dict[str, Any]], event_cmms_tickets.to_dict(orient="records"))
+    return [models.EventCMMSTicket(**record) for record in records]
 
 
 @router.post("", response_model=interfaces.EventCMMSTicket)

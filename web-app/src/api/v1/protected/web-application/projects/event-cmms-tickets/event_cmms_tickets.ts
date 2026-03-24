@@ -5,9 +5,11 @@ import { useAuth } from '@clerk/react'
 import {
   UseQueryOptions,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
 import axios from 'axios'
+import { useMemo } from 'react'
 
 const URL_GET_EVENT_CMMS_TICKETS =
   '/v1/protected/web-application/projects/{project_id}/event-cmms-tickets'
@@ -39,6 +41,50 @@ export const useGetEventCMMSTickets = ({
     pathParams,
     queryParams,
     queryOptions: { ...defaultQueryOptions, ...queryOptions },
+  })
+}
+
+const URL_LOOKUP_EVENT_CMMS_TICKETS_BY_EVENT_IDS =
+  '/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/by-event-ids'
+
+/** Batched links by many event IDs (POST body); avoids enormous GET query strings. */
+export const useGetEventCMMSTicketsByEventIds = ({
+  pathParams,
+  eventIds,
+  queryOptions = {},
+}: {
+  pathParams: { project_id: string }
+  eventIds: number[]
+  queryOptions?: Partial<UseQueryOptions<EventCMMSTicket[]>>
+}) => {
+  const { getToken } = useAuth()
+  const sortedUniqueIds = useMemo(() => {
+    const u = new Set(eventIds)
+    return [...u].sort((a, b) => a - b)
+  }, [eventIds])
+
+  const defaultQueryOptions = {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60,
+  }
+
+  return useQuery({
+    queryKey: ['getEventCMMSTicketsByEventIds', pathParams, sortedUniqueIds],
+    queryFn: async () => {
+      const token = await getToken({ template: 'default' })
+      const url = URL_LOOKUP_EVENT_CMMS_TICKETS_BY_EVENT_IDS.replace(
+        '{project_id}',
+        encodeURIComponent(pathParams.project_id),
+      )
+      const { data } = await axios.post<EventCMMSTicket[]>(
+        `${baseURL}${url}`,
+        { event_ids: sortedUniqueIds },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      return data
+    },
+    ...defaultQueryOptions,
+    ...queryOptions,
   })
 }
 
@@ -138,6 +184,9 @@ export const useAddEventCMMSTicket = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getEventCMMSTickets'] })
+      queryClient.invalidateQueries({
+        queryKey: ['getEventCMMSTicketsByEventIds'],
+      })
     },
   })
 }
@@ -166,6 +215,9 @@ export const useDeleteEventCMMSTicket = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getEventCMMSTickets'] })
+      queryClient.invalidateQueries({
+        queryKey: ['getEventCMMSTicketsByEventIds'],
+      })
     },
   })
 }

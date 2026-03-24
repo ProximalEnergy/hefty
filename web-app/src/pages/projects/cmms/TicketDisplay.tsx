@@ -7,13 +7,17 @@ import {
 import { PageLoader } from '@/components/Loading'
 import { PageTitle } from '@/components/PageTitle'
 import {
+  Box,
+  Button,
   Group,
   MultiSelect,
   ScrollArea,
   Stack,
   Switch,
   Text,
+  Tooltip,
 } from '@mantine/core'
+import { IconPlus } from '@tabler/icons-react'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 
@@ -129,17 +133,30 @@ const Page = () => {
     )
   }
 
+  const createTicketDisabledHint =
+    'The create ticket API connection is not set up. Please visit your ' +
+    'CMMS platform to create tickets there.'
+
   return (
     <Stack h="100%" p="md">
-      <PageTitle
-        info="CMMS stands for Computerized Maintenance Management System. It's a software
-        application that helps you manage and track your assets, work orders, and
-        maintenance activities. You can use it to schedule preventive
-        maintenance, respond to corrective maintenance requests, and analyze
-        maintenance data to improve your asset performance."
-      >
-        CMMS Tickets
-      </PageTitle>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+        <PageTitle
+          info="CMMS stands for Computerized Maintenance Management System. It's a software
+application that helps you manage and track your assets, work orders, and
+maintenance activities. You can use it to schedule preventive
+maintenance, respond to corrective maintenance requests, and analyze
+maintenance data to improve your asset performance."
+        >
+          CMMS Tickets
+        </PageTitle>
+        <Tooltip label={createTicketDisabledHint} maw={320} multiline>
+          <Box component="span" style={{ display: 'inline-block' }}>
+            <Button disabled leftSection={<IconPlus size={16} stroke={1.5} />}>
+              Create Ticket
+            </Button>
+          </Box>
+        </Tooltip>
+      </Group>
       {renderContent()}
     </Stack>
   )

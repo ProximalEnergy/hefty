@@ -11,6 +11,13 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { getQueryParamDateRange } from '@/components/datepicker/utils'
 import { useProjectFilter } from '@/hooks/custom'
 import { EventSummary } from '@/hooks/types'
+import EventFirstModal from '@/pages/projects/events/components/EventFirstModal'
+import {
+  EventsCmmsHeaderBadges,
+  EventsCmmsTableCell,
+  eventToModalEventForCmms,
+  useProjectEventsCmms,
+} from '@/pages/projects/events/eventsCmmsShared'
 import {
   ActionIcon,
   Group,
@@ -90,6 +97,13 @@ const ProjectEvents = () => {
     },
   })
 
+  const eventIdsForCmms = useMemo(
+    () => events?.map((e) => e.event_id) ?? [],
+    [events],
+  )
+  const cmms = useProjectEventsCmms(eventIdsForCmms)
+  const [linkModalRow, setLinkModalRow] = useState<EventSummary | null>(null)
+
   const isLoading = isEventDevicesLoading || isProjectLoading
 
   const defaultColumnVisibility = useMemo(
@@ -109,6 +123,34 @@ const ProjectEvents = () => {
         : [{ id: 'time_start', desc: true }],
     [showLosses],
   )
+
+  /**
+   * MRT keeps prior columnOrder and appends new ids; reset so CMMS is not last.
+   * Include `mrt-row-expand` first — same as MRT getLeadingDisplayColumnIds when
+   * grouping is on; omitting it breaks grouped rows / expand UI.
+   */
+  const eventsTableColumnOrder = useMemo((): string[] => {
+    const ordered = [
+      'mrt-row-expand',
+      'actions',
+      'device_type_name',
+      'device_name_full',
+    ]
+    if (cmms.hasCmmsIntegration) {
+      ordered.push('cmms')
+    }
+    ordered.push(
+      'loss_daily_financial',
+      'loss_total_financial',
+      'time_start',
+      'time_end',
+      'failure_mode',
+      'root_cause',
+      'loss_total_energy',
+      'loss_daily_energy',
+    )
+    return ordered
+  }, [cmms.hasCmmsIntegration])
 
   const columns = useMemo(
     () => [
@@ -146,6 +188,39 @@ const ProjectEvents = () => {
         header: 'Device',
         accessorKey: 'device_name_full',
       },
+      ...(cmms.hasCmmsIntegration
+        ? [
+            {
+              id: 'cmms',
+              header: 'CMMS',
+              accessorFn: (row: EventSummary) => row.event_id,
+              enableSorting: false,
+              enableColumnFilter: false,
+              enableGrouping: false,
+              size: 200,
+              Cell: ({ cell }: { cell: MRT_Cell<EventSummary> }) => {
+                const row = cell.row
+                if (row.subRows && row.subRows.length > 0) {
+                  return null
+                }
+                const ev = row.original
+                return (
+                  <EventsCmmsTableCell
+                    projectId={cmms.projectId}
+                    hasCmmsIntegration={cmms.hasCmmsIntegration}
+                    linksLoading={cmms.linksLoading}
+                    linkCount={cmms.linkCountByEventId.get(ev.event_id) ?? 0}
+                    linkedTicketDetailsLoading={cmms.linkedTicketDetailsLoading}
+                    linkedDisplay={
+                      cmms.linkedDisplayByEventId.get(ev.event_id) ?? null
+                    }
+                    onOpenLinkage={() => setLinkModalRow(ev)}
+                  />
+                )
+              },
+            },
+          ]
+        : []),
       {
         header: 'Daily Loss ($)',
         accessorKey: 'loss_daily_financial',
@@ -311,7 +386,16 @@ const ProjectEvents = () => {
         ),
       },
     ],
-    [project?.time_zone, projectId],
+    [
+      project?.time_zone,
+      projectId,
+      cmms.hasCmmsIntegration,
+      cmms.linksLoading,
+      cmms.projectId,
+      cmms.linkCountByEventId,
+      cmms.linkedDisplayByEventId,
+      cmms.linkedTicketDetailsLoading,
+    ],
   )
   const table = useMantineReactTable({
     columns: columns as MRT_ColumnDef<EventSummary>[],
@@ -323,6 +407,7 @@ const ProjectEvents = () => {
       grouping: ['device_type_name'],
       columnVisibility: defaultColumnVisibility,
       sorting: defaultSorting,
+      columnOrder: eventsTableColumnOrder,
     },
     mantineTableBodyRowProps: ({ row }) => ({
       onClick: () => {
@@ -341,23 +426,43 @@ const ProjectEvents = () => {
   useEffect(() => {
     table.setColumnVisibility(defaultColumnVisibility)
     table.setSorting(defaultSorting)
-  }, [defaultColumnVisibility, defaultSorting, projectId, table])
+    table.setColumnOrder(eventsTableColumnOrder)
+  }, [
+    defaultColumnVisibility,
+    defaultSorting,
+    eventsTableColumnOrder,
+    projectId,
+    table,
+  ])
 
   if (isLoading) {
     return <PageLoader />
   }
+  const modalLinkedTicketIds =
+    linkModalRow == null
+      ? []
+      : (cmms.linksData
+          ?.filter((r) => r.event_id === linkModalRow.event_id)
+          .map((r) => r.cmms_ticket_id) ?? [])
+
   return (
     <Stack w="100%" p="md">
-      <PageTitle
-        info={
-          <Text>
-            This page displays a summary of project events. Use the filters to
-            narrow down the events displayed in the table.
-          </Text>
-        }
-      >
-        Events
-      </PageTitle>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" w="100%">
+        <PageTitle
+          info={
+            <Text>
+              This page displays a summary of project events. Use the filters to
+              narrow down the events displayed in the table.
+            </Text>
+          }
+        >
+          Events
+        </PageTitle>
+        <EventsCmmsHeaderBadges
+          hasCmmsIntegration={cmms.hasCmmsIntegration}
+          permissionsLoading={cmms.permissionsLoading}
+        />
+      </Group>
       <Group justify="space-between">
         <Group>
           <Switch
@@ -409,6 +514,15 @@ const ProjectEvents = () => {
         <LoadingOverlay visible={isEventsLoading} />
         <MantineReactTable table={table} />
       </div>
+      {linkModalRow != null && projectId ? (
+        <EventFirstModal
+          opened
+          onClose={() => setLinkModalRow(null)}
+          event={eventToModalEventForCmms(linkModalRow)}
+          linkedTicketIds={modalLinkedTicketIds}
+          projectId={projectId}
+        />
+      ) : null}
     </Stack>
   )
 }

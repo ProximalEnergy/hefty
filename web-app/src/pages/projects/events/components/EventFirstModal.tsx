@@ -7,12 +7,34 @@ import {
   useGetSuggestedTickets,
 } from '@/api/v1/protected/web-application/projects/event-cmms-tickets/event_cmms_tickets'
 import EventCard from '@/components/event-ticket-links/EventCard'
-import { Event } from '@/hooks/types'
-import { Group, Modal, Skeleton, Stack, Text, Title } from '@mantine/core'
+import type { EventFirstModalEvent } from '@/hooks/types'
+import {
+  Group,
+  Modal,
+  ScrollArea,
+  Skeleton,
+  Stack,
+  Switch,
+  Text,
+  Title,
+} from '@mantine/core'
 import { IconAlertTriangle } from '@tabler/icons-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import CMMSTicketCard from '../../cmms/CMMSTicketCard'
+
+/** Cap for "Show all" unlinked list (v2 API default is 50). */
+const SHOW_ALL_UNLINKED_MAX_RESULTS = 250
+
+const columnStackStyle = {
+  flex: 1,
+  minWidth: 0,
+  minHeight: 0,
+  display: 'flex',
+  flexDirection: 'column' as const,
+}
+
+const columnScrollStyle = { flex: 1, minHeight: 0 }
 
 const EventFirstModal = ({
   opened,
@@ -23,7 +45,7 @@ const EventFirstModal = ({
 }: {
   opened: boolean
   onClose: () => void
-  event: Event
+  event: EventFirstModalEvent
   linkedTicketIds: number[]
   projectId: string
 }) => {
@@ -35,6 +57,13 @@ const EventFirstModal = ({
     type: 'link' | 'unlink'
   } | null>(null)
   const [isAwaitingRefresh, setIsAwaitingRefresh] = useState(false)
+  const [showAllUnlinkedTickets, setShowAllUnlinkedTickets] = useState(false)
+
+  useEffect(() => {
+    if (!opened) {
+      setShowAllUnlinkedTickets(false)
+    }
+  }, [opened])
 
   const addEventCMMSTicket = useAddEventCMMSTicket()
   const deleteEventCMMSTicket = useDeleteEventCMMSTicket()
@@ -140,7 +169,8 @@ const EventFirstModal = ({
   }, [linkedTicketsData, bootstrapTickets])
 
   const suggestionsEnabled = opened && canMutate && cmmsIntegrationId != null
-  const suggestedTicketsQueryEnabled = suggestionsEnabled
+  const suggestedTicketsQueryEnabled =
+    suggestionsEnabled && !showAllUnlinkedTickets
   const suggestedTickets = useGetSuggestedTickets({
     pathParams: { project_id: projectId },
     queryParams: {
@@ -215,6 +245,33 @@ const EventFirstModal = ({
     [allTicketsData, linkedTicketIdSet],
   )
 
+  const showAllUnlinkedEnabled =
+    opened && canMutate && cmmsIntegrationId != null && showAllUnlinkedTickets
+  const showAllUnlinkedQuery = useGetCMMSTickets({
+    pathParams: { project_id: projectId },
+    queryParams:
+      cmmsIntegrationId != null
+        ? {
+            cmms_integration_ids: [cmmsIntegrationId],
+            max_results: SHOW_ALL_UNLINKED_MAX_RESULTS,
+            include_json_raw: false,
+          }
+        : {},
+    queryOptions: {
+      enabled: showAllUnlinkedEnabled,
+    },
+  })
+  const showAllUnlinkedTicketRows = useMemo(() => {
+    const rows = showAllUnlinkedQuery.data?.data ?? []
+    return rows.filter(
+      (ticket) => !linkedTicketIdSet.has(ticket.cmms_ticket_id),
+    )
+  }, [showAllUnlinkedQuery.data, linkedTicketIdSet])
+
+  const suggestedTicketsToDisplay = showAllUnlinkedTickets
+    ? showAllUnlinkedTicketRows
+    : suggestedTicketData
+
   const isMutationPending =
     addEventCMMSTicket.isPending || deleteEventCMMSTicket.isPending
   const isEventTicketsLoading = eventTicketsEnabled && !isEventTicketsResolved
@@ -230,19 +287,27 @@ const EventFirstModal = ({
   const hasIntegrationError =
     hasEventTicketsError || hasLinkedTicketsError || hasBootstrapTicketsError
   const hasLinkedSectionError = hasIntegrationError || hasAllTicketsError
-  const hasSuggestedSectionError =
-    hasIntegrationError || hasAllTicketsError || hasSuggestedTicketsError
+  const hasSuggestedSectionError = showAllUnlinkedTickets
+    ? hasIntegrationError || showAllUnlinkedQuery.isError
+    : hasIntegrationError || hasAllTicketsError || hasSuggestedTicketsError
+  const isShowAllUnlinkedLoading =
+    showAllUnlinkedEnabled &&
+    (showAllUnlinkedQuery.isLoading || showAllUnlinkedQuery.isFetching)
   const isLinkedSectionLoading =
     isIntegrationLoading ||
     isAllTicketsLoading ||
     isMutationPending ||
     isAwaitingRefresh
-  const isSuggestedSectionLoading =
-    isIntegrationLoading ||
-    isAllTicketsLoading ||
-    isSuggestedTicketsLoading ||
-    isMutationPending ||
-    isAwaitingRefresh
+  const isSuggestedSectionLoading = showAllUnlinkedTickets
+    ? isIntegrationLoading ||
+      isShowAllUnlinkedLoading ||
+      isMutationPending ||
+      isAwaitingRefresh
+    : isIntegrationLoading ||
+      isAllTicketsLoading ||
+      isSuggestedTicketsLoading ||
+      isMutationPending ||
+      isAwaitingRefresh
   const linkingTicketId =
     activeMutation?.type === 'link' && addEventCMMSTicket.isPending
       ? activeMutation.ticketId
@@ -260,8 +325,11 @@ const EventFirstModal = ({
       eventCMMSTickets.refetch(),
       allTicketsQuery.refetch(),
     ]
-    if (suggestionsEnabled) {
+    if (suggestionsEnabled && !showAllUnlinkedTickets) {
       refetches.push(suggestedTickets.refetch())
+    }
+    if (showAllUnlinkedEnabled) {
+      refetches.push(showAllUnlinkedQuery.refetch())
     }
     if (baseTicketIds.length > 0) {
       refetches.push(linkedTicketsQuery.refetch())
@@ -317,77 +385,139 @@ const EventFirstModal = ({
 
   return (
     <Modal opened={opened} onClose={onClose} size="100%" fullScreen={false}>
-      <Stack w="100%" h="80vh">
-        <Group w="100%" h="100%" align="flex-start" style={{ flex: 1 }}>
-          <Stack w="100%" h="100%" style={{ flex: 1 }}>
+      <Stack
+        gap="md"
+        h="80vh"
+        mih={0}
+        style={{ display: 'flex', flexDirection: 'column' }}
+      >
+        <Group
+          grow
+          gap="md"
+          align="stretch"
+          wrap="nowrap"
+          style={{ flex: 1, minHeight: 0, alignSelf: 'stretch' }}
+        >
+          <Stack gap="sm" style={columnStackStyle}>
             <Title order={2}>Selected Event</Title>
-            <EventCard event={event} projectId={projectId} canLink={false} />
-          </Stack>
-          <Stack w="100%" h="100%" style={{ flex: 1 }}>
-            <Title order={2}>Linked Tickets</Title>
-            {isLinkedSectionLoading ? (
-              <Skeleton height={120} radius="md" w="100%" />
-            ) : hasLinkedSectionError ? (
-              <Text c="red" size="sm">
-                Unable to load linked tickets.
-              </Text>
-            ) : linkedTicketData.length > 0 ? (
-              linkedTicketData.map((ticket) => (
-                <CMMSTicketCard
-                  key={ticket.cmms_ticket_id}
-                  ticket={ticket}
-                  withBorder={true}
-                  canLink={canMutate}
-                  isLinked={true}
-                  onUnlink={() => handleUnlinkTicket(ticket.cmms_ticket_id)}
-                  isUnlinking={unlinkingTicketId === ticket.cmms_ticket_id}
+            <ScrollArea
+              type="scroll"
+              offsetScrollbars
+              style={columnScrollStyle}
+            >
+              <Stack gap="sm" pr="sm">
+                <EventCard
+                  event={event}
+                  projectId={projectId}
+                  canLink={false}
                 />
-              ))
-            ) : (
-              <Text c="dimmed">No tickets linked to this event yet.</Text>
-            )}
+              </Stack>
+            </ScrollArea>
           </Stack>
-          <Stack w="100%" h="100%" style={{ flex: 1 }}>
-            <Title order={2}>Suggested Tickets</Title>
-            {hasIntegrationError && (
-              <Text c="red" size="sm">
-                Unable to load CMMS integration data. Suggestions may be
-                unavailable right now.
-              </Text>
-            )}
-            {cmmsIntegrationId == null &&
-              !isIntegrationLoading &&
-              !hasIntegrationError && (
-                <Text c="dimmed">
-                  <IconAlertTriangle size={12} /> Unable to locate a CMMS
-                  integration for this project. Suggestions may be unavailable.
-                </Text>
-              )}
-            {isSuggestedSectionLoading ? (
-              <Skeleton height={120} radius="md" w="100%" />
-            ) : hasSuggestedSectionError ? (
-              <Text c="red" size="sm">
-                Unable to load suggested tickets.
-              </Text>
-            ) : suggestedTicketData.length > 0 ? (
-              suggestedTicketData.map((ticket) => {
-                return (
-                  <CMMSTicketCard
-                    key={ticket.cmms_ticket_id}
-                    ticket={ticket}
-                    withBorder={true}
-                    canLink={canMutate}
-                    isLinked={false}
-                    onLink={() => handleLinkTicket(ticket.cmms_ticket_id)}
-                    isLinking={linkingTicketId === ticket.cmms_ticket_id}
-                  />
-                )
-              })
-            ) : (
-              <Text c="dimmed">
-                No suggested tickets available for this event.
-              </Text>
-            )}
+          <Stack gap="sm" style={columnStackStyle}>
+            <Title order={2}>Linked Tickets</Title>
+            <ScrollArea
+              type="scroll"
+              offsetScrollbars
+              style={columnScrollStyle}
+            >
+              <Stack gap="md" pr="sm">
+                {isLinkedSectionLoading ? (
+                  <Skeleton height={120} radius="md" w="100%" />
+                ) : hasLinkedSectionError ? (
+                  <Text c="red" size="sm">
+                    Unable to load linked tickets.
+                  </Text>
+                ) : linkedTicketData.length > 0 ? (
+                  linkedTicketData.map((ticket) => (
+                    <CMMSTicketCard
+                      key={ticket.cmms_ticket_id}
+                      ticket={ticket}
+                      withBorder={true}
+                      canLink={canMutate}
+                      isLinked={true}
+                      onUnlink={() => handleUnlinkTicket(ticket.cmms_ticket_id)}
+                      isUnlinking={unlinkingTicketId === ticket.cmms_ticket_id}
+                    />
+                  ))
+                ) : (
+                  <Text c="dimmed">No tickets linked to this event yet.</Text>
+                )}
+              </Stack>
+            </ScrollArea>
+          </Stack>
+          <Stack gap="sm" style={columnStackStyle}>
+            <Group
+              justify="space-between"
+              align="center"
+              wrap="nowrap"
+              gap="sm"
+            >
+              <Title order={2} style={{ flex: 1 }}>
+                Suggested Tickets
+              </Title>
+              {cmmsIntegrationId != null ? (
+                <Switch
+                  size="sm"
+                  label="Show all"
+                  checked={showAllUnlinkedTickets}
+                  onChange={(event) =>
+                    setShowAllUnlinkedTickets(event.currentTarget.checked)
+                  }
+                />
+              ) : null}
+            </Group>
+            <ScrollArea
+              type="scroll"
+              offsetScrollbars
+              style={columnScrollStyle}
+            >
+              <Stack gap="md" pr="sm">
+                {hasIntegrationError && (
+                  <Text c="red" size="sm">
+                    Unable to load CMMS integration data. Suggestions may be
+                    unavailable right now.
+                  </Text>
+                )}
+                {cmmsIntegrationId == null &&
+                  !isIntegrationLoading &&
+                  !hasIntegrationError && (
+                    <Text c="dimmed">
+                      <IconAlertTriangle size={12} /> Unable to locate a CMMS
+                      integration for this project. Suggestions may be
+                      unavailable.
+                    </Text>
+                  )}
+                {isSuggestedSectionLoading ? (
+                  <Skeleton height={120} radius="md" w="100%" />
+                ) : hasSuggestedSectionError ? (
+                  <Text c="red" size="sm">
+                    Unable to load suggested tickets.
+                  </Text>
+                ) : suggestedTicketsToDisplay.length > 0 ? (
+                  suggestedTicketsToDisplay.map((ticket) => {
+                    return (
+                      <CMMSTicketCard
+                        key={ticket.cmms_ticket_id}
+                        ticket={ticket}
+                        withBorder={true}
+                        canLink={canMutate}
+                        isLinked={false}
+                        onLink={() => handleLinkTicket(ticket.cmms_ticket_id)}
+                        isLinking={linkingTicketId === ticket.cmms_ticket_id}
+                      />
+                    )
+                  })
+                ) : (
+                  <Text c="dimmed">
+                    {showAllUnlinkedTickets
+                      ? 'No unlinked tickets in this list (limited to recent ' +
+                        `tickets, max ${SHOW_ALL_UNLINKED_MAX_RESULTS}).`
+                      : 'No suggested tickets available for this event.'}
+                  </Text>
+                )}
+              </Stack>
+            </ScrollArea>
           </Stack>
         </Group>
       </Stack>

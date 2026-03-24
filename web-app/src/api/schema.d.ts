@@ -6545,6 +6545,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/by-event-ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lookup Event Cmms Tickets By Event Ids
+         * @description Return event–CMMS links for many events (body), avoiding huge GET URLs.
+         */
+        post: operations["lookup_event_cmms_tickets_by_event_ids_v1_protected_web_application_projects__project_id__event_cmms_tickets_by_event_ids_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/web-application/projects/{project_id}/event-cmms-tickets/{event_cmms_ticket_id}": {
         parameters: {
             query?: never;
@@ -11901,6 +11921,14 @@ export interface components {
             event_id: number;
             /** Cmms Ticket Id */
             cmms_ticket_id: number;
+        };
+        /**
+         * _EventIdsLookupBody
+         * @description Large event-id lists belong in the body, not repeated query params.
+         */
+        _EventIdsLookupBody: {
+            /** Event Ids */
+            event_ids: number[];
         };
         /** _EventWithScore */
         _EventWithScore: {
@@ -21930,6 +21958,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventCMMSTicket"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lookup_event_cmms_tickets_by_event_ids_v1_protected_web_application_projects__project_id__event_cmms_tickets_by_event_ids_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_EventIdsLookupBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCMMSTicket"][];
                 };
             };
             /** @description Validation Error */

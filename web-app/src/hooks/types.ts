@@ -58,6 +58,9 @@ export interface Event {
   loss_daily_financial: number | null
 }
 
+/** Ticket linkage UI only uses top-level event fields, not `event.device`. */
+export type EventFirstModalEvent = Omit<Event, 'device'>
+
 export interface EventDeviceInfo {
   unique_types: {
     device_type_id: number
