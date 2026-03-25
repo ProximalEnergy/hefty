@@ -17,6 +17,7 @@ import {
   IconBell,
   IconCalendar,
   IconCloudRain,
+  IconDatabaseOff,
   IconDots,
   IconFlag,
   IconFlame,
@@ -79,6 +80,7 @@ const iconMap: Partial<Record<NotificationTypeId, ElementType>> = {
   [NotificationTypeEnum.WIND]: IconWind,
   [NotificationTypeEnum.CALENDAR_REMINDER]: IconCalendar,
   [NotificationTypeEnum.EVENT_CHAT_MESSAGE]: IconMessage,
+  [NotificationTypeEnum.DATA_CONNECTION_OUTAGE]: IconDatabaseOff,
   [NotificationTypeEnum.PROJECT_CAPACITY_REDUCTION]: IconFlag,
 }
 

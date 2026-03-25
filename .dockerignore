@@ -92,6 +92,11 @@ microservices/microservice_1/**/*
 **/tsconfig.json
 **/vite.config.ts
 
+# Lambda image ``uv pip install /build/core`` (see
+# microservices/data_connection_outage_notifications_lambda/Dockerfile).
+!core/pyproject.toml
+!core/README.md
+
 # Keep only what we need:
 # - core/src/core/** (needed)
 # - microservices/weather_alerts_lambda/** (needed)

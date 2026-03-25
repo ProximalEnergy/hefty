@@ -264,8 +264,9 @@ const EventLossesCapacityValue = ({
     )
   }
 
-  const hoverText =
-    isProject ? CAPACITY_VARIES_CURTAILMENT_INFO : CAPACITY_VARIES_TRACKER_INFO
+  const hoverText = isProject
+    ? CAPACITY_VARIES_CURTAILMENT_INFO
+    : CAPACITY_VARIES_TRACKER_INFO
 
   return (
     <Group gap={2} align="center">

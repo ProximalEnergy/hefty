@@ -30,6 +30,7 @@ const formatters: Partial<Record<number, NotificationFormatterFn>> = {
   [NotificationTypeEnum.WIND]: formatWindAlert,
   [NotificationTypeEnum.CALENDAR_REMINDER]: formatCalendarReminder,
   [NotificationTypeEnum.EVENT_CHAT_MESSAGE]: formatEventChatMessage,
+  [NotificationTypeEnum.DATA_CONNECTION_OUTAGE]: formatDataConnectionOutage,
   [NotificationTypeEnum.PROJECT_CAPACITY_REDUCTION]:
     formatProjectCapacityReduction,
 }
@@ -310,5 +311,16 @@ function formatProjectCapacityReduction(
     title: 'Capacity Reduction',
     body,
     link,
+  }
+}
+
+function formatDataConnectionOutage(
+  _data: NotificationData,
+  _createdAt: string | Date,
+  _context?: FormatNotificationContext,
+): FormattedNotification {
+  return {
+    title: 'Data Connection Outage',
+    body: 'Data connection outage detected.',
   }
 }
