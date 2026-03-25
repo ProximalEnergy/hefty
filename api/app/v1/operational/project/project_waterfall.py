@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 import core
 from app import dependencies
+from app._crud.projects import pv_budgeted as crud_pv_budgeted
 from app._crud.projects.pv_expected import get_pv_expected as crud_get_pv_expected
 from core import models
 
@@ -132,7 +133,9 @@ async def get_project_waterfall(
 
     ## Add a series of sequential fallbacks if preferred metric is not available
     ## TODO: integrate this into a table instead
-    expected_metric_ids = [12, 11, 5, 6]
+    # POI expected metrics: prefer warranted degradation, then fall back.
+    # 6 = soiling + degradation, 5 = degradation only, 12/11 = no degradation.
+    expected_metric_ids = [6, 5, 12, 11]
     data_expected = []
     for metric_id in expected_metric_ids:
         data_expected = crud_get_pv_expected(
@@ -224,26 +227,76 @@ async def get_project_waterfall(
     grouped_losses = grouped_losses.rename(columns={"loss": "value"})
     grouped_losses["value"] = -grouped_losses["value"]
     grouped_losses = grouped_losses.reset_index(drop=True)
+    event_losses_sum = float(grouped_losses["value"].sum())
 
     # Convert power (W) to energy (MWh): sum of power × time interval / 1,000,000
     # For 5-minute intervals: 5/60 = 1/12 hours
     avg_time_delta_hours = 5 / 60
     expected_energy_mwh = df_expected["value"].sum() * avg_time_delta_hours / 1_000_000
-    new_row = pd.DataFrame(
-        {
-            "value": [expected_energy_mwh],
-            "measure": ["absolute"],
-            "name": ["PV Expected"],
-        }
+
+    series_for_budget = crud_pv_budgeted.list_series(
+        project_db=project_db,
+        project_id=project.project_id,
     )
-    grouped_losses = pd.concat([new_row, grouped_losses]).reset_index(drop=True)
+    budgeted_mwh: float | None = None
+    if series_for_budget:
+        budgeted_mwh = crud_pv_budgeted.budgeted_energy_mwh_for_operational_window(
+            project_db=project_db,
+            project_id=project.project_id,
+            pv_budgeted_series_id=series_for_budget[0].pv_budgeted_series_id,
+            start=start_dt,
+            end=end_dt,
+            cod=project.cod,
+            time_zone=project.time_zone,
+        )
+    if budgeted_mwh is not None:
+        prefix_frames = [
+            pd.DataFrame(
+                {
+                    "value": [budgeted_mwh],
+                    "measure": ["absolute"],
+                    "name": ["Budgeted"],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "value": [expected_energy_mwh - budgeted_mwh],
+                    "measure": ["relative"],
+                    "name": ["Weather adjustment"],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "value": [expected_energy_mwh],
+                    "measure": ["total"],
+                    "name": ["PV Expected"],
+                }
+            ),
+        ]
+        grouped_losses = pd.concat([*prefix_frames, grouped_losses]).reset_index(
+            drop=True
+        )
+    else:
+        new_row = pd.DataFrame(
+            {
+                "value": [expected_energy_mwh],
+                "measure": ["absolute"],
+                "name": ["PV Expected"],
+            }
+        )
+        grouped_losses = pd.concat([new_row, grouped_losses]).reset_index(drop=True)
+
     # Convert meter power to energy: multiply sum by time interval (5/60 hours
     # for 5-min data)
     avg_meter_time_delta_hours = 5 / 60
     meter_energy_mwh = series_meter.sum() * avg_meter_time_delta_hours
+    if budgeted_mwh is not None:
+        unaccounted_value = meter_energy_mwh - expected_energy_mwh - event_losses_sum
+    else:
+        unaccounted_value = meter_energy_mwh - grouped_losses["value"].sum()
     new_row = pd.DataFrame(
         {
-            "value": -(grouped_losses["value"].sum() - meter_energy_mwh),
+            "value": [unaccounted_value],
             "measure": ["relative"],
             "name": ["Unaccounted Difference"],
         }

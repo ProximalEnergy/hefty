@@ -8,6 +8,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import DeviceSunburst from '@/components/plots/DeviceSunburst'
 import LossWaterfall from '@/components/plots/LossWaterfall'
+import { LossWaterfallCardInfo } from '@/components/plots/LossWaterfallCardInfo'
 import POIMeter from '@/components/plots/POIMeter'
 import PowerPlantController from '@/components/plots/PowerPlantController'
 import {
@@ -325,7 +326,7 @@ const SystemPerformance = () => {
                     </>
                   }
                   title="Loss Waterfall"
-                  info="The loss waterfall charts highlight energy losses throughout the system, illustrating how each factor contributes to the overall loss. These losses can be broken down by component type or by root cause. In the component view, losses are grouped by the type of equipment affected, while in the root cause view, they are grouped by the failure modes causing the losses. The expected production, calculated based on system specifications and environmental conditions, is compared to the actual production. Any difference between the two, after accounting for known losses, is considered unaccounted loss, highlighting areas that may need further investigation."
+                  info={<LossWaterfallCardInfo />}
                   style={{ height: '100%', flex: 1 }}
                 >
                   <LossWaterfall

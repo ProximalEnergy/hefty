@@ -29,6 +29,7 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import Attribution from '@/components/gis/Attribution'
 import LossWaterfall from '@/components/plots/LossWaterfall'
+import { LossWaterfallCardInfo } from '@/components/plots/LossWaterfallCardInfo'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { GISContext } from '@/contexts/GISContext'
 import { useGetDevicesV2 } from '@/hooks/api'
@@ -947,10 +948,12 @@ const Page: React.FC = () => {
     const data = waterfallQuery.data
     if (!data?.name?.length || !data?.value?.length) return null
     const idxActual = data.name.indexOf(WATERFALL_NAME_PV_ENERGY_OUTPUT)
+    if (idxActual === -1) return null
     const idxExpected = data.name.indexOf(WATERFALL_NAME_PV_EXPECTED)
-    if (idxActual === -1 || idxExpected === -1) return null
-    const actual = data.value[idxActual]
+    if (idxExpected === -1) return null
+
     const expected = data.value[idxExpected]
+    const actual = data.value[idxActual]
     if (typeof actual !== 'number' || typeof expected !== 'number') return null
     return { actualMWh: actual, expectedMWh: expected }
   }, [waterfallQuery.data])
@@ -3119,7 +3122,10 @@ const Page: React.FC = () => {
         </SimpleGrid>
 
         {/* Waterfall Loss Chart */}
-        <CustomCard title="Daily Loss Waterfall">
+        <CustomCard
+          title="Daily Loss Waterfall"
+          info={<LossWaterfallCardInfo />}
+        >
           {startTime && endTime ? (
             <LossWaterfall
               level="device_type"

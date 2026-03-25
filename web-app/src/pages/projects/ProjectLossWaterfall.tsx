@@ -51,6 +51,24 @@ const ProjectLossWaterfall = () => {
               y: [100, -5, -5, -5, -5, -5, 0, -5, -5, 0, -5, 0],
               decreasing: { marker: { color: theme.colors.red[7] } },
               totals: { marker: { color: theme.colors.green[7] } },
+              hovertemplate: [
+                'absolute',
+                'relative',
+                'relative',
+                'relative',
+                'relative',
+                'relative',
+                'total',
+                'relative',
+                'relative',
+                'total',
+                'relative',
+                'total',
+              ].map((m) =>
+                m === 'relative'
+                  ? '<b>%{x}</b><br>%{delta:.2f} MWh<extra></extra>'
+                  : '<b>%{x}</b><br>%{final:.2f} MWh<extra></extra>',
+              ),
             },
           ]}
           layout={{

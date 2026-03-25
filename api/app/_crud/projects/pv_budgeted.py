@@ -1,7 +1,9 @@
 import datetime
 import uuid
 from collections.abc import Sequence
+from zoneinfo import ZoneInfo
 
+import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
@@ -227,3 +229,109 @@ def fetch_data(
     stmt = stmt.order_by(models.PVBudgetedData.time)
     result = project_db.execute(stmt)
     return result.scalars().all()
+
+
+def budgeted_energy_mwh_for_operational_window(
+    *,
+    project_db: Session,
+    project_id: uuid.UUID,
+    pv_budgeted_series_id: int,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    cod: datetime.date | None,
+    time_zone: str,
+    degradation_rate_pct: float = 0.5,
+) -> float | None:
+    """Sum budgeted POI AC energy (MWh) over an operational time window.
+
+    Hourly TMY rows are matched by local month-day-hour (same approach as
+    daily budgeted aggregation). Degradation follows COD and
+    ``degradation_rate_pct`` per year.
+
+    Args:
+        project_db: Project database session.
+        project_id: Project UUID (must own the series).
+        pv_budgeted_series_id: Budgeted series to read.
+        start: Window start (timezone-aware).
+        end: Window end (exclusive, timezone-aware).
+        cod: Project commercial operation date, if known.
+        time_zone: IANA timezone for interpreting the window.
+        degradation_rate_pct: Annual degradation percentage (default 0.5).
+
+    Returns:
+        Total budgeted MWh, or None if the series is missing, not owned by the
+        project, or has no data rows.
+
+    Raises:
+        ValueError: If ``start`` or ``end`` is naive (missing timezone).
+    """
+    if start.tzinfo is None or end.tzinfo is None:
+        raise ValueError("start and end must be timezone-aware datetimes")
+    series_stmt = sa.select(models.PVBudgetedSeries).where(
+        models.PVBudgetedSeries.project_id == project_id,
+        models.PVBudgetedSeries.pv_budgeted_series_id == pv_budgeted_series_id,
+    )
+    series_result = project_db.execute(series_stmt)
+    if series_result.scalar_one_or_none() is None:
+        return None
+
+    data_stmt = sa.select(models.PVBudgetedData).where(
+        models.PVBudgetedData.pv_budgeted_series_id == pv_budgeted_series_id,
+    )
+    data_result = project_db.execute(data_stmt)
+    rows = data_result.scalars().all()
+    if not rows:
+        return None
+
+    template_mw: dict[tuple[int, int, int], float] = {}
+    for row in rows:
+        t = row.time
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=datetime.UTC)
+        key = (t.month, t.day, t.hour)
+        template_mw[key] = float(row.poi_ac_power)
+
+    tz = ZoneInfo(time_zone)
+    start_local = pd.Timestamp(start).tz_convert(tz)
+    end_local = pd.Timestamp(end).tz_convert(tz)
+
+    hour_index = pd.date_range(
+        start=start_local.floor("h"),
+        end=end_local,
+        freq="h",
+        inclusive="left",
+    )
+    if hour_index.empty:
+        return 0.0
+
+    lookup_keys = list(
+        zip(
+            hour_index.month,
+            hour_index.day,
+            hour_index.hour,
+            strict=False,
+        )
+    )
+    mw_series = pd.Series(lookup_keys, index=hour_index).map(template_mw)
+    mw_series = mw_series.dropna()
+    if mw_series.empty:
+        return 0.0
+
+    if cod is None:
+        degradation_factor = pd.Series(1.0, index=mw_series.index)
+    else:
+        mw_hour_index = pd.DatetimeIndex(mw_series.index)
+        day_index = pd.Index(mw_hour_index.date)
+        unique_days = day_index.unique()
+        years_since_cod = (
+            pd.to_datetime(unique_days) - pd.Timestamp(cod)
+        ).days / 365.25
+        degradation_by_day = pd.Series(
+            (1 - degradation_rate_pct / 100) ** years_since_cod,
+            index=unique_days,
+        )
+        degradation_factor = pd.Series(day_index, index=mw_series.index).map(
+            degradation_by_day
+        )
+
+    return float((mw_series * degradation_factor).sum())

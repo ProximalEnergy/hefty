@@ -54,7 +54,13 @@ const CardTitle = ({
         {title && <span style={{ fontWeight: 500 }}>{title}</span>}
         {info && (
           <span onClick={(e) => e.stopPropagation()}>
-            <HoverCard shadow="md">
+            <HoverCard
+              shadow="md"
+              openDelay={200}
+              closeDelay={100}
+              width={420}
+              withinPortal
+            >
               <HoverCard.Target>
                 <IconInfoCircle
                   size={iconSize}
@@ -62,10 +68,14 @@ const CardTitle = ({
                   style={{ cursor: 'help', display: 'block' }}
                 />
               </HoverCard.Target>
-              <HoverCard.Dropdown maw="50%">
-                <Text size="sm" component="div">
-                  {info}
-                </Text>
+              <HoverCard.Dropdown maw={460} p="md">
+                {typeof info === 'string' ? (
+                  <Text size="sm" component="div">
+                    {info}
+                  </Text>
+                ) : (
+                  info
+                )}
               </HoverCard.Dropdown>
             </HoverCard>
           </span>
