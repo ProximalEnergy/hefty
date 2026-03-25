@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import date, timedelta
 from pathlib import Path
 from uuid import UUID
 
+import boto3
 import kpi_pipeline.config as config
 import pandas as pd
 import streamlit as st
+from botocore.exceptions import BotoCoreError, ClientError
 from core.crud import operational as op_crud
 from core.database import with_db
 from core.enumerations import KPIType, ProjectType
+from dotenv import load_dotenv
 from kpi_pipeline.config.step_05_upload import kpi_upload_action
 from kpi_pipeline.services.client import action_from_list
 from sqlalchemy import select, text
@@ -80,6 +84,68 @@ def get_selected_projects(
     """Return selected project columns that exist in a table."""
     table_column_set = set(table_columns)
     return [col for col in selected_projects if col in table_column_set]
+
+
+def trigger_kpi_backfill_step_function(
+    *,
+    state_machine_arn: str,
+    region_name: str,
+    start: date,
+    end: date,
+    days_per_chunk: int,
+    project_name_short_list: list[str],
+    kpi_type_ids: list[int],
+) -> str:
+    """Start the KPI pipeline backfill state machine (API /kpi-backfill equivalent).
+
+    Args:
+        state_machine_arn: Step Functions state machine ARN
+            (STEP_FUNCTION_ARN_KPI_PIPELINE).
+        region_name: AWS region for the Step Functions client (e.g. AWS_S3_REGION).
+        start: Inclusive range start (calendar date).
+        end: Exclusive range end (calendar date), matching the KPI pipeline fetcher.
+        days_per_chunk: Number of days per processing chunk.
+        project_name_short_list: Project name_short values for the backfill.
+        kpi_type_ids: KPI type IDs to include.
+    """
+    payload = {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "backfill_days": 0,
+        "days_per_chunk": days_per_chunk,
+        "project_name_short_list": project_name_short_list,
+        "kpi_type_ids": kpi_type_ids,
+    }
+    client = boto3.client("stepfunctions", region_name=region_name)
+    try:
+        response = client.start_execution(
+            stateMachineArn=state_machine_arn,
+            input=json.dumps(payload),
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise RuntimeError(
+            f"Failed to start KPI backfill step function: {exc}"
+        ) from exc
+    execution_arn = response.get("executionArn")
+    if not execution_arn:
+        raise RuntimeError("Step Functions returned no executionArn")
+    return str(execution_arn)
+
+
+def step_functions_execution_console_url(*, execution_arn: str) -> str:
+    """Build the AWS console URL for a Step Functions execution detail page.
+
+    Args:
+        execution_arn: Execution ARN returned by start_execution.
+    """
+    parts = execution_arn.split(":")
+    if len(parts) < 8 or parts[0] != "arn" or parts[2] != "states":
+        raise ValueError("Not a Step Functions execution ARN")
+    region = parts[3]
+    return (
+        f"https://{region}.console.aws.amazon.com/states/home"
+        f"?region={region}#/v2/executions/details/{execution_arn}"
+    )
 
 
 def get_presets_file_path() -> Path:
@@ -354,13 +420,23 @@ def load_sensor_last_date_matrix() -> pd.DataFrame:
     )
 
 
-@st.cache_data(show_spinner=True)
-def load_kpi_matrix() -> pd.DataFrame:
-    """Load and build KPI-type-by-project matrix from operational tables."""
-    with with_db(schema="operational") as db:
-        kpi_data_latest_df = pd.read_sql(
-            sql=text(
+def _build_kpi_date_matrix(*, use_min_date: bool) -> pd.DataFrame:
+    """Build KPI-type-by-project date matrix from operational.kpi_data."""
+    kpi_agg_sql = (
+        text(
+            """
+                SELECT
+                    project_id,
+                    kpi_type_id,
+                    MIN(date) AS latest_timestamp
+                FROM operational.kpi_data
+                GROUP BY project_id, kpi_type_id
+                ORDER BY project_id, kpi_type_id
                 """
+        )
+        if use_min_date
+        else text(
+            """
                 SELECT
                     project_id,
                     kpi_type_id,
@@ -369,7 +445,11 @@ def load_kpi_matrix() -> pd.DataFrame:
                 GROUP BY project_id, kpi_type_id
                 ORDER BY project_id, kpi_type_id
                 """
-            ),
+        )
+    )
+    with with_db(schema="operational") as db:
+        kpi_data_agg_df = pd.read_sql(
+            sql=kpi_agg_sql,
             con=db.bind,
         )
 
@@ -405,7 +485,7 @@ def load_kpi_matrix() -> pd.DataFrame:
     full_grid_df = full_grid_df.drop(columns="_key")
 
     joined_df = full_grid_df.merge(
-        kpi_data_latest_df,
+        kpi_data_agg_df,
         on=["project_id", "kpi_type_id"],
         how="left",
     )
@@ -434,6 +514,18 @@ def load_kpi_matrix() -> pd.DataFrame:
 
     display_df = matrix_df.reset_index().drop(columns=["kpi_type_id"])
     return display_df
+
+
+@st.cache_data(show_spinner=True)
+def load_kpi_matrix() -> pd.DataFrame:
+    """Load and build KPI-type-by-project last-date matrix from operational tables."""
+    return _build_kpi_date_matrix(use_min_date=False)
+
+
+@st.cache_data(show_spinner=True)
+def load_kpi_first_date_matrix() -> pd.DataFrame:
+    """Load KPI-type-by-project first-date matrix from operational.kpi_data."""
+    return _build_kpi_date_matrix(use_min_date=True)
 
 
 @st.cache_data(show_spinner=False)
@@ -483,10 +575,7 @@ def compute_special_preset(
 
     project_mask = projects_df["project_type_id"] == project_type_id
     project_names = (
-        projects_df.loc[project_mask, "project_name"]
-        .dropna()
-        .astype(str)
-        .tolist()
+        projects_df.loc[project_mask, "project_name"].dropna().astype(str).tolist()
     )
 
     kpi_mask = kpi_lookup_df["project_type_id"].isin(kpi_project_type_ids)
@@ -499,6 +588,9 @@ def compute_special_preset(
     )
 
     return project_names, kpi_ids
+
+
+_LOAD_MENU_LOGICAL = ("[ALL]", "[BESS]", "[PV]", "[PVS]")
 
 
 @st.cache_data(show_spinner=False)
@@ -660,16 +752,13 @@ def load_sensor_instance_matrix() -> pd.DataFrame:
 
 def main() -> None:
     """Render the KPI type vs project table app."""
+    load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
     st.set_page_config(page_title="KPI Types vs Projects", layout="wide")
-    st.subheader("KPI Dependency Explorer")
-    st.caption(
-        "Review KPI instance status, latest KPI dates, and supporting sensor "
-        "coverage by project."
-    )
 
     if st.sidebar.button("Refresh data"):
         load_projects.clear()
         load_kpi_matrix.clear()
+        load_kpi_first_date_matrix.clear()
         load_kpi_lookup.clear()
         load_kpi_instance_status_with_ids.clear()
         load_kpi_instance_status_matrix.clear()
@@ -700,53 +789,93 @@ def main() -> None:
     if presets_error is not None:
         st.sidebar.warning(presets_error)
 
-    special_presets = ["[BESS]", "[PV]", "[PVS]"]
-    preset_names = [*special_presets, *sorted(presets)]
-    selected_preset_name = st.sidebar.selectbox(
-        "Preset",
-        options=["", *preset_names],
-        format_func=lambda name: name or "(none)",
-        key="preset_name",
-    )
-    if selected_preset_name in special_presets:
-        preset_projects, preset_kpis = compute_special_preset(
-            name=selected_preset_name,
+    st.session_state.setdefault("kpi_dep_load_id", 0)
+    st.session_state.setdefault("kpi_dep_load_mode", "all")
+
+    load_menu = [
+        *_LOAD_MENU_LOGICAL,
+        *sorted(k for k in presets if k not in _LOAD_MENU_LOGICAL),
+    ]
+    with st.sidebar.popover("Load"):
+        load_choice = st.selectbox(
+            "Apply preset", load_menu, label_visibility="collapsed"
+        )
+        if st.button("Load", key="kpi_dep_load_confirm", use_container_width=True):
+            nxt = st.session_state["kpi_dep_load_id"] + 1
+            if load_choice == "[ALL]":
+                st.session_state["preset_name_field"] = ""
+                st.session_state.update(
+                    kpi_dep_load_id=nxt,
+                    kpi_dep_load_mode="all",
+                )
+                st.rerun()
+            elif load_choice in ("[BESS]", "[PV]", "[PVS]"):
+                st.session_state["preset_name_field"] = ""
+                st.session_state.update(
+                    kpi_dep_load_id=nxt,
+                    kpi_dep_load_mode="special",
+                    kpi_dep_special_name=load_choice,
+                )
+                st.rerun()
+            else:
+                fresh, _ = load_presets_dict(file_path=presets_file_path)
+                if load_choice not in fresh:
+                    st.warning(f'Preset "{load_choice}" not found in presets file.')
+                else:
+                    st.session_state.update(
+                        kpi_dep_load_id=nxt,
+                        kpi_dep_load_mode="json",
+                        kpi_dep_json_name=load_choice,
+                        preset_name_field=load_choice,
+                    )
+                    st.rerun()
+
+    load_mode = st.session_state["kpi_dep_load_mode"]
+    load_id = st.session_state["kpi_dep_load_id"]
+    if load_mode == "all":
+        default_projects = shared_project_options
+        default_kpis = kpi_options
+    elif load_mode == "special":
+        sp_name = st.session_state.get("kpi_dep_special_name", "[BESS]")
+        pp, pk = compute_special_preset(
+            name=sp_name,
             projects_df=projects_df,
             kpi_lookup_df=kpi_lookup_df,
         )
-        preset_projects = [
-            item for item in preset_projects if item in shared_project_options
-        ]
-        preset_kpis = [item for item in preset_kpis if item in kpi_options]
+        default_projects = [x for x in pp if x in shared_project_options]
+        default_kpis = [x for x in pk if x in kpi_options]
     else:
-        selected_preset = presets.get(selected_preset_name, {})
-        preset_projects = [
-            item
-            for item in selected_preset.get("projects", [])
-            if item in shared_project_options
-        ]
-        preset_kpis: list[str] = []
-        for item in selected_preset.get("kpis", []):
-            item_str = str(item)
-            if item_str in kpi_options:
-                preset_kpis.append(item_str)
-                continue
-            mapped_id = kpi_name_to_id.get(item_str)
-            if mapped_id is None:
-                mapped_id = kpi_label_to_id.get(item_str)
-            if mapped_id is not None:
-                preset_kpis.append(mapped_id)
-        preset_kpis = list(dict.fromkeys(preset_kpis))
-    default_projects = (
-        preset_projects if selected_preset_name else shared_project_options
-    )
-    default_kpis = preset_kpis if selected_preset_name else kpi_options
+        jn = st.session_state.get("kpi_dep_json_name", "")
+        entry = presets.get(jn, {})
+        if entry:
+            default_projects = [
+                str(x)
+                for x in entry.get("projects", [])
+                if str(x) in shared_project_options
+            ]
+            default_kpis: list[str] = []
+            for raw in entry.get("kpis", []):
+                s = str(raw)
+                if s in kpi_options:
+                    default_kpis.append(s)
+                    continue
+                mid = kpi_name_to_id.get(s) or kpi_label_to_id.get(s)
+                if mid is not None:
+                    default_kpis.append(mid)
+            default_kpis = list(dict.fromkeys(default_kpis))
+            st.session_state["kpi_dep_json_defaults_p"] = default_projects
+            st.session_state["kpi_dep_json_defaults_k"] = default_kpis
+        else:
+            default_projects = st.session_state.get(
+                "kpi_dep_json_defaults_p", shared_project_options
+            )
+            default_kpis = st.session_state.get("kpi_dep_json_defaults_k", kpi_options)
 
     selected_shared_projects = st.sidebar.multiselect(
         "Projects (columns)",
         options=shared_project_options,
         default=default_projects,
-        key=f"shared_projects::{selected_preset_name or 'all'}",
+        key=f"shared_projects::{load_id}",
     )
     selected_kpis = st.sidebar.multiselect(
         "KPI",
@@ -755,35 +884,27 @@ def main() -> None:
         format_func=lambda kpi_id: kpi_id_to_label.get(
             kpi_id, f"Unknown KPI ({kpi_id})"
         ),
-        key=f"shared_kpis::{selected_preset_name or 'all'}",
+        key=f"shared_kpis::{load_id}",
     )
-    is_special_preset = selected_preset_name in special_presets
-    preset_name_input = st.sidebar.text_input(
+    st.sidebar.text_input(
         "Preset name",
-        value=selected_preset_name,
         placeholder="Type preset name",
-        disabled=is_special_preset,
+        key="preset_name_field",
     )
     save_col, delete_col = st.sidebar.columns(2)
     with save_col:
-        save_clicked = st.button(
-            "Save",
-            use_container_width=True,
-            disabled=is_special_preset,
-        )
+        save_clicked = st.button("Save", use_container_width=True)
     with delete_col:
-        delete_clicked = st.button(
-            "Delete",
-            use_container_width=True,
-            disabled=not selected_preset_name or is_special_preset,
-        )
+        delete_clicked = st.button("Delete", use_container_width=True)
 
     if save_clicked:
-        clean_name = preset_name_input.strip()
+        clean_name = st.session_state.get("preset_name_field", "").strip()
         if not clean_name:
-            st.sidebar.error("Preset name is required.")
-        elif clean_name in special_presets:
-            st.sidebar.error("Cannot overwrite built-in presets.")
+            st.sidebar.warning("Enter a preset name before saving.")
+        elif clean_name in _LOAD_MENU_LOGICAL:
+            st.sidebar.warning(
+                "That name is reserved for built-in presets and cannot be saved."
+            )
         else:
             presets[clean_name] = {
                 "projects": selected_shared_projects,
@@ -799,13 +920,16 @@ def main() -> None:
                 st.sidebar.success("Preset saved.")
                 st.rerun()
 
-    if delete_clicked and selected_preset_name:
-        if selected_preset_name in special_presets:
+    if delete_clicked:
+        clean_name = st.session_state.get("preset_name_field", "").strip()
+        if not clean_name:
+            st.sidebar.warning("Enter a preset name to delete.")
+        elif clean_name in _LOAD_MENU_LOGICAL:
             st.sidebar.error("Cannot delete built-in presets.")
-        elif selected_preset_name not in presets:
-            st.sidebar.error("Preset not found.")
+        elif clean_name not in presets:
+            st.sidebar.warning("No preset with that exact name exists.")
         else:
-            del presets[selected_preset_name]
+            del presets[clean_name]
             write_error = write_presets_dict(
                 file_path=presets_file_path,
                 presets=presets,
@@ -830,10 +954,121 @@ def main() -> None:
         get_sensor_type_ids_for_kpis(kpi_type_ids=selected_kpi_ids)
     )
 
-    tab_instances, tab_last_date, tab_sensor_instance, tab_sensor = st.tabs(
+    title_left, title_right = st.columns([4, 1])
+    with title_left:
+        st.subheader("KPI Dependency Explorer")
+        st.caption(
+            "Review KPI instance status, latest KPI dates, and supporting sensor "
+            "coverage by project."
+        )
+    with title_right:
+        backfill_arn = os.getenv("STEP_FUNCTION_ARN_KPI_PIPELINE")
+        backfill_region = os.getenv("AWS_S3_REGION")
+        with st.popover("KPI Backfill"):
+            st.caption(
+                "Uses the projects and KPIs selected in the sidebar. Starts the "
+                "same Step Functions run as the web admin KPI backfill tool."
+            )
+            if not backfill_arn or not backfill_region:
+                st.warning(
+                    "Set STEP_FUNCTION_ARN_KPI_PIPELINE and AWS_S3_REGION in `.env`."
+                )
+            _backfill_today = date.today()
+            range_value = st.date_input(
+                "Date range (last day inclusive)",
+                value=(
+                    _backfill_today - timedelta(days=7),
+                    _backfill_today,
+                ),
+                max_value=_backfill_today,
+                key="kpi_backfill_date_range",
+            )
+            st.caption(
+                "No future calendar dates. Pipeline gets exclusive end = day after "
+                "your end date (fetcher: start ≤ d < end)."
+            )
+            days_chunk = st.number_input(
+                "Days per chunk",
+                min_value=1,
+                value=1,
+                step=1,
+                key="kpi_backfill_days_chunk",
+            )
+            st.caption(
+                f"Projects: {len(selected_shared_projects)}, "
+                f"KPIs: {len(selected_kpi_ids)}"
+            )
+            trigger_disabled = (
+                not backfill_arn
+                or not backfill_region
+                or not selected_shared_projects
+                or not selected_kpi_ids
+                or not isinstance(range_value, tuple)
+                or len(range_value) != 2
+            )
+            if st.button(
+                "Trigger KPI backfill",
+                disabled=trigger_disabled,
+                key="kpi_backfill_trigger",
+            ):
+                start_d, end_d = range_value
+                if start_d > end_d:
+                    st.error("Start date must be on or before end date.")
+                else:
+                    long_to_short = dict(
+                        zip(
+                            projects_df["project_name"].astype(str),
+                            projects_df["project_schema"].astype(str),
+                            strict=True,
+                        )
+                    )
+                    shorts = [
+                        long_to_short[p]
+                        for p in selected_shared_projects
+                        if p in long_to_short
+                    ]
+                    if len(shorts) != len(selected_shared_projects):
+                        st.error("Could not map every selected project to name_short.")
+                    else:
+                        try:
+                            exec_arn = trigger_kpi_backfill_step_function(
+                                state_machine_arn=backfill_arn,
+                                region_name=backfill_region,
+                                start=start_d,
+                                end=end_d + timedelta(days=1),
+                                days_per_chunk=int(days_chunk),
+                                project_name_short_list=shorts,
+                                kpi_type_ids=selected_kpi_ids,
+                            )
+                        except RuntimeError as exc:
+                            st.error(str(exc))
+                        else:
+                            st.success("KPI backfill accepted.")
+                            try:
+                                console_url = step_functions_execution_console_url(
+                                    execution_arn=exec_arn,
+                                )
+                            except ValueError:
+                                st.code(exec_arn, language=None)
+                            else:
+                                st.link_button(
+                                    "Open execution in AWS console",
+                                    console_url,
+                                    use_container_width=True,
+                                )
+                                st.caption(exec_arn)
+
+    (
+        tab_instances,
+        tab_last_date,
+        tab_first_date,
+        tab_sensor_instance,
+        tab_sensor,
+    ) = st.tabs(
         [
             "KPI Instances",
             "KPI Last Date",
+            "KPI First Date",
             "Sensor Type Instance",
             "Sensor Types Last Date",
         ]
@@ -1021,6 +1256,29 @@ def main() -> None:
             width="stretch",
             hide_index=True,
             column_config=get_column_config(columns=date_df.columns.tolist()),
+        )
+
+    with tab_first_date:
+        first_matrix_df = load_kpi_first_date_matrix()
+        filtered_first = first_matrix_df[
+            first_matrix_df["kpi"].isin(selected_kpi_labels)
+        ]
+        selected_projects_first = get_selected_projects(
+            selected_projects=selected_shared_projects,
+            table_columns=first_matrix_df.columns.tolist(),
+        )
+        visible_first = ["kpi", "implemented", *selected_projects_first]
+        first_date_df = filtered_first.loc[:, visible_first].copy()
+        for project_col in selected_projects_first:
+            first_date_df[project_col] = pd.to_datetime(
+                first_date_df[project_col]
+            ).dt.date
+
+        st.dataframe(
+            data=first_date_df,
+            width="stretch",
+            hide_index=True,
+            column_config=get_column_config(columns=first_date_df.columns.tolist()),
         )
 
     with tab_sensor_instance:
