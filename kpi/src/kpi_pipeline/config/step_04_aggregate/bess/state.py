@@ -1,6 +1,8 @@
 from core.enumerations import DeviceType
 
+import kpi_pipeline.services.calc as calc
 from kpi_pipeline.base.enums import Aggregation
+from kpi_pipeline.base.field import Field
 from kpi_pipeline.config.helper_fields import (
     _aggregate,
     _device_aggregate,
@@ -81,6 +83,40 @@ class AggregateBESSState(AddCalculationsSchema):
     project_avg_soc_d = _aggregate(
         var=Validate.project_soc_5m.var,
         agg=Aggregation.MEAN,
+    )
+
+    project_string_soc_variance_d = _aggregate(
+        var=Calculate.bess_project_string_soc_variance_5m.var,
+        agg=Aggregation.MEAN,
+    )
+
+    bess_pcs_string_soc_variance_d = _aggregate(
+        var=Calculate.bess_pcs_string_soc_variance_5m.var,
+        agg=Aggregation.MEAN,
+    )
+
+    project_pcs_string_soc_variance_d = _aggregate(
+        var=Calculate.bess_pcs_string_soc_variance_5m.var,
+        agg=Aggregation.MEAN,
+        child_device_axis=DeviceType.BESS_PCS,
+    )
+
+    project_string_soc_balance_score_d = Field(
+        calc.SocBalanceScoreCalc(
+            soc_variance_var=project_string_soc_variance_d.var,
+        )
+    )
+
+    bess_pcs_string_soc_balance_score_d = Field(
+        calc.SocBalanceScoreCalc(
+            soc_variance_var=bess_pcs_string_soc_variance_d.var,
+        )
+    )
+
+    project_pcs_string_soc_balance_score_d = Field(
+        calc.SocBalanceScoreCalc(
+            soc_variance_var=project_pcs_string_soc_variance_d.var,
+        )
     )
 
     ##

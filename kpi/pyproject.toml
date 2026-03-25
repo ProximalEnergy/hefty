@@ -1,6 +1,6 @@
 [project]
 name = "kpi-pipeline"
-version = "0.1.0"
+version = "0.1.2"
 description = "Add your description here"
 authors = [{ name = "David Kyle", email = "dkpollster@gmail.com" }]
 requires-python = ">=3.12.8, <3.13"

@@ -245,3 +245,16 @@ def energy_efficiency(
     )
     efficiency = energy_sink_kwh / source_filtered
     return efficiency.where(efficiency <= max_efficiency)
+
+
+def variance(
+    *, x: xr.DataArray, combiner: CoordCombinerProtocol, min_data_coverage: float = 0.5
+) -> xr.DataArray:
+    data_coverage = combiner.agg(x.notnull(), agg=Aggregation.MEAN)
+    var = combiner.group(x).var(dim=combiner.dim())
+    return var.where(data_coverage >= min_data_coverage)
+
+
+def soc_balance_score(*, soc_variance: xr.DataArray) -> xr.DataArray:
+    sqr: xr.DataArray = np.sqrt(soc_variance)  # type: ignore
+    return 1 - 2 * sqr

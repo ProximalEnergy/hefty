@@ -160,6 +160,16 @@ kpi_map: dict[KPIType, KPIMetadata] = {
         version="1.0.0",
         scale=0.001,
     ),
+    KPIType.BESS_PCS_STRING_SOC_BALANCE_SCORE: KPIMetadata(
+        project_var=Aggregate.project_pcs_string_soc_balance_score_d.var,
+        device_var=Aggregate.bess_pcs_string_soc_balance_score_d.var,
+        version="1.0.0",
+    ),
+    KPIType.BESS_PCS_STRING_SOC_VARIANCE: KPIMetadata(
+        project_var=Aggregate.project_pcs_string_soc_variance_d.var,
+        device_var=Aggregate.bess_pcs_string_soc_variance_d.var,
+        version="1.0.0",
+    ),
     # KPIType.BESS_PCS_MODULE_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY: KPIMetadata(
     #     project_var=Aggregate.project_maximum_continuous_discharge_across_pcs_modules_kwh_d.var,
     #     device_var=Aggregate.bess_pcs_module_maximum_continuous_discharge_kwh_d.var,
@@ -210,6 +220,14 @@ kpi_map: dict[KPIType, KPIMetadata] = {
     ),
     KPIType.BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY: KPIMetadata(
         project_var=Aggregate.project_pcs_module_to_meter_discharge_efficiency_d.var,
+        version="1.0.0",
+    ),
+    KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE: KPIMetadata(
+        project_var=Aggregate.project_string_soc_balance_score_d.var,
+        version="1.0.0",
+    ),
+    KPIType.BESS_PROJECT_STRING_SOC_VARIANCE: KPIMetadata(
+        project_var=Aggregate.project_string_soc_variance_d.var,
         version="1.0.0",
     ),
     KPIType.BESS_STRING_AVERAGE_C_RATE: KPIMetadata(

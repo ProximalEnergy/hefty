@@ -10,13 +10,8 @@ def _soc(field: str) -> Field:
     return Field(
         calc.CalcProcess(
             calc=calc.SelectCalc(var=field),
-            process=process.ProcessList(
-                steps=[
-                    process.VerifyWithinRangeProcess(min_value=0, max_value=1),
-                    process.FilterToRangeProcess(
-                        min_value=0.0, max_value=1.0, left_inclusive=False
-                    ),
-                ]
+            process=process.FilterToRangeProcess(
+                min_value=0.0, max_value=1.0, left_inclusive=False
             ),
         ),
     )

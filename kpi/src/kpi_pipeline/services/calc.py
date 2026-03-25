@@ -18,7 +18,9 @@ from kpi_pipeline.domain.bess import (
     energy_efficiency,
     maximum_continuous_discharge,
     reconstruct_accumulator,
+    soc_balance_score,
     squeeze_fill_energy_accumulator,
+    variance,
 )
 from kpi_pipeline.domain.general import (
     accumulate_energy_then_filter_by_capacity,
@@ -886,4 +888,28 @@ class EnergyEfficiencyCalc(CalcBase):
             energy_capacity_kwh=select(dataset, self.energy_capacity_kwh_var),
             min_source_energy_capacity_factor=self.min_source_energy_capacity_factor,
             max_efficiency=self.max_efficiency,
+        )
+
+
+@domain_calc(variance)
+class VarianceCalc(CalcBase):
+    x_var: str
+    combiner_model: CoordCombinerModel
+    min_data_coverage: float = 0.5
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return variance(
+            x=select(dataset, self.x_var),
+            combiner=coord_combiner(self.combiner_model, context),
+            min_data_coverage=self.min_data_coverage,
+        )
+
+
+@domain_calc(soc_balance_score)
+class SocBalanceScoreCalc(CalcBase):
+    soc_variance_var: str
+
+    def __call__(self, *, dataset: xr.Dataset, context: ContextModel):
+        return soc_balance_score(
+            soc_variance=select(dataset, self.soc_variance_var),
         )

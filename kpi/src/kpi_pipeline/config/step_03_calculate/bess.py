@@ -1,6 +1,9 @@
+from core.enumerations import DeviceType
+
 import kpi_pipeline.services.calc as calc
 import kpi_pipeline.services.process as process
 from kpi_pipeline.base.field import Field
+from kpi_pipeline.base.models import CoordCombinerModel
 from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate import Validate
 from kpi_pipeline.services.schema import AddCalculationsSchema
@@ -108,11 +111,32 @@ class CalculateBESS(AddCalculationsSchema):
         ),
     )
 
+    ##
+    # SOC
+    #
+
     bess_bank_dod_5m = _dod(Validate.bess_bank_soc_5m.var)
 
     project_dod_5m = _dod(Validate.project_soc_5m.var)
 
     bess_string_dod_5m = _dod(Validate.bess_string_soc_5m.var)
+
+    bess_project_string_soc_variance_5m = Field(
+        calc.VarianceCalc(
+            x_var=Validate.bess_string_soc_5m.var,
+            combiner_model=CoordCombinerModel(child_device_axis=DeviceType.BESS_STRING),
+        )
+    )
+
+    bess_pcs_string_soc_variance_5m = Field(
+        calc.VarianceCalc(
+            x_var=Validate.bess_string_soc_5m.var,
+            combiner_model=CoordCombinerModel(
+                child_device_axis=DeviceType.BESS_STRING,
+                parent_device_axis=DeviceType.BESS_PCS,
+            ),
+        )
+    )
 
     ##
     # backfill and forward fill the energy accumulators to remove NaNs
