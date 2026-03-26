@@ -472,7 +472,6 @@ const CustomDashMenu = () => {
                       </Text>
                     }
                     labelPosition="left"
-                    my="md"
                   />
                 )}
                 {[...sharedUserDashboards.data]

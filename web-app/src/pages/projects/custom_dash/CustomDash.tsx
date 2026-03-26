@@ -95,6 +95,28 @@ const defaultKPITimeRanges = {
   'Month to Date': 4,
 }
 
+const CUSTOM_DASH_DRAWER_SIZE = '50%'
+
+const LINE_CHART_PREVIEW_LEN = 314
+
+const lineChartPreviewPlotData = [
+  {
+    x: Array.from({ length: LINE_CHART_PREVIEW_LEN }, (_, i) => i / 10),
+    y: Array.from({ length: LINE_CHART_PREVIEW_LEN }, (_, i) =>
+      Math.sin(i / 10),
+    ),
+    type: 'line' as PlotType,
+  },
+  {
+    x: Array.from({ length: LINE_CHART_PREVIEW_LEN }, (_, i) => i / 10),
+    y: Array.from(
+      { length: LINE_CHART_PREVIEW_LEN },
+      (_, i) => i / 100 - LINE_CHART_PREVIEW_LEN / 100 / 2,
+    ),
+    type: 'line' as PlotType,
+  },
+]
+
 // Helper function to calculate time ranges based on selected values
 const calculateTimeRange = (timeRangeValue: number) => {
   switch (timeRangeValue) {
@@ -425,6 +447,7 @@ const GaugeComponent = ({
   // Calculate ring size based on container dimensions
   const minDimension = Math.min(containerSize.width, containerSize.height)
   const ringSize = minDimension * 0.9 // 80% of smallest dimension, minimum 100px
+  const ringProgressSize = Math.max(ringSize ?? 0, 12 * 2 + 1)
 
   return (
     <Stack align="center" justify="center" h="100%" w="100%">
@@ -440,7 +463,7 @@ const GaugeComponent = ({
       >
         <RingProgress
           thickness={12}
-          size={Math.max(ringSize ?? 0, 12 * 2 + 1)}
+          size={ringProgressSize}
           sections={[
             {
               value: gauge.data?.value || 0,
@@ -2001,6 +2024,7 @@ const Page = () => {
         <Drawer
           {...stack.register('select-component')}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
           title="Click a component to add to your dashboard."
         >
           <Stack p="sm">
@@ -2124,23 +2148,7 @@ const Page = () => {
                 </Text>
                 <Group w="100%" h="20vh" align="center" justify="center">
                   <PlotlyPlot
-                    data={[
-                      {
-                        x: Array.from({ length: 314 }, (_, i) => i / 10),
-                        y: Array.from({ length: 314 }, (_, i) =>
-                          Math.sin(i / 10),
-                        ),
-                        type: 'line' as PlotType,
-                      },
-                      {
-                        x: Array.from({ length: 314 }, (_, i) => i / 10),
-                        y: Array.from(
-                          { length: 314 },
-                          (_, i) => i / 100 - 314 / 100 / 2,
-                        ),
-                        type: 'line' as PlotType,
-                      },
-                    ]}
+                    data={lineChartPreviewPlotData}
                     layout={{ showlegend: false }}
                     config={{ displayModeBar: false }}
                   />
@@ -2210,6 +2218,7 @@ const Page = () => {
             }
           })()}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
         >
           <GaugeConfigComp
             mode={editingGaugeComponentId !== null ? 'edit' : 'create'}
@@ -2246,6 +2255,7 @@ const Page = () => {
             }
           })()}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
         >
           <KPIConfigComp
             mode={editingKPIComponentId !== null ? 'edit' : 'create'}
@@ -2286,6 +2296,7 @@ const Page = () => {
             }
           })()}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
         >
           <BarConfigComp
             mode={editingBarComponentId !== null ? 'edit' : 'create'}
@@ -2311,7 +2322,6 @@ const Page = () => {
           />
         </Drawer>
         <Drawer
-          size="lg"
           {...(() => {
             const drawerProps = stack.register('line-config')
             const originalOnClose = drawerProps.onClose
@@ -2324,6 +2334,7 @@ const Page = () => {
             }
           })()}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
         >
           <LineConfigComp
             mode={editingLineComponentId !== null ? 'edit' : 'create'}
@@ -2363,6 +2374,7 @@ const Page = () => {
             }
           })()}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
         >
           <ScatterConfigComp
             mode={editingScatterComponentId !== null ? 'edit' : 'create'}
@@ -2400,6 +2412,7 @@ const Page = () => {
             }
           })()}
           position="left"
+          size={CUSTOM_DASH_DRAWER_SIZE}
         >
           <RichTextConfigComp
             mode={editingRichTextComponentId !== null ? 'edit' : 'create'}

@@ -25,7 +25,8 @@ export function LossWaterfallCardInfo() {
           <Text size="sm" component="span">
             <strong>COD degradation on budgeted</strong> — Each matched hour is
             scaled from commercial operation date; see{' '}
-            <strong>Degradation assumptions</strong> below for the exact formula.
+            <strong>Degradation assumptions</strong> below for the exact
+            formula.
           </Text>
         </List.Item>
         <List.Item>
@@ -55,9 +56,9 @@ export function LossWaterfallCardInfo() {
             <code style={{ whiteSpace: 'nowrap' }}>
               (1 − 0.005)^years_since_COD
             </code>
-            , with <code>years_since_COD</code> as days after project COD divided
-            by 365.25. If COD is missing, that exponent is 0 (factor 1, no
-            budgeted degradation). This rate is not tied to EEM warranted
+            , with <code>years_since_COD</code> as days after project COD
+            divided by 365.25. If COD is missing, that exponent is 0 (factor 1,
+            no budgeted degradation). This rate is not tied to EEM warranted
             degradation or other product settings.
           </Text>
         </List.Item>
@@ -66,8 +67,8 @@ export function LossWaterfallCardInfo() {
             <strong>PV Expected (EEM)</strong> — Uses POI expected production
             from EEM for the period. The chart picks the richest series
             available: warranted degradation with soiling, then warranted
-            degradation only, then soiling without warranted degradation, then
-            a base POI run. Values reflect that EEM export, not the 0.5%/yr
+            degradation only, then soiling without warranted degradation, then a
+            base POI run. Values reflect that EEM export, not the 0.5%/yr
             budgeted rule.
           </Text>
         </List.Item>

@@ -357,6 +357,11 @@ function TagsComboBox({
       )
     })
 
+  const extraTagsBeyondDisplay =
+    selected.length > MAX_DISPLAYED_VALUES
+      ? selected.length - (MAX_DISPLAYED_VALUES - 1)
+      : 0
+
   return (
     <Combobox
       store={combobox}
@@ -365,6 +370,7 @@ function TagsComboBox({
     >
       <Combobox.DropdownTarget>
         <PillsInput
+          flex={1}
           label="Tags"
           pointer
           onClick={() => combobox.toggleDropdown()}
@@ -387,10 +393,8 @@ function TagsComboBox({
             {selected.length > 0 ? (
               <>
                 {displayed}
-                {selected.length > MAX_DISPLAYED_VALUES && (
-                  <Pill>
-                    +{selected.length - (MAX_DISPLAYED_VALUES - 1)} more
-                  </Pill>
+                {extraTagsBeyondDisplay > 0 && (
+                  <Pill>+{extraTagsBeyondDisplay} more</Pill>
                 )}
               </>
             ) : (
