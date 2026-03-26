@@ -1,8 +1,10 @@
 from core.enumerations import DeviceType
 
+import kpi_pipeline.services.calc as calc
 from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import CoordCombinerModel
+from kpi_pipeline.services import process
 from kpi_pipeline.services.calc import CalcProcess, ProcessCalc, SelectCalc
 from kpi_pipeline.services.process import (
     AggFirstProcess,
@@ -97,5 +99,16 @@ def _agg_first(
         ProcessCalc(
             var=var,
             process=AggFirstProcess(time_combiner_model=_5min_to_daily()),
+        )
+    )
+
+
+def _fill_energy_accumulator(field: str) -> Field:
+    return Field(
+        calc.CalcProcess(
+            calc=calc.SelectCalc(var=field),
+            process=process.ProcessList(
+                steps=[process.ForwardFillProcess(), process.BackwardFillProcess()],
+            ),
         )
     )

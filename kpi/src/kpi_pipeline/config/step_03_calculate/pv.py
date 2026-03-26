@@ -3,11 +3,13 @@ from core.enumerations import DeviceType
 from kpi_pipeline.base.enums import Aggregation
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import CoordCombinerModel
+from kpi_pipeline.config.helper_fields import _fill_energy_accumulator
 from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate import Validate
 from kpi_pipeline.services.calc import (
     CalcProcess,
     CurtailedPowerFromEemCalc,
+    DiffAndFilterCalc,
     FillNACalc,
     ProcessCalc,
     SelectCalc,
@@ -15,20 +17,22 @@ from kpi_pipeline.services.calc import (
 )
 from kpi_pipeline.services.process import (
     AggregateProcess,
-    DiffProcess,
     ScaleOffsetProcess,
 )
 from kpi_pipeline.services.schema import AddCalculationsSchema
 
 
 class CalculatePV(AddCalculationsSchema):
+    pv_inverter_energy_production_total_filled_kwh_5m = _fill_energy_accumulator(
+        Download.time_series.pv_inverter_energy_production_total_kwh_5m.var
+    )
+
     pv_inverter_energy_production_kwh_5m = Field(
-        CalcProcess(
-            calc=SelectCalc(
-                var=Download.time_series.pv_inverter_energy_production_total_kwh_5m.var
-            ),
-            process=DiffProcess(),
-        ),
+        DiffAndFilterCalc(
+            energy_total_var=pv_inverter_energy_production_total_filled_kwh_5m.var,
+            power_capacity_var=Validate.pv_inverter_ac_capacity_kw.var,
+            max_capacity_factor=1 / 12,  # 12 steps per hour
+        )
     )
 
     project_energy_production_kwh_5m = Field(

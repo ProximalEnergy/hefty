@@ -4,6 +4,7 @@ import kpi_pipeline.services.calc as calc
 import kpi_pipeline.services.process as process
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import CoordCombinerModel
+from kpi_pipeline.config.helper_fields import _fill_energy_accumulator
 from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate import Validate
 from kpi_pipeline.services.schema import AddCalculationsSchema
@@ -20,17 +21,6 @@ def _dod(soc: str) -> Field:
         calc.CalcProcess(
             calc=calc.SelectCalc(var=soc),
             process=process.ScaleOffsetProcess(scale=-1, offset=1),
-        )
-    )
-
-
-def _fill_energy_accumulator(field: str) -> Field:
-    return Field(
-        calc.ProcessCalc(
-            var=field,
-            process=process.ProcessList(
-                steps=[process.ForwardFillProcess(), process.BackwardFillProcess()],
-            ),
         )
     )
 

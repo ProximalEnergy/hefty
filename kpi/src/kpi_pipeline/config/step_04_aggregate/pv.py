@@ -1,33 +1,18 @@
 from core.enumerations import DeviceType
 
-from kpi_pipeline.base.enums import Aggregation
+import kpi_pipeline.services.calc as calc
+from kpi_pipeline.base.enums import Aggregation, Time
 from kpi_pipeline.base.field import Field
 from kpi_pipeline.base.models import CoordCombinerModel
 from kpi_pipeline.config.helper_fields import (
     _5min_to_daily,
+    _agg_first,
     _aggregate,
     _device_aggregate,
 )
 from kpi_pipeline.config.step_01_download import Download
 from kpi_pipeline.config.step_02_validate import Validate
 from kpi_pipeline.config.step_03_calculate import Calculate
-from kpi_pipeline.services.calc import (
-    CalcProcess,
-    CombinerMechanicalAvailabilityCalc,
-    DcFieldHealthCalc,
-    MechanicalAvailabilityCalc,
-    PerformanceIndexCalc,
-    PerformanceRatioCalc,
-    PvDcCombinerModuleExcessDegradationCalc,
-    QuotientCalc,
-    SolvGuaranteeAvailabilityCalc,
-    SolvPeriodKwhLostCalc,
-    SolvPeriodKwhProducedCalc,
-    TrackerAvailabilityCalc,
-    TrackerDeviationFromSetpointCalc,
-    TrackerSetpointDeviationFromMedianCalc,
-    WeightedAverageCalc,
-)
 from kpi_pipeline.services.process import FilterToRangeProcess
 from kpi_pipeline.services.schema import AddCalculationsSchema
 
@@ -40,8 +25,8 @@ class AggregatePV(AddCalculationsSchema):
     # tracker position matches setpoint within threshold (2.0 degrees)
 
     block_tracker_availability_d = Field(
-        CalcProcess(
-            calc=TrackerAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.TrackerAvailabilityCalc(
                 position_var=Validate.tracker_row_position_deg_5m.var,
                 setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
                 time_combiner_model=_5min_to_daily(
@@ -55,8 +40,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     tracker_row_availability_d = Field(
-        CalcProcess(
-            calc=TrackerAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.TrackerAvailabilityCalc(
                 position_var=Validate.tracker_row_position_deg_5m.var,
                 setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
                 time_combiner_model=_5min_to_daily(),
@@ -67,8 +52,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_tracker_availability_d = Field(
-        CalcProcess(
-            calc=TrackerAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.TrackerAvailabilityCalc(
                 position_var=Validate.tracker_row_position_deg_5m.var,
                 setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
                 time_combiner_model=_5min_to_daily(
@@ -86,7 +71,7 @@ class AggregatePV(AddCalculationsSchema):
     # Measures how much tracker position deviates from setpoint or median position
 
     tracker_row_deviation_from_setpoint_deg_d = Field(
-        TrackerDeviationFromSetpointCalc(
+        calc.TrackerDeviationFromSetpointCalc(
             position_var=Validate.tracker_row_position_deg_5m.var,
             setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
             time_combiner_model=_5min_to_daily(),
@@ -94,7 +79,7 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     block_tracker_deviation_from_setpoint_deg_d = Field(
-        TrackerDeviationFromSetpointCalc(
+        calc.TrackerDeviationFromSetpointCalc(
             position_var=Validate.tracker_row_position_deg_5m.var,
             setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
             time_combiner_model=_5min_to_daily(
@@ -105,7 +90,7 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_tracker_row_deviation_from_setpoint_deg_d = Field(
-        TrackerDeviationFromSetpointCalc(
+        calc.TrackerDeviationFromSetpointCalc(
             position_var=Validate.tracker_row_position_deg_5m.var,
             setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
             time_combiner_model=_5min_to_daily(
@@ -115,14 +100,14 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     tracker_row_setpoint_deviation_from_median_deg_d = Field(
-        TrackerSetpointDeviationFromMedianCalc(
+        calc.TrackerSetpointDeviationFromMedianCalc(
             setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
             time_combiner_model=_5min_to_daily(),
         )
     )
 
     block_tracker_setpoint_deviation_from_median_deg_d = Field(
-        TrackerSetpointDeviationFromMedianCalc(
+        calc.TrackerSetpointDeviationFromMedianCalc(
             setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
             time_combiner_model=_5min_to_daily(
                 child_device_axis=DeviceType.TRACKER_ROW,
@@ -132,7 +117,7 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_tracker_row_setpoint_deviation_from_median_deg_d = Field(
-        TrackerSetpointDeviationFromMedianCalc(
+        calc.TrackerSetpointDeviationFromMedianCalc(
             setpoint_var=Validate.tracker_row_setpoint_deg_5m.var,
             time_combiner_model=_5min_to_daily(
                 child_device_axis=DeviceType.TRACKER_ROW,
@@ -166,13 +151,21 @@ class AggregatePV(AddCalculationsSchema):
         child_device_axis=DeviceType.PV_INVERTER_MODULE,
     )
 
-    pv_inverter_energy_production_kwh_d = _aggregate(
-        var=Calculate.pv_inverter_energy_production_kwh_5m.var,
-        agg=Aggregation.SUM,
+    pv_inverter_energy_production_total_kwh_d = _agg_first(
+        var=Calculate.pv_inverter_energy_production_total_filled_kwh_5m.var,
     )
 
-    project_energy_production_pcs_kwh_d = _aggregate(
-        var=Calculate.pv_inverter_energy_production_kwh_5m.var,
+    pv_inverter_energy_production_kwh_d = Field(
+        calc.DiffAndFilterCalc(
+            energy_total_var=pv_inverter_energy_production_total_kwh_d.var,
+            power_capacity_var=Validate.pv_inverter_ac_capacity_kw.var,
+            max_capacity_factor=12,  # if 12 hours of full sunlight
+            time_dim=Time.DATE_LOCAL,
+        )
+    )
+
+    project_energy_production_pcs_kwh_d = _device_aggregate(
+        var=pv_inverter_energy_production_kwh_d.var,
         agg=Aggregation.SUM,
         child_device_axis=DeviceType.PV_INVERTER,
     )
@@ -183,7 +176,7 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_specific_yield_d = Field(
-        QuotientCalc(
+        calc.QuotientCalc(
             numerator_var=project_energy_production_kwh_d.var,
             denominator_var=Validate.project_power_capacity_dc_kw.var,
         )
@@ -195,8 +188,8 @@ class AggregatePV(AddCalculationsSchema):
     # Calculates health metrics for DC combiners and mechanical availability
 
     pv_dc_combiner_field_health_d = Field(
-        CalcProcess(
-            calc=DcFieldHealthCalc(
+        calc.CalcProcess(
+            calc=calc.DcFieldHealthCalc(
                 current_combiner_var=Download.time_series.pv_dc_combiner_current_amps_5m.var,
                 power_capacity_dc_combiner_var=Validate.pv_dc_combiner_power_capacity_dc_kw.var,
                 time_combiner_model=_5min_to_daily(),
@@ -206,8 +199,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_avg_pv_dc_combiner_field_health_d = Field(
-        CalcProcess(
-            calc=WeightedAverageCalc(
+        calc.CalcProcess(
+            calc=calc.WeightedAverageCalc(
                 array_var=pv_dc_combiner_field_health_d.var,
                 weights_var=Validate.pv_dc_combiner_power_capacity_dc_kw.var,
             ),
@@ -216,8 +209,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     pv_inverter_mechanical_availability_d = Field(
-        CalcProcess(
-            calc=MechanicalAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.MechanicalAvailabilityCalc(
                 power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 poa_threshold=90,
@@ -228,8 +221,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_mechanical_availability_pcs_d = Field(
-        CalcProcess(
-            calc=MechanicalAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.MechanicalAvailabilityCalc(
                 power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 poa_threshold=90,
@@ -242,8 +235,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     pv_dc_combiner_mechanical_availability_d = Field(
-        CalcProcess(
-            calc=CombinerMechanicalAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.CombinerMechanicalAvailabilityCalc(
                 pcs_power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 combiner_current_amps_var=Download.time_series.pv_dc_combiner_current_amps_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
@@ -258,8 +251,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_combiner_mechanical_availability_d = Field(
-        CalcProcess(
-            calc=CombinerMechanicalAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.CombinerMechanicalAvailabilityCalc(
                 pcs_power_kw_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
                 combiner_current_amps_var=Download.time_series.pv_dc_combiner_current_amps_5m.var,
                 met_station_poa_irradiance_w_m2_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
@@ -281,8 +274,8 @@ class AggregatePV(AddCalculationsSchema):
     # Calculates module state of health from daily data
 
     pv_dc_combiner_module_excess_degradation_d = Field(
-        CalcProcess(
-            calc=PvDcCombinerModuleExcessDegradationCalc(
+        calc.CalcProcess(
+            calc=calc.PvDcCombinerModuleExcessDegradationCalc(
                 met_station_irradiance_poa_w_m2_5m_var=Validate.met_station_irradiance_poa_w_m2_5m.var,
                 project_theoretical_poa_irradiance_w_m2_5m_var=Calculate.project_theoretical_poa_irradiance_w_m2_5m.var,
                 project_meter_power_kw_5m_var=Validate.project_active_power_meter_kw_5m.var,
@@ -331,7 +324,7 @@ class AggregatePV(AddCalculationsSchema):
     # Calculates performance index and performance ratio from energy and capacity data
 
     project_performance_index_d = Field(
-        PerformanceIndexCalc(
+        calc.PerformanceIndexCalc(
             expected_energy_var=Calculate.project_energy_expected_best_kwh_5m.var,
             actual_energy_var=Calculate.project_energy_production_kwh_5m.var,
             time_combiner_model=_5min_to_daily(),
@@ -339,8 +332,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_performance_ratio_d = Field(
-        CalcProcess(
-            calc=PerformanceRatioCalc(
+        calc.CalcProcess(
+            calc=calc.PerformanceRatioCalc(
                 energy_var=Calculate.project_energy_production_kwh_5m.var,
                 power_capacity_var=Validate.project_power_capacity_dc_kw.var,
                 insolation_poa_var=Calculate.project_insolation_poa_kwh_m2_5m.var,
@@ -358,7 +351,7 @@ class AggregatePV(AddCalculationsSchema):
     # Solv Guaranteed Availability
 
     project_solv_period_kwh_produced_d = Field(
-        SolvPeriodKwhProducedCalc(
+        calc.SolvPeriodKwhProducedCalc(
             project_irradiance_poa_w_m2_5m_var=Calculate.project_irradiance_poa_w_m2_5m.var,
             project_meter_power_kw_5m_var=Validate.project_active_power_meter_kw_5m.var,
             time_combiner_model=_5min_to_daily(),
@@ -366,7 +359,7 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_solv_period_kwh_lost_d = Field(
-        SolvPeriodKwhLostCalc(
+        calc.SolvPeriodKwhLostCalc(
             project_irradiance_poa_w_m2_5m_var=Calculate.project_irradiance_poa_w_m2_5m.var,
             unit_power_ac_kw_5m_var=Validate.pv_inverter_active_power_ac_kw_5m.var,
             unit_power_setpoint_kw_5m_var=Validate.pv_inverter_active_power_setpoint_kw_5m.var,
@@ -379,8 +372,8 @@ class AggregatePV(AddCalculationsSchema):
     )
 
     project_solv_guarantee_availability_d = Field(
-        CalcProcess(
-            calc=SolvGuaranteeAvailabilityCalc(
+        calc.CalcProcess(
+            calc=calc.SolvGuaranteeAvailabilityCalc(
                 period_kwh_produced_var=project_solv_period_kwh_produced_d.var,
                 period_kwh_lost_var=project_solv_period_kwh_lost_d.var,
             ),

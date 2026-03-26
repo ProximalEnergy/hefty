@@ -355,7 +355,7 @@ async def get_portfolio_home_long_term(
         KPIType.BESS_STRING_CYCLE_COUNT,
         KPIType.BESS_STRING_SOH,
         KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY,
-        KPIType.PV_INVERTER_ENERGY_PRODUCTION,
+        KPIType.PROJECT_ENERGY_PRODUCTION,
     ]
 
     # end equal to current date in UTC
@@ -431,9 +431,15 @@ async def get_portfolio_home_long_term(
             )
             state_of_health = df_pivot[54].tolist() if 54 in df_pivot.columns else None
             pcs_mechanical_availability = (
-                df_pivot[1].tolist() if 1 in df_pivot.columns else None
+                df_pivot[int(KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY)].tolist()
+                if int(KPIType.PV_INVERTER_MECHANICAL_AVAILABILITY) in df_pivot.columns
+                else None
             )
-            energy_production = df_pivot[2].tolist() if 2 in df_pivot.columns else None
+            energy_production = (
+                df_pivot[int(KPIType.PROJECT_ENERGY_PRODUCTION)].tolist()
+                if int(KPIType.PROJECT_ENERGY_PRODUCTION) in df_pivot.columns
+                else None
+            )
 
             return_data.append(
                 PortfolioHomeLongTerm(
