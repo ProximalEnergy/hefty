@@ -417,21 +417,21 @@ async def get_timeseries_v3(
     if df.index.name in ["time", "time_bucket"]:
         time_col = df.index.name
         time_series = pd.to_datetime(df.index)
-        # Apply ffill() then fillna(0) to all columns (time is in index)
+        # Apply ffill() to all columns
         data_columns: list[str] = list(df.columns)
-        df[data_columns] = df[data_columns].ffill().fillna(0).infer_objects(copy=False)
+        df[data_columns] = df[data_columns].ffill().infer_objects(copy=False)
     elif "time" in df.columns:
         time_col = "time"
         time_series = pd.to_datetime(df[time_col])
-        # Apply ffill() then fillna(0) to all columns except time
+        # Apply ffill() to all columns except time
         data_columns = [col for col in df.columns if col != time_col]
-        df[data_columns] = df[data_columns].ffill().fillna(0).infer_objects(copy=False)
+        df[data_columns] = df[data_columns].ffill().infer_objects(copy=False)
     elif "time_bucket" in df.columns:
         time_col = "time_bucket"
         time_series = pd.to_datetime(df[time_col])
-        # Apply ffill() then fillna(0) to all columns except time_bucket
+        # Apply ffill() to all columns except time_bucket
         data_columns = [col for col in df.columns if col != time_col]
-        df[data_columns] = df[data_columns].ffill().fillna(0).infer_objects(copy=False)
+        df[data_columns] = df[data_columns].ffill().infer_objects(copy=False)
     else:
         return []
 
