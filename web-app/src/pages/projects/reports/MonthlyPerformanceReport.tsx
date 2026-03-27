@@ -24,9 +24,8 @@ const MonthlyPerformanceReport = () => {
       <Card withBorder p="md" radius="md">
         <Stack>
           <Text c="dimmed">
-            Summarizes monthly project performance, highlighting key
-            production, availability, and operational trends for the selected
-            month.
+            Summarizes monthly project performance, highlighting key production,
+            availability, and operational trends for the selected month.
           </Text>
 
           <MonthPickerInput

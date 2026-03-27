@@ -204,32 +204,40 @@ const DcFieldEventHeader = ({
   eventStatus: 'open' | 'closed' | 'unknown'
   eventStartTime: dayjs.Dayjs
   eventEndTime: dayjs.Dayjs
-}) => (
-  <Stack>
-    <Group>
-      <Title order={2}>
-        {event?.device?.device_type?.name_long} {event?.device?.name_long}{' '}
-        {' Event'}
-      </Title>
-      <Badge color={eventStatus === 'open' ? 'red' : 'green'}>
-        {eventStatus === 'open' ? 'Open' : 'Closed'}
-      </Badge>
-    </Group>
-    <Badge color={'gray'} size="lg" variant="outline">
-      <Group gap={2}>
-        <IconClock size={16} />{' '}
-        {dayjs(eventStartTime).format('MM/DD/YYYY HH:mm')} -{' '}
-        {event?.time_end
-          ? dayjs(eventEndTime).format('MM/DD/YYYY HH:mm')
-          : 'ONGOING'}
+}) => {
+  const resolvedTitle =
+    event.device_name_full ||
+    event.device?.name_full ||
+    `${event.device?.device_type?.name_long ?? 'DC Field'} ${
+      event.device?.name_long ?? ''
+    }`.trim()
+
+  return (
+    <Stack>
+      <Group>
+        <Title order={2}>
+          {resolvedTitle} {' Event'}
+        </Title>
+        <Badge color={eventStatus === 'open' ? 'red' : 'green'}>
+          {eventStatus === 'open' ? 'Open' : 'Closed'}
+        </Badge>
       </Group>
-    </Badge>
-    <Text>
-      {'Failure Mode: '}
-      {event?.failure_mode?.name_long}
-    </Text>
-  </Stack>
-)
+      <Badge color={'gray'} size="lg" variant="outline">
+        <Group gap={2}>
+          <IconClock size={16} />{' '}
+          {dayjs(eventStartTime).format('MM/DD/YYYY HH:mm')} -{' '}
+          {event?.time_end
+            ? dayjs(eventEndTime).format('MM/DD/YYYY HH:mm')
+            : 'ONGOING'}
+        </Group>
+      </Badge>
+      <Text>
+        {'Failure Mode: '}
+        {event?.failure_mode?.name_long}
+      </Text>
+    </Stack>
+  )
+}
 
 // Event Losses Component
 const EventLosses = ({
