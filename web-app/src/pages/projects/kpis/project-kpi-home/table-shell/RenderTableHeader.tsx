@@ -27,7 +27,9 @@ const handleSortToggle = (
 ) => {
   const currentSort = column.getIsSorted()
   if (currentSort === false) {
-    column.toggleSorting(false) // false = ascending
+    column.toggleSorting(false) // asc
+  } else if (currentSort === 'asc') {
+    column.toggleSorting(true) // desc
   } else {
     column.clearSorting()
   }
@@ -81,6 +83,13 @@ const RenderTableHeader = ({ table }: RenderTableHeaderProps) => {
                       {header.column.getCanSort() && (
                         <SortChevron
                           isSorted={header.column.getIsSorted() !== false}
+                          dir={
+                            header.column.getIsSorted() === 'asc'
+                              ? 'asc'
+                              : header.column.getIsSorted() === 'desc'
+                                ? 'desc'
+                                : undefined
+                          }
                           onClick={() => handleSortToggle(header.column)}
                         />
                       )}

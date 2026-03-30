@@ -162,25 +162,19 @@ export default function ProjectKPIHome() {
   // Sorting states managed with local storage
   //
 
-  const [sortingColumnId, setSortingColumnId] = useLocalStorage<string | null>({
-    key: 'project-kpi-sorting-column',
-    defaultValue: 'favorites',
+  const [sortingState, setSortingState] = useLocalStorage<SortingState>({
+    key: 'project-kpi-sorting-state',
+    defaultValue: [{ id: 'favorites', desc: false }],
   })
 
-  // Convert from simple columnId string to TanStack Table's SortingState
-  const sorting = useMemo<SortingState>(() => {
-    if (!sortingColumnId) return []
-    return [{ id: sortingColumnId, desc: false }]
-  }, [sortingColumnId])
+  const sorting = sortingState
 
-  // Convert from TanStack Table's SortingState back to simple columnId string
   const handleSortingChange = (
     updater: SortingState | ((old: SortingState) => SortingState),
   ) => {
     const newSorting =
       typeof updater === 'function' ? updater(sorting) : updater
-    const columnId = newSorting.length > 0 ? newSorting[0].id : null
-    setSortingColumnId(columnId)
+    setSortingState(newSorting)
   }
 
   //

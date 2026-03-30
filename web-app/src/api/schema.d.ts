@@ -5631,6 +5631,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/protected/web-application/portfolio/bess-power-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Portfolio Bess Power Availability Route
+         * @description Return latest PCS power availability for many projects in one query.
+         *
+         *     Reads DISTINCT ON latest rows from operational.data_timeseries for PCS
+         *     available charge/discharge power tags.
+         *
+         *     Args:
+         *         project_ids: Optional filter; defaults to all projects the user may
+         *             access when omitted.
+         *         db: Async operational database session.
+         *         user_data: Authenticated user for access control.
+         */
+        get: operations["get_portfolio_bess_power_availability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/portfolio/market-performance/has-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Portfolio Market Performance Has Access
+         * @description Return QSE market access for many projects in one request.
+         *
+         *     Same rules as GET
+         *     ``/projects/{project_id}/market-performance/has-access`` for each id:
+         *     project has a QSE integration and the user's company has can_view on it.
+         *
+         *     Args:
+         *         body: Project IDs to check; non-accessible ids are ignored.
+         *         db: Async operational database session.
+         *         user_data: Authenticated user for access filtering and company_id.
+         *
+         *     Returns:
+         *         One entry per requested project the user may access, with has_access.
+         */
+        post: operations["post_portfolio_market_performance_has_access"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/protected/web-application/portfolio/bess-revenue-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Portfolio Bess Revenue Summary
+         * @description Batch fetch QSE settlement revenue for multiple BESS projects.
+         *
+         *     Fetches Settlement-Charges from the PTP API for all allowed projects in a
+         *     single API call rather than one request per project, eliminating the N+1
+         *     pattern that occurs when using the per-project ptp-data endpoint.
+         *
+         *     Args:
+         *         body: Project IDs to fetch; non-accessible IDs are ignored.
+         *         db: Async operational database session.
+         *         tps_token: PTP API token manager.
+         *         user_data: Authenticated user for access control.
+         */
+        post: operations["post_portfolio_bess_revenue_summary"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/protected/web-application/portfolio/home": {
         parameters: {
             query?: never;
@@ -10541,6 +10632,57 @@ export interface components {
             coordinates: unknown[];
         };
         /**
+         * PortfolioBessPowerAvailability
+         * @description Latest BESS PCS power availability using POI and PCS denominators.
+         */
+        PortfolioBessPowerAvailability: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Available Power Mw */
+            available_power_mw: number | null;
+            /** Poi Capacity Mw */
+            poi_capacity_mw: number | null;
+            /** Max Pcs Capacity Mw */
+            max_pcs_capacity_mw: number | null;
+            /** Num Pcs Units */
+            num_pcs_units: number | null;
+            /** Power Availability Pct Poi */
+            power_availability_pct_poi: number | null;
+            /** Power Availability Pct Pcs */
+            power_availability_pct_pcs: number | null;
+        };
+        /**
+         * PortfolioBessRevenueSummaryRequest
+         * @description Project IDs to batch-fetch QSE settlement revenue for.
+         */
+        PortfolioBessRevenueSummaryRequest: {
+            /**
+             * Project Ids
+             * @description Operational project UUIDs (intersected with caller access).
+             */
+            project_ids?: string[];
+        };
+        /**
+         * PortfolioBessRevenueSummaryRow
+         * @description QSE settlement revenue totals for one BESS project.
+         */
+        PortfolioBessRevenueSummaryRow: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Revenue Today */
+            revenue_today: number | null;
+            /** Revenue Mtd */
+            revenue_mtd: number | null;
+            /** Revenue Ytd */
+            revenue_ytd: number | null;
+        };
+        /**
          * PortfolioHome
          * @description Combined short- and long-term portfolio home metrics.
          */
@@ -10578,6 +10720,30 @@ export interface components {
             expected_power: unknown[] | null;
             /** Performance Index */
             performance_index: number | null;
+        };
+        /**
+         * PortfolioMarketPerformanceHasAccessRequest
+         * @description Project IDs to check for QSE market-performance access.
+         */
+        PortfolioMarketPerformanceHasAccessRequest: {
+            /**
+             * Project Ids
+             * @description Operational project UUIDs (intersected with caller access).
+             */
+            project_ids?: string[];
+        };
+        /**
+         * PortfolioMarketPerformanceHasAccessRow
+         * @description QSE integration + company permission flag for one project.
+         */
+        PortfolioMarketPerformanceHasAccessRow: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Has Access */
+            has_access: boolean;
         };
         /**
          * Project
@@ -20620,6 +20786,112 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_portfolio_bess_power_availability: {
+        parameters: {
+            query?: {
+                project_ids?: string[] | null;
+            };
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioBessPowerAvailability"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_portfolio_market_performance_has_access: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioMarketPerformanceHasAccessRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioMarketPerformanceHasAccessRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_portfolio_bess_revenue_summary: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "x-api-key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PortfolioBessRevenueSummaryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioBessRevenueSummaryRow"][];
+                };
             };
             /** @description Validation Error */
             422: {

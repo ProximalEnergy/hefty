@@ -115,7 +115,11 @@ const statusSort = (
 ) => {
   const statusA = calculateKpiStatus(rowA, columnId)
   const statusB = calculateKpiStatus(rowB, columnId)
-  return statusB - statusA
+  if (statusA !== statusB) return statusB - statusA // critical first
+  // same severity tier: sort by raw value ascending (lowest first)
+  const valA = (rowA.getValue(columnId) as number | null) ?? 0
+  const valB = (rowB.getValue(columnId) as number | null) ?? 0
+  return valA - valB
 }
 
 // ============================================================================

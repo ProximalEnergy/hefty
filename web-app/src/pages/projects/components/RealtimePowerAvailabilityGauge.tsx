@@ -14,6 +14,7 @@ export const RealtimePowerAvailabilityGauge = ({
   maxPcsCapacityMw,
   isLoading,
   onClick,
+  denominatorLabel = 'POI capacity',
 }: {
   value: number | null
   availablePowerMw: number | null
@@ -22,6 +23,7 @@ export const RealtimePowerAvailabilityGauge = ({
   maxPcsCapacityMw: number | null
   isLoading: boolean
   onClick?: () => void
+  denominatorLabel?: string
 }) => {
   const sectionValue = value != null ? Math.min(100, value) : 0
   const color = value != null ? getColor(value) : 'gray'
@@ -47,7 +49,7 @@ export const RealtimePowerAvailabilityGauge = ({
           <div>
             {`Storage Power Availability:`}
             {` ${pwrLabel} / ${capLabel}`}
-            {` POI capacity${pcsLabel}.`}
+            {` ${denominatorLabel}${pcsLabel}.`}
           </div>
           <div>
             Based on max of cumulative PCS available charge and discharge power.

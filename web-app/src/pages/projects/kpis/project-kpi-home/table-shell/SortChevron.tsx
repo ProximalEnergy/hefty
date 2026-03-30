@@ -4,10 +4,11 @@ import { IconChevronDown } from '@tabler/icons-react'
 
 type SortChevronProps = {
   isSorted: boolean
+  dir?: 'asc' | 'desc'
   onClick?: () => void
 }
 
-const SortChevron = ({ isSorted, onClick }: SortChevronProps) => {
+const SortChevron = ({ isSorted, dir, onClick }: SortChevronProps) => {
   const color = isSorted
     ? 'var(--mantine-color-blue-5)'
     : 'var(--mantine-color-gray-5)'
@@ -18,7 +19,9 @@ const SortChevron = ({ isSorted, onClick }: SortChevronProps) => {
       strokeWidth={2.5}
       color={color}
       style={{
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: 'pointer',
+        transform: isSorted && dir === 'asc' ? 'rotate(180deg)' : undefined,
+        transition: 'transform 150ms ease',
       }}
       onClick={onClick}
     />

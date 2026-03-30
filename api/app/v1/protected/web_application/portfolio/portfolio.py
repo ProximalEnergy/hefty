@@ -1,20 +1,32 @@
+import datetime
+import logging
 from enum import StrEnum
 from typing import Annotated, Any, cast
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
+import core.models as models
 import pandas as pd
+from core.crud.operational.projects import get_projects
 from core.db_query import OutputType, postprocess_pandas_df
-from core.enumerations import KPIType
+from core.enumerations import KPIType, ProjectType, SensorType
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import core
 from app import dependencies, interfaces, utils
 from app._crud.operational import calendar as crud_calendar
 from app._crud.operational.data_timeseries import get_operational_data_timeseries
 from app._crud.operational.kpi_data import get_kpi_data_async
+from app._crud.operational.portfolio_bess_power_availability import (
+    get_portfolio_bess_power_availability_metrics,
+)
+from app.integrations.providers import ptp_explorer
+from app.integrations.token_manager import TokenManager
 from app.interfaces import CalendarItem, UserData
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/portfolio",
@@ -54,6 +66,154 @@ class PortfolioHome(PortfolioHomeShortTerm, PortfolioHomeLongTerm):
     """Combined short- and long-term portfolio home metrics."""
 
 
+class PortfolioBessPowerAvailability(BaseModel):
+    """Latest BESS PCS power availability using POI and PCS denominators."""
+
+    project_id: UUID
+    available_power_mw: float | None
+    poi_capacity_mw: float | None
+    max_pcs_capacity_mw: float | None
+    num_pcs_units: int | None
+    power_availability_pct_poi: float | None
+    power_availability_pct_pcs: float | None
+
+
+class PortfolioMarketPerformanceHasAccessRequest(BaseModel):
+    """Project IDs to check for QSE market-performance access."""
+
+    project_ids: list[UUID] = Field(
+        default_factory=list,
+        description="Operational project UUIDs (intersected with caller access).",
+    )
+
+
+class PortfolioMarketPerformanceHasAccessRow(BaseModel):
+    """QSE integration + company permission flag for one project."""
+
+    project_id: UUID
+    has_access: bool
+
+
+class PortfolioBessRevenueSummaryRequest(BaseModel):
+    """Project IDs to batch-fetch QSE settlement revenue for."""
+
+    project_ids: list[UUID] = Field(
+        default_factory=list,
+        description="Operational project UUIDs (intersected with caller access).",
+    )
+
+
+class PortfolioBessRevenueSummaryRow(BaseModel):
+    """QSE settlement revenue totals for one BESS project."""
+
+    project_id: UUID
+    revenue_today: float | None
+    revenue_mtd: float | None
+    revenue_ytd: float | None
+
+
+_NEGATE_KEYS = frozenset({"DAEPAMT", "DAESAMT", "RTEIAMT"})
+
+
+def _should_negate_settlement_key(*, key_name: str) -> bool:
+    """Return True if this settlement key represents a cost (should be negated).
+
+    Args:
+        key_name: PTP data-point key name.
+    """
+    k = key_name.upper()
+    return k in _NEGATE_KEYS or "SPD" in k or "BPD" in k
+
+
+def _parse_settlement_number(*, value: Any) -> float:
+    """Parse a PTP data value to float, returning 0.0 on failure.
+
+    Args:
+        value: Raw value from PTP API response.
+    """
+    if value is None:
+        return 0.0
+    try:
+        n = float(value)
+        return n if not (n != n) else 0.0  # guard NaN
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _aggregate_settlement_element(
+    *,
+    element: dict[str, Any],
+    tz_str: str,
+    now_utc: datetime.datetime,
+) -> tuple[float, float, float]:
+    """Accumulate today/MTD/YTD revenue from one PTP Settlement-Charges element.
+
+    Replicates the aggregation logic from the frontend useBESSRevenueSummary hook:
+    picks the highest-sequence data entry per interval, negates cost keys, and
+    buckets into today / month-to-date / year-to-date using the project timezone.
+
+    Args:
+        element: Single element dict from PTP API ``data`` array.
+        tz_str: IANA timezone string for the project.
+        now_utc: Current UTC datetime (shared across projects for consistency).
+
+    Returns:
+        Tuple of (revenue_today, revenue_mtd, revenue_ytd) in USD.
+    """
+    try:
+        tz = ZoneInfo(tz_str)
+        now_local = now_utc.astimezone(tz)
+    except Exception:
+        now_local = now_utc
+
+    today_key = now_local.strftime("%Y-%m-%d")
+    month_start_key = now_local.replace(day=1).strftime("%Y-%m-%d")
+
+    today = 0.0
+    mtd = 0.0
+    ytd = 0.0
+
+    for dp in element.get("dataPoints", []):
+        if not isinstance(dp, dict):
+            continue
+        sign = (
+            -1 if _should_negate_settlement_key(key_name=dp.get("keyName", "")) else 1
+        )
+        for val in dp.get("values", []):
+            if not isinstance(val, dict):
+                continue
+            interval = val.get("intervalStartUtc")
+            if not interval:
+                continue
+            data_entries = val.get("data") or []
+            if not data_entries:
+                continue
+            best = max(
+                data_entries,
+                key=lambda e: (
+                    e.get("sequence", 0)
+                    if isinstance(e.get("sequence"), (int, float))
+                    else 0
+                ),
+            )
+            n = _parse_settlement_number(value=best.get("value")) * sign
+            try:
+                dt_utc = datetime.datetime.fromisoformat(
+                    interval.replace("Z", "+00:00")
+                )
+                dt_local = dt_utc.astimezone(ZoneInfo(tz_str))
+                date_key = dt_local.strftime("%Y-%m-%d")
+            except Exception:
+                continue
+            ytd += n
+            if date_key >= month_start_key:
+                mtd += n
+            if date_key == today_key:
+                today += n
+
+    return today, mtd, ytd
+
+
 class TimeFrame(StrEnum):
     """Time window options for portfolio metrics."""
 
@@ -75,9 +235,7 @@ async def get_portfolio_home_short_term(
     if len(project_ids) == 0:
         return []
 
-    projects_query = core.crud.operational.projects.get_projects(
-        project_ids=project_ids
-    )
+    projects_query = get_projects(project_ids=project_ids)
     projects_df = cast(
         pd.DataFrame,
         await projects_query.get_async(output_type=OutputType.PANDAS),
@@ -275,12 +433,11 @@ async def get_portfolio_home_short_term(
             if power_columns and expected_columns:
                 time_zone: str = projects_df.loc[project_id, "time_zone"]  # type: ignore
                 project_type_id = projects_df.loc[project_id, "project_type_id"]  # type: ignore
-                if project_type_id == core.enumerations.ProjectType.PVS:  # PV + Storage
+                if project_type_id == ProjectType.PVS:  # PV + Storage
                     circuit_power_columns = [
                         c
                         for c in df_project.columns
-                        if c[1]
-                        == core.enumerations.SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER  # noqa: E501
+                        if c[1] == SensorType.PV_MV_COLLECTOR_CIRCUIT_METER_ACTIVE_POWER  # noqa: E501
                     ]  # pv_mv_circuit_meter_active_power
                     meter_total = (
                         df_project.loc[
@@ -453,6 +610,262 @@ async def get_portfolio_home_long_term(
             )
 
     return return_data
+
+
+@router.get(
+    "/bess-power-availability",
+    response_model=list[PortfolioBessPowerAvailability],
+    operation_id="get_portfolio_bess_power_availability",
+)
+async def get_portfolio_bess_power_availability_route(
+    project_ids: Annotated[list[UUID] | None, Query()] = None,
+    db: AsyncSession = Depends(dependencies.get_async_db),
+    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+):
+    """Return latest PCS power availability for many projects in one query.
+
+    Reads DISTINCT ON latest rows from operational.data_timeseries for PCS
+    available charge/discharge power tags.
+
+    Args:
+        project_ids: Optional filter; defaults to all projects the user may
+            access when omitted.
+        db: Async operational database session.
+        user_data: Authenticated user for access control.
+    """
+    if not project_ids:
+        allowed = list(user_data.operational_project_ids)
+    else:
+        allowed = list(set(project_ids) & set(user_data.operational_project_ids))
+
+    if not allowed:
+        return []
+
+    projects_query = get_projects(project_ids=allowed)
+    projects_df = cast(
+        pd.DataFrame,
+        await projects_query.get_async(output_type=OutputType.PANDAS),
+    )
+
+    poi_by_project: dict[UUID, float | None] = {pid: None for pid in allowed}
+    schema_by_project: dict[UUID, str] = {}
+    if not projects_df.empty:
+        projects_df = postprocess_pandas_df(df=projects_df, index="project_id")
+        valid_pids = projects_df.index.intersection(allowed)
+        if not valid_pids.empty:
+            projects_df["poi"] = pd.to_numeric(projects_df["poi"], errors="coerce")
+            sub = projects_df.reindex(list(valid_pids))
+            poi_raw = cast(dict[UUID, Any], sub["poi"].to_dict())
+            poi_updates = {
+                pid: (None if pd.isna(val) else float(val))
+                for pid, val in poi_raw.items()
+            }
+            poi_by_project.update(poi_updates)
+            schema_updates = sub["name_short"].dropna().to_dict()
+            schema_by_project.update(cast(dict[UUID, str], schema_updates))
+
+    metrics_map = await get_portfolio_bess_power_availability_metrics(
+        db=db,
+        project_ids=allowed,
+        poi_by_project=poi_by_project,
+        project_schema_by_id=schema_by_project,
+    )
+
+    return [
+        PortfolioBessPowerAvailability(
+            project_id=pid,
+            available_power_mw=metrics_map[pid].available_power_mw,
+            poi_capacity_mw=metrics_map[pid].poi_capacity_mw,
+            max_pcs_capacity_mw=metrics_map[pid].max_pcs_capacity_mw,
+            num_pcs_units=metrics_map[pid].num_pcs_units,
+            power_availability_pct_poi=metrics_map[pid].power_availability_pct_poi,
+            power_availability_pct_pcs=metrics_map[pid].power_availability_pct_pcs,
+        )
+        for pid in allowed
+    ]
+
+
+@router.post(
+    "/market-performance/has-access",
+    operation_id="post_portfolio_market_performance_has_access",
+)
+async def post_portfolio_market_performance_has_access(
+    body: PortfolioMarketPerformanceHasAccessRequest,
+    db: AsyncSession = Depends(dependencies.get_async_db),
+    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+) -> list[PortfolioMarketPerformanceHasAccessRow]:
+    """Return QSE market access for many projects in one request.
+
+    Same rules as GET
+    ``/projects/{project_id}/market-performance/has-access`` for each id:
+    project has a QSE integration and the user's company has can_view on it.
+
+    Args:
+        body: Project IDs to check; non-accessible ids are ignored.
+        db: Async operational database session.
+        user_data: Authenticated user for access filtering and company_id.
+
+    Returns:
+        One entry per requested project the user may access, with has_access.
+    """
+    allowed = list(set(body.project_ids) & set(user_data.operational_project_ids))
+    if not allowed:
+        return []
+
+    stmt = (
+        select(models.QSEIntegration.project_id)
+        .join(
+            models.QSEPermission,
+            models.QSEPermission.qse_integration_id
+            == models.QSEIntegration.qse_integration_id,
+        )
+        .where(
+            models.QSEIntegration.project_id.in_(allowed),
+            models.QSEPermission.company_id == user_data.company_id,
+            models.QSEPermission.can_view.is_(True),
+        )
+        .distinct()
+    )
+    result = await db.execute(stmt)
+    with_access = set(result.scalars().all())
+
+    allowed_sorted = sorted(allowed, key=lambda u: str(u))
+    return [
+        PortfolioMarketPerformanceHasAccessRow(
+            project_id=pid,
+            has_access=pid in with_access,
+        )
+        for pid in allowed_sorted
+    ]
+
+
+@router.post(
+    "/bess-revenue-summary",
+    operation_id="post_portfolio_bess_revenue_summary",
+)
+async def post_portfolio_bess_revenue_summary(
+    body: PortfolioBessRevenueSummaryRequest,
+    db: AsyncSession = Depends(dependencies.get_async_db),
+    tps_token: TokenManager = Depends(dependencies.tps_token_mgr_async),
+    user_data: interfaces.UserData = Depends(dependencies.get_user_data_async),
+) -> list[PortfolioBessRevenueSummaryRow]:
+    """Batch fetch QSE settlement revenue for multiple BESS projects.
+
+    Fetches Settlement-Charges from the PTP API for all allowed projects in a
+    single API call rather than one request per project, eliminating the N+1
+    pattern that occurs when using the per-project ptp-data endpoint.
+
+    Args:
+        body: Project IDs to fetch; non-accessible IDs are ignored.
+        db: Async operational database session.
+        tps_token: PTP API token manager.
+        user_data: Authenticated user for access control.
+    """
+    allowed = list(set(body.project_ids) & set(user_data.operational_project_ids))
+    if not allowed:
+        return []
+
+    integrations_result = await db.execute(
+        select(models.QSEIntegration).where(
+            models.QSEIntegration.project_id.in_(allowed)
+        )
+    )
+    perms_result = await db.execute(
+        select(models.QSEPermission).where(
+            models.QSEPermission.company_id == user_data.company_id,
+            models.QSEPermission.can_view.is_(True),
+        )
+    )
+    integrations = list(integrations_result.scalars().all())
+    allowed_qse_ids = {p.qse_integration_id for p in perms_result.scalars().all()}
+
+    project_to_identifier: dict[UUID, str] = {}
+    for integration in integrations:
+        if integration.qse_integration_id not in allowed_qse_ids:
+            continue
+        if integration.qse_project_identifier:
+            project_to_identifier[integration.project_id] = (
+                integration.qse_project_identifier
+            )
+
+    if not project_to_identifier:
+        return []
+
+    projects_query = get_projects(project_ids=list(project_to_identifier.keys()))
+    projects_df = cast(
+        pd.DataFrame,
+        await projects_query.get_async(output_type=OutputType.PANDAS),
+    )
+    projects_df = postprocess_pandas_df(df=projects_df, index="project_id")
+    tz_map = cast(dict[UUID, Any], projects_df["time_zone"].to_dict())
+    tz_by_project: dict[UUID, str] = {
+        pid: (
+            str(raw)
+            if (raw := tz_map.get(pid)) is not None and pd.notna(raw)
+            else "UTC"
+        )
+        for pid in project_to_identifier
+    }
+
+    now_utc = datetime.datetime.now(datetime.UTC)
+    begin_str = (
+        datetime.datetime(now_utc.year - 1, 12, 31, tzinfo=datetime.UTC)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+    end_str = (now_utc + datetime.timedelta(days=2)).isoformat().replace("+00:00", "Z")
+
+    token = await tps_token.get_token()
+    all_identifiers = list(set(project_to_identifier.values()))
+
+    try:
+        ptp_result = await ptp_explorer.get_endpoint_data(
+            token=token,
+            market="ERCOTNodal",
+            endpoint="Settlement-Charges",
+            elements=all_identifiers,
+            begin=begin_str,
+            end=end_str,
+        )
+    except Exception:
+        logger.exception("Failed to fetch PTP settlement data for portfolio")
+        return []
+
+    element_by_id: dict[str, dict[str, Any]] = {
+        e["identifier"]: e
+        for e in ptp_result.get("data", [])
+        if isinstance(e, dict) and e.get("identifier")
+    }
+
+    result: list[PortfolioBessRevenueSummaryRow] = []
+    for pid, identifier in project_to_identifier.items():
+        element = element_by_id.get(identifier)
+        if element is None:
+            result.append(
+                PortfolioBessRevenueSummaryRow(
+                    project_id=pid,
+                    revenue_today=None,
+                    revenue_mtd=None,
+                    revenue_ytd=None,
+                )
+            )
+            continue
+
+        today, mtd, ytd = _aggregate_settlement_element(
+            element=element,
+            tz_str=tz_by_project.get(pid, "UTC"),
+            now_utc=now_utc,
+        )
+        result.append(
+            PortfolioBessRevenueSummaryRow(
+                project_id=pid,
+                revenue_today=today,
+                revenue_mtd=mtd,
+                revenue_ytd=ytd,
+            )
+        )
+
+    return result
 
 
 @router.get(
