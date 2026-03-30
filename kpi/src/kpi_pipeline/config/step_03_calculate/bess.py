@@ -332,3 +332,10 @@ class CalculateBESS(AddCalculationsSchema):
             process=process.EventChangeToInEventProcess(),
         )
     )
+
+    bess_pcs_offline_in_event_5m = Field(
+        calc.ProcessCalc(
+            var=Download.events.bess_pcs_offline_event_change_5m.var,
+            process=process.EventChangeToInEventProcess(),
+        )
+    )

@@ -11,3 +11,9 @@ class DownloadEvents(DownloadOfflineEventSchema):
             device_type=DeviceType.BESS_PCS_MODULE,
         )
     )
+
+    bess_pcs_offline_event_change_5m = Field(
+        OfflineEventModel(
+            device_type=DeviceType.BESS_PCS,
+        )
+    )

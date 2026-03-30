@@ -22,8 +22,8 @@ trap restore_editable_core_source EXIT
 # Pre-deploy checks (stop on first failure)
 mypy src/kpi_pipeline
 mypy lambda_function.py
-python -m kpi_pipeline.services.calc
-python -m kpi_pipeline.services.process
+python3 -m kpi_pipeline.services.calc
+python3 -m kpi_pipeline.services.process
 
 # Deployment configuration
 ECR_URI="016997484973.dkr.ecr.us-east-2.amazonaws.com/kpi-pipeline-ecr:latest"
