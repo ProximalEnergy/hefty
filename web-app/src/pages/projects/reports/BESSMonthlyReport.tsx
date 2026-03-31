@@ -19,6 +19,7 @@ import {
   Group,
   NumberInput,
   Paper,
+  ScrollArea,
   Select,
   Skeleton,
   Stack,
@@ -360,7 +361,9 @@ const BESSMonthlyReport = () => {
 
   return (
     <Stack p="md" h="100%">
-      <PageTitle>BESS Monthly Report</PageTitle>
+      <Group>
+        <PageTitle>BESS Monthly Report</PageTitle>
+      </Group>
       <Group align="flex-end">
         <MonthPickerInput
           label="Select Month"
@@ -405,94 +408,96 @@ const BESSMonthlyReport = () => {
         </Button>
       </Group>
 
-      <Group align="flex-start">
-        <Table withTableBorder withColumnBorders flex={2}>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>
-                <Group w="100%" justify="space-between">
-                  <Text size="sm" fw={1000}>
-                    Strategy Performance Comparison
-                  </Text>
-                  <Tooltip label="Add row" withArrow>
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="gray"
-                      onClick={handleAddRow}
-                    >
-                      <IconPlus />
-                    </ActionIcon>
-                  </Tooltip>
-                </Group>
-              </Table.Th>
-              <Table.Th>{dayjs(selectedMonth).format('MMM-YY')}</Table.Th>
-              <Table.Th>Year-to-Date</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rowNames.map((rowLabel, rowIndex) => (
-              <Table.Tr key={rowIndex}>
-                <Table.Td>
-                  <Group justify="space-between" gap="xs">
-                    <TextInput
-                      value={rowLabel}
-                      onChange={(e) =>
-                        handleRowNameChange(rowIndex, e.currentTarget.value)
-                      }
-                      placeholder="Enter strategy name"
-                      size="xs"
-                      style={{ flex: 1 }}
-                    />
-                    <Tooltip label="Remove row" withArrow>
+      <Group align="stretch" flex={1} mih={0}>
+        <ScrollArea flex={2} mih={0}>
+          <Table withTableBorder withColumnBorders>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>
+                  <Group w="100%" justify="space-between">
+                    <Text size="sm" fw={1000}>
+                      Strategy Performance Comparison
+                    </Text>
+                    <Tooltip label="Add row" withArrow>
                       <ActionIcon
                         size="xs"
                         variant="subtle"
                         color="gray"
-                        onClick={() => handleRemoveRow(rowIndex)}
+                        onClick={handleAddRow}
                       >
-                        <IconMinus />
+                        <IconPlus />
                       </ActionIcon>
                     </Tooltip>
                   </Group>
-                </Table.Td>
-                <Table.Td>
-                  <NumberInput
-                    value={tableData[rowIndex]?.month ?? ''}
-                    onChange={(value) =>
-                      handleInputChange(
-                        rowIndex,
-                        'month',
-                        typeof value === 'number' ? value : '',
-                      )
-                    }
-                    placeholder="Enter value"
-                    prefix="$"
-                    decimalScale={2}
-                    thousandSeparator=","
-                  />
-                </Table.Td>
-                <Table.Td>
-                  <NumberInput
-                    value={tableData[rowIndex]?.ytd ?? ''}
-                    onChange={(value) =>
-                      handleInputChange(
-                        rowIndex,
-                        'ytd',
-                        typeof value === 'number' ? value : '',
-                      )
-                    }
-                    placeholder="Enter value"
-                    prefix="$"
-                    decimalScale={2}
-                    thousandSeparator=","
-                  />
-                </Table.Td>
+                </Table.Th>
+                <Table.Th>{dayjs(selectedMonth).format('MMM-YY')}</Table.Th>
+                <Table.Th>Year-to-Date</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-        <Stack flex={2} h="100%">
+            </Table.Thead>
+            <Table.Tbody>
+              {rowNames.map((rowLabel, rowIndex) => (
+                <Table.Tr key={rowIndex}>
+                  <Table.Td>
+                    <Group justify="space-between" gap="xs">
+                      <TextInput
+                        value={rowLabel}
+                        onChange={(e) =>
+                          handleRowNameChange(rowIndex, e.currentTarget.value)
+                        }
+                        placeholder="Enter strategy name"
+                        size="xs"
+                        flex={1}
+                      />
+                      <Tooltip label="Remove row" withArrow>
+                        <ActionIcon
+                          size="xs"
+                          variant="subtle"
+                          color="gray"
+                          onClick={() => handleRemoveRow(rowIndex)}
+                        >
+                          <IconMinus />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <NumberInput
+                      value={tableData[rowIndex]?.month ?? ''}
+                      onChange={(value) =>
+                        handleInputChange(
+                          rowIndex,
+                          'month',
+                          typeof value === 'number' ? value : '',
+                        )
+                      }
+                      placeholder="Enter value"
+                      prefix="$"
+                      decimalScale={2}
+                      thousandSeparator=","
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <NumberInput
+                      value={tableData[rowIndex]?.ytd ?? ''}
+                      onChange={(value) =>
+                        handleInputChange(
+                          rowIndex,
+                          'ytd',
+                          typeof value === 'number' ? value : '',
+                        )
+                      }
+                      placeholder="Enter value"
+                      prefix="$"
+                      decimalScale={2}
+                      thousandSeparator=","
+                    />
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
+        <Stack flex={2} mih={0}>
           <Textarea
             label="Operational Commentary"
             placeholder="Enter operational commentary"
@@ -549,93 +554,101 @@ const BESSMonthlyReport = () => {
             </Table.Tbody>
           </Table>
         </Stack>
-        <Stack flex={1} h="100%">
-          <Paper withBorder p="md" h="100%" radius="md">
-            <Text size="sm" fw={1000}>
-              Included Projects
-            </Text>
-            {userProjectLabels.data && userProjectLabels.data.length > 0 && (
-              <Group>
-                <Text size="sm" fw={1000}>
-                  Quick Select:
-                </Text>
-                <Select
-                  data={
-                    userProjectLabels.data?.map((label) => label.name) || []
-                  }
-                  flex={1}
-                  clearable
-                  value={quickSelectLabelName}
-                  onChange={handleQuickSelectChange}
-                />
-              </Group>
-            )}
-            {batteryProjects?.map((project) => {
-              const projectIdString = project.project_id.toString()
-
-              return (
-                <Group key={project.project_id}>
-                  <Checkbox
-                    checked={includedProjects.includes(projectIdString)}
-                    onChange={(event) => {
-                      setQuickSelectLabelName(null)
-                      const { checked } = event.currentTarget
-
-                      setIncludedProjects((prev) => {
-                        if (checked) {
-                          return prev.includes(projectIdString)
-                            ? prev
-                            : [...prev, projectIdString]
-                        }
-
-                        return prev.filter((id) => id !== projectIdString)
-                      })
-                    }}
+        <Stack flex={1} mih={0} h="100%">
+          <Paper withBorder p="md" radius="md" mih={0} h="100%">
+            <Stack h="100%">
+              <Text size="sm" fw={1000}>
+                Included Projects
+              </Text>
+              {projects.isLoading && <Skeleton height="100%" />}
+              {userProjectLabels.data && userProjectLabels.data.length > 0 && (
+                <Group>
+                  <Text size="sm" fw={1000}>
+                    Quick Select:
+                  </Text>
+                  <Select
+                    data={
+                      userProjectLabels.data?.map((label) => label.name) || []
+                    }
+                    flex={1}
+                    clearable
+                    value={quickSelectLabelName}
+                    onChange={handleQuickSelectChange}
                   />
-                  <Text>{project.name_long}</Text>
                 </Group>
-              )
-            })}
-            <Group p="xs" grow>
-              <Button
-                size="compact-xs"
-                onClick={() => {
-                  setQuickSelectLabelName(null)
-                  setIncludedProjects(
-                    batteryProjects?.map((p) => p.project_id.toString()) || [],
+              )}
+              <ScrollArea flex={1} mih={0}>
+                {batteryProjects?.map((project) => {
+                  const projectIdString = project.project_id.toString()
+
+                  return (
+                    <Group key={project.project_id}>
+                      <Checkbox
+                        checked={includedProjects.includes(projectIdString)}
+                        onChange={(event) => {
+                          setQuickSelectLabelName(null)
+                          const { checked } = event.currentTarget
+
+                          setIncludedProjects((prev) => {
+                            if (checked) {
+                              return prev.includes(projectIdString)
+                                ? prev
+                                : [...prev, projectIdString]
+                            }
+
+                            return prev.filter((id) => id !== projectIdString)
+                          })
+                        }}
+                      />
+                      <Text>{project.name_long}</Text>
+                    </Group>
                   )
-                }}
-              >
-                Include All
-              </Button>
-              <Button
-                size="compact-xs"
-                onClick={() => {
-                  setQuickSelectLabelName(null)
-                  setIncludedProjects([])
-                }}
-              >
-                Clear All
-              </Button>
-            </Group>
+                })}
+              </ScrollArea>
+              <Group p="xs" grow>
+                <Button
+                  size="compact-xs"
+                  onClick={() => {
+                    setQuickSelectLabelName(null)
+                    setIncludedProjects(
+                      batteryProjects?.map((p) => p.project_id.toString()) ||
+                        [],
+                    )
+                  }}
+                >
+                  Include All
+                </Button>
+                <Button
+                  size="compact-xs"
+                  onClick={() => {
+                    setQuickSelectLabelName(null)
+                    setIncludedProjects([])
+                  }}
+                >
+                  Clear All
+                </Button>
+              </Group>
+            </Stack>
           </Paper>
         </Stack>
       </Group>
-      <Tooltip
-        label={disabledTooltip}
-        disabled={!isGenerateDisabled}
-        withArrow
-        withinPortal
-        position="top"
-      >
-        <Button
-          onClick={handleGenerateReport}
-          loading={generateReport.isPending}
-          disabled={isGenerateDisabled}
+      <Group grow>
+        <Tooltip
+          label={disabledTooltip}
+          disabled={!isGenerateDisabled}
+          withArrow
+          withinPortal
+          position="top"
         >
-          Generate Report
-        </Button>
-      </Tooltip>
+          <Button
+            onClick={handleGenerateReport}
+            loading={generateReport.isPending}
+            disabled={isGenerateDisabled}
+          >
+            Generate Report
+          </Button>
+        </Tooltip>
+      </Group>
     </Stack>
   )
 }
