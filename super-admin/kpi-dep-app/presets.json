@@ -41,17 +41,30 @@
   },
   "Indie": {
     "kpis": [
-      39,
-      35
+      25,
+      119,
+      118,
+      121,
+      120
     ],
     "projects": [
-      "Mason",
+      "Carrizo Springs",
+      "Falfurrias",
+      "Gears Harris",
+      "Goodwin",
       "Gregory",
+      "Hearn Road",
+      "Hidden Valley",
+      "Laureles",
+      "Lyssy",
+      "Mason",
+      "Medina Lake",
+      "Milton",
+      "Monte Cristo",
       "Muenster",
       "Palacios",
-      "Falfurrias",
-      "Monte Cristo",
-      "Sinton Pirate"
+      "Sinton Pirate",
+      "Utopia"
     ]
   },
   "SOC Balance": {

@@ -871,20 +871,33 @@ def main() -> None:
             )
             default_kpis = st.session_state.get("kpi_dep_json_defaults_k", kpi_options)
 
+    _ss_proj = f"shared_projects::{load_id}"
+    _ss_kpi = f"shared_kpis::{load_id}"
+    _n_sel_proj = (
+        len(st.session_state[_ss_proj])
+        if _ss_proj in st.session_state
+        else len(default_projects)
+    )
+    _n_sel_kpi = (
+        len(st.session_state[_ss_kpi])
+        if _ss_kpi in st.session_state
+        else len(default_kpis)
+    )
+
     selected_shared_projects = st.sidebar.multiselect(
-        "Projects (columns)",
+        f"Projects ({_n_sel_proj})",
         options=shared_project_options,
         default=default_projects,
-        key=f"shared_projects::{load_id}",
+        key=_ss_proj,
     )
     selected_kpis = st.sidebar.multiselect(
-        "KPI",
+        f"KPIs ({_n_sel_kpi})",
         options=kpi_options,
         default=default_kpis,
         format_func=lambda kpi_id: kpi_id_to_label.get(
             kpi_id, f"Unknown KPI ({kpi_id})"
         ),
-        key=f"shared_kpis::{load_id}",
+        key=_ss_kpi,
     )
     st.sidebar.text_input(
         "Preset name",
