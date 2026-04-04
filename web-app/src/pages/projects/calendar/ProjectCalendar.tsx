@@ -14,7 +14,7 @@ import rrulePlugin from '@fullcalendar/rrule'
 import { Box, Paper, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
 
 import { CalendarItemModal } from './CalendarItemModal'
 import { DetachAndEditOccurrenceModal } from './DetachAndEditOccurrenceModal'
@@ -23,6 +23,7 @@ import { ViewCalendarItemModal } from './ViewCalendarItemModal'
 
 export const ProjectCalendar = () => {
   const { projectId } = useParams<{ projectId: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
   const project = useSelectProject(projectId!)
 
   const {
@@ -154,6 +155,45 @@ export const ProjectCalendar = () => {
       }
     }
   }, [isLoadingCalendarItems, calendarItems, calendarViewInfo])
+
+  const eventIdFromUrl = searchParams.get('event')
+  const dateFromUrl = searchParams.get('date')
+
+  useEffect(() => {
+    if (!eventIdFromUrl || isLoadingCalendarItems || !calendarItems?.length)
+      return
+    const item = calendarItems.find(
+      (e) => e.calendar_item_id === eventIdFromUrl,
+    )
+    if (item) {
+      setSelectedItem(item)
+      const occurrenceDate = dateFromUrl
+        ? new Date(dateFromUrl + 'T12:00:00Z')
+        : new Date(item.start_time)
+      setSelectedOccurrenceDate(occurrenceDate)
+      setSelectedOccurrenceEndDate(
+        item.end_time ? new Date(item.end_time) : null,
+      )
+      openViewModal()
+      if (calendarRef.current) {
+        const api = calendarRef.current.getApi()
+        api.gotoDate(occurrenceDate)
+      }
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('event')
+        next.delete('date')
+        return next
+      })
+    }
+  }, [
+    eventIdFromUrl,
+    dateFromUrl,
+    isLoadingCalendarItems,
+    calendarItems,
+    openViewModal,
+    setSearchParams,
+  ])
 
   const handleItemClick = (info: EventClickArg) => {
     const clickedItem = (calendarItems || []).find(

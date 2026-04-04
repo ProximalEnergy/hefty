@@ -49,7 +49,7 @@ def _empty_facts_df() -> pd.DataFrame:
     return pd.DataFrame({c: pd.Series(dtype="object") for c in FACT_COLUMNS})
 
 
-def parse_maybe_int(val):
+def parse_maybe_int(val):  # nosemgrep
     """
     Convert:
       - ints -> ints
@@ -195,7 +195,7 @@ async def get_status_timeseries_interpreted(
                 ].copy()
                 # Convert "truthy" values to True, "falsy" values to False,
                 # and NA to None
-                boolean_df = normalize_truthy_falsy_df(boolean_df)
+                boolean_df = normalize_truthy_falsy_df(df=boolean_df)
 
     ## Retrieve interpretation tables
     binary_table = pd.DataFrame()
@@ -397,7 +397,7 @@ def df_to_reversed_binary_strings(
     return out
 
 
-def normalize_truthy_falsy_df(df: pd.DataFrame) -> pd.DataFrame:
+def normalize_truthy_falsy_df(*, df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert mixed dtype values into a pandas nullable boolean DataFrame.
 
@@ -655,7 +655,7 @@ def interpret_binary_sparse_uint(
 
     This does NOT require you to convert ints -> reversed strings first.
     """
-    coerced_binary = binary_str_df.map(parse_maybe_int)
+    coerced_binary = binary_str_df.map(lambda value: parse_maybe_int(val=value))
     binary_int_df = coerced_binary.astype("Int64")
     if binary_int_df.empty or binary_table.empty:
         return _empty_facts_df()

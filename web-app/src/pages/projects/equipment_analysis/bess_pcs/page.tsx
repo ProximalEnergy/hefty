@@ -1,9 +1,5 @@
 import { useGetUserType } from '@/api/admin'
-import {
-  DeviceTypeEnum,
-  ProjectTypeEnum,
-  UserTypeEnumEnum,
-} from '@/api/enumerations'
+import { ProjectTypeEnum, UserTypeEnumEnum } from '@/api/enumerations'
 import { useSelectProject } from '@/api/v1/operational/projects'
 import { useGetEquipmentAnalysisBESSPCS } from '@/api/v1/protected/web-application/projects/equipment-analysis/bess_pcs'
 import CustomCard from '@/components/CustomCard'
@@ -14,12 +10,14 @@ import { AdvancedDatePicker } from '@/components/datepicker/AdvancedDatePickerIn
 import { useValidateDateRange } from '@/components/datepicker/utils'
 import PlotlyPlot from '@/components/plots/PlotlyPlot'
 import { useProjectFilter } from '@/hooks/custom'
-import RealTime from '@/pages/projects/device_details/RealTime'
 import { sortAndColorDevices } from '@/utils/colors'
 import { Stack, Tabs, Text } from '@mantine/core'
 import Plotly from 'plotly.js/dist/plotly-custom.min.js'
 import { useEffect, useMemo, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router'
+
+import { EquipmentHeader } from './equipment-header'
+import { Realtime } from './realtime/realtime'
 
 const MAX_DAYS = 7
 
@@ -30,6 +28,9 @@ const Page = () => {
 
   const { projectId } = useParams<{ projectId: string }>()
   const userType = useGetUserType({})
+  const isAdmin =
+    userType.data?.user_type_id === UserTypeEnumEnum.ADMIN ||
+    userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
   const isSuperadmin =
     userType.data?.user_type_id === UserTypeEnumEnum.SUPERADMIN
 
@@ -37,30 +38,34 @@ const Page = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab = useMemo(() => {
     const tab = searchParams.get('tab')
+
     if (tab === 'realtime' || tab === 'current-day') {
       return tab
     }
+
     if (isSuperadmin && tab === 'long-term') {
       return tab
     }
-    return 'current-day'
+
+    return 'realtime'
   }, [isSuperadmin, searchParams])
+
   const setTab = (value: string | null) => {
-    const nextTab = value || 'current-day'
+    const nextTab = value || 'realtime'
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set('tab', nextTab)
     setSearchParams(nextParams, { replace: true })
   }
-  const tabPanelRef = useRef<HTMLDivElement>(null)
 
+  const tabPanelRef = useRef<HTMLDivElement>(null)
   const { start, end } = useValidateDateRange({
     maxDays: MAX_DAYS,
   })
 
   let startRequest, endRequest
   if (project.data) {
-    startRequest = start && start.tz(project.data.time_zone, true).toISOString()
-    endRequest = end && end.tz(project.data.time_zone, true).toISOString()
+    startRequest = start?.tz(project.data.time_zone, true).toISOString()
+    endRequest = end?.tz(project.data.time_zone, true).toISOString()
   }
 
   const data = useGetEquipmentAnalysisBESSPCS({
@@ -69,38 +74,37 @@ const Page = () => {
       start: startRequest || '',
       end: endRequest || '',
     },
-    queryOptions: { enabled: !!projectId && !!startRequest && !!endRequest },
+    queryOptions: {
+      enabled: !!projectId && !!startRequest && !!endRequest,
+    },
   })
 
-  // Resize Plotly charts when tab becomes active
-  // Must be before early return to follow React hooks rules
   useEffect(() => {
-    if (!tabPanelRef.current || activeTab !== 'current-day') return
+    if (!tabPanelRef.current || activeTab !== 'current-day') {
+      return
+    }
 
     const resizeCharts = () => {
-      // Find all Plotly plot elements within the active tab panel
       const plotElements = tabPanelRef.current?.querySelectorAll(
         '.js-plotly-plot',
       ) as NodeListOf<HTMLElement>
 
-      if (plotElements && plotElements.length > 0) {
-        // Resize each plot after a short delay to ensure container has dimensions
-        setTimeout(() => {
-          plotElements.forEach((plotElement) => {
-            const rect = plotElement.getBoundingClientRect()
-            // Only resize if the plot element has actual dimensions
-            if (rect.width > 0 && rect.height > 0) {
-              Plotly.Plots.resize(plotElement)
-            }
-          })
-        }, 150)
+      if (!plotElements || plotElements.length === 0) {
+        return
       }
+
+      setTimeout(() => {
+        plotElements.forEach((plotElement) => {
+          const rect = plotElement.getBoundingClientRect()
+          if (rect.width > 0 && rect.height > 0) {
+            Plotly.Plots.resize(plotElement)
+          }
+        })
+      }, 150)
     }
 
-    // Initial resize when tab becomes active
     resizeCharts()
 
-    // Also set up an IntersectionObserver to detect when the tab panel becomes visible
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -109,26 +113,32 @@ const Page = () => {
           }
         })
       },
-      {
-        threshold: 0.01,
-      },
+      { threshold: 0.01 },
     )
 
-    if (tabPanelRef.current) {
-      observer.observe(tabPanelRef.current)
-    }
+    observer.observe(tabPanelRef.current)
 
     return () => {
       observer.disconnect()
     }
   }, [activeTab])
 
-  // Project data loading
+  const currentDayInfo =
+    'Positive values indicate discharging, negative values indicate charging.'
+
+  const currentDayPlotData =
+    data.data &&
+    sortAndColorDevices(data.data).map((device) => ({
+      x: device.x,
+      y: device.y,
+      name: device.name,
+      line: { color: device.color },
+    }))
+
   if (project.isLoading) {
     return <PageLoader />
   }
 
-  // Project data error
   if (project.error) {
     return <PageError error={project.error} />
   }
@@ -136,6 +146,14 @@ const Page = () => {
   return (
     <Stack p="md" h="100%">
       <PageTitle>BESS PCS Performance</PageTitle>
+
+      <EquipmentHeader
+        projectId={projectId}
+        isAdmin={isAdmin}
+        placedInServiceDate={project.data?.placed_in_service_date}
+        poi={project.data?.poi ?? null}
+      />
+
       <Tabs
         value={activeTab}
         onChange={setTab}
@@ -166,10 +184,7 @@ const Page = () => {
             width: '100%',
           }}
         >
-          <RealTime
-            initialDeviceTypeId={DeviceTypeEnum.BESS_PCS}
-            restrictToDeviceTypeId={DeviceTypeEnum.BESS_PCS}
-          />
+          <Realtime />
         </Tabs.Panel>
 
         <Tabs.Panel
@@ -201,21 +216,15 @@ const Page = () => {
             />
             <CustomCard
               title="PCS Power"
-              info="Positive values indicate discharging, negative values indicate charging."
+              info={currentDayInfo}
               style={{ flex: 1 }}
             >
               <PlotlyPlot
-                data={
-                  data.data &&
-                  sortAndColorDevices(data.data).map((d) => ({
-                    x: d.x,
-                    y: d.y,
-                    name: d.name,
-                    line: { color: d.color },
-                  }))
-                }
+                data={currentDayPlotData}
                 layout={{
-                  yaxis: { title: { text: 'MW' } },
+                  yaxis: {
+                    title: { text: 'MW' },
+                  },
                 }}
                 isLoading={data.isLoading}
                 error={data.error}

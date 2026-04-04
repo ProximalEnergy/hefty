@@ -14,7 +14,7 @@ def convert_ond_data(
     """
     result = {}
 
-    def _to_float_if_set(value: str | None) -> float | None:
+    def _to_float_if_set(value: str | None) -> float | None:  # nosemgrep
         if value is None:
             return None
         stripped = value.strip()
@@ -48,8 +48,8 @@ def convert_ond_data(
             vabs_max = converter.get("VAbsMax")
             if vabs_max:
                 result["voltage_max"] = float(vabs_max)
-            imax_ac = _to_float_if_set(converter.get("IMaxAC"))
-            idc_max = _to_float_if_set(converter.get("IDCMax"))
+            imax_ac = _to_float_if_set(value=converter.get("IMaxAC"))
+            idc_max = _to_float_if_set(value=converter.get("IDCMax"))
             if imax_ac is not None and imax_ac > 0:
                 result["current_max"] = imax_ac
             elif idc_max is not None:
@@ -60,19 +60,19 @@ def convert_ond_data(
             # Power and temperature references
             temp_power_pairs: list[tuple[float, float]] = []
 
-            pnom = _to_float_if_set(converter.get("PMaxOUT"))
-            tnom = _to_float_if_set(converter.get("TPNom"))
+            pnom = _to_float_if_set(value=converter.get("PMaxOUT"))
+            tnom = _to_float_if_set(value=converter.get("TPNom"))
             if tnom is not None and pnom is not None:
                 temp_power_pairs.append((tnom, pnom))
 
-            plim1 = _to_float_if_set(converter.get("PLim1"))
-            tplim1 = _to_float_if_set(converter.get("TPLim1"))
+            plim1 = _to_float_if_set(value=converter.get("PLim1"))
+            tplim1 = _to_float_if_set(value=converter.get("TPLim1"))
             if tplim1 is not None and plim1 is not None:
                 temp_power_pairs.append((tplim1, plim1))
 
             # Absolute temperature/power derate point (if provided)
-            plim_abs = _to_float_if_set(converter.get("PLimAbs"))
-            tplim_abs = _to_float_if_set(converter.get("TPLimAbs"))
+            plim_abs = _to_float_if_set(value=converter.get("PLimAbs"))
+            tplim_abs = _to_float_if_set(value=converter.get("TPLimAbs"))
             if tplim_abs is not None and plim_abs is not None:
                 temp_power_pairs.append((tplim_abs, plim_abs))
 

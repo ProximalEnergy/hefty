@@ -294,7 +294,7 @@ export const useGetDevicesV2 = ({
     const token = await getToken({ template: 'default' })
     const response = await axios({
       method: 'post',
-      url: `${baseURL}/v1/operational/projects/${pathParams.projectId}/devices/`,
+      url: `${baseURL}/v1/operational/projects/${pathParams.projectId}/devices`,
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

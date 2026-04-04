@@ -81,6 +81,7 @@ const DEVICE_TYPE_MENU_ORDER: Record<number, number> = {
 }
 
 const withCurrentDayTab = (path: string) => `${path}?tab=current-day`
+const withRealtimeTab = (path: string) => `${path}?tab=realtime`
 
 const generatePerformanceLinks = (
   projectId: string,
@@ -161,9 +162,14 @@ const generatePerformanceLinks = (
       }
 
       const link: links.Link = {
-        to: withCurrentDayTab(
-          `/projects/${projectId}/equipment-analysis/${tabValue}`,
-        ),
+        to:
+          deviceType.device_type_id === DeviceTypeEnum.BESS_PCS
+            ? withRealtimeTab(
+                `/projects/${projectId}/equipment-analysis/${tabValue}`,
+              )
+            : withCurrentDayTab(
+                `/projects/${projectId}/equipment-analysis/${tabValue}`,
+              ),
         label: deviceType.name_long,
       }
 

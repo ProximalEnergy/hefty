@@ -839,14 +839,14 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
 
     # Formatting functions are now imported from report_utils
 
-    def _cell_float(row: str, column: str) -> float:
+    def _cell_float(row: str, column: str) -> float:  # nosemgrep
         coerced = pd.to_numeric(
             executive_summary_df.loc[row, column],
             errors="coerce",
         )
         return float(coerced)
 
-    def _delta_str(row: str) -> str:
+    def _delta_str(row: str) -> str:  # nosemgrep
         return str(executive_summary_df.loc[row, "Delta"])
 
     # --- Table Data (now 4 columns) ---
@@ -854,51 +854,87 @@ def section_monthly_comparison(*, doc, styles, executive_summary_df: pd.DataFram
         ["Metric", "This Month", "Expected", "Δ vs Expected"],
         [
             "Total Revenue",
-            format_dollar_value(value=_cell_float("Total Revenue", "This Month")),
-            format_dollar_value(value=_cell_float("Total Revenue", "Expected")),
-            _delta_str("Total Revenue"),
+            format_dollar_value(
+                value=_cell_float(row="Total Revenue", column="This Month")
+            ),
+            format_dollar_value(
+                value=_cell_float(row="Total Revenue", column="Expected")
+            ),
+            _delta_str(row="Total Revenue"),
         ],
         [
             "Total Energy Discharged",
             format_energy_value(
-                value=_cell_float("Total Energy Discharged", "This Month")
+                value=_cell_float(
+                    row="Total Energy Discharged",
+                    column="This Month",
+                )
             ),
             format_energy_value(
-                value=_cell_float("Total Energy Discharged", "Expected")
+                value=_cell_float(
+                    row="Total Energy Discharged",
+                    column="Expected",
+                )
             ),
-            _delta_str("Total Energy Discharged"),
+            _delta_str(row="Total Energy Discharged"),
         ],
         [
             "Total Energy Charged",
             format_energy_value(
-                value=_cell_float("Total Energy Charged", "This Month")
+                value=_cell_float(
+                    row="Total Energy Charged",
+                    column="This Month",
+                )
             ),
-            format_energy_value(value=_cell_float("Total Energy Charged", "Expected")),
-            _delta_str("Total Energy Charged"),
+            format_energy_value(
+                value=_cell_float(
+                    row="Total Energy Charged",
+                    column="Expected",
+                )
+            ),
+            _delta_str(row="Total Energy Charged"),
         ],
         [
             "Capacity-Weighted Availability",
             format_percentage_value(
-                value=_cell_float("Capacity-Weighted Availability", "This Month")
+                value=_cell_float(
+                    row="Capacity-Weighted Availability",
+                    column="This Month",
+                )
             ),
             format_percentage_value(
-                value=_cell_float("Capacity-Weighted Availability", "Expected")
+                value=_cell_float(
+                    row="Capacity-Weighted Availability",
+                    column="Expected",
+                )
             ),
-            _delta_str("Capacity-Weighted Availability"),
+            _delta_str(row="Capacity-Weighted Availability"),
         ],
         [
             "Degradation Rate",
-            format_percentage_per_year(_cell_float("Degradation Rate", "This Month")),
-            format_percentage_per_year(_cell_float("Degradation Rate", "Expected")),
-            _delta_str("Degradation Rate"),
+            format_percentage_per_year(
+                _cell_float(row="Degradation Rate", column="This Month")
+            ),
+            format_percentage_per_year(
+                _cell_float(row="Degradation Rate", column="Expected")
+            ),
+            _delta_str(row="Degradation Rate"),
         ],
         [
             "Forecast Accuracy",
             format_percentage_value(
-                value=_cell_float("Forecast Accuracy", "This Month")
+                value=_cell_float(
+                    row="Forecast Accuracy",
+                    column="This Month",
+                )
             ),
-            format_percentage_value(value=_cell_float("Forecast Accuracy", "Expected")),
-            _delta_str("Forecast Accuracy"),
+            format_percentage_value(
+                value=_cell_float(
+                    row="Forecast Accuracy",
+                    column="Expected",
+                )
+            ),
+            _delta_str(row="Forecast Accuracy"),
         ],
     ]
 
@@ -3343,7 +3379,7 @@ async def generate_eec_bess_monthly_report(
 type TimestampLike = datetime.datetime | datetime.date | pd.Timestamp
 
 
-def _ensure_utc(ts: pd.Timestamp) -> pd.Timestamp:
+def _ensure_utc(*, ts: pd.Timestamp) -> pd.Timestamp:
     """Return the timestamp converted to or localized in UTC."""
     if ts.tz is None:
         return ts.tz_localize("UTC")
@@ -3398,17 +3434,17 @@ def covered_seconds_by_any_event(
         time_start_series = time_start_series.dt.tz_convert("UTC")
         if not time_end_series.isna().all():
             time_end_series = time_end_series.dt.tz_convert("UTC")
-        start_ts = _ensure_utc(start_ts)
-        end_ts = _ensure_utc(end_ts)
+        start_ts = _ensure_utc(ts=start_ts)
+        end_ts = _ensure_utc(ts=end_ts)
         if ongoing_end_ts is not None:
-            ongoing_end_ts = _ensure_utc(ongoing_end_ts)
+            ongoing_end_ts = _ensure_utc(ts=ongoing_end_ts)
     elif start_ts.tz is not None or end_ts.tz is not None:
         time_start_series = time_start_series.dt.tz_localize("UTC")
         time_end_series = time_end_series.dt.tz_localize("UTC")
-        start_ts = _ensure_utc(start_ts)
-        end_ts = _ensure_utc(end_ts)
+        start_ts = _ensure_utc(ts=start_ts)
+        end_ts = _ensure_utc(ts=end_ts)
         if ongoing_end_ts is not None:
-            ongoing_end_ts = _ensure_utc(ongoing_end_ts)
+            ongoing_end_ts = _ensure_utc(ts=ongoing_end_ts)
 
     df = pd.DataFrame(
         {time_start_col: time_start_series, time_end_col: time_end_series}

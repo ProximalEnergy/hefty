@@ -45,7 +45,11 @@ def _extract_numeric_value_from_row(*, row) -> float | None:
         value = getattr(row, attr)
         if value is not None and not pd.isna(value):
             value = float(value)
-            if hasattr(row, "unit_scale") and row.unit_scale is not None:
+            if (
+                hasattr(row, "unit_scale")
+                and row.unit_scale is not None
+                and not pd.isna(row.unit_scale)
+            ):
                 value = value * row.unit_scale
             return float(value)
     return None

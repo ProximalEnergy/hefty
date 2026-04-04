@@ -723,22 +723,38 @@ def _interpret_binary_statuses(
         .str.cat(suffix_str[needs_suffix].astype("string"), sep=": ")
     )
 
-    # Alert per bit: nominal_state is not null AND bit_truth != nominal_state
-    # Use nullable-aware comparison
-    # nominal_state might be bool/0/1; coerce to boolean where present
+    # Alert per bit: nominal_state is not null AND bit_truth != nominal_state.
+    # nominal_state might be bool/0/1; coerce to boolean where present.
     nominal = merged["nominal_state"]
-    # Convert nominal to pandas boolean where possible
     nominal_bool = nominal.astype("boolean")
     merged["bit_alert"] = nominal_bool.notna() & (merged["bit_truth"] != nominal_bool)
 
+    # Include only active/deviating statuses in payload:
+    # - if nominal is defined, include bits deviating from nominal
+    # - otherwise include only bits that are true
+    merged["include_status"] = np.where(
+        nominal_bool.notna(),
+        merged["bit_alert"],
+        merged["bit_truth"],
+    )
+
+    status_only = merged.loc[merged["include_status"]].copy()
+
     # Aggregate back to original rows
-    agg = merged.groupby("_row_id", sort=False).agg(
+    status_agg = status_only.groupby("_row_id", sort=False).agg(
         status=("desc_full", lambda s: list(s.dropna().astype(str))),
+    )
+    alert_agg = merged.groupby("_row_id", sort=False).agg(
         alert=("bit_alert", "any"),
     )
 
     # Attach to binary_df
-    binary_df = binary_df.merge(agg, how="left", left_on="_row_id", right_index=True)
+    binary_df = binary_df.merge(
+        status_agg, how="left", left_on="_row_id", right_index=True
+    )
+    binary_df = binary_df.merge(
+        alert_agg, how="left", left_on="_row_id", right_index=True
+    )
     binary_df["status"] = binary_df["status"].apply(
         lambda x: x if isinstance(x, list) else []
     )
