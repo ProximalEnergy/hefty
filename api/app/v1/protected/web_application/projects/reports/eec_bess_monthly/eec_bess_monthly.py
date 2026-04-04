@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import math
 import os
 import shutil
 import tempfile
@@ -35,6 +34,9 @@ from core.crud.project.devices import (
 from core.crud.project.tags import get_project_tags_v2 as crud_get_project_tags_v2
 from core.db_query import OutputType
 from core.domain.kpis.rte import get_project_rte as core_get_project_rte
+from core.domain.kpis.rte import (
+    get_project_rte_from_modules as core_get_project_rte_from_modules,
+)
 from core.enumerations import DeviceType, KPIType, SensorType, TimeInterval
 from pydantic import BaseModel
 from reportlab.lib import colors
@@ -124,6 +126,46 @@ ASSETS = {
     "client_logo": os.path.join(RESOURCES_DIR, "excelsior_logo.png"),
     "placeholder": os.path.join(RESOURCES_DIR, "placeholder_logo.png"),
 }
+
+# ---------------------------------------------------------------------------
+# Additional Grouping Metadata
+# ---------------------------------------------------------------------------
+TRANCHE_1 = [
+    "Continental",
+    "Monte Cristo",
+    "Gregory",
+    "Palacios",
+]
+TRANCHE_2 = [
+    "Muenster",
+    "Mason",
+    "Laureles",
+    "Medina Lake",
+    "Utopia",
+    "Leaky",
+    "Medina",
+]
+TRANCHE_3 = [
+    "Sinton Pirate",
+    "Falfurrias",
+    "Hearn Road",
+    "Gears Harris",
+    "Hidden Valley",
+    "Milton",
+]
+TRANCHE_4 = [
+    "Goodwin",
+    "Carrizo Springs",
+    "Lyssy",
+    "Escondido",
+]
+
+_TRANCHE_ORDER_GROUPS = (TRANCHE_1, TRANCHE_2, TRANCHE_3, TRANCHE_4)
+PROJECT_NAME_TRANCHE_ORDER: dict[str, int] = {}
+for _ti, _names in enumerate(_TRANCHE_ORDER_GROUPS):
+    for _n in _names:
+        PROJECT_NAME_TRANCHE_ORDER[_n] = _ti
+_TRANCHE_SORT_FALLBACK = len(_TRANCHE_ORDER_GROUPS)
 
 # ---------------------------------------------------------------------------
 # Style system
@@ -584,6 +626,7 @@ def section_two_column_metrics(
     kpi_expected_values,
     request,
     current_soh,
+    ytd_cycles,
 ):
     """Create two-column metrics section (BESS SOC and SmartBidder metrics).
 
@@ -596,6 +639,7 @@ def section_two_column_metrics(
         kpi_expected_values: Dictionary of expected KPI values.
         request: BESSMonthlyReportRequest object.
         current_soh: Current SOH value.
+        ytd_cycles: YTD cycle count.
     Returns:
         List of flowable elements.
     """
@@ -629,10 +673,10 @@ def section_two_column_metrics(
     )
     ytd_cycles_delta = (
         calc_delta_percentage(
-            actual=cycle_count_sum,
+            actual=ytd_cycles,
             expected=kpi_expected_values["ytd_cycles"],
         )
-        if cycle_count_sum is not None
+        if ytd_cycles is not None
         else "—"
     )
     average_soc_mean = kpi_means.get(KPIType.PROJECT_AVERAGE_SOC_PERCENT)
@@ -674,7 +718,7 @@ def section_two_column_metrics(
         ),  # source: BESS Bank Cycle Count KPI
         (
             "YTD Cycles",
-            "—",
+            f"{ytd_cycles:.2f}",
             f"{kpi_expected_values['ytd_cycles']:.2f}",
             ytd_cycles_delta,
         ),  # source: BESS Bank Cycle Count KPI
@@ -1153,6 +1197,19 @@ def build_portfolio_kpi_table_rows(
 
     column_order = list(df.columns)
 
+    def sort_key(idx):  # nosemgrep
+        def row_key(x: str) -> tuple[int, int, str]:  # nosemgrep
+            if x == selected_project:
+                return (0, 0, "")
+            if x == "Portfolio Mean":
+                return (2, 0, "")
+            tranche_i = PROJECT_NAME_TRANCHE_ORDER.get(x, _TRANCHE_SORT_FALLBACK)
+            return (1, tranche_i, x.casefold())
+
+        return [row_key(str(x)) for x in idx]
+
+    df = df.sort_index(key=sort_key)
+
     header_row = [
         Paragraph("<b>Project</b>", header_style),
         *[Paragraph(f"<b>{column}</b>", header_style) for column in column_order],
@@ -1178,8 +1235,12 @@ def build_portfolio_kpi_table_rows(
                 formatted_value = format_percentage_value(value=value)
             elif column == "Energy Yield (MWh/MW)":
                 formatted_value = f"{value:.2f}"
-            elif column == "Net $ / MWh Delivered":
-                formatted_value = f"${value:,.0f}"
+            elif column == "Real $ / MWh Delivered":
+                v = float(value)
+                formatted_value = f"-${abs(v):,.0f}" if v < 0 else f"${v:,.0f}"
+            elif column == "Virtual $ / MWh Volume":
+                v = float(value)
+                formatted_value = f"-${abs(v):,.2f}" if v < 0 else f"${v:,.2f}"
             else:
                 formatted_value = f"{value:.2f}"
             row_cells.append(Paragraph(formatted_value, right_style))
@@ -1216,10 +1277,11 @@ def section_portfolio_kpi_comparison(
             radar_table_rows,
             colWidths=[
                 doc.width * 0.22,
-                doc.width * 0.145,
-                doc.width * 0.145,
-                doc.width * 0.145,
-                doc.width * 0.145,
+                doc.width * 0.116,
+                doc.width * 0.116,
+                doc.width * 0.116,
+                doc.width * 0.116,
+                doc.width * 0.116,
             ],
             hAlign="LEFT",
         )
@@ -1675,6 +1737,7 @@ async def build_report(
     radar_table_df: pd.DataFrame | None = None,
     radar_selected_project: str | None = None,
     radar_chart_bytes: bytes | None = None,
+    ytd_cycles: float | None = None,
 ):
     """Build and save the complete PDF report.
 
@@ -1699,6 +1762,7 @@ async def build_report(
         radar_table_df: Optional dataframe containing raw KPI comparison values.
         radar_selected_project: Optional project name to highlight in comparison table.
         radar_chart_bytes: Optional radar chart image bytes.
+        ytd_cycles: Optional YTD cycle count.
     """
     styles = build_styles()
 
@@ -1764,6 +1828,7 @@ async def build_report(
         kpi_expected_values=kpi_expected_values,
         request=request,
         current_soh=current_soh,
+        ytd_cycles=ytd_cycles,
     )
 
     # 6) Monthly Comparison
@@ -1886,21 +1951,82 @@ async def get_tps_data(
         Tuple of (revenue breakdown DataFrame, generation hourly DataFrame,
         consumption hourly DataFrame).
     """
-    DA_fields = ["DAES", "DAESAMT", "DAEP", "DAEPAMT"]
-    ancillary_fields_da = [
+
+    def build_daily_dataframe(
+        *, element: dict, interval_start_utc, project_time_zone: str
+    ) -> pd.DataFrame:
+        df_all = pd.DataFrame(
+            index=interval_start_utc,
+            data=element["DataPoints"],
+        )
+        df_all.index = pd.to_datetime(df_all.index)
+        df_all.index = df_all.index.tz_convert(project_time_zone)
+        df_all = df_all.drop(
+            columns=list(DROP_COLUMNS & set(df_all.columns)), errors="ignore"
+        )
+
+        missing = REQUIRED_COLUMNS - set(df_all.columns)
+        if missing:
+            raise ValueError(f"Element missing required columns: {sorted(missing)}")
+
+        df_daily = df_all.groupby(pd.Grouper(freq="D")).sum()
+
+        ancillary_series = -(
+            (df_daily[ANCILLARY_FIELDS_DA] / 4).sum(axis=1)
+            + df_daily[ANCILLARY_FIELDS_RT].sum(axis=1)
+        )
+
+        df_actuals = pd.DataFrame(index=df_daily.index)
+        df_actuals["Day-Ahead Energy"] = (
+            -df_daily[["DAESAMT", "DAEPAMT"]].sum(axis=1) / 4
+        )
+        df_actuals["Real-Time Energy"] = -df_daily[["RTEIAMT"]].sum(axis=1)
+        df_actuals["Misc Charges"] = -df_daily[["BPDAMT", "SPDAMT", "RTRDASIAMT"]].sum(
+            axis=1
+        )
+        df_actuals["Virtual Trades"] = virtual_series
+        df_actuals["Ancillary Services"] = ancillary_series
+        df_actuals["Net Profit"] = df_actuals.sum(axis=1)
+
+        return df_actuals
+
+    REQUIRED_COLUMNS = {
+        "DAESAMT",
+        "DAEPAMT",
+        "RTEIAMT",
+        "BPDAMT",
+        "SPDAMT",
+        "RTRDASIAMT",
+        "PCRUAMT",
+        "PCRDAMT",
+        "PCRRAMT",
+        "PCNSAMT",
+        "PCECRAMT",
+        "RTRUIMBAMT",
+        "RTRRIMBAMT",
+        "RTNSIMBAMT",
+        "RTECRIMBAMT",
+        "TWTG",
+    }
+
+    DROP_COLUMNS = {"RESOURCE_ID", "SETTLEMENT_POINT"}
+
+    ANCILLARY_FIELDS_DA = [
         "PCRUAMT",
         "PCRDAMT",
         "PCRRAMT",
         "PCNSAMT",
         "PCECRAMT",
     ]
-    ancillary_fields_rt = [
+    ANCILLARY_FIELDS_RT = [
         "RTRUIMBAMT",
-        "RTRDIMBAMT",
+        "RTRDASIAMT",
         "RTRRIMBAMT",
         "RTNSIMBAMT",
         "RTECRIMBAMT",
     ]
+
+    DA_fields = ["DAES", "DAESAMT", "DAEP", "DAEPAMT"]
 
     start = pd.Timestamp(start_dt, tz=project.time_zone)
     end = pd.Timestamp(end_dt, tz=project.time_zone)
@@ -1962,6 +2088,7 @@ async def get_tps_data(
     elements = cast(list[dict[str, Any]], virtual_data.get("Elements", []))
     if not elements:
         virtual_series = pd.Series()
+        virtual_volume = float(0)
     else:
         for element in elements:
             daily_start = pd.Timestamp(element["GoLiveDate"], tz=project.time_zone)
@@ -1988,45 +2115,62 @@ async def get_tps_data(
             .sum()
             .sum(axis=1)
         )
+        virtual_volume = float(
+            df_virtuals.loc[:, ~df_virtuals.columns.str.contains("AMT")]
+            .abs()
+            .sum()
+            .sum()
+        )
 
     if generator_payload is None:
         raise ValueError("Failed to fetch generator settlement data.")
+
     generator_data = generator_payload.get("data")
     if generator_data is None:
         raise ValueError("Missing generator settlement response data.")
-    generator_elements = generator_data.get("Elements", [])
+
+    generator_elements = cast(list[dict[str, Any]], generator_data.get("Elements", []))
     if not generator_elements:
         raise ValueError("Generator settlement response missing elements.")
-    element = generator_elements[0]
-    df_all = pd.DataFrame(
-        index=generator_data["IntervalStartUtc"],
-        data=element["DataPoints"],
-    )
-    df_all.index = pd.to_datetime(df_all.index)
-    df_all.index = df_all.index.tz_convert(project.time_zone)
-    df_all = df_all.drop(columns=["RESOURCE_ID", "SETTLEMENT_POINT"])
 
-    df_daily = df_all.groupby(pd.Grouper(freq="D")).sum()
-    ancillary_series = -(
-        (df_daily[ancillary_fields_da] / 4).sum(axis=1)
-        + (df_daily[ancillary_fields_rt]).sum(axis=1)
-    )
+    selected_element: dict[str, Any] | None = None
+    df_all: pd.DataFrame | None = None
 
-    rev_breakdown_df = pd.DataFrame(index=df_daily.index)
-    rev_breakdown_df["Day-Ahead Energy"] = (
-        -df_daily[["DAESAMT", "DAEPAMT"]].sum(axis=1) / 4
+    for candidate in generator_elements:
+        data_points = candidate.get("DataPoints")
+        if not data_points:
+            continue
+
+        if not isinstance(data_points, dict):
+            continue
+
+        candidate_keys = set(data_points.keys())
+        if REQUIRED_COLUMNS.issubset(candidate_keys):
+            selected_element = candidate
+
+            df_all = pd.DataFrame(
+                index=generator_data["IntervalStartUtc"],
+                data=selected_element["DataPoints"],
+            )
+            df_all.index = pd.to_datetime(df_all.index)
+            df_all.index = df_all.index.tz_convert(project.time_zone)
+            break
+
+    if selected_element is None or df_all is None:
+        raise ValueError(
+            "Could not find generator settlement element with required columns."
+        )
+
+    rev_breakdown_df = build_daily_dataframe(
+        element=selected_element,
+        interval_start_utc=generator_data["IntervalStartUtc"],
+        project_time_zone=project.time_zone,
     )
-    rev_breakdown_df["Real-Time Energy"] = -df_daily[["RTEIAMT"]].sum(axis=1)
-    rev_breakdown_df["Misc Charges"] = -df_daily[
-        ["BPDAMT", "SPDAMT", "RTRDASIAMT"]
-    ].sum(axis=1)
-    rev_breakdown_df["Virtual Trades"] = virtual_series
-    rev_breakdown_df["Ancillary Services"] = ancillary_series
-    rev_breakdown_df["Net Profit"] = rev_breakdown_df.sum(axis=1)
 
     meter = df_all["TWTG"]
     hourly_gen = meter[meter >= 0].resample("1h").sum()
     hourly_cons = meter[meter <= 0].resample("1h").sum()
+
     df_hr_gen = hourly_gen.to_frame(name="value").assign(
         date=lambda x: pd.to_datetime(x.index).date,
         hour=lambda x: pd.to_datetime(x.index).hour,
@@ -2035,12 +2179,13 @@ async def get_tps_data(
         date=lambda x: pd.to_datetime(x.index).date,
         hour=lambda x: pd.to_datetime(x.index).hour,
     )
+
     generation_hourly = df_hr_gen.pivot(index="date", columns="hour", values="value")
     consumption_hourly = df_hr_cons.pivot(
         index="date", columns="hour", values="value"
     ).abs()
 
-    return rev_breakdown_df, generation_hourly, consumption_hourly
+    return rev_breakdown_df, generation_hourly, consumption_hourly, virtual_volume
 
 
 async def generate_revenue_breakdown_chart(
@@ -2356,6 +2501,7 @@ async def get_kpi_data(
         KPIType.PROJECT_AVERAGE_SOC_PERCENT.value,
         KPIType.PROJECT_ENERGY_DISCHARGED.value,
         KPIType.BESS_PROJECT_ENERGY_CHARGED.value,
+        KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE.value,
     ]
     kpi_data_query = crud_get_kpi_data(
         start=start,
@@ -2398,8 +2544,24 @@ async def get_kpi_data(
         end=end,
         project=project,
     )
+    ytd_cycles = crud_get_kpi_data(
+        start=start.replace(month=1, day=1),
+        end=end,
+        project_ids=[project.project_id],
+        kpi_type_ids=[KPIType.BESS_STRING_CYCLE_COUNT.value],
+        include_device_data=False,
+    )
+    ytd_cycles_df = await ytd_cycles.get_async(output_type=OutputType.PANDAS)
+    ytd_earliest_date = ytd_cycles_df["date"].min()
 
-    return sums, means, stats, degradation["degradation_rate_pct_per_year"]
+    return (
+        sums,
+        means,
+        stats,
+        degradation["degradation_rate_pct_per_year"],
+        ytd_cycles_df["project_data"].sum(),
+        ytd_earliest_date,
+    )
 
 
 async def create_radar_chart(
@@ -2433,6 +2595,7 @@ async def create_radar_chart(
         KPIType.BESS_BANK_AVAILABILITY,
         KPIType.BESS_STRING_RESTING_SOC_PERCENT,
         KPIType.PROJECT_ENERGY_DISCHARGED,
+        KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE,
     ]
     df = await crud_get_kpi_data(
         kpi_type_ids=[kpi_type.value for kpi_type in kpi_type_ids],
@@ -2445,7 +2608,7 @@ async def create_radar_chart(
     )
     project_lookup = projects.set_index("project_id")
 
-    # Net $ / MWh Delivered:
+    # Real $ / MWh Delivered and $ / MW Virtual Trades:
     dollars_per_mwh = (
         df[df["kpi_type_id"] == KPIType.PROJECT_ENERGY_DISCHARGED][
             ["project_id", "project_data"]
@@ -2454,29 +2617,50 @@ async def create_radar_chart(
         .sum()
         .rename(columns={"project_data": "mwh"})
     )
+    virtual_dollars_per_mwh = pd.DataFrame(index=projects["project_id"])
     for i in projects.index:
         project_model = models.Project(**projects.loc[i])
         try:
             tps_element_identifier = await get_tps_element_identifier(
                 project=project_model
             )
-            rev_breakdown = (
-                await get_tps_data(
-                    project=project_model,
-                    parent_element_identifier=tps_element_identifier,
-                    start_dt=start,
-                    end_dt=end,
-                    token=tps_token,
-                )
-            )[0]
-            dollars_per_mwh.loc[project_model.project_id, "dollars"] = rev_breakdown[
-                "Net Profit"
-            ].sum()
-        except KeyError:
+            tps_data = await get_tps_data(
+                project=project_model,
+                parent_element_identifier=tps_element_identifier,
+                start_dt=start,
+                end_dt=end,
+                token=tps_token,
+            )
+            rev_breakdown = tps_data[0]
+            virtual_volume = tps_data[3]
+            dollars_per_mwh.loc[project_model.project_id, "dollars"] = float(
+                rev_breakdown[
+                    [
+                        "Day-Ahead Energy",
+                        "Real-Time Energy",
+                        "Misc Charges",
+                        "Ancillary Services",
+                    ]
+                ]
+                .sum()
+                .sum()
+            )
+            virtual_dollars_per_mwh.loc[project_model.project_id, "mwh"] = (
+                virtual_volume
+            )
+            virtual_dollars_per_mwh.loc[project_model.project_id, "dollars"] = float(
+                rev_breakdown["Virtual Trades"].sum()
+            )
+        except Exception:  # KeyError or ValueError
             dollars_per_mwh.loc[project_model.project_id, "dollars"] = np.nan
 
     dollars_per_mwh["dollars_per_mwh"] = (
         dollars_per_mwh["dollars"] / dollars_per_mwh["mwh"]
+    )
+    dollars_per_mwh.loc[dollars_per_mwh["mwh"] < 1, "dollars_per_mwh"] = np.nan
+
+    virtual_dollars_per_mwh["virtual_dollars_per_mwh"] = (
+        virtual_dollars_per_mwh["dollars"] / virtual_dollars_per_mwh["mwh"]
     )
 
     # Energy Yield (MWh / MW)
@@ -2511,26 +2695,18 @@ async def create_radar_chart(
         .rename(columns={"project_data": "availability"})
     )
 
-    # Measure of Imbalance (100% = perfectly balanced)
-    imbalance = df[df["kpi_type_id"] == KPIType.BESS_STRING_RESTING_SOC_PERCENT].copy()
-    imbalance["device_values"] = imbalance["device_data_json"].map(
-        lambda x: [v for v in x["device_values"].values()]
-    )
-    imbalance["std"] = imbalance["device_values"].map(
-        lambda x: np.nanstd([v for v in x if v is not None])
-    )
-    upper_limit = 1
-    lower_limit = 0
-    d = upper_limit - lower_limit
-    imbalance["N"] = imbalance["device_values"].map(lambda x: len(x))
-    imbalance["k"] = imbalance["N"].map(lambda x: math.floor(x / 2))
-    imbalance["max_possible_std"] = (
-        d * np.sqrt(imbalance["k"] * (imbalance["N"] - imbalance["k"])) / imbalance["N"]
-    )
-    imbalance["relative_std"] = imbalance["std"] / imbalance["max_possible_std"]
-    imbalance["balance_of_strings"] = 1 - imbalance["relative_std"]
-    imbalance = (
-        imbalance[["project_id", "balance_of_strings"]].groupby("project_id").mean()
+    # Balance of Strings (100% = perfectly balanced)
+    balance = df[df["kpi_type_id"] == KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE][
+        ["project_id", "project_data"]
+    ]
+    balance.loc[
+        (balance["project_data"] > 1.0) | (balance["project_data"] < 0.0),
+        "project_data",
+    ] = np.nan
+    balance = (
+        balance.groupby("project_id")
+        .mean()
+        .rename(columns={"project_data": "balance_of_strings"})
     )
 
     # RTE
@@ -2546,15 +2722,33 @@ async def create_radar_chart(
         rte_df.index.name = "project"
     else:
         rte_df = pd.DataFrame()
+    rte_dict_from_modules = await core_get_project_rte_from_modules(
+        project_ids=projects["project_id"].tolist(),
+        start=start,
+        end=end,
+    )
+    if rte_dict_from_modules:
+        rte_df_from_modules = pd.DataFrame.from_dict(
+            rte_dict_from_modules, orient="index", columns=["round_trip_efficiency"]
+        )
+        rte_df_from_modules.index.name = "project"
+    else:
+        rte_df_from_modules = pd.DataFrame()
+    rte_combined = (
+        rte_df.combine_first(rte_df_from_modules)
+        if not rte_df.empty
+        else rte_df_from_modules
+    )
 
     # Combine KPIs
     raw_metrics = pd.concat(
         [
             energy_discharged["energy_yield"],
             availability["availability"],
-            imbalance,
+            balance["balance_of_strings"],
             dollars_per_mwh["dollars_per_mwh"],
-            rte_df,
+            virtual_dollars_per_mwh["virtual_dollars_per_mwh"],
+            rte_combined,
         ],
         axis=1,
     )
@@ -2579,12 +2773,18 @@ async def create_radar_chart(
         "energy_yield": "Energy Yield (MWh/MW)",
         "availability": "Availability (%)",
         "balance_of_strings": "Balance of Strings",
-        "dollars_per_mwh": "Net $ / MWh Delivered",
+        "dollars_per_mwh": "Real $ / MWh Delivered",
+        "virtual_dollars_per_mwh": "Virtual $ / MWh Volume",
         "round_trip_efficiency": "RTE (%)",
     }
-
+    polar_theta_label_overrides = {
+        "virtual_dollars_per_mwh": "Virtual $ / MWh<br>Volume",
+    }
     theta_labels = [
-        display_names.get(column, column.replace("_", " ").title())
+        polar_theta_label_overrides.get(
+            column,
+            display_names.get(column, column.replace("_", " ").title()),
+        )
         for column in numeric_cols
     ]
     closed_values = proj_values.tolist() + [proj_values.iloc[0]]
@@ -2621,7 +2821,15 @@ async def create_radar_chart(
     raw_metrics = raw_metrics.loc[ordered_unique]
 
     max_value = max(max(closed_values), 100.0)
-    radial_max = max(120.0, float(np.ceil(max_value / 10.0) * 10.0))
+    radial_max_computed = max(120.0, float(np.ceil(max_value / 10.0) * 10.0))
+    radial_cap = 300.0
+    capped_at_radial_max = radial_max_computed > radial_cap
+    radial_max = radial_cap if capped_at_radial_max else radial_max_computed
+    plot_closed_values = (
+        [min(v, radial_max) for v in closed_values]
+        if capped_at_radial_max
+        else closed_values
+    )
     tickvals = list(np.arange(0, radial_max + 1, 20.0))
 
     fig = go.Figure()
@@ -2636,7 +2844,7 @@ async def create_radar_chart(
     )
     fig.add_trace(
         go.Scatterpolar(
-            r=closed_values,
+            r=plot_closed_values,
             theta=closed_theta,
             name=str(project_name),
             fill="toself",
@@ -2645,6 +2853,29 @@ async def create_radar_chart(
             marker=dict(size=6),
         )
     )
+    if capped_at_radial_max:
+        overflow_theta: list[str] = []
+        overflow_r: list[float] = []
+        overflow_text: list[str] = []
+        for i, _col in enumerate(numeric_cols):
+            v = float(proj_values.iloc[i])
+            if v > radial_cap:
+                overflow_theta.append(theta_labels[i])
+                overflow_r.append(radial_max * 0.94)
+                overflow_text.append(f"{v:.0f}%")
+        if overflow_text:
+            fig.add_trace(
+                go.Scatterpolar(
+                    r=overflow_r,
+                    theta=overflow_theta,
+                    text=overflow_text,
+                    mode="text",
+                    textposition="top center",
+                    textfont=dict(size=11, color="#36454F"),
+                    showlegend=False,
+                    hoverinfo="skip",
+                )
+            )
     fig.update_layout(
         polar=dict(
             radialaxis=dict(range=[0, radial_max], tickvals=tickvals),
@@ -2939,6 +3170,7 @@ async def generate_executive_summary(
         "total_energy_delivered": 0,
         "total_energy_charged": 0,
         "capacity_weighted_availability": 0.98,
+        "market_availability": 0.98,
         "degradation_rate": 0.0040,
         "forecast_accuracy": 0.80,
     }
@@ -2986,6 +3218,10 @@ async def generate_executive_summary(
     )
     executive_summary_df.loc["Capacity-Weighted Availability", "Expected"] = defaults[
         "capacity_weighted_availability"
+    ]
+    executive_summary_df.loc["Market Availability", "This Month"] = np.nan
+    executive_summary_df.loc["Market Availability", "Expected"] = defaults[
+        "market_availability"
     ]
     executive_summary_df.loc["Degradation Rate", "This Month"] = degradation_rate
     executive_summary_df.loc["Degradation Rate", "Expected"] = deg_rate_expected
@@ -3239,6 +3475,7 @@ async def generate_eec_bess_monthly_report(
         rev_breakdown_df,
         generation_hourly,
         consumption_hourly,
+        _,
     ) = await get_tps_data(
         project=project,
         parent_element_identifier=tps_element_identifier,
@@ -3279,7 +3516,14 @@ async def generate_eec_bess_monthly_report(
         selected_project_name = None
     # Pass real PNG bytes for rev_breakdown_by_type / bess_pcs_availability
     # when available.
-    kpi_sums, kpi_means, soc_stats, degradation_rate = await get_kpi_data(
+    (
+        kpi_sums,
+        kpi_means,
+        soc_stats,
+        degradation_rate,
+        ytd_cycles,
+        ytd_earliest_date,
+    ) = await get_kpi_data(
         project=project,
         project_db_sync=project_db_sync,
         start=req_start,
@@ -3336,8 +3580,8 @@ async def generate_eec_bess_monthly_report(
         request=request,
     )
     kpi_expected_values = {
-        "monthly_cycles": (req_end - req_start).days,
-        "ytd_cycles": (req_end - req_start.replace(month=1, day=1)).days,
+        "monthly_cycles": (req_end - max(req_start, ytd_earliest_date)).days,
+        "ytd_cycles": (req_end - ytd_earliest_date).days,
         "lifetime_cycles": (req_end - req_start).days,
         "bess_soh": 1.00,
         "average_soc": 0.60,
@@ -3367,6 +3611,7 @@ async def generate_eec_bess_monthly_report(
         radar_table_df=radar_table_df,
         radar_selected_project=selected_project_name,
         radar_chart_bytes=radar_chart_bytes,
+        ytd_cycles=ytd_cycles,
     )
     await upload_to_aws(local_filename=filename)
 
