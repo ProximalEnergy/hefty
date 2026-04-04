@@ -15,7 +15,6 @@ sentry_sdk.init(
 
 import datetime
 from datetime import timedelta
-from uuid import UUID
 
 import core.models as models
 import pandas as pd
@@ -40,7 +39,7 @@ class ResponseItem(BaseModel):
 
     start_date: datetime.date
     end_date: datetime.date
-    project_id: UUID
+    project_name_short: str
     kpi_type_ids: list[int]
 
 
@@ -71,6 +70,10 @@ def lambda_handler(event: Event, _context) -> list[str]:
         if event.kpi_type_ids is not None:
             stmt = stmt.where(models.KPIInstance.kpi_type_id.in_(event.kpi_type_ids))
         kpi_instances = db.execute(stmt).scalars().all()
+        project_names_by_id = {
+            project.project_id: project.name_short
+            for project in db.execute(select(models.Project)).scalars().all()
+        }
 
     project_ids = {kpi_instance.project_id for kpi_instance in kpi_instances}
 
@@ -97,7 +100,7 @@ def lambda_handler(event: Event, _context) -> list[str]:
                     end_date=min(
                         date.date() + timedelta(days=event.days_per_chunk), event.end
                     ),
-                    project_id=project_id,
+                    project_name_short=project_names_by_id[project_id],
                     kpi_type_ids=list(kpi_type_ids),
                 ).model_dump_json()
             )

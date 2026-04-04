@@ -7,7 +7,6 @@ from pathlib import Path
 from uuid import UUID
 
 import boto3
-import kpi_pipeline.config as config
 import pandas as pd
 import streamlit as st
 from botocore.exceptions import BotoCoreError, ClientError
@@ -15,8 +14,8 @@ from core.crud import operational as op_crud
 from core.database import with_db
 from core.enumerations import KPIType, ProjectType
 from dotenv import load_dotenv
-from kpi_pipeline.config.step_05_upload import kpi_upload_action
-from kpi_pipeline.services.client import action_from_list
+from kpi.workflow.upload.workflow import Upload
+from kpi.workflow.workflow import BaseWorkflow
 from sqlalchemy import select, text
 
 from core import models
@@ -274,7 +273,9 @@ def style_instance_values(
 
 def get_implemented_kpi_type_ids() -> set[int]:
     """Return configured KPI type IDs that are implemented in upload step."""
-    return {int(kpi.value) for kpi in kpi_upload_action.transform.kpi_fields.keys()}
+    return {
+        int(kpi_model.kpi_type.value) for kpi_model in Upload.field_registry().values()
+    }
 
 
 def get_sensor_type_series() -> pd.Series:
@@ -282,15 +283,7 @@ def get_sensor_type_series() -> pd.Series:
     return pd.Series(
         {
             key: value.sensor_type.value
-            for key, value in (
-                config.step_01_download.time_series.DownloadTimeSeries.value_registry()
-            ).items()
-        }
-        | {
-            key: value.sensor_type.value
-            for key, value in (
-                config.step_01_download.statuses.DownloadStatus.value_registry()
-            ).items()
+            for key, value in BaseWorkflow.download.sensor.field_registry().items()
         }
     ).astype(int)
 
@@ -300,24 +293,16 @@ def get_sensor_type_ids_for_kpis(*, kpi_type_ids: list[int]) -> list[int]:
     if not kpi_type_ids:
         return []
 
-    pipeline = action_from_list(
-        [
-            config.Validate.export(),
-            config.Calculate.export(),
-            config.Aggregate.export(),
-            config.kpi_upload_action,
-        ]
-    )
-    expected_inputs = pipeline.expected_inputs(
-        outputs=[KPIType(idx).name for idx in kpi_type_ids]
-    )
+    pipeline = BaseWorkflow()
+    pipeline.compile(outputs=[KPIType(idx).name for idx in kpi_type_ids])
 
-    sensor_type_series = get_sensor_type_series()
-    filtered_series = sensor_type_series.reindex(
-        sensor_type_series.index.intersection(expected_inputs)
-    )
-    filtered_series = filtered_series.dropna().astype(int)
-    return sorted(set(filtered_series.values.tolist()))
+    sensor_portion = pipeline.download.sensor
+
+    sensor_type_ids = [
+        sensor_portion.get(field).sensor_type.value
+        for field in sensor_portion.plan.keys()
+    ]
+    return sorted(set(sensor_type_ids))
 
 
 def get_all_sensor_type_ids() -> list[int]:

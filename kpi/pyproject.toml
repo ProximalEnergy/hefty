@@ -1,5 +1,5 @@
 [project]
-name = "kpi-pipeline"
+name = "kpi"
 version = "0.1.2"
 description = "Add your description here"
 authors = [{ name = "David Kyle", email = "dkpollster@gmail.com" }]
@@ -24,7 +24,7 @@ requires = ["uv_build>=0.7.2,<0.8"]
 build-backend = "uv_build"
 
 [tool.uv_build.build.targets.wheel]
-packages = ["src/kpi_pipeline"]
+packages = ["src/kpi"]
 
 [dependency-groups]
 dev = [

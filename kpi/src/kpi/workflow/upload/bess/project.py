@@ -1,0 +1,131 @@
+from core.enumerations import KPIType
+from kpi.service.upload import UploadModel, UploadSchema
+from kpi.workflow.transform.bess.summarize.workflow import TransformBessSummarize
+
+T = TransformBessSummarize
+
+models: list[UploadModel] = [
+    UploadModel(
+        kpi_type=KPIType.PROJECT_CYCLE_COUNT,
+        version="2.0.0",
+        project_var=T.project_cycle_count_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.PROJECT_RESTING_SOC_PERCENT,
+        version="2.0.0",
+        project_var=T.project_avg_resting_soc_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.PROJECT_AVERAGE_SOC_PERCENT,
+        version="2.0.0",
+        project_var=T.project_avg_soc_d.name,
+    ),
+    # SUNGROW_BESS_TECHNICAL_AVAILABILITY_GUARANTEE (20) not implemented
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_ENERGY_CHARGED,
+        version="2.0.0",
+        project_var=T.project_energy_charged_kwh_d.name,
+        scale=0.001,
+    ),
+    UploadModel(
+        kpi_type=KPIType.PROJECT_ENERGY_DISCHARGED,
+        version="2.0.0",
+        project_var=T.project_energy_discharged_kwh_d.name,
+        scale=0.001,
+    ),
+    # PROJECT_RTE (43) not implemented
+    UploadModel(
+        kpi_type=KPIType.PROJECT_AVERAGE_DOD,
+        version="2.0.0",
+        project_var=T.project_avg_dod_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.C_RATE,
+        version="2.0.0",
+        project_var=T.project_avg_c_rate_d.name,
+    ),
+    # PROJECT_SOH (52) not implemented — no project-level state of health variable
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_AVERAGE_C_RATE_WHILE_CHARGING,
+        version="2.0.0",
+        project_var=T.project_avg_c_rate_while_charging_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_AVERAGE_C_RATE_WHILE_DISCHARGING,
+        version="2.0.0",
+        project_var=T.project_avg_c_rate_while_discharging_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_HOURS_CHARGING,
+        version="2.0.0",
+        project_var=T.project_hours_charging_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_HOURS_DISCHARGING,
+        version="2.0.0",
+        project_var=T.project_hours_discharging_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_HOURS_IDLING,
+        version="2.0.0",
+        project_var=T.project_hours_idling_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_MV_AUX_METER_ENERGY,
+        version="2.0.0",
+        project_var=T.project_aux_energy_kwh_d.name,
+        scale=0.001,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_CHARGE_CYCLES,
+        version="2.0.0",
+        project_var=T.project_charge_cycles_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_DISCHARGE_CYCLES,
+        version="2.0.0",
+        project_var=T.project_discharge_cycles_d.name,
+    ),
+    # BESS_PROJECT_MINIMUM_USABLE_ENERGY_CAPACITY (104) not implemented
+    # BESS_PROJECT_DC_ENCLOSURE_RTE (105) not implemented
+    UploadModel(
+        kpi_type=KPIType.PROJECT_MAXIMUM_CONTINUOUS_DISCHARGED_ENERGY,
+        version="2.0.0",
+        project_var=T.project_maximum_continuous_discharged_energy_kwh_d.name,
+        scale=0.001,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_ENERGY_CHARGED_NO_AUX,
+        version="2.0.0",
+        project_var=T.project_energy_charged_no_aux_kwh_d.name,
+        scale=0.001,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_METER_TO_PCS_MODULE_CHARGE_EFFICIENCY,
+        version="2.0.0",
+        project_var=T.project_pcs_module_charge_efficiency_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_PCS_MODULE_TO_METER_DISCHARGE_EFFICIENCY,
+        version="2.0.0",
+        project_var=T.project_pcs_module_discharge_efficiency_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_STRING_SOC_VARIANCE,
+        version="2.0.0",
+        project_var=T.project_string_soc_variance_d.name,
+    ),
+    UploadModel(
+        kpi_type=KPIType.BESS_PROJECT_STRING_SOC_BALANCE_SCORE,
+        version="2.0.0",
+        project_var=T.project_string_soc_balance_score_d.name,
+    ),
+]
+
+registry = {model.kpi_type.name: model for model in models}
+
+
+class UploadBessProject(UploadSchema):
+    """Registry of BESS project-level KPI fields for upload."""
+
+    _field_registry = registry

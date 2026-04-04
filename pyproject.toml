@@ -76,14 +76,8 @@ select = [
 ]
 fixable = ["ALL"]
 unfixable = []
-ignore = [
-    "COM812",
-    "COM819",
-    "FAST002",
-    "FURB162",
-    "ISC001",
-]
-external =[]
+ignore = ["COM812", "COM819", "FAST002", "FURB162", "ISC001"]
+external = []
 
 [tool.ruff.lint.extend-per-file-ignores]
 "**/tests/**/*.py" = [
@@ -105,7 +99,7 @@ external =[]
     "T20",     # allow print in scripts
 ]
 "_tools/**/*.py" = [
-    "T20",  # allow print in tools
+    "T20", # allow print in tools
 ]
 "api/**" = [
     "TID251", # api package can import from itself
@@ -120,17 +114,20 @@ external =[]
     "S608", # hardcoded-sql-expression allowed for dynamic schema queries
 ]
 "core/_scripts/*.py" = [
-    "D",  # Utility scripts do not require docstrings
+    "D", # Utility scripts do not require docstrings
 ]
 "core/_alembic_migrations/**/*.py" = [
     "ARG001",
-    "D",  # Alembic migrations do not need docstrings
+    "D",      # Alembic migrations do not need docstrings
 ]
 "core/src/core/**/*.py" = [
-    "D",  # Skip docstring checks in the core package for now
+    "D", # Skip docstring checks in the core package for now
 ]
 "core/src/core/models.py" = [
-    "D",  # Model declarations are self-describing without docstrings
+    "D", # Model declarations are self-describing without docstrings
+]
+"kpi/src/kpi/**/*.py" = [
+    "D", # KPI package: docstrings deferred
 ]
 
 [tool.ruff.lint.pydocstyle]

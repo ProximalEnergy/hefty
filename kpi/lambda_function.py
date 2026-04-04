@@ -19,93 +19,81 @@ sentry_sdk.init(
 # now do all of the imports
 
 import datetime
-from uuid import UUID
+import warnings
 
-import kpi_pipeline.config as config
-from core.crud.operational.projects import get_project
-from core.enumerations import KPIType, OutputType
-from kpi_pipeline.base.models import ContextModel
-from kpi_pipeline.infra.dataset_builder import create_dataset
-from kpi_pipeline.infra.device_manager import DeviceTree
-from kpi_pipeline.infra.observer import SentryObserver
-from kpi_pipeline.services.client import action_from_list
+from asyncpg.exceptions import ProtocolViolationError  # type: ignore[import-untyped]
+from core.enumerations import KPIType
+from kpi.base.exception import KpiError
+from kpi.base.warning import UnimplementedWarning
+from kpi.infra.util import get_project_from_database
+from kpi.service.create import create_dataset
+from kpi.service.observer import SentryObserver, observe, set_global_observer
+from kpi.workflow.workflow import get_workflow
 from pydantic import BaseModel
+from sqlalchemy.exc import DBAPIError, OperationalError
 
 
 class Event(BaseModel):
+    """Lambda payload."""
+
     start_date: datetime.date
     end_date: datetime.date
-    project_id: UUID
+    project_name_short: str
     kpi_type_ids: list[int]
 
 
-observer = SentryObserver()
+set_global_observer(
+    SentryObserver(
+        # there are a lot of sentry warnings right now,
+        # so I will ignore the validation warnings for now
+        # and turn this on later
+        capture_warnings=(),
+        ignore_errors=(KpiError, ProtocolViolationError, DBAPIError, OperationalError),
+    )
+)
 
 
-def lambda_handler(event, context):
+def lambda_handler(event, _context):
+    """Lambda handler."""
     sentry_sdk.set_context("lambda_payload", event)
     event = Event(**event)
 
-    project = get_project(project_id=event.project_id).get(
-        schema="operational",
-        output_type=OutputType.SQLALCHEMY,
-    )
-    if project is None:
-        raise ValueError(f"Project not found for project id: {event.project_id}")
+    project = get_project_from_database(event.project_name_short)
 
-    output_kpis: list[str] = []
-    for kpi_type_id in event.kpi_type_ids:
-        if kpi_type_id in KPIType:
-            output_kpis.append(KPIType(kpi_type_id).name)
-            continue
-        sentry_sdk.capture_message(
-            f"Ignoring unknown KPI type id in lambda payload: {kpi_type_id}",
-            level="warning",
-        )
-
-    # use the project-specific validation if it exists, otherwise use the base validation
-    validation = (
-        config.validate_per_project[project.name_short]
-        if project.name_short in config.validate_per_project
-        else config.validate_per_project["base"]
+    Pipeline = get_workflow(
+        project_name_short=project.name_short,
     )
 
-    calculation = (
-        config.calculate_per_project[project.name_short]
-        if project.name_short in config.calculate_per_project
-        else config.calculate_per_project["base"]
-    )
+    with observe():
+        output_kpis: set[str] = set()
+        for kpi_type_id in event.kpi_type_ids:
+            if kpi_type_id in KPIType:
+                output_kpis.add(KPIType(kpi_type_id).name)
+                continue
+            warnings.warn(
+                f"Ignoring unknown KPI type id in lambda payload: {kpi_type_id}",
+                UnimplementedWarning,
+            )
 
-    aggregate = (
-        config.aggregate_per_project[project.name_short]
-        if project.name_short in config.aggregate_per_project
-        else config.aggregate_per_project["base"]
-    )
+        implemented_kpis = Pipeline.upload.field_registry().keys()
+        unimplemented_kpis = output_kpis.difference(implemented_kpis)
+        if unimplemented_kpis:
+            warnings.warn(
+                f"Unimplemented KPIs in lambda payload: {unimplemented_kpis}",
+                UnimplementedWarning,
+            )
+    output_kpis = output_kpis.intersection(implemented_kpis)
 
-    kpi_pipeline = action_from_list(
-        [
-            config.Download.export(),
-            validation.export(),
-            calculation.export(),
-            aggregate.export(),
-            config.kpi_upload_action,
-        ]
-    )
+    pipeline = Pipeline()
 
-    pipeline = kpi_pipeline.trim(outputs=output_kpis)
+    pipeline.compile(outputs=output_kpis)
 
-    device_tree = DeviceTree.from_project(project=project)
-
-    context = ContextModel(
-        project=project,
+    dataset = create_dataset(
+        project_name_short=project.name_short,
         start_date=event.start_date,
         end_date=event.end_date,
-        device_tree=device_tree,
     )
 
-    dataset = create_dataset(context=context)
-
-    with observer.with_project(project_name_short=project.name_short):
-        pipeline(dataset=dataset, context=context, observer=observer)
+    pipeline.run(dataset=dataset)
 
     return {"statusCode": 200, "body": "Success"}
