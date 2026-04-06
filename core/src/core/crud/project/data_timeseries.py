@@ -1052,7 +1052,7 @@ class DataTimeseries:
             {agg_functions["value_boolean"]} as value_boolean,
             {agg_functions["value_text"]} as value_text
         FROM
-            data_timeseries_1min_final
+            data_timeseries_1min_v2_final
         WHERE
             project_id = {self._project_id_int}
             AND time >= '{query_start_str}'
@@ -1109,7 +1109,7 @@ class DataTimeseries:
             argMax(value_boolean, time) as value_boolean,
             argMax(value_text, time) as value_text
         FROM
-            data_timeseries_1min_final
+            data_timeseries_1min_v2_final
         WHERE
             project_id = {self._project_id_int}
             AND {time_constraint}
