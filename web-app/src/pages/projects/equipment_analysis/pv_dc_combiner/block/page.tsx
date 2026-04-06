@@ -35,9 +35,11 @@ import {
   Button,
   Group,
   Indicator,
+  List,
   Stack,
   Table,
   Text,
+  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineTheme,
@@ -56,6 +58,145 @@ import { Link, useParams, useSearchParams } from 'react-router'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+
+const PageInformation = () => (
+  <Stack gap="md">
+    <Text size="sm">
+      This page displays the performance of individual DC combiners within a
+      selected PV block. It allows you to visualize and compare combiner outputs
+      to identify potential issues, misconfigurations, or underperformance.
+    </Text>
+
+    <div>
+      <Title order={5}>Data Sources</Title>
+      <List size="sm" spacing="xs">
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            GIS Data:
+          </Text>{' '}
+          <Text size="sm" span>
+            Geographic Information System data provides the physical layout and
+            DC capacity of each combiner in the block.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            SCADA Data:
+          </Text>{' '}
+          <Text size="sm" span>
+            Supervisory Control and Data Acquisition system provides real-time
+            and historical current measurements for each combiner.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Time Series:
+          </Text>{' '}
+          <Text size="sm" span>
+            Operational data showing combiner current over time, used for
+            performance trending and analysis.
+          </Text>
+        </List.Item>
+      </List>
+    </div>
+
+    <div>
+      <Title order={5}>Page Features</Title>
+      <List size="sm" spacing="xs">
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Combiners Table:
+          </Text>{' '}
+          <Text size="sm" span>
+            Shows the mapping between GIS element names and SCADA tag names. You
+            can drag and drop SCADA tags to manually reassign them to different
+            GIS combiners.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Combiner Layout Map:
+          </Text>{' '}
+          <Text size="sm" span>
+            Displays the physical layout of combiners in the block, color-coded
+            by DC capacity.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Combiner Current Chart:
+          </Text>{' '}
+          <Text size="sm" span>
+            Time series plot of raw current output for each combiner.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Combiner Current per Capacity Chart:
+          </Text>{' '}
+          <Text size="sm" span>
+            Normalized current (A/kWdc) to compare combiners of different sizes.
+          </Text>
+        </List.Item>
+      </List>
+    </div>
+
+    <div>
+      <Title order={5}>Detect Mismatches</Title>
+      <Text size="sm">
+        The{' '}
+        <Text span fw={700}>
+          Detect Mismatches
+        </Text>{' '}
+        button runs an algorithm that identifies potential SCADA tag mapping
+        errors. This feature helps detect cases where SCADA tags may be assigned
+        to incorrect GIS combiner elements.
+      </Text>
+      <List size="sm" spacing="xs" mt="xs">
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            How it works:
+          </Text>{' '}
+          <Text size="sm" span>
+            The algorithm analyzes high-frequency time series data during cloudy
+            conditions, when irradiance fluctuations cause correlated responses
+            in physically adjacent combiners.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Detection method:
+          </Text>{' '}
+          <Text size="sm" span>
+            By comparing correlation patterns between combiner current signals,
+            the algorithm identifies pairs of SCADA tags that may be swapped or
+            misassigned relative to their expected GIS positions.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Results:
+          </Text>{' '}
+          <Text size="sm" span>
+            If mismatches are found, suggested swaps are automatically applied
+            to the table (highlighted in yellow). You can review and adjust
+            these manually before copying the corrected mapping.
+          </Text>
+        </List.Item>
+        <List.Item>
+          <Text size="sm" span fw={500}>
+            Data requirements:
+          </Text>{' '}
+          <Text size="sm" span>
+            The analysis requires sufficient data with variable irradiance
+            conditions. A validation check runs before analysis to ensure data
+            quality meets the minimum requirements.
+          </Text>
+        </List.Item>
+      </List>
+    </div>
+  </Stack>
+)
 
 type combinerData = {
   combiner_device_id: number
@@ -486,7 +627,9 @@ const Page = () => {
 
   return (
     <Stack p="md">
-      <PageTitle>PV DC Combiner Performance</PageTitle>
+      <PageTitle info={<PageInformation />}>
+        PV DC Combiner Performance
+      </PageTitle>
       <Group>
         <BlockDropdown
           data={blockDropdown.data}
