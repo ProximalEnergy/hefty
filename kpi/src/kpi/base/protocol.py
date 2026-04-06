@@ -4,7 +4,7 @@ from warnings import WarningMessage
 
 import pandas as pd
 import xarray as xr
-from core.enumerations import DeviceType, SensorType
+from core.enumerations import SensorType
 
 from core import models
 
@@ -42,12 +42,12 @@ class ProjectAttributeProtocol(Protocol):
     def run(self, project: models.Project) -> xr.DataArray: ...
 
 
-class DeviceAttributeProtocol(Protocol):
-    device_type: DeviceType
+class DeviceProtocol(Protocol):
+    def device_type_ids(self) -> set[int]: ...
 
     def inputs(self) -> set[str]: ...
 
-    def run(self, data_raw: pd.DataFrame) -> xr.DataArray: ...
+    def run(self, device_df: pd.DataFrame) -> xr.DataArray: ...
 
 
 class SensorProtocol(Protocol):

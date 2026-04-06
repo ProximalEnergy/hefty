@@ -230,8 +230,8 @@ def pv_dc_combiner_module_excess_degradation(
         combiner_good_indices_all_d = (
             combiner_good_indices_d
             & block_good_indices_d.sel(
-                {coord(DeviceType.BESS_BLOCK): combiner_to_block}
-            ).drop_vars(coord(DeviceType.BESS_BLOCK))
+                {coord(DeviceType.PV_BLOCK): combiner_to_block}
+            ).drop_vars(coord(DeviceType.PV_BLOCK))
             & project_good_indices_1d
         )
 

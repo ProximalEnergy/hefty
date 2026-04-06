@@ -9,9 +9,10 @@ T = DownloadProjectAttributeBess
 class TransformBessCleanProjectAttribute(CalcSchema):
     project_energy_capacity_kwh = unary_field(
         verify_positive,
-        T.project_energy_capacity_raw_kwh.name,
+        field=T.project_energy_capacity_raw_kwh,
     )
 
     project_power_capacity_kw = unary_field(
-        verify_positive, T.project_power_capacity_raw_kw.name
+        verify_positive,
+        field=T.project_power_capacity_raw_kw,
     )

@@ -8,10 +8,10 @@ from kpi.service.time import TimeLocal
 from kpi.service.transform.class_calc import TheoreticalPoaIrradiance
 from kpi.service.transform.method import Input, Optional, method_calc
 from kpi.service.transform.schema import CalcSchema
-from kpi.workflow.download.device_hierarchy.pv import DownloadDeviceHierarchyPv
+from kpi.workflow.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.workflow.download.expected_energy import DownloadExpectedEnergy as Expected
 from kpi.workflow.download.sensor.pv import DownloadSensorPv
-from kpi.workflow.transform.bess.evaluate.evaluate import TransformBessEvaluate
+from kpi.workflow.transform.hybrid.fields import date_local_5m
 from kpi.workflow.transform.pv.clean import TransformPvClean as Clean
 
 
@@ -20,10 +20,8 @@ class TransformPvEvaluate(CalcSchema):
 
     @method_calc
     def project_delivered_energy_kwh_5m(
-        total: xr.DataArray = Input(
-            Clean.project_total_delivered_energy_filled_kwh_5m.name
-        ),
-        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw.name),
+        total: xr.DataArray = Input(Clean.project_total_delivered_energy_filled_kwh_5m),
+        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw),
     ) -> xr.DataArray:
         energy = diff(total)
         return energy.where(
@@ -33,17 +31,15 @@ class TransformPvEvaluate(CalcSchema):
     @method_calc
     def project_expected_energy_best_kw_5m(
         first: xr.DataArray | None = Optional(
-            Expected.project_expected_power_degraded_soiled_kw_5m.name
+            Expected.project_expected_power_degraded_soiled_kw_5m
         ),
         second: xr.DataArray | None = Optional(
-            Expected.project_expected_power_degraded_kw_5m.name
+            Expected.project_expected_power_degraded_kw_5m
         ),
         third: xr.DataArray | None = Optional(
-            Expected.project_expected_power_soiled_kw_5m.name
+            Expected.project_expected_power_soiled_kw_5m
         ),
-        fourth: xr.DataArray | None = Optional(
-            Expected.project_expected_power_kw_5m.name
-        ),
+        fourth: xr.DataArray | None = Optional(Expected.project_expected_power_kw_5m),
     ) -> xr.DataArray:
         x = xr.DataArray(np.nan)
         for y in [first, second, third, fourth]:
@@ -55,17 +51,15 @@ class TransformPvEvaluate(CalcSchema):
     @method_calc
     def combiner_expected_energy_best_kwh_5m(
         first: xr.DataArray | None = Optional(
-            Expected.combiner_expected_power_degraded_soiled_kw_5m.name
+            Expected.combiner_expected_power_degraded_soiled_kw_5m
         ),
         second: xr.DataArray | None = Optional(
-            Expected.combiner_expected_power_degraded_kw_5m.name
+            Expected.combiner_expected_power_degraded_kw_5m
         ),
         third: xr.DataArray | None = Optional(
-            Expected.combiner_expected_power_soiled_kw_5m.name
+            Expected.combiner_expected_power_soiled_kw_5m
         ),
-        fourth: xr.DataArray | None = Optional(
-            Expected.combiner_expected_power_kw_5m.name
-        ),
+        fourth: xr.DataArray | None = Optional(Expected.combiner_expected_power_kw_5m),
     ) -> xr.DataArray:
         x = xr.DataArray(np.nan)
         for y in [first, second, third, fourth]:
@@ -76,21 +70,21 @@ class TransformPvEvaluate(CalcSchema):
 
     @method_calc
     def project_poa_irradiance_w_m2_5m(
-        irradiance: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m.name),
+        irradiance: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m),
     ) -> xr.DataArray:
         return irradiance.mean(dim=coord(DeviceType.MET_STATION))
 
     @method_calc
     def project_insolation_d(
-        irradiance: xr.DataArray = Input(project_poa_irradiance_w_m2_5m.name),
-        date_local_5m: xr.DataArray = Input(TransformBessEvaluate.date_local_5m.name),
+        irradiance: xr.DataArray = Input(project_poa_irradiance_w_m2_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return irradiance.groupby(date_local(date_local_5m)).sum() / 12
 
     @method_calc
     def inverter_mechanical_availability_5m(
-        power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m.name),
-        met_poa: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m.name),
+        power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m),
+        met_poa: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m),
     ) -> xr.DataArray:
         minimum_irradiance = 10
         poa_threshold = 90
@@ -108,14 +102,14 @@ class TransformPvEvaluate(CalcSchema):
 
     @method_calc
     def combiner_mechanical_availability_5m(
-        pcs_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m.name),
+        pcs_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m),
         combiner_current: xr.DataArray = Input(
-            DownloadSensorPv.combiner_current_raw_amps_5m.name
+            DownloadSensorPv.combiner_current_raw_amps_5m
         ),
         combiner_to_inverter: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.combiner_to_inverter.name
+            DownloadDevicePvHierarchy.combiner_to_inverter
         ),
-        met_poa: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m.name),
+        met_poa: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m),
     ) -> xr.DataArray:
         minimum_irradiance = 10
         poa_threshold = 90
@@ -139,8 +133,8 @@ class TransformPvEvaluate(CalcSchema):
 
     @method_calc
     def tracker_row_is_available_5m(
-        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m.name),
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
+        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
     ) -> xr.DataArray:
         threshold_deg = 2
         difference = abs(position - setpoint)

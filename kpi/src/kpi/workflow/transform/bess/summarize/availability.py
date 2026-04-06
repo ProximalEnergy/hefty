@@ -16,15 +16,15 @@ class TransformBessSummarizeAvailability(CalcSchema):
     # BESS_PCS_AVAILABILITY (58)
     @method_calc
     def pcs_availability_d(
-        status: xr.DataArray = Input(DownloadStatusBess.pcs_status_5m.name),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m.name),
+        status: xr.DataArray = Input(DownloadStatusBess.pcs_status_5m),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return (1 - status).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_pcs_availability_d(
-        status: xr.DataArray = Input(DownloadStatusBess.pcs_status_5m.name),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m.name),
+        status: xr.DataArray = Input(DownloadStatusBess.pcs_status_5m),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - status),
@@ -36,18 +36,18 @@ class TransformBessSummarizeAvailability(CalcSchema):
     @method_calc
     def pcs_module_availability_d(
         event: xr.DataArray = Input(
-            DownloadEventBess.pcs_module_offline_event_change_5m.name
+            DownloadEventBess.pcs_module_offline_event_change_5m
         ),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return (1 - event).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_pcs_module_availability_d(
         event: xr.DataArray = Input(
-            DownloadEventBess.pcs_module_offline_event_change_5m.name
+            DownloadEventBess.pcs_module_offline_event_change_5m
         ),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - event),
@@ -58,15 +58,15 @@ class TransformBessSummarizeAvailability(CalcSchema):
     # BESS_BANK_AVAILABILITY (57)
     @method_calc
     def bank_availability_d(
-        status: xr.DataArray = Input(DownloadStatusBess.bank_status_5m.name),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m.name),
+        status: xr.DataArray = Input(DownloadStatusBess.bank_status_5m),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return (1 - status).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_bank_availability_d(
-        status: xr.DataArray = Input(DownloadStatusBess.bank_status_5m.name),
-        date_local_5m: xr.DataArray = Input(Eval.date_local_5m.name),
+        status: xr.DataArray = Input(DownloadStatusBess.bank_status_5m),
+        date_local_5m: xr.DataArray = Input(Eval.date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=(1 - status),

@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 from kpi.base.enumeration import Attrs
+from kpi.base.exception import MissingStaticDataError
 from kpi.base.protocol import ProjectAttributeProtocol
 from kpi.domain.util import scale_offset
 from kpi.infra.util import get_project_from_database
@@ -49,7 +50,12 @@ class ProjectAttributeSchema(FieldRegistry[ProjectAttributeProtocol]):
         for field_name in self.plan:
             with observe(field_name=field_name):
                 model = self.get(field_name)
-                assign_var(dataset, field_name, model.run(project=project))
+                assign_var(
+                    dataset,
+                    field_name,
+                    model.run(project=project),
+                    exc=MissingStaticDataError,
+                )
         return dataset
 
 

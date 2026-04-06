@@ -1,15 +1,15 @@
 from core.enumerations import DeviceType
-from kpi.service.download.device_attribute import (
-    DeviceAttributeSchema,
+from kpi.service.download.device.attribute import (
     device_attribute_field,
 )
+from kpi.service.download.device.schema import DeviceSchema
 
 from core import models
 
 field = device_attribute_field
 
 
-class DownloadDeviceAttributePv(DeviceAttributeSchema):
+class DownloadDevicePvAttribute(DeviceSchema):
     combiner_dc_capacity_raw_kw = field(
         device_type=DeviceType.PV_DC_COMBINER,
         source_field_name=models.Device.capacity_dc.name,

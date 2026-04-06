@@ -3,18 +3,23 @@ from typing import Any
 import pandas as pd
 import xarray as xr
 from kpi.base.enumeration import TimeCoords
-from kpi.base.exception import DatasetAccessError, EmptyDataArrayError
+from kpi.base.exception import DatasetAccessError, MissingDataError
 from kpi.service.time import end_tz_aware, start_tz_aware
 
 
-def assign_var(dataset: xr.Dataset, field_name: str, value: Any) -> None:
+def assign_var(
+    dataset: xr.Dataset,
+    field_name: str,
+    value: Any,
+    exc: type[Exception] = MissingDataError,
+) -> None:
     if value is None:
-        raise EmptyDataArrayError(f"Data array for {field_name} is None")
+        raise exc(f"Data array for {field_name} is None")
     value = xr.DataArray(value)
     if value.size == 0:
-        raise EmptyDataArrayError(f"Data array for {field_name} is empty")
+        raise exc(f"Data array for {field_name} is empty")
     if value.isnull().all():
-        raise EmptyDataArrayError(f"Data array for {field_name} is all null")
+        raise exc(f"Data array for {field_name} is all null")
     dataset[field_name] = value
 
 

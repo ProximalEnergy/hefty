@@ -22,12 +22,13 @@ Class definitions should use Pascal case even when dealing with acronyms. For ex
 ### Field Naming Guidelines
 
 ```
-[Device Axis] + [Quantity] + (Unit) + (time axis)
+(Project type) + [Device Axis] + [Quantity] + (Unit) + (time axis)
 ```
 
 The entire name should be snake case.
-
-1.  **Device Axis**
+1.  **Project Type**
+    Only in cases where it is ambiguous (`pv_` or `bess_` prefix).
+2.  **Device Axis**
     Describes the device axis of the particular data array. 
     It can be a shortened version of the `DeviceType` enum name.
     If there is no device axis, the first term should be `project`.
@@ -48,13 +49,13 @@ The entire name should be snake case.
     - `BESS_BANK -> bank`
     - `BESS_STRING -> string`
 
-2.  **Quantity**
+3.  **Quantity**
     Flexible, brief, human readable description of the field. All lower case.
 
-3.  **Unit**
+4.  **Unit**
     All lower case. Only needed if there is a unit.
 
-4.  **Time Axis**
+5.  **Time Axis**
     Short version of the `base.enums.Time` enum. Only needed if there is a time axis.
    - `5m` for `TimeCoords.TIME_5MIN_UTC`
    - `d` for `TimeCoords.DATE_LOCAL`

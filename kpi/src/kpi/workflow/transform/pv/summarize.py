@@ -15,13 +15,11 @@ from kpi.domain.util import (
 )
 from kpi.service.transform.method import Input, Optional, method_calc
 from kpi.service.transform.schema import CalcSchema
-from kpi.workflow.download.device_hierarchy.pv import DownloadDeviceHierarchyPv
+from kpi.workflow.download.device.pv.hierarchy import DownloadDevicePvHierarchy
 from kpi.workflow.download.sensor.pv import DownloadSensorPv
-from kpi.workflow.transform.bess.workflow import TransformBess
+from kpi.workflow.transform.hybrid.fields import date_local_5m
 from kpi.workflow.transform.pv.clean import TransformPvClean as Clean
 from kpi.workflow.transform.pv.evaluate import TransformPvEvaluate as Eval
-
-date_local_5m = TransformBess.date_local_5m
 
 
 class TransformPvSummarize(CalcSchema):
@@ -33,9 +31,9 @@ class TransformPvSummarize(CalcSchema):
     @method_calc
     def project_energy_production_kwh_d(
         energy_total: xr.DataArray = Input(
-            Clean.project_total_delivered_energy_filled_kwh_5m.name
+            Clean.project_total_delivered_energy_filled_kwh_5m
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         energy_total_d = energy_total.groupby(date_local(date_local_5m)).first()
         return diff(energy_total_d, time_dim=TimeCoords.DATE_LOCAL)
@@ -45,17 +43,17 @@ class TransformPvSummarize(CalcSchema):
     # SPECIFIC_YIELD (33)
     @method_calc
     def specific_yield_d(
-        energy: xr.DataArray = Input(project_energy_production_kwh_d.name),
-        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw.name),
+        energy: xr.DataArray = Input(project_energy_production_kwh_d),
+        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw),
     ) -> xr.DataArray:
         return energy / power_capacity
 
     # PERFORMANCE_RATIO (34)
     @method_calc
     def performance_ratio_d(
-        energy: xr.DataArray = Input(project_energy_production_kwh_d.name),
-        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw.name),
-        insolation: xr.DataArray = Input(Eval.project_insolation_d.name),
+        energy: xr.DataArray = Input(project_energy_production_kwh_d),
+        power_capacity: xr.DataArray = Input(Clean.project_dc_capacity_kw),
+        insolation: xr.DataArray = Input(Eval.project_insolation_d),
     ) -> xr.DataArray:
         reference_irradiance = 1000
         specific_yield = energy / power_capacity
@@ -65,9 +63,9 @@ class TransformPvSummarize(CalcSchema):
     # PV_PROJECT_SOLV_PERIOD_MWH_PRODUCED (98)
     @method_calc
     def project_solv_period_produced_kwh_d(
-        irradiance: xr.DataArray = Input(Eval.project_poa_irradiance_w_m2_5m.name),
-        power: xr.DataArray = Input(TransformBess.project_power_kw_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        irradiance: xr.DataArray = Input(Eval.project_poa_irradiance_w_m2_5m),
+        power: xr.DataArray = Input(Clean.pv_project_power_kw_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return solv_period_produced(
             irradiance=irradiance,
@@ -78,18 +76,18 @@ class TransformPvSummarize(CalcSchema):
     # PV_PROJECT_SOLV_PERIOD_MWH_LOST (99)
     @method_calc
     def project_solv_period_lost_kwh_d(
-        irradiance: xr.DataArray = Input(Eval.project_poa_irradiance_w_m2_5m.name),
-        unit_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m.name),
+        irradiance: xr.DataArray = Input(Eval.project_poa_irradiance_w_m2_5m),
+        unit_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m),
         unit_power_setpoint: xr.DataArray = Input(
-            Clean.inverter_ac_power_setpoint_kw_5m.name
+            Clean.inverter_ac_power_setpoint_kw_5m
         ),
-        project_power: xr.DataArray = Input(TransformBess.project_power_kw_5m.name),
-        unit_ac_capacity: xr.DataArray = Input(Clean.inverter_ac_capacity_kw.name),
-        unit_dc_capacity: xr.DataArray = Input(Clean.inverter_dc_capacity_kw.name),
+        project_power: xr.DataArray = Input(Clean.pv_project_power_kw_5m),
+        unit_ac_capacity: xr.DataArray = Input(Clean.inverter_ac_capacity_kw),
+        unit_dc_capacity: xr.DataArray = Input(Clean.inverter_dc_capacity_kw),
         project_expected_energy: xr.DataArray = Input(
-            Eval.project_expected_energy_best_kw_5m.name
+            Eval.project_expected_energy_best_kw_5m
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return solv_lost_period(
             irradiance=irradiance,
@@ -105,28 +103,24 @@ class TransformPvSummarize(CalcSchema):
     # PV_PROJECT_SOLV_CONTRACTUAL_AVAILABILITY (97)
     @method_calc
     def project_solv_contractual_availability_d(
-        period_kwh_produced: xr.DataArray = Input(
-            project_solv_period_produced_kwh_d.name
-        ),
-        period_kwh_lost: xr.DataArray = Input(project_solv_period_lost_kwh_d.name),
+        period_kwh_produced: xr.DataArray = Input(project_solv_period_produced_kwh_d),
+        period_kwh_lost: xr.DataArray = Input(project_solv_period_lost_kwh_d),
     ) -> xr.DataArray:
         return period_kwh_produced / (period_kwh_produced + period_kwh_lost)
 
     # PV_PROJECT_EXPECTED_ENERGY_DELIVERED (102)
     @method_calc
     def project_expected_energy_delivered_kwh_d(
-        expected_energy: xr.DataArray = Input(
-            Eval.project_expected_energy_best_kw_5m.name
-        ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        expected_energy: xr.DataArray = Input(Eval.project_expected_energy_best_kw_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return expected_energy.groupby(date_local(date_local_5m)).sum()
 
     # PV_PROJECT_PERFORMANCE_INDEX (100)
     @method_calc
     def project_performance_index_d(
-        actual: xr.DataArray = Input(project_energy_production_kwh_d.name),
-        expected: xr.DataArray = Input(project_expected_energy_delivered_kwh_d.name),
+        actual: xr.DataArray = Input(project_energy_production_kwh_d),
+        expected: xr.DataArray = Input(project_expected_energy_delivered_kwh_d),
     ) -> xr.DataArray:
         expected = expected.where(expected > 0)
         ratio = actual / expected
@@ -135,12 +129,10 @@ class TransformPvSummarize(CalcSchema):
     # PV_PROJECT_CURTAILMENT (103)
     @method_calc
     def project_curtailed_energy_kwh_d(
-        power_setpoint: xr.DataArray = Input(Clean.project_power_setpoint_kw_5m.name),
-        expected_energy: xr.DataArray = Input(
-            Eval.project_expected_energy_best_kw_5m.name
-        ),
-        actual_energy: xr.DataArray = Input(Eval.project_delivered_energy_kwh_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        power_setpoint: xr.DataArray = Input(Clean.project_power_setpoint_kw_5m),
+        expected_energy: xr.DataArray = Input(Eval.project_expected_energy_best_kw_5m),
+        actual_energy: xr.DataArray = Input(Eval.project_delivered_energy_kwh_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         energy_setpoint = power_setpoint / 12
 
@@ -163,19 +155,15 @@ class TransformPvSummarize(CalcSchema):
     # PROJECT_PV_INVERTER_MECHANICAL_AVAILABILITY (5)
     @method_calc
     def inverter_mechanical_availability_d(
-        is_available: xr.DataArray = Input(
-            Eval.inverter_mechanical_availability_5m.name
-        ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        is_available: xr.DataArray = Input(Eval.inverter_mechanical_availability_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return is_available.groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_inverter_mechanical_availability_d(
-        is_available: xr.DataArray = Input(
-            Eval.inverter_mechanical_availability_5m.name
-        ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        is_available: xr.DataArray = Input(Eval.inverter_mechanical_availability_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=is_available,
@@ -187,16 +175,16 @@ class TransformPvSummarize(CalcSchema):
     @method_calc
     def inverter_energy_production_kwh_d(
         energy: xr.DataArray = Input(
-            Clean.inverter_total_energy_production_filled_kwh_5m.name
+            Clean.inverter_total_energy_production_filled_kwh_5m
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         energy_total_d = energy.groupby(date_local(date_local_5m)).first()
         return diff(energy_total_d, time_dim=TimeCoords.DATE_LOCAL)
 
     @method_calc
     def project_pcs_energy_production_kwh_d(
-        energy: xr.DataArray = Input(inverter_energy_production_kwh_d.name),
+        energy: xr.DataArray = Input(inverter_energy_production_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.PV_INVERTER))
 
@@ -207,14 +195,14 @@ class TransformPvSummarize(CalcSchema):
     # PV_INVERTER_MODULE_ENERGY_PRODUCTION (7)
     @method_calc
     def inverter_module_energy_kwh_d(
-        power: xr.DataArray = Input(Clean.inverter_module_ac_power_kw_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        power: xr.DataArray = Input(Clean.inverter_module_ac_power_kw_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return power.groupby(date_local(date_local_5m)).sum() / 12
 
     @method_calc
     def project_inverter_module_energy_kwh_d(
-        energy: xr.DataArray = Input(inverter_module_energy_kwh_d.name),
+        energy: xr.DataArray = Input(inverter_module_energy_kwh_d),
     ) -> xr.DataArray:
         return energy.sum(dim=coord(DeviceType.PV_INVERTER_MODULE))
 
@@ -226,15 +214,15 @@ class TransformPvSummarize(CalcSchema):
 
     @method_calc
     def tracker_row_availability_d(
-        is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return is_available.groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_tracker_availability_d(
-        is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=is_available,
@@ -246,17 +234,17 @@ class TransformPvSummarize(CalcSchema):
 
     @method_calc
     def tracker_row_deviation_from_setpoint_deg_d(
-        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m.name),
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return abs(position - setpoint).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_tracker_deviation_from_setpoint_deg_d(
-        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m.name),
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=abs(position - setpoint),
@@ -267,16 +255,16 @@ class TransformPvSummarize(CalcSchema):
     # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_ROW (22)
     @method_calc
     def tracker_row_setpoint_deviating_from_median_deg_d(
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         median_setpoint = setpoint.median(dim=coord(DeviceType.TRACKER_ROW))
         return abs(setpoint - median_setpoint).groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_tracker_setpoint_deviating_from_median_deg_d(
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         median_setpoint = setpoint.median(dim=coord(DeviceType.TRACKER_ROW))
         return daily_mean_across_devices(
@@ -292,11 +280,11 @@ class TransformPvSummarize(CalcSchema):
     # TRACKER_AVAILABILITY_BY_BLOCK (3)
     @method_calc
     def block_tracker_availability_d(
-        is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m.name),
+        is_available: xr.DataArray = Input(Eval.tracker_row_is_available_5m),
         device_mapping: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.tracker_row_to_block.name
+            DownloadDevicePvHierarchy.tracker_row_to_block
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_grouped_devices(
             value=is_available,
@@ -310,12 +298,12 @@ class TransformPvSummarize(CalcSchema):
     # TRACKER_POSITION_DEVIATING_FROM_SETPOINT_BY_BLOCK (18)
     @method_calc
     def block_tracker_deviation_from_setpoint_deg_d(
-        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m.name),
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
+        position: xr.DataArray = Input(Clean.tracker_row_position_deg_5m),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
         device_mapping: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.tracker_row_to_block.name
+            DownloadDevicePvHierarchy.tracker_row_to_block
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_grouped_devices(
             value=abs(position - setpoint),
@@ -329,11 +317,11 @@ class TransformPvSummarize(CalcSchema):
     # TRACKER_SETPOINT_DEVIATING_FROM_MEDIAN_BY_BLOCK (19)
     @method_calc
     def block_tracker_setpoint_deviating_from_median_deg_d(
-        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m.name),
+        setpoint: xr.DataArray = Input(Clean.tracker_row_setpoint_deg_5m),
         device_mapping: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.tracker_row_to_block.name
+            DownloadDevicePvHierarchy.tracker_row_to_block
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_grouped_devices(
             value=abs(setpoint - setpoint.median(dim=coord(DeviceType.TRACKER_ROW))),
@@ -352,13 +340,11 @@ class TransformPvSummarize(CalcSchema):
     @method_calc
     def combiner_field_health_d(
         combiner_current: xr.DataArray = Input(
-            DownloadSensorPv.combiner_current_raw_amps_5m.name
+            DownloadSensorPv.combiner_current_raw_amps_5m
         ),
-        combiner_power_capacity: xr.DataArray = Input(
-            Clean.combiner_dc_capacity_kw.name
-        ),
-        time_local_5m: xr.DataArray = Input(Eval.time_local_5m.name),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        combiner_power_capacity: xr.DataArray = Input(Clean.combiner_dc_capacity_kw),
+        time_local_5m: xr.DataArray = Input(Eval.time_local_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         time_dim = TimeCoords.TIME_5MIN_UTC.value
         current_ffill_1hr = combiner_current.ffill(dim=time_dim, limit=12)
@@ -392,7 +378,7 @@ class TransformPvSummarize(CalcSchema):
 
     @method_calc
     def project_avg_combiner_field_health_d(
-        field_health: xr.DataArray = Input(combiner_field_health_d.name),
+        field_health: xr.DataArray = Input(combiner_field_health_d),
     ) -> xr.DataArray:
         result = field_health.mean(dim=coord(DeviceType.PV_DC_COMBINER))
         return result.where(filter_mask(filter_by=result, min_value=0, max_value=1))
@@ -400,55 +386,53 @@ class TransformPvSummarize(CalcSchema):
     # MODULE_STATE_OF_HEALTH_BY_COMBINER (17)
     @method_calc
     def combiner_module_excess_degradation_d(
-        met_irradiance: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m.name),
+        met_irradiance: xr.DataArray = Input(Clean.met_poa_irradiance_w_m2_5m),
         theoretical_irradiance: xr.DataArray = Input(
-            Eval.project_theoretical_poa_irradiance_w_m2_5m.name
+            Eval.project_theoretical_poa_irradiance_w_m2_5m
         ),
-        power: xr.DataArray = Input(TransformBess.project_power_kw_5m.name),
-        poi_limit: xr.DataArray = Input(Clean.project_poi_limit_kw.name),
-        inverter_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m.name),
-        inverter_capacity: xr.DataArray = Input(Clean.inverter_ac_capacity_kw.name),
+        power: xr.DataArray = Input(Clean.pv_project_power_kw_5m),
+        poi_limit: xr.DataArray = Input(Clean.project_poi_limit_kw),
+        inverter_power: xr.DataArray = Input(Clean.inverter_ac_power_kw_5m),
+        inverter_capacity: xr.DataArray = Input(Clean.inverter_ac_capacity_kw),
         inverter_reactive_power: xr.DataArray = Input(
-            Clean.inverter_reactive_power_kvar_5m.name
+            Clean.inverter_reactive_power_kvar_5m
         ),
         inverter_module_voltage: xr.DataArray = Input(
-            Clean.inverter_module_voltage_v_5m.name
+            Clean.inverter_module_voltage_v_5m
         ),
         inverter_module_power: xr.DataArray = Input(
-            Clean.inverter_module_ac_power_kw_5m.name
+            Clean.inverter_module_ac_power_kw_5m
         ),
         inverter_module_capacity: xr.DataArray = Input(
-            Clean.inverter_module_ac_capacity_kw.name
+            Clean.inverter_module_ac_capacity_kw
         ),
         block_tracker_deviation_from_setpoint: xr.DataArray = Input(
-            block_tracker_deviation_from_setpoint_deg_d.name
+            block_tracker_deviation_from_setpoint_deg_d
         ),
         block_tracker_deviation_from_median: xr.DataArray = Input(
-            block_tracker_setpoint_deviating_from_median_deg_d.name
+            block_tracker_setpoint_deviating_from_median_deg_d
         ),
-        combiner_field_health: xr.DataArray = Input(combiner_field_health_d.name),
+        combiner_field_health: xr.DataArray = Input(combiner_field_health_d),
         combiner_current: xr.DataArray = Input(
-            DownloadSensorPv.combiner_current_raw_amps_5m.name
+            DownloadSensorPv.combiner_current_raw_amps_5m
         ),
         combiner_expected_energy: xr.DataArray = Input(
-            Eval.combiner_expected_energy_best_kwh_5m.name
+            Eval.combiner_expected_energy_best_kwh_5m
         ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
         combiner_to_inverter: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.combiner_to_inverter.name
+            DownloadDevicePvHierarchy.combiner_to_inverter
         ),
         combiner_to_block: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.combiner_to_block.name
+            DownloadDevicePvHierarchy.combiner_to_block
         ),
         inverter_module_to_inverter: xr.DataArray = Input(
-            DownloadDeviceHierarchyPv.inverter_module_to_inverter.name
+            DownloadDevicePvHierarchy.inverter_module_to_inverter
         ),
         inverter_power_setpoint: xr.DataArray | None = Optional(
-            Clean.inverter_ac_power_setpoint_kw_5m.name
+            Clean.inverter_ac_power_setpoint_kw_5m
         ),
-        inverter_voltage: xr.DataArray | None = Optional(
-            Clean.inverter_voltage_v_5m.name
-        ),
+        inverter_voltage: xr.DataArray | None = Optional(Clean.inverter_voltage_v_5m),
     ) -> xr.DataArray:
         return pv_dc_combiner_module_excess_degradation(
             met_station_irradiance_poa_w_m2_5m=met_irradiance,
@@ -477,7 +461,7 @@ class TransformPvSummarize(CalcSchema):
     @method_calc
     def project_combiner_module_excess_degradation_d(
         module_excess_degradation: xr.DataArray = Input(
-            combiner_module_excess_degradation_d.name
+            combiner_module_excess_degradation_d
         ),
     ) -> xr.DataArray:
         return module_excess_degradation.mean(dim=coord(DeviceType.PV_DC_COMBINER))
@@ -485,19 +469,15 @@ class TransformPvSummarize(CalcSchema):
     # PV_DC_COMBINER_MECHANICAL_AVAILABILITY (101)
     @method_calc
     def combiner_mechanical_availability_d(
-        is_available: xr.DataArray = Input(
-            Eval.combiner_mechanical_availability_5m.name
-        ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        is_available: xr.DataArray = Input(Eval.combiner_mechanical_availability_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return is_available.groupby(date_local(date_local_5m)).mean()
 
     @method_calc
     def project_combiner_mechanical_availability_d(
-        is_available: xr.DataArray = Input(
-            Eval.combiner_mechanical_availability_5m.name
-        ),
-        date_local_5m: xr.DataArray = Input(date_local_5m.name),
+        is_available: xr.DataArray = Input(Eval.combiner_mechanical_availability_5m),
+        date_local_5m: xr.DataArray = Input(date_local_5m),
     ) -> xr.DataArray:
         return daily_mean_across_devices(
             value=is_available,

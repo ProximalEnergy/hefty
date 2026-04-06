@@ -1,13 +1,13 @@
 from core.enumerations import DeviceType
-from kpi.service.download.device_hierarchy import (
-    DeviceHierarchySchema,
+from kpi.service.download.device.hierarchy import (
     device_hierarchy_field,
 )
+from kpi.service.download.device.schema import DeviceSchema
 
 field = device_hierarchy_field
 
 
-class DownloadDeviceHierarchyPv(DeviceHierarchySchema):
+class DownloadDevicePvHierarchy(DeviceSchema):
     combiner_to_inverter = field(
         child_device_type=DeviceType.PV_DC_COMBINER,
         parent_device_type=DeviceType.PV_INVERTER,

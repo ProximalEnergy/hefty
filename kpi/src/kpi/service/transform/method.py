@@ -13,12 +13,12 @@ class InputType:
         self.optional = optional
 
 
-def Input(name: str) -> xr.DataArray:
-    return InputType(name)  # type: ignore
+def Input(field: Field[Any]) -> xr.DataArray:
+    return InputType(field.name)  # type: ignore
 
 
-def Optional(name: str) -> xr.DataArray | None:
-    return InputType(name, optional=True)  # type: ignore
+def Optional(field: Field[Any]) -> xr.DataArray | None:
+    return InputType(field.name, optional=True)  # type: ignore
 
 
 def extract_input_mapping(fn: Callable[..., Any]) -> dict[str, InputType]:

@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import Any
 
 import xarray as xr
 from kpi.base.protocol import CalcProtocol
@@ -19,9 +20,11 @@ class UnaryCalc:
 
 
 def unary_field(
-    fn: Callable[[xr.DataArray], xr.DataArray], name: str
+    fn: Callable[[xr.DataArray], xr.DataArray],
+    *,
+    field: Field[Any],
 ) -> Field[UnaryCalc]:
-    return Field[UnaryCalc](UnaryCalc(fn=fn, name=name))
+    return Field[UnaryCalc](UnaryCalc(fn=fn, name=field.name))
 
 
 _: CalcProtocol = UnaryCalc(fn=lambda x: x, name="")

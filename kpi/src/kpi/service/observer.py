@@ -9,8 +9,8 @@ from warnings import WarningMessage
 import sentry_sdk
 from kpi.base.exception import (
     DatasetAccessError,
-    EmptyDataArrayError,
     KpiError,
+    MissingDataError,
     NoDownloadedDataError,
 )
 from kpi.base.protocol import ObserverProtocol
@@ -49,7 +49,7 @@ class LocalObserver:
         if ignore_errors is None:
             ignore_errors = (
                 DatasetAccessError,
-                EmptyDataArrayError,
+                MissingDataError,
                 NoDownloadedDataError,
             )
 

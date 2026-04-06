@@ -57,9 +57,9 @@ class TransformBessCleanSensor(CalcSchema):
     # project level
 
     @method_calc
-    def project_power_kw_5m(
-        power: xr.DataArray = Input(Sensor.project_power_raw_kw_5m.name),
-        capacity: xr.DataArray = Input(Project.project_power_capacity_kw.name),
+    def bess_project_power_kw_5m(
+        power: xr.DataArray = Input(Sensor.project_power_raw_kw_5m),
+        capacity: xr.DataArray = Input(Project.project_power_capacity_kw),
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1, max_value=1)
@@ -69,8 +69,8 @@ class TransformBessCleanSensor(CalcSchema):
 
     @method_calc
     def pcs_power_kw_5m(
-        power: xr.DataArray = Input(Sensor.pcs_power_raw_kw_5m.name),
-        capacity: xr.DataArray = Input(Device.pcs_power_capacity_kw.name),
+        power: xr.DataArray = Input(Sensor.pcs_power_raw_kw_5m),
+        capacity: xr.DataArray = Input(Device.pcs_power_capacity_kw),
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1, max_value=1)
@@ -80,8 +80,8 @@ class TransformBessCleanSensor(CalcSchema):
 
     @method_calc
     def string_power_kw_5m(
-        power: xr.DataArray = Input(Sensor.string_power_raw_kw_5m.name),
-        capacity: xr.DataArray = Input(Device.string_power_capacity_kw.name),
+        power: xr.DataArray = Input(Sensor.string_power_raw_kw_5m),
+        capacity: xr.DataArray = Input(Device.string_power_capacity_kw),
     ) -> xr.DataArray:
         return power.where(
             filter_mask(filter_by=power / capacity, min_value=-1, max_value=1)
@@ -93,22 +93,22 @@ class TransformBessCleanSensor(CalcSchema):
 
     project_soc_5m = unary_field(
         clean_soc,
-        Sensor.project_soc_raw_5m.name,
+        field=Sensor.project_soc_raw_5m,
     )
 
     bank_soc_5m = unary_field(
         clean_soc,
-        Sensor.bank_soc_raw_5m.name,
+        field=Sensor.bank_soc_raw_5m,
     )
 
     block_soc_5m = unary_field(
         clean_soc,
-        Sensor.block_soc_raw_5m.name,
+        field=Sensor.block_soc_raw_5m,
     )
 
     string_soc_5m = unary_field(
         clean_soc,
-        Sensor.string_soc_raw_5m.name,
+        field=Sensor.string_soc_raw_5m,
     )
 
     # =======================================================
@@ -117,12 +117,12 @@ class TransformBessCleanSensor(CalcSchema):
 
     bank_soh_5m = unary_field(
         clean_soh,
-        Sensor.bank_soh_raw_5m.name,
+        field=Sensor.bank_soh_raw_5m,
     )
 
     string_soh_5m = unary_field(
         clean_soh,
-        Sensor.string_soh_raw_5m.name,
+        field=Sensor.string_soh_raw_5m,
     )
 
     # =======================================================
@@ -131,9 +131,7 @@ class TransformBessCleanSensor(CalcSchema):
 
     @method_calc
     def string_current_amps_5m(
-        current: xr.DataArray = Input(
-            Sensor.string_current_raw_amps_5m.name
-        ),
+        current: xr.DataArray = Input(Sensor.string_current_raw_amps_5m),
     ) -> xr.DataArray:
         return current.where(
             filter_mask(filter_by=current, min_value=-1000, max_value=1000)
@@ -145,32 +143,32 @@ class TransformBessCleanSensor(CalcSchema):
 
     string_avg_cell_temp_c_5m = unary_field(
         clean_temperature,
-        Sensor.string_avg_cell_temp_raw_c_5m.name,
+        field=Sensor.string_avg_cell_temp_raw_c_5m,
     )
 
     string_min_cell_temp_c_5m = unary_field(
         clean_temperature,
-        Sensor.string_min_cell_temp_raw_c_5m.name,
+        field=Sensor.string_min_cell_temp_raw_c_5m,
     )
 
     string_max_cell_temp_c_5m = unary_field(
         clean_temperature,
-        Sensor.string_max_cell_temp_raw_c_5m.name,
+        field=Sensor.string_max_cell_temp_raw_c_5m,
     )
 
     string_min_module_temp_c_5m = unary_field(
         clean_temperature,
-        Sensor.string_min_module_temp_raw_c_5m.name,
+        field=Sensor.string_min_module_temp_raw_c_5m,
     )
 
     string_max_module_temp_c_5m = unary_field(
         clean_temperature,
-        Sensor.string_max_module_temp_raw_c_5m.name,
+        field=Sensor.string_max_module_temp_raw_c_5m,
     )
 
     string_avg_module_temp_c_5m = unary_field(
         clean_temperature,
-        Sensor.string_avg_module_temp_raw_c_5m.name,
+        field=Sensor.string_avg_module_temp_raw_c_5m,
     )
 
     # =======================================================
@@ -179,15 +177,15 @@ class TransformBessCleanSensor(CalcSchema):
 
     string_avg_cell_voltage_v_5m = unary_field(
         clean_cell_voltage,
-        Sensor.string_avg_cell_voltage_raw_v_5m.name,
+        field=Sensor.string_avg_cell_voltage_raw_v_5m,
     )
 
     string_min_cell_voltage_v_5m = unary_field(
         clean_cell_voltage,
-        Sensor.string_min_cell_voltage_raw_v_5m.name,
+        field=Sensor.string_min_cell_voltage_raw_v_5m,
     )
 
     string_max_cell_voltage_v_5m = unary_field(
         clean_cell_voltage,
-        Sensor.string_max_cell_voltage_raw_v_5m.name,
+        field=Sensor.string_max_cell_voltage_raw_v_5m,
     )

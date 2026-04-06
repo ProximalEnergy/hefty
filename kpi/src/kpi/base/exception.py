@@ -10,16 +10,16 @@ class DatasetAccessError(KpiError):
     """Raised when a specific variable is missing from the dataset."""
 
 
-class EmptyDataArrayError(KpiError):
+class MissingDataError(KpiError):
     """Raised when a data array is empty."""
+
+
+class MissingStaticDataError(KpiError):
+    """Raised when a static data field is missing (e.g. a device attribute)"""
 
 
 class NoDownloadedDataError(KpiError):
     """Raised when no data is found from the database."""
-
-
-class DataTypeCastingError(KpiError):
-    """Raised when a data array cannot be cast to the specified data type."""
 
 
 class ValidationError(KpiError):
