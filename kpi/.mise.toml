@@ -1,3 +1,0 @@
-[tasks.check]
-description = "Run mypy on src/kpi and lambda_function.py"
-run = "./_scripts/check.sh"

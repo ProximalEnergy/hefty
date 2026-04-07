@@ -1132,7 +1132,8 @@ if [ "${RUN_SQL_ADMIN}" = "true" ]; then
 fi
 
 if [ "${RUN_KPI}" = "true" ]; then
-    add_check "KPI: Check" "mise run kpi:check"
+    add_check "KPI: Mypy" "mise run kpi:mypy"
+    add_check "KPI: Pytest" "mise run kpi:pytest"
 fi
 
 if [ "${RUN_API}" = "true" ]; then

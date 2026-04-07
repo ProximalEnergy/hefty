@@ -91,7 +91,6 @@ cd "$NEW_WORKTREE"
 mise trust
 mise trust api/.mise.toml
 mise trust core/.mise.toml
-mise trust kpi/.mise.toml
 
 # Run sync-deps in new worktree
 echo "Setting up environments (mise run sync-deps)..."

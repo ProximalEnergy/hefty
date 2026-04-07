@@ -606,13 +606,22 @@ description = "Check which kpi core dependency source is currently configured"
 dir = "kpi"
 run = "rg '^core = ' pyproject.toml"
 
-[tasks."kpi:check"]
-description = "Run mypy for KPI (src/kpi + lambda_function.py)"
+[tasks."kpi:mypy"]
+description = "Run mypy for KPI (project root, respects pyproject exclude)"
 dir = "."
 run = """
 ROOT_DIR="$(pwd)"
 uv run --project "${ROOT_DIR}/kpi" --directory "${ROOT_DIR}/kpi" --dev -- \
-  mypy src/kpi lambda_function.py
+  mypy .
+"""
+
+[tasks."kpi:pytest"]
+description = "Run pytest for KPI (tests/)"
+dir = "."
+run = """
+ROOT_DIR="$(pwd)"
+uv run --project "${ROOT_DIR}/kpi" --directory "${ROOT_DIR}/kpi" --dev -- \
+  pytest tests
 """
 
 [tasks."api:check"]

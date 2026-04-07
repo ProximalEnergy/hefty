@@ -15,7 +15,10 @@ def prefix(x: xr.DataArray) -> str:
 
 def verify_positive(x: xr.DataArray) -> xr.DataArray:
     epsilon = 1e-6
-    if x.min() < epsilon:
+    x_min = x.min()
+    if x_min.isnull():
+        raise ValidationError(f"{prefix(x)}value is NaN")
+    if x_min < epsilon:
         raise ValidationError(f"{prefix(x)}value is non-positive: {x.min().item()}")
     return x
 

@@ -5,6 +5,7 @@ on:
     branches: [dev, staging, main]
     paths:
       - "kpi/**"
+      - ".mise.toml"
       - ".github/workflows/kpi-pr-checks.yml"
 
 concurrency:
@@ -25,7 +26,11 @@ jobs:
       - name: Install project
         run: uv sync
         working-directory: kpi
-      - name: Run KPI checks
+      - name: KPI mypy
+        run: |
+          uv run --project kpi --directory kpi --dev -- mypy .
+      - name: KPI pytest
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: bash kpi/_scripts/check.sh
+        run: |
+          uv run --project kpi --directory kpi --dev -- pytest tests

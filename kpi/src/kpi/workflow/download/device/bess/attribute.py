@@ -33,11 +33,6 @@ class DownloadDeviceBessAttribute(DeviceSchema):
 
     # pcs module
 
-    pcs_module_energy_capacity_raw_kwh = field(
-        device_type=DeviceType.BESS_PCS_MODULE,
-        source_field_name=models.Device.capacity_dc.name,
-    )
-
     pcs_module_power_capacity_raw_kw = field(
         device_type=DeviceType.BESS_PCS_MODULE,
         source_field_name=models.Device.capacity_ac.name,

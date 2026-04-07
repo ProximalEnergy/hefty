@@ -30,11 +30,6 @@ class TransformBessCleanDeviceAttribute(CalcSchema):
 
     # pcs module
 
-    pcs_module_energy_capacity_kwh = unary_field(
-        verify_positive,
-        field=T.pcs_module_energy_capacity_raw_kwh,
-    )
-
     pcs_module_power_capacity_kw = unary_field(
         verify_positive,
         field=T.pcs_module_power_capacity_raw_kw,
