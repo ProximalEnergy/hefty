@@ -694,7 +694,10 @@ async def utility_expected(
         data = await DataTimeseries(
             project_name_short=project.name_short,
             filter_method=FilterMethod.TAG_POLARS,
-            filter_values=pl.concat([tags_voltage_pl, tags_current_pl]),
+            filter_values=pl.concat(
+                [tags_voltage_pl, tags_current_pl],
+                how="vertical_relaxed",
+            ),
             query_start=start,
             query_end=end,
             project_db=project_db,
