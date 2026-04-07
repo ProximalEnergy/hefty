@@ -1,6 +1,6 @@
 import xarray as xr
 from kpi.base.enumeration import Attrs
-from kpi.base.exception import MissingStaticDataError
+from kpi.base.exception import MissingStaticDataError, NoDownloadedDataError
 from kpi.base.protocol import DeviceProtocol
 from kpi.infra.download.devices import download_device_df
 from kpi.service.field_registry import FieldRegistry
@@ -17,6 +17,10 @@ class DeviceSchema(FieldRegistry[DeviceProtocol]):
             dataset.attrs[Attrs.PROJECT_NAME_SHORT.value],
             list(device_type_ids),
         )
+        if device_df.empty:
+            raise NoDownloadedDataError(
+                f"No device data found for device types: {device_type_ids}"
+            )
         for field_name in self.plan:
             with observe(field_name=field_name):
                 value = self.get(field_name).run(device_df=device_df)

@@ -39,6 +39,7 @@ dev = [
     "pandas-stubs==3.0.0.260204",
     "plotly~=6.5.0",
     "poethepoet~=0.42.1",
+    "pytest~=9.0",
     "types-psycopg2==2.9.21.20260223",
 ]
 
@@ -109,3 +110,7 @@ plugins = ["pydantic.mypy"]
 [tool.basedpyright]
 typeCheckingMode = "off"
 extraPaths = ["../core/src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
