@@ -5,6 +5,7 @@ table creation, and image handling used across report generation modules.
 """
 
 import base64
+import math
 from io import BytesIO
 from typing import Any
 
@@ -140,7 +141,10 @@ def format_change_text_reversed(  # nosemgrep: python-enforce-keyword-only-args
 
 
 def calc_delta_percentage(
-    *, actual: float, expected: float, format_as_change: bool = False
+    *,
+    actual: float | None,
+    expected: float | None,
+    format_as_change: bool = False,
 ) -> str:
     """Calculate percentage delta between actual and expected values.
 
@@ -152,7 +156,13 @@ def calc_delta_percentage(
     Returns:
         Formatted delta string like "+5.23%" or "▲+5.23%".
     """
-    if expected == 0:
+    if (
+        actual is None
+        or expected is None
+        or math.isnan(actual)
+        or math.isnan(expected)
+        or expected == 0
+    ):
         return "—"
     val = (actual - expected) / expected * 100
     if val > 0:
