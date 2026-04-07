@@ -3,7 +3,7 @@
 import asyncio
 import copy
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from uuid import UUID
 
 import boto3
@@ -203,12 +203,24 @@ async def determine_notification_recipients(
     return users_to_notify_in_app, users_to_notify_email
 
 
-async def ensure_notification_states_exist() -> None:
-    """Ensure all notifications have appropriate notification states created.
+async def ensure_notification_states_exist(
+    *,
+    notification_types: Sequence[enumerations.NotificationType],
+) -> None:
+    """Ensure notifications of given types have notification states created.
 
     This is a safety net to handle cases where async errors or other issues
     prevented notification states from being created during the main processing.
+
+    Args:
+        notification_types: Only notifications with these type IDs are
+            considered.
     """
+    if not notification_types:
+        return
+
+    type_ids = [t.value for t in notification_types]
+
     async with AsyncSessionLambda() as db:
         try:
             # Find notifications that don't have any notification states
@@ -219,14 +231,17 @@ async def ensure_notification_states_exist() -> None:
                     models.Notification.notification_id
                     == models.NotificationState.notification_id,
                 )
-                .where(models.NotificationState.notification_id.is_(None))
+                .where(
+                    models.NotificationState.notification_id.is_(None),
+                    models.Notification.notification_type_id.in_(type_ids),
+                )
             )
             result = await db.execute(stmt)
             notifications_without_states = result.scalars().all()
 
             logger.info(
                 f"Found {len(notifications_without_states)} notifications "
-                f"without states"
+                f"without states (notification_type_ids={type_ids})"
             )
 
             for notification in notifications_without_states:

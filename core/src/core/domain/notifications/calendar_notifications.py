@@ -188,7 +188,9 @@ async def check_calendar_notifications(
             summary["errors"].append(error_msg)
 
     # Ensure notification states exist for all created notifications
-    await ensure_notification_states_exist()
+    await ensure_notification_states_exist(
+        notification_types=(enumerations.NotificationType.CALENDAR_REMINDER,),
+    )
 
     # Ensure the async engine is disposed
     try:

@@ -234,7 +234,9 @@ async def check_weather_alerts(*, api_prod: bool = True) -> dict:
     # Ensure notification states exist for all created notifications
     # This is a safety net in case async errors prevented state creation
     # during processing
-    await ensure_notification_states_exist()
+    await ensure_notification_states_exist(
+        notification_types=tuple(VALID_WEATHER_TYPES.values()),
+    )
 
     # Ensure the async engine is disposed to avoid un-awaited cancellation warnings
     try:
